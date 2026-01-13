@@ -2,8 +2,6 @@ import {
   Box,
   Button,
   ButtonVariant,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useRef } from 'react';
 import { Modal, View } from 'react-native';
@@ -50,9 +48,7 @@ const RemoveTokenBottomSheet: React.FC<RemoveTokenBottomSheetProps> = ({
           onClose={onClose}
         >
           <BottomSheetHeader onClose={handleSheetClose}>
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('wallet.remove_token_title')}
-            </Text>
+            {strings('wallet.remove_token_title')}
           </BottomSheetHeader>
 
           <Box twClassName="pt-4 mx-4 flex gap-4">

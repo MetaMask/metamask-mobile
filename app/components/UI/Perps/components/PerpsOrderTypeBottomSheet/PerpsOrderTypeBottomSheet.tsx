@@ -94,9 +94,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       onClose={externalSheetRef ? undefined : onClose}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.type.title')}
-        </Text>
+        {strings('perps.order.type.title')}
       </BottomSheetHeader>
 
       <View style={styles.container}>

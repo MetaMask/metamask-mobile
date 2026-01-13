@@ -28,7 +28,6 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextColor,
-  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
@@ -126,9 +125,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
         <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('sdk.manage_connections')}
-          </Text>
+          {strings('sdk.manage_connections')}
         </BottomSheetHeader>
         <TagUrl imageSource={{ uri: icon }} label={urlOrTitle} />
         {version && platform && (

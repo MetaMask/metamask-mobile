@@ -556,9 +556,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={handleDepthBandSheetClose}
         >
           <BottomSheetHeader onClose={handleDepthBandSheetClose}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.order_book.depth_band.title')}
-            </Text>
+            {strings('perps.order_book.depth_band.title')}
           </BottomSheetHeader>
           <View style={styles.depthBandSheetContent}>
             {groupingOptions.map((value) => (

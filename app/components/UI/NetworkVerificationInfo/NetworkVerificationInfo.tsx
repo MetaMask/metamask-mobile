@@ -398,18 +398,16 @@ const NetworkVerificationInfo = ({
   ) : (
     <View testID={NetworkApprovalBottomSheetSelectorsIDs.CONTAINER}>
       <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingMD}>
-          {isCustomNetwork
-            ? strings('networks.add_custom_network')
-            : strings(
-                isNetworkRpcUpdate
-                  ? 'networks.update_network'
-                  : 'networks.add_specific_network',
-                {
-                  network_name: customNetworkInformation.chainName,
-                },
-              )}
-        </Text>
+        {isCustomNetwork
+          ? strings('networks.add_custom_network')
+          : strings(
+              isNetworkRpcUpdate
+                ? 'networks.update_network'
+                : 'networks.add_specific_network',
+              {
+                network_name: customNetworkInformation.chainName,
+              },
+            )}
       </BottomSheetHeader>
       <ScrollView style={styles.root}>
         <PickerNetwork

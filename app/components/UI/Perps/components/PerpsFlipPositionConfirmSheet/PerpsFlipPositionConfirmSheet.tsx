@@ -162,9 +162,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       onClose={externalSheetRef ? onClose : undefined}
     >
       <BottomSheetHeader onClose={handleCloseInternal}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.flip_position.title')}
-        </Text>
+        {strings('perps.flip_position.title')}
       </BottomSheetHeader>
 
       <View style={styles.contentContainer}>

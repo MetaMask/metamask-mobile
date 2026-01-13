@@ -158,7 +158,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
         onClose={handleClose}
         closeButtonProps={{ style: closeButtonStyle.closeButton }}
       >
-        <Text variant={TextVariant.HeadingMD}>{strings('trending.time')}</Text>
+        {strings('trending.time')}
       </BottomSheetHeader>
       <View style={optionStyles.optionsList}>
         <TouchableOpacity

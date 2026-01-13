@@ -220,9 +220,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         onClose={externalSheetRef ? onExternalClose : undefined}
       >
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.cancel_all_modal.title')}
-          </Text>
+          {strings('perps.cancel_all_modal.title')}
         </BottomSheetHeader>
         <View style={styles.emptyContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -240,9 +238,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
       onClose={externalSheetRef ? onExternalClose : undefined}
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.cancel_all_modal.title')}
-        </Text>
+        {strings('perps.cancel_all_modal.title')}
       </BottomSheetHeader>
 
       <View style={styles.contentContainer}>

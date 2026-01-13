@@ -142,16 +142,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         onClose={onClose}
         testID={testID}
       >
-        {!hasCustomHeader && (
-          <BottomSheetHeader>
-            <Text
-              variant={TextVariant.HeadingMD}
-              testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
-            >
-              {title}
-            </Text>
-          </BottomSheetHeader>
-        )}
+        {!hasCustomHeader && <BottomSheetHeader>{title}</BottomSheetHeader>}
         <View style={styles.contentContainer}>{renderContent()}</View>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}

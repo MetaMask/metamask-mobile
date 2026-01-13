@@ -334,9 +334,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
       onClose={onClose}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.limit_price_modal.title')}
-        </Text>
+        {strings('perps.order.limit_price_modal.title')}
       </BottomSheetHeader>
 
       <View style={styles.container}>

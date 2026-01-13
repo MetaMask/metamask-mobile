@@ -155,9 +155,7 @@ const AddFundsBottomSheet: React.FC = () => {
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingSM}>
-          {strings('card.add_funds_bottomsheet.select_method')}
-        </Text>
+        {strings('card.add_funds_bottomsheet.select_method')}
       </BottomSheetHeader>
       <FlatList
         scrollEnabled={false}

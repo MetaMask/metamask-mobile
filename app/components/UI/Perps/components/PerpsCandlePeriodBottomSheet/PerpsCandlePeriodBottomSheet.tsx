@@ -129,9 +129,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.chart.candle_intervals')}
-        </Text>
+        {strings('perps.chart.candle_intervals')}
       </BottomSheetHeader>
       <Box>
         {showAllPeriods && periodSections ? (

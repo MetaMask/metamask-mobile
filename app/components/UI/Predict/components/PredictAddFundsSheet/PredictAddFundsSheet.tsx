@@ -73,9 +73,7 @@ const PredictAddFundsSheet = forwardRef<
       onClose={handleSheetClosed}
     >
       <BottomSheetHeader onClose={handleClose} style={tw.style('px-6 py-4')}>
-        <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-          {strings('predict.add_funds_sheet.title')}
-        </Text>
+        {strings('predict.add_funds_sheet.title')}
       </BottomSheetHeader>
       <Box
         alignItems={BoxAlignItems.Start}

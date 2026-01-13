@@ -64,9 +64,7 @@ function UnsupportedRegionModal() {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
       <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.region.unsupported')}
-        </Text>
+        {strings('fiat_on_ramp_aggregator.region.unsupported')}
       </BottomSheetHeader>
 
       <View style={styles.content}>

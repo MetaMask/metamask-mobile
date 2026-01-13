@@ -91,9 +91,7 @@ function UnsupportedStateModal() {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('deposit.unsupported_state_modal.title')}
-        </Text>
+        {strings('deposit.unsupported_state_modal.title')}
       </BottomSheetHeader>
 
       <View style={styles.content}>

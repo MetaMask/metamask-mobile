@@ -107,9 +107,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.modify.title')}
-        </Text>
+        {strings('perps.modify.title')}
       </BottomSheetHeader>
       <Box style={styles.contentContainer}>
         {actionOptions.map((option, index) => (

@@ -258,9 +258,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={externalSheetRef ? onExternalClose : undefined}
       >
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.close_all_modal.title')}
-          </Text>
+          {strings('perps.close_all_modal.title')}
         </BottomSheetHeader>
         <View style={styles.loadingContainer}>
           <ActivityIndicator
@@ -281,9 +279,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={externalSheetRef ? onExternalClose : undefined}
       >
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.close_all_modal.title')}
-          </Text>
+          {strings('perps.close_all_modal.title')}
         </BottomSheetHeader>
         <View style={styles.emptyContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -301,9 +297,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       onClose={externalSheetRef ? onExternalClose : undefined}
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.close_all_modal.title')}
-        </Text>
+        {strings('perps.close_all_modal.title')}
       </BottomSheetHeader>
 
       <View style={styles.contentContainer}>

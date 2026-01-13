@@ -1,12 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import {
-  Text,
-  TextVariant,
-  Icon,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Text, Icon, IconName } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
@@ -334,9 +329,7 @@ const AssetOptions = (props: Props) => {
   return (
     <BottomSheet ref={modalRef}>
       <BottomSheetHeader onClose={() => modalRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('asset_details.options.title')}
-        </Text>
+        {strings('asset_details.options.title')}
       </BottomSheetHeader>
       <View>{renderOptions()}</View>
     </BottomSheet>

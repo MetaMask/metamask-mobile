@@ -191,9 +191,7 @@ const PoolStakingLearnMoreModal = () => {
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <ScrollView bounces={false}>
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingSM}>
-            {strings('stake.stake_eth_and_earn')}
-          </Text>
+          {strings('stake.stake_eth_and_earn')}
         </BottomSheetHeader>
         {Boolean(reversedVaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart

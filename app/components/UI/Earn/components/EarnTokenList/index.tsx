@@ -9,10 +9,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
@@ -379,11 +375,9 @@ const EarnTokenList = () => {
   return (
     <BottomSheet ref={bottomSheetRef}>
       <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingSM}>
-          {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
-            ? strings('stake.select_a_token_to_withdraw')
-            : strings('stake.select_a_token_to_deposit')}
-        </Text>
+        {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
+          ? strings('stake.select_a_token_to_withdraw')
+          : strings('stake.select_a_token_to_deposit')}
       </BottomSheetHeader>
       <View style={styles.flatList}>
         <FlatList

@@ -82,9 +82,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.adjust_margin.title')}
-        </Text>
+        {strings('perps.adjust_margin.title')}
       </BottomSheetHeader>
       <View style={styles.container}>
         {actionOptions.map((option, index) => (

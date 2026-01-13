@@ -42,9 +42,7 @@ const MaxInputModal = () => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
         <BottomSheetHeader onClose={handleCancel}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('stake.max_modal.title')}
-          </Text>
+          {strings('stake.max_modal.title')}
         </BottomSheetHeader>
         <View style={styles.textContainer}>
           <Text variant={TextVariant.BodyMD}>

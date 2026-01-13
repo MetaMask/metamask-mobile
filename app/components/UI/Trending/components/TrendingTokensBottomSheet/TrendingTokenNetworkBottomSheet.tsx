@@ -149,9 +149,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
         onClose={handleClose}
         closeButtonProps={{ style: closeButtonStyle.closeButton }}
       >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('trending.networks')}
-        </Text>
+        {strings('trending.networks')}
       </BottomSheetHeader>
       <ScrollView style={optionStyles.optionsList}>
         <TouchableOpacity

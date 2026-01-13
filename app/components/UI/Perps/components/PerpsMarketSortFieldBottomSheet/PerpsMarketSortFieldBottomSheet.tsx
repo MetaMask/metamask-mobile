@@ -75,9 +75,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.sort.sort_by')}
-        </Text>
+        {strings('perps.sort.sort_by')}
       </BottomSheetHeader>
       <Box style={styles.optionsList}>
         {/* Render sort options */}

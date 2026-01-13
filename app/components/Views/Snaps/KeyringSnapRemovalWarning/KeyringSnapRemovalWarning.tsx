@@ -158,11 +158,9 @@ export default function KeyringSnapRemovalWarning({
     >
       <View style={styles.container}>
         <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings(
-              'app_settings.snaps.snap_settings.remove_account_snap_warning.title',
-            )}
-          </Text>
+          {strings(
+            'app_settings.snaps.snap_settings.remove_account_snap_warning.title',
+          )}
         </BottomSheetHeader>
         <BannerAlert
           severity={BannerAlertSeverity.Warning}

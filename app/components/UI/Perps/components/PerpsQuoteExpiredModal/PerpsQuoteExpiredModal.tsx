@@ -46,9 +46,7 @@ const PerpsQuoteExpiredModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.deposit.quote_expired_modal.title')}
-        </Text>
+        {strings('perps.deposit.quote_expired_modal.title')}
       </BottomSheetHeader>
       <View style={styles.container}>
         <Text variant={TextVariant.BodyMD}>

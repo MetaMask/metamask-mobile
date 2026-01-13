@@ -179,9 +179,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
         onClose={handleClose}
         closeButtonProps={{ style: closeButtonStyle.closeButton }}
       >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('trending.sort_by')}
-        </Text>
+        {strings('trending.sort_by')}
       </BottomSheetHeader>
       <View style={optionStyles.optionsList}>
         <TouchableOpacity

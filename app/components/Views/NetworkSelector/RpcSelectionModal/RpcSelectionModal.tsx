@@ -160,9 +160,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
     >
       {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
       <BottomSheetHeader style={styles.baseHeader}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('app_settings.select_rpc_url')}{' '}
-        </Text>
+        {strings('app_settings.select_rpc_url')}{' '}
         <Cell
           variant={CellVariant.Display}
           title={Networks.mainnet.name}

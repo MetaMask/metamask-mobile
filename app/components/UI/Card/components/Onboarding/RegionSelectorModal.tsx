@@ -215,9 +215,7 @@ function RegionSelectorModal() {
       testID="region-selector-modal"
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('card.card_onboarding.region_selector.title')}
-        </Text>
+        {strings('card.card_onboarding.region_selector.title')}
       </BottomSheetHeader>
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch

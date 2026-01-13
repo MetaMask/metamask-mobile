@@ -374,9 +374,7 @@ const RewardOptInAccountGroupModal: React.FC = () => {
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
         <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingSm}>
-            {accountGroupContext?.metadata?.name}
-          </Text>
+          {accountGroupContext?.metadata?.name}
         </BottomSheetHeader>
       )}
 

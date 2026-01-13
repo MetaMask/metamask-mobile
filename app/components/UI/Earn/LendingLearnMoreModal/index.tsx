@@ -286,9 +286,7 @@ export const LendingLearnMoreModal = () => {
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('earn.how_it_works')}
-        </Text>
+        {strings('earn.how_it_works')}
       </BottomSheetHeader>
       <Animated.View style={animatedChartContainerStyle}>
         {showChart && (

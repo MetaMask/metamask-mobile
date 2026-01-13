@@ -588,9 +588,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       onClose={onClose}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.leverage_modal.title')}
-        </Text>
+        {strings('perps.order.leverage_modal.title')}
       </BottomSheetHeader>
 
       <View style={styles.container}>

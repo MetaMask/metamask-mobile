@@ -42,9 +42,7 @@ function RampUnsupportedModal() {
         onClose={handleClose}
         closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
       >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}
-        </Text>
+        {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}
       </BottomSheetHeader>
 
       <Box twClassName="px-6 pb-6">

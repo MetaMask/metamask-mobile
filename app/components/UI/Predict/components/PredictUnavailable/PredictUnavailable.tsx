@@ -116,9 +116,7 @@ const PredictUnavailable = forwardRef<
       onClose={handleSheetClosed}
     >
       <BottomSheetHeader onClose={handleClose} style={tw.style('px-6 py-4')}>
-        <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-          {strings('predict.unavailable.title')}
-        </Text>
+        {strings('predict.unavailable.title')}
       </BottomSheetHeader>
 
       <TouchableOpacity

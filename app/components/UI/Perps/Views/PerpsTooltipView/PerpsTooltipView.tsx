@@ -83,11 +83,7 @@ const PerpsTooltipView: React.FC = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef} shouldNavigateBack onClose={handleClose}>
-      {!hasCustomHeader && (
-        <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingMD}>{title}</Text>
-        </BottomSheetHeader>
-      )}
+      {!hasCustomHeader && <BottomSheetHeader>{title}</BottomSheetHeader>}
       <View style={styles.contentContainer}>{renderContent()}</View>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}

@@ -83,9 +83,7 @@ const PerpsStocksCommoditiesBottomSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.home.filter_by')}
-        </Text>
+        {strings('perps.home.filter_by')}
       </BottomSheetHeader>
       <Box style={styles.optionsList}>
         {/* Render filter options */}

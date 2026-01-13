@@ -138,9 +138,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
-        <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingMD}>{strings(title)}</Text>
-        </BottomSheetHeader>
+        <BottomSheetHeader>{strings(title)}</BottomSheetHeader>
         <Text variant={TextVariant.BodyMD}>
           {strings(description, { account: accountName, dapp })}
         </Text>

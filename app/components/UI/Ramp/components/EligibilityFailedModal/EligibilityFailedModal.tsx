@@ -53,9 +53,7 @@ function EligibilityFailedModal() {
         onClose={handleClose}
         closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
       >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
-        </Text>
+        {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
       </BottomSheetHeader>
 
       <View style={styles.content}>

@@ -24,11 +24,9 @@ const LendingMaxWithdrawalModal = () => {
     <BottomSheet ref={sheetRef}>
       <View>
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingSM}>
-            {strings(
-              'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.why_cant_i_withdraw_full_balance',
-            )}
-          </Text>
+          {strings(
+            'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.why_cant_i_withdraw_full_balance',
+          )}
         </BottomSheetHeader>
         <View style={styles.bodyTextContainer}>
           <Text>{`${strings(
