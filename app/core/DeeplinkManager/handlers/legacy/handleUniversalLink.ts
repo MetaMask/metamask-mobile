@@ -259,12 +259,14 @@ async function handleUniversalLink({
   // Check if signature parameter exists and has a value
   const sigParam = validatedUrl.searchParams.get('sig');
   const hasValidSignature = sigParam && sigParam.trim() !== '';
-  const signatureStatus: SignatureStatus =
-    isPrivateLink && hasValidSignature
-      ? SignatureStatus.VALID
-      : hasValidSignature
-        ? SignatureStatus.INVALID
-        : SignatureStatus.MISSING;
+  let signatureStatus: SignatureStatus;
+  if (isPrivateLink && hasValidSignature) {
+    signatureStatus = SignatureStatus.VALID;
+  } else if (hasValidSignature) {
+    signatureStatus = SignatureStatus.INVALID;
+  } else {
+    signatureStatus = SignatureStatus.MISSING;
+  }
 
   const route = mapSupportedActionToRoute(action as unknown as SupportedAction);
 
