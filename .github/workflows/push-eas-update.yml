@@ -227,15 +227,12 @@ jobs:
             exit 1
           fi
 
-          # Use provided path if set, fallback to default
-          KEY_PATH="${EXPO_KEY_PRIV_B64:-/tmp/key.pem}"
-          echo "$EXPO_KEY_PRIV_B64" | base64 --decode > "$KEY_PATH"
-          echo "✅ Android keystore written to $KEY_PATH"
-
-      - name: Use the exported secrets
-        run: |
-          # If the key in the JSON was "EXPO_KEY_PRIV", access it directly:
-          echo "First 3 chars: ${DECODED_KEY:0:3}..."
+          # Decode to variable
+          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          echo "::add-mask::$EXPO_KEY_PRIV"
+          echo "EXPO_KEY_PRIV=$EXPO_KEY_PRIV" >> "$GITHUB_ENV"
+          echo "First 3 chars: ${EXPO_KEY_PRIV:0:3}..."
+          echo "✅ Expo key decoded and exported"
         
 
       # - name: Install dependencies
