@@ -63,8 +63,6 @@ class TabBarComponent {
         elemDescription: 'Close browser button',
         timeout: 1000,
       });
-      // Small delay for close animation
-      await device.delay(500);
     } catch {
       // Browser not open, continue
     }
@@ -118,8 +116,6 @@ class TabBarComponent {
         elemDescription: 'Close browser button',
         timeout: 1000,
       });
-      // Small delay for close animation
-      await device.delay(500);
     } catch {
       // Browser not open, continue
     }
