@@ -33,8 +33,9 @@ export const useLiveMarketPrices = (
   const isMountedRef = useRef(true);
   const tokenIdsRef = useRef(tokenIds);
 
+  // Use JSON.stringify to avoid key collisions if token IDs contain commas
   const tokenIdsKey = useMemo(
-    () => [...tokenIds].sort((a, b) => a.localeCompare(b)).join(','),
+    () => JSON.stringify([...tokenIds].sort((a, b) => a.localeCompare(b))),
     [tokenIds],
   );
 
@@ -60,12 +61,12 @@ export const useLiveMarketPrices = (
   useEffect(() => {
     isMountedRef.current = true;
 
-    // Reset prices when token set changes to avoid stale data from previous subscriptions
+    // Reset state when token set changes to avoid stale data from previous subscriptions
     setPrices(new Map());
+    setLastUpdateTime(null);
 
     if (!enabled || tokenIdsRef.current.length === 0) {
       setIsConnected(false);
-      setLastUpdateTime(null);
       return;
     }
 

@@ -305,5 +305,47 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.prices.size).toBe(0);
       expect(result.current.isConnected).toBe(false);
     });
+
+    it('resets lastUpdateTime when tokenIds change to different valid value', () => {
+      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
+      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const mockNow = 1704067200000;
+      jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+      const { result, rerender } = renderHook(
+        ({ tokenIds }) => useLiveMarketPrices(tokenIds),
+        { initialProps: { tokenIds: ['token1'] } },
+      );
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.75, bestBid: 0.74, bestAsk: 0.76 },
+        ]);
+      });
+
+      expect(result.current.lastUpdateTime).toBe(mockNow);
+
+      rerender({ tokenIds: ['token2'] });
+
+      expect(result.current.lastUpdateTime).toBeNull();
+      expect(result.current.prices.size).toBe(0);
+    });
+
+    it('differentiates tokenIds with commas that could otherwise collide', () => {
+      const { rerender } = renderHook(
+        ({ tokenIds }) => useLiveMarketPrices(tokenIds),
+        { initialProps: { tokenIds: ['a,b', 'c'] } },
+      );
+
+      expect(mockSubscribeToMarketPrices).toHaveBeenCalledTimes(1);
+
+      rerender({ tokenIds: ['a', 'b,c'] });
+
+      expect(mockSubscribeToMarketPrices).toHaveBeenCalledTimes(2);
+    });
   });
 });
