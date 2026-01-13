@@ -208,7 +208,7 @@ runs:
         elif [ -f "$COMMENT_FILE" ]; then
           COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
-          COMMENT_BODY="⚠️ **Smart E2E selection unavailable** - will run all E2E tests as a precaution, if applicable based on changed files."
+          COMMENT_BODY="⚠️ AI analysis was inconclusive. Selecting all E2E tests as a fallback, if applicable based on changed files."
         fi
 
         # Build and post comment
