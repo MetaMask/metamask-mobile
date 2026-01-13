@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { constants } from 'ethers';
+import { BtcAccountType } from '@metamask/keyring-api';
 import { useTokensWithBalances } from './useTokensWithBalances';
 import {
   createMockPopularToken,
@@ -173,6 +174,55 @@ describe('useTokensWithBalances', () => {
         isSource: true,
         isDestination: false,
       });
+    });
+  });
+
+  describe('accountType property', () => {
+    it('merges accountType from balance data when available', () => {
+      const assetId =
+        'bip122:000000000019d6689c085ae165831e93/slip44:0' as CaipAssetType;
+      const mockToken = createMockPopularToken({ assetId, symbol: 'BTC' });
+      const balanceData = createMockBalanceData({
+        balance: '0.5',
+        balanceFiat: '$15000',
+        accountType: BtcAccountType.P2wpkh,
+      });
+      const balancesByAssetId: BalancesByAssetId = { [assetId]: balanceData };
+
+      const { result } = renderHook(() =>
+        useTokensWithBalances([mockToken], balancesByAssetId),
+      );
+
+      expect(result.current[0].accountType).toBe(BtcAccountType.P2wpkh);
+    });
+
+    it('returns undefined accountType when balance data does not include it', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const mockToken = createMockPopularToken({ assetId });
+      const balanceData = createMockBalanceData({
+        balance: '500.0',
+        accountType: undefined,
+      });
+      const balancesByAssetId: BalancesByAssetId = { [assetId]: balanceData };
+
+      const { result } = renderHook(() =>
+        useTokensWithBalances([mockToken], balancesByAssetId),
+      );
+
+      expect(result.current[0].accountType).toBeUndefined();
+    });
+
+    it('returns undefined accountType when no balance data exists', () => {
+      const mockToken = createMockPopularToken({
+        symbol: 'TEST',
+      });
+
+      const { result } = renderHook(() =>
+        useTokensWithBalances([mockToken], {}),
+      );
+
+      expect(result.current[0].accountType).toBeUndefined();
     });
   });
 });
