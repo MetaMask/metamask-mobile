@@ -20,7 +20,7 @@ const createMockStore = (rampsControllerState = {}) =>
       engine: () => ({
         backgroundState: {
           RampsController: {
-            geolocation: null,
+            userRegion: null,
             requests: {},
             ...rampsControllerState,
           },
@@ -87,7 +87,7 @@ describe('useRampsGeolocation', () => {
 
   describe('geolocation state', () => {
     it('returns geolocation from state', () => {
-      const store = createMockStore({ geolocation: 'US-CA' });
+      const store = createMockStore({ userRegion: 'US-CA' });
 
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
@@ -205,7 +205,37 @@ describe('useRampsGeolocation', () => {
     });
   });
 
-  describe('useEffect error handling', () => {
+  describe('useEffect behavior', () => {
+    it('calls fetchGeolocation on mount', async () => {
+      const store = createMockStore();
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion.mockResolvedValue('US-CA');
+
+      renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateUserRegion).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls fetchGeolocation with undefined options on mount', async () => {
+      const store = createMockStore();
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion.mockResolvedValue('US-CA');
+
+      renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateUserRegion).toHaveBeenCalledWith(undefined);
+      });
+    });
+
     it('returns default state when updateUserRegion rejects in useEffect', async () => {
       const store = createMockStore();
       const mockUpdateUserRegion = Engine.context.RampsController
@@ -227,6 +257,250 @@ describe('useRampsGeolocation', () => {
         error: null,
       });
       expect(typeof result.current.fetchGeolocation).toBe('function');
+    });
+  });
+
+  describe('request status states', () => {
+    it('returns isLoading false when request status is IDLE', () => {
+      const store = createMockStore({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.IDLE,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(null);
+    });
+
+    it('returns isLoading false when request status is SUCCESS', () => {
+      const store = createMockStore({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.SUCCESS,
+            data: 'US-CA',
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(null);
+    });
+
+    it('returns isLoading true when request status is LOADING', () => {
+      const store = createMockStore({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('returns error when request status is ERROR', () => {
+      const store = createMockStore({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.ERROR,
+            data: null,
+            error: 'Failed to fetch geolocation',
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe('Failed to fetch geolocation');
+    });
+  });
+
+  describe('fetchGeolocation return value', () => {
+    it('returns the value from updateUserRegion', async () => {
+      const store = createMockStore();
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      const expectedValue = 'US-NY';
+      mockUpdateUserRegion.mockResolvedValue(expectedValue);
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateUserRegion).toHaveBeenCalled();
+      });
+
+      const returnedValue = await result.current.fetchGeolocation();
+
+      expect(returnedValue).toBe(expectedValue);
+    });
+
+    it('returns different values on subsequent calls', async () => {
+      const store = createMockStore();
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion
+        .mockResolvedValueOnce('US') // First call from useEffect
+        .mockResolvedValueOnce('US-CA') // Second call from manual fetch
+        .mockResolvedValueOnce('US-NY'); // Third call from manual fetch
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateUserRegion).toHaveBeenCalled();
+      });
+
+      const firstValue = await result.current.fetchGeolocation();
+      expect(firstValue).toBe('US-CA');
+
+      const secondValue = await result.current.fetchGeolocation();
+      expect(secondValue).toBe('US-NY');
+    });
+  });
+
+  describe('hook reads from store state', () => {
+    it('reads geolocation from store state', () => {
+      const store = createMockStore({ userRegion: 'US-CA' });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.geolocation).toBe('US-CA');
+    });
+
+    it('reads different geolocation values from different store states', () => {
+      const store1 = createMockStore({ userRegion: 'US-CA' });
+      const { result: result1 } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store1),
+      });
+      expect(result1.current.geolocation).toBe('US-CA');
+
+      const store2 = createMockStore({ userRegion: 'US-NY' });
+      const { result: result2 } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store2),
+      });
+      expect(result2.current.geolocation).toBe('US-NY');
+    });
+
+    it('reads isLoading from different request states', () => {
+      const store1 = createMockStore({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.IDLE,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const { result: result1 } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store1),
+      });
+      expect(result1.current.isLoading).toBe(false);
+
+      const store2 = createMockStore({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+
+      const { result: result2 } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store2),
+      });
+      expect(result2.current.isLoading).toBe(true);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('handles empty requests object', () => {
+      const store = createMockStore({
+        requests: {},
+      });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(null);
+    });
+
+    it('handles null geolocation value', () => {
+      const store = createMockStore({ userRegion: null });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.geolocation).toBe(null);
+    });
+
+    it('handles empty string geolocation value', () => {
+      const store = createMockStore({ userRegion: '' });
+
+      const { result } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.geolocation).toBe('');
+    });
+
+    it('maintains fetchGeolocation function reference across renders', () => {
+      const store = createMockStore();
+
+      const { result, rerender } = renderHook(() => useRampsGeolocation(), {
+        wrapper: wrapper(store),
+      });
+
+      const firstRenderFunction = result.current.fetchGeolocation;
+
+      rerender();
+
+      const secondRenderFunction = result.current.fetchGeolocation;
+
+      expect(firstRenderFunction).toBe(secondRenderFunction);
     });
   });
 });
