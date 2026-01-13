@@ -122,6 +122,25 @@ jest.mock('./safe/utils', () => ({
   getSafeUsdcAmount: jest.fn().mockReturnValue(1000000),
 }));
 
+const mockGameCacheInstance = {
+  overlayOnMarket: jest.fn((market) => market),
+  overlayOnMarkets: jest.fn((markets) => markets),
+  updateGame: jest.fn(),
+  getGame: jest.fn(),
+  pruneStaleEntries: jest.fn(),
+  cleanup: jest.fn(),
+  clear: jest.fn(),
+  getCacheSize: jest.fn(),
+  getCachedGameIds: jest.fn(),
+};
+
+jest.mock('./GameCache', () => ({
+  GameCache: {
+    getInstance: jest.fn(() => mockGameCacheInstance),
+    resetInstance: jest.fn(),
+  },
+}));
+
 jest.mock('../../../../../util/transactions', () => ({
   generateTransferData: jest.fn(),
   isSmartContractAddress: jest.fn(),
@@ -6366,6 +6385,116 @@ describe('PolymarketProvider', () => {
       const provider = new PolymarketProvider();
 
       expect(provider.providerId).toBe('polymarket');
+    });
+  });
+
+  describe('GameCache integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockGameCacheInstance.overlayOnMarket.mockImplementation(
+        (market) => market,
+      );
+      mockGameCacheInstance.overlayOnMarkets.mockImplementation(
+        (markets) => markets,
+      );
+    });
+
+    describe('getMarkets', () => {
+      it('applies GameCache overlay to fetched markets', async () => {
+        const provider = new PolymarketProvider();
+        const mockMarkets = [
+          { id: 'market-1', title: 'Test Market 1' },
+          { id: 'market-2', title: 'Test Market 2' },
+        ];
+        mockGetMarketsFromPolymarketApi.mockResolvedValue(mockMarkets);
+
+        await provider.getMarkets();
+
+        expect(mockGameCacheInstance.overlayOnMarkets).toHaveBeenCalledWith(
+          mockMarkets,
+        );
+      });
+
+      it('returns markets with cached game data overlay applied', async () => {
+        const provider = new PolymarketProvider();
+        const mockMarkets = [{ id: 'market-1', title: 'Test Market' }];
+        const overlaidMarkets = [
+          {
+            id: 'market-1',
+            title: 'Test Market',
+            gameData: { score: '3-2', status: 'live' },
+          },
+        ];
+        mockGetMarketsFromPolymarketApi.mockResolvedValue(mockMarkets);
+        mockGameCacheInstance.overlayOnMarkets.mockReturnValue(overlaidMarkets);
+
+        const result = await provider.getMarkets();
+
+        expect(result).toEqual(overlaidMarkets);
+      });
+
+      it('returns empty array when API fails without calling GameCache overlay', async () => {
+        const provider = new PolymarketProvider();
+        mockGetMarketsFromPolymarketApi.mockRejectedValue(
+          new Error('API error'),
+        );
+
+        const result = await provider.getMarkets();
+
+        expect(result).toEqual([]);
+        expect(mockGameCacheInstance.overlayOnMarkets).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('getMarketDetails', () => {
+      it('applies GameCache overlay to fetched market details', async () => {
+        const provider = new PolymarketProvider();
+        const mockEvent = { id: 'market-1', question: 'Test Market?' };
+        const parsedMarket = {
+          id: 'market-1',
+          title: 'Test Market',
+          providerId: 'polymarket',
+        };
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
+
+        await provider.getMarketDetails({ marketId: 'market-1' });
+
+        expect(mockGameCacheInstance.overlayOnMarket).toHaveBeenCalledWith(
+          parsedMarket,
+        );
+      });
+
+      it('returns market with cached game data overlay applied', async () => {
+        const provider = new PolymarketProvider();
+        const mockEvent = { id: 'market-1', question: 'Test Market?' };
+        const parsedMarket = { id: 'market-1', title: 'Test Market' };
+        const overlaidMarket = {
+          id: 'market-1',
+          title: 'Test Market',
+          gameData: { score: '1-0', status: 'live', elapsed: '45:00' },
+        };
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
+        mockGameCacheInstance.overlayOnMarket.mockReturnValue(overlaidMarket);
+
+        const result = await provider.getMarketDetails({
+          marketId: 'market-1',
+        });
+
+        expect(result).toEqual(overlaidMarket);
+      });
+
+      it('throws error when parsing fails without calling GameCache overlay', async () => {
+        const provider = new PolymarketProvider();
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue({});
+        mockParsePolymarketEvents.mockReturnValue([]);
+
+        await expect(
+          provider.getMarketDetails({ marketId: 'market-1' }),
+        ).rejects.toThrow('Failed to parse market details');
+        expect(mockGameCacheInstance.overlayOnMarket).not.toHaveBeenCalled();
+      });
     });
   });
 });
