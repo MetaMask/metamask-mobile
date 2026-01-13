@@ -238,7 +238,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Lg}
           onPress={onBackPress}
-          disabled={!canGoBack}
+          isDisabled={!canGoBack}
           testID={BrowserViewSelectorsIDs.BACK_BUTTON}
         />
 
@@ -247,7 +247,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
           iconName={IconName.ArrowRight}
           size={ButtonIconSize.Lg}
           onPress={onForwardPress}
-          disabled={!canGoForward}
+          isDisabled={!canGoForward}
           testID={BrowserViewSelectorsIDs.FORWARD_BUTTON}
         />
 
