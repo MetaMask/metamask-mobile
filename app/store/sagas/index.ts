@@ -47,8 +47,14 @@ export function* appLockStateMachine() {
       biometricsStateMachine,
       bioStateMachineId,
     );
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
-      bioStateMachineId,
+    NavigationService.navigation?.reset({
+      index: 0,
+      routes: [
+        {
+          name: Routes.LOCK_SCREEN,
+          params: { bioStateMachineId },
+        },
+      ],
     });
   }
 }
