@@ -65,7 +65,8 @@ const ImportNewSecretRecoveryPhrase = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useAppTheme();
-  const styles = createStyles(colors);
+  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+  const styles = createStyles(colors, isKeyboardVisible);
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
@@ -79,8 +80,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const isSrpWordSuggestionsEnabled = useSelector(
     selectImportSrpWordSuggestionEnabledFlag,
   );
-
-  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();

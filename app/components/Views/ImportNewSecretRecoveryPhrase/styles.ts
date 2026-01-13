@@ -4,7 +4,7 @@ import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { Colors } from '../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
+const createStyles = (colors: Colors, isKeyboardVisible = false) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
@@ -85,7 +85,7 @@ const createStyles = (colors: Colors) =>
       marginTop: 24,
     },
     button: {
-      marginBottom: Device.isIphoneX() ? 20 : 0,
+      marginBottom: 0,
     },
     top: {
       paddingTop: 0,
@@ -121,7 +121,7 @@ const createStyles = (colors: Colors) =>
     stickyButtonContainer: {
       paddingHorizontal: 16,
       paddingTop: 12,
-      paddingBottom: 16,
+      paddingBottom: isKeyboardVisible ? 6 : 32,
       backgroundColor: colors.background.default,
     },
   });
