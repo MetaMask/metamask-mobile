@@ -125,13 +125,20 @@ export async function handleIntentTransaction(
       throw new Error('Intent order is missing from quote response');
     }
     // TODO: this should be mapped directly inside Crosschain API
+    const validTo = Number(order.validTo);
+    if (Number.isNaN(validTo)) {
+      throw new Error(
+        'Intent order validTo is missing or invalid in quote response',
+      );
+    }
+
     const message: IntentOrderInput = {
       ...order,
       appDataHash: normalizeAppData(order.appData),
       receiver: (order.receiver as Hex) ?? accountAddress,
       sellAmount: order.sellAmount ?? '0',
       buyAmount: order.buyAmount ?? '0',
-      validTo: Number(order.validTo),
+      validTo,
       feeAmount: '0',
       sellTokenBalance: 'erc20',
       buyTokenBalance: 'erc20',

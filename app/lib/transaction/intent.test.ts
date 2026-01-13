@@ -306,6 +306,102 @@ describe('intent', () => {
       ).rejects.toThrow('Intent order is missing from quote response');
     });
 
+    it('throws error when order.validTo is undefined', async () => {
+      const quoteResponse = createMockQuoteResponse({
+        quote: {
+          requestId: 'test-request-id',
+          srcChainId: 1,
+          destChainId: 10,
+          srcAsset: {
+            chainId: 1,
+            address: '0x123',
+            decimals: 18,
+            symbol: 'TOKEN1',
+            name: 'Token One',
+          },
+          destAsset: {
+            chainId: 10,
+            address: '0x456',
+            decimals: 18,
+            symbol: 'TOKEN2',
+            name: 'Token Two',
+          },
+          srcTokenAmount: '1000000000000000000',
+          destTokenAmount: '2000000000000000000',
+          intent: {
+            protocol: 'cowswap',
+            order: {
+              sellToken: '0x0000000000000000000000000000000000000000',
+              buyToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              sellAmount: '1000000000000000000',
+              buyAmount: '2000000000',
+              // validTo is intentionally missing
+              appData: '0x',
+              receiver: '0x1234567890123456789012345678901234567890',
+            },
+            settlementContract: '0x9008D19f58AAbd9eD0D60971565AA8510560ab41',
+          },
+        },
+      } as unknown as BridgeQuoteResponse);
+
+      await expect(
+        handleIntentTransaction(
+          quoteResponse,
+          '0x1234567890123456789012345678901234567890',
+        ),
+      ).rejects.toThrow(
+        'Intent order validTo is missing or invalid in quote response',
+      );
+    });
+
+    it('throws error when order.validTo is an invalid string', async () => {
+      const quoteResponse = createMockQuoteResponse({
+        quote: {
+          requestId: 'test-request-id',
+          srcChainId: 1,
+          destChainId: 10,
+          srcAsset: {
+            chainId: 1,
+            address: '0x123',
+            decimals: 18,
+            symbol: 'TOKEN1',
+            name: 'Token One',
+          },
+          destAsset: {
+            chainId: 10,
+            address: '0x456',
+            decimals: 18,
+            symbol: 'TOKEN2',
+            name: 'Token Two',
+          },
+          srcTokenAmount: '1000000000000000000',
+          destTokenAmount: '2000000000000000000',
+          intent: {
+            protocol: 'cowswap',
+            order: {
+              sellToken: '0x0000000000000000000000000000000000000000',
+              buyToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              sellAmount: '1000000000000000000',
+              buyAmount: '2000000000',
+              validTo: 'not-a-number',
+              appData: '0x',
+              receiver: '0x1234567890123456789012345678901234567890',
+            },
+            settlementContract: '0x9008D19f58AAbd9eD0D60971565AA8510560ab41',
+          },
+        },
+      } as unknown as BridgeQuoteResponse);
+
+      await expect(
+        handleIntentTransaction(
+          quoteResponse,
+          '0x1234567890123456789012345678901234567890',
+        ),
+      ).rejects.toThrow(
+        'Intent order validTo is missing or invalid in quote response',
+      );
+    });
+
     it('calls submitIntent with normalized quote response and signature', async () => {
       const mockSignature = '0xabcdef1234567890' as Hex;
       const mockSubmitResult = {
