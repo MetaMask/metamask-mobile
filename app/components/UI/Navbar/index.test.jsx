@@ -14,6 +14,7 @@ import {
   getSendFlowTitle,
   getStakingNavbar,
   getCloseOnlyNavbar,
+  getConfirmationsAdvancedDetailsNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -1662,6 +1663,153 @@ describe('getCloseOnlyNavbar', () => {
       expect(mockOnClose).toHaveBeenCalledTimes(1);
       expect(customNavigation.goBack).not.toHaveBeenCalled();
       expect(customNavigation.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getConfirmationsAdvancedDetailsNavbarOptions', () => {
+    const title = 'stake.advanced_details';
+
+    it('returns navigation options with correct structure', () => {
+      const options = getConfirmationsAdvancedDetailsNavbarOptions(
+        title,
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerStyle');
+      expect(options).toHaveProperty('headerShown');
+      expect(options.headerShown).toBe(true);
+    });
+
+    it('uses background.alternative color for headerStyle', () => {
+      const options = getConfirmationsAdvancedDetailsNavbarOptions(
+        title,
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options.headerStyle.backgroundColor).toBe(
+        mockThemeColors.background.alternative,
+      );
+      expect(options.headerStyle.elevation).toBe(0);
+    });
+
+    it('returns headerTitle as a function', () => {
+      const options = getConfirmationsAdvancedDetailsNavbarOptions(
+        title,
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(options.headerTitle).toBeDefined();
+      expect(options.headerTitle).toBeInstanceOf(Function);
+    });
+
+    it('renders headerLeft with back button', () => {
+      const options = getConfirmationsAdvancedDetailsNavbarOptions(
+        title,
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      expect(HeaderLeft).toBeDefined();
+      expect(typeof HeaderLeft).toBe('function');
+
+      const { toJSON } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      // Verify the component renders
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('calls navigation.goBack when back button is pressed', () => {
+      const mockGoBack = jest.fn();
+      const testNavigation = {
+        ...mockNavigation,
+        goBack: mockGoBack,
+      };
+
+      const options = getConfirmationsAdvancedDetailsNavbarOptions(
+        title,
+        testNavigation,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const backButton = getByTestId('back-arrow-button');
+      fireEvent.press(backButton);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('works with different title strings', () => {
+      const titles = [
+        'stake.advanced_details',
+        'transaction.advanced',
+        'confirmations.details',
+      ];
+
+      titles.forEach((testTitle) => {
+        const options = getConfirmationsAdvancedDetailsNavbarOptions(
+          testTitle,
+          mockNavigation,
+          mockThemeColors,
+        );
+
+        expect(options).toBeDefined();
+        expect(options.headerTitle).toBeDefined();
+        expect(options.headerLeft).toBeDefined();
+      });
+    });
+
+    it('works with different theme colors', () => {
+      const darkThemeColors = {
+        ...mockThemeColors,
+        background: {
+          default: '#000000',
+          alternative: '#1C1C1E',
+        },
+      };
+
+      const options = getConfirmationsAdvancedDetailsNavbarOptions(
+        title,
+        mockNavigation,
+        darkThemeColors,
+      );
+
+      expect(options.headerStyle.backgroundColor).toBe(
+        darkThemeColors.background.alternative,
+      );
+    });
+
+    it('integrates with React Navigation stack', () => {
+      const Stack = createStackNavigator();
+      const options = getConfirmationsAdvancedDetailsNavbarOptions(
+        title,
+        mockNavigation,
+        mockThemeColors,
+      );
+
+      expect(() => {
+        renderWithProvider(
+          <Stack.Navigator>
+            <Stack.Screen
+              name="ConfirmationsAdvancedDetails"
+              component={View}
+              options={options}
+            />
+          </Stack.Navigator>,
+          { state: { engine: { backgroundState } } },
+        );
+      }).not.toThrow();
     });
   });
 });

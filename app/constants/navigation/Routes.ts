@@ -345,6 +345,7 @@ const Routes = {
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',
+    CONFIRMATIONS_ADVANCED_DETAILS: 'ConfirmationsAdvancedDetails',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
