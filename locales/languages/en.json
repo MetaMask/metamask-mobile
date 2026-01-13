@@ -964,10 +964,10 @@
     "title": "Perps",
     "perps_trading": "Perps Trading",
     "perp_account_balance": "Perp account balance",
-    "manage_balance": "Manage Balance",
-    "total_balance": "Total Balance",
+    "manage_balance": "Manage balance",
+    "total_balance": "Total balance",
     "available_balance": "Available balance",
-    "margin_used": "Margin Used",
+    "margin_used": "Margin used",
     "gtm_content": {
       "title": "PERPS ARE HERE",
       "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
@@ -978,7 +978,7 @@
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
-    "refresh_balance": "Refresh Balance",
+    "refresh_balance": "Refresh balance",
     "add_funds": "Add funds",
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
@@ -2409,8 +2409,8 @@
       "add_token": "IMPORT"
     },
     "collectibles": {
-      "cancel_add_collectible": "CANCEL",
-      "add_collectible": "IMPORT"
+      "cancel_add_collectible": "Cancel",
+      "add_collectible": "Import"
     },
     "banners": {
       "search_desc": "Improved token detection is currently available on {{network}} network. ",
@@ -5598,6 +5598,9 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
+    "bonus_tooltip": "Daily mUSD bonus added to your wallet as a reward for holding mUSD.",
+    "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
+    "bonus": "Bonus",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -5682,18 +5685,19 @@
     },
     "musd_conversion": {
       "convert_to_musd": "Convert to mUSD",
+      "convert": "Convert",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD has been delivered!",
+        "delivered": "Your mUSD is here!",
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "Earn rewards with mUSD",
-        "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask’s dollar-backed stablecoin.Earn points every time you convert or hold $100.",
-        "continue_button": "Get started"
+        "heading": "Boost Earnings with mUSD",
+        "description": "Get an automatic mUSD bonus when you convert your stablecoins to mUSD, MetaMask’s dollar-backed stable.",
+        "primary_button": "Convert to mUSD",
+        "secondary_button": "Not now"
       },
-      "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "earn_rewards_when": "Earn rewards when",

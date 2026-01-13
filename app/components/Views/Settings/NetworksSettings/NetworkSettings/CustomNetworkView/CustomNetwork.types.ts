@@ -95,7 +95,7 @@ export interface CustomNetworkProps {
    */
   allowNetworkSwitch?: boolean;
   /**
-   * Use compact UI with icons instead of text
+   * Show "Add"/"Switch" text labels instead of "+" icon
    */
-  compactMode?: boolean;
+  showActionLabels?: boolean;
 }
