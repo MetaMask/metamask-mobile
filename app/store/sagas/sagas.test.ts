@@ -149,6 +149,7 @@ const defaultMockState = {
 describe('authStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockReset.mockClear();
   });
 
   it('should fork appLockStateMachine when logged in', async () => {
@@ -171,6 +172,7 @@ describe('authStateMachine', () => {
 describe('appLockStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockReset.mockClear();
   });
 
   it('should fork biometricsStateMachine when app is locked', async () => {
