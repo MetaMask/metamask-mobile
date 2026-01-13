@@ -13,7 +13,7 @@ import { useRampSDK } from '../../sdk';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -135,11 +135,10 @@ function FiatSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.select_region_currency')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('fiat_on_ramp_aggregator.select_region_currency')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
       <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}
