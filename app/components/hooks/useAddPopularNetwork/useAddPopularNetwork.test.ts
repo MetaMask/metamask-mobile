@@ -462,6 +462,54 @@ describe('useAddPopularNetwork', () => {
     const existingNetwork = {
       chainId: '0x89',
       name: 'Polygon',
+      rpcEndpoints: [
+        {
+          networkClientId: 'existing-client-id',
+          url: 'https://custom-polygon-rpc.com',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    };
+
+    (useSelector as jest.Mock).mockReturnValue({
+      '0x89': existingNetwork,
+    });
+
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [
+        {
+          networkClientId: 'updated-client-id',
+          url: 'https://custom-polygon-rpc.com',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    const mockNetwork = createMockNetwork();
+    const { result } = renderHook(() => useAddPopularNetwork());
+
+    await act(async () => {
+      await result.current.addPopularNetwork(mockNetwork, true);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('updated-client-id');
+    // Should dispatch the actual RPC URL from the existing network, not the PopularList URL
+    expect(mockDispatch).toHaveBeenCalledWith(
+      networkSwitched({
+        networkUrl: 'https://custom-polygon-rpc.com',
+        networkStatus: true,
+      }),
+    );
+  });
+
+  it('uses PopularList URL as fallback when existing network URL is undefined', async () => {
+    const existingNetwork = {
+      chainId: '0x89',
+      name: 'Polygon',
       rpcEndpoints: [{ networkClientId: 'existing-client-id' }],
       defaultRpcEndpointIndex: 0,
     };
@@ -487,6 +535,7 @@ describe('useAddPopularNetwork', () => {
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('updated-client-id');
+    // Falls back to PopularList URL when existing network URL is undefined
     expect(mockDispatch).toHaveBeenCalledWith(
       networkSwitched({
         networkUrl: 'https://polygon-rpc.com',

@@ -75,6 +75,7 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
       );
 
       let networkClientId: string | undefined;
+      let actualRpcUrl: string = rpcUrl;
 
       if (existingNetwork) {
         // Network already exists - update it and switch to it
@@ -89,9 +90,13 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
             : undefined,
         );
 
-        networkClientId =
-          updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
-            ?.networkClientId;
+        const defaultEndpoint =
+          updatedNetwork?.rpcEndpoints?.[
+            updatedNetwork.defaultRpcEndpointIndex
+          ];
+        networkClientId = defaultEndpoint?.networkClientId;
+        // Use the actual RPC URL from the existing network, not the PopularList config
+        actualRpcUrl = defaultEndpoint?.url ?? rpcUrl;
       } else {
         // Network doesn't exist - add it
         const addedNetwork = await NetworkController.addNetwork({
@@ -124,7 +129,9 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
       if (shouldSwitchNetwork && networkClientId) {
         // Switch to the network
         await MultichainNetworkController.setActiveNetwork(networkClientId);
-        dispatch(networkSwitched({ networkUrl: rpcUrl, networkStatus: true }));
+        dispatch(
+          networkSwitched({ networkUrl: actualRpcUrl, networkStatus: true }),
+        );
       }
     },
     [
