@@ -3,7 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import { NavigationRoute } from '../../../UI/Carousel/types';
 import { TokenI } from '../../../UI/Tokens/types';
-import { getNativeTokenAddress } from './asset';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export const getHostFromUrl = (url: string) => {
   if (!url) {
