@@ -58,7 +58,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
     return (
       <Box twClassName="w-full mt-4">
         <PredictClaimButton
-          amount={claimableAmount}
+          amount={market.game ? undefined : claimableAmount}
           onPress={onClaimPress}
           testID={`${testID}-claim`}
         />

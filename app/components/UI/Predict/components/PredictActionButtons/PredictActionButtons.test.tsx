@@ -110,7 +110,7 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.queryByText('Yes 65¢')).not.toBeOnTheScreen();
+      expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
     });
   });
 
@@ -172,8 +172,8 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('Yes 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('No 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
     });
 
     it('calls onBetPress with yes token when yes button is pressed', () => {
@@ -205,8 +205,8 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.queryByText('Yes 65¢')).not.toBeOnTheScreen();
-      expect(screen.queryByText('No 35¢')).not.toBeOnTheScreen();
+      expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
+      expect(screen.queryByText('NO · 35¢')).not.toBeOnTheScreen();
     });
   });
 
@@ -218,8 +218,8 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('SEA 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('DEN · 35¢')).toBeOnTheScreen();
     });
 
     it('calls onBetPress with correct token for away team', () => {
@@ -280,7 +280,7 @@ describe('PredictActionButtons', () => {
       renderWithProvider(<PredictActionButtons {...props} />);
 
       expect(screen.getByText('Claim $50.25')).toBeOnTheScreen();
-      expect(screen.queryByText('Yes 65¢')).not.toBeOnTheScreen();
+      expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
     });
   });
 
@@ -309,8 +309,8 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('Yes 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('No 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
     });
   });
 });

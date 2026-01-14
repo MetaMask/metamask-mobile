@@ -41,7 +41,7 @@ export interface PredictBetButtonsProps {
 }
 
 export interface PredictClaimButtonProps {
-  amount: number;
+  amount?: number;
   onPress: () => void;
   disabled?: boolean;
   testID?: string;

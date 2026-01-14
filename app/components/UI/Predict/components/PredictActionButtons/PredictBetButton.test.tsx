@@ -23,7 +23,7 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('Yes 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
     });
 
     it('renders with no variant label and price', () => {
@@ -35,7 +35,7 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('No 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
     });
 
     it('renders team abbreviation as label for game markets', () => {
@@ -47,7 +47,7 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('SEA 49¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA · 49¢')).toBeOnTheScreen();
     });
 
     it('renders with testID', () => {
@@ -163,7 +163,7 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('Yes 0¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 0¢')).toBeOnTheScreen();
     });
 
     it('renders with 100 price', () => {
@@ -171,7 +171,7 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText('Yes 100¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 100¢')).toBeOnTheScreen();
     });
 
     it('renders with empty label', () => {
@@ -179,7 +179,7 @@ describe('PredictBetButton', () => {
 
       renderWithProvider(<PredictBetButton {...props} />);
 
-      expect(screen.getByText(' 65¢')).toBeOnTheScreen();
+      expect(screen.getByText(' · 65¢')).toBeOnTheScreen();
     });
   });
 });

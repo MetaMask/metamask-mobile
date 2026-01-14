@@ -1299,6 +1299,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         onBack={handleBackPress}
         onRefresh={handleRefresh}
         refreshing={isRefreshing}
+        onBetPress={handleBuyPress}
+        onClaimPress={handleClaimPress}
+        hasClaimableWinnings={claimablePositions.length > 0}
+        claimableAmount={claimablePositions.reduce(
+          (sum, p) => sum + (p.currentValue ?? 0),
+          0,
+        )}
       />
     );
   }

@@ -8,6 +8,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'predict.claim_amount_text' && params?.amount) {
       return `Claim $${params.amount}`;
     }
+    if (key === 'predict.claim_winnings_text') {
+      return 'Claim winnings';
+    }
     return key;
   }),
 }));
@@ -24,7 +27,7 @@ describe('PredictClaimButton', () => {
     jest.clearAllMocks();
   });
 
-  describe('rendering', () => {
+  describe('with amount (ButtonHero variant)', () => {
     it('renders with formatted amount', () => {
       const props = createDefaultProps({ amount: 25.5 });
 
@@ -41,50 +44,6 @@ describe('PredictClaimButton', () => {
       expect(screen.getByText('Claim $100.00')).toBeOnTheScreen();
     });
 
-    it('renders with testID', () => {
-      const props = createDefaultProps({ testID: 'custom-claim-button' });
-
-      renderWithProvider(<PredictClaimButton {...props} />);
-
-      expect(screen.getByTestId('custom-claim-button')).toBeOnTheScreen();
-    });
-
-    it('renders with default testID when not provided', () => {
-      const props = createDefaultProps();
-      delete (props as Partial<typeof props>).testID;
-
-      renderWithProvider(<PredictClaimButton {...props} />);
-
-      expect(screen.getByTestId('predict-claim-button')).toBeOnTheScreen();
-    });
-  });
-
-  describe('press handling', () => {
-    it('calls onPress when pressed', () => {
-      const mockOnPress = jest.fn();
-      const props = createDefaultProps({ onPress: mockOnPress });
-
-      renderWithProvider(<PredictClaimButton {...props} />);
-      fireEvent.press(screen.getByTestId('claim-button'));
-
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call onPress when disabled', () => {
-      const mockOnPress = jest.fn();
-      const props = createDefaultProps({
-        onPress: mockOnPress,
-        disabled: true,
-      });
-
-      renderWithProvider(<PredictClaimButton {...props} />);
-      fireEvent.press(screen.getByTestId('claim-button'));
-
-      expect(mockOnPress).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('edge cases', () => {
     it('renders with zero amount', () => {
       const props = createDefaultProps({ amount: 0 });
 
@@ -115,6 +74,96 @@ describe('PredictClaimButton', () => {
       renderWithProvider(<PredictClaimButton {...props} />);
 
       expect(screen.getByText('Claim $11.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('without amount (Button Secondary variant)', () => {
+    it('renders "Claim winnings" text', () => {
+      const props = createDefaultProps({ amount: undefined });
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+
+      expect(screen.getByText('Claim winnings')).toBeOnTheScreen();
+    });
+
+    it('renders with testID', () => {
+      const props = createDefaultProps({
+        amount: undefined,
+        testID: 'custom-claim-button',
+      });
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+
+      expect(screen.getByTestId('custom-claim-button')).toBeOnTheScreen();
+    });
+
+    it('calls onPress when pressed', () => {
+      const mockOnPress = jest.fn();
+      const props = createDefaultProps({
+        amount: undefined,
+        onPress: mockOnPress,
+      });
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+      fireEvent.press(screen.getByText('Claim winnings'));
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onPress when disabled', () => {
+      const mockOnPress = jest.fn();
+      const props = createDefaultProps({
+        amount: undefined,
+        onPress: mockOnPress,
+        disabled: true,
+      });
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+      fireEvent.press(screen.getByText('Claim winnings'));
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('common behavior', () => {
+    it('renders with testID', () => {
+      const props = createDefaultProps({ testID: 'custom-claim-button' });
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+
+      expect(screen.getByTestId('custom-claim-button')).toBeOnTheScreen();
+    });
+
+    it('renders with default testID when not provided', () => {
+      const props = createDefaultProps();
+      delete (props as Partial<typeof props>).testID;
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+
+      expect(screen.getByTestId('predict-claim-button')).toBeOnTheScreen();
+    });
+
+    it('calls onPress when pressed', () => {
+      const mockOnPress = jest.fn();
+      const props = createDefaultProps({ onPress: mockOnPress });
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+      fireEvent.press(screen.getByTestId('claim-button'));
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onPress when disabled', () => {
+      const mockOnPress = jest.fn();
+      const props = createDefaultProps({
+        onPress: mockOnPress,
+        disabled: true,
+      });
+
+      renderWithProvider(<PredictClaimButton {...props} />);
+      fireEvent.press(screen.getByTestId('claim-button'));
+
+      expect(mockOnPress).not.toHaveBeenCalled();
     });
   });
 });

@@ -25,8 +25,8 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('Yes 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('No 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
     });
 
     it('renders with custom labels', () => {
@@ -37,8 +37,8 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('SEA 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('DEN · 35¢')).toBeOnTheScreen();
     });
 
     it('renders with custom prices', () => {
@@ -49,8 +49,8 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('Yes 49¢')).toBeOnTheScreen();
-      expect(screen.getByText('No 51¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 49¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 51¢')).toBeOnTheScreen();
     });
 
     it('renders with testID prefix for each button', () => {
@@ -165,8 +165,8 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('Yes 50¢')).toBeOnTheScreen();
-      expect(screen.getByText('No 50¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 50¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 50¢')).toBeOnTheScreen();
     });
 
     it('renders with extreme prices', () => {
@@ -177,8 +177,8 @@ describe('PredictBetButtons', () => {
 
       renderWithProvider(<PredictBetButtons {...props} />);
 
-      expect(screen.getByText('Yes 99¢')).toBeOnTheScreen();
-      expect(screen.getByText('No 1¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 99¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 1¢')).toBeOnTheScreen();
     });
   });
 });

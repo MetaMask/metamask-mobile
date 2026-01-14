@@ -56,7 +56,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
 
   const getTextColor = (): TextColor => {
     if (hasTeamColor) {
-      return TextColor.PrimaryInverse;
+      return TextColor.TextDefault;
     }
     return variant === 'yes'
       ? TextColor.SuccessDefault
@@ -87,7 +87,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
         color={getTextColor()}
         style={tw.style('font-medium')}
       >
-        {label} {price}¢
+        {label.toUpperCase()} · {price}¢
       </Text>
     </Pressable>
   );

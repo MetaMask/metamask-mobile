@@ -59,7 +59,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="mb-3"
+        twClassName="mb-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}

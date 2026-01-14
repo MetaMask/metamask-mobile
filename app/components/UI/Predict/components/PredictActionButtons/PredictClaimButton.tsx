@@ -1,5 +1,7 @@
 import React from 'react';
 import {
+  Button,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
@@ -17,6 +19,20 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
   testID = 'predict-claim-button',
 }) => {
   const tw = useTailwind();
+
+  if (amount === undefined) {
+    return (
+      <Button
+        size={ButtonSize.Lg}
+        onPress={onPress}
+        isDisabled={disabled}
+        testID={testID}
+        style={tw.style('w-full')}
+      >
+        {strings('predict.claim_winnings_text')}
+      </Button>
+    );
+  }
 
   return (
     <ButtonHero
