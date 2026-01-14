@@ -107,7 +107,7 @@ describe('PredictGameDetailsContent', () => {
         />,
       );
 
-      expect(getByRole('button')).toBeTruthy();
+      expect(getByRole('button')).toBeOnTheScreen();
     });
 
     it('renders the market title', () => {
@@ -122,7 +122,7 @@ describe('PredictGameDetailsContent', () => {
         />,
       );
 
-      expect(getByText('NFL Game: Team A vs Team B')).toBeTruthy();
+      expect(getByText('NFL Game: Team A vs Team B')).toBeOnTheScreen();
     });
 
     it('renders the share button with market id', () => {
@@ -139,7 +139,7 @@ describe('PredictGameDetailsContent', () => {
 
       const shareButton = getByTestId('predict-share-button');
 
-      expect(shareButton).toBeTruthy();
+      expect(shareButton).toBeOnTheScreen();
       expect(shareButton.props.accessibilityHint).toBe(
         'marketId:game-market-123',
       );
