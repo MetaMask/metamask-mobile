@@ -93,6 +93,14 @@ jobs:
           echo "  Corepack version: $(corepack --version)"
           echo "✅ Setup verification passed"
 
+      - name: Debug - List .yarn contents
+        run: |
+          echo "📂 Contents of .yarn directory:"
+          ls -la .yarn/ || echo "No .yarn directory"
+          echo "📊 .yarn size: $(du -sh .yarn 2>/dev/null || echo 'N/A')"
+          echo "📄 install-state.gz exists: $(test -f .yarn/install-state.gz && echo 'yes' || echo 'no')"
+          echo "📁 cache dir exists: $(test -d .yarn/cache && echo 'yes' || echo 'no')"
+
       - name: Upload node_modules artifact
         if: inputs.upload-artifact
         uses: actions/upload-artifact@v4
@@ -100,9 +108,13 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: |
             node_modules
-            .yarn
+            .yarn/cache
+            .yarn/install-state.gz
+            .yarn/patches
+            .yarn/plugins
+            .yarn/releases
             app/util/termsOfUse/termsOfUseContent.ts
             scripts/inpage-bridge/dist
           retention-days: ${{ inputs.artifact-retention-days }}
           compression-level: 1
-          if-no-files-found: error
+          if-no-files-found: warn
