@@ -87,6 +87,14 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // Close browser to reveal app tab bar before changing network
         await Browser.tapCloseBrowserButton();
 
+        // Wait for browser screen to disappear and tab bar to be visible
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
+          {
+            description: 'Tab bar should be visible after closing browser',
+          },
+        );
+
         // Change the network to Ethereum Main Network in app
         await changeNetworkFromNetworkListModal('Ethereum Main Network');
 
@@ -108,8 +116,22 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // Accept confirmation
         await ConfirmationFooterActions.tapConfirmButton();
 
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
         // Close browser to reveal app tab bar before changing network
         await Browser.tapCloseBrowserButton();
+
+        // Wait for browser screen to disappear and tab bar to be visible
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
+          {
+            description: 'Tab bar should be visible after closing browser',
+          },
+        );
 
         // Change the network to Localhost in app
         await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);

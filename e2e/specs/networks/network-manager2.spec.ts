@@ -276,6 +276,11 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         // Step 3: Approve the network addition
         await ConnectBottomSheet.tapConnectButton();
 
+        // Wait for browser screen to be visible after connection modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description: 'Browser screen should be visible after connecting',
+        });
+
         // Step 4: Close browser to reveal app tab bar, then return to wallet
         await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapWallet();

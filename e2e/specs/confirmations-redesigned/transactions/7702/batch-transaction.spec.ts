@@ -162,6 +162,12 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(BrowserView.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
         // Close browser to reveal app tab bar, then check activity
         await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();

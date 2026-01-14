@@ -127,6 +127,12 @@ describe(
           // Accept confirmation
           await FooterActions.tapConfirmButton();
 
+          // Wait for browser screen to be visible after confirmation modal dismisses
+          await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+            description:
+              'Browser screen should be visible after confirming transaction',
+          });
+
           // Close browser to reveal app tab bar, then check activity
           await Browser.tapCloseBrowserButton();
           await TabBarComponent.tapActivity();
