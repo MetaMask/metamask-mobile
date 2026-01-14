@@ -1,7 +1,8 @@
 // Third party dependencies
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 // External dependencies
 import { useRampSDK, withRampSDK } from '../../sdk';
@@ -20,6 +21,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
 import useAnalytics from '../../../hooks/useAnalytics';
+import useRampsUnifiedV2Enabled from '../../../hooks/useRampsUnifiedV2Enabled';
+import { selectUserRegion } from '../../../../../../selectors/rampsController';
+import useRampsRegions from '../../../../../Views/Settings/hooks/useRampsRegions';
+import { createRegionSelectorModalNavigationDetails } from '../../../../../Views/Settings/RegionSelectorModal/RegionSelectorModal';
 
 // Internal dependencies
 import ActivationKeys from './ActivationKeys';
@@ -35,6 +40,46 @@ function Settings() {
   const { colors } = useAppTheme();
   const style = styles();
   const trackEvent = useAnalytics();
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
+  const userRegion = useSelector(selectUserRegion);
+  const { regions } = useRampsRegions();
+
+  const { regionDisplayName, regionFlag } = useMemo(() => {
+    if (!userRegion || !regions) {
+      return { regionDisplayName: null, regionFlag: '🏳️' };
+    }
+
+    const regionParts = userRegion.toLowerCase().split('-');
+    const countryCode = regionParts[0];
+    const stateCode = regionParts[1];
+
+    const country = regions.find(
+      (r) => r.isoCode.toLowerCase() === countryCode,
+    );
+
+    if (!country) {
+      return { regionDisplayName: null, regionFlag: '🏳️' };
+    }
+
+    if (stateCode && country.states) {
+      const state = country.states.find(
+        (s) =>
+          s.stateId?.toLowerCase() === stateCode ||
+          s.id?.toLowerCase().endsWith(`-${stateCode}`),
+      );
+      if (state?.name) {
+        return {
+          regionDisplayName: `${country.name}, ${state.name}`,
+          regionFlag: country.flag,
+        };
+      }
+    }
+
+    return {
+      regionDisplayName: country.name,
+      regionFlag: country.flag,
+    };
+  }, [userRegion, regions]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -54,6 +99,14 @@ function Settings() {
     setSelectedRegion(null);
   }, [setSelectedRegion, trackEvent]);
 
+  const handleChangeRegion = useCallback(() => {
+    if (regions) {
+      navigation.navigate(
+        ...createRegionSelectorModalNavigationDetails({ regions }),
+      );
+    }
+  }, [navigation, regions]);
+
   return (
     <KeyboardAvoidingView
       style={style.container}
@@ -67,27 +120,58 @@ function Settings() {
                 {strings('app_settings.fiat_on_ramp.current_region')}
               </Text>
 
-              <ListItem>
-                <ListItemColumn>
-                  <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
-                </ListItemColumn>
-                <ListItemColumn>
-                  <Text>
-                    {selectedRegion
-                      ? selectedRegion.name
-                      : strings('app_settings.fiat_on_ramp.no_region_selected')}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-              {selectedRegion ? (
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  onPress={handleResetRegion}
-                  label={strings('app_settings.fiat_on_ramp.reset_region')}
-                />
-              ) : null}
+              {isRampsUnifiedV2Enabled ? (
+                <>
+                  <ListItem>
+                    <ListItemColumn>
+                      <Text>{regionFlag}</Text>
+                    </ListItemColumn>
+                    <ListItemColumn>
+                      <Text>
+                        {regionDisplayName ||
+                          strings(
+                            'app_settings.fiat_on_ramp.no_region_selected',
+                          )}
+                      </Text>
+                    </ListItemColumn>
+                  </ListItem>
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handleChangeRegion}
+                    label={strings('app_settings.fiat_on_ramp.change_region')}
+                  />
+                </>
+              ) : (
+                <>
+                  <ListItem>
+                    <ListItemColumn>
+                      <Text>
+                        {selectedRegion ? selectedRegion.emoji : '🏳️'}
+                      </Text>
+                    </ListItemColumn>
+                    <ListItemColumn>
+                      <Text>
+                        {selectedRegion
+                          ? selectedRegion.name
+                          : strings(
+                              'app_settings.fiat_on_ramp.no_region_selected',
+                            )}
+                      </Text>
+                    </ListItemColumn>
+                  </ListItem>
+                  {selectedRegion ? (
+                    <Button
+                      variant={ButtonVariants.Secondary}
+                      size={ButtonSize.Lg}
+                      width={ButtonWidthTypes.Full}
+                      onPress={handleResetRegion}
+                      label={strings('app_settings.fiat_on_ramp.reset_region')}
+                    />
+                  ) : null}
+                </>
+              )}
             </Row>
             {isInternalBuild ? (
               <Row>
