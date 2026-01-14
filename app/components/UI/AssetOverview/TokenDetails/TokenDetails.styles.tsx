@@ -4,7 +4,7 @@ const styleSheet = () =>
   StyleSheet.create({
     tokenDetailsContainer: {
       marginTop: 16,
-      gap: 24,
+      gap: 12,
     },
     title: {
       paddingVertical: 8,

@@ -16,7 +16,7 @@ const styleSheet = (params: {
       gap: 16,
     },
     buttonsContainer: {
-      marginTop: 4,
+      marginTop: 2,
     },
     button: {
       flex: 1,
@@ -38,7 +38,7 @@ const styleSheet = (params: {
       paddingTop: 16,
     },
     earnings: {
-      paddingTop: 16,
+      paddingTop: 24,
     },
   });
 };

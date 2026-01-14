@@ -159,6 +159,14 @@ const createStyles = (colors) =>
     },
   });
 
+const staticStyles = StyleSheet.create({
+  tokenAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+});
+
 /**
  * PriceDiffText component displays the price difference with dynamic colors
  */
@@ -212,7 +220,7 @@ const TokenAvatar = ({ asset }) => {
       <NetworkAssetLogo
         chainId={asset.chainId}
         ticker={asset.ticker ?? asset.symbol}
-        big
+        style={staticStyles.tokenAvatar}
       />
     );
   }
@@ -220,7 +228,7 @@ const TokenAvatar = ({ asset }) => {
     <AvatarToken
       name={asset.symbol}
       imageSource={{ uri: asset.image }}
-      size={AvatarSize.Xl}
+      size={AvatarSize.Lg}
     />
   );
 };
@@ -1067,7 +1075,11 @@ const AssetWithScrollableHeader = (props) => {
     <SafeAreaView style={wrapperStyles.wrapper} edges={['top']}>
       <HeaderWithTitleLeftScrollable
         title={asset?.symbol ?? ''}
-        subtitle={currentNetworkName}
+        subtitle={
+          !isNaN(currentPrice)
+            ? addCurrencySymbol(currentPrice, currentCurrency, true)
+            : ''
+        }
         onBack={handleBack}
         endButtonIconProps={endButtonIconProps}
         titleLeftProps={titleLeftProps}

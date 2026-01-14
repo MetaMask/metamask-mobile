@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
       right: 15,
     },
     earningsContainer: {
-      paddingTop: 16,
+      paddingTop: 0,
     },
     title: {
       paddingBottom: 8,

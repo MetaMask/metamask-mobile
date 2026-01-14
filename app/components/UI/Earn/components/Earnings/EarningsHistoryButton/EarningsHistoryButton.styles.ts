@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     container: {
-      marginTop: 20,
+      marginTop: 16,
     },
   });
 

@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     stakingEarnings: {
       paddingHorizontal: 16,
-      paddingTop: 16,
+      paddingTop: 24,
     },
     badgeWrapper: {
       alignSelf: 'center',
@@ -32,7 +32,7 @@ const styleSheet = (params: { theme: Theme }) =>
       marginVertical: 8,
     },
     buttonsContainer: {
-      paddingTop: 8,
+      paddingTop: 16,
     },
     stakingCta: {
       paddingBottom: 8,

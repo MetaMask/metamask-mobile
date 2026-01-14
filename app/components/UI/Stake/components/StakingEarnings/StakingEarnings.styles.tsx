@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     stakingEarningsContainer: {
-      paddingTop: 16,
+      paddingTop: 0,
     },
     title: {
       paddingBottom: 8,

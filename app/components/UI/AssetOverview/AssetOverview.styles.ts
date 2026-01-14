@@ -89,7 +89,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     tokenDetailsWrapper: {
-      marginBottom: 20,
+      marginBottom: 12,
       paddingHorizontal: 16,
     },
   });
