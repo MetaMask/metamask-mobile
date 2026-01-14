@@ -70,6 +70,19 @@ jobs:
           path: workflow-scripts
           fetch-depth: 0
 
+      - name: Debug - Verify script exists
+        run: |
+          echo "Checking for script at: workflow-scripts/.github/scripts/verify-commit-sha.sh"
+          ls -la workflow-scripts/.github/scripts/ || echo "Scripts directory not found"
+          if [ -f "workflow-scripts/.github/scripts/verify-commit-sha.sh" ]; then
+            echo "✅ Script found!"
+          else
+            echo "❌ Script not found!"
+            echo "Contents of workflow-scripts:"
+            ls -la workflow-scripts/ || echo "workflow-scripts directory doesn't exist"
+            exit 1
+          fi
+
       - name: Checkout target commit
         uses: actions/checkout@v4
         with:
@@ -293,6 +306,19 @@ jobs:
           ref: ${{ github.ref }}
           path: workflow-scripts
           fetch-depth: 0
+
+      - name: Debug - Verify script exists
+        run: |
+          echo "Checking for script at: workflow-scripts/.github/scripts/verify-commit-sha.sh"
+          ls -la workflow-scripts/.github/scripts/ || echo "Scripts directory not found"
+          if [ -f "workflow-scripts/.github/scripts/verify-commit-sha.sh" ]; then
+            echo "✅ Script found!"
+          else
+            echo "❌ Script not found!"
+            echo "Contents of workflow-scripts:"
+            ls -la workflow-scripts/ || echo "workflow-scripts directory doesn't exist"
+            exit 1
+          fi
 
       - name: Checkout repository
         uses: actions/checkout@v4
