@@ -10,6 +10,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import {
   getApplicationName,
   getVersion,
@@ -118,6 +119,10 @@ class AppInformation extends PureComponent {
     showEnvironmentInfo: false,
   };
 
+  onSendSentryTestError = () => {
+    captureException(new Error('OTA update Sentry test error'));
+  };
+
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -222,6 +227,10 @@ class AppInformation extends PureComponent {
             <Text style={styles.versionInfo}>
               {getFullVersion(this.state.appInfo)}
             </Text>
+            <Text style={styles.versionInfo}>this is ota update v2</Text>
+            <TouchableOpacity onPress={this.onSendSentryTestError}>
+              <Text style={styles.link}>Send Sentry test error</Text>
+            </TouchableOpacity>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
