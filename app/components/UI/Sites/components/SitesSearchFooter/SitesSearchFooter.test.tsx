@@ -3,12 +3,17 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import SitesSearchFooter from './SitesSearchFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 describe('SitesSearchFooter', () => {
@@ -23,6 +28,7 @@ describe('SitesSearchFooter', () => {
     } as unknown as jest.Mocked<NavigationProp<ParamListBase>>;
 
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    (useSelector as jest.Mock).mockReturnValue('Google');
     dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(1234567890);
   });
 
@@ -177,6 +183,33 @@ describe('SitesSearchFooter', () => {
         'https://www.google.com/search?q=ethereum%20%26%20bitcoin',
       );
     });
+
+    it('navigates to DuckDuckGo search when DuckDuckGo is selected', () => {
+      (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
+
+      const { getByTestId } = render(
+        <SitesSearchFooter searchQuery="ethereum" />,
+      );
+
+      fireEvent.press(getByTestId('trending-search-footer-google-link'));
+
+      assertBrowserNavigation('https://duckduckgo.com/?q=ethereum');
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('encodes special characters in DuckDuckGo search query', () => {
+      (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
+
+      const { getByTestId } = render(
+        <SitesSearchFooter searchQuery="ethereum & bitcoin" />,
+      );
+
+      fireEvent.press(getByTestId('trending-search-footer-google-link'));
+
+      assertBrowserNavigation(
+        'https://duckduckgo.com/?q=ethereum%20%26%20bitcoin',
+      );
+    });
   });
 
   describe('text display', () => {
@@ -187,6 +220,17 @@ describe('SitesSearchFooter', () => {
 
       expect(getByText('ethereum')).toBeOnTheScreen();
       expect(getByText(/on Google/)).toBeOnTheScreen();
+    });
+
+    it('displays search query in DuckDuckGo search link when DuckDuckGo is selected', () => {
+      (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
+
+      const { getByText } = render(
+        <SitesSearchFooter searchQuery="ethereum" />,
+      );
+
+      expect(getByText('ethereum')).toBeOnTheScreen();
+      expect(getByText(/on DuckDuckGo/)).toBeOnTheScreen();
     });
   });
 

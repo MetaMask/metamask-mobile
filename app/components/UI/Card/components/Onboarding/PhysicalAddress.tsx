@@ -41,6 +41,7 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import Logger from '../../../../../util/Logger';
 import { Linking, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Checkbox from '../../../../../component-library/components/Checkbox';
@@ -227,7 +228,7 @@ const PhysicalAddress = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const { user, setUser } = useCardSDK();
+  const { user, setUser, sdk } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
@@ -477,11 +478,53 @@ const PhysicalAddress = () => {
           dispatch(setConsentSetId(null));
         }
 
-        // Reset the navigation stack to the verifying registration screen
-        navigation.reset({
-          index: 0,
-          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
-        });
+        // Step 11: Check KYC status and navigate accordingly
+        // Fetch fresh user data to get the latest verification state
+        let verificationState = updatedUser.verificationState;
+
+        // If verification state is not in the response, fetch it from the API
+        if (!verificationState && sdk) {
+          try {
+            const userDetails = await sdk.getUserDetails();
+            verificationState = userDetails.verificationState;
+            // Update user in context with fresh data
+            setUser(userDetails);
+          } catch (fetchError) {
+            Logger.log(
+              'PhysicalAddress: Failed to fetch user details for KYC status',
+              fetchError,
+            );
+            // Continue with the flow even if fetch fails - user can retry from SpendingLimit
+          }
+        }
+
+        // Reset onboarding state since registration is complete
+        dispatch(resetOnboardingState());
+
+        // Navigate based on KYC status
+        if (verificationState === 'REJECTED') {
+          // KYC rejected - show failure screen
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.ONBOARDING.ROOT,
+                params: { screen: Routes.CARD.ONBOARDING.KYC_FAILED },
+              },
+            ],
+          });
+        } else {
+          // KYC is VERIFIED, PENDING, or UNVERIFIED - proceed to SpendingLimit
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
+              },
+            ],
+          });
+        }
         return;
       }
 
