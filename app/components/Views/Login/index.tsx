@@ -385,11 +385,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
     try {
-      const locked = !passwordRequirementsMet(password);
-      if (locked) {
-        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
-      }
-      if (loading || locked) return;
+      if (loading) return;
 
       const authPreference = await componentAuthenticationType(
         biometryChoice,
