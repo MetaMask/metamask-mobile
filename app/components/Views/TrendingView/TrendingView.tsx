@@ -213,6 +213,7 @@ export const ExploreFeed: React.FC = () => {
 
       {isBasicFunctionalityEnabled ? (
         <ScrollView
+          testID="trending-feed-scroll-view"
           style={tw.style('flex-1 px-4')}
           showsVerticalScrollIndicator={false}
           refreshControl={

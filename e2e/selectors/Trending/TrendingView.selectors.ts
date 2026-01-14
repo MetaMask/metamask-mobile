@@ -5,9 +5,19 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_INPUT: 'explore-view-search-input',
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
+  PERPS_ROW_ITEM_PREFIX: 'perps-market-row-item-',
+  PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-list-trending-card-',
+  SITE_ROW_ITEM: 'site-row-item',
   SEARCH_FOOTER_GOOGLE_LINK: 'trending-search-footer-google-link',
+  SCROLL_VIEW: 'trending-feed-scroll-view',
+  VIEW_ALL_BUTTON_PREFIX: 'section-header-view-all-',
 } as const;
 
 export const TrendingViewSelectorsText = {
   VIEW_ALL: 'View all',
+  // Section titles might vary by localization, but these are for logical mapping
+  SECTION_PREDICTIONS: 'Predictions',
+  SECTION_TOKENS: 'Tokens',
+  SECTION_PERPS: 'Perps',
+  SECTION_SITES: 'Sites',
 } as const;
