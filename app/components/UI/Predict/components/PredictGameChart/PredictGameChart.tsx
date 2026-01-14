@@ -50,14 +50,6 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   const interval = TIMEFRAME_TO_INTERVAL[timeframe];
   const fidelity = FIDELITY_BY_TIMEFRAME[timeframe];
 
-  // Reset live data state when tokenIds change to prevent race condition:
-  // Without this, WebSocket prices for new tokens could arrive before historical
-  // data loads, causing updateLiveData to corrupt old liveChartData with new prices
-  useEffect(() => {
-    initialDataLoadedRef.current = false;
-    setLiveChartData([]);
-  }, [tokenIds]);
-
   const { priceHistories, isFetching, errors, refetch } =
     usePredictPriceHistory({
       marketIds: tokenIds,
@@ -117,39 +109,32 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     setLiveChartData((prevData) => {
       if (prevData.length !== 2) return prevData;
 
+      const lastPointSeries0 = prevData[0].data[prevData[0].data.length - 1];
+      if (!lastPointSeries0) return prevData;
+
+      const lastMinute = getMinuteTimestamp(lastPointSeries0.timestamp);
+      const isNewMinute = currentMinute !== lastMinute;
+
       const newData = prevData.map((series, index) => {
         const tokenId = tokenIds[index];
         const priceUpdate = prices.get(tokenId);
+        const existingData = [...series.data];
+        const lastPoint = existingData[existingData.length - 1];
 
-        if (!priceUpdate) return series;
+        const newValue = priceUpdate
+          ? Number((priceUpdate.price * 100).toFixed(2))
+          : (lastPoint?.value ?? 50);
 
-        const newValue = Number((priceUpdate.price * 100).toFixed(2));
         const newPoint: GameChartDataPoint = {
           timestamp: now,
           value: newValue,
         };
 
-        const existingData = [...series.data];
-
-        // Calculate last minute timestamp for THIS series specifically
-        // This prevents data corruption when WebSocket updates arrive at
-        // different times for different tokens
-        const lastPoint = existingData[existingData.length - 1];
-        const seriesLastMinute = lastPoint
-          ? getMinuteTimestamp(lastPoint.timestamp)
-          : 0;
-
-        if (currentMinute === seriesLastMinute) {
-          // Same minute - update the last point
-          if (existingData.length > 0) {
-            existingData[existingData.length - 1] = newPoint;
-          }
-        } else {
-          // New minute - push a new point
+        if (isNewMinute) {
           existingData.push(newPoint);
-          if (existingData.length > 60) {
-            existingData.shift();
-          }
+          existingData.shift();
+        } else if (existingData.length > 0) {
+          existingData[existingData.length - 1] = newPoint;
         }
 
         return {
@@ -164,7 +149,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
 
   useEffect(() => {
     updateLiveData();
-  }, [updateLiveData, prices]);
+  }, [updateLiveData]);
 
   const handleTimeframeChange = useCallback((newTimeframe: ChartTimeframe) => {
     setTimeframe(newTimeframe);

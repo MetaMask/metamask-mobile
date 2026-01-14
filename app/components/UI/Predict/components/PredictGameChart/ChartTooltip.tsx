@@ -8,8 +8,6 @@ import {
   FONT_SIZE_LABEL,
   FONT_SIZE_VALUE,
   RIGHT_LABEL_OFFSET,
-  LABEL_HEIGHT,
-  MIN_LABEL_GAP,
   DOT_RADIUS,
   DOT_STROKE_WIDTH,
   GLOW_RADIUS,
@@ -19,6 +17,7 @@ import {
   TIMESTAMP_Y,
   CROSSHAIR_START_Y,
   CROSSHAIR_STROKE_WIDTH,
+  getSeparatedLabelYPositions,
 } from './PredictGameChart.constants';
 
 const formatTimestamp = (timestamp: number): string =>
@@ -58,26 +57,10 @@ const ChartTooltip: React.FC<ChartTooltipProps> = ({
     }[];
   }, [x, y, activeIndex, nonEmptySeries]);
 
-  const adjustedLabelYPositions = useMemo(() => {
-    if (dotPositions.length < 2) {
-      return dotPositions.map((pos) => pos.dotY);
-    }
-
-    const [first, second] = dotPositions;
-    const gap = Math.abs(first.dotY - second.dotY);
-
-    if (gap >= LABEL_HEIGHT + MIN_LABEL_GAP) {
-      return [first.dotY, second.dotY];
-    }
-
-    const midPoint = (first.dotY + second.dotY) / 2;
-    const offset = (LABEL_HEIGHT + MIN_LABEL_GAP) / 2;
-
-    if (first.dotY < second.dotY) {
-      return [midPoint - offset, midPoint + offset];
-    }
-    return [midPoint + offset, midPoint - offset];
-  }, [dotPositions]);
+  const adjustedLabelYPositions = useMemo(
+    () => getSeparatedLabelYPositions(dotPositions),
+    [dotPositions],
+  );
 
   if (!x || !y) return null;
   if (activeIndex < 0 || !primaryData[activeIndex]) return null;

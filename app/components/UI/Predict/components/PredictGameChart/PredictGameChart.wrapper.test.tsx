@@ -455,7 +455,6 @@ describe('PredictGameChart Wrapper', () => {
     });
 
     it('maintains maximum of 60 data points in live mode', async () => {
-      // Create 60 historical points
       const mockHistories = [
         Array.from({ length: 60 }, (_, i) => ({
           timestamp: 1000000 + i * 60000,
@@ -487,6 +486,111 @@ describe('PredictGameChart Wrapper', () => {
         const data = JSON.parse(String(dataText));
 
         expect(data[0].data.length).toBeLessThanOrEqual(60);
+      });
+    });
+
+    it('keeps series lengths synchronized when only one token has updates', async () => {
+      const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
+
+      const mockHistories = [
+        [
+          { timestamp: baseTimestamp, price: 0.5 },
+          { timestamp: baseTimestamp + 60000, price: 0.52 },
+        ],
+        [
+          { timestamp: baseTimestamp, price: 0.5 },
+          { timestamp: baseTimestamp + 60000, price: 0.48 },
+        ],
+      ];
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: mockHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      jest.setSystemTime(new Date(baseTimestamp + 120000));
+
+      const pricesMap = new Map([
+        [
+          'token-a',
+          {
+            tokenId: 'token-a',
+            price: 0.55,
+            timestamp: baseTimestamp + 120000,
+          },
+        ],
+      ]);
+
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: pricesMap,
+        getPrice: (id: string) => pricesMap.get(id),
+        isConnected: true,
+        lastUpdateTime: baseTimestamp + 120000,
+      });
+
+      const { getByTestId } = render(
+        <PredictGameChart
+          tokenIds={defaultTokenIds}
+          seriesConfig={defaultSeriesConfig}
+          testID="chart"
+        />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+
+        expect(data[0].data.length).toBe(data[1].data.length);
+      });
+    });
+
+    it('carries forward last value for series without updates', async () => {
+      const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
+
+      const mockHistories = [
+        [{ timestamp: baseTimestamp, price: 0.6 }],
+        [{ timestamp: baseTimestamp, price: 0.4 }],
+      ];
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: mockHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      jest.setSystemTime(new Date(baseTimestamp + 30000));
+
+      const pricesMap = new Map([
+        [
+          'token-a',
+          { tokenId: 'token-a', price: 0.65, timestamp: baseTimestamp + 30000 },
+        ],
+      ]);
+
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: pricesMap,
+        getPrice: (id: string) => pricesMap.get(id),
+        isConnected: true,
+        lastUpdateTime: baseTimestamp + 30000,
+      });
+
+      const { getByTestId } = render(
+        <PredictGameChart
+          tokenIds={defaultTokenIds}
+          seriesConfig={defaultSeriesConfig}
+          testID="chart"
+        />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+
+        expect(data[0].data[0].value).toBe(65);
+        expect(data[1].data[0].value).toBe(40);
       });
     });
   });

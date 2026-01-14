@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback, useState } from 'react';
-import { PanResponder, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { PanResponder, View } from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -11,6 +11,8 @@ import {
   IconName,
   IconSize,
   IconColor,
+  Button,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { curveStepAfter } from 'd3-shape';
@@ -36,6 +38,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const { colors } = useTheme();
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const chartWidthRef = useRef<number>(0);
+  const primaryDataLengthRef = useRef<number>(0);
 
   const seriesToRender = useMemo(() => data.slice(0, 2), [data]);
   const nonEmptySeries = useMemo(
@@ -69,6 +72,9 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
     ? primaryData.map((point) => point.value)
     : [50, 50];
 
+  // Keep ref in sync for stable PanResponder (avoids recreation on data length changes)
+  primaryDataLengthRef.current = primaryData.length;
+
   const handleChartLayout = useCallback(
     (event: { nativeEvent: { layout: { width: number } } }) => {
       chartWidthRef.current = event.nativeEvent.layout.width;
@@ -76,27 +82,23 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
     [],
   );
 
-  const updatePosition = useCallback(
-    (xCoord: number) => {
-      if (primaryData.length === 0) return;
+  const updatePosition = useCallback((xCoord: number) => {
+    const dataLength = primaryDataLengthRef.current;
+    if (dataLength === 0) return;
 
-      const adjustedX = xCoord - CHART_CONTENT_INSET.left;
-      const chartDataWidth =
-        chartWidthRef.current -
-        CHART_CONTENT_INSET.left -
-        CHART_CONTENT_INSET.right;
+    const adjustedX = xCoord - CHART_CONTENT_INSET.left;
+    const chartDataWidth =
+      chartWidthRef.current -
+      CHART_CONTENT_INSET.left -
+      CHART_CONTENT_INSET.right;
 
-      if (chartDataWidth <= 0) return;
+    if (chartDataWidth <= 0) return;
 
-      const index = Math.round(
-        (adjustedX / chartDataWidth) * (primaryData.length - 1),
-      );
+    const index = Math.round((adjustedX / chartDataWidth) * (dataLength - 1));
 
-      const clampedIndex = Math.max(0, Math.min(primaryData.length - 1, index));
-      setActiveIndex(clampedIndex);
-    },
-    [primaryData.length],
-  );
+    const clampedIndex = Math.max(0, Math.min(dataLength - 1, index));
+    setActiveIndex(clampedIndex);
+  }, []);
 
   const panResponder = useMemo(
     () =>
@@ -136,10 +138,8 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   if (isLoading) {
     return (
       <Box twClassName="flex-1" testID={testID}>
-        <View
-          style={tw.style(
-            `h-[${CHART_HEIGHT}px] bg-background-alternative rounded-lg`,
-          )}
+        <Box
+          twClassName={`h-[${CHART_HEIGHT}px] bg-background-alternative rounded-lg`}
         />
         {onTimeframeChange && (
           <TimeframeSelector
@@ -155,9 +155,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   if (error) {
     return (
       <Box twClassName="flex-1 justify-center items-center" testID={testID}>
-        <View
-          style={tw.style(`h-[${CHART_HEIGHT}px] justify-center items-center`)}
-        >
+        <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Icon
             name={IconName.Warning}
             size={IconSize.Lg}
@@ -171,20 +169,16 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
             Unable to load price history
           </Text>
           {onRetry && (
-            <TouchableOpacity
+            <Button
+              variant={ButtonVariant.Primary}
               onPress={onRetry}
-              style={tw.style('mt-3 px-4 py-2 rounded-lg bg-primary-default')}
+              twClassName="mt-3"
               testID="retry-button"
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryInverse}
-              >
-                Retry
-              </Text>
-            </TouchableOpacity>
+              Retry
+            </Button>
           )}
-        </View>
+        </Box>
         {onTimeframeChange && (
           <TimeframeSelector
             selected={timeframe}
@@ -198,13 +192,11 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   if (!hasData) {
     return (
       <Box twClassName="flex-1 justify-center items-center" testID={testID}>
-        <View
-          style={tw.style(`h-[${CHART_HEIGHT}px] justify-center items-center`)}
-        >
+        <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             No price history available
           </Text>
-        </View>
+        </Box>
         {onTimeframeChange && (
           <TimeframeSelector
             selected={timeframe}
@@ -256,7 +248,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
             {overlaySeries.map((series, index) => (
               <LineChart
                 key={`overlay-${index}`}
-                style={StyleSheet.absoluteFillObject}
+                style={tw.style('absolute inset-0')}
                 data={series.data.map((point) => point.value)}
                 svg={{ stroke: series.color, strokeWidth: 2 }}
                 contentInset={CHART_CONTENT_INSET}
@@ -281,7 +273,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
               curve={LINE_CURVE}
             />
             <LineChart
-              style={StyleSheet.absoluteFillObject}
+              style={tw.style('absolute inset-0')}
               data={getInactiveData(primaryChartData)}
               svg={{ stroke: grayColor, strokeWidth: 2 }}
               contentInset={CHART_CONTENT_INSET}
@@ -295,7 +287,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
               return (
                 <React.Fragment key={`overlay-split-${index}`}>
                   <LineChart
-                    style={StyleSheet.absoluteFillObject}
+                    style={tw.style('absolute inset-0')}
                     data={getActiveData(seriesValues)}
                     svg={{ stroke: series.color, strokeWidth: 2 }}
                     contentInset={CHART_CONTENT_INSET}
@@ -304,7 +296,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
                     curve={LINE_CURVE}
                   />
                   <LineChart
-                    style={StyleSheet.absoluteFillObject}
+                    style={tw.style('absolute inset-0')}
                     data={getInactiveData(seriesValues)}
                     svg={{ stroke: grayColor, strokeWidth: 2 }}
                     contentInset={CHART_CONTENT_INSET}
@@ -317,7 +309,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
             })}
 
             <LineChart
-              style={StyleSheet.absoluteFillObject}
+              style={tw.style('absolute inset-0')}
               data={primaryChartData}
               svg={{ stroke: 'transparent', strokeWidth: 0 }}
               contentInset={CHART_CONTENT_INSET}

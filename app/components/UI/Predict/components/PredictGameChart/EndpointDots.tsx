@@ -6,13 +6,12 @@ import {
   LABEL_OFFSET_X,
   FONT_SIZE_LABEL,
   FONT_SIZE_VALUE,
-  LABEL_HEIGHT,
-  MIN_LABEL_GAP,
   DOT_RADIUS,
   GLOW_RADIUS,
   GLOW_OPACITY,
   LABEL_TEXT_OFFSET_Y,
   VALUE_TEXT_OFFSET_Y,
+  getSeparatedLabelYPositions,
 } from './PredictGameChart.constants';
 
 const EndpointDots: React.FC<EndpointDotsProps> = ({
@@ -53,26 +52,10 @@ const EndpointDots: React.FC<EndpointDotsProps> = ({
     }[];
   }, [x, y, nonEmptySeries, primaryDataLength]);
 
-  const adjustedLabelYPositions = useMemo(() => {
-    if (dotPositions.length < 2) {
-      return dotPositions.map((pos) => pos.dotY);
-    }
-
-    const [first, second] = dotPositions;
-    const gap = Math.abs(first.dotY - second.dotY);
-
-    if (gap >= LABEL_HEIGHT + MIN_LABEL_GAP) {
-      return [first.dotY, second.dotY];
-    }
-
-    const midPoint = (first.dotY + second.dotY) / 2;
-    const offset = (LABEL_HEIGHT + MIN_LABEL_GAP) / 2;
-
-    if (first.dotY < second.dotY) {
-      return [midPoint - offset, midPoint + offset];
-    }
-    return [midPoint + offset, midPoint - offset];
-  }, [dotPositions]);
+  const adjustedLabelYPositions = useMemo(
+    () => getSeparatedLabelYPositions(dotPositions),
+    [dotPositions],
+  );
 
   if (!x || !y) return null;
 
