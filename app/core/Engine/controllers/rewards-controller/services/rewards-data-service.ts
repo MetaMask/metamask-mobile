@@ -1010,18 +1010,14 @@ export class RewardsDataService {
     subscriptionId: string,
   ): Promise<LineaTokenRewardDto | null> {
     const response = await this.makeRequest(
-      '/season-1/linea-tokens',
+      '/rewards/season-1/linea-tokens',
       {
         method: 'GET',
       },
       subscriptionId,
     );
 
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
+    if (!response.ok || response.status === 404) {
       throw new Error(
         `Failed to get Season 1 Linea reward tokens: ${response.status}`,
       );
