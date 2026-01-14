@@ -10,7 +10,7 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsText } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 

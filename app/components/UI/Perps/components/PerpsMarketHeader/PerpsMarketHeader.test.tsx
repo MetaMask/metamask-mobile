@@ -4,7 +4,7 @@ import { TouchableOpacity } from 'react-native';
 import PerpsMarketHeader from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import { PerpsMarketData } from '../../controllers/types';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 

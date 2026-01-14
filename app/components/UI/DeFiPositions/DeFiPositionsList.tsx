@@ -27,7 +27,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../DefiEmptyState';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';

@@ -42,9 +42,9 @@ const createMockMarketWithGame = (
       startTime: '2025-01-12T18:00:00Z',
       status: 'scheduled',
       league: 'nfl',
-      elapsed: '00:00',
-      period: 'NS',
-      score: '0-0',
+      elapsed: null,
+      period: null,
+      score: null,
       homeTeam: {
         id: 'team-1',
         name: 'Seattle Seahawks',
@@ -185,8 +185,8 @@ describe('GameCache', () => {
 
       const result = cache.overlayOnMarket(market);
 
-      expect(result.game?.score).toBe('0-0');
-      expect(result.game?.period).toBe('NS');
+      expect(result.game?.score).toBeNull();
+      expect(result.game?.period).toBeNull();
     });
 
     it('merges cached data onto market.game', () => {
@@ -204,7 +204,7 @@ describe('GameCache', () => {
       cache.updateGame('game-123', update);
       const result = cache.overlayOnMarket(market);
 
-      expect(result.game?.score).toBe('28-21');
+      expect(result.game?.score).toEqual({ away: 28, home: 21, raw: '28-21' });
       expect(result.game?.elapsed).toBe('08:42');
       expect(result.game?.period).toBe('Q3');
       expect(result.game?.status).toBe('ongoing');
@@ -247,7 +247,7 @@ describe('GameCache', () => {
       cache.updateGame('game-123', update);
       cache.overlayOnMarket(market);
 
-      expect(market.game?.score).toBe('0-0');
+      expect(market.game?.score).toBeNull();
     });
   });
 
@@ -271,8 +271,16 @@ describe('GameCache', () => {
 
       const results = cache.overlayOnMarkets(markets);
 
-      expect(results[0].game?.score).toBe('14-7');
-      expect(results[1].game?.score).toBe('21-14');
+      expect(results[0].game?.score).toEqual({
+        away: 14,
+        home: 7,
+        raw: '14-7',
+      });
+      expect(results[1].game?.score).toEqual({
+        away: 21,
+        home: 14,
+        raw: '21-14',
+      });
       expect(results[2].game).toBeUndefined();
     });
   });

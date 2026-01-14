@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, ScrollView, Modal } from 'react-native';
+import { View, ScrollView, Modal, Linking } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -39,7 +40,11 @@ import {
   HOME_SCREEN_CONFIG,
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
+  FEEDBACK_CONFIG,
+  PERPS_CONSTANTS,
 } from '../../constants/perpsConfig';
+import { ensureError } from '../../utils/perpsErrorHandler';
+import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -51,13 +56,14 @@ import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
+import Logger from '../../../../../util/Logger';
 import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -72,6 +78,9 @@ const PerpsHomeView = () => {
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Feature flag for feedback button
+  const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -246,6 +255,29 @@ const PerpsHomeView = () => {
     );
   }, [createEventBuilder, navigation, trackEvent]);
 
+  const handleGiveFeedback = useCallback(() => {
+    // Track feedback button click
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.GIVE_FEEDBACK,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
+    // Open survey in external browser
+    Linking.openURL(FEEDBACK_CONFIG.URL).catch((error: unknown) => {
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to open feedback survey URL',
+      });
+    });
+  }, [trackEvent, createEventBuilder]);
+
   const navigationItems: NavigationItem[] = useMemo(() => {
     const items: NavigationItem[] = [
       {
@@ -254,6 +286,15 @@ const PerpsHomeView = () => {
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
     ];
+
+    // Add feedback button when feature flag is enabled
+    if (isFeedbackEnabled) {
+      items.push({
+        label: strings(FEEDBACK_CONFIG.TITLE_KEY),
+        onPress: handleGiveFeedback,
+        testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
+      });
+    }
 
     // Avoid duplicate "Learn more" button (shown in empty state card)
     if (!isBalanceEmpty) {
@@ -265,7 +306,13 @@ const PerpsHomeView = () => {
     }
 
     return items;
-  }, [navigateToContactSupport, navigtateToTutorial, isBalanceEmpty]);
+  }, [
+    navigateToContactSupport,
+    navigtateToTutorial,
+    isBalanceEmpty,
+    isFeedbackEnabled,
+    handleGiveFeedback,
+  ]);
 
   // Bottom sheet handlers - open sheets directly
   const handleCloseAllPress = useCallback(() => {

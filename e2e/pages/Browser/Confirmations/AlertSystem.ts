@@ -6,7 +6,7 @@ import {
   ConfirmationTopSheetSelectorsIDs,
   ConfirmationTopSheetSelectorsText,
   AlertTypeIDs,
-} from '../../../selectors/Confirmation/ConfirmationView.selectors';
+} from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Gestures from '../../../framework/Gestures';
 
 class AlertSystem {

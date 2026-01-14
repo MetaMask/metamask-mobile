@@ -4,7 +4,8 @@ import { createProjectLogger } from '@metamask/utils';
 
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { IMetaMetricsEvent } from '../../../../Analytics/MetaMetrics.types';
-import { MetaMetrics } from '../../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { generateEvent, retryIfEngineNotInitialized } from '../utils';
 import type {
   TransactionEventHandlerRequest,
@@ -55,7 +56,21 @@ const createTransactionEventHandler =
 
       log('Event', event);
 
-      MetaMetrics.getInstance().trackEvent(event);
+      // Convert ITrackingEvent to AnalyticsTrackingEvent and track
+      const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
+        event.name,
+      )
+        .addProperties(event.properties as AnalyticsEventProperties)
+        .addSensitiveProperties(
+          event.sensitiveProperties as AnalyticsEventProperties,
+        )
+        .setSaveDataRecording(event.saveDataRecording)
+        .build();
+
+      transactionEventHandlerRequest.initMessenger.call(
+        'AnalyticsController:trackEvent',
+        analyticsEvent,
+      );
     } catch (error) {
       log('Error in transaction event handler', error);
     }
@@ -108,7 +123,19 @@ export async function handleTransactionFinalizedEventForMetrics(
 
     log('Finalized event', event);
 
-    MetaMetrics.getInstance().trackEvent(event);
+    // Convert ITrackingEvent to AnalyticsTrackingEvent and track
+    const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event.name)
+      .addProperties(event.properties as AnalyticsEventProperties)
+      .addSensitiveProperties(
+        event.sensitiveProperties as AnalyticsEventProperties,
+      )
+      .setSaveDataRecording(event.saveDataRecording)
+      .build();
+
+    transactionEventHandlerRequest.initMessenger.call(
+      'AnalyticsController:trackEvent',
+      analyticsEvent,
+    );
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }

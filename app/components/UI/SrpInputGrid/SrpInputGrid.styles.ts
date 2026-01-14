@@ -18,7 +18,6 @@ export const createStyles = (colors: Colors) =>
       paddingTop: 16,
       backgroundColor: colors.background.section,
       borderRadius: 10,
-      marginTop: 16,
       minHeight: 210,
       maxHeight: 'auto',
     },

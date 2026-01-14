@@ -12,7 +12,7 @@ import Browser from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../pages/Browser/NetworkConnectMultiSelector';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { loginToApp } from '../../../viewHelper';
 import {
   Caip25CaveatType,

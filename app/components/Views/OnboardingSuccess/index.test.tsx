@@ -7,7 +7,7 @@ import OnboardingSuccess, {
   ResetNavigationToHome,
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
+import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
