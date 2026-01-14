@@ -230,7 +230,7 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin used')).toBeOnTheScreen();
-        expect(screen.getByText('Total Unrealized P&L')).toBeOnTheScreen();
+        expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
         // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
