@@ -65,7 +65,6 @@ describe(SmokePredictions('Predictions'), () => {
       async ({ mockServer }) => {
         await loginToApp();
 
-        // Step 1: Navigate to Predictions tab - fires PREDICT_POSITION_VIEWED
         await WalletView.tapOnPredictionsTab();
         await Assertions.expectElementToBeVisible(
           WalletView.PredictionsTabContainer,
@@ -74,7 +73,6 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectTextDisplayed(positionDetails.initialBalance);
         await device.disableSynchronization();
 
-        // Step 2: Tap position to open market details - fires PREDICT_MARKET_DETAILS_OPENED
         await WalletView.tapOnPredictionsPosition(positionDetails.name);
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
