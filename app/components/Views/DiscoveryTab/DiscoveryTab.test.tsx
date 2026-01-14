@@ -142,6 +142,7 @@ jest.mock('../../UI/BrowserBottomBar', () => ({
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(() => false),
   isIos: jest.fn(() => true),
+  isIphoneX: jest.fn(() => false),
 }));
 
 jest.mock('react-native', () => {
