@@ -330,12 +330,8 @@ const useSpendingLimit = ({
   );
 
   // Navigation helpers
-  const navigateToComplete = useCallback(() => {
-    navigation.dispatch(
-      StackActions.replace(Routes.CARD.ONBOARDING.ROOT, {
-        screen: Routes.CARD.ONBOARDING.COMPLETE,
-      }),
-    );
+  const navigateToCardHome = useCallback(() => {
+    navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
   }, [navigation]);
 
   // Actions
@@ -391,7 +387,7 @@ const useSpendingLimit = ({
 
       setTimeout(() => {
         if (isOnboardingFlow) {
-          navigateToComplete();
+          navigateToCardHome();
         } else {
           navigation.goBack();
         }
@@ -417,7 +413,7 @@ const useSpendingLimit = ({
     isOnboardingFlow,
     showSuccessToast,
     showErrorToast,
-    navigateToComplete,
+    navigateToCardHome,
     navigation,
     trackEvent,
     createEventBuilder,
@@ -447,8 +443,8 @@ const useSpendingLimit = ({
         .build(),
     );
 
-    navigation.navigate(Routes.CARD.HOME);
-  }, [trackEvent, createEventBuilder, isLoading, navigation]);
+    navigateToCardHome();
+  }, [trackEvent, createEventBuilder, isLoading, navigateToCardHome]);
 
   return {
     // State

@@ -1,6 +1,10 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  useNavigation,
+  useFocusEffect,
+  StackActions,
+} from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { SolScope } from '@metamask/keyring-api';
 import useSpendingLimit, { UseSpendingLimitParams } from './useSpendingLimit';
@@ -795,7 +799,7 @@ describe('useSpendingLimit', () => {
   });
 
   describe('skip', () => {
-    it('navigates to card home screen', () => {
+    it('replaces navigation to card home screen', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
       );
@@ -804,7 +808,9 @@ describe('useSpendingLimit', () => {
         result.current.skip();
       });
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.CARD.HOME);
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.CARD.HOME),
+      );
     });
 
     it('does not navigate when loading', () => {
@@ -822,7 +828,7 @@ describe('useSpendingLimit', () => {
         result.current.skip();
       });
 
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(mockNavigation.dispatch).not.toHaveBeenCalled();
     });
 
     it('tracks button click event with skipped property', () => {
