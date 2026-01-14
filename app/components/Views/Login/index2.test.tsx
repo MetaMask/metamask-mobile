@@ -9,7 +9,6 @@ import { parseVaultValue } from '../../../util/validators';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
-import { Authentication } from '../../../core';
 
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -28,6 +27,27 @@ import { ReduxStore } from '../../../core/redux/types';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 const mockEngine = jest.mocked(Engine);
+
+const mockGetAuthType = jest.fn();
+const mockComponentAuthenticationType = jest.fn();
+const mockUnlockWallet = jest.fn();
+const mockLockApp = jest.fn();
+const mockReauthenticate = jest.fn();
+const mockRevealSRP = jest.fn();
+const mockRevealPrivateKey = jest.fn();
+
+jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
+  __esModule: true,
+  default: () => ({
+    getAuthType: mockGetAuthType,
+    componentAuthenticationType: mockComponentAuthenticationType,
+    unlockWallet: mockUnlockWallet,
+    lockApp: mockLockApp,
+    reauthenticate: mockReauthenticate,
+    revealSRP: mockRevealSRP,
+    revealPrivateKey: mockRevealPrivateKey,
+  }),
+}));
 
 // Mock useMetrics with a dynamic isEnabled function
 const mockIsEnabled = jest.fn().mockReturnValue(true);
@@ -82,6 +102,7 @@ jest.mock('@react-navigation/native', () => {
 });
 jest.mock('../../../util/authentication', () => ({
   updateAuthTypeStorageFlags: jest.fn(),
+  passcodeType: jest.fn().mockReturnValue('passcode_ios'),
 }));
 
 jest.mock('../../../util/validators', () => ({
@@ -164,10 +185,6 @@ describe('Login test suite 2', () => {
   });
 
   beforeEach(() => {
-    jest
-      .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
-      .mockResolvedValue(false);
-
     // Mock Redux store for all tests
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
@@ -195,6 +212,9 @@ describe('Login test suite 2', () => {
           oauthLoginSuccess: false,
         },
       });
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      });
     });
 
     afterEach(() => {
@@ -208,19 +228,11 @@ describe('Login test suite 2', () => {
       });
       mockParseVaultValue.mockResolvedValueOnce('mock-seed');
 
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(new Error(VAULT_ERROR));
+      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
 
-      jest
-        .spyOn(Authentication, 'componentAuthenticationType')
-        .mockResolvedValueOnce({
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        });
-
-      jest
-        .spyOn(Authentication, 'updateAuthPreference')
-        .mockResolvedValueOnce(undefined);
+      mockComponentAuthenticationType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      });
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -250,9 +262,7 @@ describe('Login test suite 2', () => {
       });
       mockParseVaultValue.mockResolvedValueOnce(undefined);
 
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(new Error(VAULT_ERROR));
+      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -268,9 +278,7 @@ describe('Login test suite 2', () => {
     });
 
     it('handle vault corruption when password requirements are not met', async () => {
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(new Error(VAULT_ERROR));
+      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -290,9 +298,7 @@ describe('Login test suite 2', () => {
         success: false,
         error: 'Backup error',
       });
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(new Error(VAULT_ERROR));
+      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -308,9 +314,7 @@ describe('Login test suite 2', () => {
     });
 
     it('handle vault corruption when storePassword fails', async () => {
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(new Error(VAULT_ERROR));
+      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
 
       // Mock getVaultFromBackup to return an error to trigger error handling
       mockGetVaultFromBackup.mockResolvedValueOnce({
@@ -340,9 +344,7 @@ describe('Login test suite 2', () => {
       });
       mockParseVaultValue.mockResolvedValueOnce(undefined);
 
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(new Error(VAULT_ERROR));
+      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -360,6 +362,10 @@ describe('Login test suite 2', () => {
 
   describe('updateBiometryChoice', () => {
     it('updates biometry choice to disabled when biometric auth is cancelled', async () => {
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+      });
+
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -370,9 +376,7 @@ describe('Login test suite 2', () => {
         undefined,
       );
 
-      jest
-        .spyOn(Authentication, 'userEntryAuth')
-        .mockRejectedValue(new Error('Error: Cancel'));
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Cancel'));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -397,6 +401,9 @@ describe('Login test suite 2', () => {
 
     it('handle non OAuth login success when metrics UI is not seen', async () => {
       mockIsEnabled.mockReturnValue(false);
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      });
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -430,10 +437,7 @@ describe('Login test suite 2', () => {
         replaceReducer: jest.fn(),
         [Symbol.observable]: jest.fn(),
       } as unknown as ReduxStore);
-      jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
-      jest
-        .spyOn(Authentication, 'updateAuthPreference')
-        .mockResolvedValue(undefined);
+      mockUnlockWallet.mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -489,9 +493,7 @@ describe('Login test suite 2', () => {
         return null;
       });
 
-      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
-
-      jest.spyOn(Authentication, 'getType').mockImplementation(async () => ({
+      mockGetAuthType.mockImplementation(async () => ({
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType: BIOMETRY_TYPE.FACE_ID,
       }));
