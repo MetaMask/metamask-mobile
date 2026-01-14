@@ -93,6 +93,14 @@ import parseRampIntent from '../Ramp/utils/parseRampIntent';
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
+// Perps Discovery Banner imports
+import { selectPerpsEnabledFlag } from '../Perps';
+import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
+import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
+import { PerpsEventValues } from '../Perps/constants/eventNames';
+import DSText, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -137,6 +145,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { navigateToSendPage } = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
@@ -214,6 +223,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   // Hook for handling non-EVM asset sending
   const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
+
+  // Perps Discovery Banner hooks
+  const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
+    isPerpsEnabled ? asset.symbol : null,
+  );
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -385,6 +399,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     // TODO: params should not have to be cast here
     navigation.navigate(screen, params as Record<string, unknown>);
   };
+
+  // Perps Discovery Banner press handler
+  // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
+  const handlePerpsDiscoveryPress = useCallback(() => {
+    if (marketData) {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: marketData,
+          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+        },
+      });
+    }
+  }, [marketData, navigation]);
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
@@ -702,6 +730,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {isPerpsEnabled && hasPerpsMarket && marketData && (
+            <>
+              <View style={styles.perpsPositionHeader}>
+                <DSText variant={TextVariant.HeadingMD}>
+                  {strings('asset_overview.perps_position')}
+                </DSText>
+              </View>
+              <PerpsDiscoveryBanner
+                symbol={marketData.symbol}
+                maxLeverage={marketData.maxLeverage}
+                onPress={handlePerpsDiscoveryPress}
+                testID="perps-discovery-banner"
+              />
+            </>
+          )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
