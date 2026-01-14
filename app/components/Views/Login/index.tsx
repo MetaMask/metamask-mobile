@@ -379,7 +379,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const unlockWithPassword = useCallback(async () => {
     fieldRef.current?.clear();
     setPassword('');
-    setHasBiometricCredentials(false);
     setLoading(true);
     setError(null);
 
