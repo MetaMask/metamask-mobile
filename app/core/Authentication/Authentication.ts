@@ -795,10 +795,31 @@ class AuthenticationService {
           this.dispatchPasswordSet();
           void this.postLoginAsyncOperations();
 
-          // Authentication successful.Navigate to home screen.
-          NavigationService.navigation?.reset({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
+          // TODO: Refactor this orchestration to sagas.
+          // Navigate to optin metrics or home screen based on metrics consent and UI seen.
+          const isMetricsEnabled = MetaMetrics.getInstance().isEnabled();
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+          if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+            NavigationService.navigation?.reset({
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
+                },
+              ],
+            });
+          } else {
+            NavigationService.navigation?.reset({
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            });
+          }
         } else {
           // No password provided or derived. Navigate to login.
           NavigationService.navigation?.reset({

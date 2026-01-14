@@ -38,7 +38,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
@@ -91,7 +90,6 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../hooks/useMetrics';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
@@ -115,8 +113,6 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const { isEnabled: isMetricsEnabled } = useMetrics();
-
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
@@ -276,34 +272,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [password, navigation]);
 
-  const navigateToHome = useCallback(async () => {
-    navigation.replace(Routes.ONBOARDING.HOME_NAV);
-  }, [navigation]);
-
-  const checkMetricsUISeen = useCallback(async (): Promise<void> => {
-    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-      OPTIN_META_METRICS_UI_SEEN,
-    );
-
-    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
-      navigation.reset({
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
-            },
-          },
-        ],
-      });
-    } else {
-      navigateToHome();
-    }
-  }, [navigation, navigateToHome, isMetricsEnabled]);
-
   const handlePasswordError = useCallback((loginErrorMessage: string) => {
     setLoading(false);
     setError(strings('login.invalid_password'));
@@ -395,8 +363,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet({ password, authPreference });
         },
       );
-
-      await checkMetricsUISeen();
     } catch (loginErr) {
       await handleLoginError(loginErr as Error);
     } finally {
@@ -408,7 +374,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     rememberMe,
     loading,
     handleLoginError,
-    checkMetricsUISeen,
     componentAuthenticationType,
     unlockWallet,
   ]);
@@ -432,15 +397,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet();
         },
       );
-
-      await checkMetricsUISeen();
     } catch (error) {
       setHasBiometricCredentials(true);
       await handleLoginError(error as Error);
     } finally {
       setLoading(false);
     }
-  }, [checkMetricsUISeen, unlockWallet, loading, handleLoginError]);
+  }, [unlockWallet, loading, handleLoginError]);
 
   // show biometric switch to true even if biometric is disabled
   const shouldRenderBiometricLogin = biometryType;
