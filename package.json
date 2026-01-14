@@ -132,6 +132,14 @@
     ]
   },
   "resolutions": {
+    "glob@npm:^10.2.2": "10.5.0",
+    "glob@npm:^10.3.10": "10.5.0",
+    "glob@npm:^10.3.3": "10.5.0",
+    "glob@npm:^10.3.4": "10.5.0",
+    "glob@npm:^10.3.7": "10.5.0",
+    "glob@npm:^10.4.2": "10.5.0",
+    "glob@npm:10.3.3": "10.5.0",
+    "glob@npm:10.4.5": "10.5.0",
     "json-schema": "^0.4.0",
     "node-fetch": "^2.6.7",
     "xml2js": ">=0.5.0",
@@ -501,7 +509,7 @@
     "@babel/runtime": "^7.25.0",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
-    "@lavamoat/allow-scripts": "^3.0.4",
+    "@lavamoat/allow-scripts": "3.4.1",
     "@lavamoat/git-safe-dependencies": "^0.2.1",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/auto-changelog": "^5.3.0",
