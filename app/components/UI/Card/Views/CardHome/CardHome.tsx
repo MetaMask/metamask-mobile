@@ -308,6 +308,32 @@ const CardHome = () => {
     }
   }, [trackEvent, createEventBuilder, priorityToken, openSwaps, navigation]);
 
+  const openOnboardingDelegationAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW,
+        })
+        .build(),
+    );
+
+    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+      flow: 'manage',
+      priorityToken,
+      allTokens,
+      delegationSettings,
+      externalWalletDetailsData,
+    });
+  }, [
+    navigation,
+    priorityToken,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   const changeAssetAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -398,7 +424,6 @@ const CardHome = () => {
     () => warning === CardStateWarning.NeedDelegation,
     [warning],
   );
-
   const canEnableCard = useMemo(() => {
     if (!isAuthenticated || !isBaanxLoginEnabled) {
       return true;
@@ -464,14 +489,15 @@ const CardHome = () => {
 
     if (isBaanxLoginEnabled) {
       if (needToEnableCard) {
-        if (isKYCPendingOrUnverified && needToEnableAssets) {
+        // KYC pending/unverified users need to set up delegation first
+        if (isKYCPendingOrUnverified) {
           return (
             <Button
               variant={ButtonVariants.Primary}
               style={styles.defaultMarginTop}
               label={strings('card.card_home.enable_card_button_label')}
               size={ButtonSize.Lg}
-              onPress={changeAssetAction}
+              onPress={openOnboardingDelegationAction}
               width={ButtonWidthTypes.Full}
               disabled={isLoading}
               loading={isLoading}
@@ -480,26 +506,23 @@ const CardHome = () => {
           );
         }
 
-        if (!isKYCPendingOrUnverified) {
-          return (
-            <Button
-              variant={ButtonVariants.Primary}
-              style={styles.defaultMarginTop}
-              label={strings('card.card_home.enable_card_button_label')}
-              size={ButtonSize.Lg}
-              onPress={enableCardAction}
-              width={ButtonWidthTypes.Full}
-              disabled
-              loading={
-                isLoading ||
-                isLoadingPollCardStatusUntilProvisioned ||
-                isLoadingProvisionCard ||
-                canEnableCard // Show loading when auto-provisioning
-              }
-              testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
-            />
-          );
-        }
+        // KYC verified users can provision card directly
+        return (
+          <Button
+            variant={ButtonVariants.Primary}
+            style={styles.defaultMarginTop}
+            label={strings('card.card_home.enable_card_button_label')}
+            size={ButtonSize.Lg}
+            onPress={enableCardAction}
+            width={ButtonWidthTypes.Full}
+            loading={
+              isLoading ||
+              isLoadingPollCardStatusUntilProvisioned ||
+              isLoadingProvisionCard
+            }
+            testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
+          />
+        );
       }
 
       if (needToEnableAssets) {
@@ -509,7 +532,7 @@ const CardHome = () => {
             style={styles.defaultMarginTop}
             label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
-            onPress={changeAssetAction}
+            onPress={openOnboardingDelegationAction}
             width={ButtonWidthTypes.Full}
             disabled={isLoading}
             loading={isLoading}
@@ -572,8 +595,8 @@ const CardHome = () => {
     needToEnableAssets,
     needToEnableCard,
     styles,
-    canEnableCard,
     isKYCPendingOrUnverified,
+    openOnboardingDelegationAction,
   ]);
 
   useEffect(() => {
@@ -816,9 +839,7 @@ const CardHome = () => {
           style={[
             styles.balanceTextContainer,
             styles.defaultHorizontalPadding,
-            (needToEnableAssets ||
-              (needToEnableCard && !isKYCPendingOrUnverified)) &&
-              styles.shouldBeHidden,
+            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
           ]}
         >
           <SensitiveText
@@ -902,9 +923,7 @@ const CardHome = () => {
           style={[
             styles.cardAssetItemContainer,
             styles.defaultHorizontalPadding,
-            (needToEnableAssets ||
-              (needToEnableCard && !isKYCPendingOrUnverified)) &&
-              styles.shouldBeHidden,
+            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
           ]}
         >
           {isLoading ? (
@@ -944,9 +963,7 @@ const CardHome = () => {
 
       <View
         style={[
-          (needToEnableAssets ||
-            (needToEnableCard && !isKYCPendingOrUnverified)) &&
-            styles.shouldBeHidden,
+          (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
         ]}
       >
         {isBaanxLoginEnabled &&
@@ -965,26 +982,25 @@ const CardHome = () => {
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
-
-        <ManageCardListItem
-          title={strings('card.card_home.manage_card_options.manage_card')}
-          description={strings(
-            'card.card_home.manage_card_options.advanced_card_management_description',
-          )}
-          rightIcon={IconName.Export}
-          onPress={navigateToCardPage}
-          testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
-        />
-        <ManageCardListItem
-          title={strings('card.card_home.manage_card_options.travel_title')}
-          description={strings(
-            'card.card_home.manage_card_options.travel_description',
-          )}
-          rightIcon={IconName.Export}
-          onPress={navigateToTravelPage}
-          testID={CardHomeSelectors.TRAVEL_ITEM}
-        />
       </View>
+      <ManageCardListItem
+        title={strings('card.card_home.manage_card_options.manage_card')}
+        description={strings(
+          'card.card_home.manage_card_options.advanced_card_management_description',
+        )}
+        rightIcon={IconName.Export}
+        onPress={navigateToCardPage}
+        testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
+      />
+      <ManageCardListItem
+        title={strings('card.card_home.manage_card_options.travel_title')}
+        description={strings(
+          'card.card_home.manage_card_options.travel_description',
+        )}
+        rightIcon={IconName.Export}
+        onPress={navigateToTravelPage}
+        testID={CardHomeSelectors.TRAVEL_ITEM}
+      />
 
       {isAuthenticated && (
         <>

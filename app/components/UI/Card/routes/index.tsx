@@ -7,11 +7,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { strings } from '../../../../../locales/i18n';
 import { StyleSheet, View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
@@ -105,13 +101,6 @@ export const cardSpendingLimitNavigationOptions = ({
   const flow = route.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
 
-  let titleKey = 'card.card_spending_limit.title_change_token';
-  if (flow === 'enable') {
-    titleKey = 'card.card_spending_limit.title_enable_token';
-  } else if (flow === 'onboarding') {
-    titleKey = 'card.card_spending_limit.title_onboarding';
-  }
-
   return {
     headerLeft: () =>
       isOnboardingFlow ? (
@@ -124,16 +113,18 @@ export const cardSpendingLimitNavigationOptions = ({
           onPress={() => navigation.goBack()}
         />
       ),
-    headerTitle: () => (
-      <Text
-        variant={TextVariant.HeadingSM}
-        style={headerStyle.title}
-        testID={'spending-limit-title'}
-      >
-        {strings(titleKey)}
-      </Text>
-    ),
-    headerRight: () => <View />,
+    headerTitle: () => <View />,
+    headerRight: () =>
+      isOnboardingFlow ? (
+        <ButtonIcon
+          style={headerStyle.icon}
+          size={ButtonIconSize.Md}
+          iconName={IconName.Close}
+          onPress={() => navigation.navigate(Routes.CARD.HOME)}
+        />
+      ) : (
+        <View />
+      ),
     gestureEnabled: !isOnboardingFlow,
   };
 };

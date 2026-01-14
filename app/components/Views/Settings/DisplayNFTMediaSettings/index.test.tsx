@@ -22,7 +22,7 @@ jest.mock('../../../../core/Engine', () => {
   mockSetDisplayNftMedia = jest.fn();
   mockSetUseNftDetection = jest.fn();
   return {
-    init: () => mockEngine.init({}),
+    init: () => mockEngine.init(''),
     context: {
       PreferencesController: {
         setDisplayNftMedia: mockSetDisplayNftMedia,

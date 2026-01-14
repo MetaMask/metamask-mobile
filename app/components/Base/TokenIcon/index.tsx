@@ -1,4 +1,9 @@
-import React, { PropsWithChildren, useCallback, useState } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   ImageSourcePropType,
@@ -9,7 +14,7 @@ import {
 } from 'react-native';
 
 import RemoteImage from '../RemoteImage';
-import Text from '../Text';
+import Text from '../../../../app/component-library/components/Texts/Text/Text.tsx';
 import { useTheme } from '../../../util/theme';
 import imageIcons from '../../../images/image-icons';
 import ethLogo from '../../../images/eth-logo-new.png';
@@ -124,10 +129,15 @@ function TokenIcon({
   style,
   emptyIconTextStyle,
   testID,
-}: TokenIconProps) {
+}: Readonly<TokenIconProps>) {
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  // Reset fallback state when icon or symbol changes
+  useEffect(() => {
+    setShowFallback(false);
+  }, [icon, symbol]);
 
   const getSource = useCallback(() => {
     if (symbol === 'ETH') {
@@ -158,6 +168,7 @@ function TokenIcon({
   if (source && !showFallback) {
     return (
       <RemoteImage
+        key={icon || `symbol-${symbol}`}
         testID={testID}
         fadeIn
         source={getSource()}
