@@ -100,8 +100,7 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: |
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
+            .yarn
             app/util/termsOfUse/termsOfUseContent.ts
             scripts/inpage-bridge/dist
           retention-days: ${{ inputs.artifact-retention-days }}

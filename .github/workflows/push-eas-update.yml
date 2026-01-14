@@ -100,6 +100,12 @@ jobs:
       - name: Enable Corepack
         run: corepack enable && corepack prepare yarn@4.10.3 --activate
 
+      - name: Clear yarn state before artifact download
+        run: |
+          echo "🧹 Clearing existing .yarn directory to avoid conflicts..."
+          rm -rf .yarn node_modules
+          echo "✅ Cleared"
+
       - name: Download node_modules artifact (PR checkout)
         uses: actions/download-artifact@v4
         with:
@@ -129,6 +135,12 @@ jobs:
           FINGERPRINT=$(cat /tmp/fingerprint_output.txt | tail -1)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target commit fingerprint: ${FINGERPRINT}"
+
+      - name: Clear yarn state before artifact download (base branch)
+        run: |
+          echo "🧹 Clearing existing .yarn directory in main/ to avoid conflicts..."
+          rm -rf main/.yarn main/node_modules
+          echo "✅ Cleared"
 
       - name: Download node_modules artifact (base branch checkout)
         uses: actions/download-artifact@v4
@@ -311,6 +323,12 @@ jobs:
 
       - name: Enable Corepack
         run: corepack enable && corepack prepare yarn@4.10.3 --activate
+
+      - name: Clear yarn state before artifact download
+        run: |
+          echo "🧹 Clearing existing .yarn directory to avoid conflicts..."
+          rm -rf .yarn node_modules
+          echo "✅ Cleared"
 
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
