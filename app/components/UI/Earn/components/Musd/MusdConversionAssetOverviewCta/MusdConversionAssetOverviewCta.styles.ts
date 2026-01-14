@@ -26,6 +26,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     musdIcon: {
+      padding: 8,
       width: 78,
       height: 78,
     },
