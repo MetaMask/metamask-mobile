@@ -4,15 +4,41 @@
  *
  */
 
+import { ProviderType, ProviderConfig } from './providers/types';
+
 /**
- * Anthropic Claude API Configuration
+ * Multi-Provider LLM Configuration
+ *
+ * Supports automatic fallback between providers when one is unavailable.
  */
-export const CLAUDE_CONFIG = {
+export const LLM_CONFIG = {
   /**
-   * Claude model to use for analysis
-   * - See available models: https://docs.anthropic.com/en/docs/about-claude/models
+   * Provider priority order for automatic fallback
+   * The first available provider in this list will be used
    */
-  model: 'claude-opus-4-5-20251101' as const,
+  providerPriority: ['anthropic', 'openai', 'google'] as ProviderType[],
+
+  /**
+   * Per-provider configuration
+   */
+  providers: {
+    anthropic: {
+      model: 'claude-opus-4-5-20251101',
+      envKey: 'E2E_CLAUDE_API_KEY',
+    } as ProviderConfig,
+    openai: {
+      model: 'gpt-4o',
+      envKey: 'E2E_OPENAI_API_KEY',
+    } as ProviderConfig,
+    google: {
+      model: 'gemini-1.5-pro',
+      envKey: 'E2E_GOOGLE_API_KEY',
+    } as ProviderConfig,
+  },
+
+  /**
+   * Shared settings across all providers
+   */
 
   /**
    * Temperature controls randomness in responses (0-1)
@@ -23,8 +49,8 @@ export const CLAUDE_CONFIG = {
   temperature: 0,
 
   /**
-   * Maximum tokens allowed for the AI response. Controls the length of reasoning and tool calls
-   * Docs: https://docs.anthropic.com/en/api/messages
+   * Maximum tokens allowed for the AI response
+   * Controls the length of reasoning and tool calls
    */
   maxTokens: 16000,
 
@@ -43,6 +69,18 @@ export const CLAUDE_CONFIG = {
    * - Iteration 3: AI calls finalize tool (e.g., finalize_tag_selection) → DONE
    */
   maxIterations: 20,
+};
+
+/**
+ * @deprecated Use LLM_CONFIG instead. Kept for backward compatibility.
+ *
+ * Anthropic Claude API Configuration
+ */
+export const CLAUDE_CONFIG = {
+  model: LLM_CONFIG.providers.anthropic.model,
+  temperature: LLM_CONFIG.temperature,
+  maxTokens: LLM_CONFIG.maxTokens,
+  maxIterations: LLM_CONFIG.maxIterations,
 };
 
 /**

@@ -1,16 +1,17 @@
 /**
  * Tool Registry
  *
- * Defines the schema for all AI tools
+ * Defines the schema for all AI tools.
+ * Uses provider-agnostic LLMTool type.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { LLMTool } from '../providers';
 import { TOOL_LIMITS } from '../config';
 
 /**
  * Gets all tool definitions for the AI agent
  */
-export function getToolDefinitions(): Anthropic.Tool[] {
+export function getToolDefinitions(): LLMTool[] {
   return [
     {
       name: 'read_file',

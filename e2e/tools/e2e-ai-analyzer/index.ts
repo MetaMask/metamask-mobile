@@ -1,12 +1,12 @@
 /**
  * E2E AI Analyzer - Entry Point
  *
- * AI-powered E2E test analysis with multiple operation modes
+ * AI-powered E2E test analysis with multiple operation modes.
+ * Supports multiple LLM providers with automatic fallback.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { ParsedArgs } from './types';
-import { APP_CONFIG } from './config';
+import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
   getPRFiles,
@@ -14,6 +14,13 @@ import {
 } from './utils/git-utils';
 import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
+import {
+  getAvailableProviders,
+  createProvider,
+  getSupportedProviders,
+  ILLMProvider,
+  ProviderType,
+} from './providers';
 
 /**
  * Validates provided files against actual git changes
@@ -95,11 +102,24 @@ function showHelp(): void {
     .map(([key, mode]) => `  ${key.padEnd(20)} ${mode.description}`)
     .join('\n');
 
+  const providerList = getSupportedProviders()
+    .map((p) => {
+      const config = LLM_CONFIG.providers[p];
+      return `  ${p.padEnd(12)} ${config.envKey.padEnd(24)} ${config.model}`;
+    })
+    .join('\n');
+
   console.log(`
 Smart E2E AI Analyzer
 
 AVAILABLE MODES:
 ${modeList}
+
+SUPPORTED LLM PROVIDERS (in priority order):
+${providerList}
+
+The analyzer will automatically use the first available provider.
+Set the appropriate API key environment variable to enable a provider.
 
 AI AGENTIC FLOW:
 1. AI gets list of changed files and act depending on the mode
@@ -119,22 +139,48 @@ Output:
   - each mode defines its own output format
 
 Examples:
+  # Using Anthropic Claude (default)
   E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
-  E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
+
+  # Using OpenAI GPT-4
+  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+
+  # Using Google Gemini
+  E2E_GOOGLE_API_KEY=... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+
+  # With multiple keys (uses first available in priority order)
+  E2E_CLAUDE_API_KEY=sk-... E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
 `);
+}
+
+/**
+ * Get ordered list of available providers
+ *
+ * Returns providers in priority order that have API keys configured.
+ */
+async function getOrderedProviders(): Promise<ILLMProvider[]> {
+  const available = await getAvailableProviders();
+
+  if (available.length === 0) {
+    const envKeys = Object.values(LLM_CONFIG.providers)
+      .map((p) => p.envKey)
+      .join(', ');
+    throw new Error(`No LLM provider available. Set one of: ${envKeys}`);
+  }
+
+  // Sort by priority order
+  const priorityOrder = LLM_CONFIG.providerPriority;
+  const sorted = available.sort((a, b) => {
+    const aIndex = priorityOrder.indexOf(a);
+    const bIndex = priorityOrder.indexOf(b);
+    return aIndex - bIndex;
+  });
+
+  return sorted.map((type) => createProvider(type));
 }
 
 async function main() {
   console.log('🤖 Starting E2E AI analysis...');
-  const apiKey = process.env.E2E_CLAUDE_API_KEY;
-  if (!apiKey) {
-    console.error('❌ E2E_CLAUDE_API_KEY not set');
-    process.exit(1);
-  }
-
-  const anthropic = new Anthropic({
-    apiKey,
-  });
 
   const args = process.argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) {
@@ -177,18 +223,52 @@ async function main() {
     console.log(`⚠️  ${criticalFiles.length} critical files detected`);
   }
 
-  // Run AI analysis
-  const analysis = await analyzeWithAgent(
-    anthropic,
-    allChangedFiles,
-    criticalFiles,
-    mode,
-    baseDir,
-    baseBranch,
+  // Get available providers in priority order
+  const providers = await getOrderedProviders();
+  console.log(
+    `✅ Available providers: ${providers.map((p) => p.displayName).join(', ')}`,
   );
 
-  // Output results
-  MODES[mode].outputAnalysis(analysis);
+  // Try each provider for the entire analysis
+  // If a provider fails mid-analysis, restart with the next provider
+  let lastError: Error | null = null;
+
+  for (const provider of providers) {
+    try {
+      console.log(`\n🚀 Starting analysis with ${provider.displayName}...`);
+
+      const analysis = await analyzeWithAgent(
+        provider,
+        allChangedFiles,
+        criticalFiles,
+        mode,
+        baseDir,
+        baseBranch,
+      );
+
+      // Success - output results and exit
+      MODES[mode].outputAnalysis(analysis);
+      return;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(
+        `\n⚠️  ${provider.displayName} failed: ${lastError.message}`,
+      );
+
+      if (providers.indexOf(provider) < providers.length - 1) {
+        console.log('🔄 Retrying with next available provider...');
+      }
+    }
+  }
+
+  // All providers failed - use conservative fallback
+  console.error('\n❌ All providers failed. Using conservative fallback.');
+  if (lastError) {
+    console.error(`Last error: ${lastError.message}`);
+  }
+
+  const fallbackAnalysis = MODES[mode].createConservativeResult();
+  MODES[mode].outputAnalysis(fallbackAnalysis);
 }
 
 main().catch((error) => {
