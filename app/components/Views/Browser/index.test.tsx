@@ -923,15 +923,88 @@ describe('Browser', () => {
     it('navigates away when closing tabs view with zero tabs', async () => {
       // This tests the bug fix: closeTabsView should navigate away when tabs.length === 0
       const TabsMock = jest.mocked(Tabs);
+      const BrowserTabMock = jest.mocked(BrowserTab);
       let closeTabsViewCallback: (() => void) | undefined;
+      const mockCloseAllTabs = jest.fn();
+      const mockCaptureScreen = captureScreen as jest.Mock;
+      mockCaptureScreen.mockResolvedValue('data:image/png;base64,test');
+
+      // Mock BrowserTab to call showTabs when rendered to trigger shouldShowTabs = true
+      BrowserTabMock.mockImplementation((props) => {
+        // Call showTabs immediately to set shouldShowTabs to true
+        if (props?.showTabs) {
+          // Use setTimeout to call it after render
+          setTimeout(() => {
+            props.showTabs();
+          }, 0);
+        }
+        return React.createElement('View', { testID: 'browser-tab' });
+      });
 
       TabsMock.mockImplementation((props) => {
-        closeTabsViewCallback = props?.closeTabsView;
+        // Capture the callback when Tabs renders
+        if (props?.closeTabsView) {
+          closeTabsViewCallback = props.closeTabsView;
+        }
         return React.createElement('View', { testID: 'Tabs' });
       });
 
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
+      // Start with one tab so BrowserTab can trigger showTabsView
+      const initialTabs = [
+        { id: 1, url: 'https://example.com', image: '', isArchived: false },
+      ];
+      const initialStateWithTab = {
+        ...mockInitialState,
+        browser: {
+          ...mockInitialState.browser,
+          tabs: initialTabs,
+          activeTab: 1,
+        },
+      };
+
+      const { rerender } = renderWithProvider(
+        <Provider store={mockStore(initialStateWithTab)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={initialTabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={mockCloseAllTabs}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        { state: initialStateWithTab },
+      );
+
+      // Wait for BrowserTab to call showTabs, which sets shouldShowTabs to true
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Now re-render with zero tabs - this creates a new closeTabsView function
+      // that captures tabs.length === 0, and Tabs should still render because shouldShowTabs is true
+      const stateWithNoTabs = {
+        ...mockInitialState,
+        browser: {
+          ...mockInitialState.browser,
+          tabs: [],
+          activeTab: null,
+        },
+      };
+
+      rerender(
+        <Provider store={mockStore(stateWithNoTabs)}>
           <NavigationContainer independent>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
@@ -942,7 +1015,7 @@ describe('Browser', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
+                    closeAllTabs={mockCloseAllTabs}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -952,12 +1025,23 @@ describe('Browser', () => {
             </Stack.Navigator>
           </NavigationContainer>
         </Provider>,
-        { state: mockInitialState },
       );
 
-      // Wait for component to render and callback to be captured
+      // Wait for re-render and capture the callback
       await act(async () => {
-        // Call closeTabsView to test the behavior
+        // After re-render with zero tabs, Tabs should render if shouldShowTabs is true
+        // Find the most recent call that has closeTabsView
+        if (TabsMock.mock.calls.length > 0) {
+          for (let i = TabsMock.mock.calls.length - 1; i >= 0; i--) {
+            const call = TabsMock.mock.calls[i];
+            if (call[0]?.closeTabsView) {
+              closeTabsViewCallback = call[0].closeTabsView;
+              break;
+            }
+          }
+        }
+
+        // Call closeTabsView - the callback closure captures tabs.length === 0
         if (closeTabsViewCallback) {
           closeTabsViewCallback();
         }
@@ -967,7 +1051,12 @@ describe('Browser', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
-    it('sets shouldShowTabs to false when closing tabs view with tabs remaining', () => {
+    it('hides tabs view when closing tabs view with tabs remaining', () => {
+      // Reset BrowserTab mock to default (don't call showTabs)
+      jest.mocked(BrowserTab).mockImplementation(() => 'BrowserTab');
+      // Reset navigation mock
+      mockNavigation.goBack.mockClear();
+
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
@@ -1930,7 +2019,7 @@ describe('Browser', () => {
   });
 
   describe('renderTabList', () => {
-    it('renders Tabs component when shouldShowTabs is true', () => {
+    it('renders Tabs component when tabs view is visible', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
