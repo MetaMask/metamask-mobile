@@ -38,7 +38,7 @@ interface NetworkConfiguration {
   rpcEndpoints: RpcEndpoint[];
 }
 
-export const migrationVersion = 110;
+export const migrationVersion = 111;
 
 export const MEGAETH_TESTNET_V1_CHAIN_ID = '0x18c6'; // 6342
 

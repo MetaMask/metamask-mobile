@@ -6,7 +6,7 @@ import migrate, {
   migrationVersion,
   MEGAETH_TESTNET_V2_CONFIG,
   MEGAETH_TESTNET_V1_CHAIN_ID,
-} from './110';
+} from './111';
 import { KnownCaipNamespace } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
