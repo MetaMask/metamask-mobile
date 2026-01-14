@@ -44,15 +44,6 @@ export interface UseRampsUserRegionResult {
  * This hook assumes Engine is already initialized.
  *
  * @returns User region state and fetch/set functions.
- *
- * @example
- * ```tsx
- * const { userRegion, isLoading, error, fetchUserRegion, setUserRegion } = useRampsUserRegion();
- *
- * if (isLoading) return <Loading />;
- * if (error) return <Error message={error} />;
- * return <Text>Your region: {userRegion}</Text>;
- * ```
  */
 export function useRampsUserRegion(): UseRampsUserRegionResult {
   const userRegion = useSelector(selectUserRegion);

@@ -47,11 +47,9 @@ describe('useRampsUserRegion', () => {
   describe('return value structure', () => {
     it('returns userRegion, isLoading, error, fetchUserRegion, and setUserRegion', () => {
       const store = createMockStore();
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       expect(result.current).toMatchObject({
         userRegion: null,
         isLoading: false,
@@ -65,11 +63,9 @@ describe('useRampsUserRegion', () => {
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
       const store = createMockStore({ userRegion: 'US-CA' });
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       expect(result.current.userRegion).toBe('US-CA');
     });
   });
@@ -87,11 +83,9 @@ describe('useRampsUserRegion', () => {
           },
         },
       });
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       expect(result.current.isLoading).toBe(true);
     });
   });
@@ -109,11 +103,9 @@ describe('useRampsUserRegion', () => {
           },
         },
       });
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       expect(result.current.error).toBe('Network error');
     });
   });
@@ -121,13 +113,10 @@ describe('useRampsUserRegion', () => {
   describe('fetchUserRegion', () => {
     it('calls updateUserRegion without options when called with no arguments', async () => {
       const store = createMockStore();
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       await result.current.fetchUserRegion();
-
       expect(
         Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith(undefined);
@@ -135,13 +124,10 @@ describe('useRampsUserRegion', () => {
 
     it('calls updateUserRegion with forceRefresh true when specified', async () => {
       const store = createMockStore();
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       await result.current.fetchUserRegion({ forceRefresh: true });
-
       expect(
         Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
@@ -151,13 +137,10 @@ describe('useRampsUserRegion', () => {
 
     it('calls updateUserRegion with forceRefresh false when specified', async () => {
       const store = createMockStore();
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       await result.current.fetchUserRegion({ forceRefresh: false });
-
       expect(
         Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
@@ -185,13 +168,10 @@ describe('useRampsUserRegion', () => {
   describe('setUserRegion', () => {
     it('calls setUserRegion on controller', async () => {
       const store = createMockStore();
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       await result.current.setUserRegion('US-CA');
-
       expect(Engine.context.RampsController.setUserRegion).toHaveBeenCalledWith(
         'US-CA',
         undefined,
@@ -200,13 +180,10 @@ describe('useRampsUserRegion', () => {
 
     it('calls setUserRegion with options when specified', async () => {
       const store = createMockStore();
-
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-
       await result.current.setUserRegion('US-CA', { forceRefresh: true });
-
       expect(Engine.context.RampsController.setUserRegion).toHaveBeenCalledWith(
         'US-CA',
         { forceRefresh: true },
