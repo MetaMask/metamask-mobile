@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../../../../../util/theme';
 
 interface PredictSportWinnerProps {
-  color: string; // Trophy color (hex)
+  color?: string; // Trophy color (hex)
   size?: number; // Size in pixels (default: 16)
   testID?: string;
 }

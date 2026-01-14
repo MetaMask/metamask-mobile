@@ -66,9 +66,9 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       case GameState.InProgress:
         return (
           <Box twClassName="items-center">
-            {quarter && time && (
+            {(quarter || time) && (
               <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-                {quarter} • {time}
+                {quarter && time ? `${quarter} • ${time}` : quarter || time}
               </Text>
             )}
           </Box>
@@ -159,7 +159,6 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           )}
           {side === 'home' && showWinner && (
             <PredictSportWinner
-              color="#9B9B9B"
               size={footballSize}
               testID={`${testID}-${side}-winner`}
             />
@@ -175,7 +174,6 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           )}
           {side === 'away' && showWinner && (
             <PredictSportWinner
-              color="#9B9B9B"
               size={footballSize}
               testID={`${testID}-${side}-winner`}
             />

@@ -585,11 +585,11 @@ describe('PredictSportScoreboard', () => {
       expect(getByTestId('scoreboard')).toBeOnTheScreen();
     });
 
-    it('renders without optional time in in-progress state', () => {
+    it('displays only quarter when time is not provided in in-progress state', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
 
-      const { queryByText } = render(
+      const { getByText } = render(
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
@@ -598,14 +598,14 @@ describe('PredictSportScoreboard', () => {
         />,
       );
 
-      expect(queryByText('Q4 • 12:02')).toBeNull();
+      expect(getByText('Q4')).toBeOnTheScreen();
     });
 
-    it('renders without optional quarter in in-progress state', () => {
+    it('displays only time when quarter is not provided in in-progress state', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
 
-      const { queryByText } = render(
+      const { getByText } = render(
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
@@ -614,7 +614,7 @@ describe('PredictSportScoreboard', () => {
         />,
       );
 
-      expect(queryByText('Q3 • 12:02')).toBeNull();
+      expect(getByText('12:02')).toBeOnTheScreen();
     });
 
     it('renders with single-character team abbreviations', () => {
