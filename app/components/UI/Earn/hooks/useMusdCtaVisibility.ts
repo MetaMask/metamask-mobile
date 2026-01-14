@@ -24,6 +24,7 @@ import { toHex } from '@metamask/controller-utils';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 
 /**
  * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
@@ -34,10 +35,10 @@ import { isTokenInWildcardList } from '../utils/wildcardTokenList';
  * - Asset overview mUSD conversion CTA
  *
  * Decisions are driven by feature flags, selected network(s), mUSD balance, Ramp buyability by chain,
- * and the configured wildcard token list for conversion CTAs.
+ * wallet balance state, and the configured wildcard token list for conversion CTAs.
  *
  * @returns Object containing:
- * - shouldShowBuyGetMusdCta(): { shouldShowCta, showNetworkIcon, selectedChainId }
+ * - shouldShowBuyGetMusdCta(): { shouldShowCta, showNetworkIcon, selectedChainId, isEmptyWallet }
  * - shouldShowTokenListItemCta(asset?): boolean
  * - shouldShowAssetOverviewCta(asset?): boolean
  */
@@ -52,6 +53,10 @@ export const useMusdCtaVisibility = () => {
     selectIsMusdConversionAssetOverviewEnabledFlag,
   );
 
+  // Wallet balance state for empty wallet detection
+  const accountBalance = useSelector(selectAccountGroupBalanceForEmptyState);
+  const isEmptyWallet = accountBalance?.totalBalanceInUserCurrency === 0;
+
   const { enabledNetworks } = useCurrentNetworkInfo();
   const { areAllNetworksSelected } = useNetworksByCustomNamespace({
     networkType: NetworkType.Popular,
@@ -61,6 +66,16 @@ export const useMusdCtaVisibility = () => {
   const { allTokens } = useRampTokens();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
+
+  // Check if user has tokens available for conversion
+  const canConvert = useMemo(
+    () =>
+      Boolean(
+        conversionTokens.length > 0 &&
+          conversionTokens?.[0]?.chainId !== undefined,
+      ),
+    [conversionTokens],
+  );
 
   const getConversionTokensWithCtas = useCallback(
     (tokens: AssetType[]) =>
@@ -140,17 +155,32 @@ export const useMusdCtaVisibility = () => {
   );
 
   /**
-   * Buy/Get mUSD CTA depends on MM_RAMPS_UNIFIED_BUY_V1_ENABLED flag being enabled.
-   * If the flag is enabled, the buy/get mUSD CTA is shown.
+   * Buy/Get mUSD CTA visibility logic.
+   *
+   * Shows the CTA when:
+   * - Feature flag is enabled AND
+   * - mUSD balance/buyability conditions are met AND
+   * - (wallet is empty OR user has convertible tokens)
+   *
+   * Returns isEmptyWallet for determining CTA text ("Buy" vs "Get") and action handling.
    */
   const shouldShowBuyGetMusdCta = useCallback(() => {
+    const hiddenResult = {
+      shouldShowCta: false,
+      showNetworkIcon: false,
+      selectedChainId: null,
+      isEmptyWallet,
+    };
+
     // If the buy/get mUSD CTA feature flag is disabled, don't show the buy/get mUSD CTA
     if (!isMusdGetBuyCtaEnabled) {
-      return {
-        shouldShowCta: false,
-        showNetworkIcon: false,
-        selectedChainId: null,
-      };
+      return hiddenResult;
+    }
+
+    // Don't show CTA if user has tokens but none are convertible
+    // (only show when wallet is empty OR has convertible tokens)
+    if (!isEmptyWallet && !canConvert) {
+      return hiddenResult;
     }
 
     // If all networks are selected
@@ -162,6 +192,7 @@ export const useMusdCtaVisibility = () => {
         shouldShowCta: !hasMusdBalanceOnAnyChain && isMusdBuyableOnAnyChain,
         showNetworkIcon: false,
         selectedChainId: null,
+        isEmptyWallet,
       };
     }
 
@@ -171,11 +202,7 @@ export const useMusdCtaVisibility = () => {
 
     if (!isBuyableChain) {
       // Chain doesn't have buy routes available (e.g., BSC) - hide the buy/get mUSD CTA
-      return {
-        shouldShowCta: false,
-        showNetworkIcon: false,
-        selectedChainId: null,
-      };
+      return hiddenResult;
     }
 
     // Check if mUSD is buyable on this chain in user's region
@@ -183,11 +210,7 @@ export const useMusdCtaVisibility = () => {
 
     if (!isMusdBuyableInRegion) {
       // mUSD not buyable in user's region for this chain - hide the buy/get mUSD CTA
-      return {
-        shouldShowCta: false,
-        showNetworkIcon: false,
-        selectedChainId: null,
-      };
+      return hiddenResult;
     }
 
     // Supported chain selected - check if user has MUSD on this specific chain
@@ -197,10 +220,13 @@ export const useMusdCtaVisibility = () => {
       shouldShowCta: !hasMusdOnSelectedChain,
       showNetworkIcon: true,
       selectedChainId: chainId,
+      isEmptyWallet,
     };
   }, [
+    canConvert,
     hasMusdBalanceOnAnyChain,
     hasMusdBalanceOnChain,
+    isEmptyWallet,
     isMusdBuyableOnAnyChain,
     isMusdBuyableOnChain,
     isMusdGetBuyCtaEnabled,

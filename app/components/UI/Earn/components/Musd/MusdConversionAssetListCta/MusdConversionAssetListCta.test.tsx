@@ -7,9 +7,6 @@ jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../hooks/useMusdCtaVisibility');
 jest.mock('../../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../../../../../util/Logger');
-jest.mock('../../../../../../selectors/assets/balances', () => ({
-  selectAccountGroupBalanceForEmptyState: jest.fn(),
-}));
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import MusdConversionAssetListCta from '.';
@@ -28,7 +25,6 @@ import Logger from '../../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectAccountGroupBalanceForEmptyState } from '../../../../../../selectors/assets/balances';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -43,10 +39,6 @@ const mockToken = {
   isETH: false,
 };
 
-const mockSelectAccountGroupBalanceForEmptyState = jest.mocked(
-  selectAccountGroupBalanceForEmptyState,
-);
-
 describe('MusdConversionAssetListCta', () => {
   const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
@@ -54,14 +46,6 @@ describe('MusdConversionAssetListCta', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Default to non-empty wallet (has some balance)
-    mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-      walletId: 'test-wallet',
-      groupId: 'test-group',
-      totalBalanceInUserCurrency: 100,
-      userCurrency: 'USD',
-    });
 
     (
       useRampNavigation as jest.MockedFunction<typeof useRampNavigation>
@@ -80,7 +64,7 @@ describe('MusdConversionAssetListCta', () => {
       hasSeenConversionEducationScreen: true,
     });
 
-    // Default mock for visibility - show CTA without network icon
+    // Default mock for visibility - show CTA with non-empty wallet
     (
       useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
     ).mockReturnValue({
@@ -88,6 +72,7 @@ describe('MusdConversionAssetListCta', () => {
         shouldShowCta: true,
         showNetworkIcon: false,
         selectedChainId: null,
+        isEmptyWallet: false,
       }),
       shouldShowTokenListItemCta: jest.fn(),
       shouldShowAssetOverviewCta: jest.fn(),
@@ -99,40 +84,7 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('rendering', () => {
-    it('renders component with container testID when wallet is empty', () => {
-      // Set wallet as empty to show the CTA
-      mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-        walletId: 'test-wallet',
-        groupId: 'test-group',
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'USD',
-      });
-
-      (
-        useMusdConversionTokens as jest.MockedFunction<
-          typeof useMusdConversionTokens
-        >
-      ).mockReturnValue({
-        tokens: [],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <MusdConversionAssetListCta />,
-        {
-          state: initialRootState,
-        },
-      );
-
-      expect(
-        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders component with container testID when convertible tokens exist', () => {
+    it('renders component with container testID when hook returns shouldShowCta true', () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -205,13 +157,18 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('CTA button text', () => {
-    it('displays "Buy mUSD" when wallet is empty', () => {
-      // Set wallet as empty
-      mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-        walletId: 'test-wallet',
-        groupId: 'test-group',
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'USD',
+    it('displays "Buy mUSD" when hook returns isEmptyWallet true', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
       });
 
       (
@@ -233,7 +190,20 @@ describe('MusdConversionAssetListCta', () => {
       expect(getByText('Buy mUSD')).toBeOnTheScreen();
     });
 
-    it('displays "Get mUSD" when tokens available for conversion', () => {
+    it('displays "Get mUSD" when hook returns isEmptyWallet false', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: false,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -253,16 +223,20 @@ describe('MusdConversionAssetListCta', () => {
       expect(getByText('Get mUSD')).toBeOnTheScreen();
     });
 
-    it('hides CTA when user has tokens but none are convertible', () => {
-      // Non-empty wallet (has balance)
-      mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-        walletId: 'test-wallet',
-        groupId: 'test-group',
-        totalBalanceInUserCurrency: 100,
-        userCurrency: 'USD',
+    it('hides CTA when hook returns shouldShowCta false', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: false,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: false,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
       });
 
-      // No convertible tokens
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -290,12 +264,18 @@ describe('MusdConversionAssetListCta', () => {
 
   describe('button press - empty wallet', () => {
     beforeEach(() => {
-      // Set wallet as empty
-      mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-        walletId: 'test-wallet',
-        groupId: 'test-group',
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'USD',
+      // Set hook to return empty wallet state
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
       });
 
       (
@@ -489,14 +469,6 @@ describe('MusdConversionAssetListCta', () => {
 
   describe('visibility behavior', () => {
     beforeEach(() => {
-      // Set wallet as empty to show the CTA in visibility tests
-      mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-        walletId: 'test-wallet',
-        groupId: 'test-group',
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'USD',
-      });
-
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -518,6 +490,7 @@ describe('MusdConversionAssetListCta', () => {
           shouldShowCta: false,
           showNetworkIcon: false,
           selectedChainId: null,
+          isEmptyWallet: false,
         }),
         shouldShowTokenListItemCta: jest.fn(),
         shouldShowAssetOverviewCta: jest.fn(),
@@ -533,7 +506,7 @@ describe('MusdConversionAssetListCta', () => {
       ).toBeNull();
     });
 
-    it('renders component when shouldShowCta is true and wallet is empty', () => {
+    it('renders component when shouldShowCta is true', () => {
       (
         useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
       ).mockReturnValue({
@@ -541,6 +514,7 @@ describe('MusdConversionAssetListCta', () => {
           shouldShowCta: true,
           showNetworkIcon: false,
           selectedChainId: null,
+          isEmptyWallet: true,
         }),
         shouldShowTokenListItemCta: jest.fn(),
         shouldShowAssetOverviewCta: jest.fn(),
@@ -555,62 +529,10 @@ describe('MusdConversionAssetListCta', () => {
         getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
       ).toBeOnTheScreen();
     });
-
-    it('renders null when wallet has tokens but none are convertible', () => {
-      // Non-empty wallet
-      mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-        walletId: 'test-wallet',
-        groupId: 'test-group',
-        totalBalanceInUserCurrency: 100,
-        userCurrency: 'USD',
-      });
-
-      // No convertible tokens
-      (
-        useMusdConversionTokens as jest.MockedFunction<
-          typeof useMusdConversionTokens
-        >
-      ).mockReturnValue({
-        tokens: [],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
-      });
-
-      (
-        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
-      ).mockReturnValue({
-        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
-          shouldShowCta: true,
-          showNetworkIcon: false,
-          selectedChainId: null,
-        }),
-        shouldShowTokenListItemCta: jest.fn(),
-        shouldShowAssetOverviewCta: jest.fn(),
-      });
-
-      const { queryByTestId } = renderWithProvider(
-        <MusdConversionAssetListCta />,
-        { state: initialRootState },
-      );
-
-      expect(
-        queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
-      ).toBeNull();
-    });
   });
 
   describe('network badge', () => {
     beforeEach(() => {
-      // Set wallet as empty to show the CTA in network badge tests
-      mockSelectAccountGroupBalanceForEmptyState.mockReturnValue({
-        walletId: 'test-wallet',
-        groupId: 'test-group',
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'USD',
-      });
-
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
@@ -632,6 +554,7 @@ describe('MusdConversionAssetListCta', () => {
           shouldShowCta: true,
           showNetworkIcon: false,
           selectedChainId: null,
+          isEmptyWallet: true,
         }),
         shouldShowTokenListItemCta: jest.fn(),
         shouldShowAssetOverviewCta: jest.fn(),
@@ -657,6 +580,7 @@ describe('MusdConversionAssetListCta', () => {
           shouldShowCta: true,
           showNetworkIcon: true,
           selectedChainId: CHAIN_IDS.MAINNET,
+          isEmptyWallet: true,
         }),
         shouldShowTokenListItemCta: jest.fn(),
         shouldShowAssetOverviewCta: jest.fn(),
@@ -680,6 +604,7 @@ describe('MusdConversionAssetListCta', () => {
           shouldShowCta: true,
           showNetworkIcon: true,
           selectedChainId: CHAIN_IDS.LINEA_MAINNET,
+          isEmptyWallet: true,
         }),
         shouldShowTokenListItemCta: jest.fn(),
         shouldShowAssetOverviewCta: jest.fn(),
@@ -703,6 +628,7 @@ describe('MusdConversionAssetListCta', () => {
           shouldShowCta: true,
           showNetworkIcon: true,
           selectedChainId: CHAIN_IDS.BSC,
+          isEmptyWallet: true,
         }),
         shouldShowTokenListItemCta: jest.fn(),
         shouldShowAssetOverviewCta: jest.fn(),
