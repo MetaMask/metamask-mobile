@@ -63,14 +63,14 @@ import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAna
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import Device from '../../util/device';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
-jest.mock('../../util/device', () => ({
-  isIos: jest.fn().mockReturnValue(true),
-}));
+jest.mock('../../util/device');
+const mockDevice = jest.mocked(Device);
 
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
@@ -291,6 +291,7 @@ describe('Authentication', () => {
 
   beforeEach(() => {
     mockDispatch = jest.fn();
+    mockDevice.isIos.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -354,6 +355,26 @@ describe('Authentication', () => {
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+  });
+
+  it('returns PASSWORD type on Android when biometric is disabled (passcode not supported)', async () => {
+    mockDevice.isIos.mockReturnValue(false);
+    SecureKeychain.getSupportedBiometryType = jest
+      .fn()
+      .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
+    // Mock Redux store to return existingUser: false
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: true },
+      }),
+    } as unknown as ReduxStore);
+
+    const result = await Authentication.getType();
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
   it('returns PASSWORD type when both biometric and passcode are disabled', async () => {
@@ -581,6 +602,31 @@ describe('Authentication', () => {
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+  });
+
+  it('returns PASSWORD type for components on Android when passcode was previously chosen (passcode not supported)', async () => {
+    mockDevice.isIos.mockReturnValue(false);
+    SecureKeychain.getSupportedBiometryType = jest
+      .fn()
+      .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
+    // PASSCODE_DISABLED is not set (null/undefined) - represents user who chose PASSCODE
+    // BIOMETRY_CHOICE_DISABLED is set to represent that biometrics are disabled
+    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
+    // Mock Redux store to return allowLoginWithRememberMe: false
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
+    } as unknown as ReduxStore);
+
+    const result = await Authentication.componentAuthenticationType(
+      true,
+      false,
+    );
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
   it('returns BIOMETRIC type for components when biometric was previously chosen (PASSCODE_DISABLED is TRUE)', async () => {
