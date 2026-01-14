@@ -19,7 +19,7 @@ jobs:
       - name: Cancel running CI workflows
         id: cancel
         run: |
-          echo "Looking for CI runs on commit $HEAD_SHA..."
+          echo "Looking for CI runs on branch $HEAD_REF..."
 
           CANCELLED=false
           while read -r RUN_ID; do
@@ -30,7 +30,7 @@ jobs:
             fi
           done < <(gh run list \
             --repo "$REPO" \
-            --commit "$HEAD_SHA" \
+            --branch "$HEAD_REF" \
             --workflow "ci.yml" \
             --json databaseId,status \
             --jq '.[] | select(.status == "in_progress" or .status == "queued") | .databaseId')
@@ -42,14 +42,14 @@ jobs:
         run: |
           LATEST_RUN_ID=$(gh run list \
             --repo "$REPO" \
-            --commit "$HEAD_SHA" \
+            --branch "$HEAD_REF" \
             --workflow "ci.yml" \
             --limit 1 \
             --json databaseId \
             --jq '.[0].databaseId')
 
           if [ -z "$LATEST_RUN_ID" ] || [ "$LATEST_RUN_ID" = "null" ]; then
-            echo "No CI workflow run found for commit $HEAD_SHA"
+            echo "No CI workflow run found for branch $HEAD_REF"
             exit 0
           fi
 
