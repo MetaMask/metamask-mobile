@@ -71,7 +71,7 @@ const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse(6);
 
 const clientConfig = {
   urlEndpoint:
-    'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+    /^https:\/\/client-config\.api\.cx\.metamask\.io\/v1\/flags\?client=mobile&distribution=main&environment=(dev|test|prod)$/,
   response: [
     {
       depositConfig: {
