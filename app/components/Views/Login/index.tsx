@@ -377,6 +377,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   );
 
   const unlockWithPassword = useCallback(async () => {
+    if (loading) return;
+
     fieldRef.current?.clear();
     setPassword('');
     setLoading(true);
@@ -385,8 +387,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
     try {
-      if (loading) return;
-
       const authPreference = await componentAuthenticationType(
         biometryChoice,
         rememberMe,
@@ -418,6 +418,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   ]);
 
   const unlockWithBiometrics = useCallback(async () => {
+    if (loading) return;
+
     fieldRef.current?.blur();
     fieldRef.current?.clear();
     setPassword('');
@@ -442,7 +444,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } finally {
       setLoading(false);
     }
-  }, [checkMetricsUISeen, unlockWallet]);
+  }, [checkMetricsUISeen, unlockWallet, loading]);
 
   // show biometric switch to true even if biometric is disabled
   const shouldRenderBiometricLogin = biometryType;
