@@ -103,7 +103,7 @@ jobs:
       - name: Clear yarn state before artifact download
         run: |
           echo "🧹 Clearing existing .yarn directory to avoid conflicts..."
-          rm -rf .yarn node_modules
+          rm -rf node_modules
           echo "✅ Cleared"
 
       - name: Download node_modules artifact (PR checkout)
@@ -139,7 +139,7 @@ jobs:
       - name: Clear yarn state before artifact download (base branch)
         run: |
           echo "🧹 Clearing existing .yarn directory in main/ to avoid conflicts..."
-          rm -rf main/.yarn main/node_modules
+          rm -rf main/node_modules
           echo "✅ Cleared"
 
       - name: Download node_modules artifact (base branch checkout)
