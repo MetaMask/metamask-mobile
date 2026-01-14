@@ -228,6 +228,7 @@ class AppInformation extends PureComponent {
               {getFullVersion(this.state.appInfo)}
             </Text>
             <Text style={styles.versionInfo}>this is ota update v2</Text>
+            <Text style={styles.versionInfo}>Test Second Commit</Text>
             <TouchableOpacity onPress={this.onSendSentryTestError}>
               <Text style={styles.link}>Send Sentry test error</Text>
             </TouchableOpacity>
