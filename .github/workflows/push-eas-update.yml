@@ -105,12 +105,6 @@ jobs:
         with:
           name: node-modules-eas-update
 
-      - name: Download node_modules artifact (base branch checkout)
-        uses: actions/download-artifact@v4
-        with:
-          name: node-modules-eas-update
-          path: main
-
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
         run: |
@@ -122,6 +116,12 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target commit fingerprint: ${FINGERPRINT}"
+
+      - name: Download node_modules artifact (base branch checkout)
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+          path: main
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
