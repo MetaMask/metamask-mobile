@@ -257,7 +257,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     jest.clearAllMocks();
 
     mockShouldShowTokenListItemCta.mockReturnValue(
-      isMusdConversionEnabled && isTokenWithCta,
+      isMusdConversionEnabled && isTokenWithCta && isGeoEligible,
     );
 
     // mUSD conversion mocks

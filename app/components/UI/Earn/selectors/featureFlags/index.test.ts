@@ -1823,14 +1823,14 @@ describe('Earn Feature Flag Selectors', () => {
 
   describe('selectMusdConversionBlockedCountries', () => {
     it('returns blocked countries array when remote flag is valid', () => {
-      const blockedCountries = ['GB', 'US'];
+      const blockedRegions = ['GB', 'US'];
 
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                earnMusdConversionGeoBlockedCountries: { blockedCountries },
+                earnMusdConversionGeoBlockedCountries: { blockedRegions },
               },
               cacheTimestamp: 0,
             },
@@ -1860,14 +1860,14 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual([]);
     });
 
-    it('returns empty array when blockedCountries is not an array', () => {
+    it('returns empty array when blockedRegions is not an array', () => {
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
                 earnMusdConversionGeoBlockedCountries: {
-                  blockedCountries: 'GB',
+                  blockedRegions: 'GB',
                 },
               },
               cacheTimestamp: 0,
@@ -1966,7 +1966,7 @@ describe('Earn Feature Flag Selectors', () => {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
                   earnMusdConversionGeoBlockedCountries: {
-                    blockedCountries: ['GB'],
+                    blockedRegions: ['GB'],
                   },
                 },
                 cacheTimestamp: 0,
