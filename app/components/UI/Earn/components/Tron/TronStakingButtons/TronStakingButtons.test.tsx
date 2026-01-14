@@ -62,6 +62,13 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
+jest.mock('../../../../../UI/Stake/hooks/useStakingEligibilityGuard', () => ({
+  useStakingEligibilityGuard: jest.fn().mockReturnValue({
+    isEligible: true,
+    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
+  }),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
@@ -154,6 +161,92 @@ describe('TronStakingButtons', () => {
     });
   });
 
+  describe('eligibility guard', () => {
+    const { useStakingEligibilityGuard } = jest.requireMock(
+      '../../../../../UI/Stake/hooks/useStakingEligibilityGuard',
+    );
+    const mockCheckEligibilityAndRedirect = jest.fn();
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockCheckEligibilityAndRedirect.mockClear();
+      mockNavigate.mockClear();
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: true,
+        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
+      });
+    });
+
+    it('redirects to Portfolio when user is not eligible and clicks stake button', () => {
+      const mockGuardFn = jest.fn().mockReturnValue(false);
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: false,
+        checkEligibilityAndRedirect: mockGuardFn,
+      });
+
+      const { getByTestId } = render(<TronStakingButtons asset={baseAsset} />);
+
+      fireEvent.press(getByTestId('stake-more-button'));
+
+      expect(mockGuardFn).toHaveBeenCalled();
+      // Component should return early and not navigate to StakeScreens
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'StakeScreens',
+        expect.any(Object),
+      );
+    });
+
+    it('redirects to Portfolio when user is not eligible and clicks unstake button', () => {
+      const mockGuardFn = jest.fn().mockReturnValue(false);
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: false,
+        checkEligibilityAndRedirect: mockGuardFn,
+      });
+
+      const { getByTestId } = render(
+        <TronStakingButtons asset={baseAsset} showUnstake />,
+      );
+
+      fireEvent.press(getByTestId('unstake-button'));
+
+      expect(mockGuardFn).toHaveBeenCalled();
+      // Component should return early and not navigate to StakeScreens
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'StakeScreens',
+        expect.any(Object),
+      );
+    });
+
+    it('navigates to stake screen when user is eligible and clicks stake button', () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(true);
+
+      const { getByTestId } = render(<TronStakingButtons asset={baseAsset} />);
+
+      fireEvent.press(getByTestId('stake-more-button'));
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: expect.any(Object),
+      });
+    });
+
+    it('navigates to unstake screen when user is eligible and clicks unstake button', () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(true);
+
+      const { getByTestId } = render(
+        <TronStakingButtons asset={baseAsset} showUnstake />,
+      );
+
+      fireEvent.press(getByTestId('unstake-button'));
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.UNSTAKE,
+        params: expect.any(Object),
+      });
+    });
+  });
   describe('CTA section', () => {
     it('renders CTA title and description without aprText when hasStakedPositions is false', () => {
       const { getByText } = render(

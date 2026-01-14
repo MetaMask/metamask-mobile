@@ -140,6 +140,13 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../UI/Stake/hooks/useStakingEligibilityGuard', () => ({
+  useStakingEligibilityGuard: jest.fn().mockReturnValue({
+    isEligible: true,
+    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
+  }),
+}));
+
 const mockGoToSwaps = jest.fn();
 jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({
@@ -656,5 +663,73 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  describe('eligibility guard', () => {
+    const { useStakingEligibilityGuard } = jest.requireMock(
+      '../../UI/Stake/hooks/useStakingEligibilityGuard',
+    );
+    let mockCheckEligibilityAndRedirect: jest.Mock;
+
+    beforeEach(() => {
+      // Reset selectCanSignTransactions to return true (previous test may have set it to false)
+      (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(true);
+      mockCheckEligibilityAndRedirect = jest.fn();
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: true,
+        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
+      });
+    });
+
+    it('renders earn button as enabled when user can sign transactions', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      const { getByTestId } = renderScreen(TradeWalletActions, {
+        name: 'TradeWalletActions',
+      });
+
+      const earnButton = getByTestId(
+        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
+      );
+
+      expect(earnButton).toBeDefined();
+      expect(earnButton.props.accessibilityState?.disabled).toBeFalsy();
+    });
+
+    it('calls onDismiss when earn button is pressed', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      const { getByTestId } = renderScreen(TradeWalletActions, {
+        name: 'TradeWalletActions',
+      });
+
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+      );
+
+      expect(mockOnDismiss).toHaveBeenCalled();
+    });
+
+    it('uses eligibility guard hook with correct configuration', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      renderScreen(TradeWalletActions, {
+        name: 'TradeWalletActions',
+      });
+
+      expect(useStakingEligibilityGuard).toHaveBeenCalled();
+    });
   });
 });

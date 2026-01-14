@@ -12,7 +12,7 @@ import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { useStakingEligibilityGuard } from '../../hooks/useStakingEligibilityGuard';
 import { RootState } from '../../../../../reducers';
 import { SolScope, TrxScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
@@ -171,15 +171,10 @@ jest.mock('../../../../../core/Multichain/utils', () => {
   };
 });
 
-jest.mock('../../hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
+jest.mock('../../hooks/useStakingEligibilityGuard', () => ({
+  useStakingEligibilityGuard: jest.fn(() => ({
     isEligible: true,
-    isLoadingEligibility: false,
-    refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
-      isEligible: true,
-    }),
-    error: false,
+    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
   })),
 }));
 
@@ -248,13 +243,9 @@ describe('StakeButton', () => {
 
   describe('Pooled-Staking', () => {
     it('navigates to Web view when earn button is pressed and user is not eligible', async () => {
-      (useStakingEligibility as jest.Mock).mockReturnValue({
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
         isEligible: false,
-        isLoadingEligibility: false,
-        refreshPooledStakingEligibility: jest
-          .fn()
-          .mockResolvedValue({ isEligible: false }),
-        error: false,
+        checkEligibilityAndRedirect: jest.fn().mockReturnValue(false),
       });
       const { getByTestId } = renderComponent();
 
@@ -271,13 +262,9 @@ describe('StakeButton', () => {
     });
 
     it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
-      (useStakingEligibility as jest.Mock).mockReturnValue({
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
         isEligible: true,
-        isLoadingEligibility: false,
-        refreshPooledStakingEligibility: jest
-          .fn()
-          .mockResolvedValue({ isEligible: true }),
-        error: false,
+        checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
       });
       const { getByTestId } = renderComponent();
 
@@ -405,6 +392,50 @@ describe('StakeButton', () => {
           },
         });
       });
+    });
+
+    it('redirects to Portfolio when TRX user is not eligible', async () => {
+      mockIsTronChainId.mockReturnValue(true);
+      const mockCheckEligibilityAndRedirect = jest.fn(() => {
+        mockNavigate(Routes.BROWSER.HOME, {
+          params: {
+            newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile&marketingEnabled=true&metricsEnabled=true`,
+            timestamp: Date.now(),
+          },
+          screen: Routes.BROWSER.VIEW,
+        });
+        return false;
+      });
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: false,
+        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
+      });
+      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
+        EARN_EXPERIENCES.POOLED_STAKING,
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={MOCK_TRX_ASSET} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+          params: {
+            newTabUrl: expect.stringContaining(AppConstants.STAKE.URL),
+            timestamp: expect.any(Number),
+          },
+          screen: Routes.BROWSER.VIEW,
+        });
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'StakeScreens',
+        expect.any(Object),
+      );
     });
   });
 

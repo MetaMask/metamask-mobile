@@ -60,6 +60,13 @@ jest.mock('../../../../../selectors/earnController', () => ({
   },
 }));
 
+jest.mock('../../../Stake/hooks/useStakingEligibilityGuard', () => ({
+  useStakingEligibilityGuard: jest.fn().mockReturnValue({
+    isEligible: true,
+    checkEligibilityAndRedirect: jest.fn().mockReturnValue(true),
+  }),
+}));
+
 const initialState = {
   ...initialRootState,
   engine: {
@@ -414,5 +421,53 @@ describe('EmptyStateCta', () => {
 
     const { toJSON } = renderComponent(mockEarnToken);
     expect(toJSON()).toBeNull();
+  });
+
+  describe('eligibility guard', () => {
+    const { useStakingEligibilityGuard } = jest.requireMock(
+      '../../../Stake/hooks/useStakingEligibilityGuard',
+    );
+    const mockCheckEligibilityAndRedirect = jest.fn();
+
+    beforeEach(() => {
+      mockCheckEligibilityAndRedirect.mockClear();
+      (useStakingEligibilityGuard as jest.Mock).mockReturnValue({
+        isEligible: true,
+        checkEligibilityAndRedirect: mockCheckEligibilityAndRedirect,
+      });
+    });
+
+    it('redirects to Portfolio when user is not eligible and clicks earn button', async () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(false);
+
+      const { getByText } = renderComponent(mockEarnToken);
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('earn.empty_state_cta.earn')));
+      });
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      // Component should return early and not navigate to StakeScreens
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'StakeScreens',
+        expect.any(Object),
+      );
+    });
+
+    it('navigates to stake screen when user is eligible and clicks earn button', async () => {
+      mockCheckEligibilityAndRedirect.mockReturnValue(true);
+
+      const { getByText } = renderComponent(mockEarnToken);
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('earn.empty_state_cta.earn')));
+      });
+
+      expect(mockCheckEligibilityAndRedirect).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: expect.any(String),
+        params: expect.any(Object),
+      });
+    });
   });
 });

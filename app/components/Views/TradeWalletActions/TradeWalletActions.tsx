@@ -1,6 +1,12 @@
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Platform,
   StyleSheet,
@@ -55,6 +61,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import { useStakingEligibilityGuard } from '../../UI/Stake/hooks/useStakingEligibilityGuard';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -92,6 +99,7 @@ function TradeWalletActions() {
   const navigation = useNavigation();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -157,6 +165,10 @@ function TradeWalletActions() {
 
   const onEarn = useCallback(async () => {
     postCallback.current = () => {
+      if (!checkEligibilityAndRedirect()) {
+        return;
+      }
+
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
         params: {
@@ -181,7 +193,14 @@ function TradeWalletActions() {
       );
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate, trackEvent, createEventBuilder, chainId]);
+  }, [
+    handleNavigateBack,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    chainId,
+    checkEligibilityAndRedirect,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -211,10 +230,30 @@ function TradeWalletActions() {
     () =>
       exitingAnimationWithCallback(() => {
         navigation.goBack();
-        postCallback.current?.();
+        if (postCallback.current) {
+          postCallback.current();
+          postCallback.current = undefined;
+        }
       }),
     [exitingAnimationWithCallback, navigation],
   );
+
+  // Fallback for when animation callbacks don't fire (e.g., in tests with mocked Reanimated)
+  // This runs after the animation duration + buffer to ensure the animation callback gets
+  // first chance to handle navigation in production
+  useEffect(() => {
+    if (!visible && postCallback.current) {
+      const timeoutId = setTimeout(() => {
+        if (postCallback.current) {
+          navigation.goBack();
+          postCallback.current();
+          postCallback.current = undefined;
+        }
+      }, animationDuration + 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [visible, navigation]);
 
   return (
     <View style={tw.style('flex-1 justify-end')}>

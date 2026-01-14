@@ -30,6 +30,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { trace, TraceName } from '../../../../../util/trace';
+import { useStakingEligibilityGuard } from '../../../Stake/hooks/useStakingEligibilityGuard';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -55,12 +56,16 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const earnToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, token),
   );
+  const { checkEligibilityAndRedirect } = useStakingEligibilityGuard();
 
   const estimatedAnnualRewardsFormatted = parseFloatSafe(
     earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',
   ).toFixed(0);
   const apr = earnToken?.experience?.apr;
   const navigateToLendInputScreen = async () => {
+    if (!checkEligibilityAndRedirect()) {
+      return;
+    }
     trace({ name: TraceName.EarnDepositScreen });
     const { NetworkController } = Engine.context;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
