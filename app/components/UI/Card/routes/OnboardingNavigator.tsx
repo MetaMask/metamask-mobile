@@ -219,7 +219,7 @@ const OnboardingNavigator: React.FC = () => {
   }
 
   return (
-    <Stack.Navigator initialRouteName={Routes.CARD.VERIFYING_REGISTRATION}>
+    <Stack.Navigator initialRouteName={initialRouteName}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}
