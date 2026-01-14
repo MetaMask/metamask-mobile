@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
@@ -9,15 +10,16 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
+const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
+
 jest.mock('@metamask/ramps-controller', () => {
-  const actualRampsController = jest.requireActual(
-    '@metamask/ramps-controller',
-  );
+  const actual = jest.requireActual('@metamask/ramps-controller');
 
   return {
-    getDefaultRampsControllerState:
-      actualRampsController.getDefaultRampsControllerState,
-    RampsController: jest.fn(),
+    ...actual,
+    RampsController: jest.fn(() => ({
+      updateGeolocation: mockUpdateGeolocation,
+    })),
   };
 });
 
@@ -28,17 +30,12 @@ describe('ramps controller init', () => {
   >;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockUpdateGeolocation.mockResolvedValue('US');
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
-  });
-
-  it('returns controller instance', () => {
-    expect(rampsControllerInit(initRequestMock).controller).toBeInstanceOf(
-      RampsController,
-    );
   });
 
   it('uses default state when no initial state is passed in', () => {
@@ -57,6 +54,8 @@ describe('ramps controller init', () => {
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
       geolocation: 'US-CA',
+      eligibility: null,
+      requests: {},
     };
 
     initRequestMock.persistedState = {
@@ -70,5 +69,23 @@ describe('ramps controller init', () => {
       rampsControllerClassMock.mock.calls[0][0].state;
 
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
+  });
+
+  it('calls updateGeolocation at startup', async () => {
+    rampsControllerInit(initRequestMock);
+
+    await waitFor(() => {
+      expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not throw when updateGeolocation fails', async () => {
+    mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
+
+    expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
+
+    await waitFor(() => {
+      expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+    });
   });
 });

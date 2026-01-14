@@ -15,9 +15,8 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -94,7 +93,8 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoCorrect={false}
               autoFocus={false}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -127,7 +127,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -187,7 +187,8 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoCorrect={false}
               autoFocus={true}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
@@ -220,7 +221,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -239,8 +240,8 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }
@@ -265,9 +266,8 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -344,7 +344,8 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoCorrect={false}
               autoFocus={false}
               editable={false}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -377,7 +378,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -437,7 +438,8 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoCorrect={false}
               autoFocus={true}
               editable={false}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
@@ -470,7 +472,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -489,8 +491,8 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }
@@ -515,9 +517,8 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -594,7 +595,8 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoCorrect={false}
               autoFocus={false}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -627,7 +629,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -687,7 +689,8 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoCorrect={false}
               autoFocus={true}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
@@ -720,7 +723,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value=""
             />
           </View>
@@ -739,8 +742,8 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }
@@ -765,9 +768,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
       {
         "backgroundColor": "#f3f5f9",
         "borderRadius": 10,
-        "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -879,7 +881,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoCorrect={false}
               autoFocus={false}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -912,7 +915,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_0"
               textAlignVertical="center"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word1"
             />
           </View>
@@ -1008,7 +1011,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoCorrect={false}
               autoFocus={false}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -1041,7 +1045,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_1"
               textAlignVertical="center"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word2"
             />
           </View>
@@ -1137,7 +1141,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoCorrect={false}
               autoFocus={false}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               onBlur={[Function]}
               onChangeText={[Function]}
               onFocus={[Function]}
@@ -1170,7 +1175,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input_2"
               textAlignVertical="center"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word3"
             />
           </View>
@@ -1231,7 +1236,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoCorrect={false}
               autoFocus={false}
               editable={true}
-              keyboardType="default"
+              importantForAutofill="no"
+              keyboardType="visible-password"
               multiline={true}
               onBlur={[Function]}
               onChangeText={[Function]}
@@ -1264,7 +1270,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               submitBehavior="submit"
               testID="seed-phrase-input"
               textAlignVertical="top"
-              textContentType="oneTimeCode"
+              textContentType="none"
               value="word1"
             />
           </View>
@@ -1283,8 +1289,8 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 12,
+        "paddingBottom": 1,
+        "paddingTop": 8,
         "textAlign": "right",
       }
     }

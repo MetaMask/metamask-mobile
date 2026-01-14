@@ -1880,8 +1880,10 @@ describe('HyperLiquidProvider', () => {
       it('should successfully ping WebSocket connection with default timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1899,8 +1901,10 @@ describe('HyperLiquidProvider', () => {
       it('should successfully ping WebSocket connection with custom timeout', async () => {
         const mockReady = jest.fn().mockResolvedValue(undefined);
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1932,8 +1936,10 @@ describe('HyperLiquidProvider', () => {
               ),
           );
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -1949,8 +1955,10 @@ describe('HyperLiquidProvider', () => {
           .fn()
           .mockRejectedValue(new Error('WebSocket closed'));
         const mockSubscriptionClient = {
-          transport: {
-            ready: mockReady,
+          config_: {
+            transport: {
+              ready: mockReady,
+            },
           },
         };
         mockClientService.getSubscriptionClient.mockReturnValue(
@@ -5133,7 +5141,7 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBe(false);
     });
 
-    it('should transform fill data with liquidation information', async () => {
+    it('transforms fill data with liquidation information', async () => {
       // Mock fill with liquidation data
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
@@ -5168,7 +5176,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should handle fills without liquidation data', async () => {
+    it('handles fills without liquidation data', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           userFills: jest.fn().mockResolvedValue([
@@ -5190,6 +5198,98 @@ describe('HyperLiquidProvider', () => {
 
       const fills = await provider.getOrderFills();
       expect(fills[0].liquidation).toBeUndefined();
+    });
+
+    it('uses userFillsByTime when startTime is provided', async () => {
+      const mockUserFillsByTime = jest.fn().mockResolvedValue([
+        {
+          oid: 125,
+          coin: 'BTC',
+          side: 'B',
+          sz: '0.5',
+          px: '50000',
+          fee: '5',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '200',
+          dir: 'Open Long',
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFillsByTime: mockUserFillsByTime,
+        }),
+      );
+
+      const startTime = Date.now() - 90 * 24 * 60 * 60 * 1000; // 3 months ago
+      const fills = await provider.getOrderFills({ startTime });
+
+      expect(mockUserFillsByTime).toHaveBeenCalledWith({
+        user: '0x1234567890123456789012345678901234567890',
+        startTime,
+        endTime: undefined,
+        aggregateByTime: false,
+      });
+      expect(fills).toHaveLength(1);
+      expect(fills[0].symbol).toBe('BTC');
+    });
+
+    it('uses userFills when startTime is not provided', async () => {
+      const mockUserFills = jest.fn().mockResolvedValue([
+        {
+          oid: 126,
+          coin: 'ETH',
+          side: 'A',
+          sz: '2.0',
+          px: '3500',
+          fee: '7',
+          feeToken: 'USDC',
+          time: Date.now(),
+          closedPnl: '150',
+          dir: 'Close Short',
+        },
+      ]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFills: mockUserFills,
+        }),
+      );
+
+      const fills = await provider.getOrderFills({ aggregateByTime: true });
+
+      expect(mockUserFills).toHaveBeenCalledWith({
+        user: '0x1234567890123456789012345678901234567890',
+        aggregateByTime: true,
+      });
+      expect(fills).toHaveLength(1);
+      expect(fills[0].symbol).toBe('ETH');
+    });
+
+    it('passes endTime to userFillsByTime when provided', async () => {
+      const mockUserFillsByTime = jest.fn().mockResolvedValue([]);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userFillsByTime: mockUserFillsByTime,
+        }),
+      );
+
+      const startTime = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 days ago
+      const endTime = Date.now();
+      await provider.getOrderFills({
+        startTime,
+        endTime,
+        aggregateByTime: true,
+      });
+
+      expect(mockUserFillsByTime).toHaveBeenCalledWith({
+        user: '0x1234567890123456789012345678901234567890',
+        startTime,
+        endTime,
+        aggregateByTime: true,
+      });
     });
   });
 
