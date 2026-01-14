@@ -117,7 +117,7 @@ const NetworkManager = () => {
     return getEnabledNetworks(enabledNetworksByNamespace);
   }, [enabledNetworksByNamespace]);
 
-  const [showNetworkMenuModal, setNetworkMenuModal] =
+  const [showNetworkMenuModal, setShowNetworkMenuModal] =
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
@@ -215,7 +215,7 @@ const NetworkManager = () => {
   );
 
   const openModal = useCallback((networkMenuModal: NetworkMenuModalState) => {
-    setNetworkMenuModal((prev) => ({
+    setShowNetworkMenuModal((prev) => ({
       ...prev,
       ...networkMenuModal,
       isVisible: true,
@@ -224,7 +224,7 @@ const NetworkManager = () => {
   }, []);
 
   const closeModal = useCallback(() => {
-    setNetworkMenuModal(initialNetworkMenuModal);
+    setShowNetworkMenuModal(initialNetworkMenuModal);
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
