@@ -90,7 +90,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     Skeleton: TrendingTokensSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
+      const { data, isLoading, refetch } = useTrendingSearch(
+        searchQuery,
+        undefined,
+        undefined,
+        false, // Disable debouncing here because useExploreSearch already handles it
+      );
       return { data, isLoading, refetch };
     },
   },
