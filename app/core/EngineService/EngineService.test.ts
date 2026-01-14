@@ -29,10 +29,30 @@ jest.mock('../../util/Logger', () => ({
 }));
 
 jest.mock('../BackupVault', () => ({
-  getVaultFromBackup: () => ({ success: true, vault: 'fake_vault' }),
+  getVaultFromBackup: () =>
+    Promise.resolve({ success: true, vault: 'fake_vault' }),
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
+
+// Mock whenEngineReady to prevent Engine access after Jest teardown
+jest.mock('../Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
 
 // Mock Engine constants and Redux
 jest.mock('../Engine/constants', () => ({
@@ -100,7 +120,11 @@ jest.mock('../Engine', () => {
   let mockInstance: MockEngineInstance | null;
 
   const mockEngine = {
-    init: (_: unknown, keyringState: KeyringControllerState) => {
+    init: (
+      _analyticsId: unknown,
+      _state: unknown,
+      keyringState?: KeyringControllerState | null,
+    ) => {
       mockInstance = {
         controllerMessenger: {
           subscribe: jest.fn(),
@@ -110,7 +134,7 @@ jest.mock('../Engine', () => {
           AddressBookController: { subscribe: jest.fn() },
           KeyringController: {
             subscribe: jest.fn(),
-            state: { ...keyringState },
+            state: keyringState ? { ...keyringState } : {},
           },
           AssetsContractController: { subscribe: jest.fn() },
           NftController: { subscribe: jest.fn() },
@@ -201,8 +225,12 @@ describe('EngineService', () => {
 
   afterEach(() => {
     // Clean up any pending timers to prevent Jest teardown issues
+    // Only run pending timers if fake timers are enabled
     try {
-      jest.runOnlyPendingTimers();
+      const timerCount = jest.getTimerCount();
+      if (timerCount > 0) {
+        jest.runOnlyPendingTimers();
+      }
     } catch {
       // Ignore error if fake timers are not active
     }

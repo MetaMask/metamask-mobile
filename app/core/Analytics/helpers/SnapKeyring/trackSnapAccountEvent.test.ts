@@ -28,6 +28,7 @@ jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
   getDeleteRegulationCreationDate: jest.fn(),
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
+  updateDataRecordingFlag: jest.fn(),
   configure: jest.fn(),
   getMetaMetricsId: jest.fn(),
 } as IMetaMetrics);

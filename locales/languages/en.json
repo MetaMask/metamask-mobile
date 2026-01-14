@@ -6214,15 +6214,7 @@
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
-    "verified_token": "Verified token",
-    "price": "Price",
-    "percent_change": "Percent change",
-    "volume": "Volume",
-    "market_cap_fdv": "Market cap (FDV)",
-    "listed_on": "Listed on",
-    "centralized_exchanges": "Centralized exchanges",
-    "contract_address": "Contract address"
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -6906,15 +6898,14 @@
       "title": "Failed to claim reward"
     },
     "metal_card_claim": {
-      "title": "Claim your reward",
+      "title": "Redeem your reward",
       "description": "The MetaMask Metal Card is subject to eligibility and isn't available in all regions. If you don't qualify, you'll receive an exclusive premium merch reward instead.",
       "contact_info": "Share your contact info and you'll hear back within 2 weeks from @MidwitMilhouse on Telegram or christian.montoya@consensys.net.",
       "email_label": "Email",
       "email_validation_error": "Please enter a valid email address",
       "telegram_label": "Telegram handle",
-      "telegram_placeholder": "Optional",
-      "submit_button": "Claim"
-    },
+      "telegram_placeholder": "Optional"
+     },
     "accounts_opt_in_state_error": {
       "error_fetching_title": "Accounts couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -7207,6 +7198,13 @@
       "reward_claimed": "Reward claimed",
       "time_left": "left",
       "expired": "Expired"
+    },
+    "claim_reward_redeem": {
+      "button_label": "Redeem",
+      "success_title": "Reward redeemed",
+      "success_description": "Arriving soon",
+      "failure_title": "Redeem failed",
+      "failure_description": "Please try again later."
     },
     "animation": {
       "could_not_load": "Couldn't load"

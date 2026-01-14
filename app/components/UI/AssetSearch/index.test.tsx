@@ -12,7 +12,7 @@ const mockedEngine = Engine;
 jest.useFakeTimers();
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init({}),
+  init: () => mockedEngine.init(''),
   context: {
     KeyringController: {
       getQRKeyringState: async () => ({ subscribe: () => ({}) }),
