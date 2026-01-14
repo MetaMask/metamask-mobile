@@ -13,11 +13,14 @@ const SECTION_BACK_BUTTONS: Record<string, string> = {
     'perps-market-list-close-button-back-button',
   [TrendingViewSelectorsText.SECTION_SITES]:
     'sites-full-view-header-back-button',
-  // Trying 'back-button' first, but if that fails, we might need a better selector.
-  // Based on Predict.selectors.ts, it's 'back-button'.
-  // If it's ListHeaderWithSearch without testID, it might be just 'back-button' if passed directly?
-  // Or 'header-back' if it uses standard navbar.
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button',
+};
+
+// Map item type to its details page back button Test ID
+const DETAILS_BACK_BUTTONS: Record<string, string> = {
+  token: 'back-arrow-button',
+  perp: 'perps-market-header-back-button',
+  prediction: 'predict-market-details-back-button',
 };
 
 class TrendingView {
@@ -179,32 +182,35 @@ class TrendingView {
 
   // --- Details Page Navigation ---
 
-  async tapBackFromTokenDetails(): Promise<void> {
-    // Uses 'back-arrow-button' which is common for AssetOverview/Navbar in E2E
-    const backButtonID = 'back-arrow-button';
+  /**
+   * Generic method to tap back from details pages.
+   * @param itemType - Type of item ('token', 'perp', 'prediction')
+   */
+  private async tapBackFromDetails(itemType: string): Promise<void> {
+    const backButtonID = DETAILS_BACK_BUTTONS[itemType];
+    if (!backButtonID) {
+      throw new Error(`Unknown back button for item type: ${itemType}`);
+    }
 
     await Gestures.tap(this.getBackButton(backButtonID), {
-      elemDescription: 'Tap Back from Token Details',
+      elemDescription: `Tap Back from ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} Details`,
     });
+  }
+
+  async tapBackFromTokenDetails(): Promise<void> {
+    await this.tapBackFromDetails('token');
   }
 
   async tapBackFromPerpDetails(): Promise<void> {
-    await Gestures.tap(this.getBackButton('perps-market-header-back-button'), {
-      elemDescription: 'Tap Back from Perp Details',
-    });
+    await this.tapBackFromDetails('perp');
   }
 
   async tapBackFromPredictionDetails(): Promise<void> {
-    await Gestures.tap(
-      this.getBackButton('predict-market-details-back-button'),
-      {
-        elemDescription: 'Tap Back from Prediction Details',
-      },
-    );
+    await this.tapBackFromDetails('prediction');
   }
 
   async tapBackFromBrowser(): Promise<void> {
-    // Assuming we can return by tapping the active tab if visible
+    // Browser navigation uses tab switching instead of back button
     await this.tapTrendingTab();
   }
 
@@ -216,78 +222,84 @@ class TrendingView {
     });
   }
 
-  async verifyTokenVisible(assetId: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.getTokenRow(assetId), {
-      description: `Token row for ${assetId} should be visible`,
+  /**
+   * Generic method to verify an item is visible in the feed.
+   * @param getElement - Function to get the element
+   * @param identifier - Item identifier (id, symbol, name, etc.)
+   * @param itemType - Type of item for description ('token', 'perp', 'prediction', 'site')
+   */
+  private async verifyItemVisible(
+    getElement: () => DetoxElement,
+    identifier: string,
+    itemType: string,
+  ): Promise<void> {
+    await Assertions.expectElementToBeVisible(getElement(), {
+      description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} row for ${identifier} should be visible`,
     });
+  }
+
+  /**
+   * Generic method to tap on an item row with automatic scrolling.
+   * @param getElement - Function to get the element
+   * @param identifier - Item identifier (id, symbol, name, etc.)
+   * @param itemType - Type of item for description ('token', 'perp', 'prediction', 'site')
+   */
+  private async tapItemRow(
+    getElement: () => DetoxElement,
+    identifier: string,
+    itemType: string,
+  ): Promise<void> {
+    const element = getElement();
+
+    // Use generic scroll method to ensure element is visible
+    await this.scrollToElementInFeed(
+      element,
+      `Scroll to ${identifier} ${itemType} row`,
+    );
+
+    await Gestures.tap(element, {
+      elemDescription: `Tap ${itemType} row ${identifier}`,
+    });
+  }
+
+  async verifyTokenVisible(assetId: string): Promise<void> {
+    await this.verifyItemVisible(
+      () => this.getTokenRow(assetId),
+      assetId,
+      'token',
+    );
   }
 
   async tapTokenRow(assetId: string): Promise<void> {
-    const tokenRow = this.getTokenRow(assetId);
-
-    // Use generic scroll method to ensure element is visible
-    await this.scrollToElementInFeed(
-      tokenRow,
-      `Scroll to token row ${assetId}`,
-    );
-
-    await Gestures.tap(tokenRow, {
-      elemDescription: `Tap token row ${assetId}`,
-    });
+    await this.tapItemRow(() => this.getTokenRow(assetId), assetId, 'token');
   }
 
   async verifyPerpVisible(symbol: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.getPerpRow(symbol), {
-      description: `Perp row for ${symbol} should be visible`,
-    });
+    await this.verifyItemVisible(() => this.getPerpRow(symbol), symbol, 'perp');
   }
 
   async tapPerpRow(symbol: string): Promise<void> {
-    const perpRow = this.getPerpRow(symbol);
-
-    // Use generic scroll method to ensure element is visible
-    await this.scrollToElementInFeed(perpRow, `Scroll to ${symbol} Perp row`);
-
-    await Gestures.tap(perpRow, {
-      elemDescription: `Tap perp row ${symbol}`,
-    });
+    await this.tapItemRow(() => this.getPerpRow(symbol), symbol, 'perp');
   }
 
   async verifyPredictionVisible(id: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.getPredictionRow(id), {
-      description: `Prediction row for ${id} should be visible`,
-    });
+    await this.verifyItemVisible(
+      () => this.getPredictionRow(id),
+      id,
+      'prediction',
+    );
   }
 
   async tapPredictionRow(id: string): Promise<void> {
-    const predictionRow = this.getPredictionRow(id);
-
-    // Use generic scroll method to ensure element is visible
-    await this.scrollToElementInFeed(
-      predictionRow,
-      `Scroll to prediction row ${id}`,
-    );
-
-    await Gestures.tap(predictionRow, {
-      elemDescription: `Tap prediction row ${id}`,
-    });
+    await this.tapItemRow(() => this.getPredictionRow(id), id, 'prediction');
   }
 
   async verifySiteVisible(name: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.getSiteRow(name), {
-      description: `Site row for ${name} should be visible`,
-    });
+    await this.verifyItemVisible(() => this.getSiteRow(name), name, 'site');
   }
 
   async tapSiteRow(name: string): Promise<void> {
-    const siteRow = this.getSiteRow(name);
-
-    // Use generic scroll method to ensure element is visible
-    await this.scrollToElementInFeed(siteRow, `Scroll to ${name} Site row`);
-
-    await Gestures.tap(siteRow, {
-      elemDescription: `Tap site row ${name}`,
-    });
+    await this.tapItemRow(() => this.getSiteRow(name), name, 'site');
   }
 
   async verifySectionHeaderVisible(title: string): Promise<void> {
