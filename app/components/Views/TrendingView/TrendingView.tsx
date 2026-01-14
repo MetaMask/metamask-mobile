@@ -24,6 +24,8 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { isPortfolioUrl } from '../../../util/url';
+import { BrowserTab } from '../../UI/Tokens/types';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
@@ -127,23 +129,38 @@ export const ExploreFeed: React.FC = () => {
 
   const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
-  const browserTabsCount = useSelector(
-    (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
+  const browserTabs = useSelector(
+    (state: { browser: { tabs: BrowserTab[] } }) => state.browser.tabs,
   );
+  const browserTabsCount = browserTabs.length;
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
 
   const handleBrowserPress = useCallback(() => {
+    // Check if a portfolio tab already exists to avoid triggering "max tabs" modal
+    // when the user just wants to view existing tabs
+    const existingPortfolioTab = browserTabs?.find(({ url }: BrowserTab) =>
+      isPortfolioUrl(url),
+    );
+
+    const params = existingPortfolioTab
+      ? {
+          existingTabId: existingPortfolioTab.id,
+          timestamp: Date.now(),
+          fromTrending: true,
+        }
+      : {
+          newTabUrl: portfolioUrl.href,
+          timestamp: Date.now(),
+          fromTrending: true,
+        };
+
     navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: portfolioUrl.href,
-        timestamp: Date.now(),
-        fromTrending: true,
-      },
+      params,
     });
-  }, [navigation, portfolioUrl.href]);
+  }, [navigation, portfolioUrl.href, browserTabs]);
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
