@@ -5,8 +5,11 @@ exports[`PredictDetailsHeaderSkeleton matches snapshot 1`] = `
   style={
     [
       {
+        "alignItems": "center",
         "display": "flex",
-        "marginBottom": 24,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "paddingBottom": 16,
       },
       {
         "paddingTop": 12,
@@ -15,83 +18,85 @@ exports[`PredictDetailsHeaderSkeleton matches snapshot 1`] = `
   }
 >
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    hitSlop={
+      {
+        "bottom": 10,
+        "left": 10,
+        "right": 10,
+        "top": 10,
+      }
+    }
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    testID="predict-details-header-skeleton-back-button"
+  >
+    <SvgMock
+      color="#121314"
+      fill="currentColor"
+      height={24}
+      name="ArrowLeft"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
     style={
       [
         {
-          "alignItems": "center",
           "display": "flex",
-          "flexDirection": "row",
-          "gap": 16,
-          "marginBottom": 16,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "marginLeft": 16,
+          "marginRight": 16,
         },
         undefined,
       ]
     }
   >
     <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      hitSlop={
-        {
-          "bottom": 10,
-          "left": 10,
-          "right": 10,
-          "top": 10,
-        }
-      }
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      testID="predict-details-header-skeleton-back-button"
-    >
-      <SvgMock
-        color="#121314"
-        fill="currentColor"
-        height={24}
-        name="ArrowLeft"
-        style={
-          {
-            "height": 24,
-            "width": 24,
-          }
-        }
-        width={24}
-      />
-    </View>
-    <View
       style={
         {
-          "borderRadius": 9999,
-          "height": 40,
+          "alignSelf": "center",
+          "borderRadius": 6,
+          "height": 20,
           "overflow": "hidden",
-          "width": 40,
+          "width": "60%",
         }
       }
-      testID="predict-details-header-skeleton-avatar"
+      testID="predict-details-header-skeleton-title"
     >
       <View
         collapsable={false}
@@ -110,59 +115,17 @@ exports[`PredictDetailsHeaderSkeleton matches snapshot 1`] = `
         }
       />
     </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "borderRadius": 8,
-            "height": 20,
-            "overflow": "hidden",
-            "width": "100%",
-          }
-        }
-        testID="predict-details-header-skeleton-title"
-      >
-        <View
-          collapsable={false}
-          pointerEvents="none"
-          style={
-            {
-              "backgroundColor": "#686e7d",
-              "borderRadius": 4,
-              "bottom": 0,
-              "left": 0,
-              "opacity": 0.2,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-            }
-          }
-        />
-      </View>
-    </View>
   </View>
   <View
     style={
       {
-        "borderRadius": 8,
-        "height": 20,
+        "borderRadius": 6,
+        "height": 24,
         "overflow": "hidden",
-        "width": "75%",
+        "width": 24,
       }
     }
-    testID="predict-details-header-skeleton-subtitle"
+    testID="predict-details-header-skeleton-share"
   >
     <View
       collapsable={false}
