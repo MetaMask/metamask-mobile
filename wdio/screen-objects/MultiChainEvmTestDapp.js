@@ -186,7 +186,7 @@ class MultiChainEvmTestDapp {
     }
 
     async isDappConnected() {
-        this.assertDappConnected('true');
+        return this.assertDappConnected('true');
     }
 
     async assertDappConnected(value) {

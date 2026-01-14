@@ -130,7 +130,7 @@ class WagmiTestDapp {
     }
 
     async isDappConnected() {
-        this.assertDappConnectedStatus('connected');
+        return this.assertDappConnectedStatus('connected');
     }
 
     async assertDappConnectedStatus(value) {
