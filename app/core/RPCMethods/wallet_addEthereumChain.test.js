@@ -96,6 +96,7 @@ const mockAddTraitsToUser = jest.fn();
 MetaMetrics.getInstance = jest.fn().mockReturnValue({
   trackEvent: mockTrackEvent,
   addTraitsToUser: mockAddTraitsToUser,
+  updateDataRecordingFlag: jest.fn(),
 });
 
 MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;

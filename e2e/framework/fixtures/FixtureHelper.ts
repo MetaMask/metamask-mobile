@@ -16,6 +16,7 @@ import {
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
+import { dismissDevScreens } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -612,6 +613,11 @@ export async function withFixtures(
         languageAndLocale,
         permissions,
       });
+    }
+
+    // Dismiss dev screens if running locally (not in CI)
+    if (process.env.CI !== 'true') {
+      await dismissDevScreens();
     }
 
     await testSuite({
