@@ -24,7 +24,7 @@ describe(SmokeWalletUX('Trending Feed View All Navigation'), () => {
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
   };
 
-  it('should navigate to all sections full views via View All and return', async () => {
+  it('Navigate to all sections full views via View All and return to feed', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -36,6 +36,31 @@ describe(SmokeWalletUX('Trending Feed View All Navigation'), () => {
 
         // Navigate to Trending Tab
         await TrendingView.tapTrendingTab();
+
+        // First, test QuickAction buttons (buttons below search bar)
+        const quickActionSections = [
+          TrendingViewSelectorsText.SECTION_PREDICTIONS,
+          TrendingViewSelectorsText.SECTION_TOKENS,
+          TrendingViewSelectorsText.SECTION_PERPS,
+          TrendingViewSelectorsText.SECTION_SITES,
+        ];
+
+        for (const section of quickActionSections) {
+          // Verify feed is visible
+          await TrendingView.verifyFeedVisible();
+
+          // Tap QuickAction button for the section
+          await TrendingView.tapQuickAction(section);
+
+          // Verify we are in full view (Header matches section title)
+          await TrendingView.verifySectionHeaderVisible(section);
+
+          // Go back to main feed
+          await TrendingView.tapBackFromFullView(section);
+
+          // Verify Feed is visible again before proceeding
+          await TrendingView.verifyFeedVisible();
+        }
 
         // Define the sections to visit in order with their test data
         const sectionsConfig = [

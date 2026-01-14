@@ -136,14 +136,39 @@ class TrendingView {
     );
   }
 
-  async tapViewAll(sectionTitle: string): Promise<void> {
+  /**
+   * Map section title to sectionId used in testIDs
+   */
+  private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
       Tokens: 'tokens',
       Sites: 'sites',
       Predictions: 'predictions',
       Perps: 'perps',
     };
-    const id = sectionIdMap[sectionTitle] || sectionTitle.toLowerCase();
+    return sectionIdMap[sectionTitle] || sectionTitle.toLowerCase();
+  }
+
+  /**
+   * Get QuickAction button element for a section
+   */
+  getQuickActionButton(sectionTitle: string): DetoxElement {
+    const sectionId = this.getSectionId(sectionTitle);
+    return Matchers.getElementByID(`quick-action-${sectionId}`);
+  }
+
+  /**
+   * Tap on QuickAction button (buttons below search bar)
+   */
+  async tapQuickAction(sectionTitle: string): Promise<void> {
+    const quickActionButton = this.getQuickActionButton(sectionTitle);
+    await Gestures.tap(quickActionButton, {
+      elemDescription: `Tap QuickAction button for ${sectionTitle}`,
+    });
+  }
+
+  async tapViewAll(sectionTitle: string): Promise<void> {
+    const id = this.getSectionId(sectionTitle);
     const viewAllButton = Matchers.getElementByID(
       `section-header-view-all-${id}`,
     );
