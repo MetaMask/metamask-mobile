@@ -36,6 +36,11 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheet
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 /**
  * PerpsOpenOrderCard Component
@@ -75,6 +80,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent } = useMetrics();
 
   // Used to prevent rapid clicks on the cancel button before it has time to re-render.
   const isLocallyCancellingRef = useRef(false);
@@ -136,6 +142,12 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     }
 
     if (!isEligible) {
+      // Track geo-block screen viewed
+      trackEvent(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.CANCEL_ORDER,
+      });
       setIsEligibilityModalVisible(true);
       return;
     }
@@ -148,7 +160,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     });
 
     onCancel?.(order);
-  }, [isEligible, onCancel, order]);
+  }, [isEligible, onCancel, order, trackEvent]);
 
   const handleCardPress = useCallback(() => {
     if (onSelect) {

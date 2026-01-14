@@ -204,6 +204,12 @@ export const PerpsEventValues = {
     OPEN_POSITION: 'open_position',
     POSITION_CLOSE_TOAST: 'position_close_toast',
     TRADE_DETAILS: 'trade_details',
+    // Geo-block trigger sources (for tracking what action was blocked)
+    DEPOSIT_BUTTON: 'deposit_button',
+    WITHDRAW_BUTTON: 'withdraw_button',
+    TRADE_ACTION: 'trade_action',
+    ADD_FUNDS_ACTION: 'add_funds_action',
+    CANCEL_ORDER: 'cancel_order',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',

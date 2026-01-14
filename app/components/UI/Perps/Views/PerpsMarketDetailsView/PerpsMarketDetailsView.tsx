@@ -585,6 +585,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') => {
       if (!isEligible) {
+        // Track geo-block screen viewed
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.TRADE_ACTION,
+        });
         setIsEligibilityModalVisible(true);
         return;
       }
@@ -663,6 +669,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       if (!isEligible) {
+        // Track geo-block screen viewed
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PerpsEventProperties.SOURCE]:
+            PerpsEventValues.SOURCE.ADD_FUNDS_ACTION,
+        });
         setIsEligibilityModalVisible(true);
         return;
       }
