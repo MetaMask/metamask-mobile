@@ -180,27 +180,27 @@ jobs:
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  #validate-pr:
-  #  name: Validate PR and Commit
-  #  runs-on: ubuntu-latest
-  #  outputs:
-  #    pr_number: ${{ steps.validate-pr.outputs.pr_number }}
-  #  steps:
-  #    - name: Checkout repository
-  #      uses: actions/checkout@v4
-  #      with:
-  #        fetch-depth: 0
-  #
-  #    - name: Validate PR contains commit
-  #      id: validate-pr
-  #      env:
-  #        COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-  #        PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
-  #        BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
-  #        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #        GITHUB_REPOSITORY: ${{ github.repository }}
-  #      run: |
-  #        .github/scripts/validate-pr-commit.sh
+  validate-pr:
+    name: Validate PR and Commit
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR contains commit
+        id: validate-pr
+        env:
+          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          .github/scripts/validate-pr-commit.sh
 
   approval:
     name: Require OTA Update Approval
