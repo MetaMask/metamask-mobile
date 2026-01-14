@@ -2,10 +2,10 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
-import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
-import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
+import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
+import { QuoteViewSelectorText } from '../../app/components/UI/Swaps/QuoteView.testIds';
 import Selectors from '../helpers/Selectors.js';
-import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
 import AmountScreen from './AmountScreen';
 

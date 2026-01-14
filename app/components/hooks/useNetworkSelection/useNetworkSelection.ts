@@ -5,13 +5,14 @@ import {
   Hex,
   isCaipChainId,
   parseCaipChainId,
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   KnownCaipNamespace,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import {
+  selectPopularNetworkConfigurationsByCaipChainId,
+  selectEvmNetworkConfigurationsByChainId,
+} from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
@@ -65,6 +66,10 @@ export const useNetworkSelection = ({
 
   const popularNetworkConfigurations = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
+  );
+
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -157,15 +162,51 @@ export const useNetworkSelection = ({
     [enableAllPopularNetworks],
   );
 
-  /** Toggles a popular network and resets all custom networks */
+  /** Toggles a popular network, switches to it, and resets all custom networks */
   const selectPopularNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
+      const { MultichainNetworkController } = Engine.context;
+
       // Enable the network in NetworkEnablementController
       await enableNetwork(chainId);
 
+      // Also switch the active network to match user's selection
+      // This syncs the filter selection with the actual active network
+      try {
+        const { namespace: caipNamespace, reference } =
+          parseCaipChainId(chainId);
+
+        if (caipNamespace === KnownCaipNamespace.Eip155) {
+          // For EVM networks, look up the network configuration to get networkClientId
+          const hexChainId = toHex(reference) as Hex;
+          const networkConfig = evmNetworkConfigurations[hexChainId];
+
+          if (networkConfig) {
+            const networkClientId =
+              networkConfig.rpcEndpoints[networkConfig.defaultRpcEndpointIndex]
+                ?.networkClientId;
+
+            if (networkClientId) {
+              await MultichainNetworkController.setActiveNetwork(
+                networkClientId,
+              );
+            }
+          }
+        } else {
+          // For non-EVM networks (Solana, etc.), use the CAIP chainId directly
+          await MultichainNetworkController.setActiveNetwork(chainId);
+        }
+      } catch (error) {
+        // If network switch fails, we still enabled the filter - log but don't throw
+        console.warn(
+          'selectPopularNetwork: Failed to switch active network:',
+          error,
+        );
+      }
+
       onComplete?.();
     },
-    [enableNetwork],
+    [enableNetwork, evmNetworkConfigurations],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */

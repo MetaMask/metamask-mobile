@@ -5,7 +5,7 @@ import { ImageSourcePropType, Platform } from 'react-native';
 
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
-import { BrowserViewSelectorsIDs } from '../../../../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../../../components/Views/BrowserTab/BrowserView.testIds';
 import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
 // Internal dependencies.

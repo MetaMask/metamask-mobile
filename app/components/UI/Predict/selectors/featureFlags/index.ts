@@ -9,8 +9,7 @@ import {
  * Selector for Predict trading feature enablement
  *
  * Uses version-gated feature flag `predictTradingEnabled` from remote config.
- * Falls back to local environment variable MM_PREDICT_ENABLED if remote flag
- * is unavailable or invalid.
+ * Falls back to `true` if remote flag is unavailable or invalid.
  *
  * Version gating ensures users have minimum app version (7.60.0) to access feature.
  *
@@ -19,12 +18,11 @@ import {
 export const selectPredictEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PREDICT_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.predictTradingEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    // Default to `true` if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
   },
 );
 

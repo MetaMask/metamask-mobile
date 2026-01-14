@@ -26,7 +26,7 @@ import { NetworkRow } from '../NetworkRow';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import { BridgeSourceNetworkSelectorSelectorsIDs } from './BridgeSourceNetworkSelector.testIds';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { CaipChainId, Hex } from '@metamask/utils';
