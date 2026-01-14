@@ -3,8 +3,12 @@ name: Push OTA Update
 on:
   workflow_dispatch:
     inputs:
+      commit_hash:
+        description: 'Commit hash to publish'
+        required: true
+        type: string
       pr_number:
-        description: 'Pull request number to publish'
+        description: 'PR number associated with the commit'
         required: true
         type: string
       base_branch:
@@ -30,6 +34,7 @@ permissions:
   id-token: write
 
 env:
+  TARGET_COMMIT_HASH: ${{ inputs.commit_hash }}
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
   UPDATE_MESSAGE: ${{ inputs.message }}
@@ -40,7 +45,7 @@ jobs:
     name: Setup Dependencies
     uses: ./.github/workflows/setup-node-modules.yml
     with:
-      ref: refs/pull/${{ inputs.pr_number }}/head
+      ref: ${{ inputs.commit_hash }}
       fetch-depth: 0
       upload-artifact: true
       artifact-name: node-modules-eas-update
@@ -56,17 +61,23 @@ jobs:
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     steps:
-      - name: Checkout target PR branch
+      - name: Checkout target commit
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
+          ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
-      - name: Print PR ref and commit
+      - name: Verify checked out commit matches expected
+        env:
+          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
         run: |
-          echo "🔎 PR ref: refs/pull/${TARGET_PR_NUMBER}/head"
-          echo "🔎 PR HEAD branch: $(git rev-parse --abbrev-ref HEAD || echo 'detached HEAD')"
-          echo "🔎 PR HEAD commit: $(git rev-parse HEAD)"
+          .github/scripts/verify-commit-sha.sh
+
+      - name: Print commit info
+        run: |
+          echo "🔎 Commit hash: ${TARGET_COMMIT_HASH}"
+          echo "🔎 Checked out commit: $(git rev-parse HEAD)"
+          echo "🔎 Branch: $(git rev-parse --abbrev-ref HEAD || echo 'detached HEAD')"
 
       - name: Checkout base branch snapshot
         uses: actions/checkout@v4
@@ -89,22 +100,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+          is-high-risk-environment: true
 
       - name: Download node_modules artifact (PR checkout)
         uses: actions/download-artifact@v4
         with:
           name: node-modules-eas-update
 
-      - name: Verify downloaded artifacts (PR checkout)
+      - name: Verify downloaded artifacts (commit checkout)
         run: |
-          echo "✅ Verifying downloaded artifacts in PR checkout..."
+          echo "✅ Verifying downloaded artifacts in commit checkout..."
           if [ ! -d "node_modules" ]; then
             echo "❌ node_modules directory not found"
             exit 1
           fi
-          echo "📦 node_modules size (PR): $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified for PR checkout"
+          echo "📦 node_modules size (commit): $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified for commit checkout"
 
       - name: Download node_modules artifact (base branch checkout)
         uses: actions/download-artifact@v4
@@ -112,13 +123,13 @@ jobs:
           name: node-modules-eas-update
           path: main
 
-      - name: Generate fingerprint (workflow branch)
+      - name: Generate fingerprint (target commit)
         id: branch_fingerprint
         run: |
-          echo "🧬 Generating fingerprint for current branch..."
+          echo "🧬 Generating fingerprint for target commit..."
           FINGERPRINT=$(node scripts/generate-fingerprint.js)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Target PR fingerprint: ${FINGERPRINT}"
+          echo "Target commit fingerprint: ${FINGERPRINT}"
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
@@ -156,28 +167,54 @@ jobs:
           BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
           MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
           MATCHES: ${{ steps.compare.outputs.equal }}
-          TARGET_PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
           BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
         run: |
           {
             echo "### Expo Fingerprint Comparison"
             echo ""
-            echo "- Target PR (#$TARGET_PR_NUMBER) fingerprint: \`$BRANCH_FP\`"
+            echo "- Target commit (\`$TARGET_COMMIT_HASH\`) fingerprint: \`$BRANCH_FP\`"
             echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  validate-pr:
+    name: Validate PR and Commit
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR contains commit
+        id: validate-pr
+        env:
+          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          .github/scripts/validate-pr-commit.sh
+
   approval:
     name: Require OTA Update Approval
-    needs: fingerprint-comparison
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+    needs:
+      - fingerprint-comparison
+      - validate-pr
+    if: >
+      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+      needs.validate-pr.outputs.pr_number != ''
     runs-on: ubuntu-latest
     steps:
       - name: Await approval from mobile platform team
         uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
         with:
           team: mobile-platform
-          pr-number: ${{ env.TARGET_PR_NUMBER }}
+          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
   push-update:
@@ -188,7 +225,10 @@ jobs:
       - fingerprint-comparison
       - approval
       - setup-dependencies
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+      - validate-pr
+    if: >
+      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+      (needs.validate-pr.outputs.pr_number == '' || needs.approval.result == 'success')
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
@@ -240,14 +280,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
+          ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
+
+      - name: Verify checked out commit matches expected
+        env:
+          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+        run: |
+          .github/scripts/verify-commit-sha.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+          is-high-risk-environment: true
 
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
