@@ -51,23 +51,13 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
     version: string;
     featureKey: keyof FeatureFlags;
   }[],
-  override?: string,
+  _override?: string,
 ): boolean => {
-  const overrideForVersion2 =
-    override !== undefined &&
-    featureVersionsToCheck.some(
-      ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-    );
+  const overrideForVersion2 = featureVersionsToCheck.some(
+    ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  );
 
   if (overrideForVersion2) {
-    return override === 'true';
-  }
-
-  if (
-    featureVersionsToCheck.some(
-      ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-    )
-  ) {
     return true;
   }
 
