@@ -67,6 +67,11 @@ jest.mock('../../hooks', () => ({
     isProcessing: false,
     error: null,
   })),
+  usePerpsHomeSectionTracking: jest.fn(() => ({
+    handleSectionLayout: jest.fn(() => jest.fn()),
+    handleScroll: jest.fn(),
+    resetTracking: jest.fn(),
+  })),
 }));
 
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
