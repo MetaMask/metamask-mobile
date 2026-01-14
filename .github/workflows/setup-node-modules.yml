@@ -65,28 +65,6 @@ jobs:
       - name: Enable Corepack
         run: corepack enable && corepack prepare yarn@4.10.3 --activate
 
-      - name: Generate cache key
-        id: cache-key
-        run: |
-          # Create a cache key based on yarn.lock and setup script
-          CACHE_KEY="node-modules-${{ runner.os }}-${{ hashFiles('**/yarn.lock', 'scripts/setup.mjs') }}"
-          echo "key=$CACHE_KEY" >> "$GITHUB_OUTPUT"
-          echo "Cache key: $CACHE_KEY"
-
-      - name: Restore node_modules cache
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-            app/util/termsOfUse/termsOfUseContent.ts
-            scripts/inpage-bridge/dist
-          key: ${{ steps.cache-key.outputs.key }}
-          restore-keys: |
-            node-modules-${{ runner.os }}-
-
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
