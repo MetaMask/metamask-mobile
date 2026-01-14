@@ -3,7 +3,7 @@ import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
-import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from './TermsOfUseModal.testIds';
 import StorageWrapper from '../../store/storage-wrapper';
 import navigateTermsOfUse from './termsOfUse';
 import termsOfUse from './termsOfUseContent';

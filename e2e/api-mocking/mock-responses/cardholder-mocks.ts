@@ -4,15 +4,74 @@ import { setupMockRequest } from '../helpers/mockHelpers';
 import { createGeolocationResponse } from './ramps/ramps-geolocation';
 import { RAMPS_NETWORKS_RESPONSE } from './ramps/ramps-mocks';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { ethers } from 'ethers';
 
 /**
  * Mock responses for cardholder API calls
  * Used in E2E tests to avoid dependency on external APIs
  */
 
+// Balance scanner contract address on Linea
+const LINEA_BALANCE_SCANNER = '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a';
+
+// Static mock responses for Linea RPC calls
+const LINEA_MOCK_RESPONSES: Record<string, unknown> = {
+  eth_chainId: '0xe708', // Linea chain ID (59144)
+  eth_getBalance: '0x0',
+  eth_call: '0x', // Default empty response
+  eth_estimateGas: '0x5208',
+  eth_gasPrice: '0x9c7652400',
+  eth_getTransactionCount: '0x0',
+  eth_blockNumber: '0x1234567',
+  eth_getBlockByNumber: {
+    number: '0x1234567',
+    hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    timestamp: '0x' + Math.floor(Date.now() / 1000).toString(16),
+    gasLimit: '0x1c9c380',
+    gasUsed: '0x5208',
+    transactions: [],
+  },
+  net_version: '59144',
+};
+
+/**
+ * Generate ABI-encoded response for spendersAllowancesForTokens
+ * Returns Result[][] where Result is (bool success, bytes data)
+ * Each token has 2 spenders (global and US), each returning allowance of 0
+ */
+const generateSpendersAllowancesResponse = (numTokens: number): string => {
+  // ABI encode uint256(0) for allowance data
+  const zeroAllowanceData = ethers.utils.defaultAbiCoder.encode(
+    ['uint256'],
+    [0],
+  );
+
+  // Create Result tuples: (true, encodedZeroAllowance) for each spender
+  // 2 spenders per token: [global, us]
+  const resultTuple = [true, zeroAllowanceData];
+
+  // Create inner arrays (one per token, each with 2 Result tuples)
+  const innerArrays: [boolean, string][][] = [];
+  for (let i = 0; i < numTokens; i++) {
+    innerArrays.push([resultTuple, resultTuple] as [boolean, string][]);
+  }
+
+  // ABI encode the outer array of Result[][]
+  // Result is tuple(bool, bytes)
+  const encoded = ethers.utils.defaultAbiCoder.encode(
+    ['tuple(bool,bytes)[][]'],
+    [innerArrays],
+  );
+
+  return encoded;
+};
+
+// Pre-compute the response for 6 tokens (matching clientConfig mock)
+const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse(6);
+
 const clientConfig = {
   urlEndpoint:
-    'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+    /^https:\/\/client-config\.api\.cx\.metamask\.io\/v1\/flags\?client=mobile&distribution=main&environment=(dev|test|prod)$/,
   response: [
     {
       depositConfig: {
@@ -89,7 +148,129 @@ const clientConfig = {
   responseCode: 200,
 };
 
+/**
+ * Helper function to handle Linea RPC request body and return appropriate mock response
+ */
+const handleLineaRpcRequest = (
+  body: {
+    id?: number;
+    method?: string;
+    params?: unknown[];
+  } | null,
+): { id: number; jsonrpc: string; result: unknown } => {
+  const method = body?.method;
+
+  // Special handling for balance scanner eth_call
+  if (method === 'eth_call') {
+    const params = body?.params as { to?: string; data?: string }[] | undefined;
+    const to = params?.[0]?.to?.toLowerCase();
+
+    if (to === LINEA_BALANCE_SCANNER) {
+      // Return properly ABI-encoded spendersAllowancesForTokens response
+      // This is Result[][] where Result is (bool success, bytes data)
+      // 6 tokens with 2 spenders each, all returning allowance of 0
+      return {
+        id: body?.id ?? 1,
+        jsonrpc: '2.0',
+        result: SPENDERS_ALLOWANCES_RESPONSE,
+      };
+    }
+  }
+
+  const result = method
+    ? (LINEA_MOCK_RESPONSES as Record<string, unknown>)[method] || '0x'
+    : '0x';
+
+  return {
+    id: body?.id ?? 1,
+    jsonrpc: '2.0',
+    result,
+  };
+};
+
 export const testSpecificMock: TestSpecificMock = async (mockServer) => {
+  // Mock Linea Tenderly RPC endpoint - handles both proxy and direct requests
+  const LINEA_TENDERLY_RPC =
+    'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2';
+
+  // Helper to get decoded URL from proxy request
+  const getDecodedProxiedURL = (url: string): string => {
+    try {
+      return decodeURIComponent(String(new URL(url).searchParams.get('url')));
+    } catch {
+      return '';
+    }
+  };
+
+  // Helper function to create RPC mock callback
+  const createRpcCallback =
+    () =>
+    async (request: {
+      body: { getText: () => Promise<string | undefined> };
+    }) => {
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : null;
+
+        // Handle batch requests
+        if (Array.isArray(body)) {
+          const results = body.map(handleLineaRpcRequest);
+          return {
+            statusCode: 200,
+            body: JSON.stringify(results),
+          };
+        }
+
+        // Handle single request
+        return {
+          statusCode: 200,
+          body: JSON.stringify(handleLineaRpcRequest(body)),
+        };
+      } catch {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            id: 1,
+            jsonrpc: '2.0',
+            result: '0x',
+          }),
+        };
+      }
+    };
+
+  // Mock direct POST requests to Tenderly RPC (for direct fetch calls)
+  await mockServer
+    .forPost(LINEA_TENDERLY_RPC)
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
+  // Mock Linea Infura RPC endpoint (used by CardSDK directly)
+  // The CardSDK uses its own ethers provider with the Infura URL from constants
+  await mockServer
+    .forPost(/^https:\/\/linea-mainnet\.infura\.io\/v3\/.*$/)
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
+  // Mock Linea Tenderly RPC through the mobile proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return url.includes('virtual.linea.rpc.tenderly.co');
+    })
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
+  // Mock Linea Infura RPC through the mobile proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return url.includes('linea-mainnet.infura.io');
+    })
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
   // Geolocation mocks - set to Spain (all envs)
   for (const mock of createGeolocationResponse(
     RampsRegions[RampsRegionsEnum.SPAIN],

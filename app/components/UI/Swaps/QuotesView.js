@@ -110,7 +110,7 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
-import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
+import { SwapsViewSelectorsIDs } from './SwapsView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
