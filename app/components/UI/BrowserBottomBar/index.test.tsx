@@ -405,13 +405,23 @@ describe('BrowserBottomBar', () => {
         bookmarks: [bookmarkToRemove],
       };
 
+      // Ensure getMaskedUrl returns the same URL as the bookmark
+      const customGetMaskedUrl = jest.fn(() => 'https://example.com');
+
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar {...defaultProps} />,
+        <BrowserBottomBar
+          {...defaultProps}
+          getMaskedUrl={customGetMaskedUrl}
+        />,
         { state: stateWithBookmark },
       );
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
+      expect(customGetMaskedUrl).toHaveBeenCalledWith(
+        defaultProps.activeUrl,
+        defaultProps.sessionENSNames,
+      );
       expect(mockDispatch).toHaveBeenCalledWith(
         removeBookmark(bookmarkToRemove),
       );
@@ -774,6 +784,7 @@ describe('BrowserBottomBar', () => {
       const { getByTestId } = renderWithProvider(
         <BrowserBottomBar
           {...defaultProps}
+          icon={undefined}
           favicon={{ uri: 'https://example.com/favicon.ico' }}
         />,
         { state: initialState },
@@ -800,7 +811,7 @@ describe('BrowserBottomBar', () => {
 
     it('uses empty string for thumbnail URI when neither icon nor favicon available', async () => {
       const { getByTestId } = renderWithProvider(
-        <BrowserBottomBar {...defaultProps} favicon={{}} />,
+        <BrowserBottomBar {...defaultProps} icon={undefined} favicon={{}} />,
         { state: initialState },
       );
 
