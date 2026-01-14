@@ -446,6 +446,23 @@ export interface SeasonRewardDto {
   claimEndDate?: string;
 }
 
+/**
+ * DTO for Linea token reward from Season 1
+ */
+export interface LineaTokenRewardDto {
+  /**
+   * The subscription ID
+   * @example 'example-uuid'
+   */
+  subscriptionId: string;
+
+  /**
+   * The amount of Linea tokens as a string
+   * @example '1000'
+   */
+  amount: string;
+}
+
 export enum SeasonRewardType {
   GENERIC = 'GENERIC',
   PERPS_DISCOUNT = 'PERPS_DISCOUNT',
@@ -1022,6 +1039,14 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for getting Season 1 Linea token reward
+ */
+export interface RewardsControllerGetSeasonOneLineaRewardTokensAction {
+  type: 'RewardsController:getSeasonOneLineaRewardTokens';
+  handler: (subscriptionId: string) => Promise<LineaTokenRewardDto | null>;
+}
+
+/**
  * Action for resetting controller state
  */
 export interface RewardsControllerResetAllAction {
@@ -1058,6 +1083,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
+  | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction;
 
 /**

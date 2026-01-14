@@ -82,7 +82,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
         "We're making sure everything's correct before you claim your rewards.",
       'rewards.end_of_season_rewards.success_description':
         'Redeem claim success description',
-      'rewards.end_of_season_rewards.redeem_label': 'Redeem',
+      'rewards.end_of_season_rewards.confirm_label_default': 'Redeem',
+      'rewards.end_of_season_rewards.arriving_soon': 'Arriving soon',
+      'rewards.end_of_season_rewards.check_back_soon':
+        'Check back soon to claim',
     };
     return translations[key] || key;
   }),
@@ -227,7 +230,7 @@ jest.mock('../RewardItem/RewardItem', () => {
       isEndOfSeasonReward?: boolean;
       isLast?: boolean;
       compact?: boolean;
-      onPress?: (rewardId: string, sr: SeasonRewardDto) => void;
+      onPress?: (reward: RewardDto, sr: SeasonRewardDto) => void;
       endOfSeasonClaimedDescription?: string;
       claimCtaLabel?: string;
     }) =>
@@ -236,7 +239,7 @@ jest.mock('../RewardItem/RewardItem', () => {
         {
           testID: testID || `reward-item-${reward.id}`,
           accessibilityLabel: `isLocked:${isLocked},isEndOfSeasonReward:${isEndOfSeasonReward},isLast:${isLast},compact:${compact},endOfSeasonClaimedDescription:${endOfSeasonClaimedDescription},claimCtaLabel:${claimCtaLabel}`,
-          onPress: () => onPress?.(reward.id, seasonReward),
+          onPress: () => onPress?.(reward, seasonReward),
         },
         ReactActual.createElement(Text, {}, seasonReward.name),
       ),
@@ -354,6 +357,18 @@ describe('PreviousSeasonUnlockedRewards', () => {
     isEndOfSeasonReward: true,
   };
 
+  const mockNansenSeasonReward: SeasonRewardDto = {
+    id: 'season-reward-nansen',
+    name: 'Nansen Reward',
+    shortDescription: 'Nansen description',
+    longDescription: 'Nansen long description',
+    shortUnlockedDescription: 'Nansen short unlocked',
+    longUnlockedDescription: 'Nansen long unlocked',
+    iconName: 'Chart',
+    rewardType: SeasonRewardType.NANSEN,
+    isEndOfSeasonReward: true,
+  };
+
   const mockUnlockedReward1: RewardDto = {
     id: 'reward-1',
     seasonRewardId: 'season-reward-1',
@@ -378,6 +393,26 @@ describe('PreviousSeasonUnlockedRewards', () => {
     claimStatus: RewardClaimStatus.UNCLAIMED,
   };
 
+  const mockNansenUnlockedRewardWithUrl: RewardDto = {
+    id: 'reward-nansen-with-url',
+    seasonRewardId: 'season-reward-nansen',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+    claim: {
+      id: 'claim-1',
+      rewardId: 'reward-nansen-with-url',
+      accountId: 'account-1',
+      data: {
+        url: 'https://nansen.ai/claim/abc123',
+      },
+    },
+  };
+
+  const mockNansenUnlockedRewardWithoutUrl: RewardDto = {
+    id: 'reward-nansen-without-url',
+    seasonRewardId: 'season-reward-nansen',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+  };
+
   const mockSeasonTiers = [
     {
       id: 'tier-1',
@@ -393,6 +428,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
         mockSeasonReward2,
         mockRegularSeasonReward,
         mockMetalCardSeasonReward,
+        mockNansenSeasonReward,
       ],
     },
   ];
@@ -593,7 +629,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(queryByTestId('rewards-error-banner')).not.toBeOnTheScreen();
   });
 
-  it('passes isLocked=true for non-METAL_CARD end of season rewards', () => {
+  it('passes isLocked=false for GENERIC end of season rewards', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards) return [mockUnlockedReward1];
       if (selector === selectUnlockedRewardLoading) return false;
@@ -606,7 +642,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-1');
-    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:true');
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
   });
 
   it('passes isLocked=false for METAL_CARD end of season rewards', () => {
@@ -626,7 +662,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
   });
 
-  it('passes redeem-specific props for METAL_CARD rewards', () => {
+  it('passes arriving_soon description for METAL_CARD rewards', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards)
         return [mockMetalCardUnlockedReward];
@@ -641,10 +677,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
 
     const rewardItem = getByTestId('reward-item-reward-metal-card');
     expect(rewardItem.props.accessibilityLabel).toContain(
-      'endOfSeasonClaimedDescription:Redeem claim success description',
-    );
-    expect(rewardItem.props.accessibilityLabel).toContain(
-      'claimCtaLabel:Redeem',
+      'endOfSeasonClaimedDescription:Arriving soon',
     );
   });
 
@@ -723,7 +756,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(lastRewardItem.props.accessibilityLabel).toContain('isLast:true');
   });
 
-  it('navigates to metal card claim sheet when METAL_CARD reward is pressed', () => {
+  it('navigates to end of season claim sheet when METAL_CARD reward is pressed', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards)
         return [mockMetalCardUnlockedReward];
@@ -739,10 +772,14 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const rewardItem = getByTestId('reward-item-reward-metal-card');
     rewardItem.props.onPress();
 
-    expect(mockNavigate).toHaveBeenCalledWith('MetalCardClaimBottomSheet', {
-      rewardId: 'reward-metal-card',
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      rewardId: mockMetalCardUnlockedReward.id,
       seasonRewardId: 'season-reward-metal-card',
       title: 'Metal Card Reward',
+      description: 'Metal card long unlocked',
+      rewardType: SeasonRewardType.METAL_CARD,
+      showEmail: 'required',
+      showTelegram: 'optional',
     });
   });
 
@@ -762,5 +799,86 @@ describe('PreviousSeasonUnlockedRewards', () => {
     rewardItem.props.onPress();
 
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('passes isLocked=true and check_back_soon description for NANSEN reward without URL', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithoutUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-without-url');
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:true');
+    expect(rewardItem.props.accessibilityLabel).toContain(
+      'endOfSeasonClaimedDescription:Check back soon to claim',
+    );
+  });
+
+  it('passes isLocked=false for NANSEN reward with URL', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-with-url');
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
+  });
+
+  it('does not navigate when NANSEN reward without URL is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithoutUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-without-url');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to end of season claim sheet when NANSEN reward with URL is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockNansenUnlockedRewardWithUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-nansen-with-url');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      seasonRewardId: 'season-reward-nansen',
+      title: 'Nansen Reward',
+      description: 'Nansen long unlocked',
+      url: 'https://nansen.ai/claim/abc123',
+      rewardType: SeasonRewardType.NANSEN,
+    });
   });
 });

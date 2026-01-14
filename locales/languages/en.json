@@ -6866,6 +6866,13 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "linea_tokens": {
+      "title_loading_prefix": "You earned",
+      "title_loading_suffix": "$LINEA",
+      "title_earned": "You earned {{amount}} $LINEA",
+      "error_fetching_title": "Couldn't load reward amount",
+      "error_fetching_description": "We couldn't determine your $LINEA reward. Please try again later."
+    },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -7200,13 +7207,13 @@
       "expired": "Expired"
     },
     "end_of_season_rewards": {
-      "redeem_label": "Redeem",
-      "access_label": "Access",
-      "confirm_label": "Confirm",
-      "success_title": "Reward redeemed",
+      "confirm_label_default": "Confirm",
+      "confirm_label_access": "Access",
+      "redeem_success_title": "Reward redeemed",
       "arriving_soon": "Arriving soon",
-      "failure_title": "Redeem failed",
-      "failure_description": "Please try again later.",
+      "check_back_soon": "Check back soon to redeem",
+      "redeem_failure_title": "Redeem failed",
+      "redeem_failure_description": "Please try again later.",
       "redeem_your_reward": "Redeem your reward",
       "select_account_description": "Select the wallet where you'd like this reward sent. Tokens will be distributed within two weeks."
     },

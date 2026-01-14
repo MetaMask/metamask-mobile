@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -6,7 +12,7 @@ import useRewardsToast from '../../hooks/useRewardsToast';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import { Linking, TouchableOpacity } from 'react-native';
+import { Linking, TouchableOpacity, ActivityIndicator } from 'react-native';
 import {
   BoxFlexDirection,
   ButtonVariant,
@@ -22,9 +28,13 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { SeasonRewardType } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  ClaimRewardDto,
+  SeasonRewardType,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useSelector } from 'react-redux';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
@@ -34,6 +44,14 @@ import AvatarAccount from '../../../../../component-library/components/Avatars/A
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
+import useClaimReward from '../../hooks/useClaimReward';
+import useLineaSeasonOneTokenReward from '../../hooks/useLineaSeasonOneTokenReward';
+import RewardsErrorBanner from '../RewardsErrorBanner';
+import { validateEmail } from '../../utils/formatUtils';
+import { useTheme } from '../../../../../util/theme';
 
 export interface ModalAction {
   label: string;
@@ -41,6 +59,8 @@ export interface ModalAction {
   variant?: ButtonVariant;
   disabled?: boolean;
 }
+
+export type InputFieldConfig = 'required' | 'optional' | false;
 
 interface EndOfSeasonClaimBottomSheetProps {
   route: {
@@ -51,6 +71,12 @@ interface EndOfSeasonClaimBottomSheetProps {
       description?: string;
       rewardType: SeasonRewardType;
       showAccount?: boolean;
+      /** Configuration for email input: 'required', 'optional', or false to hide */
+      showEmail?: InputFieldConfig;
+      /** Configuration for telegram input: 'required', 'optional', or false to hide */
+      showTelegram?: InputFieldConfig;
+      /** The reward ID needed for claiming rewards via API (e.g., METAL_CARD) */
+      rewardId?: string;
     };
   };
 }
@@ -64,9 +90,16 @@ const EndOfSeasonClaimBottomSheet = ({
 }: EndOfSeasonClaimBottomSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
+  const theme = useTheme();
   const { showToast: showRewardsToast, RewardsToastOptions } =
     useRewardsToast();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { claimReward, isClaimingReward } = useClaimReward();
+  const {
+    lineaTokenReward,
+    isLoading: isLoadingLineaToken,
+    error: lineaTokenError,
+  } = useLineaSeasonOneTokenReward();
   const {
     seasonRewardId,
     title,
@@ -74,9 +107,25 @@ const EndOfSeasonClaimBottomSheet = ({
     url,
     rewardType,
     showAccount = false,
+    showEmail = false,
+    showTelegram = false,
+    rewardId,
   } = route.params;
   const navigation = useNavigation();
   const hasTrackedRewardViewed = useRef(false);
+
+  // Email and telegram state
+  const [email, setEmail] = useState('');
+  const [telegram, setTelegram] = useState('');
+  const [emailValidationError, setEmailValidationError] = useState(false);
+
+  const handleEmailChange = useCallback((text: string) => {
+    setEmail(text);
+    setEmailValidationError(false);
+  }, []);
+
+  // Check if we need keyboard avoiding behavior
+  const needsKeyboardAvoiding = showEmail || showTelegram;
 
   // Account group selectors
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
@@ -99,15 +148,19 @@ const EndOfSeasonClaimBottomSheet = ({
     navigation.goBack();
   }, [navigation]);
 
-  const showToast = useCallback(() => {
-    // Show success toast
-    showRewardsToast(
-      RewardsToastOptions.success(
-        strings('rewards.unlocked_rewards.reward_claimed'),
-        title,
-      ),
-    );
-  }, [RewardsToastOptions, showRewardsToast, title]);
+  const showSuccessToastIfNeeded = useCallback(() => {
+    if (
+      rewardType === SeasonRewardType.LINEA_TOKENS ||
+      rewardType === SeasonRewardType.METAL_CARD
+    ) {
+      showRewardsToast(
+        RewardsToastOptions.success(
+          strings('rewards.end_of_season_rewards.redeem_success_title'),
+          title,
+        ),
+      );
+    }
+  }, [RewardsToastOptions, rewardType, showRewardsToast, title]);
 
   useEffect(() => {
     if (!hasTrackedRewardViewed.current) {
@@ -124,15 +177,59 @@ const EndOfSeasonClaimBottomSheet = ({
   }, [trackEvent, createEventBuilder, seasonRewardId, title]);
 
   const handleClaimReward = useCallback(async () => {
+    // Validate email if required
+    if (showEmail === 'required' && !validateEmail(email.trim())) {
+      setEmailValidationError(true);
+      return;
+    }
+
+    // Validate email format if provided (for optional case)
+    if (
+      showEmail === 'optional' &&
+      email.trim() &&
+      !validateEmail(email.trim())
+    ) {
+      setEmailValidationError(true);
+      return;
+    }
+
     try {
       switch (rewardType) {
         case SeasonRewardType.NANSEN:
           if (!url) return;
           Linking.openURL(url);
           break;
-        case SeasonRewardType.LINEA_TOKENS:
-          //TODO: claim linea tokens
+        case SeasonRewardType.LINEA_TOKENS: {
+          if (!rewardId) return;
+
+          const claimData: ClaimRewardDto = {
+            data: {
+              recipientAddress: evmAddress || '',
+            },
+          };
+
+          await claimReward(rewardId, claimData);
           break;
+        }
+        case SeasonRewardType.METAL_CARD: {
+          if (!rewardId) return;
+
+          const metalCardClaimData: ClaimRewardDto = {
+            data: {
+              email: email.trim(),
+            },
+          };
+
+          if (telegram.trim()) {
+            metalCardClaimData.data = {
+              ...metalCardClaimData.data,
+              telegramHandle: telegram.trim(),
+            };
+          }
+
+          await claimReward(rewardId, metalCardClaimData);
+          break;
+        }
       }
 
       trackEvent(
@@ -145,37 +242,50 @@ const EndOfSeasonClaimBottomSheet = ({
       );
 
       handleModalClose();
-      showToast();
+      showSuccessToastIfNeeded();
     } catch {
-      // keep modal open to display error message
+      handleModalClose();
+      showRewardsToast(
+        RewardsToastOptions.error(
+          strings('rewards.end_of_season_rewards.redeem_failure_title'),
+          strings('rewards.end_of_season_rewards.redeem_failure_description'),
+        ),
+      );
     }
   }, [
+    showEmail,
+    email,
     rewardType,
     trackEvent,
     createEventBuilder,
     seasonRewardId,
     title,
     handleModalClose,
-    showToast,
+    showSuccessToastIfNeeded,
     url,
+    rewardId,
+    evmAddress,
+    telegram,
+    claimReward,
+    showRewardsToast,
+    RewardsToastOptions,
   ]);
 
   const confirmAction = useMemo(() => {
-    switch (rewardType) {
-      case SeasonRewardType.LINEA_TOKENS:
-        return {
-          label: strings('rewards.end_of_season_rewards.confirm_label'),
-          onPress: handleClaimReward,
-          variant: ButtonVariant.Primary,
-        };
-      default:
-        return {
-          label: strings('rewards.end_of_season_rewards.access_label'),
-          onPress: handleClaimReward,
-          variant: ButtonVariant.Primary,
-        };
-    }
-  }, [rewardType, handleClaimReward]);
+    const label =
+      rewardType === SeasonRewardType.LINEA_TOKENS ||
+      rewardType === SeasonRewardType.METAL_CARD
+        ? strings('rewards.end_of_season_rewards.confirm_label_default')
+        : strings('rewards.end_of_season_rewards.confirm_label_access');
+
+    return {
+      label,
+      onPress: handleClaimReward,
+      variant: ButtonVariant.Primary,
+      loading: isClaimingReward,
+      disabled: isClaimingReward,
+    };
+  }, [rewardType, handleClaimReward, isClaimingReward]);
 
   const renderActions = () => (
     <Box twClassName="w-full">
@@ -183,6 +293,8 @@ const EndOfSeasonClaimBottomSheet = ({
         variant={confirmAction.variant || ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={confirmAction.onPress}
+        disabled={confirmAction.disabled}
+        isLoading={confirmAction.loading}
         twClassName="w-full"
         testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON}
       >
@@ -191,13 +303,135 @@ const EndOfSeasonClaimBottomSheet = ({
     </Box>
   );
 
-  const renderTitle = () => (
-    <Box twClassName="flex-col items-center justify-center w-full">
-      <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-        {title}
-      </Text>
-    </Box>
-  );
+  const renderEmailInput = () => {
+    if (!showEmail) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="w-full mb-4">
+        <Text variant={TextVariant.BodyMd}>
+          {strings('rewards.metal_card_claim.email_label')}
+        </Text>
+        <TextField
+          textAlignVertical="center"
+          textAlign="left"
+          onChangeText={handleEmailChange}
+          value={email}
+          isError={emailValidationError}
+          size={TextFieldSize.Lg}
+          style={tw.style('bg-background-pressed')}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          isDisabled={isClaimingReward}
+        />
+        {emailValidationError && (
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-error-default mt-1"
+          >
+            {strings('rewards.metal_card_claim.email_validation_error')}
+          </Text>
+        )}
+      </Box>
+    );
+  };
+
+  const renderTelegramInput = () => {
+    if (!showTelegram) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="w-full mb-6">
+        <Text variant={TextVariant.BodyMd}>
+          {strings('rewards.metal_card_claim.telegram_label')}
+        </Text>
+        <TextField
+          textAlignVertical="center"
+          textAlign="left"
+          placeholder={strings('rewards.metal_card_claim.telegram_placeholder')}
+          onChangeText={setTelegram}
+          value={telegram}
+          size={TextFieldSize.Lg}
+          style={tw.style('bg-background-pressed')}
+          autoCapitalize="none"
+          isDisabled={isClaimingReward}
+        />
+      </Box>
+    );
+  };
+
+  const renderTitle = () => {
+    // For LINEA_TOKENS reward type, show dynamic title based on token amount
+    if (rewardType === SeasonRewardType.LINEA_TOKENS) {
+      // If loading, show "You earned (spinner) $LINEA"
+      if (isLoadingLineaToken) {
+        return (
+          <Box twClassName="flex-col items-center justify-center w-full">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
+            >
+              <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+                {strings('rewards.linea_tokens.title_loading_prefix')}
+              </Text>
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.text.default}
+              />
+              <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+                {strings('rewards.linea_tokens.title_loading_suffix')}
+              </Text>
+            </Box>
+          </Box>
+        );
+      }
+
+      // If loaded and amount > 0, show "You earned XXX $LINEA"
+      const parsedAmount = BigInt(lineaTokenReward?.amount || '0');
+      if (parsedAmount > 0n) {
+        return (
+          <Box twClassName="flex-col items-center justify-center w-full">
+            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+              {strings('rewards.linea_tokens.title_earned', {
+                parsedAmount,
+              })}
+            </Text>
+          </Box>
+        );
+      }
+    }
+
+    // If error occurred while fetching, show error banner
+    if (lineaTokenError) {
+      return (
+        <Box twClassName="flex-col items-center justify-center w-full">
+          <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+            {title}
+          </Text>
+          <Box twClassName="w-full mt-4">
+            <RewardsErrorBanner
+              title={strings('rewards.linea_tokens.error_fetching_title')}
+              description={strings(
+                'rewards.linea_tokens.error_fetching_description',
+              )}
+            />
+          </Box>
+        </Box>
+      );
+    }
+
+    // Default: show the passed title
+    return (
+      <Box twClassName="flex-col items-center justify-center w-full">
+        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+          {title}
+        </Text>
+      </Box>
+    );
+  };
 
   const renderDescription = () => (
     <Box twClassName="my-4 w-full">
@@ -266,22 +500,42 @@ const EndOfSeasonClaimBottomSheet = ({
     );
   };
 
+  const renderContent = () => (
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      alignItems={BoxAlignItems.Start}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName="px-4"
+    >
+      {renderTitle()}
+      {description && renderDescription()}
+      {renderAccountSection()}
+      {renderEmailInput()}
+      {renderTelegramInput()}
+      {renderActions()}
+    </Box>
+  );
+
   return (
-    <BottomSheet ref={sheetRef} testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}>
+    <BottomSheet
+      ref={sheetRef}
+      testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}
+      keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
+    >
       <BottomSheetHeader onClose={handleModalClose}>
         {strings('rewards.end_of_season_rewards.redeem_your_reward')}
       </BottomSheetHeader>
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="px-4"
-      >
-        {renderTitle()}
-        {description && renderDescription()}
-        {renderAccountSection()}
-        {renderActions()}
-      </Box>
+      {needsKeyboardAvoiding ? (
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          extraScrollHeight={20}
+        >
+          {renderContent()}
+        </KeyboardAwareScrollView>
+      ) : (
+        renderContent()
+      )}
     </BottomSheet>
   );
 };

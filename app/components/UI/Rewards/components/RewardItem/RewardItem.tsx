@@ -190,6 +190,16 @@ const RewardItem: React.FC<RewardItemProps> = ({
             {strings('rewards.unlocked_rewards.expired')}
           </Text>
         );
+      } else if (isLocked) {
+        return (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-text-alternative"
+          >
+            {strings('rewards.end_of_season_rewards.check_back_soon')}
+          </Text>
+        );
       }
 
       return renderTimeStatusIndicator({
