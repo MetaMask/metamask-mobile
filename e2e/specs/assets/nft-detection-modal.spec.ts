@@ -7,7 +7,7 @@ import Assertions from '../../framework/Assertions';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
 import { RegressionAssets } from '../../tags';
 
-import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds';
 
 describe.skip(RegressionAssets('NFT Detection Modal'), () => {
   beforeAll(async () => {

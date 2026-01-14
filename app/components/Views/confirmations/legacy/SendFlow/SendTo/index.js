@@ -64,7 +64,7 @@ import {
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
-import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { SendViewSelectorsIDs } from '../SendView.testIds';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import ContextualNetworkPicker from '../../../../../UI/ContextualNetworkPicker';

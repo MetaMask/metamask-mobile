@@ -35,7 +35,7 @@ import {
   MandatoryModalProps,
 } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
-import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '../../../../util/termsOfUse/TermsOfUseModal.testIds';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import { throttle } from 'lodash';

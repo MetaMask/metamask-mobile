@@ -12,7 +12,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 
 import { useSelector } from 'react-redux';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import Button, {
   ButtonSize,
   ButtonVariants,

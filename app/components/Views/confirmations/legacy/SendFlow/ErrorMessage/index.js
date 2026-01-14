@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../../Base/Alert';
 import Text from '../../../../../Base/Text';
-import { CommonSelectorsIDs } from '../../../../../../../e2e/selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
 
 const styles = StyleSheet.create({
   button: {
