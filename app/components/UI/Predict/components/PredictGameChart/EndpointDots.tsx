@@ -19,20 +19,25 @@ const EndpointDots: React.FC<EndpointDotsProps> = ({
   x,
   y,
   nonEmptySeries,
+  primaryDataLength,
 }) => {
   const { colors } = useTheme();
 
   const dotPositions = useMemo(() => {
-    if (!x || !y) return [];
+    if (!x || !y || primaryDataLength === 0) return [];
+
+    // Use primary data's last index for x-positioning so all dots align at the right edge
+    // This prevents misalignment when series have different lengths (e.g., during live WebSocket updates)
+    const primaryLastIndex = primaryDataLength - 1;
+    const dotX = x(primaryLastIndex);
 
     return nonEmptySeries
       .map((series) => {
-        const lastIndex = series.data.length - 1;
-        const lastPoint = series.data[lastIndex];
+        const lastPoint = series.data[series.data.length - 1];
         if (!lastPoint) return null;
 
         return {
-          dotX: x(lastIndex),
+          dotX,
           dotY: y(lastPoint.value),
           value: lastPoint.value,
           color: series.color,
@@ -46,7 +51,7 @@ const EndpointDots: React.FC<EndpointDotsProps> = ({
       color: string;
       label: string;
     }[];
-  }, [x, y, nonEmptySeries]);
+  }, [x, y, nonEmptySeries, primaryDataLength]);
 
   const adjustedLabelYPositions = useMemo(() => {
     if (dotPositions.length < 2) {

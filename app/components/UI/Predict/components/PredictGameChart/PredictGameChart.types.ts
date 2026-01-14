@@ -86,4 +86,6 @@ export interface EndpointDotsProps {
   y?: (value: number) => number;
   /** All non-empty series to render endpoints for */
   nonEmptySeries: GameChartSeries[];
+  /** Length of the primary data array - used to position all dots at the right edge */
+  primaryDataLength: number;
 }

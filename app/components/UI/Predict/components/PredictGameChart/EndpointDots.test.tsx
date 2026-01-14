@@ -69,6 +69,7 @@ const defaultProps = {
   x: mockXFunction,
   y: mockYFunction,
   nonEmptySeries: mockNonEmptySeries,
+  primaryDataLength: 3,
 };
 
 describe('EndpointDots', () => {
@@ -159,6 +160,64 @@ describe('EndpointDots', () => {
 
       const circleElements = queryAllByTestId('svg-circle');
       expect(circleElements.length).toBe(0);
+    });
+
+    it('returns no dots when primaryDataLength is 0', () => {
+      const { queryAllByTestId } = render(
+        <EndpointDots {...defaultProps} primaryDataLength={0} />,
+      );
+
+      const circleElements = queryAllByTestId('svg-circle');
+      expect(circleElements.length).toBe(0);
+    });
+
+    it('positions all endpoint dots at the same x-coordinate based on primaryDataLength', () => {
+      // This tests the fix for the bug where endpoint dots would appear at incorrect positions
+      // when series have different data lengths (e.g., during live WebSocket updates)
+      const differentLengthSeries: GameChartSeries[] = [
+        {
+          label: 'Primary',
+          color: '#FF0000',
+          data: [
+            { timestamp: 1704067200000, value: 50 },
+            { timestamp: 1704070800000, value: 55 },
+            { timestamp: 1704074400000, value: 60 },
+            { timestamp: 1704078000000, value: 65 },
+            { timestamp: 1704081600000, value: 70 },
+          ],
+        },
+        {
+          label: 'Overlay',
+          color: '#0000FF',
+          data: [
+            { timestamp: 1704067200000, value: 50 },
+            { timestamp: 1704070800000, value: 45 },
+            { timestamp: 1704074400000, value: 40 },
+          ],
+        },
+      ];
+
+      const { getAllByTestId } = render(
+        <EndpointDots
+          {...defaultProps}
+          nonEmptySeries={differentLengthSeries}
+          primaryDataLength={5}
+        />,
+      );
+
+      const circles = getAllByTestId('svg-circle');
+      // Each series has 2 circles (glow + dot), so 4 total
+      expect(circles.length).toBe(4);
+
+      // Both dots should be at x-coordinate for index 4 (primaryDataLength - 1 = 5 - 1 = 4)
+      // mockXFunction(4) = 4 * 10 + 50 = 90
+      const expectedX = mockXFunction(4);
+      const circleLabels = circles.map((c) => c.props.accessibilityLabel);
+
+      // Check that all circles are at the same x position (90)
+      circleLabels.forEach((label) => {
+        expect(label).toContain(`cx-${expectedX}`);
+      });
     });
   });
 

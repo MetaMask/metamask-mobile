@@ -50,6 +50,14 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   const interval = TIMEFRAME_TO_INTERVAL[timeframe];
   const fidelity = FIDELITY_BY_TIMEFRAME[timeframe];
 
+  // Reset live data state when tokenIds change to prevent race condition:
+  // Without this, WebSocket prices for new tokens could arrive before historical
+  // data loads, causing updateLiveData to corrupt old liveChartData with new prices
+  useEffect(() => {
+    initialDataLoadedRef.current = false;
+    setLiveChartData([]);
+  }, [tokenIds]);
+
   const { priceHistories, isFetching, errors, refetch } =
     usePredictPriceHistory({
       marketIds: tokenIds,

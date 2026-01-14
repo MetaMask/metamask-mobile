@@ -247,7 +247,10 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
               yMax={chartMax}
               curve={LINE_CURVE}
             >
-              <EndpointDots nonEmptySeries={nonEmptySeries} />
+              <EndpointDots
+                nonEmptySeries={nonEmptySeries}
+                primaryDataLength={primaryData.length}
+              />
             </LineChart>
 
             {overlaySeries.map((series, index) => (
