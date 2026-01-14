@@ -204,7 +204,10 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
 
   // Helper function to create RPC mock callback
   const createRpcCallback =
-    () => async (request: { body: { getText: () => Promise<string> } }) => {
+    () =>
+    async (request: {
+      body: { getText: () => Promise<string | undefined> };
+    }) => {
       try {
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : null;
