@@ -563,20 +563,20 @@ class AuthenticationService {
 
     const authType = await this.getType();
     if (
+      rememberMe &&
+      ReduxService.store.getState().security.allowLoginWithRememberMe
+    ) {
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        availableBiometryType,
+      };
+    } else if (
       authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
       availableBiometryType &&
       biometryChoice
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType,
-      };
-    } else if (
-      rememberMe &&
-      ReduxService.store.getState().security.allowLoginWithRememberMe
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
         availableBiometryType,
       };
     } else if (

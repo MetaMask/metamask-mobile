@@ -68,6 +68,10 @@ export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
+jest.mock('../../util/device', () => ({
+  isIos: jest.fn().mockReturnValue(true),
+}));
+
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn(),
@@ -512,7 +516,12 @@ describe('Authentication', () => {
 
   it('returns REMEMBER_ME type for components when remember me is enabled', async () => {
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: {
+          allowLoginWithRememberMe: true,
+        },
+      }),
     } as unknown as ReduxStore);
 
     SecureKeychain.getSupportedBiometryType = jest
@@ -536,7 +545,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(
@@ -557,7 +569,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(
@@ -577,7 +592,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(
@@ -588,7 +606,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
-  it('returns PASSCODE type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
+  it('returns BIOMETRIC type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -597,7 +615,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(
@@ -605,7 +626,7 @@ describe('Authentication', () => {
       false,
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
   it('returns PASSWORD type when biometryChoice is false', async () => {
@@ -616,7 +637,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(
@@ -633,7 +657,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(
@@ -653,7 +680,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: true
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      getState: () => ({
+        user: { existingUser: true },
+        security: { allowLoginWithRememberMe: true },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(true, true);
@@ -661,7 +691,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
   });
 
-  it('returns BIOMETRIC type when PASSCODE_DISABLED is TRUE and biometryChoice is true, even if BIOMETRY_CHOICE_DISABLED was previously set', async () => {
+  it('returns PASSWORD type when PASSCODE_DISABLED is TRUE and biometryChoice is true, even if BIOMETRY_CHOICE_DISABLED was previously set', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -672,7 +702,10 @@ describe('Authentication', () => {
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: false } }),
+      getState: () => ({
+        user: { existingUser: false },
+        security: { allowLoginWithRememberMe: false },
+      }),
     } as unknown as ReduxStore);
 
     const result = await Authentication.componentAuthenticationType(
@@ -680,7 +713,7 @@ describe('Authentication', () => {
       false,
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
   describe('storePassword (protected method tested via updateAuthPreference)', () => {
