@@ -292,6 +292,37 @@ describe('useMusdConversionTokens', () => {
 
       expect(result.current.tokens).toEqual([]);
     });
+
+    it('includes token when fiat balance equals zero and minimum required balance is zero', () => {
+      const usdcFiatZero: AssetType = {
+        ...mockUsdcMainnet,
+        rawBalance: '0x1',
+        fiat: {
+          balance: 0,
+          currency: 'usd',
+          conversionRate: 1,
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMusdConversionPaymentTokensAllowlist) {
+          return mockAllowlist;
+        }
+        if (selector === selectMusdConversionPaymentTokensBlocklist) {
+          return mockBlocklist;
+        }
+        if (selector === selectMusdConversionMinAssetBalanceRequired) {
+          return 0;
+        }
+        return undefined;
+      });
+      mockUseAccountTokens.mockReturnValue([usdcFiatZero]);
+      mockIsTokenAllowed.mockReturnValue(true);
+
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      expect(result.current.tokens).toEqual([usdcFiatZero]);
+    });
   });
 
   describe('isConversionToken', () => {

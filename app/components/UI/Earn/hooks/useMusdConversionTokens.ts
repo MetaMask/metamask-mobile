@@ -33,12 +33,23 @@ export const useMusdConversionTokens = () => {
   const allTokens = useAccountTokens({ includeNoBalance: false });
 
   const filterTokensWithMinBalance = useCallback(
-    (token: AssetType) =>
-      token?.fiat?.balance
-        ? new BigNumber(token?.fiat?.balance).isGreaterThanOrEqualTo(
-            musdConversionMinAssetBalanceRequired,
-          )
-        : false,
+    (token: AssetType) => {
+      const fiatBalance = token?.fiat?.balance;
+
+      // Can't use truthiness checks here, because `0` is valid when the threshold is '0'.
+      if (fiatBalance === undefined || fiatBalance === null) {
+        return false;
+      }
+
+      const fiatBalanceBn = new BigNumber(fiatBalance);
+      if (!fiatBalanceBn.isFinite()) {
+        return false;
+      }
+
+      return fiatBalanceBn.isGreaterThanOrEqualTo(
+        musdConversionMinAssetBalanceRequired,
+      );
+    },
     [musdConversionMinAssetBalanceRequired],
   );
 
