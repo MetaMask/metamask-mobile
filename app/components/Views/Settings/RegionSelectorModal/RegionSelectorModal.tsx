@@ -147,7 +147,7 @@ function RegionSelectorModal() {
 
   const getRegionId = useCallback(
     (region: RegionItem): string => {
-      if ('isoCode' in region) {
+      if ('isoCode' in region && region.isoCode) {
         return region.isoCode.toLowerCase();
       }
       if ('id' in region && region.id) {
@@ -191,6 +191,7 @@ function RegionSelectorModal() {
 
       if (
         'isoCode' in region &&
+        region.isoCode &&
         normalizedUserRegion.startsWith(region.isoCode.toLowerCase())
       ) {
         return true;

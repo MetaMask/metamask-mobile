@@ -54,7 +54,7 @@ function Settings() {
     const stateCode = regionParts[1];
 
     const country = regions.find(
-      (r) => r.isoCode.toLowerCase() === countryCode,
+      (r) => r.isoCode?.toLowerCase() === countryCode,
     );
 
     if (!country) {
