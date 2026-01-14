@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 import React, { PureComponent } from 'react';
-import { AppState } from 'react-native';
+import { AppState, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import Logger from '../../../util/Logger';
 import { Authentication } from '../../../core';
@@ -27,7 +27,13 @@ class LockScreen extends PureComponent {
 
   appStateListener;
 
+  handleBackPress = () =>
+    // swallow back press event
+     true
+  ;
+
   componentDidMount() {
+    BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     this.appStateListener = AppState.addEventListener(
       'change',
       this.handleAppStateChange,
@@ -49,6 +55,7 @@ class LockScreen extends PureComponent {
   };
 
   componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
     this.appStateListener?.remove();
   }
 
