@@ -823,7 +823,12 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
+              },
+            ],
           });
         },
         { timeout: 3000 },
@@ -1104,7 +1109,12 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: { flow: 'onboarding' },
+              },
+            ],
           });
         },
         { timeout: 3000 },

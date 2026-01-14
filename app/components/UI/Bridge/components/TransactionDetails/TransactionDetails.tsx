@@ -104,6 +104,7 @@ const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.COMPLETE]: TextColor.Success,
   [StatusTypes.FAILED]: TextColor.Error,
   [StatusTypes.UNKNOWN]: TextColor.Error,
+  [StatusTypes.SUBMITTED]: TextColor.Warning,
 };
 
 const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {

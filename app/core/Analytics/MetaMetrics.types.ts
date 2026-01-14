@@ -67,6 +67,17 @@ export interface IMetaMetrics {
 
   isDataRecorded(): boolean;
 
+  /**
+   * Update the data recording flag if needed
+   *
+   * This method should be called after tracking events to ensure
+   * the data recording flag is properly updated for data deletion workflows.
+   *
+   * @param saveDataRecording - Whether to save the data recording flag (default: true)
+   * @deprecated This method will be removed when the data recording flag logic is migrated out of MetaMetrics as part of the MetaMetrics removal migration.
+   */
+  updateDataRecordingFlag(saveDataRecording?: boolean): void;
+
   configure(): Promise<boolean>;
 
   getMetaMetricsId(): Promise<string>;

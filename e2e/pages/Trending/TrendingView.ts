@@ -68,6 +68,7 @@ class TrendingView {
   async typeSearchQuery(query: string): Promise<void> {
     await Gestures.typeText(this.searchInput, query, {
       elemDescription: 'Type search query',
+      hideKeyboard: true,
     });
   }
 
