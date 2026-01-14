@@ -880,6 +880,7 @@ const CardHome = () => {
       showsVerticalScrollIndicator={false}
       alwaysBounceVertical={false}
       contentContainerStyle={styles.contentContainer}
+      testID={CardHomeSelectors.CARD_VIEW_TITLE}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
