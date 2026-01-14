@@ -1,7 +1,7 @@
 import Selectors from '../helpers/Selectors';
 import { LOCK_SETTINGS } from './testIDs/Screens/Settings.testIds';
 import Gestures from '../helpers/Gestures';
-import { SettingsViewSelectorsIDs } from '../../e2e/selectors/Settings/SettingsView.selectors';
+import { SettingsViewSelectorsIDs } from '../../app/components/Views/Settings/SettingsView.testIds';
 
 class SettingsScreen {
   get lockOption() {

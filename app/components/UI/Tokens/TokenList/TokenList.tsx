@@ -11,7 +11,7 @@ import {
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListItem } from './TokenListItem/TokenListItem';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectHomepageRedesignV1Enabled } from '../../../../selectors/featureFlagController/homepage';
