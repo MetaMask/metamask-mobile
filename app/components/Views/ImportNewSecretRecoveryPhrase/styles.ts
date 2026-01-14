@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import { Platform, StyleSheet } from 'react-native';
 import { Colors } from '../../../util/theme/models';
+import Device from '../../../util/device';
 
 const createStyles = (colors: Colors, isKeyboardVisible = false) =>
   StyleSheet.create({

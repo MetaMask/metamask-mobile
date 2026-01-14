@@ -6,14 +6,9 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -54,6 +49,7 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import StyledButton from '../../UI/StyledButton';
 import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import {
