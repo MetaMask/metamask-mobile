@@ -1,7 +1,8 @@
 import { store } from '../../../store';
 import { addToViewedDapp } from '../../../actions/browser';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../util/analytics/analytics';
 import { prefixUrlWithProtocol } from '../../browser';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 
@@ -30,8 +31,8 @@ const trackDappViewedEvent = ({
   // Add Dapp hostname to viewed dapps
   store.dispatch(addToViewedDapp(hostname));
 
-  MetaMetrics.getInstance().trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.DAPP_VIEWED)
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.DAPP_VIEWED)
       .addProperties({
         Referrer: prefixUrlWithProtocol(hostname),
         is_first_visit: isFirstVisit,
