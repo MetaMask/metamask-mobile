@@ -77,6 +77,12 @@ jobs:
             ELAPSED=$((ELAPSED + 15))
           done
 
+          FINAL_STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status --jq '.status')
+          if [ "$FINAL_STATUS" = "in_progress" ] || [ "$FINAL_STATUS" = "queued" ]; then
+            echo "Timeout: workflow still $FINAL_STATUS after ${MAX_WAIT}s"
+            exit 1
+          fi
+
       - name: Rerun CI workflow
         if: steps.find.outputs.run_id
         run: |
