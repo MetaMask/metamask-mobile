@@ -50,6 +50,7 @@ import {
   POST_OPEN_POSITION_USDC_BALANCE_WEI,
   POLYGON_EIP7702_CONTRACT_ADDRESS,
   EIP7702_CODE_FORMAT,
+  POST_WITHDRAW_USDC_BALANCE_WEI,
 } from './polymarket-constants';
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response';
 
