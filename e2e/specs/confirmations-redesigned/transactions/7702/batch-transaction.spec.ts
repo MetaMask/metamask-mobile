@@ -162,7 +162,8 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Smart contract interaction');
 
@@ -248,7 +249,8 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         await FooterActions.tapConfirmButton();
 
         await goBackToWalletPage();
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Upgrade to smart account');
       },

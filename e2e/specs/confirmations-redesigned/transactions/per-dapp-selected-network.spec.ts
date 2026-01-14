@@ -105,10 +105,10 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // Accept confirmation
         await ConfirmationFooterActions.tapConfirmButton();
 
-        // Change the network to Localhost in app
+        // Change the network to Localhost in app (helper closes browser and goes to wallet)
         await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);
 
-        // Check activity tab
+        // Check activity tab (already on wallet from helper, just navigate)
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

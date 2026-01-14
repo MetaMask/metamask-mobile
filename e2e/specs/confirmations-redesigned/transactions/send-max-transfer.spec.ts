@@ -10,6 +10,7 @@ import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
 import Assertions from '../../../framework/Assertions';
+import Browser from '../../../pages/Browser/BrowserView';
 import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -116,7 +117,8 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

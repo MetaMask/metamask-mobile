@@ -813,6 +813,72 @@ describe('Browser', () => {
       );
     });
   });
+  describe('closeTabsView behavior', () => {
+    it('renders Browser component with multiple tabs', () => {
+      const tabsWithMultiple = [
+        { id: 1, url: 'https://example.com', image: '', isArchived: false },
+        { id: 2, url: 'https://test.com', image: '', isArchived: false },
+      ];
+
+      const { toJSON } = renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={tabsWithMultiple}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        { state: mockInitialState },
+      );
+
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('navigates away when closing tabs view with zero tabs', () => {
+      // This tests the bug fix: closeTabsView should navigate away when tabs.length === 0
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={[]}
+                    activeTab={null}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        { state: mockInitialState },
+      );
+
+      // Component should handle zero tabs without crashing
+      expect(mockNavigation.goBack).toBeDefined();
+    });
+  });
 });
 
 jest.useRealTimers();

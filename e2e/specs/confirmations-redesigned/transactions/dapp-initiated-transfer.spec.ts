@@ -173,7 +173,8 @@ describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },
