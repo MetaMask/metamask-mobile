@@ -22,10 +22,10 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
@@ -165,8 +165,13 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      Engine.init(state, null, metaMetricsId);
+
+      // Note on why Engine.init() requires analyticsId:
+      // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
+      // It is also used as a random source for other controllers like RemoteFeatureFlagController.
+      // Passing it to engine ensures all controllers are initialized with the same analyticsId.
+      const analyticsId = await getAnalyticsId();
+      Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
       this.initializeControllers(
@@ -363,8 +368,8 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      const instance = Engine.init(state, newKeyringState, metaMetricsId);
+      const analyticsId = await getAnalyticsId();
+      const instance = Engine.init(analyticsId, state, newKeyringState);
       if (instance) {
         // Pass state to detect controllers that changed during init
         this.initializeControllers(instance, state as Record<string, unknown>);

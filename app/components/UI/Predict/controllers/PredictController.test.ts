@@ -104,6 +104,10 @@ jest.mock('../../../../core/Engine', () => ({
             providerFee: 0.02,
             waiveList: [],
           },
+          predictLiveSports: {
+            enabled: false,
+            leagues: [],
+          },
         },
       },
     },
@@ -538,6 +542,7 @@ describe('PredictController', () => {
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-1',
+          liveSportsLeagues: [],
         });
       });
     });
@@ -562,6 +567,7 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-2',
+          liveSportsLeagues: [],
         });
       });
     });
@@ -633,6 +639,7 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: '123',
+          liveSportsLeagues: [],
         });
       });
     });
