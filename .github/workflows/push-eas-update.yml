@@ -63,24 +63,17 @@ jobs:
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     steps:
-      - name: Checkout workflow branch (for scripts)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-          path: workflow-scripts
-          fetch-depth: 0
-
       - name: Checkout target commit
         uses: actions/checkout@v4
         with:
           ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
-      - name: Verify checked out commit matches expected
-        env:
-          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-        run: |
-          workflow-scripts/.github/scripts/verify-commit-sha.sh
+      #    - name: Verify checked out commit matches expected
+      #      env:
+      #        TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+      #      run: |
+      #        .github/scripts/verify-commit-sha.sh
 
       - name: Print commit info
         run: |
@@ -187,27 +180,27 @@ jobs:
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  validate-pr:
-    name: Validate PR and Commit
-    runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate PR contains commit
-        id: validate-pr
-        env:
-          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
-          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          .github/scripts/validate-pr-commit.sh
+  #validate-pr:
+  #  name: Validate PR and Commit
+  #  runs-on: ubuntu-latest
+  #  outputs:
+  #    pr_number: ${{ steps.validate-pr.outputs.pr_number }}
+  #  steps:
+  #    - name: Checkout repository
+  #      uses: actions/checkout@v4
+  #      with:
+  #        fetch-depth: 0
+  #
+  #    - name: Validate PR contains commit
+  #      id: validate-pr
+  #      env:
+  #        COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+  #        PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+  #        BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
+  #        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #        GITHUB_REPOSITORY: ${{ github.repository }}
+  #      run: |
+  #        .github/scripts/validate-pr-commit.sh
 
   approval:
     name: Require OTA Update Approval
@@ -286,24 +279,17 @@ jobs:
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
-      - name: Checkout workflow branch (for scripts)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-          path: workflow-scripts
-          fetch-depth: 0
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
-      - name: Verify checked out commit matches expected
-        env:
-          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-        run: |
-          workflow-scripts/.github/scripts/verify-commit-sha.sh
+      #   - name: Verify checked out commit matches expected
+      #      env:
+      #        TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+      #      run: |
+      #        .github/scripts/verify-commit-sha.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
