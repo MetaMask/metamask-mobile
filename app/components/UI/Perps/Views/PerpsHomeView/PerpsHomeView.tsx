@@ -262,7 +262,8 @@ const PerpsHomeView = () => {
         .addProperties({
           [PerpsEventProperties.INTERACTION_TYPE]:
             PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PerpsEventProperties.BUTTON_CLICKED]: 'give_feedback',
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.GIVE_FEEDBACK,
           [PerpsEventProperties.BUTTON_LOCATION]:
             PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
         })
