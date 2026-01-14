@@ -11,7 +11,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -44,6 +44,26 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { DefaultSwapDestTokens } from '../../../Bridge/constants/default-swap-dest-tokens';
+import { type BridgeToken } from '../../../Bridge/types';
+import {
+  formatAddressToCaipReference,
+  type GenericQuoteRequest,
+} from '@metamask/bridge-controller';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { calcTokenValue } from '../../../../../util/transactions';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import {
+  selectBridgeQuotes,
+  setSourceToken,
+  setDestToken,
+  setSelectedDestChainId,
+} from '../../../../../core/redux/slices/bridge';
+import { useUnifiedSwapBridgeContext } from '../../../Bridge/hooks/useUnifiedSwapBridgeContext';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
@@ -312,6 +332,127 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       setSelectedToken(paymentTokens[0]);
     }
   }, [paymentTokens, selectedToken]);
+
+  // Get wallet address and hooks
+  const walletAddress = useSelector(selectSelectedInternalAccountAddress);
+  const dispatch = useDispatch();
+  const { submitBridgeTx } = useSubmitBridgeTx();
+  const context = useUnifiedSwapBridgeContext();
+  const quotes = useSelector(selectBridgeQuotes);
+
+  // Handle swap button press - submit transaction directly
+  const handleSwapPress = useCallback(async () => {
+    Alert.alert('Handling swap press');
+    if (!selectedToken) {
+      // TODO: Show error toast - no token selected
+      Alert.alert('Error', 'No token selected', [{ text: 'OK' }]);
+      return;
+    }
+
+    if (!walletAddress) {
+      // TODO: Show error toast - wallet address not available
+      Alert.alert('Error', 'Wallet address not available', [{ text: 'OK' }]);
+      return;
+    }
+
+    // Get USDC on Arbitrum as destination token
+    const destToken = DefaultSwapDestTokens[CHAIN_IDS.ARBITRUM];
+
+    if (!destToken) {
+      Alert.alert('Error', 'USDC on Arbitrum not available', [{ text: 'OK' }]);
+      // TODO: Show error toast - USDC on Arbitrum not available
+      return;
+    }
+
+    try {
+      // Convert PerpsToken to BridgeToken format
+      const sourceToken: BridgeToken = {
+        address: selectedToken.address,
+        name: selectedToken.name,
+        symbol: selectedToken.symbol,
+        image: selectedToken.image,
+        decimals: selectedToken.decimals,
+        chainId: selectedToken.chainId,
+        balance: selectedToken.balance,
+        balanceFiat: selectedToken.balanceFiat,
+      };
+
+      // Set source and destination tokens in bridge Redux state
+      // This is required for selectSourceWalletAddress to work correctly
+      dispatch(setSourceToken(sourceToken));
+      dispatch(setDestToken(destToken));
+      dispatch(setSelectedDestChainId(CHAIN_IDS.ARBITRUM));
+
+      // Get full token balance for swap
+      const sourceAmount = selectedToken.balance || '0';
+
+      // Normalize source amount to minimal units
+      const normalizedSourceAmount = selectedToken.decimals
+        ? calcTokenValue(
+            sourceAmount === '.' ? '0' : sourceAmount || '0',
+            selectedToken.decimals,
+          ).toFixed(0)
+        : '0';
+
+      // Request quote from BridgeController
+      const quoteParams: GenericQuoteRequest = {
+        srcChainId: getDecimalChainId(selectedToken.chainId),
+        srcTokenAddress: formatAddressToCaipReference(selectedToken.address),
+        destChainId: getDecimalChainId(CHAIN_IDS.ARBITRUM),
+        destTokenAddress: formatAddressToCaipReference(destToken.address),
+        srcTokenAmount: normalizedSourceAmount,
+        walletAddress,
+        destWalletAddress: walletAddress,
+        insufficientBal: false,
+        gasIncluded: false,
+        gasIncluded7702: false,
+      };
+
+      // Update quote request params and wait for quote
+      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
+        quoteParams,
+        context,
+      );
+
+      // Wait a bit for quote to be fetched
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Get the quote from Redux state
+      const bestQuote = quotes?.recommendedQuote;
+
+      if (!bestQuote) {
+        Alert.alert('Error', 'No quote available', [{ text: 'OK' }]);
+        // TODO: Show error toast - no quote available
+        return;
+      }
+
+      // Submit the transaction directly
+      const txResult = await submitBridgeTx({
+        quoteResponse: bestQuote,
+      });
+
+      // Show alert with transaction ID
+      if (txResult?.id) {
+        Alert.alert(
+          strings('perps.order.swap_submitted'),
+          strings('perps.order.transaction_id', { txId: txResult.id }),
+          [{ text: 'OK' }],
+        );
+      }
+    } catch (error) {
+      // Show error alert
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        strings('perps.order.swap_failed'),
+        strings('perps.order.swap_error_message', {
+          error: errorMessage,
+        }),
+        [{ text: 'OK' }],
+      );
+      console.error('Swap transaction failed:', error);
+    }
+  }, [selectedToken, walletAddress, submitBridgeTx, context, quotes, dispatch]);
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -1153,6 +1294,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   </ListItemColumn>
                 </ListItem>
               </TouchableOpacity>
+            </View>
+
+            {/* SWAP Button */}
+            <View
+              style={[
+                styles.detailItem,
+                // Position based on what's below
+                hideTPSL ? styles.detailItemLast : styles.detailItemMiddle,
+              ]}
+            >
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.order.swap')}
+                onPress={handleSwapPress}
+                disabled={!selectedToken}
+                testID="perps-order-swap-button"
+              />
             </View>
 
             {/* Combined TP/SL row - Hidden when modifying existing position */}

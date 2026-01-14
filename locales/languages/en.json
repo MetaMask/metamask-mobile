@@ -1247,6 +1247,11 @@
       "select_payment_token": "Select payment token",
       "select_token": "Select token",
       "no_payment_tokens": "No payment tokens available",
+      "swap": "SWAP",
+      "swap_submitted": "Swap Submitted",
+      "transaction_id": "Transaction ID: {{txId}}",
+      "swap_failed": "Swap Failed",
+      "swap_error_message": "Failed to submit swap transaction: {{error}}",
       "success": {
         "title": "Order placed successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
