@@ -601,20 +601,7 @@ export const navigateToBrowserView = async (): Promise<void> => {
   if (hasExploreButton) {
     // Explore tab exists - navigate to it first
     await TabBarComponent.tapExploreButton();
-
-    // Check if trending browser button is visible in the view
-    const hasTrendingBrowserButton = await Utilities.isElementVisible(
-      TrendingView.browserButton,
-      500,
-    );
-
-    if (hasTrendingBrowserButton) {
-      // Use trending flow - tap browser button within trending view
-      await TrendingView.tapBrowserButton();
-    } else {
-      // Explore exists but no trending button - fallback to browser tab
-      await TabBarComponent.tapBrowser();
-    }
+    await TrendingView.tapBrowserButton();
   } else {
     // No Explore tab - use browser tab button directly
     await TabBarComponent.tapBrowser();
