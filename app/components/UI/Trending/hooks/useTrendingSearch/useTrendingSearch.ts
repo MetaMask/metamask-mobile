@@ -70,7 +70,12 @@ export const useTrendingSearch = (
       }
     });
 
-    return Array.from(resultMap.values());
+    // Sort combined results by market cap (descending) so most relevant tokens appear first
+    return Array.from(resultMap.values()).sort((a, b) => {
+      const aMarketCap = a.marketCap ?? 0;
+      const bMarketCap = b.marketCap ?? 0;
+      return bMarketCap - aMarketCap;
+    });
   }, [searchQuery, trendingResults, searchResults]);
 
   return {
