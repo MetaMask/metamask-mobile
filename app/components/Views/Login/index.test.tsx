@@ -24,9 +24,7 @@ import {
   endTrace,
   trace,
 } from '../../../util/trace';
-import { IUseMetricsHook } from '../../hooks/useMetrics/useMetrics.types';
 import { BIOMETRY_CHOICE_DISABLED, TRUE } from '../../../constants/storage';
-import { useMetrics } from '../../hooks/useMetrics';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -235,26 +233,6 @@ const mockMetricsCreateEventBuilder = jest.fn((eventName) => ({
   build: jest.fn().mockReturnValue({ name: eventName }),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    isEnabled: jest.fn(() => true),
-  })),
-  withMetricsAwareness: jest.fn(
-    (Component) => (props: Record<string, unknown>) => (
-      <Component
-        {...props}
-        metrics={{
-          trackEvent: mockMetricsTrackEvent,
-          createEventBuilder: mockMetricsCreateEventBuilder,
-        }}
-      />
-    ),
-  ),
-  MetaMetricsEvents: {
-    ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
-  },
-}));
-
 // Mock useNetInfo
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(() => ({
@@ -266,8 +244,6 @@ jest.mock('@react-native-community/netinfo', () => ({
     },
   })),
 }));
-
-const mockUseMetrics = jest.mocked(useMetrics);
 
 const mockBackHandlerAddEventListener = jest.fn();
 const mockBackHandlerRemoveEventListener = jest.fn();
@@ -297,9 +273,6 @@ describe('Login', () => {
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
 
-    mockUseMetrics.mockReturnValue({
-      isEnabled: jest.fn(() => true),
-    } as unknown as IUseMetricsHook);
     // (Authentication.rehydrateSeedPhrase as jest.Mock).mockResolvedValue(true);
     mockUnlockWallet.mockResolvedValue(true);
     (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
@@ -311,10 +284,6 @@ describe('Login', () => {
       availableBiometryType: null,
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-    mockUseMetrics.mockReturnValue({
-      isEnabled: jest.fn(() => false),
-      trackEvent: mockTrackEvent,
-    } as unknown as IUseMetricsHook);
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerRemoveEventListener.mockClear();
 

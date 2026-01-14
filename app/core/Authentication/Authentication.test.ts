@@ -4482,7 +4482,13 @@ describe('Authentication', () => {
     const passwordToUse = 'test-password';
 
     beforeEach(() => {
+      // Mock lockApp.
       jest.spyOn(Authentication, 'lockApp').mockResolvedValueOnce(undefined);
+      // Mock MetaMetrics.getInstance to return true for isEnabled.
+      jest
+        .spyOn(MetaMetrics, 'getInstance')
+        .mockReturnValueOnce({ isEnabled: () => true } as MetaMetrics);
+
       const Engine = jest.requireMock('../Engine');
       // Restore the KeyringController mock that may have been replaced by other test suites.
       Engine.context.KeyringController = {
@@ -4535,12 +4541,38 @@ describe('Authentication', () => {
     });
 
     it('navigates to the home flow when biometric credentials are provided', async () => {
-      // Call unlockWallet with a password.
+      // Call unlockWallet without a password.
       await Authentication.unlockWallet();
 
       // Verify that it navigates to the home flow.
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+    });
+
+    it('navigates to the optin metrics flow when metrics are not enabled and UI has not been seen', async () => {
+      // Mock StorageWrapper.getItem to return false for OPTIN_META_METRICS_UI_SEEN.
+      StorageWrapper.getItem = () => Promise.resolve(false);
+      // Mock MetaMetrics.getInstance to return false for isEnabled.
+      MetaMetrics.getInstance = () =>
+        ({ isEnabled: () => false }) as MetaMetrics;
+
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet({ password: passwordToUse });
+
+      // Verify that it navigates to the optin metrics flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
+          },
+        ],
       });
     });
 
