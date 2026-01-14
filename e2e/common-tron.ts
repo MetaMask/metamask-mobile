@@ -176,7 +176,7 @@ export async function withTronAccountEnabled(
         await AddNewHdAccountComponent.tapConfirm();
         await Assertions.expectElementToHaveText(
           WalletView.accountName,
-          `Snap Account ${i + 1}`, // TODO: Change to Tron Account ${i + 1}. Needs fixinf the extension/snap
+          `Snap Account ${i + 1}`, // TODO: Change to Tron Account ${i + 1}. Needs fixing in the extension/snap
         );
       }
 
