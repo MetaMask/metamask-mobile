@@ -11,14 +11,6 @@ export const selectRampsControllerState = createSelector(
 );
 
 /**
- * Selects the user's geolocation from state.
- */
-export const selectGeolocation = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.geolocation ?? null,
-);
-
-/**
  * Selects the user's region from state.
  */
 export const selectUserRegion = createSelector(
@@ -27,12 +19,13 @@ export const selectUserRegion = createSelector(
 );
 
 /**
- * Selects the geolocation request state
+ * Selects the user region request state
  */
-export const selectGeolocationRequest = createRequestSelector<
-  RootState,
-  string
->(selectRampsControllerState, 'updateGeolocation', []);
+export const selectUserRegionRequest = createRequestSelector<RootState, string>(
+  selectRampsControllerState,
+  'updateUserRegion',
+  [],
+);
 
 /**
  * Selects the getCountries request state
@@ -41,3 +34,13 @@ export const selectGetCountriesRequest = createRequestSelector<
   RootState,
   import('@metamask/ramps-controller').Country[]
 >(selectRampsControllerState, 'getCountries', ['buy']);
+
+/**
+ * Selects the user's geolocation (alias for userRegion).
+ */
+export const selectGeolocation = selectUserRegion;
+
+/**
+ * Selects the geolocation request state (alias for userRegionRequest).
+ */
+export const selectGeolocationRequest = selectUserRegionRequest;

@@ -47,11 +47,14 @@ export interface UseRampsGeolocationResult {
  */
 export function useRampsGeolocation(): UseRampsGeolocationResult {
   const geolocation = useSelector(selectGeolocation);
-  const { isFetching, error } = useSelector(selectGeolocationRequest);
+  const { isFetching, error } = useSelector(selectGeolocationRequest) as {
+    isFetching: boolean;
+    error: string | null;
+  };
 
   const fetchGeolocation = useCallback(
     (options?: ExecuteRequestOptions) =>
-      Engine.context.RampsController.updateGeolocation(options),
+      Engine.context.RampsController.updateUserRegion(options),
     [],
   );
 
@@ -68,5 +71,7 @@ export function useRampsGeolocation(): UseRampsGeolocationResult {
     fetchGeolocation,
   };
 }
+
+export { useRampsUserRegion } from './useRampsUserRegion';
 
 export default useRampsGeolocation;
