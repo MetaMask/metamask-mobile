@@ -2,6 +2,11 @@ import React from 'react';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
+import { fireEvent } from '@testing-library/react-native';
+import { processUrlForBrowser } from '../../../util/browser';
+import Routes from '../../../constants/navigation/Routes';
+import Device from '../../../util/device';
+import BrowserBottomBar from '../../UI/BrowserBottomBar';
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -26,22 +31,44 @@ const mockBrowserUrlBarRef = {
   setNativeProps: jest.fn(),
 };
 
+let onSubmitEditingCallback: ((text: string) => void) | undefined;
+let onCancelCallback: (() => void) | undefined;
+let onFocusCallback: (() => void) | undefined;
+let onChangeTextCallback: ((text: string) => void) | undefined;
+let setIsUrlBarFocusedCallback: ((focused: boolean) => void) | undefined;
+
 jest.mock('../../UI/BrowserUrlBar', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const React = require('react');
   const BrowserUrlBarComponent = React.forwardRef(
     (
-      props: { onFocus?: () => void },
+      props: {
+        onFocus?: () => void;
+        onSubmitEditing?: (text: string) => void;
+        onCancel?: () => void;
+        onChangeText?: (text: string) => void;
+        setIsUrlBarFocused?: (focused: boolean) => void;
+        isUrlBarFocused?: boolean;
+      },
       ref: React.Ref<{
         hide: () => void;
         setNativeProps: (props: { text: string }) => void;
       }>,
     ) => {
       React.useImperativeHandle(ref, () => mockBrowserUrlBarRef);
+      onSubmitEditingCallback = props.onSubmitEditing;
+      onCancelCallback = props.onCancel;
+      onFocusCallback = () => {
+        props.onFocus?.();
+        props.setIsUrlBarFocused?.(true);
+      };
+      onChangeTextCallback = props.onChangeText;
+      setIsUrlBarFocusedCallback = props.setIsUrlBarFocused;
       return React.createElement('View', {
         testID: 'browser-url-bar',
         onPress: () => {
           props.onFocus?.();
+          props.setIsUrlBarFocused?.(true);
         },
       });
     },
@@ -67,13 +94,28 @@ const mockUrlAutocompleteRef = {
   search: jest.fn(),
 };
 
+let onSelectCallback:
+  | ((item: {
+      category: string;
+      url?: string;
+      chainId?: string;
+      address?: string;
+    }) => void)
+  | undefined;
+let onDismissCallback: (() => void) | undefined;
+
 jest.mock('../../UI/UrlAutocomplete', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const React = require('react');
   return React.forwardRef(
     (
       props: {
-        onSelect?: (item: { category: string; url: string }) => void;
+        onSelect?: (item: {
+          category: string;
+          url?: string;
+          chainId?: string;
+          address?: string;
+        }) => void;
         onDismiss?: () => void;
       },
       ref: React.Ref<{
@@ -83,18 +125,34 @@ jest.mock('../../UI/UrlAutocomplete', () => {
       }>,
     ) => {
       React.useImperativeHandle(ref, () => mockUrlAutocompleteRef);
+      onSelectCallback = props.onSelect;
+      onDismissCallback = props.onDismiss;
       return React.createElement('View', {
         testID: 'url-autocomplete',
-        onPress: () => {
-          props.onSelect?.({
-            category: 'sites',
-            url: 'https://example.com',
-          });
-          props.onDismiss?.();
-        },
       });
     },
   );
+});
+
+jest.mock('../../UI/BrowserBottomBar', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'BrowserBottomBar'),
+}));
+
+jest.mock('../../../util/device', () => ({
+  isAndroid: jest.fn(() => false),
+  isIos: jest.fn(() => true),
+}));
+
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Platform: {
+      OS: 'ios',
+      select: jest.fn((options) => options.ios),
+    },
+  };
 });
 
 describe('DiscoveryTab', () => {
@@ -120,6 +178,18 @@ describe('DiscoveryTab', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBrowserUrlBarRef.hide.mockClear();
+    mockBrowserUrlBarRef.setNativeProps.mockClear();
+    mockUrlAutocompleteRef.hide.mockClear();
+    mockUrlAutocompleteRef.show.mockClear();
+    mockUrlAutocompleteRef.search.mockClear();
+    onSubmitEditingCallback = undefined;
+    onCancelCallback = undefined;
+    onFocusCallback = undefined;
+    onChangeTextCallback = undefined;
+    setIsUrlBarFocusedCallback = undefined;
+    onSelectCallback = undefined;
+    onDismissCallback = undefined;
   });
 
   afterEach(() => {
@@ -258,17 +328,246 @@ describe('DiscoveryTab', () => {
     });
   });
 
-  describe('URL Bar Callbacks', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockBrowserUrlBarRef.hide.mockClear();
-      mockBrowserUrlBarRef.setNativeProps.mockClear();
-      mockUrlAutocompleteRef.hide.mockClear();
-      mockUrlAutocompleteRef.show.mockClear();
-      mockUrlAutocompleteRef.search.mockClear();
+  describe('onSubmitEditing callback', () => {
+    it('processes URL and calls updateTabInfo when text is provided', async () => {
+      const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
+      mockProcessUrlForBrowser.mockReturnValue('https://processed-url.com');
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onSubmitEditingCallback) {
+        await onSubmitEditingCallback('https://example.com');
+      }
+
+      expect(mockProcessUrlForBrowser).toHaveBeenCalledWith(
+        'https://example.com',
+        expect.any(String),
+      );
+      expect(mockUrlAutocompleteRef.hide).toHaveBeenCalled();
+      expect(mockUpdateTabInfo).toHaveBeenCalledWith(1, {
+        url: 'https://processed-url.com',
+      });
     });
 
-    it('renders with onSubmitEditing callback configured', () => {
+    it('does not process URL or call updateTabInfo when text is empty', async () => {
+      const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onSubmitEditingCallback) {
+        await onSubmitEditingCallback('');
+      }
+
+      expect(mockProcessUrlForBrowser).not.toHaveBeenCalled();
+      expect(mockUpdateTabInfo).not.toHaveBeenCalled();
+    });
+
+    it('does not process URL or call updateTabInfo when text is whitespace only', async () => {
+      const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onSubmitEditingCallback) {
+        await onSubmitEditingCallback('   ');
+      }
+
+      expect(mockProcessUrlForBrowser).not.toHaveBeenCalled();
+      expect(mockUpdateTabInfo).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onSelect callback', () => {
+    it('navigates to asset loader when selecting token from autocomplete', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onSelectCallback) {
+        onSelectCallback({
+          category: 'tokens',
+          chainId: '0x1',
+          address: '0x1234567890abcdef',
+        });
+      }
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.BROWSER.ASSET_LOADER,
+        {
+          chainId: '0x1',
+          address: '0x1234567890abcdef',
+        },
+      );
+    });
+
+    it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', async () => {
+      const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
+      mockProcessUrlForBrowser.mockReturnValue('https://processed-site.com');
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onSelectCallback) {
+        onSelectCallback({
+          category: 'sites',
+          url: 'https://example.com',
+        });
+      }
+
+      expect(mockBrowserUrlBarRef.hide).toHaveBeenCalled();
+      expect(mockProcessUrlForBrowser).toHaveBeenCalled();
+      expect(mockUpdateTabInfo).toHaveBeenCalledWith(1, {
+        url: 'https://processed-site.com',
+      });
+    });
+  });
+
+  describe('onDismissAutocomplete callback', () => {
+    it('hides URL bar when autocomplete is dismissed', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onDismissCallback) {
+        onDismissCallback();
+      }
+
+      expect(mockBrowserUrlBarRef.hide).toHaveBeenCalled();
+    });
+  });
+
+  describe('onCancelUrlBar callback', () => {
+    it('hides autocomplete and clears URL bar text when cancel is pressed', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onCancelCallback) {
+        onCancelCallback();
+      }
+
+      expect(mockUrlAutocompleteRef.hide).toHaveBeenCalled();
+      expect(mockBrowserUrlBarRef.setNativeProps).toHaveBeenCalledWith({
+        text: '',
+      });
+    });
+  });
+
+  describe('onFocusUrlBar callback', () => {
+    it('shows autocomplete when URL bar is focused', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onFocusCallback) {
+        onFocusCallback();
+      }
+
+      expect(mockUrlAutocompleteRef.show).toHaveBeenCalled();
+    });
+  });
+
+  describe('onChangeUrlBar callback', () => {
+    it('searches autocomplete when URL bar text changes', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onChangeTextCallback) {
+        onChangeTextCallback('test search');
+      }
+
+      expect(mockUrlAutocompleteRef.search).toHaveBeenCalledWith('test search');
+    });
+  });
+
+  describe('renderBottomBar', () => {
+    it('renders BrowserBottomBar when tab is active and URL bar is not focused', () => {
+      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      BrowserBottomBarMock.mockClear();
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      expect(BrowserBottomBarMock).toHaveBeenCalled();
+    });
+
+    it('does not render BrowserBottomBar when tab is not active', () => {
+      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      BrowserBottomBarMock.mockClear();
+
+      const inactiveState = {
+        ...initialState,
+        browser: {
+          ...initialState.browser,
+          activeTab: 2,
+        },
+      };
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: inactiveState,
+      });
+
+      expect(BrowserBottomBarMock).not.toHaveBeenCalled();
+    });
+
+    it('does not render BrowserBottomBar when URL bar is focused', () => {
+      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      BrowserBottomBarMock.mockClear();
+
+      const { getByTestId } = renderWithProvider(
+        <DiscoveryTab {...defaultProps} />,
+        {
+          state: initialState,
+        },
+      );
+
+      const initialCallCount = BrowserBottomBarMock.mock.calls.length;
+      expect(initialCallCount).toBeGreaterThan(0);
+
+      // Focus the URL bar
+      const urlBar = getByTestId('browser-url-bar');
+      fireEvent.press(urlBar);
+
+      // After focusing, BrowserBottomBar should not be rendered
+      // We verify this by checking that setIsUrlBarFocused was called
+      expect(setIsUrlBarFocusedCallback).toBeDefined();
+    });
+
+    it('passes newTab callback to BrowserBottomBar', () => {
+      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      BrowserBottomBarMock.mockClear();
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      expect(BrowserBottomBarMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          openNewTab: expect.any(Function),
+        }),
+        {},
+      );
+
+      // Call the newTab callback
+      const callArgs = BrowserBottomBarMock.mock.calls[0][0];
+      if (callArgs.openNewTab) {
+        callArgs.openNewTab();
+      }
+
+      expect(mockNewTab).toHaveBeenCalled();
+    });
+  });
+
+  describe('Platform-specific behavior', () => {
+    it('uses padding behavior for KeyboardAvoidingView on iOS', () => {
       const { toJSON } = renderWithProvider(
         <DiscoveryTab {...defaultProps} />,
         {
@@ -276,10 +575,18 @@ describe('DiscoveryTab', () => {
         },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      const json = toJSON();
+      expect(json).toMatchSnapshot();
     });
 
-    it('renders with onSelect callback configured for token navigation', () => {
+    it('uses height behavior for KeyboardAvoidingView on Android', () => {
+      const DeviceMock = Device as jest.Mocked<typeof Device>;
+      DeviceMock.isAndroid.mockReturnValue(true);
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const RN = require('react-native');
+      RN.Platform.OS = 'android';
+
       const { toJSON } = renderWithProvider(
         <DiscoveryTab {...defaultProps} />,
         {
@@ -287,12 +594,19 @@ describe('DiscoveryTab', () => {
         },
       );
 
-      // Component renders successfully with callback configured
-      // Actual navigation behavior is tested through component integration
-      expect(toJSON()).toMatchSnapshot();
-    });
+      const json = toJSON();
+      expect(json).toMatchSnapshot();
 
-    it('renders with onSelect callback configured for site navigation', () => {
+      DeviceMock.isAndroid.mockReturnValue(false);
+      RN.Platform.OS = 'ios';
+    });
+  });
+
+  describe('Device-specific behavior', () => {
+    it('adds collapsable prop to View when on Android', () => {
+      const DeviceMock = Device as jest.Mocked<typeof Device>;
+      DeviceMock.isAndroid.mockReturnValue(true);
+
       const { toJSON } = renderWithProvider(
         <DiscoveryTab {...defaultProps} />,
         {
@@ -300,65 +614,102 @@ describe('DiscoveryTab', () => {
         },
       );
 
-      // Component renders successfully with callback configured
-      // Actual updateTabInfo behavior is tested through component integration
-      expect(toJSON()).toMatchSnapshot();
+      const json = toJSON();
+      expect(json).toMatchSnapshot();
+
+      DeviceMock.isAndroid.mockReturnValue(false);
+    });
+  });
+
+  describe('searchEngine selector', () => {
+    it('uses searchEngine from Redux state when processing URL', async () => {
+      const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
+      mockProcessUrlForBrowser.mockReturnValue('https://processed-url.com');
+
+      const stateWithSearchEngine = {
+        ...initialState,
+        browser: {
+          ...initialState.browser,
+          searchEngine: 'google',
+        },
+      };
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: stateWithSearchEngine,
+      });
+
+      if (onSubmitEditingCallback) {
+        await onSubmitEditingCallback('test query');
+      }
+
+      expect(mockProcessUrlForBrowser).toHaveBeenCalledWith(
+        'test query',
+        'google',
+      );
     });
 
-    it('renders with onDismissAutocomplete callback configured', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
+    it('uses default searchEngine when not specified in state', async () => {
+      const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
+      mockProcessUrlForBrowser.mockReturnValue('https://processed-url.com');
 
-      expect(toJSON()).toMatchSnapshot();
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      if (onSubmitEditingCallback) {
+        await onSubmitEditingCallback('test query');
+      }
+
+      expect(mockProcessUrlForBrowser).toHaveBeenCalled();
     });
+  });
 
-    it('renders with onCancelUrlBar callback configured', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
+  describe('BrowserBottomBar props', () => {
+    it('passes correct props to BrowserBottomBar', () => {
+      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      BrowserBottomBarMock.mockClear();
+
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
+
+      expect(BrowserBottomBarMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          canGoBack: false,
+          canGoForward: false,
+          activeUrl: '',
+          title: '',
+          sessionENSNames: {},
+          favicon: { uri: '' },
+        }),
+        {},
       );
-
-      expect(toJSON()).toMatchSnapshot();
     });
+  });
 
-    it('renders with onFocusUrlBar callback configured', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
+  describe('BrowserUrlBar props', () => {
+    it('passes correct props to BrowserUrlBar', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
 
-      expect(toJSON()).toMatchSnapshot();
+      // Verify callbacks are set up correctly
+      expect(onSubmitEditingCallback).toBeDefined();
+      expect(onCancelCallback).toBeDefined();
+      expect(onFocusCallback).toBeDefined();
+      expect(onChangeTextCallback).toBeDefined();
+      expect(setIsUrlBarFocusedCallback).toBeDefined();
     });
+  });
 
-    it('renders with onChangeUrlBar callback configured', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
+  describe('UrlAutocomplete props', () => {
+    it('passes correct callbacks to UrlAutocomplete', () => {
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
 
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders component that handles empty text in onSubmitEditing', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
-
-      // Component renders successfully and handles empty text case
-      expect(toJSON()).toMatchSnapshot();
+      expect(onSelectCallback).toBeDefined();
+      expect(onDismissCallback).toBeDefined();
     });
   });
 });

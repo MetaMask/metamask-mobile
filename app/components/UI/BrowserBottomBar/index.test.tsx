@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import SearchApi from '@metamask/react-native-search-api';
 import Logger from '../../../util/Logger';
+import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 
 // Mock dependencies
 jest.mock('../../../actions/bookmarks', () => ({
@@ -42,6 +43,13 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
+
 describe('BrowserBottomBar', () => {
   const mockGoBack = jest.fn();
   const mockGoForward = jest.fn();
@@ -73,6 +81,7 @@ describe('BrowserBottomBar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDispatch.mockClear();
   });
 
   afterEach(() => {
@@ -386,10 +395,14 @@ describe('BrowserBottomBar', () => {
   });
 
   describe('Bookmark Removal', () => {
-    it('dispatches removeBookmark when bookmark exists for current URL', () => {
+    it('dispatches removeBookmark action when bookmark exists for current URL', () => {
+      const bookmarkToRemove = {
+        name: 'Example Site',
+        url: 'https://example.com',
+      };
       const stateWithBookmark = {
         ...initialState,
-        bookmarks: [{ name: 'Example Site', url: 'https://example.com' }],
+        bookmarks: [bookmarkToRemove],
       };
 
       const { getByTestId } = renderWithProvider(
@@ -397,17 +410,14 @@ describe('BrowserBottomBar', () => {
         { state: stateWithBookmark },
       );
 
-      const bookmarkButton = getByTestId(
-        BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
-      );
-      fireEvent.press(bookmarkButton);
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      // Note: We can't easily test the dispatch was called due to mocking limitations
-      // The test verifies the button can be pressed when bookmarked
-      expect(bookmarkButton).toBeTruthy();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        removeBookmark(bookmarkToRemove),
+      );
     });
 
-    it('does not dispatch removeBookmark when bookmark not found', () => {
+    it('does not dispatch removeBookmark when bookmark not found in list', () => {
       const stateWithDifferentBookmark = {
         ...initialState,
         bookmarks: [{ name: 'Other Site', url: 'https://different.com' }],
@@ -420,7 +430,101 @@ describe('BrowserBottomBar', () => {
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REMOVE_BOOKMARK' }),
+      );
       expect(mockNavigation.push).toHaveBeenCalled();
+    });
+
+    it('does not dispatch removeBookmark when bookmarkToRemove is undefined', () => {
+      const stateWithBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Example Site', url: 'https://example.com' }],
+      };
+
+      const customGetMaskedUrl = jest.fn(() => 'different-masked-url');
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar
+          {...defaultProps}
+          getMaskedUrl={customGetMaskedUrl}
+        />,
+        { state: stateWithBookmark },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      // When maskedUrl doesn't match, bookmarkToRemove will be undefined
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REMOVE_BOOKMARK' }),
+      );
+    });
+
+    it('does not dispatch removeBookmark when activeUrl is empty', () => {
+      const stateWithBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Example Site', url: 'https://example.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="" />,
+        { state: stateWithBookmark },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      // Should return early due to isBookmarkDisabled check
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigation.push).not.toHaveBeenCalled();
+    });
+
+    it('does not dispatch removeBookmark when activeUrl contains only whitespace', () => {
+      const stateWithBookmark = {
+        ...initialState,
+        bookmarks: [{ name: 'Example Site', url: 'https://example.com' }],
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} activeUrl="   " />,
+        { state: stateWithBookmark },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      // Should return early due to isBookmarkDisabled check
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigation.push).not.toHaveBeenCalled();
+    });
+
+    it('finds bookmark using masked URL from getMaskedUrl', () => {
+      const bookmarkToRemove = {
+        name: 'Example Site',
+        url: 'masked-example-url',
+      };
+      const stateWithBookmark = {
+        ...initialState,
+        bookmarks: [bookmarkToRemove],
+      };
+
+      const customGetMaskedUrl = jest.fn(() => 'masked-example-url');
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar
+          {...defaultProps}
+          getMaskedUrl={customGetMaskedUrl}
+        />,
+        { state: stateWithBookmark },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(customGetMaskedUrl).toHaveBeenCalledWith(
+        defaultProps.activeUrl,
+        defaultProps.sessionENSNames,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        removeBookmark(bookmarkToRemove),
+      );
     });
   });
 
@@ -764,6 +868,229 @@ describe('BrowserBottomBar', () => {
       });
 
       expect(SearchApi.indexSpotlightItem).not.toHaveBeenCalled();
+    });
+
+    it('flattens keywords array using spread operator', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark Name',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keywords: ['Test', 'Bookmark', 'Name', 'https://example.com', 'dapp'],
+        }),
+      );
+    });
+
+    it('uses name for title when name is provided', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Custom Bookmark Name',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Custom Bookmark Name',
+        }),
+      );
+    });
+
+    it('uses getMaskedUrl result for title when name is empty', async () => {
+      const customGetMaskedUrl = jest.fn(() => 'masked-url-for-title');
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar
+          {...defaultProps}
+          getMaskedUrl={customGetMaskedUrl}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: '',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'masked-url-for-title',
+        }),
+      );
+    });
+
+    it('uses urlToAdd in contentDescription when name is empty', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: '',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          contentDescription: 'Launch https://example.com on MetaMask',
+        }),
+      );
+    });
+
+    it('uses name in contentDescription when name is provided', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'My Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          contentDescription: 'Launch My Bookmark on MetaMask',
+        }),
+      );
+    });
+
+    it('uses activeUrl as uniqueIdentifier', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar
+          {...defaultProps}
+          activeUrl="https://custom-url.com"
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          uniqueIdentifier: 'https://custom-url.com',
+        }),
+      );
+    });
+
+    it('dispatches addBookmark action before iOS Spotlight integration', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        addBookmark({ name: 'Test Bookmark', url: 'https://example.com' }),
+      );
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalled();
+    });
+
+    it('handles empty name string in keywords array', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: '',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keywords: ['https://example.com', 'dapp'],
+        }),
+      );
+    });
+
+    it('handles name with multiple spaces correctly in keywords', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test  Bookmark   Name',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keywords: expect.arrayContaining([
+            'Test',
+            '',
+            'Bookmark',
+            '',
+            '',
+            'Name',
+            'https://example.com',
+            'dapp',
+          ]),
+        }),
+      );
     });
   });
 });

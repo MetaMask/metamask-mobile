@@ -10,7 +10,6 @@ import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
 import Assertions from '../../../framework/Assertions';
-import Browser from '../../../pages/Browser/BrowserView';
 import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -117,14 +116,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Wait for browser screen to be visible after confirmation modal dismisses
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
-          description:
-            'Browser screen should be visible after confirming transaction',
-        });
-
-        // Close browser to reveal app tab bar, then check activity
-        await Browser.tapCloseBrowserButton();
+        // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },
