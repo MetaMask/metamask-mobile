@@ -162,6 +162,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
 
+  // Tracing for the account list rendering:
+  const isAccountSelector = useMemo(
+    () => screen === AccountSelectorScreens.AccountSelector,
+    [screen],
+  );
+
   // Animation using react-native-reanimated - only for full-page version
   const translateX = useSharedValue(screenWidth);
 
@@ -178,6 +184,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   useLayoutEffect(() => {
     if (!isFullPageAccountList) return;
+    if (!isAccountSelector) return;
 
     const onAnimationComplete = () => {
       endTrace({
@@ -195,7 +202,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       () => runOnJS(onAnimationComplete)(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFullPageAccountList]);
+  }, [isFullPageAccountList, isAccountSelector]);
 
   const closeModal = useCallback(() => {
     if (isFullPageAccountList) {
@@ -279,10 +286,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   // Tracing for the account list rendering:
-  const isAccountSelector = useMemo(
-    () => screen === AccountSelectorScreens.AccountSelector,
-    [screen],
-  );
   useEffect(() => {
     if (isAccountSelector) {
       trace({
