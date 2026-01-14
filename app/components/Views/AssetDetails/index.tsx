@@ -68,10 +68,7 @@ import { areAddressesEqual } from '../../../util/address';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../UI/Perps/constants/eventNames';
+import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
 // Inline header styles
@@ -211,23 +208,18 @@ const AssetDetails = (props: InnerProps) => {
   );
 
   // Handler for perps discovery banner press
+  // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
-          .addProperties({
-            [PerpsEventProperties.SOURCE]:
-              PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
-            [PerpsEventProperties.ASSET]: symbol,
-          })
-          .build(),
-      );
-      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-        market: marketData,
-        source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: marketData,
+          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+        },
       });
     }
-  }, [marketData, navigation, trackEvent, createEventBuilder, symbol]);
+  }, [marketData, navigation]);
 
   const getNetworkName = useCallback(() => {
     let name = '';

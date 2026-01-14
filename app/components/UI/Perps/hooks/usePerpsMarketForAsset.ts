@@ -40,6 +40,14 @@ const cleanExpiredCache = () => {
 };
 
 /**
+ * Clear all cache entries - exported for testing purposes only
+ * @internal
+ */
+export const _clearMarketExistenceCache = (): void => {
+  marketExistenceCache.clear();
+};
+
+/**
  * usePerpsMarketForAsset Hook
  *
  * Efficiently checks if a spot asset has a corresponding perps market.
