@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import ThemeProvider from '../../../../../component-library/providers/ThemeProvider/ThemeProvider';
-import { getCandlestickChartSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { getCandlestickChartSelector } from '../../Perps.testIds';
 import PerpsCandlestickChartIntervalSelector from './PerpsCandlestickChartIntervalSelector';
 
 const mockStore = configureMockStore();
