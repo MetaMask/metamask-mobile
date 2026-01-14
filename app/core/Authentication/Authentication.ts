@@ -85,6 +85,7 @@ import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import Device from '../../util/device';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -380,6 +381,8 @@ class AuthenticationService {
     // Then check passcode
     if (
       availableBiometryType &&
+      // Android having issue with passcode in keystore ( data in keystore not able secure by/prompt passcode)
+      Device.isIos() &&
       !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
     ) {
       return {
@@ -559,7 +562,6 @@ class AuthenticationService {
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     const authType = await this.getType();
-
     if (
       authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
       availableBiometryType &&
@@ -578,8 +580,11 @@ class AuthenticationService {
         availableBiometryType,
       };
     } else if (
+      authType.currentAuthType === AUTHENTICATION_TYPE.PASSCODE &&
       availableBiometryType &&
       biometryChoice &&
+      // Android having issue with passcode in keystore ( data is not secured in keystore using passcode)
+      Device.isIos() &&
       !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
     ) {
       return {
