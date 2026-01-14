@@ -13,7 +13,7 @@ import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../../app/constants/navigation/Routes';
 
-import { ContactsViewSelectorIDs } from '../../../../../e2e/selectors/Settings/Contacts/ContacsView.selectors';
+import { ContactsViewSelectorIDs } from './ContactsView.testIds';
 import { selectAddressBook } from '../../../../selectors/addressBookController';
 
 const createStyles = (colors) =>

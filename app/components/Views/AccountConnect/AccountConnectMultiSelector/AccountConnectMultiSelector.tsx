@@ -20,15 +20,15 @@ import HelpText, {
 } from '../../../../component-library/components/Form/HelpText';
 
 // Internal dependencies.
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../ConnectAccountBottomSheet.testIds';
+import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
 import Checkbox from '../../../../component-library/components/Checkbox';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../ConnectedAccountModal.testIds';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { CaipAccountId } from '@metamask/utils';
 import { Box } from '../../../UI/Box/Box';

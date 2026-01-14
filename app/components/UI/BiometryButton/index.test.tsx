@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import BiometryButton from './BiometryButton';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../Views/Login/LoginView.testIds';
 
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),

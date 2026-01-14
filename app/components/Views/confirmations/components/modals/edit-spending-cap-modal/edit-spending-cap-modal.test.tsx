@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
-import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { ApproveMethod } from '../../../types/approve';
 import { EditSpendingCapModal } from './edit-spending-cap-modal';
 

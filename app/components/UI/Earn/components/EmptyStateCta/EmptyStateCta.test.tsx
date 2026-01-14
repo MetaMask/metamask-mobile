@@ -19,6 +19,7 @@ import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import Engine from '../../../../../core/Engine';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
@@ -59,6 +60,15 @@ jest.mock('../../../../../selectors/earnController', () => ({
     selectEarnOutputToken: jest.fn(),
   },
 }));
+
+jest.mock('../../../Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
 
 const initialState = {
   ...initialRootState,
@@ -273,6 +283,13 @@ describe('EmptyStateCta', () => {
         estimatedAnnualRewardsTokenFormatted: '4.50 USDC',
       }),
     });
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
   });
 
   it('renders correctly', () => {
@@ -413,6 +430,19 @@ describe('EmptyStateCta', () => {
     ).mockReturnValue(false);
 
     const { toJSON } = renderComponent(mockEarnToken);
+    expect(toJSON()).toBeNull();
+  });
+
+  it('does not render when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { toJSON } = renderComponent(mockEarnToken);
+
     expect(toJSON()).toBeNull();
   });
 });
