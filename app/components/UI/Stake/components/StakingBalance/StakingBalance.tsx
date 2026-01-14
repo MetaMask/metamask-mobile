@@ -136,7 +136,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     trackEvent,
   ]);
 
-  // TODO: Remove tests for button rendering when user is not eligible. This is now covered in the StakingButtons component.
   if (!isStakingSupportedChain) {
     return null;
   }
@@ -152,7 +151,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
     return (
       <>
-        {/* TODO: Write test to ensure that claim banners are rendered even when user is not eligible */}
         {unstakingRequests.map(
           ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
             assetsToDisplay && (

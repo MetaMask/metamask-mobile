@@ -110,7 +110,6 @@ const StakingButtons = ({
           onPress={onUnstakePress}
         />
       )}
-      {/* TODO: Add test to ensure this but is still rendered when the user is not eligible */}
       {isPooledStakingEnabled && isEligible && (
         <Button
           testID={'stake-more-button'}

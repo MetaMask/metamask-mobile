@@ -266,7 +266,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
       {userHasLendingPositions && (
         <View style={[styles.container, styles.buttonsContainer]}>
           {Boolean(receiptToken) && (
-            // TODO: Ensure tests cover that this button is still rendered when the user is not eligible.
             <Button
               variant={ButtonVariants.Secondary}
               style={styles.button}
@@ -276,7 +275,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             />
           )}
-          {/* TODO: Ensure tests cover this button NOT being rendered when the user i not eligible */}
           {userHasUnderlyingTokensAvailableToLend &&
             !isAssetReceiptToken &&
             isEligible && (

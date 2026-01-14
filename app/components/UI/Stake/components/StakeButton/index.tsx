@@ -229,7 +229,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   );
 };
 
-// TODO: Rename to EarnButton and make component more generic to support lending.
 export const StakeButton = (props: StakeButtonProps) => {
   const { isEligible } = useStakingEligibility();
 
