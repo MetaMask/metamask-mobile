@@ -786,7 +786,7 @@ describe('network-utils', () => {
         expectedImage: networksWithImages?.['MEGAETH-TESTNET'],
       },
       {
-        chainId: '0x18c7',
+        chainId: ChainId['megaeth-testnet-v2'],
         expectedImage: networksWithImages?.['MEGAETH-TESTNET-V2'],
       },
       {
@@ -826,9 +826,9 @@ describe('network-utils', () => {
         nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']],
       },
       {
-        chainId: '0x18c7',
+        chainId: ChainId['megaeth-testnet-v2'],
         name: 'MegaETH Testnet',
-        nickname: WHILELIST_NETWORK_NAME['0x18c7'],
+        nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet-v2']],
       },
       {
         chainId: ChainId['monad-testnet'],
