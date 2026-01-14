@@ -1,3 +1,8 @@
+import {
+  Intent,
+  QuoteMetadata,
+  QuoteResponse,
+} from '@metamask/bridge-controller';
 import { Asset } from '@metamask/assets-controllers';
 import { Hex, CaipChainId } from '@metamask/utils';
 
@@ -22,6 +27,13 @@ export interface BridgeToken {
     isDestination: boolean;
   };
 }
+
+export type BridgeQuoteResponse = QuoteResponse &
+  QuoteMetadata & {
+    aggregator: string;
+    walletAddress: string;
+    intent?: Intent;
+  };
 
 export enum BridgeViewMode {
   Swap = 'Swap',

@@ -11,6 +11,7 @@ import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { PayWithRow } from '../../rows/pay-with-row';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
 
 interface MusdOverrideContentProps {
   amountHuman: string;
@@ -53,6 +54,8 @@ export const MusdConversionInfo = () => {
     );
   }
 
+  useMusdConversionNavbar(outputChainId);
+
   useAddToken({
     chainId: outputChainId,
     decimals,
@@ -70,6 +73,7 @@ export const MusdConversionInfo = () => {
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
       overrideContent={renderOverrideContent}
+      hasMax
     />
   );
 };

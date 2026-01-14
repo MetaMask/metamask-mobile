@@ -6,32 +6,36 @@ exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
     style={
       [
         {
+          "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "padding": 16,
+          "height": 56,
         },
         false,
+        {
+          "paddingHorizontal": 16,
+        },
       ]
     }
     testID="header"
   >
-    <View
-      style={
-        {
-          "width": undefined,
-        }
-      }
-    >
+    <View>
       <View
         onLayout={[Function]}
       />
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
       }
     >
       <Text
@@ -49,13 +53,7 @@ exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
         Why can't I withdraw my full balance?
       </Text>
     </View>
-    <View
-      style={
-        {
-          "width": undefined,
-        }
-      }
-    >
+    <View>
       <View
         onLayout={[Function]}
       >
@@ -141,7 +139,7 @@ exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
           }
         }
       >
-        • Pool Liquidity:
+        • Pool liquidity:
       </Text>
        
       Not enough funds available in the lending pool right now.
@@ -170,7 +168,7 @@ exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
           }
         }
       >
-        • Existing Borrow Positions:
+        • Existing borrow positions:
       </Text>
        
       Withdrawing could put your existing loan positions at risk of liquidation.

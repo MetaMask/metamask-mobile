@@ -10,24 +10,41 @@ export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
-export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
-export const METRICS_OPT_IN_SOCIAL_LOGIN = `${prefix}metricsOptInSocialLogin`;
+// Legacy MetaMetrics and new AnalyticsController related keys
+export const PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME = `${prefix}previousAuthTypeBeforeRememberMe`;
+
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
 export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
+/**
+ * @deprecated, use AnalyticsController state (optedIn) instead
+ * Keeping METRICS_OPT_IN for backward compatibility
+ * Migration done in {@link migration109}
+ */
+export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
+/**
+ * @deprecated, use AnalyticsController state (optedIn) instead
+ * Keeping METRICS_OPT_IN_SOCIAL_LOGIN for backward compatibility
+ * Migration done in {@link migration108}
+ */
+export const METRICS_OPT_IN_SOCIAL_LOGIN = `${prefix}metricsOptInSocialLogin`;
+/**
+ * @deprecated, use {@link ANALYTICS_ID} instead
+ * Keeping METAMETRICS_ID for backward compatibility
+ * Migration done in {@link migration109}
+ */
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
-
 /**
  * @deprecated, use {@link METAMETRICS_ID} instead
  * Keeping MIXPANEL_METAMETRICS_ID for backward compatibility
- *
+ * Migration done in {@link migration109}
  * TODO remove MIXPANEL_METAMETRICS_ID:
- * - add a migration
  * - remove the legacy id test from {@link MetaMetrics}.#getMetaMetricsId()
  * @see https://github.com/MetaMask/metamask-mobile/issues/8833
  */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
+export const ANALYTICS_ID = `${prefix}AnalyticsId`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
@@ -73,10 +90,10 @@ export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
+export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
+
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 
 export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
-
-export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;

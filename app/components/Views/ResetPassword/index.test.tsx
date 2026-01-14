@@ -85,6 +85,9 @@ jest.mock('../../../core/Authentication', () => ({
     ),
   checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
   lockApp: jest.fn().mockResolvedValue(undefined),
+  reauthenticate: jest.fn((password) =>
+    Promise.resolve({ password: password ?? 'CurrentPassword123' }),
+  ),
   authData: {
     currentAuthType: 'passcode',
   },
@@ -112,6 +115,7 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
+    updateDataRecordingFlag: jest.fn(),
   }),
 }));
 

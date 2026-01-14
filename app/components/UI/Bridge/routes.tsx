@@ -19,7 +19,12 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    headerMode="screen"
+    screenOptions={{
+      headerShown: true,
+    }}
+  >
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_VIEW}
       component={BridgeView}

@@ -113,32 +113,36 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "padding": 16,
+                "height": 56,
               },
               false,
+              {
+                "paddingHorizontal": 16,
+              },
             ]
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             />
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <Text
@@ -156,13 +160,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               How it works
             </Text>
           </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
+          <View>
             <View
               onLayout={[Function]}
             >

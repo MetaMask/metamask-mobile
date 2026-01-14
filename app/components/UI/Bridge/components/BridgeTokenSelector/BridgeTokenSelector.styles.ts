@@ -13,6 +13,7 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     tokensListContainer: {
       paddingBottom: 16,
+      flexGrow: 1,
     },
     buttonContainer: {
       paddingHorizontal: 8,
@@ -25,6 +26,22 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     tokenItem: {
       paddingVertical: 8,
+    },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 32,
+      paddingVertical: 48,
+    },
+    emptyStateTitle: {
+      marginTop: 16,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    emptyStateDescription: {
+      textAlign: 'center',
+      marginBottom: 16,
     },
   });
 };

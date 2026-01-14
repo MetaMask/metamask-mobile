@@ -133,21 +133,31 @@ exports[`EarnTokenList render matches snapshot 1`] = `
           style={
             [
               {
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "padding": 16,
+                "height": 56,
               },
               false,
+              {
+                "paddingHorizontal": 16,
+              },
             ]
           }
           testID="header"
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <Text
@@ -674,7 +684,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           }
                         }
                       >
-                        2.3% APR
+                        2.29% APR
                       </Text>
                       <Text
                         accessibilityRole="text"
@@ -880,7 +890,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           }
                         }
                       >
-                        4.0% APR
+                        4% APR
                       </Text>
                       <Text
                         accessibilityRole="text"

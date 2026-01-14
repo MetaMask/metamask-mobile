@@ -253,6 +253,23 @@ export const initialState = {
           },
         },
       },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            [ethChainId]: true,
+            [optimismChainId]: true,
+          },
+          solana: {
+            [SolScope.Mainnet]: true,
+          },
+          bip122: {
+            [BtcScope.Mainnet]: true,
+          },
+          tron: {
+            [TrxScope.Mainnet]: true,
+          },
+        },
+      },
       MultichainNetworkController: {
         isEvmSelected: true,
         selectedMultichainNetworkChainId: SolScope.Mainnet as const,
@@ -718,5 +735,6 @@ export const initialState = {
     isSubmittingTx: false,
     bridgeViewMode: undefined,
     isSelectingRecipient: false,
+    isSelectingToken: false,
   },
 };

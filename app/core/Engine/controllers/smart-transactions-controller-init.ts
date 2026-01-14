@@ -8,11 +8,29 @@ import {
   MetaMetricsEventName,
   type SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
+import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
 import { selectSwapsChainFeatureFlags } from '../../../reducers/swaps';
-import { MetaMetrics } from '../../Analytics';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+
+/**
+ * Filter out undefined values from an object to make it compatible with AnalyticsEventProperties.
+ *
+ * @param obj - The object to filter.
+ * @returns A new object without undefined values.
+ */
+function filterUndefinedValues(
+  obj: Record<string, unknown> | undefined,
+): AnalyticsEventProperties {
+  if (!obj) {
+    return {};
+  }
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined),
+  ) as AnalyticsEventProperties;
+}
 
 /**
  * Initialize the smart transactions controller.
@@ -23,8 +41,9 @@ import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTra
  */
 export const smartTransactionsControllerInit: ControllerInitFunction<
   SmartTransactionsController,
-  SmartTransactionsControllerMessenger
-> = ({ controllerMessenger, persistedState, getState }) => {
+  SmartTransactionsControllerMessenger,
+  SmartTransactionsControllerInitMessenger
+> = ({ controllerMessenger, initMessenger, persistedState, getState }) => {
   const trackMetaMetricsEvent = (params: {
     event: MetaMetricsEventName;
     category: MetaMetricsEventCategory;
@@ -33,14 +52,19 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
       typeof getSmartTransactionMetricsSensitiveProperties
     >;
   }) => {
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder({
-        category: params.event,
-      })
-        .addProperties(params.properties || {})
-        .addSensitiveProperties(params.sensitiveProperties || {})
-        .build(),
-    );
+    try {
+      const event = AnalyticsEventBuilder.createEventBuilder(params.event)
+        .addProperties(filterUndefinedValues(params.properties))
+        .addSensitiveProperties(
+          filterUndefinedValues(params.sensitiveProperties),
+        )
+        .build();
+
+      initMessenger.call('AnalyticsController:trackEvent', event);
+    } catch (error) {
+      // Analytics tracking failures should not break smart transactions
+      // Error is logged but not thrown
+    }
   };
 
   const controller = new SmartTransactionsController({

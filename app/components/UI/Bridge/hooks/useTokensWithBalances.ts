@@ -73,6 +73,7 @@ export const useTokensWithBalances = (
           balanceFiat: balanceData.balanceFiat,
           tokenFiatAmount: balanceData.tokenFiatAmount,
           currencyExchangeRate: balanceData.currencyExchangeRate,
+          accountType: balanceData.accountType,
         };
       }
       return token;

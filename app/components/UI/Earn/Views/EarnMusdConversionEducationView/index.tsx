@@ -1,27 +1,30 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch } from 'react-redux';
-import { View, Image } from 'react-native';
+import { View, Image, useColorScheme } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
-import { strings } from '../../../../../../locales/i18n';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './EarnMusdConversionEducationView.styles';
-import musdEducationBackground from '../../../../../images/musd-education-screen-background-3x.png';
+import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
+import musdEducationBackgroundV2Light from '../../../../../images/musd-conversion-education-screen-v2-light-3x.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { getCloseOnlyNavbar } from '../../../Navbar';
-import { useTheme } from '../../../../../util/theme';
+import { useNavigation } from '@react-navigation/native';
+import {
+  Button as DesignSystemButton,
+  ButtonVariant as DesignSystemButtonVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 
 interface EarnMusdConversionEducationViewRouteParams {
   /**
@@ -43,17 +46,24 @@ interface EarnMusdConversionEducationViewRouteParams {
  */
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
+
   const { initiateConversion } = useMusdConversion();
+
   const { preferredPaymentToken, outputChainId } =
     useParams<EarnMusdConversionEducationViewRouteParams>();
-  const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
-  const { colors } = useTheme();
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions(getCloseOnlyNavbar(navigation, colors));
-    }, [navigation, colors]),
+  const { styles } = useStyles(styleSheet, {});
+
+  const navigation = useNavigation();
+
+  const colorScheme = useColorScheme();
+
+  const backgroundImage = useMemo(
+    () =>
+      colorScheme === 'dark'
+        ? musdEducationBackgroundV2Dark
+        : musdEducationBackgroundV2Light,
+    [colorScheme],
   );
 
   const handleContinue = useCallback(async () => {
@@ -66,6 +76,7 @@ const EarnMusdConversionEducationView = () => {
         await initiateConversion({
           outputChainId,
           preferredPaymentToken,
+          skipEducationCheck: true,
         });
         return;
       }
@@ -82,34 +93,45 @@ const EarnMusdConversionEducationView = () => {
     }
   }, [dispatch, initiateConversion, outputChainId, preferredPaymentToken]);
 
-  return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'top']}>
-      <Image source={musdEducationBackground} style={styles.backgroundImage} />
+  const handleGoBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  };
 
+  return (
+    // Do not remove the top edge as this screen does not have a navbar set in the route options.
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.content}>
-        <Text
-          variant={TextVariant.HeadingLG}
-          color={TextColor.Default}
-          style={styles.heading}
-        >
+        <Text style={styles.heading} numberOfLines={3} adjustsFontSizeToFit>
           {strings('earn.musd_conversion.education.heading')}
         </Text>
-
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.bodyText}
-        >
+        <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
           {strings('earn.musd_conversion.education.description')}
         </Text>
       </View>
-      <Button
-        variant={ButtonVariants.Primary}
-        label={strings('earn.musd_conversion.education.continue_button')}
-        onPress={handleContinue}
-        size={ButtonSize.Lg}
-        style={styles.continueButton}
-      />
+      <View style={styles.imageContainer}>
+        <Image source={backgroundImage} style={styles.backgroundImage} />
+      </View>
+
+      <View style={styles.buttonsContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={strings('earn.musd_conversion.education.primary_button')}
+          onPress={handleContinue}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+        />
+        <DesignSystemButton
+          variant={DesignSystemButtonVariant.Tertiary}
+          isFullWidth
+          onPress={handleGoBack}
+        >
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('earn.musd_conversion.education.secondary_button')}
+          </Text>
+        </DesignSystemButton>
+      </View>
     </SafeAreaView>
   );
 };

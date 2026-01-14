@@ -13,6 +13,7 @@ import {
 } from '../../store/persistConfig';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
+import { setExistingUser } from '../../actions/user';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -28,10 +29,30 @@ jest.mock('../../util/Logger', () => ({
 }));
 
 jest.mock('../BackupVault', () => ({
-  getVaultFromBackup: () => ({ success: true, vault: 'fake_vault' }),
+  getVaultFromBackup: () =>
+    Promise.resolve({ success: true, vault: 'fake_vault' }),
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
+
+// Mock whenEngineReady to prevent Engine access after Jest teardown
+jest.mock('../Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
 
 // Mock Engine constants and Redux
 jest.mock('../Engine/constants', () => ({
@@ -99,7 +120,11 @@ jest.mock('../Engine', () => {
   let mockInstance: MockEngineInstance | null;
 
   const mockEngine = {
-    init: (_: unknown, keyringState: KeyringControllerState) => {
+    init: (
+      _analyticsId: unknown,
+      _state: unknown,
+      keyringState?: KeyringControllerState | null,
+    ) => {
       mockInstance = {
         controllerMessenger: {
           subscribe: jest.fn(),
@@ -109,7 +134,7 @@ jest.mock('../Engine', () => {
           AddressBookController: { subscribe: jest.fn() },
           KeyringController: {
             subscribe: jest.fn(),
-            state: { ...keyringState },
+            state: keyringState ? { ...keyringState } : {},
           },
           AssetsContractController: { subscribe: jest.fn() },
           NftController: { subscribe: jest.fn() },
@@ -200,8 +225,12 @@ describe('EngineService', () => {
 
   afterEach(() => {
     // Clean up any pending timers to prevent Jest teardown issues
+    // Only run pending timers if fake timers are enabled
     try {
-      jest.runOnlyPendingTimers();
+      const timerCount = jest.getTimerCount();
+      if (timerCount > 0) {
+        jest.runOnlyPendingTimers();
+      }
     } catch {
       // Ignore error if fake timers are not active
     }
@@ -278,6 +307,23 @@ describe('EngineService', () => {
       {
         hasState: false, // Correctly detects no persisted state now that the bug is fixed
       },
+    );
+
+    // Restore fake timers for other tests
+    jest.useFakeTimers();
+  });
+
+  it('sets existingUser flag after successful vault recovery', async () => {
+    // Arrange
+    jest.useRealTimers();
+
+    // Act
+    await engineService.start();
+    await engineService.initializeVaultFromBackup();
+
+    // Assert
+    expect(ReduxService.store.dispatch).toHaveBeenCalledWith(
+      setExistingUser(true),
     );
 
     // Restore fake timers for other tests
@@ -800,10 +846,8 @@ describe('EngineService', () => {
     });
 
     it('logs persistence errors without crashing (graceful degradation)', async () => {
-      // Arrange
-      const persistError = new Error('Persistence failed');
-      mockPersistController.mockRejectedValue(persistError);
-
+      // Arrange - Start engine first, then set up failure mock
+      // This prevents unhandled rejections from state change detection during init
       await engineService.start();
 
       const mockSubscribe = Engine.controllerMessenger
@@ -822,6 +866,10 @@ describe('EngineService', () => {
       ]?.[1] as (controllerState: unknown) => Promise<void>;
 
       expect(subscriptionCallback).toBeDefined();
+
+      // Now set up the mock to reject for the subscription callback test
+      const persistError = new Error('Persistence failed');
+      mockPersistController.mockRejectedValue(persistError);
 
       const controllerState = { field1: 'value1' };
 
@@ -881,7 +929,12 @@ describe('EngineService', () => {
     });
 
     it('handles missing controllerMessenger without errors', async () => {
-      // Arrange
+      // Arrange - Save original controllerMessenger descriptor
+      const originalDescriptor = Object.getOwnPropertyDescriptor(
+        Engine,
+        'controllerMessenger',
+      );
+
       Object.defineProperty(Engine, 'controllerMessenger', {
         value: null,
         writable: true,
@@ -894,6 +947,312 @@ describe('EngineService', () => {
       // Should not log success message
       expect(Logger.log).not.toHaveBeenCalledWith(
         'Individual controller persistence subscriptions set up successfully',
+      );
+
+      // Cleanup - Restore original controllerMessenger
+      if (originalDescriptor) {
+        Object.defineProperty(
+          Engine,
+          'controllerMessenger',
+          originalDescriptor,
+        );
+      }
+    });
+
+    it('persists state that changed during Engine.init()', async () => {
+      // Arrange - Mock controller with state that differs from initial state
+      const initialControllerState = { field1: 'oldValue' };
+      const currentControllerState = { field1: 'newValue', field2: 'value2' };
+
+      // Override context with state included (the inner beforeEach only sets metadata)
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            subscribe: jest.fn(),
+            state: currentControllerState,
+            metadata: {
+              field1: { persist: true, anonymous: false },
+              field2: { persist: true, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            subscribe: jest.fn(),
+            state: { pref1: 'unchanged' },
+            metadata: {
+              pref1: { persist: true, anonymous: false },
+            },
+          },
+          NetworkController: {
+            subscribe: jest.fn(),
+            state: { network: 'mainnet' },
+            metadata: {
+              network: { persist: true, anonymous: false },
+            },
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Mock getPersistentState to return filtered state based on actual state
+      mockGetPersistentState.mockImplementation(
+        (state) => state as unknown as ReturnType<typeof getPersistentState>,
+      );
+
+      // Mock ControllerStorage to return initial state
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: {
+          KeyringController: initialControllerState,
+          PreferencesController: { pref1: 'unchanged' },
+          NetworkController: { network: 'mainnet' },
+        },
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert - KeyringController state changed, should be queued for persist
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: KeyringController state changed during init, queued for persist',
+      );
+      expect(mockPersistController).toHaveBeenCalledWith(
+        currentControllerState,
+        'KeyringController',
+      );
+    });
+
+    it('does not persist state that has not changed during Engine.init()', async () => {
+      // Arrange - Mock controller with state that matches initial state (same reference)
+      const sharedState = { field1: 'value1' };
+
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            subscribe: jest.fn(),
+            state: sharedState,
+            metadata: {
+              field1: { persist: true, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            subscribe: jest.fn(),
+            state: sharedState,
+            metadata: {
+              field1: { persist: true, anonymous: false },
+            },
+          },
+          NetworkController: {
+            subscribe: jest.fn(),
+            state: sharedState,
+            metadata: {
+              field1: { persist: true, anonymous: false },
+            },
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Mock getPersistentState to return the same reference
+      mockGetPersistentState.mockReturnValue(sharedState);
+
+      // Mock ControllerStorage to return initial state with same references
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: {
+          KeyringController: sharedState,
+          PreferencesController: sharedState,
+          NetworkController: sharedState,
+        },
+      });
+
+      // Reset mock to track only init-triggered persistence
+      mockPersistController.mockClear();
+
+      // Act
+      await engineService.start();
+
+      // Assert - No state changed during init, should NOT call persist
+      expect(Logger.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('state changed during init'),
+      );
+      // mockPersistController should not have been called for init persistence
+      // (it may be called for subscription setup)
+      const initPersistCalls = mockPersistController.mock.calls.filter(
+        (call) =>
+          call[1] === 'KeyringController' ||
+          call[1] === 'PreferencesController' ||
+          call[1] === 'NetworkController',
+      );
+      expect(initPersistCalls).toHaveLength(0);
+    });
+
+    it('persists state for new install when no initial state exists', async () => {
+      // Arrange - New install: no initial state
+      const currentControllerState = { field1: 'newValue' };
+
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            subscribe: jest.fn(),
+            state: currentControllerState,
+            metadata: {
+              field1: { persist: true, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            subscribe: jest.fn(),
+            state: { pref1: 'default' },
+            metadata: {
+              pref1: { persist: true, anonymous: false },
+            },
+          },
+          NetworkController: {
+            subscribe: jest.fn(),
+            state: { network: 'mainnet' },
+            metadata: {
+              network: { persist: true, anonymous: false },
+            },
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      mockGetPersistentState.mockImplementation(
+        (state) => state as unknown as ReturnType<typeof getPersistentState>,
+      );
+
+      // Mock ControllerStorage to return empty state (new install)
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: {},
+      });
+
+      // Reset mock
+      mockPersistController.mockClear();
+
+      // Act
+      await engineService.start();
+
+      // Assert - New install should persist all controllers with state
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: KeyringController state changed during init, queued for persist',
+      );
+      expect(mockPersistController).toHaveBeenCalledWith(
+        currentControllerState,
+        'KeyringController',
+      );
+    });
+
+    it('detects state change when property is removed during Engine.init()', async () => {
+      // Arrange - Initial state has more properties than current state (property removed)
+      const initialControllerState = { field1: 'value1', field2: 'value2' };
+      const currentControllerState = { field1: 'value1' }; // field2 was removed
+
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            subscribe: jest.fn(),
+            state: currentControllerState,
+            metadata: {
+              field1: { persist: true, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            subscribe: jest.fn(),
+            state: { pref1: 'unchanged' },
+            metadata: {
+              pref1: { persist: true, anonymous: false },
+            },
+          },
+          NetworkController: {
+            subscribe: jest.fn(),
+            state: { network: 'mainnet' },
+            metadata: {
+              network: { persist: true, anonymous: false },
+            },
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Mock getPersistentState to return filtered state (only field1 now)
+      mockGetPersistentState.mockImplementation(
+        (state) => state as unknown as ReturnType<typeof getPersistentState>,
+      );
+
+      // Mock ControllerStorage to return initial state with both fields
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: {
+          KeyringController: initialControllerState,
+          PreferencesController: { pref1: 'unchanged' },
+          NetworkController: { network: 'mainnet' },
+        },
+      });
+
+      // Reset mock
+      mockPersistController.mockClear();
+
+      // Act
+      await engineService.start();
+
+      // Assert - Property removal should be detected as a change
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: KeyringController state changed during init, queued for persist',
+      );
+      expect(mockPersistController).toHaveBeenCalledWith(
+        currentControllerState,
+        'KeyringController',
+      );
+    });
+
+    it('does not persist empty state for controllers without state to save', async () => {
+      // Arrange - Controller with empty filtered state
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            subscribe: jest.fn(),
+            state: { someData: 'value' },
+            metadata: {
+              someData: { persist: true, anonymous: false },
+            },
+          },
+          PreferencesController: {
+            subscribe: jest.fn(),
+            state: { pref: 'value' },
+            metadata: {
+              pref: { persist: true, anonymous: false },
+            },
+          },
+          NetworkController: {
+            subscribe: jest.fn(),
+            state: { network: 'mainnet' },
+            metadata: {
+              network: { persist: true, anonymous: false },
+            },
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      // Mock getPersistentState to return empty object (simulates all state being filtered out)
+      mockGetPersistentState.mockReturnValue({});
+
+      // Mock ControllerStorage to return empty state (new install)
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: {},
+      });
+
+      // Reset mock
+      mockPersistController.mockClear();
+
+      // Act
+      await engineService.start();
+
+      // Assert - Empty filtered state should NOT be persisted
+      expect(Logger.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('state changed during init'),
       );
     });
   });

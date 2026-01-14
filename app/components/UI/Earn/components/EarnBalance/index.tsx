@@ -8,12 +8,13 @@ import EarnLendingBalance from '../EarnLendingBalance';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronStakingButtons from '../Tron/TronStakingButtons';
-import TronStakingCta from '../Tron/TronStakingButtons/TronStakingCta';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { hasStakedTrxPositions as hasStakedTrxPositionsUtil } from '../../utils/tron';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
+import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
 export interface EarnBalanceProps {
   asset: TokenI;
 }
@@ -30,6 +31,11 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
     selectIsStakeableToken(state, asset),
   );
 
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
+  );
+
+  const { isConversionToken } = useMusdConversionTokens();
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
@@ -56,16 +62,19 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
     if (!hasStakedTrxPositions && !isStakedTrxAsset) {
       // TRX native row: show CTA + single Stake button
       return (
-        <>
-          <TronStakingCta aprText={tronApyPercent ?? undefined} />
-          <TronStakingButtons asset={asset} />
-        </>
+        <TronStakingButtons
+          asset={asset}
+          aprText={tronApyPercent ?? undefined}
+        />
       );
     }
 
     return null;
   }
   ///: END:ONLY_INCLUDE_IF
+
+  const isConvertibleStablecoin =
+    isMusdConversionFlowEnabled && isConversionToken(asset);
 
   // EVM staking: only when stakeable and not a staked output token
   if (isStakeableToken && !asset.isStaked) {
@@ -74,7 +83,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
 
   if (!asset.chainId) return null;
 
-  if (isLendingToken || isReceiptToken) {
+  if (isLendingToken || isReceiptToken || isConvertibleStablecoin) {
     return <EarnLendingBalance asset={asset} />;
   }
 

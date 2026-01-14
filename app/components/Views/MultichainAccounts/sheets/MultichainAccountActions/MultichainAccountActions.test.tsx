@@ -129,7 +129,7 @@ describe('MultichainAccountActions', () => {
     const { getByText } = renderWithProvider(<MultichainAccountActions />);
 
     expect(getByText('Test Account Group')).toBeTruthy();
-    expect(getByText('Account Details')).toBeTruthy();
+    expect(getByText('Account details')).toBeTruthy();
     expect(getByText('Rename account')).toBeTruthy();
     expect(getByText('Addresses')).toBeTruthy();
   });
@@ -214,10 +214,13 @@ describe('MultichainAccountActions', () => {
     );
     renameAccountButton.props.onPress();
 
+    expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS,
       {
         accountGroup: mockAccountGroup,
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+        params: { accountGroup: mockAccountGroup },
       },
     );
   });

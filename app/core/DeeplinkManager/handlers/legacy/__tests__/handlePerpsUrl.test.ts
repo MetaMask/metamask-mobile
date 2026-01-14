@@ -3,13 +3,20 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { PERFORMANCE_CONFIG } from '../../../../../components/UI/Perps/constants/perpsConfig';
-import { store } from '../../../../../store';
+import ReduxService from '../../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../components/UI/Perps/selectors/perpsController';
 
 // Mock dependencies
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
-jest.mock('../../../../../store');
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../../../components/UI/Perps/selectors/perpsController');
 
 describe('handlePerpsUrl', () => {
@@ -32,9 +39,9 @@ describe('handlePerpsUrl', () => {
     // Mock DevLogger
     (DevLogger.log as jest.Mock) = jest.fn();
 
-    // Mock store.getState
+    // Mock ReduxService.store.getState
     mockGetState = jest.fn();
-    (store.getState as jest.Mock) = mockGetState;
+    (ReduxService.store.getState as jest.Mock) = mockGetState;
   });
 
   afterEach(() => {
@@ -43,7 +50,7 @@ describe('handlePerpsUrl', () => {
   });
 
   describe('handlePerpsUrl', () => {
-    it('should navigate to tutorial for first-time users', async () => {
+    it('navigates to tutorial for first-time users', async () => {
       // Mock first-time user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -55,7 +62,7 @@ describe('handlePerpsUrl', () => {
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
-    it('should navigate to wallet home with Perps tab for returning users', async () => {
+    it('navigates to wallet home with Perps tab for returning users', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -72,7 +79,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle first-time user on testnet', async () => {
+    it('navigates to tutorial for first-time user on testnet', async () => {
       // Mock first-time user on testnet
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -83,7 +90,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should default to tutorial when state is undefined', async () => {
+    it('defaults to tutorial when state is undefined', async () => {
       // Mock undefined state returning true (default)
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -94,7 +101,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should fallback to markets list on error', async () => {
+    it('falls back to markets list on error', async () => {
       // Mock selector to return false (returning user)
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -108,12 +115,13 @@ describe('handlePerpsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
   });
 
   describe('handlePerpsUrl - asset deeplinks', () => {
-    it('should navigate to market details with valid symbol', async () => {
+    it('navigates to market details with valid symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -134,11 +142,12 @@ describe('handlePerpsUrl', () => {
             nextFundingTime: 0,
             fundingIntervalHours: 8,
           }),
+          source: 'deeplink',
         },
       });
     });
 
-    it('should handle asset screen with ETH symbol', async () => {
+    it('navigates to market details for ETH symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=ETH' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -148,11 +157,12 @@ describe('handlePerpsUrl', () => {
             symbol: 'ETH',
             name: 'ETH',
           }),
+          source: 'deeplink',
         },
       });
     });
 
-    it('should convert symbol to uppercase', async () => {
+    it('converts symbol to uppercase', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=btc' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -162,27 +172,30 @@ describe('handlePerpsUrl', () => {
             symbol: 'BTC',
             name: 'BTC',
           }),
+          source: 'deeplink',
         },
       });
     });
 
-    it('should navigate to markets list when no symbol provided', async () => {
+    it('navigates to markets list when no symbol provided', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
 
-    it('should navigate to markets list with empty symbol', async () => {
+    it('navigates to markets list with empty symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
 
-    it('should fallback to markets list on error', async () => {
+    it('falls back to markets list on error', async () => {
       // Mock error in navigation
       mockNavigate.mockImplementationOnce(() => {
         throw new Error('Navigation error');
@@ -193,37 +206,22 @@ describe('handlePerpsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
 
-    it('should handle malformed URL parameters gracefully', async () => {
+    it('navigates to markets list for malformed URL parameters', async () => {
       await handlePerpsUrl({
         perpsPath: 'perps?screen=asset&invalid&params&here',
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
     });
 
-    it('should log debug messages during processing', async () => {
-      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=SOL' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Starting perps deeplink handling with path:',
-        'perps?screen=asset&symbol=SOL',
-      );
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Parsed navigation parameters:',
-        { screen: 'asset', symbol: 'SOL' },
-      );
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Navigating to asset details for symbol:',
-        'SOL',
-      );
-    });
-
-    it('should navigate to tutorial for first-time users regardless of parameters', async () => {
+    it('navigates to tutorial for first-time users regardless of parameters', async () => {
       // Mock first-time user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
@@ -238,7 +236,7 @@ describe('handlePerpsUrl', () => {
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
-    it('should navigate directly to markets for returning users with screen=markets parameter', async () => {
+    it('navigates directly to markets for returning users with screen=markets parameter', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -247,13 +245,14 @@ describe('handlePerpsUrl', () => {
       // Returning users with screen=markets parameter go directly to markets
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
       // Should not call setParams for direct navigation
       expect(mockSetParams).not.toHaveBeenCalled();
     });
 
-    it('should navigate to wallet tab for returning users with regular perps URL', async () => {
+    it('navigates to wallet tab for returning users with regular perps URL', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -272,7 +271,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle screen=markets parameter with additional query params', async () => {
+    it('navigates to markets for screen=markets parameter with additional query params', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -283,11 +282,12 @@ describe('handlePerpsUrl', () => {
       // Should navigate to markets for screen=markets parameter
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
     });
 
-    it('should navigate to wallet tab when screen=tabs specified', async () => {
+    it('navigates to wallet tab when screen=tabs specified', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -304,7 +304,7 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle tab parameter for future extensibility', async () => {
+    it('passes tab parameter for future extensibility', async () => {
       // Mock returning user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
@@ -321,31 +321,198 @@ describe('handlePerpsUrl', () => {
         specificTab: 'portfolio',
       });
     });
+  });
 
-    it('should log correct debug messages for parameter-based routing', async () => {
-      // Test first-time user
-      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
-
-      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Starting perps deeplink handling with path:',
-        'perps?screen=markets',
-      );
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
-      );
+  describe('handlePerpsUrl - screen=home deeplinks', () => {
+    beforeEach(() => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
     });
 
-    it('should log correct debug messages for returning user markets navigation', async () => {
-      // Test returning user with screen=markets parameter
-      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+    it('navigates directly to PerpsHomeView with screen=home', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=home' });
 
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
+      });
+    });
+
+    it('first-time users go to tutorial even with screen=home', async () => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=home' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+        isFromDeeplink: true,
+      });
+    });
+  });
+
+  describe('handlePerpsUrl - screen=market-list deeplinks', () => {
+    beforeEach(() => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+    });
+
+    it('navigates to PerpsMarketListView with screen=market-list', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=market-list' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: { source: 'deeplink' },
+      });
+    });
+
+    it('navigates to crypto markets with tab=crypto', async () => {
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=market-list&tab=crypto',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          source: 'deeplink',
+          defaultMarketTypeFilter: 'crypto',
+        },
+      });
+    });
+
+    it('navigates to stocks markets with tab=stocks', async () => {
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=market-list&tab=stocks',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          source: 'deeplink',
+          defaultMarketTypeFilter: 'stocks_and_commodities',
+        },
+      });
+    });
+
+    it('navigates to all markets with tab=all', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=market-list&tab=all' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          source: 'deeplink',
+          defaultMarketTypeFilter: 'all',
+        },
+      });
+    });
+
+    it('ignores unknown tab values', async () => {
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=market-list&tab=unknown',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: { source: 'deeplink' },
+      });
+    });
+
+    it('first-time users go to tutorial even with tab parameter', async () => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=market-list&tab=crypto',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+        isFromDeeplink: true,
+      });
+    });
+  });
+
+  describe('handlePerpsUrl - screen=markets backwards compatibility', () => {
+    beforeEach(() => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+    });
+
+    it('screen=markets navigates to PerpsHomeView (backwards compat)', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Navigating to markets list',
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
+      });
+    });
+
+    it('screen=markets ignores tab parameter for backwards compat', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=markets&tab=crypto' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
+      });
+    });
+  });
+
+  describe('handlePerpsUrl - HIP-3 symbol parsing', () => {
+    beforeEach(() => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+    });
+
+    it('parses HIP-3 symbol format xyz:TSLA', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=xyz:TSLA' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: expect.objectContaining({
+            symbol: 'xyz:TSLA',
+            name: 'TSLA',
+            marketSource: 'xyz',
+          }),
+          source: 'deeplink',
+        },
+      });
+    });
+
+    it('parses HIP-3 symbol format xyz:xyz100', async () => {
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&symbol=xyz:xyz100',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: expect.objectContaining({
+            symbol: 'xyz:XYZ100',
+            name: 'XYZ100',
+            marketSource: 'xyz',
+          }),
+          source: 'deeplink',
+        },
+      });
+    });
+
+    it('handles lowercase HIP-3 dex prefix', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=XYZ:AAPL' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: expect.objectContaining({
+            symbol: 'xyz:AAPL',
+            name: 'AAPL',
+            marketSource: 'xyz',
+          }),
+          source: 'deeplink',
+        },
+      });
+    });
+
+    it('standard crypto symbol has no marketSource', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
+
+      const navigateCall = mockNavigate.mock.calls[0];
+      const market = navigateCall[1].params.market;
+
+      expect(market.symbol).toBe('BTC');
+      expect(market.marketSource).toBeUndefined();
     });
   });
 });

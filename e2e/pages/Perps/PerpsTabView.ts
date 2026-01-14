@@ -20,7 +20,13 @@ class PerpsTabView {
   }
 
   get onboardingButton(): DetoxElement {
-    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.ONBOARDING_BUTTON);
+    return Matchers.getElementByText('Start trading');
+  }
+
+  get startNewTradeButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA,
+    );
   }
 
   get balanceValue(): DetoxElement {
@@ -68,6 +74,12 @@ class PerpsTabView {
   async tapOnboardingButton(): Promise<void> {
     await Gestures.waitAndTap(this.onboardingButton, {
       elemDescription: 'Perps Onboarding Button',
+    });
+  }
+
+  async tapStartNewTradeButton(): Promise<void> {
+    await Gestures.waitAndTap(this.startNewTradeButton, {
+      elemDescription: 'Perps Start New Trade Button',
     });
   }
 

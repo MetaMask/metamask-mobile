@@ -383,6 +383,7 @@
     }
   },
   "SnapController": {
+    "isReady": false,
     "snapStates": {},
     "snaps": {},
     "unencryptedSnapStates": {}
@@ -393,7 +394,8 @@
   "SnapsRegistry": {
     "database": null,
     "databaseUnavailable": false,
-    "lastUpdated": null
+    "lastUpdated": null,
+    "signature": null
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -471,8 +473,6 @@
     "initializationState": "uninitialized",
     "initializationError": null,
     "initializationAttempts": 0,
-    "connectionStatus": "disconnected",
-    "positions": [],
     "accountState": null,
     "depositInProgress": false,
     "depositRequests": [],
@@ -505,6 +505,8 @@
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
+    "localOverrides": {},
+    "rawRemoteFeatureFlags": {},
     "remoteFeatureFlags": {}
   },
   "SeedlessOnboardingController": {
@@ -738,5 +740,9 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "RampsController": {
+    "geolocation": null,
+    "requests": {}
   }
 }

@@ -287,6 +287,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Stop Market',
         isTrigger: true,
         reduceOnly: true,
+        triggerPrice: '25.50',
       });
     });
 
@@ -616,6 +617,94 @@ describe('hyperLiquidAdapter', () => {
       expect(result.takeProfitOrderId).toBeUndefined();
       expect(result.stopLossPrice).toBe('0.4');
       expect(result.stopLossOrderId).toBe('88889');
+    });
+
+    it('sets triggerPrice for trigger orders with both limitPx and triggerPx', () => {
+      // Take Profit Limit order: triggerPx is the condition price, limitPx is the execution price
+      const frontendOrder: FrontendOrder = {
+        oid: 99999,
+        coin: 'ETH',
+        side: 'A', // Sell (close long position)
+        sz: '1',
+        origSz: '1',
+        limitPx: '3500', // Execution price (different from trigger)
+        triggerPx: '3450', // Trigger condition price
+        orderType: 'Take Profit Limit',
+        timestamp: 1234567890000,
+        isTrigger: true,
+        reduceOnly: true,
+        triggerCondition: 'tp',
+        isPositionTpsl: true,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      // price should use limitPx (execution price) when available
+      expect(result.price).toBe('3500');
+      // triggerPrice should always be the trigger condition price
+      expect(result.triggerPrice).toBe('3450');
+      expect(result.isTrigger).toBe(true);
+      expect(result.detailedOrderType).toBe('Take Profit Limit');
+    });
+
+    it('sets triggerPrice for trigger orders with only triggerPx (market style)', () => {
+      // Take Profit Market order: only triggerPx is set
+      const frontendOrder: FrontendOrder = {
+        oid: 100000,
+        coin: 'BTC',
+        side: 'A', // Sell (close long position)
+        sz: '0.5',
+        origSz: '0.5',
+        limitPx: '', // No limit price for market-style trigger
+        triggerPx: '70000', // Trigger condition price
+        orderType: 'Take Profit Market',
+        timestamp: 1234567890000,
+        isTrigger: true,
+        reduceOnly: true,
+        triggerCondition: 'tp',
+        isPositionTpsl: true,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      // price should fall back to triggerPx when limitPx is empty
+      expect(result.price).toBe('70000');
+      // triggerPrice should be set to triggerPx
+      expect(result.triggerPrice).toBe('70000');
+      expect(result.isTrigger).toBe(true);
+    });
+
+    it('does not set triggerPrice for non-trigger orders', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 100001,
+        coin: 'ETH',
+        side: 'B',
+        sz: '1',
+        origSz: '1',
+        limitPx: '3000',
+        triggerPx: '', // No trigger price for regular limit order
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.price).toBe('3000');
+      expect(result.triggerPrice).toBeUndefined();
+      expect(result.isTrigger).toBe(false);
     });
   });
 
@@ -973,8 +1062,9 @@ describe('hyperLiquidAdapter', () => {
       );
 
       // Small decimal with many significant figures
+      // 0.123456 has 6 decimal digits, rounds to 5 sig figs = 0.12346
       expect(formatHyperLiquidPrice({ price: 0.123456, szDecimals: 0 })).toBe(
-        '0.1235',
+        '0.12346',
       );
     });
 

@@ -139,7 +139,10 @@ describe('EarnMusdConversionEducationView', () => {
         getByText(strings('earn.musd_conversion.education.description')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('earn.musd_conversion.education.continue_button')),
+        getByText(strings('earn.musd_conversion.education.primary_button')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('earn.musd_conversion.education.secondary_button')),
       ).toBeOnTheScreen();
     });
   });
@@ -153,7 +156,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -183,7 +186,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -202,7 +205,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -211,6 +214,7 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           outputChainId: mockRouteParams.outputChainId,
           preferredPaymentToken: mockRouteParams.preferredPaymentToken,
+          skipEducationCheck: true,
         });
       });
     });
@@ -229,7 +233,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -257,7 +261,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 
@@ -281,7 +285,7 @@ describe('EarnMusdConversionEducationView', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByText(strings('earn.musd_conversion.education.continue_button')),
+          getByText(strings('earn.musd_conversion.education.primary_button')),
         );
       });
 

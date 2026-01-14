@@ -5,6 +5,7 @@ import {
 } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from '../useTokensWithBalance';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { BridgeToken } from '../../types';
 
 /**
  * Interface for the balance data stored in the lookup map
@@ -14,6 +15,7 @@ export interface BalanceData {
   balanceFiat?: string;
   tokenFiatAmount?: number;
   currencyExchangeRate?: number;
+  accountType?: BridgeToken['accountType'];
 }
 
 /**
@@ -46,12 +48,13 @@ export const useBalancesByAssetId = ({
         // Normalize assetId because API returns assetId in lowercase for EVM chains
         const normalizedAssetId = isNonEvmChainId(token.chainId)
           ? assetId
-          : assetId?.toLowerCase();
-        balancesMap[normalizedAssetId ?? ''] = {
+          : assetId.toLowerCase();
+        balancesMap[normalizedAssetId] = {
           balance: token.balance,
           balanceFiat: token.balanceFiat,
           tokenFiatAmount: token.tokenFiatAmount,
           currencyExchangeRate: token.currencyExchangeRate,
+          accountType: token.accountType,
         };
       }
     });

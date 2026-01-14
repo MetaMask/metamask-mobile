@@ -13,15 +13,25 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
-import { MetaMetrics } from '../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
@@ -124,7 +134,6 @@ export type PerpsControllerState = {
   // Active provider
   activeProvider: string;
   isTestnet: boolean; // Dev toggle for testnet
-  connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Initialization state machine
   initializationState: InitializationState;
@@ -133,9 +142,6 @@ export type PerpsControllerState = {
 
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
-
-  // Current positions
-  positions: Position[];
 
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
@@ -274,12 +280,10 @@ export type PerpsControllerState = {
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  connectionStatus: 'disconnected',
   initializationState: InitializationState.UNINITIALIZED,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
-  positions: [],
   perpsBalances: {},
   depositInProgress: false,
   lastDepositResult: null,
@@ -326,12 +330,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  positions: {
-    includeInStateLogs: true,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   perpsBalances: {
     includeInStateLogs: true,
     persist: true,
@@ -347,12 +345,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
   activeProvider: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  connectionStatus: {
-    includeInStateLogs: true,
-    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -1393,6 +1385,14 @@ export class PerpsController extends BaseController<
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(assetChainId);
 
+      const gasFeeToken =
+        transaction.to &&
+        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        transaction.to.toLowerCase() ===
+          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
+          ? (transaction.to as Hex)
+          : undefined;
+
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } =
@@ -1401,6 +1401,7 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
+          gasFeeToken,
         });
 
       // Store the transaction ID and try to get amount from transaction
@@ -1549,6 +1550,8 @@ export class PerpsController extends BaseController<
     status: 'completed' | 'failed',
     txHash?: string,
   ): void {
+    let withdrawalAmount: string | undefined;
+
     this.update((state) => {
       const withdrawalIndex = state.withdrawalRequests.findIndex(
         (request) => request.id === withdrawalId,
@@ -1556,6 +1559,8 @@ export class PerpsController extends BaseController<
 
       if (withdrawalIndex >= 0) {
         const request = state.withdrawalRequests[withdrawalIndex];
+        withdrawalAmount = request.amount;
+        const originalStatus = request.status;
         request.status = status;
         request.success = status === 'completed';
         if (txHash) {
@@ -1569,6 +1574,21 @@ export class PerpsController extends BaseController<
             lastUpdated: Date.now(),
             activeWithdrawalId: null,
           };
+        }
+
+        // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
+        if (withdrawalAmount !== undefined && originalStatus !== status) {
+          const eventBuilder = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+          ).addProperties({
+            [PerpsEventProperties.STATUS]:
+              status === 'completed'
+                ? PerpsEventValues.STATUS.COMPLETED
+                : PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+              Number.parseFloat(withdrawalAmount),
+          });
+          MetaMetrics.getInstance().trackEvent(eventBuilder.build());
         }
 
         DevLogger.log('PerpsController: Updated withdrawal status', {
@@ -1876,7 +1896,6 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.isTestnet = !state.isTestnet;
-        state.connectionStatus = 'disconnected';
       });
 
       const newNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -1927,7 +1946,6 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.activeProvider = providerId;
-      state.connectionStatus = 'disconnected';
     });
 
     return { success: true, providerId };

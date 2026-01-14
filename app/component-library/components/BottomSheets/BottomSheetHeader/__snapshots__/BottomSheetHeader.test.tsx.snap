@@ -5,34 +5,49 @@ exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] =
   style={
     [
       {
+        "alignItems": "center",
         "flexDirection": "row",
         "gap": 16,
-        "padding": 16,
+        "height": 56,
       },
       false,
+      {
+        "paddingHorizontal": 16,
+      },
     ]
   }
   testID="header"
 >
   <View
     style={
-      {
-        "alignItems": "center",
-        "flex": 1,
-      }
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
     }
   >
     <Text
       accessibilityRole="text"
       style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-          "textAlign": "center",
-        }
+        [
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "fontWeight": 700,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
       }
       testID="header-title"
     >
@@ -47,34 +62,46 @@ exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] =
   style={
     [
       {
+        "alignItems": "center",
         "flexDirection": "row",
         "gap": 16,
-        "padding": 16,
       },
       false,
+      {
+        "paddingHorizontal": 16,
+      },
     ]
   }
   testID="header"
 >
   <View
     style={
-      {
-        "alignItems": "flex-start",
-        "flex": 1,
-      }
+      [
+        {
+          "alignItems": "flex-start",
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
     }
   >
     <Text
       accessibilityRole="text"
       style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
-          "fontSize": 24,
-          "letterSpacing": 0,
-          "lineHeight": 32,
-          "textAlign": "left",
-        }
+        [
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 24,
+            "fontWeight": 700,
+            "letterSpacing": 0,
+            "lineHeight": 32,
+          },
+          undefined,
+        ]
       }
       testID="header-title"
     >
@@ -89,34 +116,49 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
   style={
     [
       {
+        "alignItems": "center",
         "flexDirection": "row",
         "gap": 16,
-        "padding": 16,
+        "height": 56,
       },
       false,
+      {
+        "paddingHorizontal": 16,
+      },
     ]
   }
   testID="header"
 >
   <View
     style={
-      {
-        "alignItems": "center",
-        "flex": 1,
-      }
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
     }
   >
     <Text
       accessibilityRole="text"
       style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist-Bold",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-          "textAlign": "center",
-        }
+        [
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Bold",
+            "fontSize": 16,
+            "fontWeight": 700,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
       }
       testID="header-title"
     >

@@ -179,6 +179,13 @@ export interface PolymarketApiEvent {
   liquidity: number;
   volume: number;
   sortBy?: 'price' | 'ascending' | 'descending';
+  gameId?: string;
+  startTime?: string;
+  score?: string;
+  elapsed?: string;
+  period?: string;
+  live?: boolean;
+  ended?: boolean;
 }
 
 export interface PolymarketApiActivity {
@@ -341,4 +348,24 @@ export interface OrderBook {
   min_order_size: string;
   tick_size: string;
   neg_risk: boolean;
+}
+
+export interface PolymarketApiTeam {
+  id: string;
+  name: string;
+  logo: string;
+  abbreviation: string;
+  color: string;
+  alias: string;
+}
+
+export interface PolymarketApiGameEvent {
+  gameId?: string;
+  startTime?: string;
+  score?: string;
+  elapsed?: string;
+  period?: string;
+  live?: boolean;
+  ended?: boolean;
+  closed?: boolean;
 }

@@ -19,6 +19,55 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
 import { expect } from 'appwright';
 
+export async function selectAccountDevice(device, testInfo) {
+  // Access device name from testInfo.project.use.device
+  const deviceName = testInfo.project.use.device.name;
+  console.log(`📱 Device executing the test: ${deviceName}`);
+
+  let accountName;
+
+  // Define account mapping based on device name
+  // The device names must match those in appwright.config.ts or device-matrix.json
+  switch (deviceName) {
+    case 'Samsung Galaxy S23 Ultra':
+      accountName = 'Account 3';
+      break;
+    case 'Google Pixel 8 Pro':
+      console.log(
+        `🔄 Account 1 is selected by default in the app for device: ${deviceName}`,
+      );
+      return;
+    case 'iPhone 16 Pro Max':
+      accountName = 'Account 4';
+      break;
+    case 'iPhone 12':
+      accountName = 'Account 5';
+      break;
+    default:
+      console.log(
+        `🔄 Account 1 is selected by default in the app for device: ${deviceName}`,
+      );
+      return;
+  }
+  // Account 2 is called stable and not used in this function
+
+  console.log(
+    `🔄 Switching to account: ${accountName} for device: ${deviceName}`,
+  );
+
+  // Set device for screen objects
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
+
+  // Perform account switch
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+  await AccountListComponent.tapOnAccountByName(accountName);
+
+  // Verify we are back on main screen (tapping account usually closes modal)
+  await WalletMainScreen.isMainWalletViewVisible();
+}
+
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -86,7 +135,7 @@ export async function checkPredictionsModalIsVisible(device) {
   await expect(notNowPredictionsModalButton).toBeVisible({ timeout: 10000 });
 }
 
-export async function importSRPFlow(device, srp, dismissModals = true) {
+export async function importSRPFlow(device, srp, dismissModals = false) {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -94,22 +143,30 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
   const timers = [];
   const timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
+    { ios: 2500, android: 3000 },
+    device,
   );
   const timer2 = new TimerHelper(
     'Time since the user clicks on "Add account" button until the next modal is visible',
+    { ios: 1000, android: 1700 },
+    device,
   );
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Import SRP" button until SRP field is displayed',
+    { ios: 1700, android: 1700 },
+    device,
   );
   const timer4 = new TimerHelper(
     'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
+    { ios: 5000, android: 2000 },
+    device,
   );
 
   await WalletMainScreen.tapIdenticon();
   timer.start();
   await AccountListComponent.isComponentDisplayed();
   timer.stop();
-
+  await AccountListComponent.waitForSyncingToComplete();
   await AccountListComponent.tapOnAddWalletButton();
   timer2.start();
   await AddAccountModal.isVisible();
@@ -134,13 +191,12 @@ export async function importSRPFlow(device, srp, dismissModals = true) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { scenarioType = 'login', dismissModals = true } = options;
+  const { scenarioType = 'login', dismissModals = false } = options;
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await new Promise((resolve) => setTimeout(resolve, 5000)); // workaround for notification modal to appear
   if (dismissModals) {
     await dismissMultichainAccountsIntroModal(device);
     await dissmissPredictionsModal(device);

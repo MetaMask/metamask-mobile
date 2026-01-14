@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
@@ -20,8 +20,10 @@ import { getNetworkName, NetworkPills } from './NetworkPills';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
-import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
+import {
+  selectEnabledChainRanking,
+  setIsSelectingToken,
+} from '../../../../../core/redux/slices/bridge';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
@@ -33,7 +35,13 @@ import {
   ButtonIconSize,
   IconColor,
   IconName,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
+import { useAssetFromTheme } from '../../../../../util/theme';
+import NoSearchResultsLight from '../../../../../images/predictions-no-search-results-light.svg';
+import NoSearchResultsDark from '../../../../../images/predictions-no-search-results-dark.svg';
 import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -46,7 +54,6 @@ import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import Routes from '../../../../../constants/navigation/Routes';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export interface BridgeTokenSelectorRouteParams {
@@ -54,9 +61,12 @@ export interface BridgeTokenSelectorRouteParams {
 }
 
 const MIN_SEARCH_LENGTH = 3;
+const ESTIMATED_ITEM_HEIGHT = 72;
+const LOAD_MORE_DISTANCE_THRESHOLD = 300; // Distance from bottom to trigger load
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const { styles } = useStyles(createStyles, {});
@@ -65,15 +75,28 @@ export const BridgeTokenSelector: React.FC = () => {
   const flatListRef = useRef<FlatList>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
 
+  // Set selecting token state to prevent quote expired modal from showing
+  useEffect(() => {
+    dispatch(setIsSelectingToken(true));
+
+    return () => {
+      dispatch(setIsSelectingToken(false));
+    };
+  }, [dispatch]);
+
+  // Get themed SVG for empty state
+  const NoSearchResultsIcon = useAssetFromTheme(
+    NoSearchResultsLight,
+    NoSearchResultsDark,
+  );
+
   // Check if search string meets minimum length requirement
   const isValidSearch = useMemo(
     () => searchString.trim().length >= MIN_SEARCH_LENGTH,
     [searchString],
   );
 
-  const bridgeFeatureFlags = useSelector((state: RootState) =>
-    selectBridgeFeatureFlags(state),
-  );
+  const enabledChainRanking = useSelector(selectEnabledChainRanking);
 
   // Set navigation options for header
   useEffect(() => {
@@ -82,13 +105,11 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
-    route.params?.type,
+    route.params.type,
   );
 
   // Initialize selectedChainId with the chain id of the selected token
-  const [selectedChainId, setSelectedChainId] = useState<
-    CaipChainId | undefined
-  >(
+  const [selectedChainId, setSelectedChainId] = useState(
     selectedToken?.chainId && route.params?.type === 'dest'
       ? formatChainIdToCaip(selectedToken.chainId)
       : undefined,
@@ -109,10 +130,8 @@ export const BridgeTokenSelector: React.FC = () => {
     }
   }, [selectedChainId]);
 
-  // Chain IDs to fetch tokens for
   const chainIdsToFetch = useMemo(() => {
-    // @ts-expect-error chainRanking is not yet in the type definition
-    if (!bridgeFeatureFlags.chainRanking) {
+    if (!enabledChainRanking || enabledChainRanking.length === 0) {
       return [];
     }
 
@@ -121,12 +140,11 @@ export const BridgeTokenSelector: React.FC = () => {
       return [selectedChainId];
     }
 
-    // If "All" is selected, use all chains from chainRanking
-    // @ts-expect-error chainRanking is not yet in the type definition
-    return bridgeFeatureFlags.chainRanking.map(
+    // If "All" is selected, use all chains from filtered chainRanking
+    return enabledChainRanking.map(
       (chain: { chainId: CaipChainId }) => chain.chainId,
     );
-  }, [selectedChainId, bridgeFeatureFlags]);
+  }, [selectedChainId, enabledChainRanking]);
 
   // Get balances indexed by assetId for O(1) lookup when merging with API results
   const { tokensWithBalance, balancesByAssetId } = useBalancesByAssetId({
@@ -153,23 +171,24 @@ export const BridgeTokenSelector: React.FC = () => {
   // Create includeAssets array from tokens with balance to be sent to API
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssets = useMemo(() => {
-    const assets: IncludeAsset[] = filteredTokensWithBalance.reduce<
-      IncludeAsset[]
-    >((acc, token) => {
-      const assetId = formatAddressToAssetId(token.address, token.chainId);
-      if (assetId) {
-        const normalizedAssetId = isNonEvmChainId(token.chainId)
-          ? assetId
-          : (assetId?.toLowerCase() as CaipAssetType);
-        acc.push({
-          assetId: normalizedAssetId,
-          name: token.name ?? '',
-          symbol: token.symbol,
-          decimals: token.decimals,
-        });
-      }
-      return acc;
-    }, []);
+    const assets = filteredTokensWithBalance.reduce<IncludeAsset[]>(
+      (acc, token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        if (assetId) {
+          const normalizedAssetId = isNonEvmChainId(token.chainId)
+            ? assetId
+            : (assetId?.toLowerCase() as CaipAssetType);
+          acc.push({
+            assetId: normalizedAssetId,
+            name: token.name ?? '',
+            symbol: token.symbol,
+            decimals: token.decimals,
+          });
+        }
+        return acc;
+      },
+      [],
+    );
     return JSON.stringify(assets);
   }, [filteredTokensWithBalance]);
 
@@ -259,8 +278,6 @@ export const BridgeTokenSelector: React.FC = () => {
       searchCursor &&
       flatListHeight > 0
     ) {
-      // Estimate item height (approximate height of TokenSelectorItem)
-      const ESTIMATED_ITEM_HEIGHT = 72;
       const estimatedContentHeight =
         searchResults.length * ESTIMATED_ITEM_HEIGHT;
 
@@ -305,17 +322,17 @@ export const BridgeTokenSelector: React.FC = () => {
     debouncedSearch(text);
   };
 
+  const handleClearSearch = useCallback(() => {
+    setSearchString('');
+    debouncedSearch.cancel();
+    resetSearch();
+  }, [debouncedSearch, resetSearch]);
+
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
       const networkName = getNetworkName(item.chainId, networkConfigurations);
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TOKEN_INSIGHTS,
-        params: {
-          token: item,
-          networkName,
-        },
-      });
+      navigation.navigate('Asset', { ...item });
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
@@ -399,10 +416,9 @@ export const BridgeTokenSelector: React.FC = () => {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { layoutMeasurement, contentOffset, contentSize } =
         event.nativeEvent;
-      const paddingToBottom = 300; // Distance from bottom to trigger load
       const isCloseToBottom =
         layoutMeasurement.height + contentOffset.y >=
-        contentSize.height - paddingToBottom;
+        contentSize.height - LOAD_MORE_DISTANCE_THRESHOLD;
 
       if (isCloseToBottom) {
         handleLoadMore();
@@ -427,6 +443,44 @@ export const BridgeTokenSelector: React.FC = () => {
     [],
   );
 
+  // Render empty state when no tokens found
+  const renderEmptyState = useCallback(() => {
+    // Only show empty state when search is active and not loading
+    if (!isValidSearch || isSearchLoading) {
+      return null;
+    }
+
+    return (
+      <Box
+        testID="bridge-token-selector-empty-state"
+        style={styles.emptyStateContainer}
+      >
+        <NoSearchResultsIcon width={72} height={78} />
+        <Text
+          variant={TextVariant.HeadingMd}
+          color={TextColor.TextDefault}
+          style={styles.emptyStateTitle}
+        >
+          {strings('bridge.no_tokens_found')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          style={styles.emptyStateDescription}
+        >
+          {strings('bridge.no_tokens_found_description')}
+        </Text>
+      </Box>
+    );
+  }, [
+    isValidSearch,
+    isSearchLoading,
+    styles.emptyStateContainer,
+    styles.emptyStateTitle,
+    styles.emptyStateDescription,
+    NoSearchResultsIcon,
+  ]);
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Box style={styles.buttonContainer}>
@@ -444,6 +498,8 @@ export const BridgeTokenSelector: React.FC = () => {
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
+          showClearButton={searchString.length > 0}
+          onPressClearButton={handleClearSearch}
         />
       </Box>
 
@@ -462,6 +518,7 @@ export const BridgeTokenSelector: React.FC = () => {
         onScroll={handleScroll}
         scrollEventThrottle={400}
         ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmptyState}
         onLayout={handleFlatListLayout}
       />
     </SafeAreaView>

@@ -4,7 +4,6 @@ import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import {
-  mockBridgeFeatureFlags,
   mockNetworkConfigurations,
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
@@ -14,6 +13,13 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.Mock;
+
+// Mock for selectEnabledChainRanking - returns filtered chain ranking array
+const mockEnabledChainRanking = [
+  { chainId: MOCK_CHAIN_IDS.ethereum },
+  { chainId: MOCK_CHAIN_IDS.polygon },
+  { chainId: MOCK_CHAIN_IDS.optimism },
+];
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => (key === 'bridge.all' ? 'All' : key),
@@ -55,7 +61,7 @@ describe('NetworkPills', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector
-      .mockReturnValueOnce(mockBridgeFeatureFlags)
+      .mockReturnValueOnce(mockEnabledChainRanking)
       .mockReturnValueOnce(mockNetworkConfigurations);
   });
 

@@ -52,7 +52,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
-import ExploreSearchScreen from '../../Views/TrendingView/ExploreSearchScreen/ExploreSearchScreen';
+import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -126,8 +126,9 @@ import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSh
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
+import MetalCardClaimBottomSheet from '../../UI/Rewards/components/MetalCardClaimBottomSheet/MetalCardClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import {
   TOKEN_TITLE,
   NFT_TITLE,
@@ -171,7 +172,11 @@ const WalletModalFlow = () => (
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
     <Stack.Screen
       name={'Asset'}
       component={Asset}
@@ -185,9 +190,8 @@ const AssetStackFlow = (props) => (
   </Stack.Navigator>
 );
 
-const AssetModalFlow = (props) => (
+const AssetNavigator = (props) => (
   <Stack.Navigator
-    mode={'modal'}
     initialRouteName={'AssetStackFlow'}
     screenOptions={clearStackNavigatorOptions}
   >
@@ -274,6 +278,10 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
       component={ReferralBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET}
+      component={MetalCardClaimBottomSheet}
     />
   </Stack.Navigator>
 );
@@ -637,7 +645,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: true,
+      unmountOnBlur: false,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -720,7 +728,6 @@ const HomeTabs = () => {
                 ),
             }}
             component={ExploreHome}
-            layout={({ children }) => UnmountOnBlurComponent(children)}
           />
           <Tab.Screen
             name={Routes.BROWSER.HOME}
@@ -1004,12 +1011,13 @@ const MainNavigator = () => {
         name="AddAsset"
         component={AddAsset}
         options={({ route, navigation }) => ({
-          ...getImportTokenNavbarOptions(
-            navigation,
-            strings(
+          ...getHeaderCenterNavbarOptions({
+            title: strings(
               `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
             ),
-          ),
+            onBack: () => navigation.goBack(),
+            includesTopInset: true,
+          }),
           headerShown: true,
         })}
       />
@@ -1038,7 +1046,25 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="Asset"
+        component={AssetNavigator}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
@@ -1080,10 +1106,43 @@ const MainNavigator = () => {
         component={NotificationsModeView}
       />
       <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-      <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+      <Stack.Screen
+        name="NftDetails"
+        component={NftDetailsModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
       />
       <Stack.Screen
         name={Routes.WALLET.NFTS_FULL_VIEW}
@@ -1108,7 +1167,26 @@ const MainNavigator = () => {
         component={BridgeModalStack}
         options={clearStackNavigatorOptions}
       />
-      <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+      <Stack.Screen
+        name="StakeScreens"
+        component={StakeScreenStack}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
@@ -1257,6 +1335,19 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={{
           headerShown: true,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
       {

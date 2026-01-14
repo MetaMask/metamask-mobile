@@ -41,6 +41,7 @@ import {
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
   selectIsSelectingRecipient,
+  selectIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -64,7 +65,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeQuoteResponse, BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -76,6 +77,7 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
@@ -97,6 +99,7 @@ const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
+  const isSelectingToken = useSelector(selectIsSelectingToken);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
@@ -125,6 +128,8 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
+
+  const walletAddress = useSelector(selectSourceWalletAddress);
 
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
@@ -223,12 +228,13 @@ const BridgeView = () => {
   ]);
 
   const isSubmitDisabled =
-    isLoading ||
+    (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
-    !hasSufficientGas;
+    !hasSufficientGas ||
+    !walletAddress;
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
@@ -335,10 +341,17 @@ const BridgeView = () => {
 
   const handleContinue = async () => {
     try {
-      if (activeQuote) {
+      if (activeQuote && walletAddress) {
         dispatch(setIsSubmittingTx(true));
+
+        const quoteResponse: BridgeQuoteResponse = {
+          ...activeQuote,
+          aggregator: activeQuote.quote.bridgeId,
+          walletAddress,
+        };
+
         await submitBridgeTx({
-          quoteResponse: activeQuote,
+          quoteResponse,
         });
       }
     } catch (error) {
@@ -374,14 +387,25 @@ const BridgeView = () => {
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh && !isSelectingRecipient) {
+    if (
+      isExpired &&
+      !willRefresh &&
+      !isSelectingRecipient &&
+      !isSelectingToken
+    ) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
+  }, [
+    isExpired,
+    willRefresh,
+    navigation,
+    isSelectingRecipient,
+    isSelectingToken,
+  ]);
 
   const renderBottomContent = (submitDisabled: boolean) => {
     if (shouldDisplayKeypad && !isLoading) {
