@@ -41,7 +41,6 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
-import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
@@ -230,7 +229,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     };
 
     getUserAuthPreferences();
-  }, [route?.params?.locked]);
+  }, [route?.params?.locked, getAuthType]);
 
   const handleVaultCorruption = useCallback(async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -410,6 +409,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     loading,
     handleLoginError,
     checkMetricsUISeen,
+    componentAuthenticationType,
+    unlockWallet,
   ]);
 
   const unlockWithBiometrics = useCallback(async () => {
@@ -438,7 +439,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } finally {
       setLoading(false);
     }
-  }, [checkMetricsUISeen, unlockWallet, loading]);
+  }, [checkMetricsUISeen, unlockWallet, loading, handleLoginError]);
 
   // show biometric switch to true even if biometric is disabled
   const shouldRenderBiometricLogin = biometryType;

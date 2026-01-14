@@ -78,7 +78,6 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import { handlePasswordSubmissionError } from './utils';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
@@ -816,6 +815,7 @@ class AuthenticationService {
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
         });
       }
+      // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
       throw error;
