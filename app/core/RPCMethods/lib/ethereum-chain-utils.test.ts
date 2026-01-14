@@ -30,6 +30,7 @@ describe('switchToNetwork', () => {
     const mockTrackEvent = jest.fn();
     (MetaMetrics.getInstance as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
     });
 
     const mockAddProperties = jest.fn().mockReturnThis();

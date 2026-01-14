@@ -37,7 +37,7 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -825,7 +825,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderCenter onClose={() => handleClosePress(bottomSheetRef)} />
         <ErrorViewWithReporting error={sdkError} location={'Quotes Screen'} />
       </BottomSheet>
     );
@@ -847,7 +847,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderCenter onClose={() => handleClosePress(bottomSheetRef)} />
         <ErrorView
           description={ErrorFetchingQuotes}
           ctaOnPress={handleFetchQuotes}
@@ -875,7 +875,7 @@ function Quotes() {
     }
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderCenter onClose={() => handleClosePress(bottomSheetRef)} />
         <ErrorView
           icon="expired"
           title={strings('fiat_on_ramp_aggregator.quotes_timeout')}
@@ -904,7 +904,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderCenter onClose={() => handleClosePress(bottomSheetRef)} />
         <LoadingAnimation
           title={strings('fiat_on_ramp_aggregator.fetching_quotes')}
           finish={shouldFinishAnimation}
@@ -940,7 +940,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderCenter onClose={() => handleClosePress(bottomSheetRef)} />
         <ScreenLayout>
           <ErrorView
             title={strings('fiat_on_ramp_aggregator.no_providers_available')}
@@ -960,9 +960,10 @@ function Quotes() {
   if (!isExpanded) {
     return (
       <BottomSheet ref={bottomSheetRef}>
-        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)}>
-          {strings('fiat_on_ramp_aggregator.recommended_quote')}
-        </BottomSheetHeader>
+        <HeaderCenter
+          title={strings('fiat_on_ramp_aggregator.recommended_quote')}
+          onClose={() => handleClosePress(bottomSheetRef)}
+        />
 
         {isInPolling && (
           <Timer
@@ -1069,9 +1070,10 @@ function Quotes() {
 
   return (
     <BottomSheet isInteractable={false} isFullscreen ref={bottomSheetRef}>
-      <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)}>
-        {strings('fiat_on_ramp_aggregator.select_a_quote')}
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('fiat_on_ramp_aggregator.select_a_quote')}
+        onClose={() => handleClosePress(bottomSheetRef)}
+      />
       <ScreenLayout>
         <ScreenLayout.Header>
           {isInPolling && (

@@ -52,7 +52,7 @@ jest.mock('../../../../core/Engine', () => {
   mockDismissSmartAccountSuggestionEnabled = jest.fn();
   mockSmartAccountOptIn = jest.fn();
   return {
-    init: () => mockEngine.init({}),
+    init: () => mockEngine.init(''),
     context: {
       PreferencesController: {
         setSmartTransactionsOptInStatus: mockSetSmartTransactionsOptInStatus,

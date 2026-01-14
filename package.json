@@ -197,6 +197,7 @@
     "@metamask/account-tree-controller": "^3.0.0",
     "@metamask/accounts-controller": "^34.0.0",
     "@metamask/address-book-controller": "^7.0.0",
+    "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^8.0.0",
     "@metamask/assets-controllers": "^95.1.0",
