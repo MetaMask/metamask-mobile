@@ -6,6 +6,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PredictSportTeamHelmet from '../PredictSportTeamHelmet/PredictSportTeamHelmet';
 import PredictSportFootballIcon from '../PredictSportFootballIcon/PredictSportFootballIcon';
 import PredictSportWinner from '../PredictSportWinner/PredictSportWinner';
@@ -18,7 +19,7 @@ import {
 
 /**
  * NFL scoreboard component that displays team helmets, scores, and game status.
- * Supports 5 game states: Pre-game, In-progress, Halftime, Delayed, Final.
+ * Supports 4 game states: Pre-game, In-progress, Halftime, Final.
  * Shows possession indicator (football icon) during in-progress games.
  * Shows winner trophy during final games.
  */
@@ -77,16 +78,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
         return (
           <Box twClassName="items-center">
             <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              Halftime
-            </Text>
-          </Box>
-        );
-
-      case GameState.Delayed:
-        return (
-          <Box twClassName="items-center">
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              Delayed
+              {strings('predict.sports.halftime')}
             </Text>
           </Box>
         );
@@ -95,7 +87,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
         return (
           <Box twClassName="items-center">
             <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              Final
+              {strings('predict.sports.final')}
             </Text>
           </Box>
         );

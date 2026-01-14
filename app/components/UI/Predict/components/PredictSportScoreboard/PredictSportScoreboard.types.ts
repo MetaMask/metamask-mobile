@@ -2,7 +2,6 @@ export enum GameState {
   PreGame = 'PreGame',
   InProgress = 'InProgress',
   Halftime = 'Halftime',
-  Delayed = 'Delayed',
   Final = 'Final',
 }
 

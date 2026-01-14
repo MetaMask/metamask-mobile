@@ -315,58 +315,6 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
-  describe('GameState.Delayed', () => {
-    it('displays Delayed text', () => {
-      const awayTeam = createAwayTeam();
-      const homeTeam = createHomeTeam();
-
-      const { getByText } = render(
-        <PredictSportScoreboard
-          awayTeam={awayTeam}
-          homeTeam={homeTeam}
-          gameState={GameState.Delayed}
-        />,
-      );
-
-      expect(getByText('Delayed')).toBeOnTheScreen();
-    });
-
-    it('displays both team scores', () => {
-      const awayTeam = createAwayTeam();
-      const homeTeam = createHomeTeam();
-
-      const { getByText } = render(
-        <PredictSportScoreboard
-          awayTeam={awayTeam}
-          homeTeam={homeTeam}
-          gameState={GameState.Delayed}
-          awayScore={109}
-          homeScore={99}
-        />,
-      );
-
-      expect(getByText('109')).toBeOnTheScreen();
-      expect(getByText('99')).toBeOnTheScreen();
-    });
-
-    it('hides possession indicator in delayed state', () => {
-      const awayTeam = createAwayTeam();
-      const homeTeam = createHomeTeam();
-
-      const { queryByTestId } = render(
-        <PredictSportScoreboard
-          awayTeam={awayTeam}
-          homeTeam={homeTeam}
-          gameState={GameState.Delayed}
-          possession={Possession.Home}
-          testID="scoreboard"
-        />,
-      );
-
-      expect(queryByTestId('scoreboard-home-possession')).toBeNull();
-    });
-  });
-
   describe('GameState.Final', () => {
     it('displays Final text', () => {
       const awayTeam = createAwayTeam();
@@ -707,7 +655,6 @@ describe('PredictSportScoreboard', () => {
       [GameState.PreGame, 'PreGame'],
       [GameState.InProgress, 'InProgress'],
       [GameState.Halftime, 'Halftime'],
-      [GameState.Delayed, 'Delayed'],
       [GameState.Final, 'Final'],
     ])('renders %s state successfully', (gameState) => {
       const awayTeam = createAwayTeam();
