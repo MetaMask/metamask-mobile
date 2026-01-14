@@ -4,12 +4,14 @@ import {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
+import Device from '../../../util/device';
 
 const UNDERLINE_HEIGHT = 2;
 const TAB_PADDING_BOTTOM = 8;
 const TAB_PADDING_VERTICAL = 8;
 const DELETE_CONTAINER_PADDING_LEFT = 16;
 const DELETE_CONTAINER_PADDING_RIGHT = 8;
+const CONTAINER_HEIGHT_RATIO = 0.5; // 50%
 
 const BODY_MD_FONT_FAMILY = getFontFamily(TextVariant.BodyMD);
 
@@ -20,8 +22,14 @@ const createStyles = (params: { theme: Theme }) => {
   const borderMuted = colors.border.muted;
   const textDefault = colors.text.default;
   const textAlternative = colors.text.alternative;
+  const containerHeight = Device.getDeviceHeight() * CONTAINER_HEIGHT_RATIO;
 
   return StyleSheet.create({
+    // container
+    container: {
+      height: containerHeight,
+      maxHeight: containerHeight,
+    },
     // tab
     tabUnderlineStyle: {
       height: UNDERLINE_HEIGHT,
