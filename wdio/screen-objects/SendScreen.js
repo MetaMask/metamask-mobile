@@ -12,7 +12,6 @@ import {
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
 import { NETWORK_SELECTOR_TEST_IDS } from '../../app/constants/networkSelector.js';
 
@@ -184,15 +183,6 @@ class SendScreen {
       await Gestures.tapTextByXpath(contactName);
     } else {
       const element = await AppwrightSelectors.getElementByText(this._device, contactName);
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
-    }
-  }
-
-  async tapOnNextButton() {
-    if (!this._device) {
-      await Gestures.tapTextByXpath(NEXT_BUTTON);
-    } else {
-      const element = await AppwrightSelectors.getElementByID(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
       await AppwrightGestures.tap(element); // Use static tap method with retry logic
     }
   }
