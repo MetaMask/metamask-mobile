@@ -1,37 +1,14 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Pressable } from 'react-native';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectEnabledChainRanking } from '../../../../../core/redux/slices/bridge';
-import { Hex, CaipChainId } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { PopularList } from '../../../../../util/networks/customNetworks';
-import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 const PILL_WIDTH = 90; // Average pill width including gap
-
-export const getNetworkName = (
-  chainId: Hex | CaipChainId,
-  networkConfigurations: Record<string, MultichainNetworkConfiguration>,
-) => {
-  // Convert CAIP-2 chain ID (e.g., 'eip155:1') to hex format (e.g., '0x1') for network config lookup.
-  // If it's already a hex chainId or non-EVM CAIP format, use it as-is.
-  const convertedChainId: Hex | CaipChainId = chainId.startsWith('eip155:')
-    ? (`0x${parseInt(chainId.split(':')[1]).toString(16)}` as Hex)
-    : chainId;
-
-  return (
-    NETWORK_TO_SHORT_NETWORK_NAME_MAP[convertedChainId] ??
-    networkConfigurations?.[convertedChainId]?.name ??
-    PopularList.find((network) => network.chainId === convertedChainId)
-      ?.nickname ??
-    'Unknown Network'
-  );
-};
 
 interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
@@ -45,18 +22,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledRef = useRef(false);
-  const enabledChainRanking = useSelector(selectEnabledChainRanking);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-
-  // Map chainRanking to include network names
-  const chainRanking = useMemo(
-    () =>
-      (enabledChainRanking ?? []).map((chain: { chainId: CaipChainId }) => ({
-        ...chain,
-        name: getNetworkName(chain.chainId, networkConfigurations),
-      })),
-    [enabledChainRanking, networkConfigurations],
-  );
+  const chainRanking = useSelector(selectEnabledChainRanking);
 
   // Auto-scroll to selected network on initial layout
   const handleContentSizeChange = () => {
