@@ -47,6 +47,7 @@ interface SectionConfig {
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
+  OverrideSkeletonSearch?: React.ComponentType;
   Section: React.ComponentType<{
     sectionId: SectionId;
     data: unknown[];
@@ -161,6 +162,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    // Using sites skeleton cause PredictMarketSkeleton has too much spacing
+    OverrideSkeletonSearch: SiteSkeleton,
     Section: SectionCarrousel,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
