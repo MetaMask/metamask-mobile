@@ -818,7 +818,10 @@ class AuthenticationService {
       }
     } catch (error) {
       // Error while submitting password.
-      handlePasswordSubmissionError(error as Error);
+      throw error;
+
+      // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
+      // handlePasswordSubmissionError(error as Error);
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
