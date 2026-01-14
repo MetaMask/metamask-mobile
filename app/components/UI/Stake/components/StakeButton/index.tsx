@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,

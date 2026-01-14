@@ -2,9 +2,9 @@ import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
-import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
+import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
+import { CellComponentSelectorsIDs } from '../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import {

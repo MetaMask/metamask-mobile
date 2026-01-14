@@ -20,7 +20,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
-import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
+import { SDKSelectorsIDs } from '../SDK.testIds';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
 

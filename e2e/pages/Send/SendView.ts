@@ -1,7 +1,7 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
-import { AddAddressModalSelectorsIDs } from '../../selectors/SendFlow/AddAddressModal.selectors';
+import { SendViewSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/SendFlow/SendView.testIds';
+import { AddAddressModalSelectorsIDs } from '../../../app/components/UI/AddToAddressBookWrapper/AddAddressModal.testIds';
 
 class SendView {
   get cancelButton(): DetoxElement {

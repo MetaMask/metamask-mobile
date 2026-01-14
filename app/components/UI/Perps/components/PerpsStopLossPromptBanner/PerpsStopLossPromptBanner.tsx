@@ -11,7 +11,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsStopLossPromptSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,

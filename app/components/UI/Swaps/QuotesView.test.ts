@@ -15,7 +15,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
+import { SwapsViewSelectorsIDs } from './SwapsView.testIds';
 import Engine from '../../../core/Engine';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';

@@ -3,7 +3,7 @@ import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from "../../../e2e/framework/AppwrightGestures";
 import { expect } from 'appwright';
-import { PerpsGTMModalSelectorsIDs } from '../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsGTMModalSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
 class PerpsGTMModal {
 
