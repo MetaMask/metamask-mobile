@@ -1,14 +1,14 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/SendFlow/EditGasView.selectors';
+} from '../../../app/components/Views/confirmations/legacy/SendFlow/EditGasView.testIds';
 import {
   TransactionConfirmViewSelectorsIDs,
   TransactionConfirmViewSelectorsText,
-} from '../../selectors/SendFlow/TransactionConfirmView.selectors';
+} from '../../../app/components/Views/confirmations/legacy/SendFlow/Confirm/TransactionConfirmView.testIds';
 import RowComponents from '../Browser/Confirmations/RowComponents';
 
 class TransactionConfirmationView {

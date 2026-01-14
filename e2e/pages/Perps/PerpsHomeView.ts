@@ -1,4 +1,4 @@
-import { PerpsHomeViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import { PerpsHomeViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import enContent from '../../../locales/languages/en.json';

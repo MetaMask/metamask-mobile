@@ -7,7 +7,7 @@ import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../framework/Constants';
-import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
 
 describe(
   RegressionNetworkAbstractions('Permission System - Default Permissions'),

@@ -7,7 +7,7 @@ import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMulti
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';

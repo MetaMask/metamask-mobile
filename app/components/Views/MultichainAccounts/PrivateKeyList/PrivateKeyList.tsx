@@ -46,7 +46,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { PRIVATE_KEY_GUIDE_URL } from '../../../../constants/urls';
-import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
+import { PrivateKeyListIds } from './PrivateKeyList.testIds';
 
 import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';

@@ -7,7 +7,7 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../framework/Assertions';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import {
   buildPermissions,
   AnvilPort,

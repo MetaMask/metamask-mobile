@@ -3,7 +3,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import AssetSearch from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { fireEvent } from '@testing-library/react-native';
 import { act } from '@testing-library/react-hooks';
 const mockedEngine = Engine;
