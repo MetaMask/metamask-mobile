@@ -48,7 +48,7 @@ jobs:
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ inputs.commit_hash }}
-      fetch-depth: 1
+      fetch-depth: 0
       upload-artifact: true
       artifact-name: node-modules-eas-update
       artifact-retention-days: 1
@@ -105,9 +105,19 @@ jobs:
         with:
           name: node-modules-eas-update
 
+      - name: Download node_modules artifact (base branch checkout)
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+          path: main
+
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
         run: |
+          echo "🔍 Checking yarn setup..."
+          echo "  Node version: $(node --version)"
+          echo "  Yarn version: $(yarn --version)"
+          echo "  Corepack version: $(corepack --version)"
           echo "🧬 Generating fingerprint for target commit..."
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
@@ -117,6 +127,9 @@ jobs:
         id: main_fingerprint
         working-directory: main
         run: |
+          echo "🔍 Checking yarn setup..."
+          echo "  Node version: $(node --version)"
+          echo "  Yarn version: $(yarn --version)"
           echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
