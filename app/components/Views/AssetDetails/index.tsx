@@ -462,11 +462,11 @@ const AssetDetails = (props: InnerProps) => {
         {renderSectionTitle(strings('asset_details.amount'))}
         {renderTokenBalance()}
         {/* Perps Discovery Banner - show when perps market exists for this asset */}
-        {hasPerpsMarket && marketData && (
+        {isPerpsEnabled && hasPerpsMarket && marketData && (
           <>
             {renderSectionTitle(strings('asset_details.perps_trading'))}
             <PerpsDiscoveryBanner
-              symbol={symbol}
+              symbol={marketData.symbol}
               maxLeverage={marketData.maxLeverage}
               onPress={handlePerpsDiscoveryPress}
               testID="perps-discovery-banner"
