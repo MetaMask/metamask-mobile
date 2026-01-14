@@ -55,7 +55,7 @@ jest.mock('react-native-svg', () => ({
 }));
 
 jest.mock('d3-shape', () => ({
-  curveMonotoneX: 'monotone-curve',
+  curveStepAfter: 'step-after-curve',
 }));
 
 jest.mock('../../../../../util/theme', () => ({
@@ -64,6 +64,7 @@ jest.mock('../../../../../util/theme', () => ({
       primary: { default: '#0376C9' },
       background: { default: '#FFFFFF' },
       border: { muted: '#E0E0E0' },
+      text: { muted: '#9CA3AF', default: '#1A1A1A', alternative: '#6B7280' },
     },
   }),
 }));
