@@ -1,13 +1,13 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import BrowserBottomBar from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import SearchApi from '@metamask/react-native-search-api';
 import Logger from '../../../util/Logger';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
+import BrowserBottomBar from './';
+import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 
 // Mock dependencies
 jest.mock('../../../actions/bookmarks', () => ({

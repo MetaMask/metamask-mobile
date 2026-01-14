@@ -4,7 +4,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import useStyles from '../useStyles';
-import { NotificationDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Notifications/NotificationDetailsView.selectors';
+import { NotificationDetailsViewSelectorsIDs } from '../NotificationDetailsView.testIds';
 import { Box } from '../../../../UI/Box/Box';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {

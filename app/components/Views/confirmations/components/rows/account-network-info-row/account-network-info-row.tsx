@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import Expandable from '../../UI/expandable';

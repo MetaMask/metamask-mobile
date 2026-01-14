@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Device from '../../../util/device';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';

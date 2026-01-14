@@ -1,6 +1,6 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
 
 class AccountApprovalModal {
   get modalContainer() {

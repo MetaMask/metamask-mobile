@@ -43,6 +43,7 @@ import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -82,6 +83,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { outputToken: receiptToken, earnToken } = useSelector(
     (state: RootState) => selectEarnTokenPair(state, asset),
   );
+  const { isEligible } = useStakingEligibility();
   const isAssetReceiptToken = useSelector((state: RootState) =>
     selectEarnOutputToken(state, asset),
   );
@@ -193,6 +195,9 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   }
 
   const renderCta = () => {
+    if (!isEligible) {
+      return null;
+    }
     // Favour the mUSD Conversion CTA over the lending empty state CTA
     if (hasMusdConversionCta) {
       return renderMusdConversionCta();
@@ -270,16 +275,18 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             />
           )}
-          {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
-            <Button
-              variant={ButtonVariants.Secondary}
-              style={styles.button}
-              size={ButtonSize.Lg}
-              label={strings('earn.deposit_more')}
-              onPress={handleNavigateToDepositInputScreen}
-              testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-            />
-          )}
+          {userHasUnderlyingTokensAvailableToLend &&
+            !isAssetReceiptToken &&
+            isEligible && (
+              <Button
+                variant={ButtonVariants.Secondary}
+                style={styles.button}
+                size={ButtonSize.Lg}
+                label={strings('earn.deposit_more')}
+                onPress={handleNavigateToDepositInputScreen}
+                testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
+              />
+            )}
         </View>
       )}
       {isAssetReceiptToken && (

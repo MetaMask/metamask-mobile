@@ -2,7 +2,7 @@ import React from 'react';
 import Settings from './';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
+import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
