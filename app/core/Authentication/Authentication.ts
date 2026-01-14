@@ -818,10 +818,13 @@ class AuthenticationService {
       // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
-      throw error;
+
+      // TODO: Refactor lockApp to be more deterministic or create another clean up method.
+      this.lockApp({ reset: false, navigateToLogin: false });
 
       // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
       // handlePasswordSubmissionError(error as Error);
+      throw error;
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();

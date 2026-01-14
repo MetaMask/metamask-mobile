@@ -4482,6 +4482,7 @@ describe('Authentication', () => {
     const passwordToUse = 'test-password';
 
     beforeEach(() => {
+      jest.spyOn(Authentication, 'lockApp').mockResolvedValueOnce(undefined);
       const Engine = jest.requireMock('../Engine');
       // Restore the KeyringController mock that may have been replaced by other test suites.
       Engine.context.KeyringController = {
@@ -4581,6 +4582,30 @@ describe('Authentication', () => {
       expect(updateAuthPreferenceSpy).toHaveBeenCalledWith({
         authType: AUTHENTICATION_TYPE.BIOMETRIC,
         password: passwordToUse,
+      });
+    });
+
+    it('calls lockApp when error is thrown', async () => {
+      const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+      // Mock rehydrateSeedPhrase to reject.
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(new Error('Failed to rehydrate seed phrase'));
+
+      // Call unlockWallet and expect it to throw.
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true, // Required to trigger rehydrateSeedPhrase call
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      expect(lockAppSpy).toHaveBeenCalledWith({
+        reset: false,
+        navigateToLogin: false,
       });
     });
 
