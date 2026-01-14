@@ -36,14 +36,14 @@ const TYPES_COW_ORDER: Record<string, unknown> = {
 
 export interface IntentOrderInput {
   // TODO: align bridge controller types so we don't have to allow string here
-  sellToken: Hex | string;
-  buyToken: Hex | string;
-  receiver: Hex;
+  sellToken: string;
+  buyToken: string;
+  receiver: string;
   sellAmount: string; // uint256 as string
   buyAmount: string; // uint256 as string
   validTo: number; // uint32
   appData: string; // can be JSON string or 0x bytes32
-  appDataHash: Hex; // hash of appData for EIP-712 signing
+  appDataHash: string; // hash of appData for EIP-712 signing
   feeAmount: string; // uint256 as string
   kind: string; // 'sell' | 'buy'
   partiallyFillable: boolean;
@@ -59,11 +59,11 @@ export async function signIntent({
   messenger,
 }: {
   chainId: number;
-  from: Hex;
+  from: string;
   order: IntentOrderInput;
-  verifyingContract: Hex;
+  verifyingContract: string;
   messenger: SignatureControllerMessenger;
-}): Promise<Hex> {
+}): Promise<string> {
   const appDataHex = normalizeAppData(order.appData);
   const orderForSign = { ...order, appData: appDataHex } as const;
   const data: MessageParamsTypedData = {
@@ -79,22 +79,22 @@ export async function signIntent({
     message: orderForSign as unknown as Json,
   };
 
-  return (await messenger.call(
+  return await messenger.call(
     'KeyringController:signTypedMessage',
     {
       from,
       data,
     },
     SignTypedDataVersion.V4,
-  )) as Hex;
+  );
 }
 
-function normalizeAppData(appData: string): Hex {
+function normalizeAppData(appData: string) {
   if (isBytes32Hex(appData)) {
     return appData as Hex;
   }
   const bytes = Buffer.from(appData, 'utf8');
-  return bufferToHex(keccak256(bytes)) as Hex;
+  return bufferToHex(keccak256(bytes));
 }
 
 function isBytes32Hex(value: string): boolean {
@@ -111,7 +111,7 @@ export async function handleIntentTransaction(
 
   const intent = quoteResponse.quote.intent;
   if (intent) {
-    const accountAddress = selectedAccountAddress as Hex;
+    const accountAddress = selectedAccountAddress;
     if (!accountAddress) {
       throw new Error('Missing selected account for intent signing');
     }
@@ -135,7 +135,7 @@ export async function handleIntentTransaction(
     const message: IntentOrderInput = {
       ...order,
       appDataHash: normalizeAppData(order.appData),
-      receiver: (order.receiver as Hex) ?? accountAddress,
+      receiver: order.receiver ?? accountAddress,
       sellAmount: order.sellAmount ?? '0',
       buyAmount: order.buyAmount ?? '0',
       validTo,
@@ -148,7 +148,7 @@ export async function handleIntentTransaction(
       chainId: chainId as number,
       from: accountAddress,
       order: message,
-      verifyingContract: verifyingContract as Hex,
+      verifyingContract,
       messenger: signatureControllerMessenger,
     });
 
@@ -164,6 +164,7 @@ export async function handleIntentTransaction(
     };
 
     return Engine.context.BridgeStatusController.submitIntent({
+      // TODO: add validation in core to avoid doing this
       quoteResponse: normalizedQuoteResponse as unknown as Parameters<
         typeof Engine.context.BridgeStatusController.submitIntent
       >[0]['quoteResponse'],
