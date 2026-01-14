@@ -62,6 +62,10 @@ import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
+import PerpsTokenSelectorBottomSheet from '../../components/PerpsTokenSelectorBottomSheet';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
+import type { PerpsToken } from '../../types/perps-types';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -296,6 +300,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
+  const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
+  const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
+    undefined,
+  );
+
+  // Get available payment tokens and set default if none selected
+  const paymentTokens = usePerpsPaymentTokens();
+  useEffect(() => {
+    if (!selectedToken && paymentTokens.length > 0) {
+      setSelectedToken(paymentTokens[0]);
+    }
+  }, [paymentTokens, selectedToken]);
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -1089,6 +1105,56 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
+            {/* Payment Token Selector */}
+            <View
+              style={[
+                styles.detailItem,
+                // Position based on what's above/below
+                // This is the last item if TP/SL is hidden, otherwise it's middle
+                hideTPSL ? styles.detailItemLast : styles.detailItemMiddle,
+              ]}
+            >
+              <TouchableOpacity
+                onPress={() => setIsTokenSelectorVisible(true)}
+                testID="perps-order-payment-token-selector"
+              >
+                <ListItem style={styles.detailItemWrapper}>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('perps.order.payment_token')}
+                    </Text>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    {selectedToken ? (
+                      <View style={styles.tokenSelectorContent}>
+                        <PerpsTokenLogo
+                          symbol={selectedToken.symbol}
+                          size={20}
+                          style={styles.tokenSelectorLogo}
+                        />
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Default}
+                        >
+                          {selectedToken.symbol}
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('perps.order.select_token')}
+                      </Text>
+                    )}
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            </View>
+
             {/* Combined TP/SL row - Hidden when modifying existing position */}
             {!hideTPSL && (
               <View style={[styles.detailItem, styles.detailItemLast]}>
@@ -1495,6 +1561,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         asset={orderForm.asset}
         direction={orderForm.direction}
       />
+
+      {/* Token Selector Bottom Sheet */}
+      <PerpsTokenSelectorBottomSheet
+        isVisible={isTokenSelectorVisible}
+        onClose={() => setIsTokenSelectorVisible(false)}
+        onSelect={setSelectedToken}
+        selectedToken={selectedToken}
+      />
+
       {selectedTooltip && (
         <PerpsBottomSheetTooltip
           isVisible

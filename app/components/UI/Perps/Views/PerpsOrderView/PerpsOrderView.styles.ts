@@ -55,10 +55,20 @@ const createStyles = (colors: Colors) =>
       borderBottomLeftRadius: 12,
       borderBottomRightRadius: 12,
     },
+    detailItemMiddle: {
+      // No special styling for middle items
+    },
     detailLeft: {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
+    },
+    tokenSelectorContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    tokenSelectorLogo: {
+      marginRight: 8,
     },
     infoIcon: {
       marginLeft: 0,
