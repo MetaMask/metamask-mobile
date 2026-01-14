@@ -800,3 +800,21 @@ export const GASLESS_SWAP_QUOTES_ETH_MUSD = [
     estimatedProcessingTimeInSeconds: 0,
   },
 ];
+
+export const GET_TOKENS_API_USDC_RESPONSE = [
+  {
+    assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    decimals: 6,
+    name: 'USDC',
+    symbol: 'USDC',
+  },
+];
+
+export const GET_TOKENS_API_USDT_RESPONSE = [
+  {
+    assetId: 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7',
+    decimals: 6,
+    name: 'Tether USD',
+    symbol: 'USDT',
+  },
+];
