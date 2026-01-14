@@ -20,6 +20,7 @@ export const ALLOWLISTED_HOSTS = [
   'sepolia.infura.io',
   'mainnet.infura.io',
   'linea-sepolia.infura.io',
+  'linea-mainnet.infura.io',
 ];
 
 export const ALLOWLISTED_URLS = [
