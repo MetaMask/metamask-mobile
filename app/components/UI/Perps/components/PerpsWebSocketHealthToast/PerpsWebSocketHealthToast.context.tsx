@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { WebSocketConnectionState } from '../../controllers/types';
 
+/** No-op function for context defaults */
+const noop = () => undefined;
+
 /**
  * State for the WebSocket health toast.
  */
@@ -33,13 +36,10 @@ const defaultState: WebSocketHealthToastState = {
 export const WebSocketHealthToastContext =
   createContext<WebSocketHealthToastContextParams>({
     state: defaultState,
-    // eslint-disable-next-line no-empty-function
-    show: () => {},
-    // eslint-disable-next-line no-empty-function
-    hide: () => {},
+    show: noop,
+    hide: noop,
     onRetry: undefined,
-    // eslint-disable-next-line no-empty-function
-    setOnRetry: () => {},
+    setOnRetry: noop,
   });
 
 /**

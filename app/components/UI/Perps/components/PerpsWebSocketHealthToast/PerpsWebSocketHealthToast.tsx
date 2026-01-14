@@ -72,7 +72,12 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
       case WebSocketConnectionState.CONNECTING:
         return {
           title: strings('perps.connection.websocket_connecting'),
-          description: `${strings('perps.connection.websocket_connecting_message')} Attempt ${reconnectionAttempt}`,
+          description: strings(
+            'perps.connection.websocket_connecting_message',
+            {
+              attempt: reconnectionAttempt,
+            },
+          ),
           iconColor: IconColor.Warning,
           showSpinner: false,
         };

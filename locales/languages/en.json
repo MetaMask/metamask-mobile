@@ -1701,7 +1701,7 @@
       "websocket_disconnected": "Your connection is offline.",
       "websocket_disconnected_message": "Data may not be up to date.",
       "websocket_connecting": "Connecting to perps...",
-      "websocket_connecting_message": "Restoring connection...",
+      "websocket_connecting_message": "Restoring connection... Attempt {{attempt}}",
       "websocket_connected": "Connected",
       "websocket_connected_message": "Live data updates resumed",
       "websocket_retry": "Retry"
