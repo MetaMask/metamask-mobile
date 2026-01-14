@@ -27,6 +27,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
@@ -51,6 +52,7 @@ import useClaimReward from '../../hooks/useClaimReward';
 import useLineaSeasonOneTokenReward from '../../hooks/useLineaSeasonOneTokenReward';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { validateEmail } from '../../utils/formatUtils';
+import { formatAssetAmount } from '../../utils/eventDetailsUtils';
 import { useTheme } from '../../../../../util/theme';
 
 export interface ModalAction {
@@ -69,6 +71,7 @@ interface EndOfSeasonClaimBottomSheetProps {
       url?: string;
       title: string;
       description?: string;
+      contactInfo?: string;
       rewardType: SeasonRewardType;
       showAccount?: boolean;
       /** Configuration for email input: 'required', 'optional', or false to hide */
@@ -104,6 +107,7 @@ const EndOfSeasonClaimBottomSheet = ({
     seasonRewardId,
     title,
     description,
+    contactInfo,
     url,
     rewardType,
     showAccount = false,
@@ -156,11 +160,10 @@ const EndOfSeasonClaimBottomSheet = ({
       showRewardsToast(
         RewardsToastOptions.success(
           strings('rewards.end_of_season_rewards.redeem_success_title'),
-          title,
         ),
       );
     }
-  }, [RewardsToastOptions, rewardType, showRewardsToast, title]);
+  }, [RewardsToastOptions, rewardType, showRewardsToast]);
 
   useEffect(() => {
     if (!hasTrackedRewardViewed.current) {
@@ -244,7 +247,6 @@ const EndOfSeasonClaimBottomSheet = ({
       handleModalClose();
       showSuccessToastIfNeeded();
     } catch {
-      handleModalClose();
       showRewardsToast(
         RewardsToastOptions.error(
           strings('rewards.end_of_season_rewards.redeem_failure_title'),
@@ -363,27 +365,30 @@ const EndOfSeasonClaimBottomSheet = ({
   };
 
   const renderTitle = () => {
-    // For LINEA_TOKENS reward type, show dynamic title based on token amount
     if (rewardType === SeasonRewardType.LINEA_TOKENS) {
-      // If loading, show "You earned (spinner) $LINEA"
       if (isLoadingLineaToken) {
         return (
           <Box twClassName="flex-col items-center justify-center w-full">
+            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+              {strings('rewards.linea_tokens.default_title')}
+            </Text>
+
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+              twClassName="gap-2 mt-2"
             >
-              <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-                {strings('rewards.linea_tokens.title_loading_prefix')}
+              <Text
+                variant={TextVariant.HeadingSm}
+                twClassName="text-center text-alternative"
+              >
+                {strings('rewards.linea_tokens.loading_subtitle')}
               </Text>
+
               <ActivityIndicator
                 size="small"
-                color={theme.colors.text.default}
+                color={theme.colors.text.alternative}
               />
-              <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-                {strings('rewards.linea_tokens.title_loading_suffix')}
-              </Text>
             </Box>
           </Box>
         );
@@ -392,11 +397,16 @@ const EndOfSeasonClaimBottomSheet = ({
       // If loaded and amount > 0, show "You earned XXX $LINEA"
       const parsedAmount = BigInt(lineaTokenReward?.amount || '0');
       if (parsedAmount > 0n) {
+        // Format the amount with 18 decimals (standard ERC-20 decimals for LINEA)
+        const formattedAmount = formatAssetAmount(
+          lineaTokenReward?.amount || '0',
+          18,
+        ); // TODO: check if this is correct in how we want to display (i.e. very low amounts show up as lower than 0.00001)
         return (
           <Box twClassName="flex-col items-center justify-center w-full">
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+            <Text variant={TextVariant.HeadingMd} twClassName="text-center">
               {strings('rewards.linea_tokens.title_earned', {
-                parsedAmount,
+                amount: formattedAmount,
               })}
             </Text>
           </Box>
@@ -409,7 +419,7 @@ const EndOfSeasonClaimBottomSheet = ({
       return (
         <Box twClassName="flex-col items-center justify-center w-full">
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-            {title}
+            {strings('rewards.linea_tokens.default_title')}
           </Text>
           <Box twClassName="w-full mt-4">
             <RewardsErrorBanner
@@ -423,11 +433,10 @@ const EndOfSeasonClaimBottomSheet = ({
       );
     }
 
-    // Default: show the passed title
     return (
       <Box twClassName="flex-col items-center justify-center w-full">
         <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-          {title}
+          {strings('rewards.linea_tokens.default_title')}
         </Text>
       </Box>
     );
@@ -471,7 +480,7 @@ const EndOfSeasonClaimBottomSheet = ({
         <TouchableOpacity
           onPress={handleOpenAccountSelector}
           style={tw.style(
-            'flex-row items-center rounded-lg bg-background-muted p-3',
+            'flex-row items-center rounded-lg bg-background-muted p-4',
           )}
           testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ACCOUNT_SELECTOR}
         >
@@ -484,7 +493,7 @@ const EndOfSeasonClaimBottomSheet = ({
           />
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1 ml-3"
+            twClassName="flex-1 ml-4"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -494,7 +503,11 @@ const EndOfSeasonClaimBottomSheet = ({
               {selectedAccountGroup.metadata.name}
             </Text>
           </Box>
-          <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Lg}
+            color={IconColor.IconAlternative}
+          />
         </TouchableOpacity>
       </Box>
     );
@@ -505,13 +518,24 @@ const EndOfSeasonClaimBottomSheet = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Start}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="px-4"
+      twClassName="px-4 w-full"
     >
       {renderTitle()}
       {description && renderDescription()}
-      {renderAccountSection()}
+      {contactInfo && (
+        <Box twClassName="my-4 w-full">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-text-alternative"
+          >
+            {contactInfo}
+          </Text>
+        </Box>
+      )}
       {renderEmailInput()}
       {renderTelegramInput()}
+      {renderAccountSection()}
       {renderActions()}
     </Box>
   );
