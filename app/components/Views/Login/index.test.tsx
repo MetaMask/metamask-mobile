@@ -72,9 +72,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Metrics mocks
-const mockTrackEvent = jest.fn();
-
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {

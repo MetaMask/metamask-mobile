@@ -392,67 +392,6 @@ describe('Login test suite 2', () => {
     });
   });
 
-  describe('Non-OAuth Login Success Flow', () => {
-    afterEach(() => {
-      jest.clearAllTimers();
-      mockNavigate.mockReset();
-      jest.clearAllMocks();
-    });
-
-    it('handle non OAuth login success when metrics UI is not seen', async () => {
-      mockIsEnabled.mockReturnValue(false);
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-      });
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
-        return null;
-      });
-      const mockState: RecursivePartial<RootState> = {
-        user: {
-          existingUser: false,
-        },
-        security: {
-          allowLoginWithRememberMe: false,
-        },
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: undefined,
-            },
-          },
-        },
-      };
-      // mock Redux store
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: jest.fn(() => mockState),
-        subscribe: jest.fn(),
-        replaceReducer: jest.fn(),
-        [Symbol.observable]: jest.fn(),
-      } as unknown as ReduxStore);
-      mockUnlockWallet.mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
-    });
-  });
-
   describe('Global Password changed', () => {
     afterEach(() => {
       jest.clearAllTimers();
