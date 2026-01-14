@@ -63,7 +63,7 @@ jobs:
           node-version: '20'
 
       - name: Enable Corepack
-        run: corepack enable  
+        run: corepack enable && corepack prepare yarn@4.10.3 --activate
 
       - name: Generate cache key
         id: cache-key
