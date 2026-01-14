@@ -36,7 +36,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
     useRoute<
       RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>
     >();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
@@ -54,11 +54,16 @@ const PerpsSelectAdjustMarginActionView: React.FC<
           ? PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN
           : PerpsEventValues.INTERACTION_TYPE.REMOVE_MARGIN;
 
-      trackEvent(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
-        [PerpsEventProperties.ASSET]: position.coin,
-        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.POSITION_SCREEN,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+          .addProperties({
+            [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
+            [PerpsEventProperties.ASSET]: position.coin,
+            [PerpsEventProperties.SOURCE]:
+              PerpsEventValues.SOURCE.POSITION_SCREEN,
+          })
+          .build(),
+      );
 
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
       switch (action) {
@@ -75,7 +80,14 @@ const PerpsSelectAdjustMarginActionView: React.FC<
         onExternalClose?.();
       });
     },
-    [position, sheetRef, onExternalClose, navigateToAdjustMargin, trackEvent],
+    [
+      position,
+      sheetRef,
+      onExternalClose,
+      navigateToAdjustMargin,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleClose = useCallback(() => {

@@ -36,7 +36,7 @@ const PerpsSelectModifyActionView: React.FC<
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
@@ -64,16 +64,20 @@ const PerpsSelectModifyActionView: React.FC<
 
       const interactionType = getInteractionType();
       if (interactionType) {
-        trackEvent(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
-          [PerpsEventProperties.ASSET]: position.coin,
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.POSITION_SCREEN,
-          [PerpsEventProperties.DIRECTION]:
-            parseFloat(position.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+            .addProperties({
+              [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
+              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.SOURCE]:
+                PerpsEventValues.SOURCE.POSITION_SCREEN,
+              [PerpsEventProperties.DIRECTION]:
+                parseFloat(position.size) > 0
+                  ? PerpsEventValues.DIRECTION.LONG
+                  : PerpsEventValues.DIRECTION.SHORT,
+            })
+            .build(),
+        );
       }
 
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
@@ -130,6 +134,7 @@ const PerpsSelectModifyActionView: React.FC<
       sheetRef,
       onExternalClose,
       trackEvent,
+      createEventBuilder,
     ],
   );
 
