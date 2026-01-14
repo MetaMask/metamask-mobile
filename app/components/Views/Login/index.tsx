@@ -418,7 +418,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     fieldRef.current?.blur();
     fieldRef.current?.clear();
     setPassword('');
-    setHasBiometricCredentials(false);
     setLoading(true);
 
     try {
@@ -505,6 +504,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 onSubmitEditing={unlockWithPassword}
                 endAccessory={
                   <BiometryButton
+                    disabled={loading}
                     onPress={unlockWithBiometrics}
                     hidden={shouldHideBiometricAccessoryButton}
                     biometryType={biometryType as BIOMETRY_TYPE}
@@ -512,6 +512,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 }
                 keyboardAppearance={themeAppearance}
                 isError={!!error}
+                isDisabled={loading}
               />
             </View>
 
