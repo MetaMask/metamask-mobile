@@ -1089,9 +1089,6 @@ class FixtureBuilder {
   withTronAccountPermission() {
     const caveatValue = {
       optionalScopes: {
-        [TrxScope.Shasta]: {
-          accounts: [`${TrxScope.Shasta}:${DEFAULT_TRON_FIXTURE_ACCOUNT}`],
-        },
         [TrxScope.Mainnet]: {
           accounts: [`${TrxScope.Mainnet}:${DEFAULT_TRON_FIXTURE_ACCOUNT}`],
         },
@@ -1899,12 +1896,6 @@ class FixtureBuilder {
     this.fixture.state.engine.backgroundState.MultichainNetworkController = {
       selectedMultichainNetworkChainId: TrxScope.Shasta,
       multichainNetworkConfigurationsByChainId: {
-        [TrxScope.Shasta]: {
-          chainId: TrxScope.Shasta,
-          name: 'Tron Shasta',
-          nativeCurrency: `${TrxScope.Shasta}/${TRON_TOKEN}`,
-          isEvm: false,
-        },
         [TrxScope.Mainnet]: {
           chainId: TrxScope.Mainnet,
           name: 'Tron Mainnet',
