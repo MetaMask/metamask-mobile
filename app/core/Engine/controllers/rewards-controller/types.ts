@@ -471,6 +471,7 @@ export enum SeasonRewardType {
   METAL_CARD = 'METAL_CARD',
   LINEA_TOKENS = 'LINEA_TOKENS',
   NANSEN = 'NANSEN',
+  OTHERSIDE = 'OTHERSIDE',
 }
 
 export interface SeasonDto {
@@ -527,7 +528,7 @@ export interface RewardDto {
 export type RewardClaimData =
   | PointsBoostRewardData
   | AlphaFoxInviteRewardData
-  | NansenRewardData
+  | EndOfSeasonUrlData
   | null;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -543,7 +544,7 @@ export type AlphaFoxInviteRewardData = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type NansenRewardData = {
+export type EndOfSeasonUrlData = {
   url: string;
 };
 

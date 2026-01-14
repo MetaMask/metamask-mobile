@@ -18,7 +18,7 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import { useSelector } from 'react-redux';
 import {
-  NansenRewardData,
+  EndOfSeasonUrlData,
   RewardDto,
   SeasonRewardDto,
   SeasonRewardType,
@@ -67,11 +67,25 @@ const PreviousSeasonUnlockedRewards = () => {
           navigation.navigate(
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             {
+              rewardId: reward.id,
               seasonRewardId: seasonReward.id,
               title: seasonReward.name,
               description: seasonReward.longUnlockedDescription,
-              url: (reward.claim?.data as NansenRewardData)?.url,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
               rewardType: SeasonRewardType.NANSEN,
+            },
+          );
+          break;
+        case SeasonRewardType.OTHERSIDE:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: seasonReward.longUnlockedDescription,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
+              rewardType: SeasonRewardType.OTHERSIDE,
             },
           );
           break;
@@ -79,6 +93,7 @@ const PreviousSeasonUnlockedRewards = () => {
           navigation.navigate(
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             {
+              rewardId: reward.id,
               seasonRewardId: seasonReward.id,
               title: seasonReward.name,
               rewardType: SeasonRewardType.LINEA_TOKENS,
@@ -167,10 +182,14 @@ const PreviousSeasonUnlockedRewards = () => {
                       seasonReward?.rewardType ===
                         SeasonRewardType.METAL_CARD ||
                       seasonReward?.rewardType ===
-                        SeasonRewardType.LINEA_TOKENS;
+                        SeasonRewardType.LINEA_TOKENS ||
+                      seasonReward?.rewardType === SeasonRewardType.OTHERSIDE ||
+                      seasonReward?.rewardType === SeasonRewardType.NANSEN;
 
                     const rewardUrl = (
-                      unlockedReward.claim?.data as NansenRewardData | undefined
+                      unlockedReward.claim?.data as
+                        | EndOfSeasonUrlData
+                        | undefined
                     )?.url;
 
                     return (

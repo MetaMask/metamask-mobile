@@ -199,6 +199,7 @@ const EndOfSeasonClaimBottomSheet = ({
     try {
       switch (rewardType) {
         case SeasonRewardType.NANSEN:
+        case SeasonRewardType.OTHERSIDE:
           if (!url) return;
           Linking.openURL(url);
           break;
@@ -311,7 +312,7 @@ const EndOfSeasonClaimBottomSheet = ({
     }
 
     return (
-      <Box twClassName="w-full mb-4">
+      <Box twClassName="w-full">
         <Text variant={TextVariant.BodyMd}>
           {strings('rewards.metal_card_claim.email_label')}
         </Text>
@@ -326,6 +327,7 @@ const EndOfSeasonClaimBottomSheet = ({
           keyboardType="email-address"
           autoCapitalize="none"
           isDisabled={isClaimingReward}
+          testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_EMAIL_INPUT}
         />
         {emailValidationError && (
           <Text
@@ -345,7 +347,7 @@ const EndOfSeasonClaimBottomSheet = ({
     }
 
     return (
-      <Box twClassName="w-full mb-6">
+      <Box twClassName="w-full mb-2">
         <Text variant={TextVariant.BodyMd}>
           {strings('rewards.metal_card_claim.telegram_label')}
         </Text>
@@ -359,6 +361,7 @@ const EndOfSeasonClaimBottomSheet = ({
           style={tw.style('bg-background-pressed')}
           autoCapitalize="none"
           isDisabled={isClaimingReward}
+          testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TELEGRAM_INPUT}
         />
       </Box>
     );
@@ -368,7 +371,10 @@ const EndOfSeasonClaimBottomSheet = ({
     if (rewardType === SeasonRewardType.LINEA_TOKENS) {
       if (isLoadingLineaToken) {
         return (
-          <Box twClassName="flex-col items-center justify-center w-full">
+          <Box
+            twClassName="flex-col items-center justify-center w-full"
+            testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_LOADING}
+          >
             <Text variant={TextVariant.HeadingLg} twClassName="text-center">
               {strings('rewards.linea_tokens.default_title')}
             </Text>
@@ -403,8 +409,11 @@ const EndOfSeasonClaimBottomSheet = ({
           18,
         ); // TODO: check if this is correct in how we want to display (i.e. very low amounts show up as lower than 0.00001)
         return (
-          <Box twClassName="flex-col items-center justify-center w-full">
-            <Text variant={TextVariant.HeadingMd} twClassName="text-center">
+          <Box
+            twClassName="flex-col items-center justify-center w-full"
+            testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_LOADED}
+          >
+            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
               {strings('rewards.linea_tokens.title_earned', {
                 amount: formattedAmount,
               })}
@@ -412,42 +421,61 @@ const EndOfSeasonClaimBottomSheet = ({
           </Box>
         );
       }
-    }
 
-    // If error occurred while fetching, show error banner
-    if (lineaTokenError) {
+      // If error occurred while fetching, show error banner
+      if (lineaTokenError) {
+        return (
+          <Box
+            twClassName="flex-col items-center justify-center w-full"
+            testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_ERROR}
+          >
+            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+              {strings('rewards.linea_tokens.default_title')}
+            </Text>
+            <Box twClassName="w-full mt-4">
+              <RewardsErrorBanner
+                title={strings('rewards.linea_tokens.error_fetching_title')}
+                description={strings(
+                  'rewards.linea_tokens.error_fetching_description',
+                )}
+              />
+            </Box>
+          </Box>
+        );
+      }
+
       return (
-        <Box twClassName="flex-col items-center justify-center w-full">
+        <Box
+          twClassName="flex-col items-center justify-center w-full"
+          testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_DEFAULT_TITLE}
+        >
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
             {strings('rewards.linea_tokens.default_title')}
           </Text>
-          <Box twClassName="w-full mt-4">
-            <RewardsErrorBanner
-              title={strings('rewards.linea_tokens.error_fetching_title')}
-              description={strings(
-                'rewards.linea_tokens.error_fetching_description',
-              )}
-            />
-          </Box>
         </Box>
       );
     }
 
+    // default return title
     return (
-      <Box twClassName="flex-col items-center justify-center w-full">
+      <Box
+        twClassName="flex-col items-center justify-center w-full"
+        testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TITLE}
+      >
         <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-          {strings('rewards.linea_tokens.default_title')}
+          {title}
         </Text>
       </Box>
     );
   };
 
   const renderDescription = () => (
-    <Box twClassName="my-4 w-full">
+    <Box twClassName="w-full">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         twClassName="text-text-alternative"
+        testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_DESCRIPTION}
       >
         {description}
       </Text>
@@ -469,7 +497,10 @@ const EndOfSeasonClaimBottomSheet = ({
     }
 
     return (
-      <Box twClassName="my-4 w-full">
+      <Box
+        twClassName="w-full"
+        testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ACCOUNT_SELECTOR}
+      >
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -482,7 +513,6 @@ const EndOfSeasonClaimBottomSheet = ({
           style={tw.style(
             'flex-row items-center rounded-lg bg-background-muted p-4',
           )}
-          testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ACCOUNT_SELECTOR}
         >
           <AvatarAccount
             accountAddress={
@@ -518,12 +548,12 @@ const EndOfSeasonClaimBottomSheet = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Start}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="px-4 w-full"
+      twClassName="px-4 w-full gap-4"
     >
       {renderTitle()}
       {description && renderDescription()}
       {contactInfo && (
-        <Box twClassName="my-4 w-full">
+        <Box twClassName="w-full">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
