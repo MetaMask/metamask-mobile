@@ -31,6 +31,7 @@ export const REWARDS_VIEW_SELECTORS = {
   CLAIM_MODAL: 'rewards-view-claim-modal',
   CLAIM_MODAL_CONFIRM_BUTTON: 'rewards-view-claim-modal-confirm-button',
   CLAIM_MODAL_ERROR_MESSAGE: 'rewards-view-claim-modal-error-message',
+  CLAIM_MODAL_ACCOUNT_SELECTOR: 'rewards-view-claim-modal-account-selector',
   CLAIM_BUTTON: 'rewards-view-claim-button',
   SKIP_BUTTON: 'rewards-view-skip-button',
   NEXT_BUTTON: 'rewards-view-next-button',

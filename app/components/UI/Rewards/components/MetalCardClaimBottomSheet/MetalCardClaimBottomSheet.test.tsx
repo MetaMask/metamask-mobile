@@ -98,11 +98,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.metal_card_claim.telegram_label': 'Telegram (optional)',
       'rewards.metal_card_claim.telegram_placeholder': '@username',
       'rewards.metal_card_claim.email_validation_error': 'Invalid email',
-      'rewards.claim_reward_redeem.button_label': 'Redeem',
-      'rewards.claim_reward_redeem.failure_title': 'Unable to claim reward',
-      'rewards.claim_reward_redeem.failure_description':
+      'rewards.end_of_season_rewards.redeem_label': 'Redeem',
+      'rewards.end_of_season_rewards.failure_title': 'Unable to claim reward',
+      'rewards.end_of_season_rewards.failure_description':
         'Please try again later.',
-      'rewards.claim_reward_redeem.success_title': 'Reward claimed!',
+      'rewards.end_of_season_rewards.success_title': 'Reward claimed!',
     };
     return translations[key] || key;
   }),
