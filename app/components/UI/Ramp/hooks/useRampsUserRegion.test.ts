@@ -165,7 +165,7 @@ describe('useRampsUserRegion', () => {
       });
     });
 
-    it('handles error when fetchUserRegion rejects', async () => {
+    it('rejects with error when updateUserRegion fails', async () => {
       const store = createMockStore();
       const mockUpdateUserRegion = Engine.context.RampsController
         .updateUserRegion as jest.Mock;
@@ -215,7 +215,7 @@ describe('useRampsUserRegion', () => {
   });
 
   describe('useEffect error handling', () => {
-    it('handles error gracefully when fetchUserRegion rejects in useEffect', async () => {
+    it('returns default state when fetchUserRegion rejects in useEffect', async () => {
       const store = createMockStore();
       const mockUpdateUserRegion = Engine.context.RampsController
         .updateUserRegion as jest.Mock;

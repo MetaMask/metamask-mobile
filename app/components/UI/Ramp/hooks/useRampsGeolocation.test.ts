@@ -454,7 +454,7 @@ describe('useRampsGeolocation', () => {
   });
 
   describe('edge cases', () => {
-    it('handles empty requests object', () => {
+    it('returns default loading and error state for empty requests object', () => {
       const store = createMockStore({
         requests: {},
       });
@@ -467,7 +467,7 @@ describe('useRampsGeolocation', () => {
       expect(result.current.error).toBe(null);
     });
 
-    it('handles null geolocation value', () => {
+    it('returns null geolocation when userRegion is null', () => {
       const store = createMockStore({ userRegion: null });
 
       const { result } = renderHook(() => useRampsGeolocation(), {
@@ -477,7 +477,7 @@ describe('useRampsGeolocation', () => {
       expect(result.current.geolocation).toBe(null);
     });
 
-    it('handles empty string geolocation value', () => {
+    it('returns empty string geolocation when userRegion is empty string', () => {
       const store = createMockStore({ userRegion: '' });
 
       const { result } = renderHook(() => useRampsGeolocation(), {
