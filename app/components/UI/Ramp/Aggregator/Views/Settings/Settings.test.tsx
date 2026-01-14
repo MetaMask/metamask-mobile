@@ -176,7 +176,7 @@ describe('Settings', () => {
         name: 'Add activation key',
       });
       const [removeActivationKeyButton] = screen.getAllByRole('button', {
-        name: 'Delete Activation Key',
+        name: 'Delete activation key',
       });
       const [switchButton] = screen.getAllByRole('switch');
 
@@ -255,7 +255,7 @@ describe('Settings', () => {
       };
       render(Settings);
       const removeActivationKeyButton = screen.getByRole('button', {
-        name: 'Delete Activation Key',
+        name: 'Delete activation key',
       });
       fireEvent.press(removeActivationKeyButton);
       expect(mockRemoveActivationKey).toHaveBeenCalledWith('testKey1');

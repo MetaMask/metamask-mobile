@@ -94,7 +94,7 @@ describe('Switch Account Type Modal', () => {
     });
     expect(getByText('Account 1')).toBeTruthy();
     expect(getByText('Sepolia')).toBeTruthy();
-    expect(getByText('Smart Account')).toBeTruthy();
+    expect(getByText('Smart account')).toBeTruthy();
     expect(getByText('Switch back')).toBeTruthy();
   });
 
@@ -111,7 +111,7 @@ describe('Switch Account Type Modal', () => {
     const { getByTestId, queryByText } = container;
     expect(queryByText('Account 1')).toBeNull();
     expect(queryByText('Sepolia')).toBeNull();
-    expect(queryByText('Smart Account')).toBeNull();
+    expect(queryByText('Smart account')).toBeNull();
     expect(queryByText('Switch')).toBeNull();
     expect(getByTestId('network-data-loader')).toBeTruthy();
   });
