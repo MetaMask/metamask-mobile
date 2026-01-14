@@ -44,7 +44,6 @@ const ReviewOrder = () => {
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  // Reset loading state when screen regains focus (e.g., returning from DaimoPayModal)
   useFocusEffect(
     useCallback(() => {
       setIsCreatingPayment(false);
@@ -123,11 +122,8 @@ const ReviewOrder = () => {
     setPaymentError(null);
 
     try {
-      // Create a Daimo payment session
       const response = await DaimoPayService.createPayment();
 
-      // Navigate to the Daimo Pay modal with the payment ID
-      // Keep loading state - it will be reset by useFocusEffect when user returns
       navigate(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.DAIMO_PAY,
         params: { payId: response.payId },

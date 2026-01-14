@@ -513,8 +513,16 @@ const PhysicalAddress = () => {
               },
             ],
           });
+        } else if (location === 'us') {
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.CHOOSE_YOUR_CARD,
+              },
+            ],
+          });
         } else {
-          // KYC is VERIFIED, PENDING, or UNVERIFIED - proceed to SpendingLimit
           navigation.reset({
             index: 0,
             routes: [

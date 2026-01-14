@@ -1,4 +1,5 @@
 import Logger from '../../../../util/Logger';
+import { isSameOrigin } from '../../../../util/url';
 import { CardError, CardErrorType } from '../types';
 import {
   getDaimoEnvironment,
@@ -13,6 +14,9 @@ const DAIMO_DEMO_API_KEY = 'pay-demo';
 // Daimo WebView base URL
 export const DAIMO_WEBVIEW_BASE_URL =
   'https://miniapp.daimo.com/metamask/embed';
+
+// Allowed origin for provider messages (security validation)
+export const DAIMO_ALLOWED_ORIGIN = 'https://miniapp.daimo.com';
 
 // Payment configuration per environment
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -344,6 +348,16 @@ export const DaimoPayService = {
    * Checks if currently in production mode
    */
   isProduction: isDaimoProduction,
+
+  /**
+   * Validates that a message origin is from the trusted Daimo domain
+   * Used for security validation of WebView provider messages
+   *
+   * @param origin - The origin URL from the message
+   * @returns true if the origin matches the trusted Daimo domain
+   */
+  isValidMessageOrigin: (origin: string): boolean =>
+    isSameOrigin(origin, DAIMO_ALLOWED_ORIGIN),
 };
 
 export default DaimoPayService;

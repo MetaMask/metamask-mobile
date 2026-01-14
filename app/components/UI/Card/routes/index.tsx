@@ -129,6 +129,12 @@ export const cardSpendingLimitNavigationOptions = ({
   };
 };
 
+const emptyNavigationOptions = () => ({
+  headerLeft: () => <View />,
+  headerTitle: () => <View />,
+  headerRight: () => <View />,
+});
+
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
@@ -154,7 +160,7 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
         component={ChooseYourCard}
-        options={cardDefaultNavigationOptions}
+        options={emptyNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.REVIEW_ORDER}

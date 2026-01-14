@@ -110,9 +110,11 @@ const ChooseYourCard = () => {
         .build(),
     );
 
-    navigate(Routes.CARD.REVIEW_ORDER, {
-      cardType: selectedCard.id,
-    });
+    if (selectedCard.id === CardType.VIRTUAL) {
+      navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'onboarding' });
+    } else {
+      navigate(Routes.CARD.REVIEW_ORDER);
+    }
   }, [activeIndex, cardOptions, navigate, trackEvent, createEventBuilder]);
 
   const handleScroll = useCallback(
