@@ -30,6 +30,8 @@ import {
 import { PredictHelpers } from './helpers/predict-helpers';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
 import Utilities from '../../framework/Utilities';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
 
 /*
 Test Scenario: Claim winning positions
@@ -94,12 +96,21 @@ const positions = {
 };
 
 describe(SmokePredictions('Claim winnings:'), () => {
+  const eventsToCheck: EventPayload[] = [];
+
   it('claim winnings via predictions tab', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPolygon().build(),
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          .withMetaMetricsOptIn()
+          .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
+          eventsToCheck.push(...events);
+        },
       },
       async ({ mockServer }) => {
         await PredictHelpers.setPortugalLocation();
@@ -236,5 +247,44 @@ describe(SmokePredictions('Claim winnings:'), () => {
         await Assertions.expectTextDisplayed('$48.16');
       },
     );
+  });
+
+  it('should validate analytics events for claiming positions', async () => {
+    const expectedEvents = {
+      POSITION_VIEWED: 'Predict Position Viewed',
+      ACTIVITY_VIEWED: 'Predict Activity Viewed',
+    };
+
+    const softAssert = new SoftAssert();
+
+    // Event 1: PREDICT_POSITION_VIEWED
+    const positionViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.POSITION_VIEWED,
+    );
+    const checkPositionViewed = softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsDefined(positionViewed);
+      if (positionViewed.length > 0) {
+        await Assertions.checkIfValueIsDefined(
+          positionViewed[0].properties.open_positions_count,
+        );
+      }
+    }, 'Position Viewed event should be tracked');
+
+    // Event 2: PREDICT_ACTIVITY_VIEWED
+    const activityViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.ACTIVITY_VIEWED,
+    );
+    const checkActivityViewed = softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsDefined(activityViewed);
+      if (activityViewed.length > 0) {
+        await Assertions.checkIfValueIsDefined(
+          activityViewed[0].properties.activity_type,
+        );
+      }
+    }, 'Activity Viewed event should be tracked');
+
+    await Promise.all([checkPositionViewed, checkActivityViewed]);
+
+    softAssert.throwIfErrors();
   });
 });

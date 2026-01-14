@@ -19,6 +19,8 @@ import {
   POLYMARKET_GEO_BLOCKED_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../pages/Predict/PredictAddFunds';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
 
 //Enable the Predictions feature flag and force Polymarket geoblock
 const setupGeoBlockedBase = async (mockServer: Mockttp) => {
@@ -44,12 +46,18 @@ const PredictionGeoBlockedWithPositionsFeature = async (
 describe(
   SmokePredictions('Predictions - Geo Restriction modal displays '),
   () => {
+    const eventsToCheck: EventPayload[] = [];
+
     it('when clicking Yes/No to the feeds', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().build(),
+          fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
           restartDevice: true,
           testSpecificMock: PredictionGeoBlockedFeature,
+          endTestfn: async ({ mockServer }) => {
+            const events = await getEventsPayloads(mockServer);
+            eventsToCheck.push(...events);
+          },
         },
         async () => {
           await loginToApp();
@@ -79,6 +87,7 @@ describe(
                 'Returned to market list; modal was displayed over feed interaction',
             },
           );
+
           await PredictMarketList.tapNoBasedOnCategoryAndIndex('new', 1);
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
@@ -89,9 +98,16 @@ describe(
     it('when clicking on cash out under positions', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().withPolygon().build(),
+          fixture: new FixtureBuilder()
+            .withPolygon()
+            .withMetaMetricsOptIn()
+            .build(),
           restartDevice: true,
           testSpecificMock: PredictionGeoBlockedWithPositionsFeature,
+          endTestfn: async ({ mockServer }) => {
+            const events = await getEventsPayloads(mockServer);
+            eventsToCheck.push(...events);
+          },
         },
         async () => {
           await loginToApp();
@@ -108,6 +124,7 @@ describe(
             },
           );
           await PredictDetailsPage.tapPositionsTab();
+
           await PredictDetailsPage.tapCashOutButton();
           await Assertions.expectElementToNotBeVisible(
             PredictCashOutPage.container,
@@ -125,9 +142,13 @@ describe(
     it('when clicking Add funds from the Predictions balance', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().build(),
+          fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
           restartDevice: true,
           testSpecificMock: PredictionGeoBlockedFeature,
+          endTestfn: async ({ mockServer }) => {
+            const events = await getEventsPayloads(mockServer);
+            eventsToCheck.push(...events);
+          },
         },
         async () => {
           await loginToApp();
@@ -139,6 +160,7 @@ describe(
               description: 'Predict balance card is visible',
             },
           );
+
           await PredictAddFunds.tapAddFunds();
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
@@ -151,6 +173,57 @@ describe(
           );
         },
       );
+    });
+
+    it('should validate analytics events for geo-blocking', async () => {
+      const expectedEvents = {
+        GEO_BLOCKED_TRIGGERED: 'Geo Blocked Triggered',
+      };
+
+      const softAssert = new SoftAssert();
+
+      // Event: PREDICT_GEO_BLOCKED_TRIGGERED
+      const geoBlockedEvents = eventsToCheck.filter(
+        (event) => event.event === expectedEvents.GEO_BLOCKED_TRIGGERED,
+      );
+
+      const checkGeoBlockedEvents = softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfValueIsDefined(geoBlockedEvents);
+        // We expect at least 3 geo-blocked events:
+        // 1. Tapping Yes on feed (predict_action)
+        // 2. Tapping No on feed (predict_action)
+        // 3. Attempting cash out (cashout)
+        // 4. Attempting add funds (deposit)
+        if (geoBlockedEvents.length > 0) {
+          // Check first event has required properties
+          await Assertions.checkIfValueIsDefined(
+            geoBlockedEvents[0].properties.timestamp,
+          );
+          await Assertions.checkIfValueIsDefined(
+            geoBlockedEvents[0].properties.country,
+          );
+          await Assertions.checkIfValueIsDefined(
+            geoBlockedEvents[0].properties.attempted_action,
+          );
+
+          const attemptedActions = geoBlockedEvents.map(
+            (e) => e.properties.attempted_action,
+          );
+          const hasDepositAction = attemptedActions.includes('deposit');
+          const hasCashoutAction = attemptedActions.includes('cashout');
+          const hasPredictAction = attemptedActions.includes('predict_action');
+
+          if (!hasDepositAction || !hasCashoutAction || !hasPredictAction) {
+            throw new Error(
+              `Expected all geo-blocked action types. Found: ${attemptedActions.join(', ')}`,
+            );
+          }
+        }
+      }, 'Geo Blocked events should be tracked for different attempted actions');
+
+      await checkGeoBlockedEvents;
+
+      softAssert.throwIfErrors();
     });
   },
 );

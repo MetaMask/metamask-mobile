@@ -19,6 +19,8 @@ import {
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market
@@ -48,12 +50,21 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Predictions'), () => {
+  const eventsToCheck: EventPayload[] = [];
+
   it('opens position on Celtics vs. Nets market', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPolygon().build(),
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          .withMetaMetricsOptIn()
+          .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
+          eventsToCheck.push(...events);
+        },
       },
       async ({ mockServer }) => {
         await loginToApp();
@@ -128,5 +139,65 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );
+  });
+
+  it('should validate analytics events for opening position', async () => {
+    const expectedEvents = {
+      MARKET_DETAILS_OPENED: 'Predict Market Details Opened',
+      POSITION_VIEWED: 'Predict Position Viewed',
+      ACTIVITY_VIEWED: 'Predict Activity Viewed',
+    };
+
+    const softAssert = new SoftAssert();
+
+    // Event 1: PREDICT_MARKET_DETAILS_OPENED
+    const marketDetailsOpened = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.MARKET_DETAILS_OPENED,
+    );
+    const checkMarketDetailsOpened = softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsDefined(marketDetailsOpened);
+      if (marketDetailsOpened.length > 0) {
+        await Assertions.checkIfValueIsDefined(
+          marketDetailsOpened[0].properties.timestamp,
+        );
+        await Assertions.checkIfValueIsDefined(
+          marketDetailsOpened[0].properties.entry_point,
+        );
+      }
+    }, 'Market Details Opened event should be tracked');
+
+    // Event 2: PREDICT_POSITION_VIEWED
+    const positionViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.POSITION_VIEWED,
+    );
+    const checkPositionViewed = softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsDefined(positionViewed);
+      if (positionViewed.length > 0) {
+        await Assertions.checkIfValueIsDefined(
+          positionViewed[0].properties.open_positions_count,
+        );
+      }
+    }, 'Position Viewed event should be tracked');
+
+    // Event 3: PREDICT_ACTIVITY_VIEWED
+    const activityViewed = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.ACTIVITY_VIEWED,
+    );
+    const checkActivityViewed = softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsDefined(activityViewed);
+      if (activityViewed.length > 0) {
+        await Assertions.checkIfObjectContains(activityViewed[0].properties, {
+          activity_type: 'activity_list',
+        });
+      }
+    }, 'Activity Viewed event should be tracked');
+
+    await Promise.all([
+      checkMarketDetailsOpened,
+      checkPositionViewed,
+      checkActivityViewed,
+    ]);
+
+    softAssert.throwIfErrors();
   });
 });
