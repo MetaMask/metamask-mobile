@@ -6,7 +6,6 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
     [
       "left",
       "right",
-      "bottom",
     ]
   }
   style={
@@ -137,9 +136,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
   <RCTScrollView
     contentContainerStyle={
       {
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
+        "paddingBottom": 16,
       }
     }
     refreshControl={
@@ -179,5 +176,8 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
       />
     </View>
   </RCTScrollView>
+  <View
+    testID="predict-game-details-footer"
+  />
 </View>
 `;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -21,6 +21,7 @@ import Icon, {
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
@@ -28,15 +29,26 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   onBack,
   onRefresh,
   refreshing,
+  onBetPress,
+  onClaimPress,
+  hasClaimableWinnings = false,
+  claimableAmount = 0,
+  isLoading = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
+  const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
+
+  if (!outcome) {
+    return null;
+  }
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
-      edges={['left', 'right', 'bottom']}
+      edges={['left', 'right']}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -74,7 +86,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('flex-1')}
+        contentContainerStyle={tw.style('pb-4')}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -86,6 +98,16 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       >
         <Box twClassName="flex-1" />
       </ScrollView>
+
+      <PredictGameDetailsFooter
+        market={market}
+        outcome={outcome}
+        onBetPress={onBetPress}
+        onClaimPress={onClaimPress}
+        hasClaimableWinnings={hasClaimableWinnings}
+        claimableAmount={claimableAmount}
+        isLoading={isLoading}
+      />
     </SafeAreaView>
   );
 };
