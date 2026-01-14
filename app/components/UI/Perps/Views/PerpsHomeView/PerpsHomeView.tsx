@@ -41,7 +41,9 @@ import {
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
+  PERPS_CONSTANTS,
 } from '../../constants/perpsConfig';
+import { ensureError } from '../../utils/perpsErrorHandler';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -54,6 +56,7 @@ import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
+import Logger from '../../../../../util/Logger';
 import { TraceName } from '../../../../../util/trace';
 import {
   PerpsEventProperties,
@@ -266,7 +269,12 @@ const PerpsHomeView = () => {
         .build(),
     );
     // Open survey in external browser
-    Linking.openURL(FEEDBACK_CONFIG.URL);
+    Linking.openURL(FEEDBACK_CONFIG.URL).catch((error: unknown) => {
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to open feedback survey URL',
+      });
+    });
   }, [trackEvent, createEventBuilder]);
 
   const navigationItems: NavigationItem[] = useMemo(() => {
@@ -278,21 +286,21 @@ const PerpsHomeView = () => {
       },
     ];
 
-    // Avoid duplicate "Learn more" button (shown in empty state card)
-    if (!isBalanceEmpty) {
-      items.push({
-        label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
-        onPress: () => navigtateToTutorial(),
-        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-      });
-    }
-
     // Add feedback button when feature flag is enabled
     if (isFeedbackEnabled) {
       items.push({
         label: strings(FEEDBACK_CONFIG.TITLE_KEY),
         onPress: handleGiveFeedback,
         testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
+      });
+    }
+
+    // Avoid duplicate "Learn more" button (shown in empty state card)
+    if (!isBalanceEmpty) {
+      items.push({
+        label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
+        onPress: () => navigtateToTutorial(),
+        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
       });
     }
 

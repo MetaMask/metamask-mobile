@@ -1746,7 +1746,7 @@
       "markets": "Markets"
     },
     "learn_more": {
-      "title": "Learn more about Perps",
+      "title": "Learn about Perps",
       "description": "Discover how perpetual trading works and how to get started",
       "cta": "Learn more"
     },
@@ -1755,7 +1755,7 @@
       "description": "Contact MetaMask Support for assistance"
     },
     "feedback": {
-      "title": "Give feedback"
+      "title": "Give us feedback"
     },
     "close_all_modal": {
       "title": "Close all positions",
