@@ -59,7 +59,7 @@ jobs:
         if: steps.cancel.outputs.cancelled == 'true' && steps.find.outputs.run_id
         run: |
           RUN_ID="${{ steps.find.outputs.run_id }}"
-          MAX_WAIT=300
+          MAX_WAIT=600
           ELAPSED=0
 
           echo "Waiting up to ${MAX_WAIT}s for workflow to finish cancelling..."
