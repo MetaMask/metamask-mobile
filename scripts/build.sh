@@ -810,36 +810,39 @@ printTitle
 
 # Map environment variables based on mode.
 # TODO: MODE should be renamed to TARGET
-if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
-	export GENERATE_BUNDLE=true # Used only for Android
-	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-		remapMainProdEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-		remapMainBetaEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
-		remapMainReleaseCandidateEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
-		remapMainExperimentalEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-		remapMainTestEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-		remapMainE2EEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
-		remapMainDevEnvVariables
+# Skip environment variable remapping for expo-update platform
+if [ "$PLATFORM" != "expo-update" ]; then
+	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+		export GENERATE_BUNDLE=true # Used only for Android
+		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
+		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+			remapMainProdEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
+			remapMainBetaEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
+			remapMainReleaseCandidateEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
+			remapMainExperimentalEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+			remapMainTestEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+			remapMainE2EEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
+			remapMainDevEnvVariables
+		fi
+	elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
+		# TODO: Map environment variables based on environment
+		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+			remapFlaskProdEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+			remapFlaskTestEnvVariables
+		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+			remapFlaskE2EEnvVariables
+		fi
+	elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
+		# TODO: Map environment variables based on environment
+		remapEnvVariableQA
 	fi
-elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
-	# TODO: Map environment variables based on environment
-	if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-		remapFlaskProdEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-		remapFlaskTestEnvVariables
-	elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-		remapFlaskE2EEnvVariables
-	fi
-elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-	# TODO: Map environment variables based on environment
-	remapEnvVariableQA
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then

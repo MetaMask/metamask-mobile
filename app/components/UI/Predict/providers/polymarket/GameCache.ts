@@ -1,4 +1,5 @@
 import { GameUpdate, PredictMarket } from '../../types';
+import { parseScore } from '../../utils/gameParser';
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const CLEANUP_INTERVAL_MS = 60 * 1000;
@@ -65,9 +66,9 @@ export class GameCache {
       ...market,
       game: {
         ...market.game,
-        score: cachedUpdate.score,
-        elapsed: cachedUpdate.elapsed,
-        period: cachedUpdate.period,
+        score: parseScore(cachedUpdate.score),
+        elapsed: cachedUpdate.elapsed || null,
+        period: cachedUpdate.period || null,
         status: cachedUpdate.status,
         turn: cachedUpdate.turn,
       },
