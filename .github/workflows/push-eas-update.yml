@@ -98,6 +98,9 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
+      - name: Enable Corepack
+        run: corepack enable && corepack prepare yarn@4.10.3 --activate
+
       - name: Download node_modules artifact (PR checkout)
         uses: actions/download-artifact@v4
         with:
@@ -284,6 +287,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
+
+      - name: Enable Corepack
+        run: corepack enable && corepack prepare yarn@4.10.3 --activate
 
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
