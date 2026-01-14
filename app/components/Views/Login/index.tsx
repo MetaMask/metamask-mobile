@@ -420,6 +420,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     fieldRef.current?.clear();
     setPassword('');
     setLoading(true);
+    setError(null);
 
     try {
       await trace(
