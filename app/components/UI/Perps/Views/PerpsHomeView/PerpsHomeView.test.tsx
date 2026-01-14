@@ -23,7 +23,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock Redux - default feedback disabled
-const mockUseSelector = jest.fn(() => false);
+const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
