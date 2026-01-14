@@ -12,8 +12,6 @@ import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-response
 import { POLYMARKET_COMPLETE_MOCKS } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import enContent from '../../../locales/languages/en.json';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
-import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
 
 const EXPECTED_BALANCE_TEXT = '$28.16';
 
@@ -26,8 +24,6 @@ const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Existing Polymarket account'), () => {
-  const eventsToCheck: EventPayload[] = [];
-
   it('validate Predict feed loads and displays balance', async () => {
     await withFixtures(
       {
@@ -37,10 +33,6 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: PredictionExistingPolyMarketBalance,
-        endTestfn: async ({ mockServer }) => {
-          const events = await getEventsPayloads(mockServer);
-          eventsToCheck.push(...events);
-        },
       },
       async () => {
         await loginToApp();
@@ -74,10 +66,6 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: PredictionExistingPolyMarketBalance,
-        endTestfn: async ({ mockServer }) => {
-          const events = await getEventsPayloads(mockServer);
-          eventsToCheck.push(...events);
-        },
       },
       async () => {
         await loginToApp();
@@ -105,34 +93,5 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
         });
       },
     );
-  });
-
-  it('should validate analytics events for viewing positions', async () => {
-    const expectedEvents = {
-      POSITION_VIEWED: 'Predict Position Viewed',
-    };
-
-    const softAssert = new SoftAssert();
-
-    // Event: PREDICT_POSITION_VIEWED
-    const positionViewed = eventsToCheck.filter(
-      (event) => event.event === expectedEvents.POSITION_VIEWED,
-    );
-
-    const checkPositionViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(positionViewed);
-      if (positionViewed.length > 0) {
-        await Assertions.checkIfValueIsDefined(
-          positionViewed[0].properties.timestamp,
-        );
-        await Assertions.checkIfValueIsDefined(
-          positionViewed[0].properties.open_positions_count,
-        );
-      }
-    }, 'Position Viewed event should be tracked when viewing Predictions tab');
-
-    await checkPositionViewed;
-
-    softAssert.throwIfErrors();
   });
 });

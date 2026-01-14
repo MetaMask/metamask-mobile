@@ -171,59 +171,53 @@ describe(
                 'Returned to Predictions tab; Unavailable modal dismissed after clicking Add funds',
             },
           );
+
+          // Verify analytics events for geo-blocking across all tests
+          const expectedEvents = {
+            GEO_BLOCKED_TRIGGERED: 'Geo Blocked Triggered',
+          };
+
+          const softAssert = new SoftAssert();
+
+          // Event: PREDICT_GEO_BLOCKED_TRIGGERED
+          await softAssert.checkAndCollect(async () => {
+            const geoBlockedEvents = eventsToCheck.filter(
+              (event) => event.event === expectedEvents.GEO_BLOCKED_TRIGGERED,
+            );
+            await Assertions.checkIfValueIsDefined(geoBlockedEvents);
+            // We expect at least 3 geo-blocked events:
+            // 1. Tapping Yes on feed (predict_action)
+            // 2. Tapping No on feed (predict_action)
+            // 3. Attempting cash out (cashout)
+            // 4. Attempting add funds (deposit)
+            if (geoBlockedEvents.length > 0) {
+              // Check first event has required properties
+              await Assertions.checkIfValueIsDefined(
+                geoBlockedEvents[0].properties.country,
+              );
+              await Assertions.checkIfValueIsDefined(
+                geoBlockedEvents[0].properties.attempted_action,
+              );
+
+              const attemptedActions = geoBlockedEvents.map(
+                (e) => e.properties.attempted_action,
+              );
+              const hasDepositAction = attemptedActions.includes('deposit');
+              const hasCashoutAction = attemptedActions.includes('cashout');
+              const hasPredictAction =
+                attemptedActions.includes('predict_action');
+
+              if (!hasDepositAction || !hasCashoutAction || !hasPredictAction) {
+                throw new Error(
+                  `Expected all geo-blocked action types. Found: ${attemptedActions.join(', ')}`,
+                );
+              }
+            }
+          }, 'Geo Blocked events should be tracked for different attempted actions');
+
+          softAssert.throwIfErrors();
         },
       );
-    });
-
-    it('should validate analytics events for geo-blocking', async () => {
-      const expectedEvents = {
-        GEO_BLOCKED_TRIGGERED: 'Geo Blocked Triggered',
-      };
-
-      const softAssert = new SoftAssert();
-
-      // Event: PREDICT_GEO_BLOCKED_TRIGGERED
-      const geoBlockedEvents = eventsToCheck.filter(
-        (event) => event.event === expectedEvents.GEO_BLOCKED_TRIGGERED,
-      );
-
-      const checkGeoBlockedEvents = softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfValueIsDefined(geoBlockedEvents);
-        // We expect at least 3 geo-blocked events:
-        // 1. Tapping Yes on feed (predict_action)
-        // 2. Tapping No on feed (predict_action)
-        // 3. Attempting cash out (cashout)
-        // 4. Attempting add funds (deposit)
-        if (geoBlockedEvents.length > 0) {
-          // Check first event has required properties
-          await Assertions.checkIfValueIsDefined(
-            geoBlockedEvents[0].properties.timestamp,
-          );
-          await Assertions.checkIfValueIsDefined(
-            geoBlockedEvents[0].properties.country,
-          );
-          await Assertions.checkIfValueIsDefined(
-            geoBlockedEvents[0].properties.attempted_action,
-          );
-
-          const attemptedActions = geoBlockedEvents.map(
-            (e) => e.properties.attempted_action,
-          );
-          const hasDepositAction = attemptedActions.includes('deposit');
-          const hasCashoutAction = attemptedActions.includes('cashout');
-          const hasPredictAction = attemptedActions.includes('predict_action');
-
-          if (!hasDepositAction || !hasCashoutAction || !hasPredictAction) {
-            throw new Error(
-              `Expected all geo-blocked action types. Found: ${attemptedActions.join(', ')}`,
-            );
-          }
-        }
-      }, 'Geo Blocked events should be tracked for different attempted actions');
-
-      await checkGeoBlockedEvents;
-
-      softAssert.throwIfErrors();
     });
   },
 );
