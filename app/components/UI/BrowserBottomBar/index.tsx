@@ -147,7 +147,11 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
               uniqueIdentifier: activeUrl,
               title: name || getMaskedUrl(urlToAdd, sessionENSNames),
               contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
-              keywords: [...name.split(' '), urlToAdd, 'dapp'],
+              keywords: [
+                ...(name ? name.split(' ').filter(Boolean) : []),
+                urlToAdd,
+                'dapp',
+              ],
               thumbnail: {
                 uri: thumbnailUri,
               },

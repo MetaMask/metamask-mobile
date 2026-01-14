@@ -489,7 +489,7 @@ describe('DiscoveryTab', () => {
 
   describe('renderBottomBar', () => {
     it('renders BrowserBottomBar when tab is active and URL bar is not focused', () => {
-      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
       renderWithProvider(<DiscoveryTab {...defaultProps} />, {
@@ -500,7 +500,7 @@ describe('DiscoveryTab', () => {
     });
 
     it('does not render BrowserBottomBar when tab is not active', () => {
-      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
       const inactiveState = {
@@ -519,7 +519,7 @@ describe('DiscoveryTab', () => {
     });
 
     it('does not render BrowserBottomBar when URL bar is focused', () => {
-      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
       const { getByTestId } = renderWithProvider(
@@ -542,7 +542,7 @@ describe('DiscoveryTab', () => {
     });
 
     it('passes newTab callback to BrowserBottomBar', () => {
-      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
       renderWithProvider(<DiscoveryTab {...defaultProps} />, {
@@ -666,7 +666,7 @@ describe('DiscoveryTab', () => {
 
   describe('BrowserBottomBar props', () => {
     it('passes correct props to BrowserBottomBar', () => {
-      const BrowserBottomBarMock = BrowserBottomBar as jest.Mock;
+      const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
       renderWithProvider(<DiscoveryTab {...defaultProps} />, {

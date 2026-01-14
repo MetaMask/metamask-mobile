@@ -1077,18 +1077,10 @@ describe('BrowserBottomBar', () => {
         url: 'https://example.com',
       });
 
+      // Empty strings from multiple spaces should be filtered out
       expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
         expect.objectContaining({
-          keywords: expect.arrayContaining([
-            'Test',
-            '',
-            'Bookmark',
-            '',
-            '',
-            'Name',
-            'https://example.com',
-            'dapp',
-          ]),
+          keywords: ['Test', 'Bookmark', 'Name', 'https://example.com', 'dapp'],
         }),
       );
     });
