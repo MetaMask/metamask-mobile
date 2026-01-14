@@ -103,7 +103,6 @@ describe('SRPQuiz', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         {
-          credentialName: 'seed_phrase',
           shouldUpdateNav: true,
           keyringId,
         },

@@ -7,6 +7,10 @@ import {
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
+// Default filter constants for trending tokens
+export const TRENDING_MIN_LIQUIDITY = 200000;
+export const TRENDING_MIN_VOLUME_24H = 1000000;
+
 /**
  * Hook for handling trending tokens request
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
@@ -23,8 +27,8 @@ export const useTrendingRequest = (options: {
   const {
     chainIds: providedChainIds = [],
     sortBy = 'h24_trending',
-    minLiquidity = 0,
-    minVolume24hUsd = 0,
+    minLiquidity = TRENDING_MIN_LIQUIDITY,
+    minVolume24hUsd = TRENDING_MIN_VOLUME_24H,
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,

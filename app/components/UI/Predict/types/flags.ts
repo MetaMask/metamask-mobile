@@ -7,3 +7,8 @@ export interface PredictFeeCollection {
   providerFee: number;
   waiveList: string[];
 }
+
+export interface PredictLiveSportsFlag {
+  enabled: boolean;
+  leagues: string[];
+}

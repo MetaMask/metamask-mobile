@@ -17,7 +17,7 @@ jest.mock('../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
   return {
-    init: () => mockedEngine.init({}),
+    init: () => mockedEngine.init(''),
     context: {
       KeyringController: {
         getQRKeyringState: async () => ({ subscribe: () => ({}) }),
