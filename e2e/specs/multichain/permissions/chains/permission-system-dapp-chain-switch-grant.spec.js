@@ -18,7 +18,7 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   });
 
   describe('When a dApp requests to switch to a new chain', () => {
-    it('should grant permission to the new chain and switch to it when approved', async () => {
+    it('grants permission to the new chain and switches to it when approved', async () => {
       await withFixtures(
         {
           dapps: [

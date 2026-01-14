@@ -23,6 +23,7 @@ import Logger from '../../../util/Logger';
 import { RootState } from '../../../reducers';
 import { SessionENSNames } from '../../Views/BrowserTab/types';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { selectBrowserTabCount } from '../../../reducers/browser/selectors';
 
 interface BrowserBottomBarProps {
   /**
@@ -100,6 +101,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
+  const tabCount = useSelector(selectBrowserTabCount);
 
   const trackNavigationEvent = (navigationOption: string): void => {
     trackEvent(
@@ -222,7 +224,6 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   const onReloadPress = (): void => {
     if (reload) {
       reload();
-      trackNavigationEvent('Reload');
       trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
     }
   };
@@ -234,7 +235,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
           .addProperties({
             option_chosen: 'Browser Bottom Bar',
-            number_of_tabs: undefined,
+            number_of_tabs: tabCount,
           })
           .build(),
       );

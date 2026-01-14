@@ -8,8 +8,24 @@ import Logger from '../../../util/Logger';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import BrowserBottomBar from './';
 import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 // Mock dependencies
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 jest.mock('../../../actions/bookmarks', () => ({
   addBookmark: jest.fn((bookmark) => ({
     type: 'ADD_BOOKMARK',
@@ -74,6 +90,18 @@ describe('BrowserBottomBar', () => {
 
   const initialState = {
     bookmarks: [],
+    browser: {
+      tabs: [
+        { id: 1, url: 'https://example.com' },
+        { id: 2, url: 'https://another.com' },
+      ],
+      activeTab: 1,
+      history: [],
+      whitelist: [],
+      favicons: [],
+      visitedDappsByHostname: {},
+      isFullscreen: false,
+    },
     engine: {
       backgroundState: {},
     },
@@ -155,6 +183,25 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.NEW_TAB_BUTTON));
 
       expect(mockOpenNewTab).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks BROWSER_NEW_TAB analytics event with correct tab count', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.NEW_TAB_BUTTON));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.BROWSER_NEW_TAB,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        option_chosen: 'Browser Bottom Bar',
+        number_of_tabs: 2,
+      });
+      expect(mockBuild).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
