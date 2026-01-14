@@ -65,7 +65,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeQuoteResponse, BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -77,6 +77,7 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
@@ -127,6 +128,8 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
+
+  const walletAddress = useSelector(selectSourceWalletAddress);
 
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
@@ -230,7 +233,8 @@ const BridgeView = () => {
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
-    !hasSufficientGas;
+    !hasSufficientGas ||
+    !walletAddress;
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
@@ -337,10 +341,17 @@ const BridgeView = () => {
 
   const handleContinue = async () => {
     try {
-      if (activeQuote) {
+      if (activeQuote && walletAddress) {
         dispatch(setIsSubmittingTx(true));
+
+        const quoteResponse: BridgeQuoteResponse = {
+          ...activeQuote,
+          aggregator: activeQuote.quote.bridgeId,
+          walletAddress,
+        };
+
         await submitBridgeTx({
-          quoteResponse: activeQuote,
+          quoteResponse,
         });
       }
     } catch (error) {

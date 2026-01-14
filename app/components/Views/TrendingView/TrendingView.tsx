@@ -16,6 +16,8 @@ import {
   IconName,
   Icon,
   IconSize,
+  IconColor,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -171,8 +173,11 @@ export const ExploreFeed: React.FC = () => {
   const isAnySectionLoading = loadingSections.size > 0;
 
   return (
-    <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="px-4 py-3 flex-row items-center justify-between">
+    <Box
+      style={{ marginTop: insets.top }}
+      twClassName="flex-1 bg-default gap-4"
+    >
+      <Box twClassName="px-4 flex-row items-center justify-between">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
@@ -181,33 +186,31 @@ export const ExploreFeed: React.FC = () => {
         )}
       </Box>
 
-      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+      <Box twClassName="flex-row items-center gap-2 px-4">
         <Box twClassName="flex-1">
           <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
 
-        <TouchableOpacity onPress={handleBrowserPress}>
-          {browserTabsCount > 0 ? (
-            <Box
-              twClassName="rounded-md items-center justify-center h-8 w-8 border-2"
-              style={{
-                borderColor: colors.text.default,
-              }}
-            >
+        <TouchableOpacity
+          onPress={handleBrowserPress}
+          testID="trending-view-browser-button"
+        >
+          <Box twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]">
+            {browserTabsCount > 0 ? (
               <Text
-                variant={TextVariant.BodyMd}
-                testID="trending-view-browser-button"
+                variant={TextVariant.BodyLg}
+                color={TextColor.TextAlternative}
               >
                 {browserTabsCount}
               </Text>
-            </Box>
-          ) : (
-            <Icon
-              name={IconName.Explore}
-              size={IconSize.Xl}
-              testID="trending-view-browser-button"
-            />
-          )}
+            ) : (
+              <Icon
+                name={IconName.Explore}
+                size={IconSize.Lg}
+                color={IconColor.IconAlternative}
+              />
+            )}
+          </Box>
         </TouchableOpacity>
       </Box>
 

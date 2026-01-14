@@ -42,6 +42,25 @@ jest.mock('../selectors/featureFlagController', () => ({
   selectRawFeatureFlags: jest.fn(),
 }));
 
+// Mock whenEngineReady to prevent Engine access after Jest teardown
+jest.mock('../core/Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
 jest.mock('../util/feature-flags', () => ({
   ...jest.requireActual('../util/feature-flags'),
   getFeatureFlagDescription: jest.fn(),
