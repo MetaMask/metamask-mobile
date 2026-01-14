@@ -1,4 +1,5 @@
 import { AuthorizationList, TransactionMeta } from '@metamask/transaction-controller';
+import { SentinelMeta } from '@metamask/smart-transactions-controller';
 import { Hex, Json, createProjectLogger } from '@metamask/utils';
 import { buildUrl, getSentinelNetworkFlags } from './sentinel-api';
 import jsonRpcRequest from '../../util/jsonRpcRequest';
@@ -10,7 +11,7 @@ export interface RelaySubmitRequest {
   chainId: Hex;
   data: Hex;
   to: Hex;
-  txMeta?: TransactionMeta;
+  metadata?: SentinelMeta;
 }
 
 export interface RelayWaitRequest {
