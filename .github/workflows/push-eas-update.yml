@@ -43,6 +43,8 @@ env:
 jobs:
   setup-dependencies:
     name: Setup Dependencies
+    needs:
+      - validate-pr
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ inputs.commit_hash }}
@@ -61,6 +63,13 @@ jobs:
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     steps:
+      - name: Checkout workflow branch (for scripts)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          path: workflow-scripts
+          fetch-depth: 0
+
       - name: Checkout target commit
         uses: actions/checkout@v4
         with:
@@ -71,7 +80,7 @@ jobs:
         env:
           TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
         run: |
-          .github/scripts/verify-commit-sha.sh
+          workflow-scripts/.github/scripts/verify-commit-sha.sh
 
       - name: Print commit info
         run: |
@@ -184,9 +193,10 @@ jobs:
     outputs:
       pr_number: ${{ steps.validate-pr.outputs.pr_number }}
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (for scripts)
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: Validate PR contains commit
@@ -277,6 +287,13 @@ jobs:
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
+      - name: Checkout workflow branch (for scripts)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          path: workflow-scripts
+          fetch-depth: 0
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -287,7 +304,7 @@ jobs:
         env:
           TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
         run: |
-          .github/scripts/verify-commit-sha.sh
+          workflow-scripts/.github/scripts/verify-commit-sha.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
