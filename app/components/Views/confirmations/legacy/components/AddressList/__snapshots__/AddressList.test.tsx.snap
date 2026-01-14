@@ -147,7 +147,6 @@ exports[`AddressList renders correctly 1`] = `
                         "padding": 16,
                       }
                     }
-                    testID="my-account-element"
                   >
                     <View
                       style={
