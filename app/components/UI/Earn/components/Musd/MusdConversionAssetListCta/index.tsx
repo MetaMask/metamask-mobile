@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
   TextVariant,
@@ -36,6 +37,7 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../../../selectors/assets/balances';
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -51,22 +53,24 @@ const MusdConversionAssetListCta = () => {
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
     shouldShowBuyGetMusdCta();
 
+  const accountBalance = useSelector(selectAccountGroupBalanceForEmptyState);
+  const isEmptyWallet = accountBalance?.totalBalanceInUserCurrency === 0;
+
   const canConvert = useMemo(
     () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
     [tokens],
   );
 
   const ctaText = useMemo(() => {
-    if (!canConvert) {
+    if (isEmptyWallet) {
       return strings('earn.musd_conversion.buy_musd');
     }
-
     return strings('earn.musd_conversion.get_musd');
-  }, [canConvert]);
+  }, [isEmptyWallet]);
 
   const handlePress = async () => {
-    // Redirect users to deposit flow if they don't have any stablecoins to convert.
-    if (!canConvert) {
+    // Redirect users to buy flow if they have an empty wallet.
+    if (isEmptyWallet) {
       const rampIntent: RampIntent = {
         assetId:
           MUSD_TOKEN_ASSET_ID_BY_CHAIN[
@@ -101,8 +105,10 @@ const MusdConversionAssetListCta = () => {
     }
   };
 
-  // Don't render if visibility conditions are not met
-  if (!shouldShowCta) {
+  // Don't render if:
+  // - visibility conditions not met, OR
+  // - user has tokens but none are convertible (not empty wallet and can't convert)
+  if (!shouldShowCta || (!isEmptyWallet && !canConvert)) {
     return null;
   }
 
