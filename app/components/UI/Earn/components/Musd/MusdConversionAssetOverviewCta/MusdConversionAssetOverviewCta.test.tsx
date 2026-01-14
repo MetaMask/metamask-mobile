@@ -171,13 +171,15 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('calls initiateConversion when user has seen education screen', async () => {
       const mockToken = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
         { state: initialRootState },
       );
 
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       await waitFor(() => {
@@ -191,13 +193,15 @@ describe('MusdConversionAssetOverviewCta', () => {
         chainId: '0x1',
       });
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
         { state: initialRootState },
       );
 
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       await waitFor(() => {
@@ -225,13 +229,15 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('logs error when asset address is missing', async () => {
       const mockToken = createMockToken({ address: '' });
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
         { state: initialRootState },
       );
 
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       await waitFor(() => {
@@ -247,13 +253,15 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('logs error with correct message when asset address is missing', async () => {
       const mockToken = createMockToken({ address: '' });
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
         { state: initialRootState },
       );
 
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       await waitFor(() => {
@@ -265,13 +273,15 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('logs error when asset chainId is missing', async () => {
       const mockToken = createMockToken({ chainId: '' });
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
         { state: initialRootState },
       );
 
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       await waitFor(() => {
@@ -287,13 +297,15 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('logs error when asset chainId is undefined', async () => {
       const mockToken = createMockToken({ chainId: undefined });
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
         { state: initialRootState },
       );
 
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       await waitFor(() => {
@@ -308,13 +320,15 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       const mockToken = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
         { state: initialRootState },
       );
 
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       await waitFor(() => {
