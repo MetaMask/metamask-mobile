@@ -79,6 +79,8 @@ jobs:
         with:
           path: |
             node_modules
+            .yarn/cache
+            .yarn/install-state.gz
             app/util/termsOfUse/termsOfUseContent.ts
             scripts/inpage-bridge/dist
           key: ${{ steps.cache-key.outputs.key }}
@@ -118,6 +120,8 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: |
             node_modules
+            .yarn/cache
+            .yarn/install-state.gz
             app/util/termsOfUse/termsOfUseContent.ts
             scripts/inpage-bridge/dist
           retention-days: ${{ inputs.artifact-retention-days }}

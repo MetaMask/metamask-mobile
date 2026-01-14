@@ -105,16 +105,6 @@ jobs:
         with:
           name: node-modules-eas-update
 
-      - name: Verify downloaded artifacts (commit checkout)
-        run: |
-          echo "✅ Verifying downloaded artifacts in commit checkout..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          echo "📦 node_modules size (commit): $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified for commit checkout"
-
       - name: Download node_modules artifact (base branch checkout)
         uses: actions/download-artifact@v4
         with:
