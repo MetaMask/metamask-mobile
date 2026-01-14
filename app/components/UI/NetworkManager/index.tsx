@@ -33,6 +33,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import AccountAction from '../../Views/AccountAction';
 import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
+import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
@@ -150,6 +151,16 @@ const NetworkManager = () => {
     });
     return evmConfigs;
   }, [networkConfigurations]);
+
+  const containerStyle = useMemo(
+    () => [
+      {
+        height: Device.getDeviceHeight() * 0.5,
+        maxHeight: Device.getDeviceHeight() * 0.5,
+      },
+    ],
+    [],
+  );
 
   const defaultTabProps = useMemo(
     () => ({
@@ -352,7 +363,7 @@ const NetworkManager = () => {
         ref={sheetRef}
         shouldNavigateBack
       >
-        <View style={styles.container}>
+        <View style={containerStyle}>
           <BottomSheetHeader
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
           >
