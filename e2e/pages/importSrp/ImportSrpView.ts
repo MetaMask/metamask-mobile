@@ -12,9 +12,7 @@ class ImportSrpView {
   }
 
   get importButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON)
-      : Matchers.getElementByLabel(ImportSRPIDs.IMPORT_BUTTON);
+    return Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON);
   }
 
   get textareaInput(): DetoxElement {

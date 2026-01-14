@@ -503,7 +503,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     {
                                       "backgroundColor": "#f3f5f9",
                                       "borderRadius": 10,
-                                      "marginTop": 16,
                                       "maxHeight": "auto",
                                       "minHeight": 210,
                                       "paddingTop": 16,

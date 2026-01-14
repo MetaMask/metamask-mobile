@@ -6,10 +6,14 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Alert, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Alert, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import StyledButton from '../../UI/StyledButton';
+import { useNavigation } from '@react-navigation/native';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -20,17 +24,19 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
+import {
+  ButtonIcon,
   IconName,
-} from '../../../component-library/components/Icons/Icon';
+  IconColor,
+} from '@metamask/design-system-react-native';
+import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
+import HeaderWithTitleLeft from '../../../component-library/components-temp/HeaderWithTitleLeft';
 import {
   ToastContext,
   ToastVariants,
@@ -63,7 +69,6 @@ import {
  */
 const ImportNewSecretRecoveryPhrase = () => {
   const navigation = useNavigation();
-  const route = useRoute();
   const { colors } = useAppTheme();
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
   const styles = createStyles(colors, isKeyboardVisible);
@@ -135,46 +140,11 @@ const ImportNewSecretRecoveryPhrase = () => {
     });
   }, [navigation]);
 
-  const headerLeft = useCallback(
-    () => (
-      <TouchableOpacity onPress={dismiss} style={styles.headerButton}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          testID={ImportSRPIDs.BACK}
-        />
-      </TouchableOpacity>
-    ),
-    [dismiss, styles],
-  );
-
-  const headerRight = useCallback(
-    () => (
-      <TouchableOpacity onPress={onQrCodePress} style={styles.headerButton}>
-        <Icon name={IconName.Scan} size={IconSize.Lg} testID="qr-code-button" />
-      </TouchableOpacity>
-    ),
-    [onQrCodePress, styles],
-  );
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions({
-      headerShown: true,
-      ...getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-          headerRight,
-        },
-        colors,
-        false,
-      ),
-    });
-  }, [navigation, route, headerLeft, headerRight, colors]);
-
   useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
     trackEvent(
@@ -240,7 +210,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             } ${strings('import_new_secret_recovery_phrase.success_2')}`,
           },
         ],
-        iconName: IconName.Check,
+        iconName: ComponentIconName.Check,
         hasNoTimeout: false,
       });
 
@@ -277,6 +247,43 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+      <HeaderWithTitleLeft
+        includesTopInset
+        backButtonProps={{
+          onPress: dismiss,
+          testID: ImportSRPIDs.BACK,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Scan,
+            onPress: onQrCodePress,
+            testID: 'qr-code-button',
+          },
+        ]}
+        titleLeftProps={{
+          testID: ImportSRPIDs.SCREEN_TITLE_ID,
+          title: strings(
+            'import_new_secret_recovery_phrase.import_wallet_title',
+          ),
+          bottomAccessory: (
+            <View style={styles.subtitleContainer}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings(
+                  'import_new_secret_recovery_phrase.enter_srp_subtitle',
+                )}
+              </Text>
+              <ButtonIcon
+                iconName={IconName.Info}
+                iconProps={{
+                  color: IconColor.IconAlternative,
+                }}
+                onPress={showWhatIsSeedPhrase}
+                testID="info-icon"
+              />
+            </View>
+          ),
+        }}
+      />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         testID={ImportSRPIDs.CONTAINER}
@@ -285,28 +292,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         bottomOffset={180}
         showsVerticalScrollIndicator={false}
       >
-        <Text
-          variant={TextVariant.DisplayMD}
-          style={styles.title}
-          testID={ImportSRPIDs.SCREEN_TITLE_ID}
-        >
-          {strings('import_new_secret_recovery_phrase.import_wallet_title')}
-        </Text>
-
         <View style={styles.contentContainer}>
-          <View style={styles.subtitleContainer}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
-            </Text>
-            <TouchableOpacity onPress={showWhatIsSeedPhrase} testID="info-icon">
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Md}
-                color={colors.icon.alternative}
-              />
-            </TouchableOpacity>
-          </View>
-
           <SrpInputGrid
             ref={srpInputGridRef}
             seedPhrase={seedPhrase}

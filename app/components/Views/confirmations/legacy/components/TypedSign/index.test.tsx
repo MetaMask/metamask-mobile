@@ -19,6 +19,19 @@ import { Reason, ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
 jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
+jest.mock('../../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
 jest.mock('../../../../../UI/AccountInfoCard', () => ({
   __esModule: true,
   default: () => null,
@@ -26,6 +39,7 @@ jest.mock('../../../../../UI/AccountInfoCard', () => ({
 
 const mockMetrics = {
   trackEvent: jest.fn(),
+  updateDataRecordingFlag: jest.fn(),
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);

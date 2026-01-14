@@ -1,7 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
+import { Platform, StyleSheet } from 'react-native';
 import { Colors } from '../../../util/theme/models';
 
 const createStyles = (colors: Colors, isKeyboardVisible = false) =>
@@ -13,75 +11,17 @@ const createStyles = (colors: Colors, isKeyboardVisible = false) =>
     wrapper: {
       flexGrow: 1,
       paddingHorizontal: 16,
-    },
-    headerButton: {
-      paddingHorizontal: 16,
-    },
-    title: {
-      marginTop: 0,
-      marginBottom: 0,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     contentContainer: {
-      marginTop: 6,
+      flex: 1,
     },
     subtitleContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-      marginBottom: 16,
-    },
-    textareaContainer: {
-      width: '100%',
-      marginBottom: 0,
-    },
-    textarea: {
-      minHeight: 180,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 8,
-      fontSize: 16,
-      lineHeight: 24,
-      color: colors.text.default,
-      backgroundColor: colors.background.default,
-      ...fontStyles.normal,
-    },
-    textareaError: {
-      borderColor: colors.error.default,
-    },
-    errorBanner: {
-      marginTop: 16,
-    },
-    footerText: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: 4,
-    },
-    dataRow: {
-      marginBottom: 10,
-    },
-    label: {
-      fontSize: 14,
-      color: colors.text.default,
-      textAlign: 'left',
-      ...fontStyles.normal,
-    },
-    subtitleText: {
-      fontSize: 18,
-      ...fontStyles.bold,
-      color: colors.text.default,
-    },
-    icon: {
-      textAlign: 'left',
-      fontSize: 50,
-      marginTop: 0,
-      marginLeft: 0,
-      color: colors.icon.alternative,
     },
     buttonWrapper: {
-      width: '100%',
       marginTop: 24,
     },
     button: {
