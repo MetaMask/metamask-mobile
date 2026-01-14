@@ -48,12 +48,8 @@ jobs:
 
   fingerprint-comparison:
     name: Compare Expo Fingerprints
-    # NOTE: We intentionally do NOT depend on setup-dependencies here
-    # to avoid node_modules/artifact differences affecting the Expo
-    # fingerprint comparison between PR and base branches.
-    # If you need to restore this behavior, uncomment the lines below:
-    # needs:
-    #   - setup-dependencies
+    needs:
+      - setup-dependencies
     runs-on: ubuntu-latest
     outputs:
       branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
@@ -95,26 +91,26 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      # NOTE: These steps are commented out to keep the fingerprint
-      # comparison running on a clean checkout for both PR and base
-      # branches. Restoring node_modules only for the PR branch made
-      # the fingerprints diverge even when native code was unchanged.
-      # If you need to revert to the previous behavior, uncomment
-      # the block below.
-      # - name: Download node_modules artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: node-modules-eas-update
-      #
-      # - name: Verify downloaded artifacts
-      #   run: |
-      #     echo "✅ Verifying downloaded artifacts..."
-      #     if [ ! -d "node_modules" ]; then
-      #       echo "❌ node_modules directory not found"
-      #       exit 1
-      #     fi
-      #     echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-      #     echo "✅ Artifacts verified"
+      - name: Download node_modules artifact (PR checkout)
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+
+      - name: Verify downloaded artifacts (PR checkout)
+        run: |
+          echo "✅ Verifying downloaded artifacts in PR checkout..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          echo "📦 node_modules size (PR): $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified for PR checkout"
+
+      - name: Download node_modules artifact (base branch checkout)
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+          path: main
 
       - name: Generate fingerprint (workflow branch)
         id: branch_fingerprint
