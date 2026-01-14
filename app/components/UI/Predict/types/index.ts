@@ -128,15 +128,22 @@ export interface PredictSportTeam {
   alias: string; // Team alias (e.g., "Seahawks")
 }
 
+// Parsed score data
+export interface PredictGameScore {
+  away: number;
+  home: number;
+  raw: string; // Original "away-home" format (e.g., "21-14")
+}
+
 // Game data attached to market
 export interface PredictMarketGame {
   id: string;
   startTime: string;
   status: PredictGameStatus;
   league: PredictSportsLeague;
-  elapsed: string; // Game clock
-  period: string; // Current period (Q1, Q2, HT, Q3, Q4, OT, FT)
-  score: string; // "away-home" format (e.g., "21-14")
+  elapsed: string | null; // Game clock, null if not available
+  period: string | null; // Current period (Q1, Q2, HT, Q3, Q4, OT, FT), null if not available
+  score: PredictGameScore | null; // Parsed score with away/home values, null if not available
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
   turn?: string; // Team abbreviation with possession

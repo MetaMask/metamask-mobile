@@ -1,6 +1,6 @@
 import { RegressionNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder';
@@ -83,7 +83,7 @@ describe(RegressionNetworkAbstractions('Asset Watch:'), () => {
         await loginToApp();
 
         // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });

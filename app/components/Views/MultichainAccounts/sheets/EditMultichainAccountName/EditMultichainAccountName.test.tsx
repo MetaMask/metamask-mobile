@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { EditMultichainAccountName } from './EditMultichainAccountName';
 import { strings } from '../../../../../../locales/i18n';
-import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 

@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 import { ApproveMethod } from '../../types/approve';
 import { validateSpendingCap } from '../../utils/validations/approve';
-import { ApproveComponentIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ApproveComponentIDs } from '../../ConfirmationView.testIds';
 import { SpendingCapInput } from './spending-cap-input';
 
 jest.mock('../../utils/validations/approve', () => ({

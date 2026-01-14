@@ -7,7 +7,7 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { FillType } from '../PerpsTransactionItem/PerpsTransactionItem';
 
 // Mock PerpsTokenLogo

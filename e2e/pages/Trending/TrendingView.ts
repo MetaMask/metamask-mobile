@@ -5,10 +5,6 @@ import {
 } from '../../selectors/Trending/TrendingView.selectors';
 
 class TrendingView {
-  get trendingTab(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.TAB_BAR_ITEM);
-  }
-
   get searchButton(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
@@ -47,12 +43,6 @@ class TrendingView {
     return Matchers.getElementByText(title);
   }
 
-  async tapTrendingTab(): Promise<void> {
-    await Gestures.tap(this.trendingTab, {
-      elemDescription: 'Tap Trending tab',
-    });
-  }
-
   async tapSearchButton(): Promise<void> {
     await Gestures.tap(this.searchButton, {
       elemDescription: 'Tap Search button',
@@ -68,6 +58,7 @@ class TrendingView {
   async typeSearchQuery(query: string): Promise<void> {
     await Gestures.typeText(this.searchInput, query, {
       elemDescription: 'Type search query',
+      hideKeyboard: true,
     });
   }
 

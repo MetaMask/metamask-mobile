@@ -13,7 +13,7 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
 import WalletView from '../../../pages/wallet/WalletView.ts';
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import Assertions from '../../../framework/Assertions.ts';
-import { loginToApp } from '../../../viewHelper.ts';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
 import { DappVariants } from '../../../framework/Constants.ts';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
@@ -77,7 +77,7 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         // Make sure the dapp is connected to the predefined network in configuration (LOCAL_CHAIN_ID)
@@ -87,7 +87,7 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // Change the network to Ethereum Main Network in app
         await changeNetworkFromNetworkListModal('Ethereum Main Network');
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         // Assert the dapp is still connected the previously selected network (LOCAL_CHAIN_ID)
         await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 

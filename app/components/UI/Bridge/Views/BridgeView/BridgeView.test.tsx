@@ -24,6 +24,7 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeViewMode } from '../../types';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -214,6 +215,11 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     selectNoFeeAssets: jest.fn(actualBridgeSlice.selectNoFeeAssets),
   };
 });
+
+jest.mock('../../../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../../../selectors/bridge'),
+  selectSourceWalletAddress: jest.fn(),
+}));
 
 const mockNavigate = jest.fn();
 const mockRoute = {
@@ -1207,6 +1213,10 @@ describe('BridgeView', () => {
       mockSubmitBridgeTx.mockResolvedValue({ success: true });
       // Mock isHardwareAccount to return false for these tests
       jest.mocked(isHardwareAccount).mockReturnValue(false);
+
+      jest
+        .mocked(selectSourceWalletAddress)
+        .mockReturnValue('0x1234567890123456789012345678901234567890');
     });
 
     it('should submit transaction for Solana swap', async () => {
@@ -1265,7 +1275,11 @@ describe('BridgeView', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: mockQuote,
+            quoteResponse: {
+              ...mockQuote,
+              aggregator: mockQuote.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1331,7 +1345,11 @@ describe('BridgeView', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: mockQuote,
+            quoteResponse: {
+              ...mockQuote,
+              aggregator: mockQuote.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1394,7 +1412,11 @@ describe('BridgeView', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: mockQuote,
+            quoteResponse: {
+              ...mockQuote,
+              aggregator: mockQuote.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1454,11 +1476,75 @@ describe('BridgeView', () => {
       await act(async () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: mockQuote,
+            quoteResponse: {
+              ...mockQuote,
+              aggregator: mockQuote.quote.bridgeId,
+              walletAddress: '0x1234567890123456789012345678901234567890',
+            },
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
+    });
+
+    it('disables submit button when walletAddress is missing', async () => {
+      // Mock selectSourceWalletAddress to return undefined
+      jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuote],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+          destToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockQuote,
+          isLoading: false,
+        }));
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Find the continue button and verify it's disabled
+      const continueButton = getByTestId('bridge-confirm-button');
+
+      await waitFor(() => {
+        // Button should be disabled when walletAddress is missing
+        expect(continueButton.props.disabled).toBe(true);
+      });
+
+      // Verify submitBridgeTx is not called since button is disabled
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

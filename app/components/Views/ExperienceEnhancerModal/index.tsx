@@ -24,7 +24,7 @@ import {
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
-import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors.js';
+import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const ExperienceEnhancerModal = () => {
