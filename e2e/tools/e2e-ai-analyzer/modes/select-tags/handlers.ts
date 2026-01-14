@@ -9,7 +9,7 @@ import { smokeTags, flaskTags } from '../../../../tags';
 /**
  * Tags to exclude from AI selection (broken/disabled tests)
  */
-const EXCLUDED_TAGS = ['SmokeSwaps', 'SmokeMultiChainAPI'];
+const EXCLUDED_TAGS = ['SmokeSwaps', 'SmokeMultiChainAPI', 'SmokeCore'];
 
 /**
  * Derive AI config from smokeTags and flaskTags

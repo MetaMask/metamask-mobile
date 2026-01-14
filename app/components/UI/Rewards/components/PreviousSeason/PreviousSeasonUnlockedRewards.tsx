@@ -50,6 +50,7 @@ const PreviousSeasonUnlockedRewards = () => {
           {
             rewardId,
             seasonRewardId: seasonReward.id,
+            title: seasonReward.name,
           },
         );
       }
@@ -131,6 +132,8 @@ const PreviousSeasonUnlockedRewards = () => {
                       ) as SeasonRewardDto;
                     const isClaimable =
                       seasonReward?.rewardType === SeasonRewardType.METAL_CARD;
+                    const isRedeemClaim =
+                      seasonReward?.rewardType === SeasonRewardType.METAL_CARD;
                     return (
                       <RewardItem
                         key={unlockedReward.id}
@@ -138,9 +141,23 @@ const PreviousSeasonUnlockedRewards = () => {
                         seasonReward={seasonReward}
                         isLast={unlockedReward === endOfSeasonRewards.at(-1)}
                         isEndOfSeasonReward
+                        endOfSeasonClaimedDescription={
+                          isRedeemClaim
+                            ? strings(
+                                'rewards.claim_reward_redeem.success_description',
+                              )
+                            : undefined
+                        }
                         compact
                         isLocked={!isClaimable}
                         onPress={isClaimable ? handleRewardPress : undefined}
+                        claimCtaLabel={
+                          isRedeemClaim
+                            ? strings(
+                                'rewards.claim_reward_redeem.button_label',
+                              )
+                            : undefined
+                        }
                       />
                     );
                   })}

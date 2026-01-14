@@ -179,6 +179,13 @@ export interface PolymarketApiEvent {
   liquidity: number;
   volume: number;
   sortBy?: 'price' | 'ascending' | 'descending';
+  gameId?: string;
+  startTime?: string;
+  score?: string;
+  elapsed?: string;
+  period?: string;
+  live?: boolean;
+  ended?: boolean;
 }
 
 export interface PolymarketApiActivity {
