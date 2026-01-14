@@ -38,11 +38,6 @@ export const connectTronTestDapp = async (
     await assert();
   }
 
-  // TODO: Fix this
-  // We need to approve twice because we get 2 prompts
-  // One for mainnet and one for testnet
-  // Only happens when connecting to testnet so does not affect users in production
-  await ConnectBottomSheet.tapConnectButton();
   await ConnectBottomSheet.tapConnectButton();
 };
 
