@@ -88,13 +88,11 @@ jobs:
             node-modules-${{ runner.os }}-
 
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: |
           echo "📦 Installing dependencies..."
           yarn install --immutable
 
       - name: Setup project
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: |
           echo "🔧 Running setup for GitHub CI..."
           yarn setup:github-ci

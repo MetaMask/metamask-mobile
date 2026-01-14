@@ -48,7 +48,7 @@ jobs:
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ inputs.commit_hash }}
-      fetch-depth: 0
+      fetch-depth: 1
       upload-artifact: true
       artifact-name: node-modules-eas-update
       artifact-retention-days: 1
