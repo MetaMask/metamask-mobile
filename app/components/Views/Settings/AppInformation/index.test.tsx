@@ -127,7 +127,7 @@ describe('AppInformation', () => {
       expect(getByText(/Privacy Policy/)).toBeTruthy();
       expect(getByText(/Terms of use/)).toBeTruthy();
       expect(getByText(/Attributions/)).toBeTruthy();
-      expect(getByText(/Visit our Support Center/)).toBeTruthy();
+      expect(getByText(/Visit our support center/)).toBeTruthy();
       expect(getByText(/Visit our website/)).toBeTruthy();
       expect(getByText(/Contact us/)).toBeTruthy();
     });
