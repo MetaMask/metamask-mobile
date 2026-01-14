@@ -14,6 +14,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
 import { clearCacheData } from '../../../../core/redux/slices/card';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -225,12 +226,13 @@ describe('useSpendingLimit', () => {
   });
 
   describe('Initial State', () => {
-    it('initializes with default values', () => {
+    it('initializes with default values and pre-selects mUSD', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams()),
       );
 
-      expect(result.current.selectedToken).toBeNull();
+      // mUSD is pre-selected as fallback when no initialToken or priorityToken
+      expect(result.current.selectedToken?.symbol).toBe('mUSD');
       expect(result.current.limitType).toBe('full');
       expect(result.current.customLimit).toBe('');
       expect(result.current.isOtherSelected).toBe(false);
@@ -255,7 +257,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(priorityToken);
     });
 
-    it('does not set Solana priority token', () => {
+    it('falls back to mUSD when Solana is priority token', () => {
       const priorityToken = createMockToken({
         symbol: 'SOL',
         caipChainId: SolScope.Mainnet,
@@ -264,7 +266,8 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ priorityToken })),
       );
 
-      expect(result.current.selectedToken).toBeNull();
+      // mUSD is selected as fallback when priorityToken is Solana
+      expect(result.current.selectedToken?.symbol).toBe('mUSD');
     });
   });
 
@@ -439,7 +442,13 @@ describe('useSpendingLimit', () => {
 
     it('returns false for onboarding flow without selected token', () => {
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+        useSpendingLimit(
+          createDefaultParams({
+            flow: 'onboarding',
+            allTokens: [],
+            delegationSettings: null,
+          }),
+        ),
       );
 
       expect(result.current.isValid).toBe(false);
@@ -564,11 +573,15 @@ describe('useSpendingLimit', () => {
 
     it('shows error toast when no token is available', async () => {
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams()),
+        useSpendingLimit(
+          createDefaultParams({ allTokens: [], delegationSettings: null }),
+        ),
       );
 
       await act(async () => {
-        await result.current.submit();
+        const submitPromise = result.current.submit();
+        await jest.runAllTimersAsync();
+        await submitPromise;
       });
 
       expect(mockShowToast).toHaveBeenCalled();
@@ -782,7 +795,7 @@ describe('useSpendingLimit', () => {
   });
 
   describe('skip', () => {
-    it('navigates to complete screen', () => {
+    it('navigates to card home screen', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
       );
@@ -791,7 +804,7 @@ describe('useSpendingLimit', () => {
         result.current.skip();
       });
 
-      expect(mockNavigation.dispatch).toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.CARD.HOME);
     });
 
     it('does not navigate when loading', () => {
@@ -809,7 +822,7 @@ describe('useSpendingLimit', () => {
         result.current.skip();
       });
 
-      expect(mockNavigation.dispatch).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
     it('tracks button click event with skipped property', () => {

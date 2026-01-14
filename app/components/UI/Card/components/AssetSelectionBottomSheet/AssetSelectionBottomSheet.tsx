@@ -744,9 +744,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
                         imageSource={{
                           uri: buildTokenIconUrl(
                             item.caipChainId,
-                            // For non-Linea chains (e.g., Base), use stagingTokenAddress as it contains the correct
-                            // production address for that chain. For Linea, use address directly.
+                            // For EVM non-Linea chains (e.g., Base), use stagingTokenAddress as it contains the correct
+                            // production address for that chain. For Linea and Solana, use address directly.
                             item.caipChainId !== 'eip155:59144' &&
+                              !item.caipChainId?.startsWith('solana:') &&
                               item.stagingTokenAddress
                               ? item.stagingTokenAddress
                               : item.address || '',

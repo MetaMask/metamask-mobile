@@ -140,10 +140,22 @@ const useSpendingLimit = ({
     );
   }, [trackEvent, createEventBuilder, flow]);
 
-  // Build quick-select tokens
+  // Build quick-select tokens with SDK lookup for production addresses (for icons)
   const quickSelectTokens = useMemo(
-    () => buildQuickSelectTokens(allTokens, delegationSettings),
-    [allTokens, delegationSettings],
+    () =>
+      buildQuickSelectTokens(
+        allTokens,
+        delegationSettings,
+        sdk
+          ? (chainId) =>
+              (sdk.getSupportedTokensByChainId(chainId) ?? []) as {
+                address?: string;
+                symbol?: string;
+                name?: string;
+              }[]
+          : undefined,
+      ),
+    [allTokens, delegationSettings, sdk],
   );
 
   // Check if "Other" is selected (token not in quick-select list)
@@ -435,8 +447,8 @@ const useSpendingLimit = ({
         .build(),
     );
 
-    navigateToComplete();
-  }, [trackEvent, createEventBuilder, isLoading, navigateToComplete]);
+    navigation.navigate(Routes.CARD.HOME);
+  }, [trackEvent, createEventBuilder, isLoading, navigation]);
 
   return {
     // State

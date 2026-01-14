@@ -6711,7 +6711,7 @@
         },
         "kyc_pending": {
           "title": "Verification in progress",
-          "description": "Your identity verification is being reviewed. This usually takes a few minutes."
+          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
       "kyc_status": {

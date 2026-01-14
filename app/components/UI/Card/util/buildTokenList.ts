@@ -163,10 +163,14 @@ export function buildTokenListFromSettings({
 
 /**
  * Builds quick-select tokens (mUSD, USDC on Linea) from available tokens
+ * @param allTokens - User's wallet tokens
+ * @param delegationSettings - Delegation settings with supported networks/tokens
+ * @param getSupportedTokensByChainId - Optional SDK function to resolve production addresses for icons
  */
 export function buildQuickSelectTokens(
   allTokens: CardTokenAllowance[],
   delegationSettings: DelegationSettingsResponse | null,
+  getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[],
 ): { symbol: string; token: CardTokenAllowance | null }[] {
   // Get tokens from delegation settings for Linea as fallback
   const lineaTokensFromSettings: CardTokenAllowance[] = [];
@@ -180,11 +184,25 @@ export function buildQuickSelectTokens(
       const caipChainId = getCaipChainId(network);
       if (caipChainId !== LINEA_CAIP_CHAIN_ID) continue;
 
+      const isNonProduction = network.environment !== 'production';
+
       for (const [, tokenConfig] of Object.entries(network.tokens)) {
         if (!tokenConfig.address) continue;
 
+        // For non-production environments, use SDK to get the correct production address for icons
+        let resolvedAddress = tokenConfig.address;
+        if (isNonProduction && getSupportedTokensByChainId) {
+          const chainTokens = getSupportedTokensByChainId(caipChainId);
+          const sdkToken = chainTokens.find(
+            (t) => t.symbol?.toUpperCase() === tokenConfig.symbol.toUpperCase(),
+          );
+          if (sdkToken?.address) {
+            resolvedAddress = sdkToken.address;
+          }
+        }
+
         lineaTokensFromSettings.push({
-          address: tokenConfig.address,
+          address: resolvedAddress,
           symbol: tokenConfig.symbol,
           name: tokenConfig.symbol,
           decimals: tokenConfig.decimals,
@@ -193,10 +211,9 @@ export function buildQuickSelectTokens(
           allowanceState: AllowanceState.NotEnabled,
           allowance: '0',
           delegationContract: network.delegationContract,
-          stagingTokenAddress:
-            network.environment !== 'production'
-              ? tokenConfig.address
-              : undefined,
+          stagingTokenAddress: isNonProduction
+            ? tokenConfig.address
+            : undefined,
         } as CardTokenAllowance);
       }
     }

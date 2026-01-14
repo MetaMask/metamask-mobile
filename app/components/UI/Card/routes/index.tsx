@@ -109,7 +109,17 @@ export const cardSpendingLimitNavigationOptions = ({
         />
       ),
     headerTitle: () => <View />,
-    headerRight: () => <View />,
+    headerRight: () =>
+      isOnboardingFlow ? (
+        <ButtonIcon
+          style={headerStyle.icon}
+          size={ButtonIconSize.Md}
+          iconName={IconName.Close}
+          onPress={() => navigation.navigate(Routes.CARD.HOME)}
+        />
+      ) : (
+        <View />
+      ),
     gestureEnabled: !isOnboardingFlow,
   };
 };
