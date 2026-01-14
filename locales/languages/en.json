@@ -7199,12 +7199,16 @@
       "time_left": "left",
       "expired": "Expired"
     },
-    "claim_reward_redeem": {
-      "button_label": "Redeem",
+    "end_of_season_rewards": {
+      "redeem_label": "Redeem",
+      "access_label": "Access",
+      "confirm_label": "Confirm",
       "success_title": "Reward redeemed",
-      "success_description": "Arriving soon",
+      "arriving_soon": "Arriving soon",
       "failure_title": "Redeem failed",
-      "failure_description": "Please try again later."
+      "failure_description": "Please try again later.",
+      "redeem_your_reward": "Redeem your reward",
+      "select_account_description": "Select the wallet where you'd like this reward sent. Tokens will be distributed within two weeks."
     },
     "animation": {
       "could_not_load": "Couldn't load"

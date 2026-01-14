@@ -452,6 +452,8 @@ export enum SeasonRewardType {
   POINTS_BOOST = 'POINTS_BOOST',
   ALPHA_FOX_INVITE = 'ALPHA_FOX_INVITE',
   METAL_CARD = 'METAL_CARD',
+  LINEA_TOKENS = 'LINEA_TOKENS',
+  NANSEN = 'NANSEN',
 }
 
 export interface SeasonDto {
@@ -508,6 +510,7 @@ export interface RewardDto {
 export type RewardClaimData =
   | PointsBoostRewardData
   | AlphaFoxInviteRewardData
+  | NansenRewardData
   | null;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -520,6 +523,11 @@ export type PointsBoostRewardData = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AlphaFoxInviteRewardData = {
   telegramHandle: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type NansenRewardData = {
+  url: string;
 };
 
 export interface RewardClaim {

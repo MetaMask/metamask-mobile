@@ -78,7 +78,7 @@ const MetalCardClaimBottomSheet = ({
   const showToast = useCallback(() => {
     showRewardsToast(
       RewardsToastOptions.success(
-        strings('rewards.claim_reward_redeem.success_title'),
+        strings('rewards.end_of_season_rewards.success_title'),
       ),
     );
   }, [RewardsToastOptions, showRewardsToast]);
@@ -149,7 +149,7 @@ const MetalCardClaimBottomSheet = ({
 
   const confirmAction = useMemo(
     () => ({
-      label: strings('rewards.claim_reward_redeem.button_label'),
+      label: strings('rewards.end_of_season_rewards.redeem_label'),
       onPress: handleClaimReward,
       variant: ButtonVariant.Primary,
       loading: isClaimingReward,
@@ -163,9 +163,9 @@ const MetalCardClaimBottomSheet = ({
       return (
         <Box twClassName="w-full mb-4">
           <RewardsErrorBanner
-            title={strings('rewards.claim_reward_redeem.failure_title')}
+            title={strings('rewards.end_of_season_rewards.failure_title')}
             description={strings(
-              'rewards.claim_reward_redeem.failure_description',
+              'rewards.end_of_season_rewards.failure_description',
             )}
           />
         </Box>
@@ -186,7 +186,7 @@ const MetalCardClaimBottomSheet = ({
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Start}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="px-4 pb-4"
+          twClassName="px-4"
         >
           {/* Description */}
           <Box twClassName="w-full mb-4">
@@ -210,7 +210,7 @@ const MetalCardClaimBottomSheet = ({
 
           {/* Email Input */}
           <Box twClassName="w-full mb-4">
-            <Text variant={TextVariant.BodyMd} twClassName="mb-2">
+            <Text variant={TextVariant.BodyMd}>
               {strings('rewards.metal_card_claim.email_label')}
             </Text>
             <TextField
@@ -237,7 +237,7 @@ const MetalCardClaimBottomSheet = ({
 
           {/* Telegram Input */}
           <Box twClassName="w-full mb-6">
-            <Text variant={TextVariant.BodyMd} twClassName="mb-2">
+            <Text variant={TextVariant.BodyMd}>
               {strings('rewards.metal_card_claim.telegram_label')}
             </Text>
             <TextField

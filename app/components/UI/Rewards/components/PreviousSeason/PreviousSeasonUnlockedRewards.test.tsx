@@ -80,9 +80,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         "You didn't earn rewards this season, but there's always next time.",
       'rewards.previous_season_summary.verifying_rewards':
         "We're making sure everything's correct before you claim your rewards.",
-      'rewards.claim_reward_redeem.success_description':
+      'rewards.end_of_season_rewards.success_description':
         'Redeem claim success description',
-      'rewards.claim_reward_redeem.button_label': 'Redeem',
+      'rewards.end_of_season_rewards.redeem_label': 'Redeem',
     };
     return translations[key] || key;
   }),
