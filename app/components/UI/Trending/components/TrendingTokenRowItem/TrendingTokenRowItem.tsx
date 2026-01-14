@@ -165,6 +165,7 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
       : undefined,
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
+    isFromTrending: true,
   };
 };
 

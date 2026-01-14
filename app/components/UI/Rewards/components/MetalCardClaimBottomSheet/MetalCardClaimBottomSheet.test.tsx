@@ -92,16 +92,17 @@ jest.mock('../RewardsErrorBanner', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.metal_card_claim.title': 'Metal Card Claim',
       'rewards.metal_card_claim.description': 'Enter your details to claim.',
       'rewards.metal_card_claim.contact_info': 'Contact information',
       'rewards.metal_card_claim.email_label': 'Email',
       'rewards.metal_card_claim.telegram_label': 'Telegram (optional)',
       'rewards.metal_card_claim.telegram_placeholder': '@username',
-      'rewards.metal_card_claim.submit_button': 'Submit',
       'rewards.metal_card_claim.email_validation_error': 'Invalid email',
-      'rewards.unlocked_rewards.reward_claimed': 'Reward claimed!',
-      'rewards.claim_reward_error.title': 'Claim Error',
+      'rewards.claim_reward_redeem.button_label': 'Redeem',
+      'rewards.claim_reward_redeem.failure_title': 'Unable to claim reward',
+      'rewards.claim_reward_redeem.failure_description':
+        'Please try again later.',
+      'rewards.claim_reward_redeem.success_title': 'Reward claimed!',
     };
     return translations[key] || key;
   }),
@@ -268,12 +269,14 @@ jest.mock('../../utils/formatUtils', () => ({
 interface TestRouteParams {
   rewardId: string;
   seasonRewardId: string;
+  title: string;
 }
 
 const defaultRoute: { params: TestRouteParams } = {
   params: {
     rewardId: 'reward-123',
     seasonRewardId: 'season-reward-1',
+    title: 'Metal Card Claim',
   },
 };
 
@@ -293,7 +296,7 @@ describe('MetalCardClaimBottomSheet', () => {
       expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
 
-    it('renders the header with title', () => {
+    it('renders the header with title from route params', () => {
       const { getByTestId, getByText } = render(
         <MetalCardClaimBottomSheet route={defaultRoute} />,
       );
@@ -311,12 +314,13 @@ describe('MetalCardClaimBottomSheet', () => {
       expect(getByTestId('telegram-input')).toBeOnTheScreen();
     });
 
-    it('renders the submit button', () => {
-      const { getByTestId } = render(
+    it('renders the submit button with redeem label', () => {
+      const { getByTestId, getByText } = render(
         <MetalCardClaimBottomSheet route={defaultRoute} />,
       );
 
       expect(getByTestId('submit-button')).toBeOnTheScreen();
+      expect(getByText('Redeem')).toBeOnTheScreen();
     });
   });
 
@@ -431,7 +435,7 @@ describe('MetalCardClaimBottomSheet', () => {
       });
     });
 
-    it('closes modal and shows toast on successful claim', async () => {
+    it('closes modal and shows success toast on successful claim', async () => {
       mockClaimReward.mockResolvedValue(undefined);
 
       const { getByTestId } = render(
@@ -447,6 +451,7 @@ describe('MetalCardClaimBottomSheet', () => {
       });
 
       expect(mockGoBack).toHaveBeenCalled();
+      expect(mockSuccessToast).toHaveBeenCalledWith('Reward claimed!');
       expect(mockShowToast).toHaveBeenCalled();
     });
 
@@ -500,7 +505,8 @@ describe('MetalCardClaimBottomSheet', () => {
       );
 
       expect(getByTestId('rewards-error-banner')).toBeOnTheScreen();
-      expect(getByText('Something went wrong')).toBeOnTheScreen();
+      expect(getByText('Unable to claim reward')).toBeOnTheScreen();
+      expect(getByText('Please try again later.')).toBeOnTheScreen();
     });
 
     it('hides error banner when loading', () => {
