@@ -44,7 +44,6 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
 }) => {
   const [timeframe, setTimeframe] = useState<ChartTimeframe>('live');
   const [liveChartData, setLiveChartData] = useState<GameChartSeries[]>([]);
-  const lastMinuteRef = useRef<number>(0);
   const initialDataLoadedRef = useRef<boolean>(false);
 
   const isLive = timeframe === 'live';
@@ -98,12 +97,6 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     ) {
       setLiveChartData(historicalChartData);
       initialDataLoadedRef.current = true;
-
-      const lastPoint =
-        historicalChartData[0].data[historicalChartData[0].data.length - 1];
-      if (lastPoint) {
-        lastMinuteRef.current = getMinuteTimestamp(lastPoint.timestamp);
-      }
     }
   }, [isLive, historicalChartData]);
 
@@ -130,11 +123,21 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
 
         const existingData = [...series.data];
 
-        if (currentMinute === lastMinuteRef.current) {
+        // Calculate last minute timestamp for THIS series specifically
+        // This prevents data corruption when WebSocket updates arrive at
+        // different times for different tokens
+        const lastPoint = existingData[existingData.length - 1];
+        const seriesLastMinute = lastPoint
+          ? getMinuteTimestamp(lastPoint.timestamp)
+          : 0;
+
+        if (currentMinute === seriesLastMinute) {
+          // Same minute - update the last point
           if (existingData.length > 0) {
             existingData[existingData.length - 1] = newPoint;
           }
         } else {
+          // New minute - push a new point
           existingData.push(newPoint);
           if (existingData.length > 60) {
             existingData.shift();
@@ -147,7 +150,6 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         };
       });
 
-      lastMinuteRef.current = currentMinute;
       return newData;
     });
   }, [isLive, prices, tokenIds]);

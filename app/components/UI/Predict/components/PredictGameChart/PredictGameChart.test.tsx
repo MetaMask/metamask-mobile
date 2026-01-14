@@ -455,13 +455,15 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
   describe('Edge Cases', () => {
     it('handles large dataset', () => {
+      // Use deterministic values based on index instead of Math.random()
+      // This ensures consistent test results across runs
       const largeDataset: GameChartSeries[] = [
         {
           label: 'SEA',
           color: '#002244',
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: i * 1000,
-            value: 30 + Math.random() * 40,
+            value: 30 + (i % 10) * 4, // Deterministic: cycles 30, 34, 38... 66, 30, 34...
           })),
         },
         {
@@ -469,7 +471,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
           color: '#FB4F14',
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: i * 1000,
-            value: 70 - Math.random() * 40,
+            value: 70 - (i % 10) * 4, // Deterministic: cycles 70, 66, 62... 34, 70, 66...
           })),
         },
       ];
