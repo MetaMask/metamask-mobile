@@ -90,7 +90,7 @@ const MusdConversionAssetOverviewCta = ({
         >
           <Icon
             name={IconName.Close}
-            size={IconSize.Sm}
+            size={IconSize.Md}
             color={IconColor.Alternative}
           />
         </Pressable>
