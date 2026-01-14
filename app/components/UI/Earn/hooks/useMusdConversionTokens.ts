@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import {
+  selectMusdConversionMinAssetBalanceRequired,
   selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
 } from '../selectors/featureFlags';
@@ -14,6 +15,7 @@ import {
 } from '../constants/musd';
 import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 
 export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
@@ -24,25 +26,46 @@ export const useMusdConversionTokens = () => {
     selectMusdConversionPaymentTokensBlocklist,
   );
 
+  const musdConversionMinAssetBalanceRequired = useSelector(
+    selectMusdConversionMinAssetBalanceRequired,
+  );
+
   const allTokens = useAccountTokens({ includeNoBalance: false });
 
-  // Filter tokens based on allowlist and blocklist rules.
-  // If allowlist is non-empty, token must be in it.
-  // If blocklist is non-empty, token must NOT be in it.
-  const filterAllowedTokens = useCallback(
-    (tokens: AssetType[]) =>
-      tokens.filter((token) =>
-        isTokenAllowed(
-          token.symbol,
-          musdConversionPaymentTokensAllowlist,
-          musdConversionPaymentTokensBlocklist,
-          token.chainId,
-        ),
+  const filterTokensWithMinBalance = useCallback(
+    (token: AssetType) =>
+      token?.fiat?.balance
+        ? new BigNumber(token?.fiat?.balance).isGreaterThanOrEqualTo(
+            musdConversionMinAssetBalanceRequired,
+          )
+        : false,
+    [musdConversionMinAssetBalanceRequired],
+  );
+
+  const filterTokensWithAllowlistAndBlocklist = useCallback(
+    (token: AssetType) =>
+      isTokenAllowed(
+        token.symbol,
+        musdConversionPaymentTokensAllowlist,
+        musdConversionPaymentTokensBlocklist,
+        token.chainId,
       ),
     [
       musdConversionPaymentTokensAllowlist,
       musdConversionPaymentTokensBlocklist,
     ],
+  );
+
+  // Filter tokens based on allowlist and blocklist rules.
+  // If allowlist is non-empty, token must be in it.
+  // If blocklist is non-empty, token must NOT be in it.
+  // Token must have minimum balance to be eligible for conversion.
+  const filterAllowedTokens = useCallback(
+    (tokens: AssetType[]) =>
+      tokens
+        .filter(filterTokensWithAllowlistAndBlocklist)
+        .filter(filterTokensWithMinBalance),
+    [filterTokensWithAllowlistAndBlocklist, filterTokensWithMinBalance],
   );
 
   // Allowed tokens for conversion.
