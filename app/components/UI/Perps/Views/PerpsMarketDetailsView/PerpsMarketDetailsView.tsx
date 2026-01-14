@@ -15,11 +15,6 @@ import React, {
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  PerpsMarketDetailsViewSelectorsIDs,
-  PerpsOrderViewSelectorsIDs,
-  PerpsTutorialSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import ButtonSemantic, {
@@ -52,6 +47,11 @@ import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelecto
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+  PerpsTutorialSelectorsIDs,
+} from '../../Perps.testIds';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';

@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,

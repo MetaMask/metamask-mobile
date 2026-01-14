@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PredictDetailsHeaderSkeleton from './PredictDetailsHeaderSkeleton';
 
-// Mock navigation
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -11,7 +10,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Mock safe area insets
 jest.mock('react-native-safe-area-context', () => ({
   ...jest.requireActual('react-native-safe-area-context'),
   useSafeAreaInsets: () => ({
@@ -29,11 +27,8 @@ describe('PredictDetailsHeaderSkeleton', () => {
     expect(
       getByTestId('predict-details-header-skeleton-back-button'),
     ).toBeTruthy();
-    expect(getByTestId('predict-details-header-skeleton-avatar')).toBeTruthy();
     expect(getByTestId('predict-details-header-skeleton-title')).toBeTruthy();
-    expect(
-      getByTestId('predict-details-header-skeleton-subtitle'),
-    ).toBeTruthy();
+    expect(getByTestId('predict-details-header-skeleton-share')).toBeTruthy();
   });
 
   it('renders with custom testID', () => {
@@ -43,9 +38,8 @@ describe('PredictDetailsHeaderSkeleton', () => {
     );
 
     expect(getByTestId(`${customTestId}-back-button`)).toBeTruthy();
-    expect(getByTestId(`${customTestId}-avatar`)).toBeTruthy();
     expect(getByTestId(`${customTestId}-title`)).toBeTruthy();
-    expect(getByTestId(`${customTestId}-subtitle`)).toBeTruthy();
+    expect(getByTestId(`${customTestId}-share`)).toBeTruthy();
   });
 
   it('matches snapshot', () => {

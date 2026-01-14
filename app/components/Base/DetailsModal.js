@@ -5,7 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fontStyles } from '../../styles/common';
 import Text from './Text';
 import { useTheme } from '../../util/theme';
-import { TransactionDetailsModalSelectorsIDs } from '../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
+import { TransactionDetailsModalSelectorsIDs } from '../Views/confirmations/components/activity/TransactionDetailsModal.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

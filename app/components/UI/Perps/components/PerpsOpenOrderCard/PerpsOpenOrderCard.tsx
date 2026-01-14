@@ -25,7 +25,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
-import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOpenOrderCardSelectorsIDs } from '../../Perps.testIds';
 import type {
   PerpsOpenOrderCardProps,
   OpenOrderCardDerivedData,

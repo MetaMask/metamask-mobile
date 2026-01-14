@@ -20,6 +20,7 @@ import { EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { RootState } from '../../../../../../reducers';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
+import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
 interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -38,6 +39,7 @@ const TronStakingButtons = ({
   const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { isEligible } = useStakingEligibility();
 
   const isStakedTrx =
     asset?.isStaked || asset?.symbol === 'sTRX' || asset?.ticker === 'sTRX';
@@ -83,9 +85,14 @@ const TronStakingButtons = ({
     });
   };
 
+  // Block deposits for ineligible users unless they have an active staked position
+  if (!isEligible && !hasStakedPositions) {
+    return null;
+  }
+
   return (
     <View style={styles.balanceButtonsContainer}>
-      {!hasStakedPositions && (
+      {!hasStakedPositions && isEligible && (
         <View style={styles.ctaContent}>
           <Text variant={TextVariant.HeadingMD} style={styles.ctaTitle}>
             {strings('stake.stake_your_trx_cta.title')}
@@ -107,17 +114,19 @@ const TronStakingButtons = ({
             onPress={onUnstakePress}
           />
         ) : null}
-        <Button
-          testID={'stake-more-button'}
-          style={styles.balanceActionButton}
-          variant={ButtonVariants.Secondary}
-          label={
-            hasStakedPositions
-              ? strings('stake.stake_more')
-              : strings('stake.stake_your_trx_cta.earn_button')
-          }
-          onPress={onStakePress}
-        />
+        {isEligible && (
+          <Button
+            testID={'stake-more-button'}
+            style={styles.balanceActionButton}
+            variant={ButtonVariants.Secondary}
+            label={
+              hasStakedPositions
+                ? strings('stake.stake_more')
+                : strings('stake.stake_your_trx_cta.earn_button')
+            }
+            onPress={onStakePress}
+          />
+        )}
       </View>
     </View>
   );

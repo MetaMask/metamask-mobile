@@ -11,7 +11,7 @@ import {
   PredictPositionStatus,
   type PredictPosition as PredictPositionType,
 } from '../../types';
-import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 
 jest.mock('../../../../../../locales/i18n', () => ({

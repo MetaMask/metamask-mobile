@@ -397,6 +397,7 @@ export const PerpsEventValues = {
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO: 'crypto',
     STOCKS: 'stocks',
+    GIVE_FEEDBACK: 'give_feedback',
   },
   BUTTON_LOCATION: {
     PERPS_HOME: 'perps_home',

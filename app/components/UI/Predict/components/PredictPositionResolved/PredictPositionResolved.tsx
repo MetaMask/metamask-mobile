@@ -6,7 +6,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
-import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
