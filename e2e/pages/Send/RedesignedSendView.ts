@@ -1,8 +1,8 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
+import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
 import { Utilities } from '../../framework';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
