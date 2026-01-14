@@ -87,6 +87,10 @@ jobs:
             echo "❌ Terms of Use content not generated"
             exit 1
           fi
+          echo "🔍 Checking yarn setup..."
+          echo "  Node version: $(node --version)"
+          echo "  Yarn version: $(yarn --version)"
+          echo "  Corepack version: $(corepack --version)"
           echo "✅ Setup verification passed"
 
       - name: Upload node_modules artifact
