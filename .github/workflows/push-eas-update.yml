@@ -96,7 +96,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
 
       - name: Enable Corepack
         run: corepack enable && corepack prepare yarn@4.10.3 --activate
@@ -286,7 +285,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
 
       - name: Enable Corepack
         run: corepack enable && corepack prepare yarn@4.10.3 --activate
