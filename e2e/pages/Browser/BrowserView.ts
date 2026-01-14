@@ -33,7 +33,7 @@ class Browser {
 
   get closeBrowserButton(): DetoxElement {
     return Matchers.getElementByID(
-      BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
+      BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
     );
   }
 

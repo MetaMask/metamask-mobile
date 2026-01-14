@@ -4,6 +4,9 @@ import BrowserBottomBar from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { Platform } from 'react-native';
+import Device from '../../../util/device';
+import SearchApi from '@metamask/react-native-search-api';
+import Logger from '../../../util/Logger';
 
 // Mock dependencies
 jest.mock('../../../actions/bookmarks', () => ({
@@ -599,6 +602,168 @@ describe('BrowserBottomBar', () => {
           }),
         }),
       );
+    });
+
+    it('includes onAddBookmark callback in modal parameters', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      expect(pushCall[1].params.onAddBookmark).toBeDefined();
+      expect(typeof pushCall[1].params.onAddBookmark).toBe('function');
+    });
+  });
+
+  describe('iOS Spotlight Integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+    });
+
+    it('includes iOS Spotlight integration in onAddBookmark callback when on iOS', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar
+          {...defaultProps}
+          icon={{ uri: 'https://example.com/icon.png' }}
+          favicon={{ uri: 'https://example.com/favicon.ico' }}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          uniqueIdentifier: defaultProps.activeUrl,
+          title: 'Test Bookmark',
+          contentDescription: 'Launch Test Bookmark on MetaMask',
+          keywords: expect.arrayContaining([
+            'Test',
+            'Bookmark',
+            'https://example.com',
+            'dapp',
+          ]),
+          thumbnail: expect.objectContaining({
+            uri: 'https://example.com/icon.png',
+          }),
+        }),
+      );
+    });
+
+    it('uses favicon URI when icon URI is not available', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar
+          {...defaultProps}
+          favicon={{ uri: 'https://example.com/favicon.ico' }}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          thumbnail: expect.objectContaining({
+            uri: 'https://example.com/favicon.ico',
+          }),
+        }),
+      );
+    });
+
+    it('uses empty string for thumbnail URI when neither icon nor favicon available', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} favicon={{}} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          thumbnail: expect.objectContaining({
+            uri: '',
+          }),
+        }),
+      );
+    });
+
+    it('handles iOS Spotlight errors gracefully', async () => {
+      (SearchApi.indexSpotlightItem as jest.Mock).mockImplementation(() => {
+        throw new Error('Spotlight error');
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error adding to spotlight',
+      );
+    });
+
+    it('does not call iOS Spotlight on Android', async () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      const pushCall = mockNavigation.push.mock.calls[0];
+      const onAddBookmark = pushCall[1].params.onAddBookmark;
+
+      await onAddBookmark({
+        name: 'Test Bookmark',
+        url: 'https://example.com',
+      });
+
+      expect(SearchApi.indexSpotlightItem).not.toHaveBeenCalled();
     });
   });
 });

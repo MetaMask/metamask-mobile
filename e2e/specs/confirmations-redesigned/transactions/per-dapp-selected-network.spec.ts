@@ -84,6 +84,9 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // by checking chainId text in the test dapp
         await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 
+        // Close browser to reveal app tab bar before changing network
+        await Browser.tapCloseBrowserButton();
+
         // Change the network to Ethereum Main Network in app
         await changeNetworkFromNetworkListModal('Ethereum Main Network');
 
@@ -105,7 +108,10 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // Accept confirmation
         await ConfirmationFooterActions.tapConfirmButton();
 
-        // Change the network to Localhost in app (helper closes browser and goes to wallet)
+        // Close browser to reveal app tab bar before changing network
+        await Browser.tapCloseBrowserButton();
+
+        // Change the network to Localhost in app
         await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);
 
         // Check activity tab (already on wallet from helper, just navigate)
