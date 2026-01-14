@@ -15,8 +15,10 @@ import { useWebSocketHealthToastContext } from '../components/PerpsWebSocketHeal
  * Uses the WebSocketHealthToastContext to show/hide toasts at the App level,
  * ensuring the toast appears on top of all other content.
  *
- * Note: Only shows toasts after the initial connection has been established.
- * This prevents showing reconnection toasts during the initial connection phase.
+ * Behavior:
+ * - On initial connection (fresh mount with CONNECTED state): No toast shown
+ * - On mount/remount with DISCONNECTED or CONNECTING state: Toast shown immediately
+ * - On state transitions after mount: Toast shown for reconnection scenarios
  */
 export function useWebSocketHealthToast(): void {
   const { isConnected, isInitialized } = usePerpsConnection();
@@ -55,10 +57,21 @@ export function useWebSocketHealthToast(): void {
           const isNowConnected =
             newState === WebSocketConnectionState.CONNECTED;
 
-          // Only show toasts after we've been connected at least once
-          // This prevents showing toasts during initial connection
+          // Handle first callback after mount/remount
           if (previousWsState === null) {
             previousWsStateRef.current = newState;
+
+            // If we mount/remount and the connection is already in a problematic state,
+            // show the toast immediately. This handles the case where a user navigates
+            // away from Perps and returns while the WebSocket is disconnected or reconnecting.
+            if (newState === WebSocketConnectionState.DISCONNECTED) {
+              hasExperiencedDisconnectionRef.current = true;
+              show(WebSocketConnectionState.DISCONNECTED, attempt);
+            } else if (newState === WebSocketConnectionState.CONNECTING) {
+              hasExperiencedDisconnectionRef.current = true;
+              show(WebSocketConnectionState.CONNECTING, attempt);
+            }
+            // If CONNECTED on mount, this is normal initial state - no toast needed
             return;
           }
 
