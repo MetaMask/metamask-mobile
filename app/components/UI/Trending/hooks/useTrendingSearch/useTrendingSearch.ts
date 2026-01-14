@@ -93,7 +93,7 @@ export const useTrendingSearch = (
     prevDebouncedQuery.current = debouncedQuery;
   });
 
-  const isLoading = searchQuery?.trim()
+  const isLoading = debouncedQuery?.trim()
     ? searchQuery !== debouncedQuery ||
       prevDebouncedQuery.current !== debouncedQuery ||
       isSearchLoading
