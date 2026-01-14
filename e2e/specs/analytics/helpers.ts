@@ -66,6 +66,7 @@ export const getEventsPayloads = async (
 
   const mockedEndpoints = await waitForPendingEndpoints();
 
+  // Get requests from all mocked endpoints (including catch-all proxy handler)
   const requests = (
     await Promise.all(
       mockedEndpoints.map((endpoint) => endpoint.getSeenRequests()),

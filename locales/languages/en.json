@@ -6214,15 +6214,7 @@
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
-    "verified_token": "Verified token",
-    "price": "Price",
-    "percent_change": "Percent change",
-    "volume": "Volume",
-    "market_cap_fdv": "Market cap (FDV)",
-    "listed_on": "Listed on",
-    "centralized_exchanges": "Centralized exchanges",
-    "contract_address": "Contract address"
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -6712,6 +6704,10 @@
         "blocked": {
           "title": "Your card is blocked",
           "description": "Please contact support to unblock your card"
+        },
+        "kyc_pending": {
+          "title": "Verification in progress",
+          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
       "kyc_status": {
@@ -6749,19 +6745,30 @@
     "card_spending_limit": {
       "title_change_token": "Change token and network",
       "title_enable_token": "Enable token",
+      "title_onboarding": "Enable spending",
+      "setup_title": "Set up your card",
+      "setup_description": "Select the token you'd like to use and set a limit for how much you can spend.",
+      "asset_label": "Asset",
+      "limit_label": "Limit",
+      "other_token": "Other",
       "full_access_title": "Full access",
-      "full_access_description": "Your card can use your funds automatically, without asking for approval each time.",
-      "restricted_limit_title": "Limited spending",
-      "restricted_limit_description": "You'll need to come back and pay a network fee every time you want to increase the limit.",
+      "full_access_description": "Your card can use your funds automatically without asking for approval each time.",
+      "restricted_limit_title": "Spending limit",
+      "restricted_limit_description": "You can only spend up to this limit. You'll pay a network fee every time this limit is updated.",
       "edit_limit": "Edit limit",
       "confirm_new_limit": "Confirm",
       "cancel": "Cancel",
+      "skip": "Skip for now",
       "set_new_limit": "Set a limit",
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
       "solana_not_supported": "Enable Solana tokens on card.metamask.io",
-      "select_token": "Select token"
+      "select_token": "Select token",
+      "loading": "Loading available tokens...",
+      "load_error": "Unable to load tokens. Please try again.",
+      "retry": "Try again",
+      "on_linea": "on Linea"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -6906,15 +6913,14 @@
       "title": "Failed to claim reward"
     },
     "metal_card_claim": {
-      "title": "Claim your reward",
+      "title": "Redeem your reward",
       "description": "The MetaMask Metal Card is subject to eligibility and isn't available in all regions. If you don't qualify, you'll receive an exclusive premium merch reward instead.",
       "contact_info": "Share your contact info and you'll hear back within 2 weeks from @MidwitMilhouse on Telegram or christian.montoya@consensys.net.",
       "email_label": "Email",
       "email_validation_error": "Please enter a valid email address",
       "telegram_label": "Telegram handle",
-      "telegram_placeholder": "Optional",
-      "submit_button": "Claim"
-    },
+      "telegram_placeholder": "Optional"
+     },
     "accounts_opt_in_state_error": {
       "error_fetching_title": "Accounts couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -7207,6 +7213,13 @@
       "reward_claimed": "Reward claimed",
       "time_left": "left",
       "expired": "Expired"
+    },
+    "claim_reward_redeem": {
+      "button_label": "Redeem",
+      "success_title": "Reward redeemed",
+      "success_description": "Arriving soon",
+      "failure_title": "Redeem failed",
+      "failure_description": "Please try again later."
     },
     "animation": {
       "could_not_load": "Couldn't load"
