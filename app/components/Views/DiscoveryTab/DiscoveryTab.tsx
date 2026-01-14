@@ -59,10 +59,11 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
 
   const onSubmitEditing = useCallback(
     async (text: string) => {
-      if (!text) return;
+      const trimmedText = text.trim();
+      if (!trimmedText) return;
       hideAutocomplete();
       // Format url for browser to be navigatable by webview
-      const processedUrl = processUrlForBrowser(text, searchEngine);
+      const processedUrl = processUrlForBrowser(trimmedText, searchEngine);
       updateTabInfo(tabId, { url: processedUrl });
     },
     [searchEngine, updateTabInfo, tabId, hideAutocomplete],

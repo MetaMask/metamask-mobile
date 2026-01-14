@@ -629,8 +629,8 @@ describe('DiscoveryTab', () => {
 
       const stateWithSearchEngine = {
         ...initialState,
-        browser: {
-          ...initialState.browser,
+        settings: {
+          ...initialState.settings,
           searchEngine: 'google',
         },
       };
