@@ -1754,6 +1754,9 @@
       "title": "Contact support",
       "description": "Contact MetaMask Support for assistance"
     },
+    "feedback": {
+      "title": "Give feedback"
+    },
     "close_all_modal": {
       "title": "Close all positions",
       "description": "We'll close all your open positions at current market price.",

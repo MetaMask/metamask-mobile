@@ -214,6 +214,7 @@ export const PerpsTabViewSelectorsIDs = {
 export const PerpsHomeViewSelectorsIDs = {
   SUPPORT_BUTTON: 'perps-home-support-button',
   LEARN_MORE_BUTTON: 'perps-home-learn-more-button',
+  FEEDBACK_BUTTON: 'perps-home-feedback-button',
   BACK_BUTTON: 'back-button',
   BACK_HOME_BUTTON: 'perps-home-back-button',
   SEARCH_TOGGLE: 'perps-home-search-toggle',
