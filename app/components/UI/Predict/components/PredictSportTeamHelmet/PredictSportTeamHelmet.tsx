@@ -8,6 +8,9 @@ interface PredictSportTeamHelmetProps {
   testID?: string;
 }
 
+const VIEWBOX_WIDTH = 40;
+const VIEWBOX_HEIGHT = 40;
+
 /**
  * Football helmet SVG component with dynamic team color.
  * Used in NFL game cards and details screens.
@@ -18,10 +21,17 @@ const PredictSportTeamHelmet: React.FC<PredictSportTeamHelmetProps> = ({
   flipped = false,
   testID,
 }) => {
-  const transform = flipped ? 'scale(-1, 1) translate(-40, 0)' : undefined;
+  const transform = flipped
+    ? `scale(-1, 1) translate(-${VIEWBOX_WIDTH}, 0)`
+    : undefined;
 
   return (
-    <Svg width={size} height={size} viewBox="0 0 40 40" testID={testID}>
+    <Svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+      testID={testID}
+    >
       <G transform={transform}>
         <Path
           fillRule="evenodd"

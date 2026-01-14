@@ -242,7 +242,10 @@ describe('PredictSportTeamGradient', () => {
       );
 
       const gradient = getByTestId('gradient');
-      expect(gradient.props.style).toContainEqual(customStyle);
+      // Box component merges styles, check that borderRadius is present
+      expect(gradient.props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining(customStyle)]),
+      );
     });
 
     it('merges custom style with default absolute positioning', () => {

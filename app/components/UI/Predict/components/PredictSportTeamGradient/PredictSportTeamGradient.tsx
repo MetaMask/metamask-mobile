@@ -1,12 +1,14 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface PredictSportTeamGradientProps {
   awayColor: string;
   homeColor: string;
   borderRadius?: number;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   testID?: string;
 }
@@ -29,10 +31,12 @@ const colorWithOpacity = (color: string, opacity: number): string => {
 
   // Handle 8-character hex with alpha: #RRGGBBAA (replace alpha with new opacity)
   if (/^#[0-9A-Fa-f]{8}$/.test(trimmedColor)) {
-    const hex = trimmedColor.substring(1, 7);
+    const hex = trimmedColor.substring(1);
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
+    // Correctly parse alpha from bytes 7-8 (even though we replace it with opacity)
+    // const alpha = parseInt(hex.substring(6, 8), 16) / 255;
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   }
 
@@ -53,6 +57,9 @@ const colorWithOpacity = (color: string, opacity: number): string => {
     const r = trimmedColor[1];
     const g = trimmedColor[2];
     const b = trimmedColor[3];
+    // Alpha nibble at position 4 (correctly parsed but replaced with opacity)
+    // const a = trimmedColor[4];
+    // const alpha = parseInt(a + a, 16) / 255;
     const expandedHex = `${r}${r}${g}${g}${b}${b}`;
     const rInt = parseInt(expandedHex.substring(0, 2), 16);
     const gInt = parseInt(expandedHex.substring(2, 4), 16);
@@ -76,23 +83,22 @@ const colorWithOpacity = (color: string, opacity: number): string => {
     return `rgba(${rgbaMatch[1]}, ${rgbaMatch[2]}, ${rgbaMatch[3]}, ${opacity})`;
   }
 
-  // Fallback: return color as-is (might be named color or invalid)
-  // This prevents crashes but won't apply opacity
+  // Fallback: validate color format before returning
+  // Invalid colors can crash LinearGradient native rendering
+  const isRecognizedFormat = /^(#[0-9A-Fa-f]{3,8}|rgba?\(.*\))$/i.test(
+    trimmedColor,
+  );
+  if (!isRecognizedFormat) {
+    if (__DEV__) {
+      console.warn(
+        `[PredictSportTeamGradient] Invalid color format: "${trimmedColor}". Using transparent fallback.`,
+      );
+    }
+    return 'rgba(0, 0, 0, 0)';
+  }
+  // Return as-is for recognized formats (e.g., named colors like 'red', 'blue')
   return trimmedColor;
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
-  },
-  gradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-});
 
 /**
  * Simple 45° linear gradient overlay with both team colors at 20% opacity.
@@ -123,39 +129,48 @@ const PredictSportTeamGradient: React.FC<PredictSportTeamGradientProps> = ({
   children,
   testID,
 }) => {
+  const tw = useTailwind();
+
   // Apply 20% opacity to both team colors
   const gradientColors = React.useMemo(
     () => [colorWithOpacity(awayColor, 0.2), colorWithOpacity(homeColor, 0.2)],
     [awayColor, homeColor],
   );
 
-  const containerStyle = React.useMemo(
-    () => [
-      styles.container,
-      borderRadius !== undefined && {
-        borderRadius,
-        overflow: 'hidden' as const,
-      },
-      style,
-    ],
-    [borderRadius, style],
-  );
+  const containerStyle = React.useMemo(() => {
+    const flattenedStyle = StyleSheet.flatten(style);
+    // Check if borderRadius is provided via prop or style
+    const hasBorderRadius =
+      borderRadius !== undefined ||
+      (flattenedStyle && 'borderRadius' in flattenedStyle);
 
-  const gradientStyle = React.useMemo(
-    () => [styles.gradient, borderRadius !== undefined && { borderRadius }],
-    [borderRadius],
-  );
+    const baseStyle = tw.style(
+      'relative',
+      hasBorderRadius && 'overflow-hidden',
+      borderRadius !== undefined && { borderRadius },
+    );
+
+    // Type assertions needed due to StyleSheet.flatten type incompatibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return StyleSheet.flatten([baseStyle, flattenedStyle] as any) as any;
+  }, [tw, borderRadius, style]);
 
   return (
-    <View style={containerStyle} testID={testID}>
+    // Type assertion needed due to Box component type incompatibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <Box style={containerStyle as any} testID={testID}>
       <LinearGradient
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={gradientStyle}
+        style={tw.style(
+          'absolute inset-0',
+          borderRadius !== undefined && { borderRadius },
+        )}
+        testID={testID ? `${testID}-gradient` : undefined}
       />
       {children}
-    </View>
+    </Box>
   );
 };
 
