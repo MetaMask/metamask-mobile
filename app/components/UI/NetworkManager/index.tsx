@@ -155,8 +155,8 @@ const NetworkManager = () => {
   const containerStyle = useMemo(
     () => [
       {
-        height: Device.getDeviceHeight() * 0.5,
-        maxHeight: Device.getDeviceHeight() * 0.5,
+        height: Device.getDeviceHeight() * 0.75,
+        maxHeight: Device.getDeviceHeight() * 0.75,
       },
     ],
     [],
