@@ -266,6 +266,95 @@ describe('useTrendingRequest', () => {
     spyGetTrendingTokens.mockRestore();
   });
 
+  it('excludes stablecoins and blue-chips when querying multiple networks', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockResults: assetsControllers.TrendingAsset[] = [];
+    spyGetTrendingTokens.mockResolvedValue(mockResults as never);
+
+    const multipleChainIds: `${string}:${string}`[] = [
+      'eip155:1',
+      'eip155:137',
+    ];
+    renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: multipleChainIds,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+    });
+
+    expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainIds: multipleChainIds,
+        excludeLabels: ['stable_coin', 'blue_chip'],
+      }),
+    );
+
+    spyGetTrendingTokens.mockRestore();
+  });
+
+  it('excludes stablecoins and blue-chips when querying all networks (no chainIds provided)', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockResults: assetsControllers.TrendingAsset[] = [];
+    spyGetTrendingTokens.mockResolvedValue(mockResults as never);
+
+    renderHookWithProvider(() => useTrendingRequest({}));
+
+    await waitFor(() => {
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+    });
+
+    expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        excludeLabels: ['stable_coin', 'blue_chip'],
+      }),
+    );
+
+    spyGetTrendingTokens.mockRestore();
+  });
+
+  it('does not exclude stablecoins and blue-chips when querying a single network', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockResults: assetsControllers.TrendingAsset[] = [];
+    spyGetTrendingTokens.mockResolvedValue(mockResults as never);
+
+    const singleChainId: `${string}:${string}`[] = ['eip155:42161'];
+    renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: singleChainId,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+    });
+
+    // Verify excludeLabels is NOT included in the call
+    expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainIds: singleChainId,
+      }),
+    );
+    expect(spyGetTrendingTokens).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        excludeLabels: expect.anything(),
+      }),
+    );
+
+    spyGetTrendingTokens.mockRestore();
+  });
+
   it('handles stale results when multiple requests are triggered', async () => {
     const spyGetTrendingTokens = jest.spyOn(
       assetsControllers,

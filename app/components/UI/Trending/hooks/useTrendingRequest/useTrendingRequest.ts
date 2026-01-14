@@ -42,6 +42,10 @@ export const useTrendingRequest = (options: {
     return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
   }, [providedChainIds]);
 
+  // Only exclude stablecoins and blue-chip tokens when querying multiple networks.
+  // For single network queries, show all trending tokens to provide a fuller list.
+  const shouldExcludeLabels = providedChainIds.length !== 1;
+
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
 
@@ -77,8 +81,11 @@ export const useTrendingRequest = (options: {
         maxVolume24hUsd,
         minMarketCap,
         maxMarketCap,
+        // Only exclude stablecoins/blue-chips when querying multiple networks
         // TODO: Remove type assertion once @metamask/assets-controllers types are updated
-        excludeLabels: ['stable_coin', 'blue_chip'],
+        ...(shouldExcludeLabels && {
+          excludeLabels: ['stable_coin', 'blue_chip'],
+        }),
       } as Parameters<typeof getTrendingTokens>[0]);
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
@@ -104,6 +111,7 @@ export const useTrendingRequest = (options: {
     maxVolume24hUsd,
     minMarketCap,
     maxMarketCap,
+    shouldExcludeLabels,
   ]);
 
   // Automatically trigger fetch when options change
