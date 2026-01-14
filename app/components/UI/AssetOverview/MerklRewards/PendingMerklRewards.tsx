@@ -17,7 +17,6 @@ import { TokenI } from '../../Tokens/types';
 interface PendingMerklRewardsProps {
   asset: TokenI;
   claimableReward: string | null;
-  claimableRewardFiat: string | null;
 }
 
 /**
@@ -26,10 +25,14 @@ interface PendingMerklRewardsProps {
 const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
   asset,
   claimableReward,
-  claimableRewardFiat,
 }) => (
-    <Box twClassName="px-4">
-      {/* Annual Bonus Section */}
+  <Box twClassName="px-4">
+    <Box twClassName="h-px bg-border-muted my-4 mt-6" />
+
+    {/* Annual Bonus Section */}
+
+    {/* Claimable Bonus Section */}
+    {claimableReward && (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -41,107 +44,53 @@ const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="flex-1"
         >
-          {/* Calendar Icon */}
+          {/* Money Bag Icon */}
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
             twClassName="h-10 w-10 rounded-full bg-muted mr-3"
           >
-            <Icon name={IconName.Calendar} size={IconSize.Md} />
+            <Icon name={IconName.MoneyBag} size={IconSize.Md} />
           </Box>
 
-          {/* Annual Bonus Text */}
+          {/* Claimable Bonus Text and Amount */}
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="text-text-default"
+              twClassName="text-text-default mb-1"
+            >
+              {strings('asset_overview.merkl_rewards.claimable_bonus')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-primary-default"
+              fontWeight={FontWeight.Medium}
             >
               {strings('asset_overview.merkl_rewards.annual_bonus')}
             </Text>
           </Box>
         </Box>
 
-        {/* Annual Bonus Value with Arrow */}
+        {/* Claimable Bonus Amount Display */}
         <Box
-          flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="px-4 py-2 rounded-xl border border-default bg-default"
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-default mr-2"
+            twClassName="text-text-default"
           >
-            ~$20.00
+            {claimableReward} {asset.symbol}
           </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            twClassName="text-icon-alternative opacity-50"
-          />
         </Box>
       </Box>
+    )}
 
-      {/* Claimable Bonus Section */}
-      {claimableReward && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="py-4"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="flex-1"
-          >
-            {/* Money Bag Icon */}
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="h-10 w-10 rounded-full bg-muted mr-3"
-            >
-              <Icon name={IconName.MoneyBag} size={IconSize.Md} />
-            </Box>
-
-            {/* Claimable Bonus Text and Amount */}
-            <Box twClassName="flex-1">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="text-text-default mb-1"
-              >
-                {strings('asset_overview.merkl_rewards.claimable_bonus')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-text-alternative"
-              >
-                {claimableReward} {asset.symbol}
-              </Text>
-            </Box>
-          </Box>
-
-          {/* Fiat Value Display */}
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="px-4 py-2 rounded-full border border-default bg-default"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              twClassName="text-text-default"
-            >
-              {claimableRewardFiat || '$0.00'}
-            </Text>
-          </Box>
-        </Box>
-      )}
-
-      {/* Border line under the entire balance section */}
-      <Box twClassName="border-b border-muted" />
-    </Box>
-  );
+    {/* Horizontal divider line */}
+  </Box>
+);
 
 export default PendingMerklRewards;

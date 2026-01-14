@@ -7,11 +7,7 @@ import {
   selectCurrencyRates,
 } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
-import {
-  renderFromTokenMinimalUnit,
-  addCurrencySymbol,
-  balanceToFiatNumber,
-} from '../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import { RootState } from '../../../../reducers';
 import { TokenI } from '../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -48,7 +44,6 @@ interface UseMerklRewardsOptions {
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
-  claimableRewardFiat: string | null;
 }
 
 /**
@@ -59,9 +54,6 @@ export const useMerklRewards = ({
   exchangeRate,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
-  const [claimableRewardFiat, setClaimableRewardFiat] = useState<string | null>(
-    null,
-  );
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -80,7 +72,6 @@ export const useMerklRewards = ({
 
     if (!isEligible || !selectedAddress) {
       setClaimableReward(null);
-      setClaimableRewardFiat(null);
       return;
     }
 
@@ -105,26 +96,9 @@ export const useMerklRewards = ({
           const pendingAmount = renderFromTokenMinimalUnit(
             pendingWei,
             asset.decimals || 18,
+            2, // Show 2 decimal places
           );
           setClaimableReward(pendingAmount);
-
-          // Calculate fiat value if we have the exchange rate
-          if (
-            exchangeRate &&
-            conversionRateByTicker?.[nativeCurrency]?.conversionRate
-          ) {
-            const pendingNumber = parseFloat(pendingAmount);
-            const fiatValue = balanceToFiatNumber(
-              pendingNumber,
-              conversionRateByTicker[nativeCurrency].conversionRate,
-              exchangeRate,
-            );
-            setClaimableRewardFiat(
-              isFinite(fiatValue) && fiatValue >= 0.01
-                ? addCurrencySymbol(fiatValue, currentCurrency)
-                : `< ${addCurrencySymbol('0.01', currentCurrency)}`,
-            );
-          }
         }
       } catch (error) {
         console.error('Error fetching Merkl rewards:', error);
@@ -145,6 +119,5 @@ export const useMerklRewards = ({
 
   return {
     claimableReward,
-    claimableRewardFiat,
   };
 };
