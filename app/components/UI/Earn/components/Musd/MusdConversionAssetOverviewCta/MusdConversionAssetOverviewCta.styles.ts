@@ -17,8 +17,8 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 16,
     },
     imageContainer: {
-      width: 72,
-      height: 72,
+      width: 78,
+      height: 78,
       borderRadius: 12,
       backgroundColor: colors.background.muted,
       overflow: 'hidden',
@@ -26,7 +26,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     musdIcon: {
-      padding: 8,
+      padding: 4,
       width: 78,
       height: 78,
     },
