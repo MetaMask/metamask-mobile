@@ -178,7 +178,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   useLayoutEffect(() => {
     if (!isFullPageAccountList) return;
-    if (screen !== AccountSelectorScreens.AccountSelector) return;
 
     const onAnimationComplete = () => {
       endTrace({
@@ -196,7 +195,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       () => runOnJS(onAnimationComplete)(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFullPageAccountList, screen]);
+  }, [isFullPageAccountList]);
 
   const closeModal = useCallback(() => {
     if (isFullPageAccountList) {
@@ -453,7 +452,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
         {/* Add Wallet bottom sheet overlay */}
         {screen === AccountSelectorScreens.AddAccountActions && (
-          <BottomSheet onClose={handleBackToSelector}>
+          <BottomSheet
+            onClose={handleBackToSelector}
+            shouldNavigateBack={false}
+          >
             <BottomSheetHeader onBack={handleBackToSelector}>
               {strings('account_actions.add_account')}
             </BottomSheetHeader>
@@ -461,7 +463,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           </BottomSheet>
         )}
         {screen === AccountSelectorScreens.MultichainAddWalletActions && (
-          <BottomSheet onClose={handleBackToSelector}>
+          <BottomSheet
+            onClose={handleBackToSelector}
+            shouldNavigateBack={false}
+          >
             <BottomSheetHeader onBack={handleBackToSelector}>
               {strings('multichain_accounts.add_wallet')}
             </BottomSheetHeader>

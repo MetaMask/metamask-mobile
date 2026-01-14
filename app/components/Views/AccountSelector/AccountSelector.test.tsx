@@ -903,11 +903,11 @@ describe('AccountSelector', () => {
       // Import SRP button should be visible in the overlay
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
       // Account list should still be visible in background
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
@@ -938,19 +938,17 @@ describe('AccountSelector', () => {
 
       // Assert: AddAccountActions bottom sheet is displayed on top
       // There should be two "Create a new account" texts - one in the overlay header and one in the actions
-      expect(
-        screen.getAllByText('Create a new account').length,
-      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Create a new account')).toHaveLength(2);
       // Add Ethereum account button should be visible in the overlay
       expect(
         screen.getByTestId(
           AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
         ),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
       // Account list should still be visible in background
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
