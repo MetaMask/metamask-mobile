@@ -69,7 +69,6 @@ import HelpText, {
 import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
-  PASSWORD_REQUIREMENTS_NOT_MET,
   VAULT_ERROR,
   PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
@@ -322,11 +321,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
-      const isPasswordError =
-        isWrongPasswordError ||
-        containsErrorMessage(loginError, PASSWORD_REQUIREMENTS_NOT_MET);
-
-      if (isPasswordError) {
+      if (isWrongPasswordError) {
         handlePasswordError(loginErrorMessage);
         // return and skip capture error to sentry
         return;
