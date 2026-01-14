@@ -108,12 +108,25 @@ jobs:
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
         run: |
+          set -x  # Enable command tracing
           echo "🔍 Checking yarn setup..."
           echo "  Node version: $(node --version)"
           echo "  Yarn version: $(yarn --version)"
           echo "  Corepack version: $(corepack --version)"
+          echo "  Working directory: $(pwd)"
+          echo "  node_modules exists: $(test -d node_modules && echo 'yes' || echo 'no')"
+          echo "  @expo/fingerprint exists: $(test -d node_modules/@expo/fingerprint && echo 'yes' || echo 'no')"
           echo "🧬 Generating fingerprint for target commit..."
-          FINGERPRINT=$(yarn fingerprint:generate)
+          # Run with verbose output to capture errors
+          yarn fingerprint:generate 2>&1 | tee /tmp/fingerprint_output.txt
+          RESULT=${PIPESTATUS[0]}
+          if [ $RESULT -ne 0 ]; then
+            echo "❌ Fingerprint generation failed with exit code $RESULT"
+            echo "📄 Output:"
+            cat /tmp/fingerprint_output.txt
+            exit $RESULT
+          fi
+          FINGERPRINT=$(cat /tmp/fingerprint_output.txt | tail -1)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target commit fingerprint: ${FINGERPRINT}"
 
@@ -127,11 +140,24 @@ jobs:
         id: main_fingerprint
         working-directory: main
         run: |
+          set -x  # Enable command tracing
           echo "🔍 Checking yarn setup..."
           echo "  Node version: $(node --version)"
           echo "  Yarn version: $(yarn --version)"
+          echo "  Working directory: $(pwd)"
+          echo "  node_modules exists: $(test -d node_modules && echo 'yes' || echo 'no')"
+          echo "  @expo/fingerprint exists: $(test -d node_modules/@expo/fingerprint && echo 'yes' || echo 'no')"
           echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
-          FINGERPRINT=$(yarn fingerprint:generate)
+          # Run with verbose output to capture errors
+          yarn fingerprint:generate 2>&1 | tee /tmp/fingerprint_output.txt
+          RESULT=${PIPESTATUS[0]}
+          if [ $RESULT -ne 0 ]; then
+            echo "❌ Fingerprint generation failed with exit code $RESULT"
+            echo "📄 Output:"
+            cat /tmp/fingerprint_output.txt
+            exit $RESULT
+          fi
+          FINGERPRINT=$(cat /tmp/fingerprint_output.txt | tail -1)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: ${FINGERPRINT}"
 
