@@ -1,6 +1,6 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import Browser from '../../../../pages/Browser/BrowserView';
@@ -83,7 +83,7 @@ describe(
 
           await loginToApp();
 
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await TestDApp.navigateToTestDappWithContract({
             contractAddress: erc721Address,
           });
@@ -191,7 +191,7 @@ describe(
 
           await loginToApp();
 
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await TestDApp.navigateToTestDappWithContract({
             contractAddress: erc1155Address,
           });
@@ -268,7 +268,7 @@ describe(
 
             await loginToApp();
 
-            await TabBarComponent.tapBrowser();
+            await navigateToBrowserView();
             await TestDApp.navigateToTestDappWithContract({
               contractAddress: erc721Address,
             });
