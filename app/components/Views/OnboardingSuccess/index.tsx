@@ -19,7 +19,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
-import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
+import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import createStyles from './index.styles';

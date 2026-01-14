@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsTestnetToggle } from './PerpsTestnetToggle';
-import { PerpsTestnetToggleSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTestnetToggleSelectorsIDs } from '../../Perps.testIds';
 import {
   ToastContext,
   ToastVariants,

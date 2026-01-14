@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Wallet } from './Wallet';
 import { strings } from '../../../../../../locales/i18n';
-import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../AccountDetails.testIds';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
 
 const mockNavigate = jest.fn();

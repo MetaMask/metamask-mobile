@@ -63,6 +63,12 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
+import {
+  getCaipChainId,
+  getValidLineaChainIds,
+  normalizeSymbol,
+  shouldProcessNetwork,
+} from '../../util/buildTokenList';
 
 interface AssetSelectionModalNavigationDetails {
   tokensWithAllowances: CardTokenAllowance[];
@@ -117,38 +123,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const userCardLocation = useSelector(selectUserCardLocation);
 
-  // Get supported tokens from the card SDK to display in the bottom sheet.
-  const cardSupportedTokens = useMemo(
-    () => sdk?.getSupportedTokensByChainId() ?? [],
-    [sdk],
-  );
-
-  // Helper: Get valid Linea chain IDs based on user location
-  const getValidLineaChainIds = useCallback(
-    (settings: DelegationSettingsResponse | null): Set<string> => {
-      const validIds = new Set<string>();
-      if (!settings?.networks) return validIds;
-
-      for (const network of settings.networks) {
-        const isLineaNetwork =
-          network.network === 'linea' || network.network === 'linea-us';
-        if (!isLineaNetwork) continue;
-
-        const shouldInclude =
-          (userCardLocation === 'us' && network.network === 'linea-us') ||
-          (userCardLocation !== 'us' && network.network === 'linea');
-
-        if (shouldInclude) {
-          const chainIdStr = network.chainId;
-          const numericChainId = chainIdStr.startsWith('0x')
-            ? parseInt(chainIdStr, 16)
-            : parseInt(chainIdStr, 10);
-          validIds.add(`eip155:${numericChainId}`);
-        }
-      }
-
-      return validIds;
-    },
+  // Helper: Get valid Linea chain IDs based on user location (uses shared utility)
+  const getValidLineaChainIdsForLocation = useCallback(
+    (settings: DelegationSettingsResponse | null): Set<string> =>
+      getValidLineaChainIds(settings, userCardLocation),
     [userCardLocation],
   );
 
@@ -161,12 +139,12 @@ const AssetSelectionBottomSheet: React.FC = () => {
     ): boolean => {
       const networkLower = token.chainName.toLowerCase();
 
-      // Filter unsupported networks and unknown chains
-      if (
-        !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork) ||
-        networkLower === 'unknown'
-      ) {
-        return true;
+      // Allow tokens even if chain is unknown to avoid hiding available assets
+      if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork)) {
+        // Still allow unknown networks to show tokens/logos rather than hiding
+        if (networkLower !== 'unknown') {
+          return true;
+        }
       }
 
       const isSolana =
@@ -189,7 +167,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
     [],
   );
 
-  // Helper: Map user tokens to display format
+  // Helper: Map user tokens to display format (uses shared normalizeSymbol)
   const mapUserToken = useCallback(
     (
       userToken: CardTokenAllowance,
@@ -203,15 +181,16 @@ const AssetSelectionBottomSheet: React.FC = () => {
             token.symbol?.toLowerCase() === userToken.symbol?.toLowerCase(),
         );
 
+      // Normalize symbol using shared utility
+      const displaySymbol = normalizeSymbol(
+        supportedToken?.symbol ?? userToken.symbol ?? '',
+      );
+
       return {
         ...userToken,
         address: userToken.address ?? '',
-        symbol: supportedToken?.symbol ?? userToken.symbol?.toUpperCase() ?? '',
-        name:
-          supportedToken?.name ??
-          userToken.name ??
-          userToken.symbol?.toUpperCase() ??
-          '',
+        symbol: displaySymbol,
+        name: supportedToken?.name ?? userToken.name ?? displaySymbol,
         decimals: userToken.decimals ?? 0,
         chainName,
         allowance: userToken.allowance || '0',
@@ -263,58 +242,13 @@ const AssetSelectionBottomSheet: React.FC = () => {
     [],
   );
 
-  // Helper: Check if network should be processed
-  const shouldProcessNetwork = useCallback(
+  // Helper: Check if network should be processed (uses shared utility)
+  const shouldProcessNetworkForLocation = useCallback(
     (
       network: DelegationSettingsResponse['networks'][0],
       hideSolana: boolean,
-    ): boolean => {
-      const networkLower = network.network?.toLowerCase();
-
-      // Filter unsupported networks
-      if (
-        !networkLower ||
-        !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork)
-      ) {
-        return false;
-      }
-
-      // Filter Solana if requested
-      const isSolana = network.network === 'solana';
-      if (hideSolana && isSolana) {
-        return false;
-      }
-
-      // Filter Linea by location
-      const isLineaNetwork =
-        network.network === 'linea' || network.network === 'linea-us';
-      if (isLineaNetwork) {
-        const shouldInclude =
-          (userCardLocation === 'us' && network.network === 'linea-us') ||
-          (userCardLocation !== 'us' && network.network === 'linea');
-        return shouldInclude;
-      }
-
-      return true;
-    },
+    ): boolean => shouldProcessNetwork(network, userCardLocation, hideSolana),
     [userCardLocation],
-  );
-
-  // Helper: Get CAIP chain ID from network
-  const getCaipChainId = useCallback(
-    (network: DelegationSettingsResponse['networks'][0]): CaipChainId => {
-      if (network.network === 'solana') {
-        return SolScope.Mainnet;
-      }
-
-      const chainIdStr = network.chainId;
-      const numericChainId = chainIdStr.startsWith('0x')
-        ? parseInt(chainIdStr, 16)
-        : parseInt(chainIdStr, 10);
-
-      return `eip155:${numericChainId}` as CaipChainId;
-    },
-    [],
   );
 
   // Helper: Get token address (handles staging/development environments)
@@ -322,20 +256,23 @@ const AssetSelectionBottomSheet: React.FC = () => {
     (
       tokenConfig: { address: string; symbol: string },
       network: DelegationSettingsResponse['networks'][0],
+      caipChainId: CaipChainId,
     ): string => {
       const isNonProduction = network.environment !== 'production';
       if (!isNonProduction) {
         return tokenConfig.address;
       }
 
-      const cardToken = cardSupportedTokens.find(
+      // Use SDK to get tokens for the specific chain to find the correct address
+      const chainTokens = sdk?.getSupportedTokensByChainId(caipChainId) ?? [];
+      const cardToken = chainTokens.find(
         (token) =>
           tokenConfig.symbol.toUpperCase() === token.symbol?.toUpperCase(),
       );
 
       return cardToken?.address || tokenConfig.address;
     },
-    [cardSupportedTokens],
+    [sdk],
   );
 
   // Helper: Sort tokens by priority
@@ -379,7 +316,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const supportedTokens = useMemo<CardTokenAllowance[]>(() => {
     if (!sdk) return [];
 
-    const validLineaChainIds = getValidLineaChainIds(delegationSettings);
+    const validLineaChainIds =
+      getValidLineaChainIdsForLocation(delegationSettings);
 
     // Process user tokens
     const userTokens: CardTokenAllowance[] = (tokensWithAllowances || [])
@@ -394,7 +332,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
     if (delegationSettings?.networks) {
       for (const network of delegationSettings.networks) {
-        if (!shouldProcessNetwork(network, hideSolanaAssets)) {
+        if (!shouldProcessNetworkForLocation(network, hideSolanaAssets)) {
           continue;
         }
 
@@ -424,7 +362,11 @@ const AssetSelectionBottomSheet: React.FC = () => {
             continue;
           }
 
-          const tokenAddress = getTokenAddress(tokenConfig, network);
+          const tokenAddress = getTokenAddress(
+            tokenConfig,
+            network,
+            caipChainId,
+          );
           const isNonProduction = network.environment !== 'production';
           const supportedToken = sdk
             ?.getSupportedTokensByChainId(caipChainId)
@@ -436,10 +378,15 @@ const AssetSelectionBottomSheet: React.FC = () => {
                   tokenConfig.symbol?.toLowerCase(),
             );
 
+          // Normalize symbol using shared utility
+          const settingsSymbol = normalizeSymbol(
+            supportedToken?.symbol ?? tokenConfig.symbol,
+          );
+
           supportedFromSettings.push({
             address: tokenAddress,
-            symbol: supportedToken?.symbol ?? tokenConfig.symbol,
-            name: supportedToken?.name ?? tokenConfig.symbol,
+            symbol: settingsSymbol,
+            name: supportedToken?.name ?? settingsSymbol,
             decimals: tokenConfig.decimals,
             caipChainId,
             walletAddress: undefined,
@@ -462,11 +409,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
     sdk,
     hideSolanaAssets,
     delegationSettings,
-    getValidLineaChainIds,
+    getValidLineaChainIdsForLocation,
     mapUserToken,
     shouldFilterOutToken,
-    shouldProcessNetwork,
-    getCaipChainId,
+    shouldProcessNetworkForLocation,
     tokenExistsInUserTokens,
     getTokenAddress,
     sortTokensByPriority,
@@ -626,11 +572,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
         token.allowanceState === AllowanceState.Enabled ||
         token.allowanceState === AllowanceState.Limited
       ) {
-        // Token is already delegated, update priority directly
         await updatePriority(token);
       } else {
-        // Token is not delegated, navigate to Spending Limit screen to enable it
-        // Use 'manage' flow to maintain "Change token and network" context
         closeBottomSheetAndNavigate(() => {
           navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
             flow: 'manage',
@@ -801,7 +744,13 @@ const AssetSelectionBottomSheet: React.FC = () => {
                         imageSource={{
                           uri: buildTokenIconUrl(
                             item.caipChainId,
-                            item.address || '',
+                            // For EVM non-Linea chains (e.g., Base), use stagingTokenAddress as it contains the correct
+                            // production address for that chain. For Linea and Solana, use address directly.
+                            item.caipChainId !== 'eip155:59144' &&
+                              !item.caipChainId?.startsWith('solana:') &&
+                              item.stagingTokenAddress
+                              ? item.stagingTokenAddress
+                              : item.address || '',
                           ),
                         }}
                       />

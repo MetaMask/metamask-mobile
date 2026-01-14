@@ -36,7 +36,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume, estimateLineCount } from '../../utils/format';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import Engine from '../../../../../core/Engine';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import {
   Box,
   BoxFlexDirection,
