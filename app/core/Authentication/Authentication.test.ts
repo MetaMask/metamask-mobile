@@ -6,7 +6,6 @@ import {
   SOLANA_DISCOVERY_PENDING,
   OPTIN_META_METRICS_UI_SEEN,
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-  BIOMETRY_CHOICE,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -764,8 +763,7 @@ describe('Authentication', () => {
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
-    it('stores password with REMEMBER_ME and does not affect biometric/passcode flags', async () => {
-      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+    it('stores password with REMEMBER_ME and manages storage flags correctly', async () => {
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
       await Authentication.updateAuthPreference({
@@ -777,22 +775,14 @@ describe('Authentication', () => {
         mockPassword,
         SecureKeychain.TYPES.REMEMBER_ME,
       );
-      // Should not remove or set biometric/passcode flags directly
-      expect(removeItemSpy).not.toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
-      expect(removeItemSpy).not.toHaveBeenCalledWith(PASSCODE_DISABLED);
-      expect(setItemSpy).not.toHaveBeenCalledWith(
-        BIOMETRY_CHOICE_DISABLED,
-        expect.anything(),
-      );
-      expect(setItemSpy).not.toHaveBeenCalledWith(
-        PASSCODE_DISABLED,
-        expect.anything(),
-      );
+
       // But can store previous auth type (expected behavior)
       expect(setItemSpy).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
         expect.any(String),
       );
+      expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
@@ -4026,9 +4016,6 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      // Set BIOMETRY_CHOICE so reauthenticate can find the password
-      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
-
       await Authentication.updateAuthPreference({
         authType: AUTHENTICATION_TYPE.BIOMETRIC,
       });
@@ -4073,9 +4060,6 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      // Set BIOMETRY_CHOICE so reauthenticate can find the password
-      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
-
       await Authentication.updateAuthPreference({
         authType: AUTHENTICATION_TYPE.PASSCODE,
       });
@@ -4095,9 +4079,6 @@ describe('Authentication', () => {
 
     it('updates auth preference to PASSWORD with password from keychain', async () => {
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
-
-      // Set BIOMETRY_CHOICE so reauthenticate can find the password
-      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
 
       await Authentication.updateAuthPreference({
         authType: AUTHENTICATION_TYPE.PASSWORD,

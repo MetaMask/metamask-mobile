@@ -428,6 +428,8 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
           await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
 
@@ -437,8 +439,11 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.PASSCODE,
           );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
           await StorageWrapper.removeItem(PASSCODE_DISABLED);
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
           break;
         case AUTHENTICATION_TYPE.REMEMBER_ME: {
           // Store the current auth type before switching to remember me
@@ -457,12 +462,16 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
           );
-          // SecureKeychain.setGenericPassword handles flag management for REMEMBER_ME
-          // (sets BIOMETRY_CHOICE_DISABLED and PASSCODE_DISABLED to disable biometric/passcode)
+
+          // TODO: Remove this once we have a proper way to handle biometrics
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
           break;
         }
         case AUTHENTICATION_TYPE.PASSWORD: {
           await SecureKeychain.setGenericPassword(password, undefined);
+
           // Password only: disable both biometrics and passcode
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
@@ -480,6 +489,7 @@ class AuthenticationService {
         }
         default:
           await SecureKeychain.setGenericPassword(password, undefined);
+
           // Default to password behavior: disable both
           await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
