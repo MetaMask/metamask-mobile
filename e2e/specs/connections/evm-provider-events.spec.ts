@@ -6,10 +6,9 @@ import FixtureBuilder, {
 } from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestDApp from '../../pages/Browser/TestDApp';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Browser from '../../pages/Browser/BrowserView';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -43,7 +42,7 @@ describe.skip(SmokeWalletPlatform('EVM Provider Events'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         const connectedAccounts = await TestDApp.getConnectedAccounts();
@@ -96,7 +95,7 @@ describe.skip(SmokeWalletPlatform('EVM Provider Events'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         const connectedAccountsBefore = await TestDApp.getConnectedAccounts();
@@ -174,7 +173,7 @@ describe.skip(SmokeWalletPlatform('EVM Provider Events'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         const connectedChainIdBefore = await TestDApp.getConnectedChainId();

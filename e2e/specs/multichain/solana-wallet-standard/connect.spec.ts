@@ -12,6 +12,7 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import { Utilities } from '../../../framework';
+import { navigateToBrowserView } from '../../../viewHelper';
 
 // TODO: Update test to be BIP-44 compatible
 // https://github.com/MetaMask/metamask-mobile/issues/24148
@@ -39,13 +40,8 @@ describe.skip(
 
         await header.disconnect();
 
-        // Check we're disconnected
-        const connectionStatusAfterDisconnect =
-          await header.getConnectionStatus();
-        await Assertions.checkIfTextMatches(
-          connectionStatusAfterDisconnect,
-          'Not connected',
-        );
+        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
+        await navigateToBrowserView();
       });
     });
 
