@@ -69,12 +69,6 @@ jobs:
           ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
-      #    - name: Verify checked out commit matches expected
-      #      env:
-      #        TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-      #      run: |
-      #        .github/scripts/verify-commit-sha.sh
-
       - name: Print commit info
         run: |
           echo "🔎 Commit hash: ${TARGET_COMMIT_HASH}"
@@ -102,7 +96,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          is-high-risk-environment: true
 
       - name: Download node_modules artifact (PR checkout)
         uses: actions/download-artifact@v4
@@ -129,7 +122,7 @@ jobs:
         id: branch_fingerprint
         run: |
           echo "🧬 Generating fingerprint for target commit..."
-          FINGERPRINT=$(node scripts/generate-fingerprint.js)
+          FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target commit fingerprint: ${FINGERPRINT}"
 
@@ -138,7 +131,7 @@ jobs:
         working-directory: main
         run: |
           echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
-          FINGERPRINT=$(node scripts/generate-fingerprint.js)
+          FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: ${FINGERPRINT}"
 
@@ -285,17 +278,10 @@ jobs:
           ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
-      #   - name: Verify checked out commit matches expected
-      #      env:
-      #        TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
-      #      run: |
-      #        .github/scripts/verify-commit-sha.sh
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          is-high-risk-environment: true
 
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
@@ -335,8 +321,6 @@ jobs:
           SKIP_TRANSFORM_LINT: 'true'
           # Increase Node heap to avoid OOM during Expo export in CI
           NODE_OPTIONS: '--max_old_space_size=8192'
-          # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
-          EXPO_NO_LAVAMOAT: '1'
         run: |
           echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
           case "${TARGET_CHANNEL}" in

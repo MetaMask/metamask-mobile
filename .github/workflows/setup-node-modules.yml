@@ -54,7 +54,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.ref }}
           fetch-depth: ${{ inputs.fetch-depth }}
 
       - name: Setup Node.js
@@ -77,8 +77,6 @@ jobs:
         with:
           path: |
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
             app/util/termsOfUse/termsOfUseContent.ts
             scripts/inpage-bridge/dist
           key: ${{ steps.cache-key.outputs.key }}
@@ -118,8 +116,6 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: |
             node_modules
-            .yarn/cache
-            .yarn/install-state.gz
             app/util/termsOfUse/termsOfUseContent.ts
             scripts/inpage-bridge/dist
           retention-days: ${{ inputs.artifact-retention-days }}
