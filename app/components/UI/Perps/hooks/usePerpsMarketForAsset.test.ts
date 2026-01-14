@@ -13,6 +13,11 @@ jest.mock('./usePerpsTrading', () => ({
   }),
 }));
 
+// Mock usePerpsNetwork hook
+jest.mock('./usePerpsNetwork', () => ({
+  usePerpsNetwork: () => 'mainnet',
+}));
+
 // Import after mocks are set up
 import {
   usePerpsMarketForAsset,
@@ -139,5 +144,44 @@ describe('usePerpsMarketForAsset', () => {
     });
 
     expect(result.current.marketData?.name).toBe('LINK');
+  });
+
+  it('discards stale responses when symbol changes rapidly', async () => {
+    // Clear cache to ensure fresh requests
+    _clearMarketExistenceCache();
+
+    // Slow response for first symbol (ETH)
+    let resolveFirst: ((value: unknown) => void) | undefined;
+    const firstPromise = new Promise((resolve) => {
+      resolveFirst = resolve;
+    });
+    mockGetMarkets.mockImplementationOnce(() => firstPromise);
+
+    // Fast response for second symbol (BTC)
+    mockGetMarkets.mockResolvedValueOnce([{ name: 'BTC', maxLeverage: 50 }]);
+
+    const { result, rerender } = renderHook(
+      ({ symbol }) => usePerpsMarketForAsset(symbol),
+      { initialProps: { symbol: 'ETH' } },
+    );
+
+    // Change symbol before first request completes
+    rerender({ symbol: 'BTC' });
+
+    // Wait for BTC response
+    await waitFor(() => {
+      expect(result.current.marketData?.symbol).toBe('BTC');
+    });
+
+    // Now resolve the stale ETH response
+    if (resolveFirst) {
+      resolveFirst([{ name: 'ETH', maxLeverage: 40 }]);
+    }
+
+    // Wait a tick and verify still shows BTC (stale response was discarded)
+    await waitFor(() => {
+      expect(result.current.marketData?.symbol).toBe('BTC');
+    });
+    expect(result.current.hasPerpsMarket).toBe(true);
   });
 });

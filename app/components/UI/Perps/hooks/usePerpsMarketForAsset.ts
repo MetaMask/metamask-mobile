@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PerpsMarketData } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsNetwork } from './usePerpsNetwork';
 
 /**
  * Result interface for usePerpsMarketForAsset hook
@@ -75,12 +76,19 @@ export const usePerpsMarketForAsset = (
   symbol: string | undefined | null,
 ): UsePerpsMarketForAssetResult => {
   const { getMarkets } = usePerpsTrading();
+  const perpsNetwork = usePerpsNetwork();
 
   // Track if component is still mounted
   const isMountedRef = useRef(true);
 
+  // Track current request to prevent stale responses from updating state
+  const requestIdRef = useRef(0);
+
   // Normalize symbol for lookup
   const lookupSymbol = symbol?.toUpperCase() ?? null;
+
+  // Create cache key with network context to avoid stale data when switching networks
+  const cacheKey = lookupSymbol ? `${lookupSymbol}_${perpsNetwork}` : null;
 
   const [state, setState] = useState<{
     hasPerpsMarket: boolean;
@@ -89,7 +97,7 @@ export const usePerpsMarketForAsset = (
     error: string | null;
   }>(() => {
     // Initialize from cache if available
-    if (!lookupSymbol) {
+    if (!cacheKey) {
       return {
         hasPerpsMarket: false,
         marketData: null,
@@ -98,7 +106,7 @@ export const usePerpsMarketForAsset = (
       };
     }
 
-    const cached = marketExistenceCache.get(lookupSymbol);
+    const cached = marketExistenceCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return {
         hasPerpsMarket: cached.exists,
@@ -117,12 +125,15 @@ export const usePerpsMarketForAsset = (
   });
 
   const checkMarketExists = useCallback(async () => {
-    if (!lookupSymbol) {
+    if (!lookupSymbol || !cacheKey) {
       return;
     }
 
-    // Check cache first
-    const cached = marketExistenceCache.get(lookupSymbol);
+    // Capture current request ID to detect stale responses
+    const currentRequestId = ++requestIdRef.current;
+
+    // Check cache first (includes network context)
+    const cached = marketExistenceCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       if (isMountedRef.current) {
         setState({
@@ -142,6 +153,11 @@ export const usePerpsMarketForAsset = (
         symbols: [lookupSymbol],
         readOnly: true,
       });
+
+      // Verify this response matches current request (prevents stale updates)
+      if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
+        return;
+      }
 
       // Find exact match by symbol
       const matchedMarket = markets.find(
@@ -164,8 +180,8 @@ export const usePerpsMarketForAsset = (
         };
       }
 
-      // Cache the result
-      marketExistenceCache.set(lookupSymbol, {
+      // Cache the result (with network context in key)
+      marketExistenceCache.set(cacheKey, {
         exists,
         data: marketData,
         timestamp: Date.now(),
@@ -174,50 +190,56 @@ export const usePerpsMarketForAsset = (
       // Periodic cache cleanup
       cleanExpiredCache();
 
-      if (isMountedRef.current) {
-        setState({
-          hasPerpsMarket: exists,
-          marketData,
-          isLoading: false,
-          error: null,
-        });
-      }
+      setState({
+        hasPerpsMarket: exists,
+        marketData,
+        isLoading: false,
+        error: null,
+      });
     } catch (err) {
+      // Verify this error is for current request
+      if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
+        return;
+      }
+
       DevLogger.log(
         'usePerpsMarketForAsset: Error checking market existence:',
         err,
       );
 
       // On error, don't cache - allow retry
-      if (isMountedRef.current) {
-        setState({
-          hasPerpsMarket: false,
-          marketData: null,
-          isLoading: false,
-          error:
-            err instanceof Error ? err.message : 'Failed to check perps market',
-        });
-      }
+      setState({
+        hasPerpsMarket: false,
+        marketData: null,
+        isLoading: false,
+        error:
+          err instanceof Error ? err.message : 'Failed to check perps market',
+      });
     }
-  }, [lookupSymbol, getMarkets]);
+  }, [lookupSymbol, cacheKey, getMarkets]);
 
   // Effect to check market existence
   useEffect(() => {
     isMountedRef.current = true;
 
+    // Cleanup function to prevent state updates after unmount
+    const cleanup = () => {
+      isMountedRef.current = false;
+    };
+
     // Early bail for missing symbol
-    if (!lookupSymbol) {
+    if (!cacheKey) {
       setState({
         hasPerpsMarket: false,
         marketData: null,
         isLoading: false,
         error: null,
       });
-      return;
+      return cleanup;
     }
 
-    // Check if already cached
-    const cached = marketExistenceCache.get(lookupSymbol);
+    // Check if already cached (includes network context)
+    const cached = marketExistenceCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       setState({
         hasPerpsMarket: cached.exists,
@@ -225,17 +247,15 @@ export const usePerpsMarketForAsset = (
         isLoading: false,
         error: null,
       });
-      return;
+      return cleanup;
     }
 
     // Need to fetch
     setState((prev) => ({ ...prev, isLoading: true }));
     checkMarketExists();
 
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [lookupSymbol, checkMarketExists]);
+    return cleanup;
+  }, [cacheKey, checkMarketExists]);
 
   return {
     hasPerpsMarket: state.hasPerpsMarket,

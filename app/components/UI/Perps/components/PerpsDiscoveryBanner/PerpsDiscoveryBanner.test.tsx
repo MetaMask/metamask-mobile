@@ -39,12 +39,12 @@ describe('PerpsDiscoveryBanner', () => {
 
   it('renders title with symbol', () => {
     const { getByText } = render(<PerpsDiscoveryBanner {...defaultProps} />);
-    expect(getByText('Trade ETH perp')).toBeDefined();
+    expect(getByText('Trade ETH perp')).toBeOnTheScreen();
   });
 
   it('renders subtitle with leverage', () => {
     const { getByText } = render(<PerpsDiscoveryBanner {...defaultProps} />);
-    expect(getByText('Multiply your P&L up to 40x')).toBeDefined();
+    expect(getByText('Multiply your P&L up to 40x')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -58,20 +58,20 @@ describe('PerpsDiscoveryBanner', () => {
 
   it('renders logo image', () => {
     const { getByTestId } = render(<PerpsDiscoveryBanner {...defaultProps} />);
-    expect(getByTestId('perps-discovery-banner-logo')).toBeDefined();
+    expect(getByTestId('perps-discovery-banner-logo')).toBeOnTheScreen();
   });
 
   it('renders with different symbol', () => {
     const { getByText } = render(
       <PerpsDiscoveryBanner {...defaultProps} symbol="BTC" />,
     );
-    expect(getByText('Trade BTC perp')).toBeDefined();
+    expect(getByText('Trade BTC perp')).toBeOnTheScreen();
   });
 
   it('renders with different leverage', () => {
     const { getByText } = render(
       <PerpsDiscoveryBanner {...defaultProps} maxLeverage="100x" />,
     );
-    expect(getByText('Multiply your P&L up to 100x')).toBeDefined();
+    expect(getByText('Multiply your P&L up to 100x')).toBeOnTheScreen();
   });
 });
