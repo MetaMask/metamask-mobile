@@ -63,6 +63,13 @@ jobs:
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     steps:
+      - name: Checkout workflow branch (for scripts)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          path: workflow-scripts
+          fetch-depth: 0
+
       - name: Checkout target commit
         uses: actions/checkout@v4
         with:
@@ -73,7 +80,7 @@ jobs:
         env:
           TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
         run: |
-          .github/scripts/verify-commit-sha.sh
+          workflow-scripts/.github/scripts/verify-commit-sha.sh
 
       - name: Print commit info
         run: |
@@ -279,6 +286,13 @@ jobs:
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
+      - name: Checkout workflow branch (for scripts)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          path: workflow-scripts
+          fetch-depth: 0
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -289,7 +303,7 @@ jobs:
         env:
           TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
         run: |
-          .github/scripts/verify-commit-sha.sh
+          workflow-scripts/.github/scripts/verify-commit-sha.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
