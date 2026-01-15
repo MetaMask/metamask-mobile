@@ -1,5 +1,9 @@
+import {
+  Intent,
+  QuoteMetadata,
+  QuoteResponse,
+ Quote, TxData } from '@metamask/bridge-controller';
 import { Asset } from '@metamask/assets-controllers';
-import { Quote, TxData } from '@metamask/bridge-controller';
 import { Hex, CaipChainId } from '@metamask/utils';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
@@ -40,6 +44,13 @@ export interface QuoteResponse {
   trade: TxData;
   estimatedProcessingTimeInSeconds: number;
 }
+
+export type BridgeQuoteResponse = QuoteResponse &
+  QuoteMetadata & {
+    aggregator: string;
+    walletAddress: string;
+    intent?: Intent;
+  };
 
 export enum BridgeViewMode {
   Swap = 'Swap',

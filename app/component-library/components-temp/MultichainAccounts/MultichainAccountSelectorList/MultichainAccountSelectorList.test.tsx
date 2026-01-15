@@ -20,7 +20,7 @@ import {
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {

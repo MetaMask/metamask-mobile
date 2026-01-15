@@ -22,7 +22,7 @@ import {
   validateAddressOrENS,
   toChecksumAddress,
 } from '../../../../../util/address';
-import ErrorMessage from '../../../confirmations/legacy/SendFlow/ErrorMessage';
+import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../../util/theme';
@@ -36,7 +36,7 @@ import {
   selectEvmChainId,
   selectNetworkConfigurations,
 } from '../../../../../selectors/networkController';
-import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet';

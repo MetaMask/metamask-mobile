@@ -316,7 +316,6 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                       style={
                         {
                           "flex": 1,
-                          "marginTop": 48,
                         }
                       }
                     >

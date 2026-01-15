@@ -12,7 +12,7 @@ import Text, {
 import PropTypes from 'prop-types';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
+import { SkipAccountSecurityModalSelectorsIDs } from './SkipAccountSecurityModal.testIds';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {

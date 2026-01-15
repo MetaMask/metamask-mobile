@@ -15,8 +15,8 @@ import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
 import { store } from '../../../../store';
 import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
-import { getNativeTokenAddress } from './asset';
 import { strings } from '../../../../../locales/i18n';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 

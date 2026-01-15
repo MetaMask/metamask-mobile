@@ -1,13 +1,12 @@
 import { RegressionConfirmations } from '../../tags';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
+import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { DappVariants } from '../../framework/Constants';
@@ -68,13 +67,9 @@ describe.skip(RegressionConfirmations('Send to contract address'), () => {
 
         await WalletView.tapWalletSendButton();
 
-        await SendView.inputAddress(hstAddress);
-        await SendView.tapNextButton();
-
-        await Assertions.expectElementToBeVisible(AmountView.title);
-
-        await AmountView.typeInTransactionAmount(AMOUNT);
-        await AmountView.tapNextButton();
+        await RedesignedSendView.inputRecipientAddress(hstAddress);
+        await RedesignedSendView.typeInTransactionAmount(AMOUNT);
+        await RedesignedSendView.pressReviewButton();
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
