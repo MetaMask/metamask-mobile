@@ -45,7 +45,6 @@ interface EarnMusdConversionEducationViewRouteParams {
  * Displays educational content before user's first mUSD conversion.
  * Once completed, marks the education as seen and proceeds to conversion flow.
  */
-// TOOD: Add event when screen is displayed
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
@@ -119,7 +118,6 @@ const EarnMusdConversionEducationView = () => {
     BUTTON_TYPES.PRIMARY,
   ]);
 
-  // TOOD: Add tests
   const submitGoBackPressedEvent = () => {
     trackEvent(
       createEventBuilder(
