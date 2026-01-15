@@ -8,6 +8,42 @@ import {
   Winner,
 } from './PredictSportScoreboard.types';
 
+// Mock child components
+jest.mock('../PredictSportTeamHelmet/PredictSportTeamHelmet', () => {
+  const MockHelmet = ({ testID }: { testID?: string }) => {
+    const { View: MockView } = jest.requireActual('react-native');
+    return <MockView testID={testID} />;
+  };
+  return MockHelmet;
+});
+
+jest.mock('../PredictSportFootballIcon/PredictSportFootballIcon', () => {
+  const MockFootball = ({ testID }: { testID?: string }) => {
+    const { View: MockView } = jest.requireActual('react-native');
+    return <MockView testID={testID} />;
+  };
+  return MockFootball;
+});
+
+jest.mock('../PredictSportWinner/PredictSportWinner', () => {
+  const MockWinner = ({ testID }: { testID?: string }) => {
+    const { View: MockView } = jest.requireActual('react-native');
+    return <MockView testID={testID} />;
+  };
+  return MockWinner;
+});
+
+// Mock i18n strings
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: Record<string, string> = {
+      'predict.sports.halftime': 'Halftime',
+      'predict.sports.final': 'Final',
+    };
+    return translations[key] || key;
+  },
+}));
+
 const createAwayTeam = (overrides: Partial<TeamData> = {}): TeamData => ({
   abbreviation: 'SEA',
   color: '#002244',
@@ -487,56 +523,6 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
-  describe('size variants', () => {
-    it('renders with default variant when variant prop omitted', () => {
-      const awayTeam = createAwayTeam();
-      const homeTeam = createHomeTeam();
-
-      const { getByTestId } = render(
-        <PredictSportScoreboard
-          awayTeam={awayTeam}
-          homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          testID="scoreboard"
-        />,
-      );
-
-      expect(getByTestId('scoreboard')).toBeOnTheScreen();
-    });
-
-    it('renders with default variant when explicitly specified', () => {
-      const awayTeam = createAwayTeam();
-      const homeTeam = createHomeTeam();
-
-      const { getByTestId } = render(
-        <PredictSportScoreboard
-          awayTeam={awayTeam}
-          homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          testID="scoreboard"
-        />,
-      );
-
-      expect(getByTestId('scoreboard')).toBeOnTheScreen();
-    });
-
-    it('renders with compact variant when specified', () => {
-      const awayTeam = createAwayTeam();
-      const homeTeam = createHomeTeam();
-
-      const { getByTestId } = render(
-        <PredictSportScoreboard
-          awayTeam={awayTeam}
-          homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          testID="scoreboard"
-        />,
-      );
-
-      expect(getByTestId('scoreboard')).toBeOnTheScreen();
-    });
-  });
-
   describe('edge cases', () => {
     it('renders with custom team abbreviations', () => {
       const awayTeam = createAwayTeam({ abbreviation: 'KC' });
@@ -652,48 +638,126 @@ describe('PredictSportScoreboard', () => {
   });
 
   describe('all game states', () => {
-    it.each([
-      [GameState.PreGame, 'PreGame'],
-      [GameState.InProgress, 'InProgress'],
-      [GameState.Halftime, 'Halftime'],
-      [GameState.Final, 'Final'],
-    ])('renders %s state successfully', (gameState) => {
+    it('hides scores in PreGame state', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
 
-      const { getByTestId } = render(
+      const { queryByText } = render(
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={gameState}
-          testID="scoreboard"
+          gameState={GameState.PreGame}
+          awayScore={10}
+          homeScore={7}
         />,
       );
 
-      expect(getByTestId('scoreboard')).toBeOnTheScreen();
+      expect(queryByText('10')).toBeNull();
+      expect(queryByText('7')).toBeNull();
     });
-  });
 
-  describe('possession states', () => {
-    it.each([
-      [Possession.Away, 'away'],
-      [Possession.Home, 'home'],
-      [Possession.None, 'none'],
-    ])('handles %s possession state', (possessionState) => {
+    it('displays scores in InProgress state', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
 
-      const { getByTestId } = render(
+      const { getByText } = render(
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
           gameState={GameState.InProgress}
-          possession={possessionState}
+          awayScore={14}
+          homeScore={21}
+        />,
+      );
+
+      expect(getByText('14')).toBeOnTheScreen();
+      expect(getByText('21')).toBeOnTheScreen();
+    });
+
+    it('displays Halftime label in Halftime state', () => {
+      const awayTeam = createAwayTeam();
+      const homeTeam = createHomeTeam();
+
+      const { getByText } = render(
+        <PredictSportScoreboard
+          awayTeam={awayTeam}
+          homeTeam={homeTeam}
+          gameState={GameState.Halftime}
+        />,
+      );
+
+      expect(getByText('Halftime')).toBeOnTheScreen();
+    });
+
+    it('displays Final label in Final state', () => {
+      const awayTeam = createAwayTeam();
+      const homeTeam = createHomeTeam();
+
+      const { getByText } = render(
+        <PredictSportScoreboard
+          awayTeam={awayTeam}
+          homeTeam={homeTeam}
+          gameState={GameState.Final}
+        />,
+      );
+
+      expect(getByText('Final')).toBeOnTheScreen();
+    });
+  });
+
+  describe('possession states', () => {
+    it('shows possession icon for away team when possession is Away', () => {
+      const awayTeam = createAwayTeam();
+      const homeTeam = createHomeTeam();
+
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard
+          awayTeam={awayTeam}
+          homeTeam={homeTeam}
+          gameState={GameState.InProgress}
+          possession={Possession.Away}
           testID="scoreboard"
         />,
       );
 
-      expect(getByTestId('scoreboard')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-away-possession')).toBeOnTheScreen();
+      expect(queryByTestId('scoreboard-home-possession')).toBeNull();
+    });
+
+    it('shows possession icon for home team when possession is Home', () => {
+      const awayTeam = createAwayTeam();
+      const homeTeam = createHomeTeam();
+
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard
+          awayTeam={awayTeam}
+          homeTeam={homeTeam}
+          gameState={GameState.InProgress}
+          possession={Possession.Home}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(getByTestId('scoreboard-home-possession')).toBeOnTheScreen();
+      expect(queryByTestId('scoreboard-away-possession')).toBeNull();
+    });
+
+    it('hides possession icons when possession is None', () => {
+      const awayTeam = createAwayTeam();
+      const homeTeam = createHomeTeam();
+
+      const { queryByTestId } = render(
+        <PredictSportScoreboard
+          awayTeam={awayTeam}
+          homeTeam={homeTeam}
+          gameState={GameState.InProgress}
+          possession={Possession.None}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(queryByTestId('scoreboard-away-possession')).toBeNull();
+      expect(queryByTestId('scoreboard-home-possession')).toBeNull();
     });
   });
 
@@ -836,27 +900,64 @@ describe('PredictSportScoreboard', () => {
   });
 
   describe('winner states', () => {
-    it.each([
-      [Winner.Away, 'away'],
-      [Winner.Home, 'home'],
-      [Winner.None, 'none'],
-    ])('handles %s winner state', (winnerState) => {
+    it('shows winner trophy for away team when winner is Away', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
 
-      const { getByTestId } = render(
+      const { getByTestId, queryByTestId } = render(
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
           gameState={GameState.Final}
           awayScore={109}
           homeScore={99}
-          winner={winnerState}
+          winner={Winner.Away}
           testID="scoreboard"
         />,
       );
 
-      expect(getByTestId('scoreboard')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-away-winner')).toBeOnTheScreen();
+      expect(queryByTestId('scoreboard-home-winner')).toBeNull();
+    });
+
+    it('shows winner trophy for home team when winner is Home', () => {
+      const awayTeam = createAwayTeam();
+      const homeTeam = createHomeTeam();
+
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard
+          awayTeam={awayTeam}
+          homeTeam={homeTeam}
+          gameState={GameState.Final}
+          awayScore={99}
+          homeScore={109}
+          winner={Winner.Home}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(getByTestId('scoreboard-home-winner')).toBeOnTheScreen();
+      expect(queryByTestId('scoreboard-away-winner')).toBeNull();
+    });
+
+    it('hides winner trophies when winner is None', () => {
+      const awayTeam = createAwayTeam();
+      const homeTeam = createHomeTeam();
+
+      const { queryByTestId } = render(
+        <PredictSportScoreboard
+          awayTeam={awayTeam}
+          homeTeam={homeTeam}
+          gameState={GameState.Final}
+          awayScore={109}
+          homeScore={109}
+          winner={Winner.None}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(queryByTestId('scoreboard-away-winner')).toBeNull();
+      expect(queryByTestId('scoreboard-home-winner')).toBeNull();
     });
   });
 });
