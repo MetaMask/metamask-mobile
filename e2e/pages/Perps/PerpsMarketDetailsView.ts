@@ -3,7 +3,7 @@ import {
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
+} from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';

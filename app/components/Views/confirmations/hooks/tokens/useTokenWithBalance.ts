@@ -11,9 +11,9 @@ import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFi
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
-import { getNativeTokenAddress } from '../../utils/asset';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);

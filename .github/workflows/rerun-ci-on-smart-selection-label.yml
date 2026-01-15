@@ -1,0 +1,92 @@
+name: Rerun CI on skip-smart-e2e-selection label
+
+on:
+  pull_request:
+    types: [labeled, unlabeled]
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  REPO: ${{ github.repository }}
+  HEAD_REF: ${{ github.head_ref }}
+
+jobs:
+  rerun-ci:
+    if: github.event.label.name == 'skip-smart-e2e-selection'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Cancel running CI workflows
+        id: cancel
+        run: |
+          echo "Looking for CI runs on branch $HEAD_REF..."
+
+          CANCELLED=false
+          while read -r RUN_ID; do
+            if [ -n "$RUN_ID" ]; then
+              echo "Cancelling run $RUN_ID..."
+              gh run cancel "$RUN_ID" --repo "$REPO" || true
+              CANCELLED=true
+            fi
+          done < <(gh run list \
+            --repo "$REPO" \
+            --branch "$HEAD_REF" \
+            --workflow "ci.yml" \
+            --json databaseId,status \
+            --jq '.[] | select(.status == "in_progress" or .status == "queued") | .databaseId')
+
+          echo "cancelled=$CANCELLED" >> "$GITHUB_OUTPUT"
+
+      - name: Find latest CI workflow run
+        id: find
+        run: |
+          LATEST_RUN_ID=$(gh run list \
+            --repo "$REPO" \
+            --branch "$HEAD_REF" \
+            --workflow "ci.yml" \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          if [ -z "$LATEST_RUN_ID" ] || [ "$LATEST_RUN_ID" = "null" ]; then
+            echo "No CI workflow run found for branch $HEAD_REF"
+            exit 0
+          fi
+
+          echo "run_id=$LATEST_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for cancellation to complete
+        if: steps.cancel.outputs.cancelled == 'true' && steps.find.outputs.run_id
+        run: |
+          RUN_ID="${{ steps.find.outputs.run_id }}"
+          MAX_WAIT=600
+          ELAPSED=0
+
+          echo "Waiting up to ${MAX_WAIT}s for workflow to finish cancelling..."
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status --jq '.status')
+            echo "Status: $STATUS (${ELAPSED}s elapsed)"
+
+            if [ "$STATUS" != "in_progress" ] && [ "$STATUS" != "queued" ]; then
+              echo "Workflow ready for rerun"
+              break
+            fi
+
+            sleep 15
+            ELAPSED=$((ELAPSED + 15))
+          done
+
+          FINAL_STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status --jq '.status')
+          if [ "$FINAL_STATUS" = "in_progress" ] || [ "$FINAL_STATUS" = "queued" ]; then
+            echo "Timeout: workflow still $FINAL_STATUS after ${MAX_WAIT}s"
+            exit 1
+          fi
+
+      - name: Rerun CI workflow
+        if: steps.find.outputs.run_id
+        run: |
+          RUN_ID="${{ steps.find.outputs.run_id }}"
+          echo "Re-running workflow $RUN_ID..."
+          gh run rerun "$RUN_ID" --repo "$REPO"
+          echo "CI workflow re-triggered successfully"

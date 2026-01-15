@@ -39,7 +39,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import UsdcIcon from './usdc.svg';
-import { PredictActivityDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
 
 const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {

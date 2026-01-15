@@ -5,7 +5,7 @@ import { createMockInternalAccount } from '../../../../../util/test/accountsCont
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
-import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../AccountDetails.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';

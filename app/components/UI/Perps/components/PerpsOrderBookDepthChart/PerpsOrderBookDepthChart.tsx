@@ -8,7 +8,7 @@ import Text, {
 import { useStyles } from '../../../../hooks/useStyles';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import styleSheet from './PerpsOrderBookDepthChart.styles';
-import { PerpsOrderBookDepthChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookDepthChartSelectorsIDs } from '../../Perps.testIds';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,

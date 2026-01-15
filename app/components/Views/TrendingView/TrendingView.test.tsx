@@ -251,7 +251,11 @@ describe('TrendingView', () => {
       expect(getByText('99')).toBeOnTheScreen();
     });
 
-    it('navigates to TrendingBrowser when button is pressed', () => {
+    it('opens new tab with portfolio URL when no tabs exist', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 0 }),
+      );
+
       const { getByTestId } = render(
         <NavigationContainer>
           <TrendingView />
@@ -268,6 +272,41 @@ describe('TrendingView', () => {
           params: expect.objectContaining({
             newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
             fromTrending: true,
+          }),
+        }),
+      );
+    });
+
+    it('opens tabs view when tabs already exist', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 3 }),
+      );
+
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      const browserButton = getByTestId('trending-view-browser-button');
+      fireEvent.press(browserButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
+          screen: Routes.BROWSER.VIEW,
+          params: expect.objectContaining({
+            showTabsView: true,
+            fromTrending: true,
+          }),
+        }),
+      );
+      // Should NOT pass newTabUrl when tabs exist
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            newTabUrl: expect.anything(),
           }),
         }),
       );

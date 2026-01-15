@@ -15,7 +15,7 @@ import MM_CARDS_WELCOME from '../../../../../images/mm-card-welcome.png';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
+import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
