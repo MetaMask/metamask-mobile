@@ -80,6 +80,9 @@ import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessCo
 import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { captureException } from '@sentry/react-native';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert } from 'react-native';
@@ -709,11 +712,12 @@ class AuthenticationService {
         ReduxService.store.getState(),
       );
       if (isSeedlessLoginFlow || authData.oauth2Login) {
-        // eslint-disable-next-line no-void
-        void this.runSeedlessOnboardingMigrations({
+        this.runSeedlessOnboardingMigrations({
           skipOnboardingCheck: authData.oauth2Login,
         }).catch((err) => {
-          Logger.error(err, 'Error during seedless onboarding migrations');
+          const message = 'Error during seedless onboarding migrations';
+          Logger.error(err, message);
+          captureException(err);
         });
       }
 
@@ -792,9 +796,10 @@ class AuthenticationService {
 
       // Migrations for existing social login users unlocking via biometrics.
       if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-        // eslint-disable-next-line no-void
-        void this.runSeedlessOnboardingMigrations().catch((err) => {
-          Logger.error(err, 'Error during seedless onboarding migrations');
+        this.runSeedlessOnboardingMigrations().catch((err) => {
+          const message = 'Error during seedless onboarding migrations';
+          Logger.error(err, message);
+          captureException(err);
         });
       }
 
@@ -1452,8 +1457,34 @@ class AuthenticationService {
 
     try {
       await SeedlessOnboardingController.runMigrations();
+
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+        )
+          .addProperties({
+            migration_version:
+              SeedlessOnboardingController.state?.migrationVersion,
+          })
+          .build(),
+      );
     } catch (error) {
-      Logger.error(error as Error, 'Error during seedless migrations');
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+        )
+          .addProperties({
+            migration_version:
+              SeedlessOnboardingController.state?.migrationVersion,
+            error: errorMessage,
+          })
+          .build(),
+      );
+
+      throw error;
     }
   };
 

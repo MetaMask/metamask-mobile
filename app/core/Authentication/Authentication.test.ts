@@ -207,9 +207,12 @@ jest.mock('../BackupVault/backupVault', () => ({
   clearAllVaultBackups: jest.fn(),
 }));
 
+const mockTrackEvent = jest.fn();
+
 jest.mock('../Analytics/MetaMetrics', () => {
   const mockInstance = {
     createDataDeletionTask: jest.fn(),
+    trackEvent: mockTrackEvent,
   };
   return {
     __esModule: true,
@@ -218,6 +221,20 @@ jest.mock('../Analytics/MetaMetrics', () => {
     },
   };
 });
+
+jest.mock('../Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({ category: 'test' }),
+    })),
+  },
+}));
+
+const mockCaptureException = jest.fn();
+jest.mock('@sentry/react-native', () => ({
+  captureException: mockCaptureException,
+}));
 
 jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
   resetProviderToken: jest.fn(),
@@ -3720,12 +3737,16 @@ describe('Authentication', () => {
 
   describe('runSeedlessOnboardingMigrations', () => {
     const Engine = jest.requireMock('../Engine');
+    const { MetricsEventBuilder } = jest.requireMock(
+      '../Analytics/MetricsEventBuilder',
+    );
 
     beforeEach(() => {
       jest.clearAllMocks();
       mockSelectCompletedOnboarding.mockReturnValue(true);
       Engine.context.SeedlessOnboardingController = {
         runMigrations: jest.fn().mockResolvedValue(undefined),
+        state: { migrationVersion: 1 },
       };
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
@@ -3763,14 +3784,26 @@ describe('Authentication', () => {
       ).toHaveBeenCalled();
     });
 
-    it('does not throw on migration error', async () => {
+    it('tracks success event on successful migration', async () => {
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks failure event and re-throws error on migration error', async () => {
+      const error = new Error('Network error');
       Engine.context.SeedlessOnboardingController = {
-        runMigrations: jest.fn().mockRejectedValue(new Error('Network error')),
+        runMigrations: jest.fn().mockRejectedValue(error),
+        state: { migrationVersion: 1 },
       };
 
       await expect(
         Authentication.runSeedlessOnboardingMigrations(),
-      ).resolves.toBeUndefined();
+      ).rejects.toThrow('Network error');
+
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
