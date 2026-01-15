@@ -108,7 +108,6 @@ export const Browser = (props) => {
           if (activeTab) {
             updateTab(activeTab.id, {
               url,
-              linkType,
               isArchived: false,
             });
             setCurrentUrl(url);
