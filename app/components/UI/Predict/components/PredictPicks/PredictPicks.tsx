@@ -78,7 +78,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
         >
           <Box>
             <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-              {formatPrice(position.size, { maximumDecimals: 2 })} on{' '}
+              {formatPrice(position.initialValue, { maximumDecimals: 2 })} on{' '}
               {position.outcome}
             </Text>
             <Text

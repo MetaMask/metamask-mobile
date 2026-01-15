@@ -214,9 +214,9 @@ describe('PredictPicks', () => {
   });
 
   describe('position display', () => {
-    it('displays position size and outcome', () => {
+    it('displays position initialValue and outcome', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ size: 50, outcome: 'Yes' })],
+        positions: [createMockPosition({ initialValue: 50, outcome: 'Yes' })],
         isLoading: false,
         isRefreshing: false,
         error: null,
@@ -371,9 +371,9 @@ describe('PredictPicks', () => {
   });
 
   describe('formatPrice calls', () => {
-    it('calls formatPrice for position size', () => {
+    it('calls formatPrice for position initialValue', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ size: 15.75 })],
+        positions: [createMockPosition({ initialValue: 15.75 })],
         isLoading: false,
         isRefreshing: false,
         error: null,

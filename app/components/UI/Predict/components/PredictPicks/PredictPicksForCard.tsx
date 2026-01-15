@@ -30,7 +30,7 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
           twClassName="flex-row justify-between items-center gap-2"
           key={position.id}
         >
-          <Text>{`${formatPrice(position.size, { maximumDecimals: 2 })} on ${position.outcome} to win`}</Text>
+          <Text>{`${formatPrice(position.initialValue, { maximumDecimals: 2 })} on ${position.outcome} to win`}</Text>
           <Box twClassName="flex-row gap-2">
             <Text
               color={

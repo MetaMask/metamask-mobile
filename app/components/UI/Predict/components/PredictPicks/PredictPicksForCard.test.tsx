@@ -115,9 +115,9 @@ describe('PredictPicksForCard', () => {
       expect(screen.getByText(/Yes to win/)).toBeOnTheScreen();
     });
 
-    it('displays formatted size value', () => {
+    it('displays formatted initialValue', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ size: 50, outcome: 'Yes' })],
+        positions: [createMockPosition({ initialValue: 50, outcome: 'Yes' })],
         isLoading: false,
         isRefreshing: false,
         error: null,
