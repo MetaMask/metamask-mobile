@@ -251,17 +251,8 @@ jobs:
           keys=$(echo "$secret_json" | jq -r 'keys[]')
           for key in $keys; do
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
-            masked_value=$(printf '%s' "$value" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' -e 's/\n/%0A/g')
-            echo "::add-mask::$masked_value"
-            delimiter="EOF_$(date +%s%N)_${RANDOM}${RANDOM}"
-            while [[ "$value" == *"$delimiter"* ]]; do
-              delimiter="EOF_$(date +%s%N)_${RANDOM}${RANDOM}"
-            done
-            {
-              echo "$key<<$delimiter"
-              printf '%s\n' "$value"
-              echo "$delimiter"
-            } >> "$GITHUB_ENV"
+            echo "::add-mask::$value"
+            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
             echo "✅ Set secret for key: $key"
           done
 
@@ -307,8 +298,6 @@ jobs:
 
           # Decode the key
           export EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
-          masked_expo_key_priv=$(printf '%s' "$EXPO_KEY_PRIV" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' -e 's/\n/%0A/g')
-          echo "::add-mask::$masked_expo_key_priv"
           echo "✅ Expo key decoded and exported"
 
           echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
