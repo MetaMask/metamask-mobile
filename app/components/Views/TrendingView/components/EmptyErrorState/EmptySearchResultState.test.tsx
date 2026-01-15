@@ -10,14 +10,14 @@ describe('EmptySearchResultState', () => {
   it('renders empty search result state with title and description', () => {
     const { getByText } = render(<EmptySearchResultState />);
 
-    expect(getByText('No tokens found')).toBeDefined();
-    expect(getByText('We were not able to find this token')).toBeDefined();
+    expect(getByText('No tokens found')).toBeOnTheScreen();
+    expect(getByText('We were not able to find this token')).toBeOnTheScreen();
   });
 
   it('renders with correct test ID', () => {
     const { getByTestId } = render(<EmptySearchResultState />);
 
-    expect(getByTestId('empty-search-result-state')).toBeDefined();
+    expect(getByTestId('empty-search-result-state')).toBeOnTheScreen();
   });
 
   it('does not render try again button', () => {
