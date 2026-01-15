@@ -19,7 +19,7 @@ import type {
   IconName,
 } from '../component-library/components/Icons/Icon';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { AccountGroupId , AccountGroupId } from '@metamask/account-api';
+import type { AccountGroupId, AccountGroupId } from '@metamask/account-api';
 import type { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { BasicInfoFormData } from '../components/UI/Ramp/Deposit/Views/BasicInfo/BasicInfo';
 import type { AddressFormData } from '../components/UI/Ramp/Deposit/Views/EnterAddress/EnterAddress';
@@ -179,6 +179,9 @@ export type RootParamList = {
   EditNetwork:
     | {
         network?: string;
+        shouldNetworkSwitchPopToWallet?: boolean;
+        shouldShowPopularNetworks?: boolean;
+        trackRpcUpdateFromBanner?: boolean;
       }
     | undefined;
 

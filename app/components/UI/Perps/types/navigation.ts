@@ -155,6 +155,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+    source?: string;
   };
 
   // TP/SL screen
