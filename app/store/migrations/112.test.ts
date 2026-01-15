@@ -502,6 +502,9 @@ describe('Migration 112: Clear stuck pending withdrawal requests from PerpsContr
   });
 
   it('resets withdrawalProgress when removing pending withdrawals', () => {
+    const mockNow = 1700000000000;
+    jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
     const state: TestState = {
       engine: {
         backgroundState: {
@@ -532,17 +535,12 @@ describe('Migration 112: Clear stuck pending withdrawal requests from PerpsContr
     const result = migrate(state) as TestState;
 
     expect(
-      result.engine.backgroundState.PerpsController?.withdrawalProgress
-        ?.progress,
-    ).toBe(0);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalProgress
-        ?.activeWithdrawalId,
-    ).toBeNull();
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalProgress
-        ?.lastUpdated,
-    ).toBeGreaterThan(0);
+      result.engine.backgroundState.PerpsController?.withdrawalProgress,
+    ).toEqual({
+      progress: 0,
+      lastUpdated: mockNow,
+      activeWithdrawalId: null,
+    });
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
