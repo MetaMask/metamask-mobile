@@ -202,9 +202,7 @@ jobs:
     needs:
       - fingerprint-comparison
       - validate-pr
-    if: >
-      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      needs.validate-pr.outputs.pr_number != ''
+    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Await approval from mobile platform team
@@ -225,7 +223,7 @@ jobs:
       - validate-pr
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      (needs.validate-pr.outputs.pr_number == '' || needs.approval.result == 'success')
+      needs.approval.result == 'success'
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
@@ -284,15 +282,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Enable Corepack
-        run: corepack enable && corepack prepare yarn@4.10.3 --activate
-
-      - name: Clear yarn state before artifact download
-        run: |
-          echo "🧹 Clearing existing .yarn directory to avoid conflicts..."
-          rm -rf .yarn node_modules
-          echo "✅ Cleared"
 
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4

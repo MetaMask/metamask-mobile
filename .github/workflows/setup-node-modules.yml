@@ -62,9 +62,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable && corepack prepare yarn@4.10.3 --activate
-
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
