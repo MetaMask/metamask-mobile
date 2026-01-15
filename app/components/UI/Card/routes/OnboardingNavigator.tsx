@@ -132,9 +132,6 @@ const OnboardingNavigator: React.FC = () => {
       if (cardUserPhase === 'PHYSICAL_ADDRESS') {
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
       }
-      if (cardUserPhase === 'MAILING_ADDRESS') {
-        return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
-      }
     }
 
     // Priority 2: Use cached user data if available

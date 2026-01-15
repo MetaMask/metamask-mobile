@@ -96,7 +96,6 @@ jest.mock(
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
-jest.mock('../components/Onboarding/MailingAddress', () => 'MailingAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
 jest.mock('../components/Onboarding/KYCWebview', () => 'KYCWebview');
 
@@ -164,7 +163,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       KYC_FAILED: 'KYC_FAILED',
       PERSONAL_DETAILS: 'PERSONAL_DETAILS',
       PHYSICAL_ADDRESS: 'PHYSICAL_ADDRESS',
-      MAILING_ADDRESS: 'MAILING_ADDRESS',
       COMPLETE: 'COMPLETE',
       WEBVIEW: 'WEBVIEW',
     },
@@ -636,28 +634,6 @@ describe('OnboardingNavigator', () => {
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
         Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-      );
-    });
-
-    it('routes to MAILING_ADDRESS when cardUserPhase is MAILING_ADDRESS', () => {
-      mockUseParams.mockReturnValue({ cardUserPhase: 'MAILING_ADDRESS' });
-      mockUseSelector.mockReturnValue('onboarding-123');
-      mockUseCardSDK.mockReturnValue({
-        user: { id: 'user-123', contactVerificationId: 'contact-123' },
-        isLoading: false,
-        sdk: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-        fetchUserData: jest.fn(),
-        isReturningSession: false,
-      });
-
-      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
-      const stackNavigator = queryByTestId('stack-navigator');
-      expect(stackNavigator).not.toBeNull();
-      expect(stackNavigator?.props.initialRouteName).toBe(
-        Routes.CARD.ONBOARDING.MAILING_ADDRESS,
       );
     });
   });

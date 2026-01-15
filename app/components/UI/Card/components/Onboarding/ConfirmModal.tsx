@@ -36,8 +36,8 @@ const ConfirmModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleCancel = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(onClose);
-  }, [sheetRef, onClose]);
+    sheetRef.current?.onCloseBottomSheet();
+  }, [sheetRef]);
 
   const handleConfirm = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(confirmAction.onPress);

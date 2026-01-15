@@ -21,6 +21,13 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   }
 });
 
+// Store the onClose prop passed to BottomSheet
+let capturedOnCloseProp: (() => void) | undefined;
+const getCapturedOnCloseProp = () => capturedOnCloseProp;
+const setCapturedOnCloseProp = (fn: (() => void) | undefined) => {
+  capturedOnCloseProp = fn;
+};
+
 // Store reference for the mock to use (hoisting workaround)
 const getMockOnCloseBottomSheet = () => mockOnCloseBottomSheet;
 
@@ -35,12 +42,19 @@ jest.mock(
         {
           children,
           testID,
+          onClose,
         }: {
           children: React.ReactNode;
           testID?: string;
+          onClose?: () => void;
         },
         ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
       ) => {
+        // Capture onClose prop for testing
+        React.useEffect(() => {
+          setCapturedOnCloseProp(onClose);
+        }, [onClose]);
+
         React.useImperativeHandle(ref, () => ({
           onCloseBottomSheet: (callback?: () => void) => {
             // Get the mock function at runtime to avoid hoisting issues
@@ -157,6 +171,7 @@ describe('ConfirmModal', () => {
     jest.clearAllMocks();
     mockStrings.mockClear();
     mockUseParams.mockReturnValue(createMockParams());
+    setCapturedOnCloseProp(undefined);
     // Restore mock implementation since jest.resetAllMocks() clears it
     mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
       if (callback) {
@@ -268,7 +283,7 @@ describe('ConfirmModal', () => {
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onClose callback when close button is pressed', () => {
+    it('closes bottom sheet without callback when close button is pressed', () => {
       const mockOnClose = jest.fn();
       mockUseParams.mockReturnValue(
         createMockParams({
@@ -281,19 +296,31 @@ describe('ConfirmModal', () => {
 
       fireEvent.press(closeButton);
 
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call onClose when not provided and close button is pressed', () => {
-      mockUseParams.mockReturnValue(createMockParams());
-
-      const { getByTestId } = render(<ConfirmModal />);
-      const closeButton = getByTestId('confirm-modal-close-button');
-
-      fireEvent.press(closeButton);
-
+      // handleCancel should close without passing callback (onClose is handled by BottomSheet prop)
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
       expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(undefined);
+    });
+
+    it('passes onClose callback to BottomSheet component', () => {
+      const mockOnClose = jest.fn();
+      mockUseParams.mockReturnValue(
+        createMockParams({
+          onClose: mockOnClose,
+        }),
+      );
+
+      render(<ConfirmModal />);
+
+      // Verify onClose prop was passed to BottomSheet
+      expect(getCapturedOnCloseProp()).toBe(mockOnClose);
+    });
+
+    it('does not pass onClose to BottomSheet when not provided', () => {
+      mockUseParams.mockReturnValue(createMockParams());
+
+      render(<ConfirmModal />);
+
+      expect(getCapturedOnCloseProp()).toBeUndefined();
     });
   });
 
