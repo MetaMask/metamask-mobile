@@ -1,0 +1,39 @@
+# Production configuration using YAML anchors
+# References anchors from shared.yml
+
+# Use anchors from shared.yml
+servers: *servers
+features: *features
+
+environment:
+  name: production
+  display_name: Production
+  requires_approval: true
+  approval_team: mobile-platform
+  github_environment: build-production
+
+# Extend build-base anchor with production-specific overrides
+build:
+  <<: *build-base
+  android:
+    <<: *build-base.android
+    keystore: "mainProd"
+    signing_config: "mainProd"
+    package_name: "io.metamask"  # Explicit override
+
+# Merge common secrets with production-specific secrets
+secrets:
+  <<: *common-secrets
+  # Production-specific overrides
+  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY"
+  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL"
+  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID"
+  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT"
+  MM_SENTRY_DSN: "MM_SENTRY_DSN"
+  IOS_GOOGLE_CLIENT_ID: "IOS_GOOGLE_CLIENT_ID"
+  IOS_GOOGLE_REDIRECT_URI: "IOS_GOOGLE_REDIRECT_URI"
+  ANDROID_APPLE_CLIENT_ID: "ANDROID_APPLE_CLIENT_ID"
+  ANDROID_GOOGLE_CLIENT_ID: "ANDROID_GOOGLE_CLIENT_ID"
+  ANDROID_GOOGLE_SERVER_CLIENT_ID: "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+  MM_BRANCH_KEY_LIVE: "MM_BRANCH_KEY_LIVE"
+  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"

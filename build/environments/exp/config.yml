@@ -1,0 +1,38 @@
+# Experimental configuration using YAML anchors
+# References anchors from shared.yml
+
+# Use anchors from shared.yml
+servers: *servers
+features: *features
+
+environment:
+  name: exp
+  display_name: Experimental
+  requires_approval: false
+  approval_team: null
+  github_environment: build-exp
+
+# Extend build-base anchor with Exp-specific overrides
+build:
+  <<: *build-base
+  android:
+    <<: *build-base.android
+    keystore: "mainExp"
+    signing_config: "mainExp"
+
+# Merge common secrets with Exp-specific secrets
+secrets:
+  <<: *common-secrets
+  # Exp-specific overrides
+  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_QA"
+  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_QA"
+  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+  MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"
+  IOS_GOOGLE_CLIENT_ID: "MAIN_IOS_GOOGLE_CLIENT_ID_UAT"
+  IOS_GOOGLE_REDIRECT_URI: "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT"
+  ANDROID_APPLE_CLIENT_ID: "MAIN_ANDROID_APPLE_CLIENT_ID_UAT"
+  ANDROID_GOOGLE_CLIENT_ID: "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT"
+  ANDROID_GOOGLE_SERVER_CLIENT_ID: "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
+  WEB3AUTH_NETWORK: "MAIN_WEB3AUTH_NETWORK_PROD"
+  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_UAT"
