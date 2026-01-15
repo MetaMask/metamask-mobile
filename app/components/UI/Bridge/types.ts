@@ -1,8 +1,9 @@
 import {
   Intent,
   QuoteMetadata,
-  QuoteResponse,
- Quote, TxData } from '@metamask/bridge-controller';
+  Quote,
+  TxData,
+} from '@metamask/bridge-controller';
 import { Asset } from '@metamask/assets-controllers';
 import { Hex, CaipChainId } from '@metamask/utils';
 
