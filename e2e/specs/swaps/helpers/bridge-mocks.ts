@@ -20,14 +20,14 @@ export const testSpecificMock: TestSpecificMock = async (
   await setupRemoteFeatureFlagsMock(mockServer, {
     bridgeConfigV2: {
       chainRanking: [
-        { chainId: 'eip155:1' },
-        { chainId: 'eip155:10' },
-        { chainId: 'eip155:137' },
-        { chainId: 'eip155:8453' },
-        { chainId: 'eip155:42161' },
-        { chainId: 'eip155:43114' },
-        { chainId: 'eip155:59144' },
-        { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' },
+        { chainId: 'eip155:1', name: 'Ethereum' },
+        { chainId: 'eip155:10', name: 'OP Mainnet' },
+        { chainId: 'eip155:137', name: 'Polygon' },
+        { chainId: 'eip155:8453', name: 'Base' },
+        { chainId: 'eip155:42161', name: 'Arbitrum One' },
+        { chainId: 'eip155:43114', name: 'Avalanche' },
+        { chainId: 'eip155:59144', name: 'Linea' },
+        { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', name: 'Solana' },
       ],
     },
   });
