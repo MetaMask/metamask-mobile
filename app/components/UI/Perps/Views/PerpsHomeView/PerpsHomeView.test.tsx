@@ -21,6 +21,10 @@ jest.mock('@react-navigation/native', () => ({
       source: 'main_action_button', // PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON
     },
   }),
+  useFocusEffect: (callback: () => void) => {
+    // Call the callback immediately in tests
+    callback();
+  },
 }));
 
 // Mock Redux - default feedback disabled
