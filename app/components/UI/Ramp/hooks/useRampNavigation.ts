@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { RampIntent } from '../Aggregator/types';
 import {
-  RampIntent,
-  RampType as AggregatorRampType,
-} from '../Aggregator/types';
-import { createRampNavigationDetails } from '../Aggregator/routes/utils';
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
@@ -82,9 +82,7 @@ export const useRampNavigation = () => {
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
           navigate(...createDepositNavigationDetails(intent));
         } else if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
-          navigate(
-            ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
-          );
+          navigate(...createBuyNavigationDetails(intent));
         }
         return;
       }
@@ -93,9 +91,7 @@ export const useRampNavigation = () => {
       if (mode === RampMode.DEPOSIT) {
         navigate(...createDepositNavigationDetails(intent));
       } else {
-        navigate(
-          ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
-        );
+        navigate(...createBuyNavigationDetails(intent));
       }
     },
     [isRampsUnifiedV1Enabled, rampRoutingDecision, navigate],
@@ -117,7 +113,7 @@ export const useRampNavigation = () => {
 
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      navigate(...createRampNavigationDetails(AggregatorRampType.SELL, intent));
+      navigate(...createSellNavigationDetails(intent));
     },
     [navigate],
   );
