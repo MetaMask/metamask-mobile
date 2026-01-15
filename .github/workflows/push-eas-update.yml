@@ -108,13 +108,7 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target commit fingerprint: ${FINGERPRINT}"
 
-      - name: Download node_modules artifact (base branch checkout)
-        uses: actions/download-artifact@v4
-        with:
-          name: node-modules-eas-update
-          path: main
-
-      - name: Install dependencies
+      - name: Install dependencies (base branch)
         run: |
           echo "📦 Installing dependencies..."
           cd main && yarn install --immutable --mode=skip-build
