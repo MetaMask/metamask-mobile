@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import CustomNetwork from './CustomNetwork';
@@ -35,11 +36,13 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('CustomNetwork component', () => {
+  const mockShowNetworkModal = jest.fn();
+  const mockCloseNetworkModal = jest.fn();
+  const mockOnNetworkAdd = jest.fn();
+
   const getMockCustomNetworkProps = (
     overrides?: Partial<CustomNetworkProps>,
   ) => {
-    const mockCloseNetworkModal = jest.fn();
-    const mockShowNetworkModal = jest.fn();
     const mockCustomNetworkProps: CustomNetworkProps = {
       showPopularNetworkModal: false,
       isNetworkModalVisible: false,
@@ -59,6 +62,10 @@ describe('CustomNetwork component', () => {
     };
     return mockCustomNetworkProps;
   };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('filters out CAIP-2 networks when showing all networks (included added networks)', () => {
     const props = getMockCustomNetworkProps({ showAddedNetworks: true });
@@ -166,5 +173,111 @@ describe('CustomNetwork component', () => {
     expect(getByText('Arbitrum')).toBeOnTheScreen();
 
     expect(getAllByText('No network fee').length).toBe(1);
+  });
+
+  describe('skipConfirmation prop', () => {
+    it('calls onNetworkAdd directly when skipConfirmation is true', () => {
+      const customNetworksList: Network[] = [
+        {
+          chainId: '0x89',
+          nickname: 'Polygon',
+          rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
+          rpcUrl: 'https://polygon-rpc.com',
+          ticker: 'MATIC',
+        },
+      ];
+
+      const props = getMockCustomNetworkProps({
+        showAddedNetworks: true,
+        customNetworksList,
+        skipConfirmation: true,
+        onNetworkAdd: mockOnNetworkAdd,
+      });
+
+      const mockState = getMockState();
+      const { getByText } = renderWithProvider(<CustomNetwork {...props} />, {
+        state: mockState,
+      });
+
+      const networkItem = getByText('Polygon');
+      fireEvent.press(networkItem);
+
+      expect(mockOnNetworkAdd).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0x89',
+          nickname: 'Polygon',
+        }),
+      );
+      expect(mockShowNetworkModal).not.toHaveBeenCalled();
+    });
+
+    it('calls showNetworkModal when skipConfirmation is false', () => {
+      const customNetworksList: Network[] = [
+        {
+          chainId: '0x89',
+          nickname: 'Polygon',
+          rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
+          rpcUrl: 'https://polygon-rpc.com',
+          ticker: 'MATIC',
+        },
+      ];
+
+      const props = getMockCustomNetworkProps({
+        showAddedNetworks: true,
+        customNetworksList,
+        skipConfirmation: false,
+        onNetworkAdd: mockOnNetworkAdd,
+      });
+
+      const mockState = getMockState();
+      const { getByText } = renderWithProvider(<CustomNetwork {...props} />, {
+        state: mockState,
+      });
+
+      const networkItem = getByText('Polygon');
+      fireEvent.press(networkItem);
+
+      expect(mockShowNetworkModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0x89',
+          nickname: 'Polygon',
+        }),
+      );
+      expect(mockOnNetworkAdd).not.toHaveBeenCalled();
+    });
+
+    it('calls showNetworkModal when skipConfirmation is true but onNetworkAdd is not provided', () => {
+      const customNetworksList: Network[] = [
+        {
+          chainId: '0x89',
+          nickname: 'Polygon',
+          rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
+          rpcUrl: 'https://polygon-rpc.com',
+          ticker: 'MATIC',
+        },
+      ];
+
+      const props = getMockCustomNetworkProps({
+        showAddedNetworks: true,
+        customNetworksList,
+        skipConfirmation: true,
+        // onNetworkAdd is not provided
+      });
+
+      const mockState = getMockState();
+      const { getByText } = renderWithProvider(<CustomNetwork {...props} />, {
+        state: mockState,
+      });
+
+      const networkItem = getByText('Polygon');
+      fireEvent.press(networkItem);
+
+      expect(mockShowNetworkModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0x89',
+          nickname: 'Polygon',
+        }),
+      );
+    });
   });
 });

@@ -16,7 +16,7 @@ import Routes from '../../../constants/navigation/Routes';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../Views/AccountConnect/ConnectedAccountModal.testIds';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
 import { selectChainId } from '../../../selectors/networkController';

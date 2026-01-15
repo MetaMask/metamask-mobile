@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsLoader from './PerpsLoader';
-import { PerpsLoaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsLoaderSelectorsIDs } from '../../Perps.testIds';
 
 // Mock useStyles
 jest.mock('../../../../../component-library/hooks', () => ({

@@ -83,8 +83,15 @@ jest.mock('../../hooks/useNetworksToUse/useNetworksToUse', () => ({
   useNetworksToUse: jest.fn(),
 }));
 
+jest.mock('../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: jest.fn(() => ({
+    addPopularNetwork: jest.fn(),
+  })),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(() => jest.fn()),
   Provider: jest.requireActual('react-redux').Provider,
 }));
 
@@ -2475,7 +2482,6 @@ describe('NetworkMultiSelector', () => {
       expect(customNetworkProps.showPopularNetworkModal).toBe(true);
       expect(customNetworkProps.allowNetworkSwitch).toBe(false);
       expect(customNetworkProps.hideWarningIcons).toBe(true);
-      expect(customNetworkProps.compactMode).toBe(true);
       expect(customNetworkProps.isNetworkModalVisible).toBe(false);
       expect(typeof customNetworkProps.closeNetworkModal).toBe('function');
       expect(typeof customNetworkProps.toggleWarningModal).toBe('function');

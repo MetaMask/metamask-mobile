@@ -11,7 +11,7 @@ import {
   SAMPLE_CELLBASE_TERTIARY_TEXT,
   SAMPLE_CELLBASE_TAGLABEL,
 } from './CellBase.constants';
-import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../CellComponent.testIds';
 
 describe('CellBase', () => {
   it('should render default settings correctly', () => {

@@ -11,6 +11,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import {
+  MUSD_CONVERSION_APY,
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -45,8 +46,10 @@ const MusdConversionAssetListCta = () => {
 
   const { initiateConversion } = useMusdConversion();
 
+  const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
+
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
-    useMusdCtaVisibility();
+    shouldShowBuyGetMusdCta();
 
   const canConvert = useMemo(
     () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
@@ -139,8 +142,10 @@ const MusdConversionAssetListCta = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD
           </Text>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Success}>
-            {strings('earn.musd_conversion.earn_points_daily')}
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
+            {strings('earn.earn_a_percentage_bonus', {
+              percentage: MUSD_CONVERSION_APY,
+            })}
           </Text>
         </View>
       </View>

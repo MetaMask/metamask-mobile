@@ -1,13 +1,13 @@
 import { RegressionConfirmations } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import Assertions from '../../framework/Assertions';
-import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
+import { ContractApprovalBottomSheetSelectorsText } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import { DappVariants } from '../../framework/Constants';
 import {
@@ -72,7 +72,7 @@ describe(RegressionConfirmations('ERC1155 token'), () => {
         await loginToApp();
 
         // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: erc1155Address,
         });
