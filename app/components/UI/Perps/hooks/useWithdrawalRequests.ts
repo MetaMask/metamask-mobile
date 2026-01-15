@@ -69,37 +69,54 @@ export const useWithdrawalRequests = (
     );
   });
 
-  // Log only when pendingWithdrawals actually changes (not on every render)
-  useEffect(() => {
-    DevLogger.log('Pending withdrawals from controller state:', {
-      count: pendingWithdrawals.length,
-      withdrawals: pendingWithdrawals.map((w) => ({
-        id: w.id,
-        timestamp: new Date(w.timestamp).toISOString(),
-        amount: w.amount,
-        asset: w.asset,
-        status: w.status,
-      })),
-    });
+  // Track previous withdrawal states to detect meaningful changes
+  const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
 
-    if (selectedAddress) {
-      DevLogger.log('useWithdrawalRequests: Filtered withdrawals by account', {
-        selectedAddress,
-        totalCount: pendingWithdrawals.length,
-        filteredCount: pendingWithdrawals.length,
-        withdrawals: pendingWithdrawals.map((w) => ({
-          id: w.id,
-          accountAddress: w.accountAddress,
-          status: w.status,
-        })),
-      });
-    } else {
-      DevLogger.log(
-        'useWithdrawalRequests: No selected address, returning empty array',
-        { totalCount: 0 },
-      );
+  // Log only meaningful withdrawal state changes (not on every render)
+  useEffect(() => {
+    const currentStates = new Map<string, string>();
+    pendingWithdrawals.forEach((w) => currentStates.set(w.id, w.status));
+
+    const prevStates = prevWithdrawalStatesRef.current;
+
+    // Check for new withdrawals (initialized)
+    for (const withdrawal of pendingWithdrawals) {
+      if (!prevStates.has(withdrawal.id)) {
+        DevLogger.log('Withdrawal initialized:', {
+          id: withdrawal.id,
+          amount: withdrawal.amount,
+          asset: withdrawal.asset,
+          status: withdrawal.status,
+          timestamp: new Date(withdrawal.timestamp).toISOString(),
+        });
+      }
     }
-  }, [pendingWithdrawals, selectedAddress]);
+
+    // Check for status changes (progress) and completions
+    for (const withdrawal of pendingWithdrawals) {
+      const prevStatus = prevStates.get(withdrawal.id);
+      if (prevStatus && prevStatus !== withdrawal.status) {
+        if (withdrawal.status === 'completed') {
+          DevLogger.log('Withdrawal completed:', {
+            id: withdrawal.id,
+            amount: withdrawal.amount,
+            asset: withdrawal.asset,
+            txHash: withdrawal.txHash,
+          });
+        } else {
+          DevLogger.log('Withdrawal status changed:', {
+            id: withdrawal.id,
+            previousStatus: prevStatus,
+            newStatus: withdrawal.status,
+            amount: withdrawal.amount,
+          });
+        }
+      }
+    }
+
+    // Update ref with current states
+    prevWithdrawalStatesRef.current = currentStates;
+  }, [pendingWithdrawals]);
 
   const [completedWithdrawals, setCompletedWithdrawals] = useState<
     WithdrawalRequest[]
