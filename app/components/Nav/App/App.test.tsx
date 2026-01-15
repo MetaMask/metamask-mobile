@@ -98,14 +98,6 @@ jest.mock('@react-navigation/native', () => ({
   ) => selector({ routes: mockRoutes }),
 }));
 
-jest.mock('expo-sensors', () => ({
-  Accelerometer: {
-    setUpdateInterval: jest.fn(),
-    addListener: jest.fn(),
-    removeAllListeners: jest.fn(),
-  },
-}));
-
 // Mock Logger
 jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
