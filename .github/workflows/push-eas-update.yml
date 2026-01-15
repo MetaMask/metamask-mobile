@@ -79,14 +79,14 @@ jobs:
           # Run with verbose output to capture errors
           yarn fingerprint:generate 2>&1 | tee /tmp/fingerprint_output.txt
           RESULT=${PIPESTATUS[0]}
-          if [ $RESULT -ne 0 ]; then
-            echo "❌ Fingerprint generation failed with exit code $RESULT"
+          if [ "$RESULT" -ne 0 ]; then
+            echo "❌ Fingerprint generation failed with exit code ${RESULT}"
             echo "📄 Output:"
             cat /tmp/fingerprint_output.txt
-            exit $RESULT
+            exit "$RESULT"
           fi
-          FINGERPRINT=$(cat /tmp/fingerprint_output.txt | tail -1)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          FINGERPRINT=$(tail -n 1 /tmp/fingerprint_output.txt)
+          echo "fingerprint=${FINGERPRINT}" >> "${GITHUB_OUTPUT}"
           echo "Target commit fingerprint: ${FINGERPRINT}"
 
       - name: Install dependencies (base branch)
@@ -102,14 +102,14 @@ jobs:
           # Run with verbose output to capture errors
           yarn fingerprint:generate 2>&1 | tee /tmp/fingerprint_output.txt
           RESULT=${PIPESTATUS[0]}
-          if [ $RESULT -ne 0 ]; then
-            echo "❌ Fingerprint generation failed with exit code $RESULT"
+          if [ "$RESULT" -ne 0 ]; then
+            echo "❌ Fingerprint generation failed with exit code ${RESULT}"
             echo "📄 Output:"
             cat /tmp/fingerprint_output.txt
-            exit $RESULT
+            exit "$RESULT"
           fi
-          FINGERPRINT=$(cat /tmp/fingerprint_output.txt | tail -1)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          FINGERPRINT=$(tail -n 1 /tmp/fingerprint_output.txt)
+          echo "fingerprint=${FINGERPRINT}" >> "${GITHUB_OUTPUT}"
           echo "Base branch fingerprint: ${FINGERPRINT}"
 
       - name: Compare fingerprints
@@ -270,7 +270,6 @@ jobs:
       - name: Display configuration
         run: |
           TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
-          TARGET_PROJECT_ID=$(node -p "require('./ota.config.js').PROJECT_ID")
           echo "🔧 Configuration:"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
