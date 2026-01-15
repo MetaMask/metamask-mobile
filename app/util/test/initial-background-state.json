@@ -742,7 +742,9 @@
     "accountMeta": {}
   },
   "RampsController": {
-    "geolocation": null,
+    "userRegion": null,
+    "eligibility": null,
+    "tokens": null,
     "requests": {}
   }
 }
