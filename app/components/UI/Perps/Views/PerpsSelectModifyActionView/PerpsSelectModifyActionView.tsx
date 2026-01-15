@@ -12,6 +12,11 @@ import PerpsModifyActionSheet, {
 } from '../../components/PerpsModifyActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 interface PerpsSelectModifyActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;
@@ -31,6 +36,7 @@ const PerpsSelectModifyActionView: React.FC<
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
@@ -41,6 +47,38 @@ const PerpsSelectModifyActionView: React.FC<
   const handleActionSelect = useCallback(
     (action: ModifyAction) => {
       if (!position) return;
+
+      // Track UI interaction based on action type
+      const getInteractionType = () => {
+        switch (action) {
+          case 'add_to_position':
+            return PerpsEventValues.INTERACTION_TYPE.INCREASE_EXPOSURE;
+          case 'reduce_position':
+            return PerpsEventValues.INTERACTION_TYPE.REDUCE_EXPOSURE;
+          case 'flip_position':
+            return PerpsEventValues.INTERACTION_TYPE.FLIP_POSITION;
+          default:
+            return null;
+        }
+      };
+
+      const interactionType = getInteractionType();
+      if (interactionType) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+            .addProperties({
+              [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
+              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.SOURCE]:
+                PerpsEventValues.SOURCE.POSITION_SCREEN,
+              [PerpsEventProperties.DIRECTION]:
+                parseFloat(position.size) > 0
+                  ? PerpsEventValues.DIRECTION.LONG
+                  : PerpsEventValues.DIRECTION.SHORT,
+            })
+            .build(),
+        );
+      }
 
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
       switch (action) {
@@ -95,6 +133,8 @@ const PerpsSelectModifyActionView: React.FC<
       onReversePosition,
       sheetRef,
       onExternalClose,
+      trackEvent,
+      createEventBuilder,
     ],
   );
 

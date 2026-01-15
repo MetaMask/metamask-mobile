@@ -38,7 +38,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -55,6 +54,7 @@ import { useTransactionConfirm } from '../../../hooks/transactions/useTransactio
 import EngineService from '../../../../../../core/EngineService';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
