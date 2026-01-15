@@ -1,6 +1,13 @@
 import { captureException } from '@sentry/react-native';
-import migrate from './111';
+import { cloneDeep } from 'lodash';
+
 import { ensureValidState } from './util';
+import migrate, {
+  migrationVersion,
+  MEGAETH_TESTNET_V2_CONFIG,
+  MEGAETH_TESTNET_V1_CHAIN_ID,
+} from './111';
+import { KnownCaipNamespace } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -10,87 +17,262 @@ jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
-interface TestState {
-  engine: {
-    backgroundState: {
-      PerpsController?: {
-        withdrawalRequests?: {
-          id: string;
-          status: string;
-          amount: string;
-          asset: string;
-          accountAddress: string;
-          timestamp: number;
-          txHash?: string;
-        }[];
-        activeProvider?: string;
-        isTestnet?: boolean;
-        [key: string]: unknown;
-      };
-      [key: string]: unknown;
-    };
-  };
-}
+jest.mock('uuid', () => ({ v4: () => 'mock-uuid' }));
 
-const mockedEnsureValidState = jest.mocked(ensureValidState);
 const mockedCaptureException = jest.mocked(captureException);
+const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 111: Clear stuck pending withdrawal requests from PerpsController', () => {
+const mainnetConfiguration = {
+  '0x1': {
+    chainId: '0x1',
+    name: 'Ethereum',
+    nativeCurrency: 'ETH',
+    blockExplorerUrls: ['https://explorer.com'],
+    defaultRpcEndpointIndex: 0,
+    defaultBlockExplorerUrlIndex: 0,
+    rpcEndpoints: [
+      {
+        networkClientId: 'mainnet',
+        type: 'custom',
+        url: 'https://mainnet.com',
+      },
+    ],
+  },
+};
+
+const lineaSepoliaConfiguration = {
+  '0xe705': {
+    chainId: '0xe705',
+    name: 'Linea Sepolia',
+    nativeCurrency: 'LineaETH',
+    blockExplorerUrls: ['https://sepolia.lineascan.build'],
+    defaultRpcEndpointIndex: 0,
+    defaultBlockExplorerUrlIndex: 0,
+    rpcEndpoints: [
+      {
+        networkClientId: 'linea-sepolia',
+        type: 'custom',
+        url: 'https://mainnet.com',
+      },
+    ],
+  },
+};
+
+const megaEthTestnetV1Configuration = {
+  [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+    chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+    name: 'Mega Testnet',
+    nativeCurrency: 'MegaETH',
+    blockExplorerUrls: ['https://explorer.com'],
+    defaultRpcEndpointIndex: 0,
+    defaultBlockExplorerUrlIndex: 0,
+    rpcEndpoints: [
+      {
+        networkClientId: 'megaeth-testnet',
+        type: 'custom',
+        url: 'https://rpc.com',
+      },
+    ],
+  },
+};
+
+describe(`migration #${migrationVersion}`, () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
-  it('returns state unchanged if ensureValidState returns false', () => {
+  it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
     mockedEnsureValidState.mockReturnValue(false);
 
-    const result = migrate(state);
+    const migratedState = migrate(state);
 
-    expect(result).toBe(state);
+    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged if PerpsController does not exist', () => {
-    const state: TestState = {
+  const invalidStates = [
+    {
+      state: {
+        engine: {},
+      },
+      scenario: 'empty engine state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {},
+        },
+      },
+      scenario: 'empty backgroundState',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: 'invalid',
+          },
+        },
+      },
+      scenario: 'invalid NetworkController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {},
+          },
+        },
+      },
+      scenario: 'missing networkConfigurationsByChainId property',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: 'invalid',
+            },
+          },
+        },
+      },
+      scenario: 'invalid networkConfigurationsByChainId state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                  chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  blockExplorerUrls: ['https://explorer.com'],
+                  defaultRpcEndpointIndex: 0,
+                  defaultBlockExplorerUrlIndex: 0,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'megaeth-testnet',
+                      type: 'custom',
+                      url: 'https://rpc.com',
+                    },
+                  ],
+                },
+              },
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID,
+              },
+            },
+          },
+        },
+      },
+      scenario: 'selectedNetworkClientId is missing',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: {},
+              networkConfigurationsByChainId: {
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                  chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  blockExplorerUrls: ['https://explorer.com'],
+                  defaultRpcEndpointIndex: 0,
+                  defaultBlockExplorerUrlIndex: 0,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'megaeth-testnet',
+                      type: 'custom',
+                      url: 'https://rpc.com',
+                    },
+                  ],
+                },
+              },
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: MEGAETH_TESTNET_V1_CHAIN_ID,
+              },
+            },
+          },
+        },
+      },
+      scenario: 'selectedNetworkClientId is not a string',
+    },
+  ];
+
+  it.each(invalidStates)('captures exception if $scenario', ({ state }) => {
+    const orgState = cloneDeep(state);
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+  });
+
+  it('adds the megaeth testnet v2 network configuration, update the enablement map and remove the megaeth testnet v1 network configuration', async () => {
+    const orgState = {
       engine: {
         backgroundState: {
-          OtherController: { someData: true },
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                chainId: MEGAETH_TESTNET_V1_CHAIN_ID,
+                name: 'Mega Testnet',
+                nativeCurrency: 'MegaETH',
+                blockExplorerUrls: ['https://explorer.com'],
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'megaeth-testnet',
+                    type: 'custom',
+                    url: 'https://rpc.com',
+                  },
+                ],
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: false,
+                '0x1': true,
+              },
+            },
+          },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(result).toBe(state);
-    expect(result.engine.backgroundState.PerpsController).toBeUndefined();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged if PerpsController is not an object', () => {
-    const state = {
+    const expectedState = {
       engine: {
         backgroundState: {
-          PerpsController: 'invalid',
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state);
-
-    expect(result).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged if withdrawalRequests does not exist', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            activeProvider: 'hyperliquid',
-            isTestnet: false,
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                '0x1': true,
+              },
+            },
           },
         },
       },
@@ -98,22 +280,352 @@ describe('Migration 111: Clear stuck pending withdrawal requests from PerpsContr
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const result = migrate(state) as TestState;
+    const migratedState = await migrate(orgState);
 
-    expect(result).toBe(state);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toBeUndefined();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('returns state unchanged if withdrawalRequests is not an array', () => {
-    const state = {
+  const invalidNetworkEnablementControllerStates = [
+    {
+      state: {
+        engine: {
+          backgroundState: {},
+        },
+      },
+      scenario: 'missing NetworkEnablementController',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: 'invalid',
+          },
+        },
+      },
+      scenario: 'invalid NetworkEnablementController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {},
+          },
+        },
+      },
+      scenario: 'missing enabledNetworkMap',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: { enabledNetworkMap: 'invalid' },
+          },
+        },
+      },
+      scenario: 'invalid enabledNetworkMap state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: { enabledNetworkMap: {} },
+          },
+        },
+      },
+      scenario: 'missing Eip155 in enabledNetworkMap',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: { [KnownCaipNamespace.Eip155]: 'invalid' },
+            },
+          },
+        },
+      },
+      scenario: 'invalid enabledNetworkMap Eip155 state',
+    },
+  ];
+
+  it.each(invalidNetworkEnablementControllerStates)(
+    'does not update the enablement map and adds the megaeth testnet v2 network configuration and remove the megaeth testnet v1 network configuration if $scenario',
+    async ({ state }) => {
+      const orgState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'megaeth-testnet',
+              networksMetadata: {},
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...megaEthTestnetV1Configuration,
+              },
+            },
+            ...state.engine.backgroundState,
+          },
+        },
+      };
+
+      const expectedState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              },
+            },
+            ...state.engine.backgroundState,
+          },
+        },
+      };
+
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const migratedState = await migrate(orgState);
+
+      expect(migratedState).toStrictEqual(expectedState);
+    },
+  );
+
+  const switchToMainnetScenarios = [
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...megaEthTestnetV1Configuration,
+              },
+              selectedNetworkClientId: 'mainnet',
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': false,
+                  [MEGAETH_TESTNET_V1_CHAIN_ID]: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      scenario: 'the megaeth testnet v1 is enabled exclusively',
+    },
+  ];
+
+  it.each(switchToMainnetScenarios)(
+    'switchs to mainnet if $scenario',
+    async ({ state }) => {
+      const oldStorage = cloneDeep(state);
+
+      const expectedStorage = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              },
+              selectedNetworkClientId: 'mainnet',
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': true,
+                  [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const newStorage = await migrate(oldStorage);
+
+      expect(newStorage).toStrictEqual(expectedStorage);
+    },
+  );
+
+  const invalidSwitchToMainnetScenarios = [
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...lineaSepoliaConfiguration,
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                  ...megaEthTestnetV1Configuration[MEGAETH_TESTNET_V1_CHAIN_ID],
+                },
+              },
+              selectedNetworkClientId: 'mainnet',
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': false,
+                  '0xe705': true,
+                },
+              },
+            },
+          },
+        },
+      },
+      scenario: 'the megaeth testnet v1 is not enabled',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...lineaSepoliaConfiguration,
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: {
+                  ...megaEthTestnetV1Configuration[MEGAETH_TESTNET_V1_CHAIN_ID],
+                },
+              },
+              selectedNetworkClientId: 'mainnet',
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: {
+                  '0x1': false,
+                  '0xe705': true,
+                  [MEGAETH_TESTNET_V1_CHAIN_ID]: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      scenario: 'the megaeth testnet v1 is not enabled exclusively',
+    },
+  ];
+
+  it.each(invalidSwitchToMainnetScenarios)(
+    'does not force to mainnet if $scenario',
+    async ({ state }) => {
+      const oldStorage = cloneDeep(state);
+
+      const expectedStorage = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                ...mainnetConfiguration,
+                ...lineaSepoliaConfiguration,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: MEGAETH_TESTNET_V2_CONFIG,
+              },
+              selectedNetworkClientId:
+                state.engine.backgroundState.NetworkController
+                  .selectedNetworkClientId,
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Eip155]: expect.objectContaining({
+                  [MEGAETH_TESTNET_V2_CONFIG.chainId]: false,
+                  '0x1': false,
+                }),
+              },
+            },
+          },
+        },
+      };
+
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const newStorage = await migrate(oldStorage);
+
+      expect(newStorage).toStrictEqual(expectedStorage);
+    },
+  );
+
+  it('merges the megaeth testnet v2 network configuration if there is one', async () => {
+    const orgState = {
       engine: {
         backgroundState: {
-          PerpsController: {
-            withdrawalRequests: 'not-an-array',
-            activeProvider: 'hyperliquid',
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              ...megaEthTestnetV1Configuration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                name: 'Mega Testnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'megaeth-testnet-v2',
+                    url: 'https://rpc.com',
+                    type: 'custom',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://explorer.com'],
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                '0x1': false,
+                [MEGAETH_TESTNET_V1_CHAIN_ID]: false,
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: true,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'megaeth-testnet-v2',
+                    url: 'https://rpc.com',
+                    type: 'custom',
+                  },
+                  {
+                    ...MEGAETH_TESTNET_V2_CONFIG.rpcEndpoints[0],
+                    networkClientId: 'mock-uuid',
+                  },
+                ],
+                defaultRpcEndpointIndex: 1,
+                defaultBlockExplorerUrlIndex: 1,
+                blockExplorerUrls: [
+                  'https://explorer.com',
+                  ...MEGAETH_TESTNET_V2_CONFIG.blockExplorerUrls,
+                ],
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Eip155]: {
+                [MEGAETH_TESTNET_V2_CONFIG.chainId]: true,
+                '0x1': false,
+              },
+            },
           },
         },
       },
@@ -121,37 +633,47 @@ describe('Migration 111: Clear stuck pending withdrawal requests from PerpsContr
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const result = migrate(state);
+    const migratedState = await migrate(orgState);
 
-    expect(result).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('removes pending withdrawal requests', () => {
-    const state: TestState = {
+  it('returns the original state if the megaeth testnet v2 network configuration exists but is invalid', async () => {
+    const orgState = {
       engine: {
         backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                name: 'Mega Testnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: 'invalid',
               },
-              {
-                id: 'withdrawal-2',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-                txHash: '0xabc',
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'uuid',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              ...mainnetConfiguration,
+              [MEGAETH_TESTNET_V2_CONFIG.chainId]: {
+                ...MEGAETH_TESTNET_V2_CONFIG,
+                name: 'Mega Testnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: 'invalid',
               },
-            ],
-            activeProvider: 'hyperliquid',
+            },
           },
         },
       },
@@ -159,377 +681,8 @@ describe('Migration 111: Clear stuck pending withdrawal requests from PerpsContr
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const result = migrate(state) as TestState;
+    const migratedState = await migrate(orgState);
 
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(1);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
-    ).toBe('withdrawal-2');
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0]
-        .status,
-    ).toBe('completed');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes bridging withdrawal requests', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'bridging',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-                txHash: '0xabc',
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(1);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
-    ).toBe('withdrawal-2');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes both pending and bridging withdrawal requests', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'bridging',
-                amount: '150',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-              {
-                id: 'withdrawal-3',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567892,
-                txHash: '0xabc',
-              },
-              {
-                id: 'withdrawal-4',
-                status: 'failed',
-                amount: '50',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567893,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(2);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.map(
-        (w) => w.id,
-      ),
-    ).toEqual(['withdrawal-3', 'withdrawal-4']);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('preserves completed and failed withdrawal requests', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'completed',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-                txHash: '0xabc',
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'failed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(2);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.map(
-        (w) => w.status,
-      ),
-    ).toEqual(['completed', 'failed']);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('clears array when all withdrawals are pending/bridging', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'bridging',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(0);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles empty withdrawalRequests array', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(0);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes invalid entries without status property', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              { id: 'invalid-1', amount: '100' }, // missing status
-              {
-                id: 'valid-1',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-              null, // null entry
-              'string-entry', // invalid type
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(1);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
-    ).toBe('valid-1');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('preserves other PerpsController properties', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-            isTestnet: false,
-            someOtherProperty: 'preserved',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(0);
-    expect(result.engine.backgroundState.PerpsController?.activeProvider).toBe(
-      'hyperliquid',
-    );
-    expect(result.engine.backgroundState.PerpsController?.isTestnet).toBe(
-      false,
-    );
-    expect(
-      result.engine.backgroundState.PerpsController?.someOtherProperty,
-    ).toBe('preserved');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('preserves other controllers in backgroundState', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-            ],
-          },
-          OtherController: {
-            shouldStayUntouched: true,
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(result.engine.backgroundState.OtherController).toEqual({
-      shouldStayUntouched: true,
-    });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles error during migration and captures exception', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [],
-          },
-        },
-      },
-    };
-
-    // Mock an error by making the property throw when accessed
-    Object.defineProperty(
-      state.engine.backgroundState.PerpsController,
-      'withdrawalRequests',
-      {
-        get() {
-          throw new Error('Test error');
-        },
-        configurable: true,
-      },
-    );
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state);
-
-    expect(result).toBe(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining(
-          'Migration 111: Failed to clear stuck pending withdrawal requests',
-        ),
-      }),
-    );
+    expect(migratedState).toStrictEqual(expectedState);
   });
 });

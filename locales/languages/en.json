@@ -974,6 +974,10 @@
       "not_now": "Not now",
       "try_now": "Get started"
     },
+    "discovery_banner": {
+      "title": "Trade {{symbol}} perp",
+      "subtitle": "Multiply your P&L up to {{leverage}}"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized PnL",
@@ -2365,6 +2369,7 @@
     "network_fee": "Network fee",
     "lists": "Token lists",
     "hide_cta": "Hide token",
+    "perps_trading": "Perps trading",
     "options": {
       "title": "Token options",
       "view_on_portfolio": "View on Portfolio",
@@ -3317,6 +3322,7 @@
       "description": "We could not fetch any data for this token"
     },
     "your_balance": "Your balance",
+    "perps_position": "Perps position",
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
     "about_content_display": {
@@ -6884,6 +6890,13 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "linea_tokens": {
+      "default_title": "$LINEA",
+      "loading_subtitle": "Loading reward amount...",
+      "title_earned": "You earned {{amount}} $LINEA",
+      "error_fetching_title": "Couldn't load $LINEA reward amount",
+      "error_fetching_description": "Please try again later."
+    },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -7217,12 +7230,16 @@
       "time_left": "left",
       "expired": "Expired"
     },
-    "claim_reward_redeem": {
-      "button_label": "Redeem",
-      "success_title": "Reward redeemed",
-      "success_description": "Arriving soon",
-      "failure_title": "Redeem failed",
-      "failure_description": "Please try again later."
+    "end_of_season_rewards": {
+      "confirm_label_default": "Confirm",
+      "confirm_label_access": "Access",
+      "redeem_success_title": "Reward redeemed",
+      "arriving_soon": "Arriving soon",
+      "check_back_soon": "Check back soon to claim",
+      "redeem_failure_title": "Redeem failed",
+      "redeem_failure_description": "Please try again later.",
+      "redeem_your_reward": "Redeem your reward",
+      "select_account_description": "Select the wallet where you'd like this reward sent. Tokens will be distributed within two weeks."
     },
     "animation": {
       "could_not_load": "Couldn't load"
