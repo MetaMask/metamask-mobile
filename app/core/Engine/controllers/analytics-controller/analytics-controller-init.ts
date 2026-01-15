@@ -39,6 +39,7 @@ export const analyticsControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state,
     platformAdapter,
+    isAnonymousEventsFeatureEnabled: true,
   });
 
   controller.init();

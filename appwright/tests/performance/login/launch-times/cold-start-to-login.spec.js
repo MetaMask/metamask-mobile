@@ -15,7 +15,6 @@ import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScree
 import AccountListComponent from '../../../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import { login } from '../../../../utils/Flows.js';
-import SendScreen from '../../../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';
@@ -41,7 +40,6 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   WalletActionModal.device = device;
-  SendScreen.device = device;
   ConfirmationScreen.device = device;
   AmountScreen.device = device;
   LoginScreen.device = device;

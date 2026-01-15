@@ -15,9 +15,6 @@ export const oldConfirmationsRemoteFeatureFlags = [
       transfer: false,
       approve: false,
     },
-    sendRedesign: {
-      enabled: false,
-    },
   },
 ];
 
@@ -37,9 +34,6 @@ export const confirmationsRedesignedFeatureFlags = [
       contract_interaction: true,
       transfer: true,
       approve: true,
-    },
-    sendRedesign: {
-      enabled: false,
     },
   },
   {
