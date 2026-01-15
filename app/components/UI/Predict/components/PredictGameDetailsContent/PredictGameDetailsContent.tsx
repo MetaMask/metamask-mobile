@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -22,6 +22,8 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
+import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
+import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
@@ -38,6 +40,15 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+
+  const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
+    usePredictBottomSheet();
+
+  const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+
+  const handleInfoPress = useCallback(() => {
+    sheetHandlers.onOpenBottomSheet();
+  }, [sheetHandlers]);
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
 
@@ -104,10 +115,19 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         outcome={outcome}
         onBetPress={onBetPress}
         onClaimPress={onClaimPress}
+        onInfoPress={handleInfoPress}
         hasClaimableWinnings={hasClaimableWinnings}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
       />
+
+      {isVisible && (
+        <PredictGameAboutSheet
+          ref={sheetRef}
+          description={market.description ?? ''}
+          onClose={handleSheetClosed}
+        />
+      )}
     </SafeAreaView>
   );
 };

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 
 interface UsePredictBottomSheetParams {
@@ -37,10 +37,7 @@ export function usePredictBottomSheet(params?: UsePredictBottomSheetParams) {
       onOpenBottomSheet: () => {
         if (!isVisible) {
           setIsVisible(true);
-          return;
         }
-
-        sheetRef.current?.onOpenBottomSheet();
       },
       onCloseBottomSheet: () => {
         closeSheet();
@@ -48,12 +45,6 @@ export function usePredictBottomSheet(params?: UsePredictBottomSheetParams) {
     }),
     [closeSheet, isVisible],
   );
-
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
 
   return {
     sheetRef,

@@ -9,6 +9,7 @@ export interface PredictGameDetailsFooterProps {
   outcome: PredictOutcome;
   onBetPress: (token: PredictOutcomeToken) => void;
   onClaimPress?: () => void;
+  onInfoPress: () => void;
   hasClaimableWinnings?: boolean;
   claimableAmount?: number;
   isLoading?: boolean;

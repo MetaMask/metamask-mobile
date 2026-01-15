@@ -24,8 +24,12 @@ const PredictGameAboutSheet = forwardRef<
     Linking.openURL(POLYMARKET_TERMS_URL);
   };
 
+  const handleClose = () => {
+    onClose?.();
+  };
+
   return (
-    <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
+    <BottomSheet ref={ref} onClose={handleClose} shouldNavigateBack={false}>
       <SheetHeader title={strings('predict.tabs.about')} />
       <Box twClassName="px-4 pb-4 flex-col gap-2">
         <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>

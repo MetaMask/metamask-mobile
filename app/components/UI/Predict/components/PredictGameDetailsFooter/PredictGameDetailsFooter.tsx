@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
@@ -15,9 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { formatVolume } from '../../utils/format';
-import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { PredictActionButtons } from '../PredictActionButtons';
-import PredictGameAboutSheet from './PredictGameAboutSheet';
 import { PredictGameDetailsFooterProps } from './PredictGameDetailsFooter.types';
 
 const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
@@ -25,21 +23,13 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   outcome,
   onBetPress,
   onClaimPress,
+  onInfoPress,
   hasClaimableWinnings = false,
   claimableAmount = 0,
   isLoading = false,
   testID = 'predict-game-details-footer',
 }) => {
   const insets = useSafeAreaInsets();
-
-  const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
-    usePredictBottomSheet();
-
-  const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
-
-  const handleInfoPress = useCallback(() => {
-    sheetHandlers.onOpenBottomSheet();
-  }, [sheetHandlers]);
 
   const formattedVolume = useMemo(
     () => formatVolume(market.volume ?? 0),
@@ -73,7 +63,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
             size={ButtonIconSize.Sm}
             iconProps={{ color: IconColor.IconAlternative }}
             iconName={IconName.Info}
-            onPress={handleInfoPress}
+            onPress={onInfoPress}
             testID={`${testID}-info-button`}
           />
         </Box>
@@ -99,14 +89,6 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         isLoading={isLoading}
         testID={`${testID}-action-buttons`}
       />
-
-      {isVisible && (
-        <PredictGameAboutSheet
-          ref={sheetRef}
-          description={market.description ?? ''}
-          onClose={handleSheetClosed}
-        />
-      )}
     </Box>
   );
 };

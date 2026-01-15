@@ -33,18 +33,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-jest.mock('../../hooks/usePredictBottomSheet', () => ({
-  usePredictBottomSheet: () => ({
-    sheetRef: { current: null },
-    isVisible: false,
-    handleSheetClosed: jest.fn(),
-    getRefHandlers: () => ({
-      onOpenBottomSheet: jest.fn(),
-      onCloseBottomSheet: jest.fn(),
-    }),
-  }),
-}));
-
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
   providerId: 'polymarket',
@@ -112,6 +100,7 @@ const createDefaultProps = (overrides = {}) => ({
   market: createMockMarket(),
   outcome: createMockOutcome(),
   onBetPress: jest.fn(),
+  onInfoPress: jest.fn(),
   testID: 'game-details-footer',
   ...overrides,
 });
@@ -138,6 +127,16 @@ describe('PredictGameDetailsFooter', () => {
       expect(
         screen.getByTestId('game-details-footer-info-button'),
       ).toBeOnTheScreen();
+    });
+
+    it('calls onInfoPress when info button is pressed', () => {
+      const mockOnInfoPress = jest.fn();
+      const props = createDefaultProps({ onInfoPress: mockOnInfoPress });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+      fireEvent.press(screen.getByTestId('game-details-footer-info-button'));
+
+      expect(mockOnInfoPress).toHaveBeenCalledTimes(1);
     });
 
     it('renders formatted volume', () => {
