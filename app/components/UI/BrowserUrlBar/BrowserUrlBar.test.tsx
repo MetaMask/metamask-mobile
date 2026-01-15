@@ -636,4 +636,59 @@ describe('BrowserUrlBar', () => {
       });
     });
   });
+
+  describe('Tabs Button', () => {
+    it('renders tabs button when showTabs prop is provided and URL bar is not focused', () => {
+      const mockShowTabs = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          showTabs={mockShowTabs}
+        />,
+        { state: mockInitialState },
+      );
+
+      const tabsButton = getByTestId('browser-tabs-button');
+
+      expect(tabsButton).toBeTruthy();
+    });
+
+    it('calls showTabs when tabs button is pressed', () => {
+      const mockShowTabs = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          showTabs={mockShowTabs}
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(getByTestId('browser-tabs-button'));
+
+      expect(mockShowTabs).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render tabs button when showTabs prop is not provided', () => {
+      const { queryByTestId } = renderWithProvider(
+        <BrowserUrlBar {...propsWithoutUrlBarFocused} />,
+        { state: mockInitialState },
+      );
+
+      const tabsButton = queryByTestId('browser-tabs-button');
+
+      expect(tabsButton).toBeNull();
+    });
+
+    it('hides tabs button when URL bar is focused', () => {
+      const mockShowTabs = jest.fn();
+      const { queryByTestId } = renderWithProvider(
+        <BrowserUrlBar {...defaultProps} showTabs={mockShowTabs} />,
+        { state: mockInitialState },
+      );
+
+      const tabsButton = queryByTestId('browser-tabs-button');
+
+      expect(tabsButton).toBeNull();
+    });
+  });
 });

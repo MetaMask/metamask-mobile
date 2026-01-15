@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Browser should render correctly 1`] = `
+exports[`Browser - Tab Operations closeTabsView behavior renders Browser component with multiple tabs 1`] = `
 <View
   style={
     {
