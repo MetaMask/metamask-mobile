@@ -4,11 +4,11 @@ import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../../app/components/Views/confirmations/legacy/SendFlow/EditGasView.testIds';
+} from '../../../app/components/Views/confirmations/legacy/components/EditGasView.testIds';
 import {
   TransactionConfirmViewSelectorsIDs,
   TransactionConfirmViewSelectorsText,
-} from '../../../app/components/Views/confirmations/legacy/SendFlow/Confirm/TransactionConfirmView.testIds';
+} from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
 import RowComponents from '../Browser/Confirmations/RowComponents';
 
 class TransactionConfirmationView {

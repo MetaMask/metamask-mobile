@@ -974,6 +974,10 @@
       "not_now": "Not now",
       "try_now": "Get started"
     },
+    "discovery_banner": {
+      "title": "Trade {{symbol}} perp",
+      "subtitle": "Multiply your P&L up to {{leverage}}"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized PnL",
@@ -2182,6 +2186,10 @@
       "pick_a_winner": "Pick a winner",
       "volume_display": "${{volume}} Vol",
       "read_terms": "Read the full contract terms and conditions"
+    },
+    "sports": {
+      "halftime": "Halftime",
+      "final": "Final"
     }
   },
   "receive": {
@@ -2371,6 +2379,7 @@
     "network_fee": "Network fee",
     "lists": "Token lists",
     "hide_cta": "Hide token",
+    "perps_trading": "Perps trading",
     "options": {
       "title": "Token options",
       "view_on_portfolio": "View on Portfolio",
@@ -3323,6 +3332,7 @@
       "description": "We could not fetch any data for this token"
     },
     "your_balance": "Your balance",
+    "perps_position": "Perps position",
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
     "about_content_display": {
@@ -5709,8 +5719,8 @@
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "earn_rewards_when": "Earn rewards when",
-      "you_convert_to": "you convert to"
+      "boost_title": "Boost your stablecoin balance",
+      "boost_description": "Earn a bonus every time you convert stablecoins to"
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
@@ -6890,6 +6900,10 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
+    "linea_tokens": {
+      "default_title": "$LINEA",
+      "title_earned": "You earned {{amount}} $LINEA"
+    },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -7223,12 +7237,18 @@
       "time_left": "left",
       "expired": "Expired"
     },
-    "claim_reward_redeem": {
-      "button_label": "Redeem",
-      "success_title": "Reward redeemed",
-      "success_description": "Arriving soon",
-      "failure_title": "Redeem failed",
-      "failure_description": "Please try again later."
+    "end_of_season_rewards": {
+      "confirm_label_default": "Confirm",
+      "confirm_label_access": "Access",
+      "redeem_success_title": "Reward redeemed",
+      "metal_card_claim_success": "Contact info confirmed",
+      "linea_tokens_claim_success": "Address confirmed",
+      "arriving_soon": "Arriving soon",
+      "check_back_soon": "Check back soon to claim",
+      "redeem_failure_title": "Redeem failed",
+      "redeem_failure_description": "Please try again later.",
+      "reward_details": "Reward Details",
+      "select_account_description": "Select the account where you'd like this reward sent. Tokens will be distributed within two weeks."
     },
     "animation": {
       "could_not_load": "Couldn't load"

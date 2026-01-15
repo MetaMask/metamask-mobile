@@ -14,18 +14,38 @@ import { NotificationFeedbackType } from 'expo-haptics';
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
+jest.mock('../../../hooks/useMetrics');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../../../selectors/tokenListController', () => ({
   selectERC20TokensByChain: jest.fn(),
 }));
+jest.mock('../../../../util/transactions', () => {
+  const actual = jest.requireActual('../../../../util/transactions');
+  return {
+    ...actual,
+    decodeTransferData: jest.fn(),
+  };
+});
+jest.mock('../../../../util/networks', () => ({}));
+jest.mock('../../../../selectors/networkController', () => ({
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+}));
 
 import { useSelector } from 'react-redux';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
+import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { decodeTransferData } from '../../../../util/transactions';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockSelectERC20TokensByChain = jest.mocked(selectERC20TokensByChain);
+const mockUseMetrics = jest.mocked(useMetrics);
+const mockDecodeTransferData = jest.mocked(decodeTransferData);
+const mockSelectEvmNetworkConfigurationsByChainId = jest.mocked(
+  selectEvmNetworkConfigurationsByChainId,
+);
 
 type TransactionStatusUpdatedHandler = (event: {
   transactionMeta: TransactionMeta;
@@ -51,6 +71,12 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 });
 
 describe('useMusdConversionStatus', () => {
+  const FIXED_NOW_MS = 1730000000000;
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
+  const mockAddProperties = jest.fn();
+  const mockBuild = jest.fn();
+
   const mockShowToast = jest.fn();
   const mockInProgressToast = {
     variant: ToastVariants.Icon as const,
@@ -94,6 +120,24 @@ describe('useMusdConversionStatus', () => {
     jest.useFakeTimers();
     mockInProgressFn.mockClear();
 
+    jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
+    mockUseMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
+
+    mockDecodeTransferData.mockReturnValue([
+      '',
+      '1.23',
+      '0x1234',
+    ] as unknown as ReturnType<typeof decodeTransferData>);
+
     mockUseEarnToasts.mockReturnValue({
       showToast: mockShowToast,
       EarnToastOptions: mockEarnToastOptions,
@@ -103,6 +147,9 @@ describe('useMusdConversionStatus', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectERC20TokensByChain) {
         return defaultTokensChainsCache;
+      }
+      if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
+        return { '0x1': { name: 'Ethereum Mainnet' } };
       }
       return {};
     });
@@ -114,12 +161,16 @@ describe('useMusdConversionStatus', () => {
       if (selector === mockSelectERC20TokensByChain) {
         return tokenData;
       }
+      if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
+        return { '0x1': { name: 'Ethereum Mainnet' } };
+      }
       return {};
     });
   };
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -157,9 +208,10 @@ describe('useMusdConversionStatus', () => {
       renderHook(() => useMusdConversionStatus());
 
       expect(mockSubscribe).toHaveBeenCalledTimes(1);
-      expect(mockSubscribe).toHaveBeenCalledWith(
+      const handler = getSubscribedHandler();
+      expect(typeof handler).toBe('function');
+      expect(mockSubscribe.mock.calls[0][0]).toBe(
         'TransactionController:transactionStatusUpdated',
-        expect.any(Function),
       );
     });
 
@@ -671,6 +723,157 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledWith(
         mockEarnToastOptions.mUsdConversion.success,
       );
+    });
+  });
+
+  describe('MetaMetrics', () => {
+    it('tracks status updated event when transaction status is approved', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x1';
+      setupTokensCacheMock({
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
+          },
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-metrics-approved',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_id: 'test-tx-metrics-approved',
+        transaction_status: TransactionStatus.approved,
+        transaction_type: TransactionType.musdConversion,
+        asset_symbol: 'USDC',
+        network_chain_id: '0x1',
+        network_name: 'Ethereum Mainnet',
+        amount_decimal: '1.23',
+        amount_hex: '0x1234',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks status updated event when transaction status is confirmed', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x1';
+      setupTokensCacheMock({
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
+          },
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.confirmed,
+        'test-tx-metrics-confirmed',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_id: 'test-tx-metrics-confirmed',
+        transaction_status: TransactionStatus.confirmed,
+        transaction_type: TransactionType.musdConversion,
+        asset_symbol: 'USDC',
+        network_chain_id: '0x1',
+        network_name: 'Ethereum Mainnet',
+        amount_decimal: '1.23',
+        amount_hex: '0x1234',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks status updated event when transaction status is failed', () => {
+      const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const chainId = '0x1';
+      setupTokensCacheMock({
+        [chainId]: {
+          data: {
+            [tokenAddress]: { symbol: 'USDC', name: 'USD Coin' },
+          },
+        },
+      });
+
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.failed,
+        'test-tx-metrics-failed',
+        TransactionType.musdConversion,
+        { chainId, tokenAddress },
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_id: 'test-tx-metrics-failed',
+        transaction_status: TransactionStatus.failed,
+        transaction_type: TransactionType.musdConversion,
+        asset_symbol: 'USDC',
+        network_chain_id: '0x1',
+        network_name: 'Ethereum Mainnet',
+        amount_decimal: '1.23',
+        amount_hex: '0x1234',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('does not track status updated event when transaction type is not musdConversion', () => {
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getSubscribedHandler();
+      const transactionMeta = createTransactionMeta(
+        TransactionStatus.approved,
+        'test-tx-metrics-ignored',
+        'swap' as typeof TransactionType.musdConversion,
+      );
+
+      handler({ transactionMeta });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+      expect(mockAddProperties).not.toHaveBeenCalled();
     });
   });
 });

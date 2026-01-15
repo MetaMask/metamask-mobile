@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { Colors } from '../../../util/theme/models';
 
 /**
@@ -8,9 +8,13 @@ import { Colors } from '../../../util/theme/models';
 export const createStyles = (colors: Colors) =>
   StyleSheet.create({
     suggestionContainer: {
-      paddingVertical: 1,
-      paddingHorizontal: 48,
-      backgroundColor: colors.background.default,
+      paddingVertical: 10,
+      paddingLeft: Platform.select({
+        ios: 48,
+        android: 20,
+        default: 48,
+      }),
+      backgroundColor: colors.background.section,
     },
     suggestionListContent: {
       alignItems: 'center' as const,
@@ -23,7 +27,7 @@ export const createStyles = (colors: Colors) =>
       minWidth: 60,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.subsection,
     },
     suggestionPressed: {
       opacity: 0.7,
