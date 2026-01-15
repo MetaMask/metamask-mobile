@@ -34,6 +34,7 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
+import Authentication from '../../core/Authentication';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -49,6 +50,21 @@ export function* appLockStateMachine() {
     );
     NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
       bioStateMachineId,
+    });
+  }
+}
+
+/**
+ * Automatically requests authentication on app start.
+ */
+export function* requestAuthOnAppStart() {
+  try {
+    yield call(Authentication.unlockWallet);
+  } catch (e) {
+    // If authentication fails, navigate to login screen
+    // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.LOGIN }],
     });
   }
 }
@@ -270,12 +286,17 @@ export function* startAppServices() {
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
+
+  // Start listening to the auth state machine first
+  yield fork(authStateMachine);
+
+  // Request authentication on app start after the auth state machine is started
+  yield call(requestAuthOnAppStart);
 }
 
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(startAppServices);
-  yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
