@@ -1,12 +1,12 @@
 import React, { forwardRef } from 'react';
-import { Linking, Pressable } from 'react-native';
+import { Linking } from 'react-native';
 import {
   Box,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -20,8 +20,6 @@ const PredictGameAboutSheet = forwardRef<
   BottomSheetRef,
   PredictGameAboutSheetProps
 >(({ description, onClose }, ref) => {
-  const tw = useTailwind();
-
   const handleTermsPress = () => {
     Linking.openURL(POLYMARKET_TERMS_URL);
   };
@@ -29,23 +27,14 @@ const PredictGameAboutSheet = forwardRef<
   return (
     <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
       <SheetHeader title={strings('predict.tabs.about')} />
-      <Box twClassName="px-4 pb-6 flex-col gap-4">
-        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
+      <Box twClassName="px-4 pb-4 flex-col gap-2">
+        <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
           {description}
         </Text>
 
-        <Pressable
-          onPress={handleTermsPress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text
-            color={TextColor.InfoDefault}
-            variant={TextVariant.BodyMd}
-            style={tw.style('underline')}
-          >
-            {strings('predict.game_details_footer.read_terms')}
-          </Text>
-        </Pressable>
+        <TextButton onPress={handleTermsPress}>
+          {strings('predict.game_details_footer.read_terms')}
+        </TextButton>
       </Box>
     </BottomSheet>
   );
