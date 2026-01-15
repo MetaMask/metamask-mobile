@@ -26,6 +26,7 @@ import { CHAINS_NETWORK_MOCK_RESPONSE } from '../chains-network-mocks';
 import { DEFAULT_REWARDS_MOCKS } from './rewards';
 import { ACL_EXECUTION_MOCKS } from './acl-execution';
 import { CONTENTFUL_BANNERS_MOCKS } from './contentful-banners';
+import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -306,6 +307,7 @@ export const DEFAULT_MOCKS = {
       },
     },
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
+    ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
   ],
   PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],
