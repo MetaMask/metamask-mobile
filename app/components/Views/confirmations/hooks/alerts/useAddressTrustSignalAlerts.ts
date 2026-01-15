@@ -11,9 +11,11 @@ import {
   TrustSignalDisplayState,
   AddressTrustSignalRequest,
 } from '../../types/trustSignals';
+import { useIsRevokeOperation } from '../useIsRevokeOperation';
 
 export function useAddressTrustSignalAlerts(): Alert[] {
   const transactionMetadata = useTransactionMetadataRequest();
+  const { isRevoke, isLoading: isRevokeLoading } = useIsRevokeOperation();
 
   const addressesToScan = useMemo((): AddressTrustSignalRequest[] => {
     if (!transactionMetadata?.chainId) {
@@ -49,7 +51,7 @@ export function useAddressTrustSignalAlerts(): Alert[] {
   const trustSignalResults = useAddressTrustSignals(addressesToScan);
 
   return useMemo(() => {
-    if (addressesToScan.length === 0) {
+    if (addressesToScan.length === 0 || isRevokeLoading || isRevoke) {
       return [];
     }
 
@@ -93,5 +95,5 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     }
 
     return alerts;
-  }, [addressesToScan.length, trustSignalResults]);
+  }, [addressesToScan.length, isRevoke, isRevokeLoading, trustSignalResults]);
 }
