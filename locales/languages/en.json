@@ -6892,10 +6892,7 @@
     },
     "linea_tokens": {
       "default_title": "$LINEA",
-      "loading_subtitle": "Loading reward amount...",
-      "title_earned": "You earned {{amount}} $LINEA",
-      "error_fetching_title": "Couldn't load $LINEA reward amount",
-      "error_fetching_description": "Please try again later."
+      "title_earned": "You earned {{amount}} $LINEA"
     },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
