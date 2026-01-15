@@ -306,6 +306,11 @@ export const DEFAULT_MOCKS = {
       },
     },
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
+    {
+      urlEndpoint: /^https:\/\/api\.hyperliquid\.xyz\/info$/,
+      responseCode: 200,
+      response: [],
+    },
   ],
   PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],
