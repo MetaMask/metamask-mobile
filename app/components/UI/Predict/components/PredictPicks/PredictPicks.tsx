@@ -9,9 +9,15 @@ import {
 import React from 'react';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { formatPrice } from '../../utils/format';
+import { PredictEventValues } from '../../constants/eventNames';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { PredictMarket, PredictPosition } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictNavigationParamList } from '../../types/navigation';
 
 interface PredictPicksProps {
-  marketId: string;
+  market: PredictMarket;
   /**
    * TestID for the component
    */
@@ -19,13 +25,37 @@ interface PredictPicksProps {
 }
 
 const PredictPicks: React.FC<PredictPicksProps> = ({
-  marketId,
+  market,
   testID = 'predict-picks',
 }) => {
   const { positions } = usePredictPositions({
-    marketId,
+    marketId: market.id,
     autoRefreshTimeout: 10000,
   });
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { navigate } = navigation;
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId: market.providerId,
+    navigation,
+  });
+
+  const onCashOut = (position: PredictPosition) => {
+    executeGuardedAction(
+      () => {
+        const _outcome = market?.outcomes.find(
+          (o) => o.id === position.outcomeId,
+        );
+        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
+          market,
+          position,
+          outcome: _outcome,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+        });
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+    );
+  };
 
   const hasPositions = positions.length > 0;
 
@@ -64,6 +94,8 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
           <Button
             variant={ButtonVariant.Secondary}
             twClassName="py-3 px-4 bg-muted/5"
+            onPress={() => onCashOut(position)}
+            testID={`predict-picks-cash-out-button-${position.id}`}
           >
             <Text variant={TextVariant.BodyMd} twClassName="font-medium">
               Cash Out
