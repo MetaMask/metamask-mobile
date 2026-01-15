@@ -76,6 +76,17 @@ jest.mock('../../../../util/networks', () => ({
 // Mock fetch for geolocation API
 global.fetch = jest.fn();
 
+// Mock i18n
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: { [key: string]: string } = {
+      'card.card_home.enable_card_error':
+        'Failed to provision card. Please try again.',
+    };
+    return translations[key] || key;
+  },
+}));
+
 describe('CardSDK', () => {
   let cardSDK: CardSDK;
   let mockCardFeatureFlag: CardFeatureFlag;
@@ -1680,7 +1691,38 @@ describe('CardSDK', () => {
       );
     });
 
-    it('throws SERVER_ERROR when provision fails', async () => {
+    it('throws SERVER_ERROR with API message when provision fails with message', async () => {
+      const errorResponse = {
+        message:
+          'Unable to place a card order. Please contact customer support',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue(errorResponse),
+      });
+
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
+
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message:
+          'Unable to place a card order. Please contact customer support',
+      });
+      expect(Logger.log).toHaveBeenCalledWith(
+        errorResponse,
+        'Failed to provision card.',
+      );
+    });
+
+    it('throws SERVER_ERROR with fallback message when provision fails without message', async () => {
       const errorResponse = { error: 'Card provision failed' };
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -1689,20 +1731,25 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(errorResponse),
       });
 
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
 
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message: 'Failed to provision card. Please try again.',
       });
-
       expect(Logger.log).toHaveBeenCalledWith(
         errorResponse,
         'Failed to provision card.',
       );
     });
 
-    it('handles error when response JSON parsing fails', async () => {
+    it('throws SERVER_ERROR with fallback message when response JSON parsing fails', async () => {
       const parseError = new Error('Invalid JSON');
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -1711,9 +1758,15 @@ describe('CardSDK', () => {
         json: jest.fn().mockRejectedValue(parseError),
       });
 
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
 
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message: 'Failed to provision card. Please try again.',
       });
