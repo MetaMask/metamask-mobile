@@ -21,4 +21,5 @@ export interface UserState {
   isConnectionRemoved: boolean;
   multichainAccountsIntroModalSeen: boolean;
   musdConversionEducationSeen: boolean;
+  musdConversionAssetDetailCtasSeen: Record<string, boolean>;
 }
