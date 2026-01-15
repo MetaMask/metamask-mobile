@@ -10,7 +10,6 @@ import Assertions from '../../framework/Assertions';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
-import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 
 describe(SmokeRamps('Off-ramp token amounts'), () => {
   beforeEach(async () => {
@@ -35,7 +34,6 @@ describe(SmokeRamps('Off-ramp token amounts'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
-        await SellGetStartedView.tapGetStartedButton();
         await BuildQuoteView.enterAmount('5');
         await Assertions.expectTextDisplayed('5 ETH');
         await BuildQuoteView.tapKeypadDeleteButton(1);

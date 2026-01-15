@@ -42,36 +42,44 @@ describe('useRampsGeolocation', () => {
   describe('return value structure', () => {
     it('returns geolocation property', () => {
       const store = createMockStore();
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       expect(result.current).toHaveProperty('geolocation');
       expect(result.current.geolocation).toBe(null);
     });
 
     it('returns isLoading property', () => {
       const store = createMockStore();
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       expect(result.current).toHaveProperty('isLoading');
       expect(result.current.isLoading).toBe(false);
     });
 
     it('returns error property', () => {
       const store = createMockStore();
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       expect(result.current).toHaveProperty('error');
       expect(result.current.error).toBe(null);
     });
 
     it('returns fetchGeolocation function', () => {
       const store = createMockStore();
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       expect(result.current).toHaveProperty('fetchGeolocation');
       expect(typeof result.current.fetchGeolocation).toBe('function');
     });
@@ -80,9 +88,11 @@ describe('useRampsGeolocation', () => {
   describe('geolocation state', () => {
     it('returns geolocation from state', () => {
       const store = createMockStore({ userRegion: 'US-CA' });
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       expect(result.current.geolocation).toBe('US-CA');
     });
   });
@@ -100,9 +110,11 @@ describe('useRampsGeolocation', () => {
           },
         },
       });
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       expect(result.current.isLoading).toBe(true);
     });
   });
@@ -120,9 +132,11 @@ describe('useRampsGeolocation', () => {
           },
         },
       });
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       expect(result.current.error).toBe('Network error');
     });
   });
@@ -130,10 +144,13 @@ describe('useRampsGeolocation', () => {
   describe('fetchGeolocation', () => {
     it('calls updateUserRegion without options when called with no arguments', async () => {
       const store = createMockStore();
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       await result.current.fetchGeolocation();
+
       expect(
         Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith(undefined);
@@ -141,10 +158,13 @@ describe('useRampsGeolocation', () => {
 
     it('calls updateUserRegion with forceRefresh true when specified', async () => {
       const store = createMockStore();
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       await result.current.fetchGeolocation({ forceRefresh: true });
+
       expect(
         Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
@@ -154,10 +174,13 @@ describe('useRampsGeolocation', () => {
 
     it('calls updateUserRegion with forceRefresh false when specified', async () => {
       const store = createMockStore();
+
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
+
       await result.current.fetchGeolocation({ forceRefresh: false });
+
       expect(
         Engine.context.RampsController.updateUserRegion,
       ).toHaveBeenCalledWith({
@@ -361,9 +384,11 @@ describe('useRampsGeolocation', () => {
       });
 
       const firstValue = await result.current.fetchGeolocation();
+
       expect(firstValue).toBe('US-CA');
 
       const secondValue = await result.current.fetchGeolocation();
+
       expect(secondValue).toBe('US-NY');
     });
   });
