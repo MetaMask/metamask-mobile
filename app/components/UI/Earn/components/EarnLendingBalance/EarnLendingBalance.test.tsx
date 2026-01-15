@@ -23,7 +23,6 @@ import { EARN_EMPTY_STATE_CTA_TEST_ID } from '../EmptyStateCta';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
-import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligibility';
 
 const mockNavigate = jest.fn();
 const mockDaiMainnet: EarnTokenDetails = {
