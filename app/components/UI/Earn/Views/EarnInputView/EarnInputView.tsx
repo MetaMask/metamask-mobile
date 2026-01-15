@@ -42,7 +42,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
-import { EVENT_LOCATIONS } from '../../constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
