@@ -102,17 +102,15 @@ export const Browser = (props) => {
     (url, linkType, { replaceActiveIfMax = false } = {}) => {
       // if tabs.length > MAX_BROWSER_TABS, do not open a new tab
       if (tabs.length >= MAX_BROWSER_TABS) {
-        if (url && replaceActiveIfMax) {
+        const activeTab = tabs.find((tab) => tab.id === activeTabId);
+        if (url && replaceActiveIfMax && activeTab) {
           // If replaceActiveIfMax is true and a URL was provided, open it in the active tab
-          const activeTab = tabs.find((tab) => tab.id === activeTabId);
-          if (activeTab) {
-            updateTab(activeTab.id, {
-              url,
-              isArchived: false,
-            });
-            setCurrentUrl(url);
-            setShouldShowTabs(false);
-          }
+          updateTab(activeTab.id, {
+            url,
+            isArchived: false,
+          });
+          setCurrentUrl(url);
+          setShouldShowTabs(false);
         } else {
           // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
           navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
