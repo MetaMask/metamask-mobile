@@ -10,6 +10,7 @@ import {
   selectMusdConversionCTATokens,
   selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
+  selectMusdConversionMinAssetBalanceRequired,
   selectIsMusdConversionRewardsUiEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
@@ -1760,6 +1761,94 @@ describe('Earn Feature Flag Selectors', () => {
         );
         expect(result).toEqual({});
       });
+    });
+  });
+
+  describe('selectMusdConversionMinAssetBalanceRequired', () => {
+    afterEach(() => {
+      delete process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED;
+    });
+
+    it('returns remote value when remote is a finite number', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdConversionMinAssetBalanceRequired: 0.02,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithRemote);
+
+      expect(result).toBe(0.02);
+    });
+
+    it('returns remote value when remote is zero', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdConversionMinAssetBalanceRequired: 0,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithRemote);
+
+      expect(result).toBe(0);
+    });
+
+    it('falls back to local env value when remote is undefined', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
+
+      expect(result).toBe(0.01);
+    });
+
+    it('returns fallback value when both remote and local values are not finite', () => {
+      // Some test environments may preload this env var; explicitly set it to a non-finite value
+      // to validate the selector's fallback behavior.
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '';
+
+      const stateWithoutRemote = createStateWithRemoteFlags({
+        someOtherEarnFlag: true,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
+
+      expect(result).toBe(0.01);
+    });
+
+    it('falls back to local env value when remote is not finite', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
+
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdConversionMinAssetBalanceRequired: 'not-a-number',
+      });
+
+      const result = selectMusdConversionMinAssetBalanceRequired(
+        stateWithInvalidRemote,
+      );
+
+      expect(result).toBe(0.01);
+    });
+
+    it('returns fallback value when local env value is not finite and remote is missing', () => {
+      process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED =
+        'not-a-number';
+
+      // Provide an unrelated remote flag to force selector recomputation (reselect memoization
+      // only tracks the remote flags object, not process.env).
+      const stateWithoutRemote = createStateWithRemoteFlags({
+        someOtherEarnFlag: true,
+      });
+
+      const result =
+        selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
+
+      expect(result).toBe(0.01);
     });
   });
 });

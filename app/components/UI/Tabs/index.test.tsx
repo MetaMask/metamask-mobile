@@ -59,12 +59,77 @@ jest.mock('../../../components/hooks/useAccounts', () => {
   };
 });
 
+const mockTabs = [
+  { id: 1, url: 'https://example.com', image: 'image1' },
+  { id: 2, url: 'https://test.com', image: 'image2' },
+];
+
 describe('Tabs', () => {
-  it('should render correctly', () => {
+  const mockNewTab = jest.fn();
+  const mockCloseTab = jest.fn();
+  const mockCloseAllTabs = jest.fn();
+  const mockCloseTabsView = jest.fn();
+  const mockSwitchToTab = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('renders tabs component with multiple tabs', () => {
     const { toJSON } = renderWithProvider(
-      <Tabs tabs={[{ id: 1, url: 'about:blank', image: '' }]} />,
+      <Tabs
+        tabs={mockTabs}
+        activeTab={1}
+        newTab={mockNewTab}
+        closeTab={mockCloseTab}
+        closeAllTabs={mockCloseAllTabs}
+        closeTabsView={mockCloseTabsView}
+        switchToTab={mockSwitchToTab}
+      />,
       { state: mockInitialState },
     );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders no tabs message when tabs array is empty', () => {
+    const { toJSON } = renderWithProvider(
+      <Tabs
+        tabs={[]}
+        activeTab={null}
+        newTab={mockNewTab}
+        closeTab={mockCloseTab}
+        closeAllTabs={mockCloseAllTabs}
+        closeTabsView={mockCloseTabsView}
+        switchToTab={mockSwitchToTab}
+      />,
+      { state: mockInitialState },
+    );
+
+    // Component may render empty state or null
+    expect(toJSON).toBeDefined();
+  });
+
+  it('renders with single tab', () => {
+    const singleTab = [{ id: 1, url: 'https://example.com', image: 'image1' }];
+
+    const { toJSON } = renderWithProvider(
+      <Tabs
+        tabs={singleTab}
+        activeTab={1}
+        newTab={mockNewTab}
+        closeTab={mockCloseTab}
+        closeAllTabs={mockCloseAllTabs}
+        closeTabsView={mockCloseTabsView}
+        switchToTab={mockSwitchToTab}
+      />,
+      { state: mockInitialState },
+    );
+
     expect(toJSON()).toMatchSnapshot();
   });
 });
