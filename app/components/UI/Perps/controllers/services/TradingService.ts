@@ -107,6 +107,10 @@ export class TradingService {
       ...(params.trackingData?.source && {
         [PerpsEventProperties.SOURCE]: params.trackingData.source,
       }),
+      // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
+      ...(params.trackingData?.tradeAction && {
+        [PerpsEventProperties.ACTION]: params.trackingData.tradeAction,
+      }),
     });
 
     // Add success-specific properties
