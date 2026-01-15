@@ -176,6 +176,7 @@ export const PerpsEventValues = {
     CRYPTO_BUTTON: 'crypto_button',
     STOCKS_BUTTON: 'stocks_button',
     CLOSE_TOAST: 'close_toast',
+    ASSET_DETAIL_SCREEN: 'asset_detail_screen',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
