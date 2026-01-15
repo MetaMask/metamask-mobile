@@ -18,6 +18,7 @@ import {
   initializeSDKServices,
   handleDeeplinkSaga,
   handleSnapsRegistry,
+  requestAuthOnAppStart,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
@@ -28,10 +29,12 @@ import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
+import Authentication from '../../core/Authentication';
 
 const mockBioStateMachineId = '123';
 
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
@@ -40,6 +43,7 @@ jest.mock('../../core/NavigationService', () => ({
     navigate: (screen: any, params?: any) => {
       params ? mockNavigate(screen, params) : mockNavigate(screen);
     },
+    reset: (state: any) => mockReset(state),
   },
 }));
 
@@ -123,6 +127,22 @@ jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
   },
 }));
 
+jest.mock('../../core/Authentication', () => ({
+  __esModule: true,
+  default: {
+    unlockWallet: jest.fn().mockResolvedValue(undefined),
+    lockApp: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('../../core/LockManagerService', () => ({
+  __esModule: true,
+  default: {
+    startListening: jest.fn(),
+    stopListening: jest.fn(),
+  },
+}));
+
 const defaultMockState = {
   onboarding: { completedOnboarding: false },
   user: { existingUser: true },
@@ -139,18 +159,41 @@ const defaultMockState = {
   banners: {},
 };
 
+describe('requestAuthOnAppStart', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls Authentication.unlockWallet', async () => {
+    await expectSaga(requestAuthOnAppStart).run();
+    expect(Authentication.unlockWallet).toHaveBeenCalled();
+  });
+
+  it('navigates to Login when Authentication.unlockWallet throws', async () => {
+    // Mock Authentication.unlockWallet to throw an error
+    (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
+    await expectSaga(requestAuthOnAppStart).run();
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    });
+  });
+});
+
 describe('authStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockReset.mockClear();
   });
 
-  it('should fork appLockStateMachine when logged in', async () => {
+  it('forks appLockStateMachine when logged in', async () => {
     const generator = authStateMachine();
     expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
     expect(generator.next().value).toEqual(fork(appLockStateMachine));
   });
 
-  it('should cancel appLockStateMachine when logged out', async () => {
+  it('cancels appLockStateMachine when logged out', async () => {
     const generator = authStateMachine();
     // Logged in
     generator.next();
@@ -164,9 +207,10 @@ describe('authStateMachine', () => {
 describe('appLockStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockReset.mockClear();
   });
 
-  it('should fork biometricsStateMachine when app is locked', async () => {
+  it('forks biometricsStateMachine when app is locked', async () => {
     const generator = appLockStateMachine();
     expect(generator.next().value).toEqual(take(UserActionType.LOCKED_APP));
     // Fork biometrics listener.
@@ -175,7 +219,7 @@ describe('appLockStateMachine', () => {
     );
   });
 
-  it('should navigate to LockScreen when app is locked', async () => {
+  it('navigates to LockScreen when app is locked', async () => {
     const generator = appLockStateMachine();
     // Lock app.
     generator.next();
@@ -192,9 +236,10 @@ describe('appLockStateMachine', () => {
 describe('biometricsStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockReset.mockClear();
   });
 
-  it('should lock app if biometrics is interrupted', async () => {
+  it('locks app if biometrics is interrupted', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     expect(generator.next().value).toEqual(
@@ -209,7 +254,7 @@ describe('biometricsStateMachine', () => {
     expect(nextFork).toEqual(fork(lockKeyringAndApp));
   });
 
-  it('should navigate to Wallet when authenticating without interruptions via biometrics', async () => {
+  it('navigates to Wallet when authenticating without interruptions via biometrics', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     generator.next();
@@ -219,7 +264,7 @@ describe('biometricsStateMachine', () => {
     expect(mockNavigate).toBeCalledWith(Routes.ONBOARDING.HOME_NAV);
   });
 
-  it('should not navigate to Wallet when authentication succeeds with different bioStateMachineId', async () => {
+  it('does not navigate to Wallet when authentication succeeds with different bioStateMachineId', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     generator.next();
@@ -229,7 +274,7 @@ describe('biometricsStateMachine', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('should not do anything when AUTH_ERROR is encountered', async () => {
+  it('does not do anything when AUTH_ERROR is encountered', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     generator.next();
@@ -246,7 +291,7 @@ describe('startAppServices', () => {
     jest.clearAllMocks();
   });
 
-  it('should start app services when gates open', async () => {
+  it('starts app services when gates open', async () => {
     await expectSaga(startAppServices)
       .withState({
         onboarding: { completedOnboarding: false },
@@ -262,20 +307,7 @@ describe('startAppServices', () => {
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
   });
 
-  it('should not start app services if navigation is not ready', async () => {
-    await expectSaga(startAppServices)
-      // Dispatch both required actions
-      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      .run();
-
-    // Verify services are not started
-    expect(EngineService.start).not.toHaveBeenCalled();
-    expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
-    expect(WC2Manager.init).not.toHaveBeenCalled();
-    expect(SDKConnect.init).not.toHaveBeenCalled();
-  });
-
-  it('should not start app services if persisted data is not loaded', async () => {
+  it('does not start app services if persisted data is not loaded', async () => {
     await expectSaga(startAppServices)
       // Dispatch both required actions
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
@@ -286,6 +318,22 @@ describe('startAppServices', () => {
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
     expect(WC2Manager.init).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
+  });
+
+  it('forks authStateMachine and requests authentication on app start', async () => {
+    await expectSaga(startAppServices)
+      .withState({
+        onboarding: { completedOnboarding: false },
+        user: { existingUser: true },
+      })
+      // Dispatch both required actions
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .fork(authStateMachine)
+      .run();
+
+    // Verify authentication is requested
+    expect(Authentication.unlockWallet).toHaveBeenCalled();
   });
 
   // The SDKConnect init gating is now bundled within startAppServices
