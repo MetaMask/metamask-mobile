@@ -11,7 +11,7 @@ import {
   DeepLinkRoute,
   DeepLinkAnalyticsContext,
 } from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../core/DeeplinkManager/types/deepLink.types';
 import { ACTIONS } from '../../constants/deeplinks';
@@ -461,11 +461,11 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
 /**
  * Create the consolidated deep link analytics event
  * @param context - Deep link analytics context
- * @returns Promise<MetricsEventBuilder> - The event builder ready for additional properties and tracking
+ * @returns Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> - The event builder ready for additional properties and tracking
  */
 export const createDeepLinkUsedEventBuilder = async (
   context: DeepLinkAnalyticsContext,
-): Promise<MetricsEventBuilder> => {
+): Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> => {
   const { url, route, signatureStatus } = context;
 
   // Detect app installation status
@@ -495,8 +495,8 @@ export const createDeepLinkUsedEventBuilder = async (
     target: route === DeepLinkRoute.INVALID ? url : undefined,
   };
 
-  // Create the MetricsEventBuilder with all deep link properties
-  const eventBuilder = MetricsEventBuilder.createEventBuilder(
+  // Create the AnalyticsEventBuilder with all deep link properties
+  const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
     MetaMetricsEvents.DEEP_LINK_USED,
   )
     .addProperties(eventProperties)

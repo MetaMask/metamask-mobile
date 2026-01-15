@@ -43,7 +43,7 @@ import {
 import { SupportedAction } from '../../types/deepLink.types';
 import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
 import ReduxService from '../../../redux';
-import { MetaMetrics } from '../../../Analytics';
+import { analytics } from '../../../../util/analytics/analytics';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -123,7 +123,7 @@ const trackDeepLinkAnalytics = (
   createDeepLinkUsedEventBuilder(analyticsContext)
     .then((eventBuilder) => {
       const event = eventBuilder.build();
-      MetaMetrics.getInstance().trackEvent(event);
+      analytics.trackEvent(event);
       DevLogger.log(
         'DeepLinkAnalytics: Tracked consolidated deep link event:',
         event,

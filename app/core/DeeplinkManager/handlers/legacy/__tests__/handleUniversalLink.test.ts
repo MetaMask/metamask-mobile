@@ -61,22 +61,9 @@ jest.mock('react-native-quick-crypto', () => ({
     },
   },
 }));
-jest.mock('../../../../Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => ({
-      trackEvent: jest.fn(),
-    })),
-  },
-  MetaMetricsEvents: {
-    DEEP_LINK_USED: 'DEEP_LINK_USED',
-  },
-}));
-jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(() => ({})),
-    })),
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
   },
 }));
 jest.mock('../../../../../util/deeplinks/deepLinkAnalytics', () => ({
@@ -1777,11 +1764,13 @@ describe('handleUniversalLink', () => {
       build: jest.Mock;
     }
 
-    let mockMetrics: MockMetricsInstance;
+    let mockAnalytics: MockMetricsInstance;
     let mockCreateEventBuilder: jest.MockedFunction<
       () => Promise<MockEventBuilder>
     >;
-    const { MetaMetrics } = jest.requireMock('../../../../Analytics');
+    const { analytics } = jest.requireMock(
+      '../../../../../util/analytics/analytics',
+    );
     const { createDeepLinkUsedEventBuilder } = jest.requireMock(
       '../../../../../util/deeplinks/deepLinkAnalytics',
     );
@@ -1801,10 +1790,10 @@ describe('handleUniversalLink', () => {
           deepLinkModalDisabled: false,
         },
       });
-      mockMetrics = {
+      mockAnalytics = {
         trackEvent: jest.fn(),
       };
-      MetaMetrics.getInstance.mockReturnValue(mockMetrics);
+      analytics.trackEvent = mockAnalytics.trackEvent;
 
       mockCreateEventBuilder = jest.fn(() =>
         Promise.resolve({
@@ -1847,7 +1836,7 @@ describe('handleUniversalLink', () => {
           interstitialAction: 'rejected',
         }),
       );
-      expect(mockMetrics.trackEvent).toHaveBeenCalledWith({
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith({
         eventName: 'DEEP_LINK_USED',
       });
     });
@@ -1875,7 +1864,7 @@ describe('handleUniversalLink', () => {
           interstitialAction: 'accepted',
         }),
       );
-      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
     });
 
     it('tracks analytics with correct interstitialDisabled state', async () => {
@@ -1915,7 +1904,7 @@ describe('handleUniversalLink', () => {
           interstitialDisabled: true, // User has disabled modal
         }),
       );
-      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
     });
 
     it('tracks analytics with wasInterstitialShown=true when modal shown and user accepts', async () => {
@@ -1955,7 +1944,7 @@ describe('handleUniversalLink', () => {
           interstitialAction: 'accepted',
         }),
       );
-      expect(mockMetrics.trackEvent).toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
     });
 
     it('tracks analytics only once per deep link', async () => {
@@ -1984,7 +1973,7 @@ describe('handleUniversalLink', () => {
       });
 
       // Analytics should be tracked exactly once
-      expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
     });
   });
