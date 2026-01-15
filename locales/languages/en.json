@@ -1950,7 +1950,7 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
-    "prediction_markets": "Prediction Markets",
+    "prediction_markets": "Prediction markets",
     "market_list": "Market list",
     "loading": "Loading...",
     "buttons": {
@@ -3704,7 +3704,7 @@
     "sent_dai": "Sent DAI",
     "self_sent_dai": "Sent Yourself DAI",
     "received_dai": "Received DAI",
-    "sent_tokens": "Sent Tokens",
+    "sent_tokens": "Sent tokens",
     "received_tokens": "Received tokens",
     "ether": "ETH",
     "sent_unit": "Sent {{unit}}",
@@ -6864,7 +6864,7 @@
     "close": "Close"
   },
   "rewards": {
-    "auth_fail_title": "Unknown Error.",
+    "auth_fail_title": "Unknown error.",
     "auth_fail_description": "An unknown error occurred while authenticating this account with MetaMask Rewards. Try again later.",
     "failed_to_authenticate": "Failed to authenticate with MetaMask Rewards",
     "not_implemented": "Coming soon",

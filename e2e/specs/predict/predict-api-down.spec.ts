@@ -20,7 +20,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-describe(SmokePredictions('Prediction Markets'), () => {
+describe(SmokePredictions('Prediction markets'), () => {
   it('should verify feed is empty when API is down', async () => {
     await withFixtures(
       {
