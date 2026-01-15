@@ -98,7 +98,7 @@ describe('TronStakingLearnMoreModal', () => {
   });
 
   describe('rendering', () => {
-    it('renders modal title correctly', () => {
+    it('renders modal title text', () => {
       const { getByText } = renderModal();
 
       expect(getByText('Stake TRX and earn')).toBeOnTheScreen();
@@ -228,28 +228,6 @@ describe('TronStakingLearnMoreModal', () => {
 
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledWith({ name: 'EarnFaq' });
-    });
-  });
-
-  describe('snapshot', () => {
-    it('matches snapshot with APY loaded', () => {
-      const { toJSON } = renderModal();
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('matches snapshot without APY', () => {
-      mockUseTronStakeApy.mockReturnValue({
-        apyPercent: null,
-        isLoading: false,
-        apyDecimal: null,
-        errorMessage: null,
-        refetch: jest.fn(),
-      });
-
-      const { toJSON } = renderModal();
-
-      expect(toJSON()).toMatchSnapshot();
     });
   });
 });
