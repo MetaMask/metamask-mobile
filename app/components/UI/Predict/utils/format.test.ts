@@ -9,6 +9,7 @@ import {
   formatCents,
   formatPositionSize,
   calculateNetAmount,
+  formatGameStartTime,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
 
@@ -1557,5 +1558,123 @@ describe('format utils', () => {
 
       expect(result).toBe('999925');
     });
+  });
+
+  describe('formatGameStartTime', () => {
+    // Store original Intl.DateTimeFormat
+    const OriginalDateTimeFormat = Intl.DateTimeFormat;
+
+    beforeEach(() => {
+      // Mock Intl.DateTimeFormat for deterministic tests
+      const mockDateTimeFormat = jest.fn().mockImplementation((_, options) => ({
+        format: (date: Date) => {
+          if (options?.weekday) {
+            // Date format: "Sun, Feb 8"
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = [
+              'Jan',
+              'Feb',
+              'Mar',
+              'Apr',
+              'May',
+              'Jun',
+              'Jul',
+              'Aug',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dec',
+            ];
+            return `${weekdays[date.getUTCDay()]}, ${months[date.getUTCMonth()]} ${date.getUTCDate()}`;
+          }
+          if (options?.hour) {
+            // Time format: "3:30 PM"
+            const hours = date.getUTCHours();
+            const minutes = date.getUTCMinutes();
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const paddedMinutes = minutes.toString().padStart(2, '0');
+            return `${displayHours}:${paddedMinutes} ${period}`;
+          }
+          return date.toISOString();
+        },
+      }));
+      global.Intl.DateTimeFormat =
+        mockDateTimeFormat as unknown as typeof Intl.DateTimeFormat;
+    });
+
+    afterEach(() => {
+      // Restore original Intl.DateTimeFormat
+      global.Intl.DateTimeFormat = OriginalDateTimeFormat;
+    });
+
+    it('returns TBD and empty time for undefined input', () => {
+      const result = formatGameStartTime(undefined);
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('returns TBD and empty time for empty string', () => {
+      const result = formatGameStartTime('');
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('returns TBD and empty time for invalid date string', () => {
+      const result = formatGameStartTime('not-a-date');
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('returns TBD and empty time for malformed ISO string', () => {
+      const result = formatGameStartTime('2026-13-45T99:99:99Z');
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('formats valid ISO 8601 datetime string', () => {
+      const result = formatGameStartTime('2026-02-08T20:30:00Z');
+
+      expect(result).toEqual({ date: 'Sun, Feb 8', time: '8:30 PM' });
+    });
+
+    it('formats ISO string with different date', () => {
+      const result = formatGameStartTime('2026-01-15T14:00:00Z');
+
+      expect(result).toEqual({ date: 'Thu, Jan 15', time: '2:00 PM' });
+    });
+
+    it('formats morning time correctly', () => {
+      const result = formatGameStartTime('2026-03-01T09:15:00Z');
+
+      expect(result).toEqual({ date: 'Sun, Mar 1', time: '9:15 AM' });
+    });
+
+    it('formats midnight correctly', () => {
+      const result = formatGameStartTime('2026-12-25T00:00:00Z');
+
+      expect(result).toEqual({ date: 'Fri, Dec 25', time: '12:00 AM' });
+    });
+
+    it('formats noon correctly', () => {
+      const result = formatGameStartTime('2026-07-04T12:00:00Z');
+
+      expect(result).toEqual({ date: 'Sat, Jul 4', time: '12:00 PM' });
+    });
+
+    it.each([
+      ['2026-02-08T20:30:00Z', { date: 'Sun, Feb 8', time: '8:30 PM' }],
+      ['2026-01-01T00:00:00Z', { date: 'Thu, Jan 1', time: '12:00 AM' }],
+      ['2026-06-15T18:45:00Z', { date: 'Mon, Jun 15', time: '6:45 PM' }],
+      [undefined, { date: 'TBD', time: '' }],
+      ['invalid', { date: 'TBD', time: '' }],
+    ])(
+      'formats %s as %o',
+      (input: string | undefined, expected: { date: string; time: string }) => {
+        const result = formatGameStartTime(input);
+
+        expect(result).toEqual(expected);
+      },
+    );
   });
 });
