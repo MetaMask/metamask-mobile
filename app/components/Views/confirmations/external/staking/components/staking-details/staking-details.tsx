@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import Text from '../../../../../../../component-library/components/Texts/Text';

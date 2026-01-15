@@ -5,7 +5,7 @@ import { createMockInternalAccount } from '../../../../../util/test/accountsCont
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
-import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 

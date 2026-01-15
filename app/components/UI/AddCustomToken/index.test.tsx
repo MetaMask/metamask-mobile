@@ -2,7 +2,7 @@ import React from 'react';
 import AddCustomToken from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { act, fireEvent } from '@testing-library/react-native';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Engine from '../../../core/Engine';

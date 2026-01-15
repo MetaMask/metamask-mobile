@@ -1,4 +1,4 @@
-import { WhatsNewModalSelectorsIDs } from '../../selectors/Onboarding/WhatsNewModal.selectors';
+import { WhatsNewModalSelectorsIDs } from '../../../app/components/UI/WhatsNewModal/WhatsNewModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

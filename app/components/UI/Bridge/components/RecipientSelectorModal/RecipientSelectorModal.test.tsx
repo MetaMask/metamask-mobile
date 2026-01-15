@@ -13,7 +13,7 @@ import {
   createMockState,
   createMockInternalAccountsFromGroups,
 } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
-import { AccountCellIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { AccountCellIds } from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import { Hex } from '@metamask/utils';
 
 const mockNavigate = jest.fn();

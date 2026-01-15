@@ -23,7 +23,7 @@ const mockEngine = Engine;
 jest.mock('../../../../core/Engine', () => {
   mockSetUseTokenDetection = jest.fn();
   return {
-    init: () => mockEngine.init({}),
+    init: () => mockEngine.init(''),
     context: {
       PreferencesController: {
         setUseTokenDetection: mockSetUseTokenDetection,
