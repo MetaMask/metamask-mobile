@@ -775,6 +775,15 @@ const ImportFromSecretRecoveryPhrase = ({
         style={styles.keyboardStickyView}
       >
         <View style={styles.stickyButtonContainer}>
+          {currentStep === 0 && Boolean(error) && (
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Error}
+              style={styles.stickyErrorText}
+            >
+              {error}
+            </Text>
+          )}
           {currentStep === 0 ? (
             <Button
               width={ButtonWidthTypes.Full}

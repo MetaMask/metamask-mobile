@@ -311,6 +311,15 @@ const ImportNewSecretRecoveryPhrase = () => {
         style={styles.keyboardStickyView}
       >
         <View style={styles.stickyButtonContainer}>
+          {Boolean(error) && (
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Error}
+              style={styles.stickyErrorText}
+            >
+              {error}
+            </Text>
+          )}
           <StyledButton
             containerStyle={styles.button}
             type={'confirm'}

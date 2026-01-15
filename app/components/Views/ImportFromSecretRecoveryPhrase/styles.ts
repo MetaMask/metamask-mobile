@@ -243,6 +243,9 @@ const createStyles = (colors: any, isKeyboardVisible = false) =>
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border.muted,
     },
+    stickyErrorText: {
+      marginBottom: 8,
+    },
   });
 
 export default createStyles;

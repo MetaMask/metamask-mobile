@@ -65,6 +65,9 @@ const createStyles = (colors: Colors, isKeyboardVisible = false) =>
       paddingBottom: isKeyboardVisible ? 6 : 32,
       backgroundColor: colors.background.default,
     },
+    stickyErrorText: {
+      marginBottom: 8,
+    },
   });
 
 export { createStyles };

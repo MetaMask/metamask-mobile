@@ -533,7 +533,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     it('displays error for invalid word in pasted SRP', async () => {
       mockGetString.mockResolvedValue(invalidMnemonic);
 
-      const { getByText } = renderScreen(
+      const { getByText, getAllByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -548,16 +548,17 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
+        const errorMessages = getAllByText(
+          messages.import_from_seed.spellcheck_error,
+        );
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
     });
 
     it('clears error when SRP is cleared', async () => {
       mockGetString.mockResolvedValue(invalidMnemonic);
 
-      const { getByText, queryByText } = renderScreen(
+      const { getByText, getAllByText, queryByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -572,9 +573,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
+        const errorMessages = getAllByText(
+          messages.import_from_seed.spellcheck_error,
+        );
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
 
       const clearButton = getByText(messages.import_from_seed.clear_all);
@@ -975,7 +977,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     it('validates word on focus change', async () => {
       mockGetString.mockResolvedValue('word1 word2 word3');
 
-      const { getByTestId, getByText, queryByText } = renderScreen(
+      const { getByTestId, getByText, queryAllByText } = renderScreen(
         ImportNewSecretRecoveryPhrase,
         { name: 'ImportNewSecretRecoveryPhrase' },
         {
@@ -1015,9 +1017,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(
-          queryByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
+        const errorMessages = queryAllByText(
+          messages.import_from_seed.spellcheck_error,
+        );
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
     });
 

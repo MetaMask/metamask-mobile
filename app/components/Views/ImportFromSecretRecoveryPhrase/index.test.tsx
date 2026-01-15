@@ -575,7 +575,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on entering an invalid seed phrase, spellcheck error message is shown', async () => {
-      const { getByPlaceholderText, getByText } = renderScreen(
+      const { getByPlaceholderText, getAllByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
@@ -595,10 +595,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        const errorMessage = getByText(
+        const errorMessages = getAllByText(
           strings('import_from_seed.spellcheck_error'),
         );
-        expect(errorMessage).toBeOnTheScreen();
+        expect(errorMessages.length).toBeGreaterThan(0);
+        expect(errorMessages[0]).toBeOnTheScreen();
       });
     });
 
