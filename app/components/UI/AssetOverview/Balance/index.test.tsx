@@ -61,6 +61,8 @@ jest.mock('../../Earn/hooks/useMusdConversionTokens', () => ({
   }),
 }));
 
+jest.mock('../../../Base/RemoteImage', () => 'RemoteImage');
+
 const mockDAI = {
   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
   aggregators: ['Metamask', 'Coinmarketcap'],
