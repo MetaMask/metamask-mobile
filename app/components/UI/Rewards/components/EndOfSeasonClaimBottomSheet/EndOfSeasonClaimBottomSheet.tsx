@@ -12,7 +12,8 @@ import useRewardsToast from '../../hooks/useRewardsToast';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import { Linking, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   BoxFlexDirection,
   ButtonVariant,
@@ -50,10 +51,8 @@ import TextField, {
 } from '../../../../../component-library/components/Form/TextField';
 import useClaimReward from '../../hooks/useClaimReward';
 import useLineaSeasonOneTokenReward from '../../hooks/useLineaSeasonOneTokenReward';
-import RewardsErrorBanner from '../RewardsErrorBanner';
 import { validateEmail } from '../../utils/formatUtils';
 import { formatAssetAmount } from '../../utils/eventDetailsUtils';
-import { useTheme } from '../../../../../util/theme';
 
 export interface ModalAction {
   label: string;
@@ -93,16 +92,11 @@ const EndOfSeasonClaimBottomSheet = ({
 }: EndOfSeasonClaimBottomSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
-  const theme = useTheme();
   const { showToast: showRewardsToast, RewardsToastOptions } =
     useRewardsToast();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { claimReward, isClaimingReward } = useClaimReward();
-  const {
-    lineaTokenReward,
-    isLoading: isLoadingLineaToken,
-    error: lineaTokenError,
-  } = useLineaSeasonOneTokenReward();
+  const { lineaTokenReward } = useLineaSeasonOneTokenReward();
   const {
     seasonRewardId,
     title,
@@ -153,13 +147,16 @@ const EndOfSeasonClaimBottomSheet = ({
   }, [navigation]);
 
   const showSuccessToastIfNeeded = useCallback(() => {
-    if (
-      rewardType === SeasonRewardType.LINEA_TOKENS ||
-      rewardType === SeasonRewardType.METAL_CARD
-    ) {
+    if (rewardType === SeasonRewardType.METAL_CARD) {
       showRewardsToast(
         RewardsToastOptions.success(
-          strings('rewards.end_of_season_rewards.redeem_success_title'),
+          strings('rewards.end_of_season_rewards.metal_card_claim_success'),
+        ),
+      );
+    } else if (rewardType === SeasonRewardType.LINEA_TOKENS) {
+      showRewardsToast(
+        RewardsToastOptions.success(
+          strings('rewards.end_of_season_rewards.linea_tokens_claim_success'),
         ),
       );
     }
@@ -201,7 +198,13 @@ const EndOfSeasonClaimBottomSheet = ({
         case SeasonRewardType.NANSEN:
         case SeasonRewardType.OTHERSIDE:
           if (!url) return;
-          Linking.openURL(url);
+          navigation.navigate(Routes.BROWSER.HOME, {
+            screen: Routes.BROWSER.VIEW,
+            params: {
+              newTabUrl: url,
+              timestamp: Date.now(),
+            },
+          });
           break;
         case SeasonRewardType.LINEA_TOKENS: {
           if (!rewardId) return;
@@ -272,6 +275,7 @@ const EndOfSeasonClaimBottomSheet = ({
     claimReward,
     showRewardsToast,
     RewardsToastOptions,
+    navigation,
   ]);
 
   const confirmAction = useMemo(() => {
@@ -369,38 +373,7 @@ const EndOfSeasonClaimBottomSheet = ({
 
   const renderTitle = () => {
     if (rewardType === SeasonRewardType.LINEA_TOKENS) {
-      if (isLoadingLineaToken) {
-        return (
-          <Box
-            twClassName="flex-col items-center justify-center w-full"
-            testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_LOADING}
-          >
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-              {strings('rewards.linea_tokens.default_title')}
-            </Text>
-
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2 mt-2"
-            >
-              <Text
-                variant={TextVariant.HeadingSm}
-                twClassName="text-center text-alternative"
-              >
-                {strings('rewards.linea_tokens.loading_subtitle')}
-              </Text>
-
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.text.alternative}
-              />
-            </Box>
-          </Box>
-        );
-      }
-
-      // If loaded and amount > 0, show "You earned XXX $LINEA"
+      // If we have a balance amount > 0, show "You earned XXX $LINEA"
       const parsedAmount = BigInt(lineaTokenReward?.amount || '0');
       if (parsedAmount > 0n) {
         // Format the amount with 18 decimals (standard ERC-20 decimals for LINEA)
@@ -422,28 +395,7 @@ const EndOfSeasonClaimBottomSheet = ({
         );
       }
 
-      // If error occurred while fetching, show error banner
-      if (lineaTokenError) {
-        return (
-          <Box
-            twClassName="flex-col items-center justify-center w-full"
-            testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_LINEA_TOKENS_ERROR}
-          >
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-              {strings('rewards.linea_tokens.default_title')}
-            </Text>
-            <Box twClassName="w-full mt-4">
-              <RewardsErrorBanner
-                title={strings('rewards.linea_tokens.error_fetching_title')}
-                description={strings(
-                  'rewards.linea_tokens.error_fetching_description',
-                )}
-              />
-            </Box>
-          </Box>
-        );
-      }
-
+      // Otherwise, show default title (for loading, error, or zero balance cases)
       return (
         <Box
           twClassName="flex-col items-center justify-center w-full"
@@ -577,7 +529,7 @@ const EndOfSeasonClaimBottomSheet = ({
       keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
     >
       <BottomSheetHeader onClose={handleModalClose}>
-        {strings('rewards.end_of_season_rewards.redeem_your_reward')}
+        {strings('rewards.end_of_season_rewards.reward_details')}
       </BottomSheetHeader>
       {needsKeyboardAvoiding ? (
         <KeyboardAwareScrollView
