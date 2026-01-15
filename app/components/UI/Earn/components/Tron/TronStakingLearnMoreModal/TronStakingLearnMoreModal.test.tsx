@@ -226,7 +226,6 @@ describe('TronStakingLearnMoreModal', () => {
       mockEndTrace.mockClear();
       renderModal();
 
-      // Only EarnFaq should be ended, not EarnFaqApys
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledWith({ name: 'EarnFaq' });
     });
