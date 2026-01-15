@@ -369,6 +369,22 @@ class AuthenticationService {
       }
     }
 
+    // if biometric option is disabled previously , fall back to PASSCODE ( for ios only )
+    // if passcode option is disable, do not return PASSCODE
+    if (
+      availableBiometryType &&
+      // Android having issue with passcode in keystore ( data in keystore not able secure by/prompt passcode)
+      Device.isIos() &&
+      biometryPreviouslyDisabled === TRUE &&
+      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+    ) {
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
+    }
+
+    // if biometric option is previously disabled, do not return BIOMETRIC
     if (
       availableBiometryType &&
       !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
@@ -378,18 +394,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    // Then check passcode
-    if (
-      availableBiometryType &&
-      // Android having issue with passcode in keystore ( data in keystore not able secure by/prompt passcode)
-      Device.isIos() &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType,
-      };
-    }
+
     // Default to password
     return {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -558,10 +563,8 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const passcodePreviouslyDisabled =
-      await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-    const authType = await this.getType();
+    const authTypeComputed = await this.checkAuthenticationMethod();
     if (
       rememberMe &&
       ReduxService.store.getState().security.allowLoginWithRememberMe
@@ -571,24 +574,21 @@ class AuthenticationService {
         availableBiometryType,
       };
     } else if (
-      authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
-      availableBiometryType &&
-      biometryChoice
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType,
-      };
-    } else if (
-      authType.currentAuthType === AUTHENTICATION_TYPE.PASSCODE &&
-      availableBiometryType &&
       biometryChoice &&
-      // Android having issue with passcode in keystore ( data is not secured in keystore using passcode)
-      Device.isIos() &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+      availableBiometryType &&
+      authTypeComputed.currentAuthType === AUTHENTICATION_TYPE.PASSCODE
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
+    } else if (
+      biometryChoice &&
+      availableBiometryType &&
+      authTypeComputed.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC
+    ) {
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType,
       };
     }
