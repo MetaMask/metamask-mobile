@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
+import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
 import Icon, {
   IconName,
   IconSize,

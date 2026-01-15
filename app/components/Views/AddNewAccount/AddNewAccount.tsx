@@ -14,7 +14,7 @@ import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
 import { AddNewAccountProps } from './AddNewAccount.types';
-import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { AddNewAccountIds } from './AddHdAccount.testIds';
 import { addNewHdAccount } from '../../../actions/multiSrp';
 import Text, {
   TextColor,

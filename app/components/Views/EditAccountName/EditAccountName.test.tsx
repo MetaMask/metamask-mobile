@@ -7,7 +7,7 @@ import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import { EditAccountNameSelectorIDs } from '../../../../e2e/selectors/wallet/EditAccountName.selectors';
+import { EditAccountNameSelectorIDs } from './EditAccountName.testIds';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();

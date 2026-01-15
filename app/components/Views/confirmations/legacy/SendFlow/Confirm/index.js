@@ -93,7 +93,7 @@ import { selectAccounts } from '../../../../../../selectors/accountTrackerContro
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import { ConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
+import { ConfirmViewSelectorsIDs } from '../ConfirmView.testIds';
 import ExtendedKeyringTypes from '../../../../../../constants/keyringTypes';
 import { getDeviceId } from '../../../../../../core/Ledger/Ledger';
 import { getBlockaidTransactionMetricsParams } from '../../../../../../util/blockaid';
@@ -117,7 +117,7 @@ import {
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../../util/smart-transactions';
-import { TransactionConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/TransactionConfirmView.selectors.js';
+import { TransactionConfirmViewSelectorsIDs } from './TransactionConfirmView.testIds';
 import {
   selectConfirmationMetrics,
   updateConfirmationMetric,
