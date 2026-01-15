@@ -1,8 +1,7 @@
-import { NavigationContainerRef } from '@react-navigation/native';
-import type { RootParamList } from '../../../types/navigation';
 import SDKConnect from '../SDKConnect';
 import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
+import NavigationService from '../../NavigationService';
 
 jest.mock('@react-navigation/native');
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -29,7 +28,7 @@ jest.mock('../../../store', () => ({
 
 describe('asyncInit', () => {
   let mockInstance = {} as unknown as SDKConnect;
-  let mockNavigation = {} as unknown as NavigationContainerRef<RootParamList>;
+  let mockNavigation = {} as unknown as typeof NavigationService.navigation;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -45,8 +44,19 @@ describe('asyncInit', () => {
     } as unknown as SDKConnect;
 
     mockNavigation = {
-      /* mock properties and methods as needed */
-    } as unknown as NavigationContainerRef<RootParamList>;
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+      canGoBack: jest.fn(),
+      popToTop: jest.fn(),
+      pop: jest.fn(),
+      dispatch: jest.fn(),
+      getCurrentRoute: jest.fn(),
+      getRootState: jest.fn(),
+      getState: jest.fn(),
+      isReady: jest.fn(),
+      reset: jest.fn(),
+      setParams: jest.fn(),
+    } as unknown as typeof NavigationService.navigation;
   });
 
   it('should set the navigation reference in the instance state', async () => {

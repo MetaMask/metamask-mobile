@@ -1,6 +1,5 @@
-import { NavigationContainerRef } from '@react-navigation/native';
-import type { RootParamList } from '../../../types/navigation';
 import { Connection } from './Connection';
+import NavigationService from '../../NavigationService';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import RPCQueueManager from '../RPCQueueManager';
 import sendAuthorized from './Auth/sendAuthorized';
@@ -59,7 +58,20 @@ describe('Connection', () => {
   const mockOrigin = 'testOrigin';
   const mockReconnect = true;
   const mockInitialConnection = true;
-  const mockNavigation = {} as NavigationContainerRef<RootParamList>;
+  const mockNavigation = {
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    canGoBack: jest.fn(),
+    popToTop: jest.fn(),
+    pop: jest.fn(),
+    dispatch: jest.fn(),
+    getCurrentRoute: jest.fn(),
+    getRootState: jest.fn(),
+    getState: jest.fn(),
+    isReady: jest.fn(),
+    reset: jest.fn(),
+    setParams: jest.fn(),
+  } as unknown as typeof NavigationService.navigation;
   const mockOriginatorInfo = {} as OriginatorInfo;
   const mockRpcManager = {} as RPCQueueManager;
   const mockSocketServerUrl = 'testSocketServerUrl';

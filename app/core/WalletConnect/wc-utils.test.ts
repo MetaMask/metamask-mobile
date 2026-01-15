@@ -9,8 +9,6 @@ import {
   networkModalOnboardingConfig,
   getHostname,
 } from './wc-utils';
-import type { NavigationContainerRef } from '@react-navigation/native';
-import type { RootParamList } from '../../types/navigation';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import/no-namespace
 import * as StoreModule from '../../../app/store';
@@ -77,7 +75,8 @@ jest.mock('@walletconnect/utils', () => ({
 }));
 
 describe('WalletConnect Utils', () => {
-  let mockNavigation: jest.Mocked<NavigationContainerRef<RootParamList>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockNavigation: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockStore = (StoreModule as any).store;
 
@@ -87,7 +86,15 @@ describe('WalletConnect Utils', () => {
       navigate: jest.fn(),
       goBack: jest.fn(),
       canGoBack: jest.fn().mockReturnValue(true),
-    } as unknown as jest.Mocked<NavigationContainerRef<RootParamList>>;
+      popToTop: jest.fn(),
+      pop: jest.fn(),
+      dispatch: jest.fn(),
+      getRootState: jest.fn(),
+      getState: jest.fn(),
+      isReady: jest.fn(),
+      reset: jest.fn(),
+      setParams: jest.fn(),
+    };
 
     mockStore.getState.mockReturnValue({
       networkOnboarded: {

@@ -196,3 +196,4 @@ class NavigationService {
 }
 
 export default NavigationService;
+export { WrappedNavigation };

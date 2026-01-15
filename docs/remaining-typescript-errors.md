@@ -1,301 +1,164 @@
 # Remaining TypeScript Errors - React Navigation v7 Migration
 
-**Last Updated:** January 15, 2026  
-**Total Errors:** 78
+**Last Updated:** January 15, 2026
+**Total Errors:** 12 (down from 143)
+
+## Error Summary by Category
+
+| Category                          | Count  | Status       |
+| --------------------------------- | ------ | ------------ |
+| WrappedNavigation type mismatches | ~~10~~ | ✅ FIXED     |
+| Spread argument issues            | 5      | 🔴 Remaining |
+| createNavigationDetails params    | 3      | 🔴 Remaining |
+| Unrelated to navigation           | 2      | 🔴 Remaining |
+| Test file mocks                   | 2      | 🔴 Remaining |
 
 ---
 
-## Summary by Error Type
+## ✅ COMPLETED: WrappedNavigation Type Fixes
 
-| Error Code | Description              | Count |
-| ---------- | ------------------------ | ----- |
-| TS2322     | Type not assignable      | 43    |
-| TS2345     | Argument type mismatch   | 29    |
-| TS2769     | No overload matches call | 2     |
-| TS2367     | Unintentional comparison | 1     |
-| TS2352     | Type conversion mistake  | 1     |
-| TS2314     | Generic requires args    | 1     |
-| TS18046    | Variable is unknown      | 1     |
+All WrappedNavigation type mismatches have been resolved by:
+
+1. Exporting `WrappedNavigation` from `NavigationService.ts`
+2. Updating `SDKConnectState.navigation` to use `typeof NavigationService.navigation`
+3. Updating `Connection`, `WalletConnect2Session`, `wc-utils`, and `handleCustomRpcCalls` to use the new type
+4. Updating all test mocks to use `typeof NavigationService.navigation`
 
 ---
 
-## Summary by Category
+## Category 1: Spread Argument Issues (5 errors)
 
-| Category | Description                                    | Count | Status       |
-| -------- | ---------------------------------------------- | ----- | ------------ |
-| 1        | NavigationProp<RootParamList> vs ParamListBase | ~15   | ✅ Completed |
-| 2        | Spread argument issues                         | ~10   | 🔴 Pending   |
-| 3        | Route param mismatches (undefined vs params)   | ~10   | 🔴 Pending   |
-| 4        | String vs keyof RootParamList                  | ~5    | 🔴 Pending   |
-| 5        | Null/undefined type narrowing                  | ~5    | 🔴 Pending   |
-| 6        | Screen component type issues                   | ~40   | 🔴 Pending   |
-| 7        | Test file mock issues                          | ~5    | 🔴 Pending   |
-| 8        | Theme comparison                               | 1     | 🔴 Pending   |
+### Problem
 
----
+`navigation.navigate(...helperFunction())` fails because helper functions return union types that TypeScript can't spread.
 
-## Category 1: NavigationProp Type Mismatch (TS2345) ✅ COMPLETED
+### Remaining Files
 
-Functions typed with `NavigationProp<ParamListBase>` receiving `NavigationProp<RootParamList>`.
-
-### Fix Applied
-
-- Helper functions (`useNavigateToCardPage`, `handleTronStakingNavigationResult`, `openActivityDetailsSheet`) now accept `NavigationProp<ParamListBase>`
-- Call sites cast navigation to `ParamListBase` to avoid circular type issues
-- Files fixed:
-  - `app/components/UI/Card/hooks/useNavigateToCardPage.tsx`
-  - `app/components/UI/Card/components/AssetSelectionBottomSheet/AssetSelectionBottomSheet.tsx`
-  - `app/components/UI/Card/Views/CardHome/CardHome.tsx`
-  - `app/components/UI/Earn/utils/tron.ts`
-  - `app/components/UI/Rewards/components/Tabs/ActivityTab/EventDetails/ActivityDetailsSheet.tsx`
-
-### Original Fix Strategy
-
-**Option A: Use NavigationProp<ParamListBase>** (Pragmatic - User's preference)
-
-Accept less strict typing for utility functions:
-
-```typescript
-// Function accepts looser type
-function myHelper(navigation: NavigationProp<ParamListBase>) { ... }
-```
-
-**Option B: Use generics**
-
-```typescript
-function myHelper<T extends ParamListBase>(navigation: NavigationProp<T>) { ... }
-```
-
----
-
-## Category 2: Spread Argument Issues (TS2345, TS2769)
-
-`createNavigationDetails` returns `[string, object | undefined]` which doesn't match `navigate()` overloads.
-
-### Files:
-
-1. **app/components/UI/Card/components/AssetSelectionBottomSheet/AssetSelectionBottomSheet.tsx:598**
-2. **app/components/UI/Carousel/index.tsx:423, 427**
-3. **app/components/UI/Earn/hooks/useMusdConversion.ts:83, 111**
-4. **app/components/UI/Rewards/hooks/useOptout.ts:119**
+1. **Carousel/index.tsx** (lines 423, 427) - `navigationRoute` spread
+2. **useMusdConversion.ts** (lines 83, 111) - `createEarnNavigationDetails` spread
+3. **useOptout.ts** (line 119) - navigation helper spread
+4. **useConfirmNavigation.ts** (line 70) - `createConfirmFlowNavDetails` spread
 
 ### Fix Strategy
 
-**Migrate to direct `navigation.navigate()` calls:**
+Replace spread pattern with direct navigate:
 
 ```typescript
-// BEFORE
+// Before (broken)
 navigation.navigate(...createSomeNavDetails(params));
 
-// AFTER
-navigation.navigate(Routes.SCREEN, params);
+// After (works)
+const [route, navParams] = createSomeNavDetails(params);
+navigation.navigate(route as keyof RootParamList, navParams);
+
+// Or even better - replace helper entirely
+navigation.navigate(Routes.SOME_ROUTE, { screen: 'Child', params });
 ```
 
 ---
 
-## Category 3: Route Param Mismatches (TS2345)
+## Category 2: createNavigationDetails Params Issues (3 errors)
 
-Routes defined with `undefined` params but called with objects like `{}`.
+### Problem
 
-### Files:
+Helper functions created with `createNavigationDetails` expect `undefined` but are called with params.
 
-1. **app/components/UI/Ramp/Deposit/hooks/useDepositRouting.ts:207** - `{ quote: BuyQuote }` not assignable to `undefined`
-2. **app/components/UI/Ramp/Deposit/Views/BuildQuote/BuildQuote.tsx:172, 210** - Passing `{}` or params to routes expecting `undefined`
-3. **app/components/UI/shared/BaseControlBar/BaseControlBar.tsx:154, 158** - Passing `{}` to routes expecting `undefined`
+### Remaining Files
+
+1. **useDepositRouting.ts:207** - `createVerifyIdentityNavDetails` with `{ quote }`
+2. **BuildQuote.tsx:208** - `createRegionSelectorModalNavigationDetails` with `{ regions }`
+3. **handleDeepLinkModalDisplay.ts:21** - navigation with `DeepLinkModalParams`
 
 ### Fix Strategy
 
-**Option A: Update RootParamList** (Recommended)
-
-Define correct param types:
+Update the helper function definitions to accept params:
 
 ```typescript
-// In app/types/navigation.d.ts
-'DepositRegionSelectorModal': { regions?: DepositRegion[] };
-'DepositConfigurationModal': object; // or specific type
-```
+// Before
+export const createVerifyIdentityNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.MODALS.ID,
+  Routes.DEPOSIT.VERIFY_IDENTITY,
+);
 
-**Option B: Pass undefined when no params needed**
-
-```typescript
-// BEFORE
-navigation.navigate(Routes.SCREEN, {});
-
-// AFTER
-navigation.navigate(Routes.SCREEN);
-// or
-navigation.navigate(Routes.SCREEN, undefined);
+// After - add generic type for params
+export const createVerifyIdentityNavDetails = createNavigationDetails<{
+  quote: BuyQuote;
+}>(Routes.DEPOSIT.MODALS.ID, Routes.DEPOSIT.VERIFY_IDENTITY);
 ```
 
 ---
 
-## Category 4: String vs keyof RootParamList (TS2345)
+## Category 3: Unrelated to Navigation (2 errors)
 
-Passing string route names where literal types expected.
+### 1. NavigationProvider.tsx:39 - Theme Comparison
 
-### Files:
+```
+error TS2367: This comparison appears to be unintentional because the types 'Theme' and 'AppThemeKey' have no overlap.
+```
 
-1. **app/components/UI/Perps/Views/PerpsTabView/PerpsTabView.tsx:110** - string not assignable to expected type
-2. **app/components/UI/Ramp/Deposit/Views/Root/Root.tsx:67** - string not assignable to keyof RootParamList
+**Fix:** This is a theme type issue, not navigation. Likely needs enum/type comparison fix.
+
+### 2. Bridge/routes.tsx:65 - Screen Component Type
+
+```
+error TS2322: Type '(props: BlockExplorersModalProps) => React.JSX.Element' is not assignable to type 'ScreenComponentType'
+```
+
+**Fix:** Create proper ParamList for Bridge or use type assertion for the component.
+
+---
+
+## Category 4: Test File Mocks (2 errors)
+
+### Affected Files
+
+- **ActivityView/index.test.tsx:319** - readonly tuple not assignable
 
 ### Fix Strategy
 
-Ensure routes are passed with proper typing:
+Update the assertion or cast the tuple:
 
 ```typescript
-// BEFORE
-navigation.navigate(Routes.PERPS.TUTORIAL); // Works only if Routes is `as const`
+// Before
+expect(navigate).toHaveBeenCalledWith(...expectedArgs);
 
-// AFTER - if route needs params
-navigation.navigate(Routes.PERPS.TUTORIAL, undefined);
-// or - with params
-navigation.navigate(Routes.PERPS.TUTORIAL, { source: 'wallet' });
+// After - remove readonly assertion or cast
+expect(navigate).toHaveBeenCalledWith('NetworkManager', {
+  screen: 'NetworkSelector',
+});
 ```
 
 ---
 
-## Category 5: Null/Undefined Type Narrowing (TS2322)
+## Fix Priority Order
 
-Values can be null/undefined but are passed to non-nullable types.
+1. **Spread argument fixes** (Category 1) - 5 errors, may need individual fixes
+2. **createNavigationDetails params** (Category 2) - 3 errors, add type params
+3. **Test file fixes** (Category 4) - 2 errors
+4. **Unrelated fixes** (Category 3) - 2 errors, separate from navigation migration
 
-### Files:
+## Estimated Remaining Effort
 
-1. **app/components/UI/Predict/components/PredictPositionDetail/PredictPositionDetail.tsx:121** - `PredictOutcome | undefined` not assignable to `PredictOutcome`
-2. **app/components/UI/Predict/views/PredictMarketDetails/PredictMarketDetails.tsx:562** - `PredictMarket | null` not assignable to `PredictMarket`
-
-### Fix Strategy
-
-Add null checks before usage:
-
-```typescript
-// BEFORE
-<Component market={market} />  // market can be null
-
-// AFTER
-{market && <Component market={market} />}
-// or
-<Component market={market!} />  // if you're certain it's not null
-```
+| Category                | Effort      | Notes                     |
+| ----------------------- | ----------- | ------------------------- |
+| Spread arguments        | 30 min      | Individual file changes   |
+| createNavigationDetails | 15 min      | Add type params           |
+| Test fixes              | 10 min      | Simple assertion fixes    |
+| Unrelated               | 15 min      | Theme + Bridge type fixes |
+| **Total**               | **~1 hour** |                           |
 
 ---
 
-## Category 6: Screen Component Type Issues (TS2322)
+## Progress History
 
-Stack.Screen component prop type mismatches.
-
-### Files:
-
-1. **app/components/UI/Bridge/routes.tsx:64** - BlockExplorersModal component type
-2. **app/components/UI/Ramp/Deposit/routes/index.tsx:208** - DepositRoot route name and component
-
-### Fix Strategy
-
-Define proper ParamList types for nested navigators:
-
-```typescript
-// Define navigator-specific param list
-type DepositStackParamList = {
-  [Routes.DEPOSIT.ROOT]: DepositNavigationParams;
-  // ... other screens
-};
-
-// Use with createStackNavigator
-const Stack = createStackNavigator<DepositStackParamList>();
-```
-
----
-
-## Category 7: Test File Issues (TS2352, TS2345)
-
-Mock type issues in test files.
-
-### Files:
-
-1. **app/components/UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper.test.tsx:39** - Mock type conversion
-2. **app/components/UI/Rewards/components/Tabs/ActivityTab/EventDetails/ActivityDetailsSheet.test.tsx:322+** - NavigationProp mock
-
-### Fix Strategy
-
-Use proper type casting for mocks:
-
-```typescript
-// BEFORE
-const mockNavigation = { navigate: jest.fn(), ... };
-
-// AFTER
-const mockNavigation = {
-  navigate: jest.fn(),
-  goBack: jest.fn(),
-  getState: jest.fn(),
-  getId: jest.fn(),
-  // ... all required methods
-} as unknown as NavigationProp<ParamListBase>;
-```
-
----
-
-## Category 8: Theme Comparison (TS2367)
-
-### Files:
-
-1. **app/components/Nav/NavigationProvider/NavigationProvider.tsx:39** - Theme vs AppThemeKey comparison
-
-### Fix Strategy
-
-Ensure types are compatible:
-
-```typescript
-// The comparison should use matching types
-if (theme === AppThemeKey.dark) { ... }
-```
-
----
-
-## Recommended Fix Order
-
-1. ~~**Category 1: NavigationProp type** - Accept ParamListBase in utilities~~ ✅
-2. **Category 6: Screen component type issues** - Largest remaining (~40 errors)
-3. **Category 3: Route param mismatches** - Update RootParamList
-4. **Category 2: Spread arguments** - Migrate to direct navigate
-5. **Category 4-5, 7-8** - Misc fixes
-
----
-
-## Progress Tracking
-
-### Completed ✅
-
-- **Category 1** - NavigationProp type mismatches fixed (Jan 15)
-- Category 2 (Ramp/Deposit split functions) - Resolved TS2556 errors
-- Missing routes in RootParamList - Added Predict, Rewards routes
-- Test file fixes - PredictBuyPreview, PredictSellPreview mocks
-- Import path fixes - All NavigationContainerRef<RootParamList>
-- Perps navigation.ts - Added `source` property to PerpsTutorial
-
-### In Progress 🔄
-
-- Remaining 78 TypeScript errors across categories 2-8
-
-### Not Started 🔴
-
-- Full migration from createNavigationDetails to direct navigate
-
----
-
-## Quick Reference
-
-### Common Fixes
-
-```typescript
-// 1. NavigationProp type - use ParamListBase for loose typing
-function helper(navigation: NavigationProp<ParamListBase>) { }
-
-// 2. Empty params - pass undefined instead of {}
-navigation.navigate(Routes.SCREEN, undefined);
-
-// 3. Null narrowing - add guard
-if (value) { <Component prop={value} /> }
-
-// 4. Mock navigation in tests
-const mock = { ...methods } as unknown as NavigationProp<ParamListBase>;
-```
+| Date    | Errors | Action                                            |
+| ------- | ------ | ------------------------------------------------- |
+| Initial | 143    | Started migration                                 |
+| Step 1  | 124    | Added missing routes to RootParamList             |
+| Step 2  | 100    | Fixed `createNavigationDetails` return type       |
+| Step 3  | 81     | Fixed Ramp navigation helpers (Option F)          |
+| Step 4  | 78     | Fixed duplicate mocks, unused directives          |
+| Step 5  | 56     | Fixed NavigationProp<ParamListBase> in Category 1 |
+| Step 6  | 40     | Fixed Stake Screen component types (Category 6)   |
+| Step 7  | 25     | Fixed misc issues                                 |
+| Current | 12     | Fixed WrappedNavigation type mismatches           |
