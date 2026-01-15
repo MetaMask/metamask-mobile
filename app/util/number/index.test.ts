@@ -434,6 +434,7 @@ describe('Number utils :: localizeLargeNumber', () => {
           'token.trillion_abbreviation': 'T',
           'token.billion_abbreviation': 'B',
           'token.million_abbreviation': 'M',
+          'token.thousand_abbreviation': 'K',
         };
         return translations[key];
       }),
@@ -481,6 +482,35 @@ describe('Number utils :: localizeLargeNumber', () => {
 
     expect(localizeLargeNumber(i18n, million)).toBe('1.00M');
     expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
+  });
+
+  it('should include K suffix for thousands when includeK is true', () => {
+    const number = 150000;
+    const result = localizeLargeNumber(i18n, number, { includeK: true });
+    expect(result).toBe('150.00K');
+    expect(i18n.t).toHaveBeenCalledWith('token.thousand_abbreviation');
+  });
+
+  it('should not include K suffix for thousands when includeK is false (default)', () => {
+    const number = 150000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('150000.00');
+    expect(i18n.t).not.toHaveBeenCalled();
+  });
+
+  it('should support custom decimals option', () => {
+    const number = 1500000;
+    const result = localizeLargeNumber(i18n, number, { decimals: 1 });
+    expect(result).toBe('1.5M');
+  });
+
+  it('should support includeK with custom decimals', () => {
+    const number = 150000;
+    const result = localizeLargeNumber(i18n, number, {
+      includeK: true,
+      decimals: 0,
+    });
+    expect(result).toBe('150K');
   });
 });
 

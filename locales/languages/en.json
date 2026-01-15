@@ -2543,6 +2543,7 @@
     "billion_abbreviation": "B",
     "trillion_abbreviation": "T",
     "million_abbreviation": "M",
+    "thousand_abbreviation": "K",
     "token_details": "Token details",
     "contract_address": "Contract address",
     "token_list": "Token list",
