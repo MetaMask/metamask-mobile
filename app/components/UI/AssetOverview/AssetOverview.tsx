@@ -791,6 +791,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          <MerklRewards asset={asset} />
           {isPerpsEnabled && hasPerpsMarket && marketData && (
             <>
               <View style={styles.perpsPositionHeader}>
