@@ -1,4 +1,4 @@
-import { SRPListItemSelectorsIDs } from '../../../../selectors/MultiSRP/SRPListItem.selectors';
+import { SRPListItemSelectorsIDs } from '../../../../../app/components/UI/SRPListItem/SRPListItem.testIds';
 import Matchers from '../../../../framework/Matchers.ts';
 import Gestures from '../../../../framework/Gestures.ts';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Linking } from 'react-native';
-import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import AppConstants from '../../../../../core/AppConstants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {

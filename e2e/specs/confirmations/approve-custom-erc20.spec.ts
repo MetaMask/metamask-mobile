@@ -1,5 +1,5 @@
 import { RegressionConfirmations } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
@@ -8,7 +8,7 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../framework/Assertions';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import {
   buildPermissions,
   AnvilPort,
@@ -69,7 +69,7 @@ describe(RegressionConfirmations('ERC20 tokens'), () => {
           await contractRegistry?.getContractAddress(HST_CONTRACT);
         await loginToApp();
         // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
 
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
