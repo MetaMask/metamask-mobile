@@ -23,7 +23,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
-import { CardAuthenticationSelectors } from '../../../../../../e2e/selectors/Card/CardAuthentication.selectors';
+import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardLocation } from '../../types';
 import { strings } from '../../../../../../locales/i18n';

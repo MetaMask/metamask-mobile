@@ -26,7 +26,7 @@ import Avatar, {
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import HeaderBase from '../../../../../../component-library/components/HeaderBase';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { useSelector } from 'react-redux';
 import {
   selectWalletByAccount,

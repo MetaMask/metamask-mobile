@@ -12,7 +12,7 @@ import {
   SECONDARY_BALANCE_TEST_ID,
 } from '../../../AssetElement/index.constants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
 
@@ -77,6 +77,13 @@ const mockUseMusdConversionTokens =
   useMusdConversionTokens as jest.MockedFunction<
     typeof useMusdConversionTokens
   >;
+
+const mockShouldShowTokenListItemCta = jest.fn();
+jest.mock('../../../Earn/hooks/useMusdCtaVisibility', () => ({
+  useMusdCtaVisibility: () => ({
+    shouldShowTokenListItemCta: mockShouldShowTokenListItemCta,
+  }),
+}));
 
 jest.mock('../../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
@@ -167,6 +174,7 @@ jest.mock('../../../../../constants/network', () => ({
     BERACHAIN: '0x138d6',
     METACHAIN_ONE: '0x1b6a6',
     MEGAETH_TESTNET: '0x18c6',
+    MEGAETH_TESTNET_V2: '0x18c7',
     SEI: '0x531',
     MONAD_TESTNET: '0x279f',
   },
@@ -231,6 +239,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
+    mockShouldShowTokenListItemCta.mockReturnValue(
+      isMusdConversionEnabled && isTokenWithCta,
+    );
+
     // mUSD conversion mocks
     mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(
       isMusdConversionEnabled,
@@ -238,8 +250,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
       getMusdOutputChainId: jest.fn().mockReturnValue('0xe708'),
-      isTokenWithCta: jest.fn().mockReturnValue(isTokenWithCta),
-      tokensWithCTAs: [],
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -320,10 +330,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(getByText('Test Token')).toBeDefined();
-      expect(getByText('$123.00')).toBeDefined();
-      expect(getByText('1.23 TEST')).toBeDefined();
-      expect(getByText('+5.67%')).toBeDefined();
+      expect(getByText('Test Token')).toBeOnTheScreen();
+      expect(getByText('$123.00')).toBeOnTheScreen();
+      expect(getByText('1.23 TEST')).toBeOnTheScreen();
+      expect(getByText('+5.67%')).toBeOnTheScreen();
     });
   });
 
@@ -558,7 +568,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({

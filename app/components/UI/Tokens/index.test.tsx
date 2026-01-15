@@ -12,7 +12,7 @@ import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import initialRootState from '../../../util/test/initial-root-state';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';

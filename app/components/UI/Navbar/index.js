@@ -33,19 +33,19 @@ import {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import { NetworksViewSelectorsIDs } from '../../Views/Settings/NetworksSettings/NetworksView.testIds';
+import { SendLinkViewSelectorsIDs } from '../ReceiveRequest/SendLinkView.testIds';
+import { SendViewSelectorsIDs } from '../../Views/confirmations/legacy/SendFlow/SendView.testIds';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
+import { AddContactViewSelectorsIDs } from '../../Views/Settings/Contacts/AddContactView.testIds';
+import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.testIds';
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
@@ -54,7 +54,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 import {

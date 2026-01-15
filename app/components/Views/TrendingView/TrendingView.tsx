@@ -135,15 +135,28 @@ export const ExploreFeed: React.FC = () => {
   );
 
   const handleBrowserPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: portfolioUrl.href,
-        timestamp: Date.now(),
-        fromTrending: true,
-      },
-    });
-  }, [navigation, portfolioUrl.href]);
+    if (browserTabsCount > 0) {
+      // If tabs exist, show the tabs view directly
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          showTabsView: true,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    } else {
+      // If no tabs exist, open a new tab with portfolio URL
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: portfolioUrl.href,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    }
+  }, [navigation, portfolioUrl.href, browserTabsCount]);
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);

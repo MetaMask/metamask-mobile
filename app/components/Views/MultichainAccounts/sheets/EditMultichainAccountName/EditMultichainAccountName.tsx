@@ -27,7 +27,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';

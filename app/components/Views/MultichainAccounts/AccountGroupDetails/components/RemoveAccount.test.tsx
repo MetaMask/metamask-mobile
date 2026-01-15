@@ -6,7 +6,7 @@ import { createMockInternalAccount } from '../../../../../util/test/accountsCont
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
-import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../AccountDetails.testIds';
 
 const mockNavigate = jest.fn();
 
