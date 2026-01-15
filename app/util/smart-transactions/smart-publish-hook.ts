@@ -2,11 +2,9 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
-  TransactionType,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
-  SentinelMeta,
   SignedTransactionWithMetadata,
   SmartTransactionsController,
   SmartTransactionsControllerSmartTransactionEvent,
@@ -457,22 +455,33 @@ class SmartTransactionHook {
       signedTransactionsWithMetadata = this.#transactions
         .filter((tx) => tx?.signedTx)
         .map((tx) => {
-          const transactionMeta = getTransactionById(tx.id ?? '', this.#transactionController)
-          let signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx }
+          const transactionMeta = getTransactionById(
+            tx.id ?? '',
+            this.#transactionController,
+          );
+          const signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx };
           if (transactionMeta) {
-            signedTx.metadata = { txType: transactionMeta.type }
+            signedTx.metadata = { txType: transactionMeta.type };
           }
-          return signedTx
+          return signedTx;
         });
     } else if (this.#signedTransactionInHex) {
       // Single transaction mode with pre-signed transaction
-      signedTransactionsWithMetadata = [{ tx: this.#signedTransactionInHex, metadata: { txType: this.#transactionMeta.type } }];
+      signedTransactionsWithMetadata = [
+        {
+          tx: this.#signedTransactionInHex,
+          metadata: { txType: this.#transactionMeta.type },
+        },
+      ];
     } else if (getFeesResponse) {
       const signed = await this.#createSignedTransactions(
         getFeesResponse.tradeTxFees?.fees ?? [],
         false,
       );
-      signedTransactionsWithMetadata = signed.map((signedTx) => ({ tx: signedTx, metadata: { txType: this.#transactionMeta.type } }));
+      signedTransactionsWithMetadata = signed.map((signedTx) => ({
+        tx: signedTx,
+        metadata: { txType: this.#transactionMeta.type },
+      }));
     }
     signedTransactions = signedTransactionsWithMetadata.map((tx) => tx.tx);
     return await this.#smartTransactionsController.submitSignedTransactions({
