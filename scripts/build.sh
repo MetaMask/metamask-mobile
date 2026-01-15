@@ -430,21 +430,33 @@ prebuild_android(){
 buildAndroidMainLocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+	if [ -n "$ANDROID_DEVICE" ]; then
+		yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device "$ANDROID_DEVICE"
+	else
+		yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+	fi
 }
 
 # Builds and installs the QA APK for local development
 buildAndroidQALocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device
+	if [ -n "$ANDROID_DEVICE" ]; then
+		yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device "$ANDROID_DEVICE"
+	else
+		yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device
+	fi
 }
 
 # Builds and installs the Flask APK for local development
 buildAndroidFlaskLocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	yarn expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug' --device
+	if [ -n "$ANDROID_DEVICE" ]; then
+		yarn expo run:android --no-install --port $WATCHER_PORT --variant 'flaskDebug' --device "$ANDROID_DEVICE"
+	else
+		yarn expo run:android --no-install --port $WATCHER_PORT --variant 'flaskDebug' --device
+	fi
 }
 
 # Builds and installs the Main iOS app for local development

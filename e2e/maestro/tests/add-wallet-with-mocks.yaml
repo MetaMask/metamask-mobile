@@ -6,102 +6,42 @@ tags:
   - fixture
 ---
 # Maestro equivalent of e2e/specs/accounts/import-srp.spec.ts
-# This test uses both fixtures (for initial state) and mocks (for API responses)
+# This test uses fixtures to bypass onboarding (wallet already exists)
+# and mock server for feature flags (remoteFeatureMultichainAccountsAccountDetailsV2)
 #
 # Run this test with:
 #   ./e2e/maestro/scripts/run-test-with-servers.sh e2e/maestro/tests/add-wallet-with-mocks.yaml import-srp feature-flags
 #
-# This uses the same fixture and mocks as e2e/specs/accounts/import-srp.spec.ts
-#
-# Manual setup (for debugging):
-#   ./e2e/maestro/scripts/setup-test-environment.sh default feature-flags
-#   maestro test e2e/maestro/tests/add-wallet-with-mocks.yaml
-#   ./e2e/maestro/scripts/stop-servers.sh
+# This mirrors add-wallet-test.yaml but:
+#   - Skips onboarding via fixtures (import-srp)
+#   - Mocks feature flags via mock server (feature-flags preset)
 
 # Load page objects
 - runFlow: ../pages/loadElements.yaml
 
-# Unlock wallet (fixtures loaded, so we need to unlock)
+# Unlock wallet (fixtures loaded, wallet already exists)
 - runFlow: ../subflows/unlock-wallet.yaml
 
 # Now on home screen - start the import SRP flow
-# Tap the account picker/identicon
+# (Same steps as add-wallet-test.yaml from this point)
 - tapOn:
-    id: account-picker
+    id: ${output.home.accountPicker}
+- tapOn:
+    id: ${output.home.addAccountBtn}
+    delay: 2000
+- assertVisible: ${output.home.addWalletTitle}
+- tapOn:
+    id: ${output.home.addSrpAccountBtn}
 
-# Wait for account list to be visible and tap "Add account" button
+# Import wallet using same flow as add-wallet-test.yaml
+- runFlow: ../flows/add-wallet-flow.yaml
+
+# Wait for import to complete and verify we're back on home screen
+# The toast "Wallet 2 imported" appears briefly, then navigates to home
 - extendedWaitUntil:
     visible:
-      id: account-list-add-account-button
-    timeout: 5000
-- tapOn:
-    id: account-list-add-account-button
-
-# Tap "Import SRP" button in the bottom sheet
-- extendedWaitUntil:
-    visible:
-      id: add-account-srp-account
-    timeout: 5000
-- tapOn:
-    id: add-account-srp-account
-
-# Wait for SRP input screen (correct ID: import-srp-screen)
-- extendedWaitUntil:
-    visible:
-      id: import-srp-screen
-    timeout: 5000
-
-# Enter the seed phrase (using Identity team seed phrase from the Detox test)
-# Enter each word into the individual inputs (correct format: srp-input-word-1)
-- tapOn:
-    id: srp-input-word-1
-- inputText: 'spread'
-- tapOn:
-    id: srp-input-word-2
-- inputText: 'raise'
-- tapOn:
-    id: srp-input-word-3
-- inputText: 'short'
-- tapOn:
-    id: srp-input-word-4
-- inputText: 'crane'
-- tapOn:
-    id: srp-input-word-5
-- inputText: 'omit'
-- tapOn:
-    id: srp-input-word-6
-- inputText: 'tent'
-- tapOn:
-    id: srp-input-word-7
-- inputText: 'fringe'
-- tapOn:
-    id: srp-input-word-8
-- inputText: 'mandate'
-- tapOn:
-    id: srp-input-word-9
-- inputText: 'neglect'
-- tapOn:
-    id: srp-input-word-10
-- inputText: 'detail'
-- tapOn:
-    id: srp-input-word-11
-- inputText: 'suspect'
-- tapOn:
-    id: srp-input-word-12
-- inputText: 'cradle'
-
-# Double tap Continue button to import
-- doubleTapOn: 'Continue'
-
-# Wait for import to complete and navigate back to wallet view
-# Verify we're back on the wallet view by checking for account-label
-- extendedWaitUntil:
-    visible:
-      id: account-label
+      id: ${output.home.accountPicker}
     timeout: 20000
 
-# Verify the new account name is "Account 1"
-- assertVisible:
-    text: 'Account 1'
-# SUCCESS! Account imported with mocked feature flags ✅
-
+# Verify the account name is visible (confirms import succeeded)
+- assertVisible: Account 1

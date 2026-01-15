@@ -32,6 +32,7 @@ echo ""
 
 # Stop any existing servers
 echo "🧹 Cleaning up existing servers..."
+pkill -f "simple-fixture-server.js" 2>/dev/null || true
 pkill -f "fixture-loader.js" 2>/dev/null || true
 pkill -f "mock-server.js" 2>/dev/null || true
 sleep 1
@@ -45,6 +46,7 @@ cleanup_servers() {
     if [ -n "$FIXTURE_PID" ] && kill -0 $FIXTURE_PID 2>/dev/null; then
         kill $FIXTURE_PID 2>/dev/null || true
     fi
+    pkill -f "simple-fixture-server.js" 2>/dev/null || true
     pkill -f "fixture-loader.js" 2>/dev/null || true
     
     # Stop mock server
@@ -57,9 +59,9 @@ cleanup_servers() {
 }
 trap cleanup_servers EXIT
 
-# Start fixture server
+# Start fixture server (using simple-fixture-server.js which doesn't have ESM issues)
 echo "🚀 Starting fixture server..."
-node "$PROJECT_ROOT/e2e/maestro/scripts/fixture-loader.js" --action start --fixture "$FIXTURE_NAME" &
+node "$PROJECT_ROOT/e2e/maestro/scripts/simple-fixture-server.js" "$FIXTURE_NAME" &
 FIXTURE_PID=$!
 sleep 3
 

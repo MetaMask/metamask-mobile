@@ -18,10 +18,10 @@ tags:
 # modal shows when running on CI
 - runFlow:
     when:
-      visible: "Use Secret Recovery Phrase" # Condition to check
+      visible: 'Use Secret Recovery Phrase' # Condition to check
     commands:
-      - tapOn: "Use Secret Recovery Phrase"
-      
+      - tapOn: 'Use Secret Recovery Phrase'
+
 - assertVisible: ${output.onboarding.createPassword.title}
 - tapOn:
     id: ${output.onboarding.createPassword.firstPasswordInput}
