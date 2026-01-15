@@ -32,6 +32,7 @@ import PredictSportScoreboard, {
   Winner,
 } from '../PredictSportScoreboard';
 import PredictGameChart from '../PredictGameChart';
+import PredictPicks from '../PredictPicks/PredictPicks';
 import { PredictGameScore, PredictGameStatus } from '../../types';
 
 const getGameState = (
@@ -222,7 +223,9 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             </Box>
           )}
 
-          {/* TODO: Integrate PredictGamePositionsSection here */}
+          <Box twClassName="px-4 py-2">
+            <PredictPicks market={market} testID="game-picks" />
+          </Box>
         </ScrollView>
 
         <PredictGameDetailsFooter

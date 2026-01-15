@@ -139,6 +139,24 @@ jest.mock('../PredictGameChart', () => {
   };
 });
 
+jest.mock('../PredictPicks/PredictPicks', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictPicks({
+    testID,
+    market,
+  }: {
+    testID?: string;
+    market?: { id: string };
+  }) {
+    return (
+      <View
+        testID={testID}
+        accessibilityHint={`marketId:${market?.id ?? 'undefined'}`}
+      />
+    );
+  };
+});
+
 const mockGetRefHandlers = jest.fn(() => ({
   onOpenBottomSheet: jest.fn(),
   onCloseBottomSheet: jest.fn(),
@@ -625,6 +643,27 @@ describe('PredictGameDetailsContent', () => {
       );
 
       expect(queryByTestId('game-chart')).toBeNull();
+    });
+  });
+
+  describe('Picks Integration', () => {
+    it('renders picks component with market', () => {
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      const picks = getByTestId('game-picks');
+
+      expect(picks).toBeOnTheScreen();
+      expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
     });
   });
 
