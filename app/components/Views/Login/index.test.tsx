@@ -18,7 +18,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passwordRequirementsMet } from '../../../util/password';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
-import { passcodeType } from '../../../util/authentication';
 import {
   TraceName,
   TraceOperation,
@@ -127,11 +126,6 @@ jest.mock('../../../actions/security', () => ({
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(null),
   setItem: jest.fn(),
-}));
-
-jest.mock('../../../util/authentication', () => ({
-  passcodeType: jest.fn(),
-  updateAuthTypeStorageFlags: jest.fn(),
 }));
 
 jest.mock('../../../core/BackupVault', () => ({
@@ -813,19 +807,26 @@ describe('Login', () => {
     });
 
     it('set up passcode authentication when auth type is PASSCODE', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
+        return Promise.resolve(null);
+      });
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType: 'TouchID',
       });
 
-      renderWithProvider(<Login />);
+      const { getByTestId } = renderWithProvider(<Login />);
 
       // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
+      expect(
+        getByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
+      ).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
   });
 
@@ -857,7 +858,7 @@ describe('Login', () => {
       expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
 
-    it('biometric button is not shown when device is locked', async () => {
+    it('biometric button is shown when device is locked and credentials exist', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: true,
@@ -877,8 +878,10 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // Should NOT render biometric button when device is locked
-      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+      // Should render biometric button when credentials exist
+      expect(
+        queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('biometric button is not shown when previously disabled', async () => {
@@ -1111,7 +1114,6 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
-      (passcodeType as jest.Mock).mockReturnValue('TouchID');
       (Authentication.getType as jest.Mock).mockResolvedValue({
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType: 'TouchID',
@@ -1127,8 +1129,10 @@ describe('Login', () => {
       (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(
         true,
       );
-      (StorageWrapper.getItem as jest.Mock).mockReturnValueOnce(null);
-      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
+        return Promise.resolve(null);
+      });
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType: 'TouchID',
@@ -1167,7 +1171,10 @@ describe('Login', () => {
 
     it('does not navigate when biometric authentication fails', async () => {
       // Arrange
-      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
+        return Promise.resolve(null);
+      });
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType: 'TouchID',
