@@ -27,10 +27,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
   it('validate Predict feed loads and displays balance', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPolygon()
-          .withMetaMetricsOptIn()
-          .build(),
+        fixture: new FixtureBuilder().withPolygon().build(),
         restartDevice: true,
         testSpecificMock: PredictionExistingPolyMarketBalance,
       },
@@ -60,10 +57,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
   it('loads Wallet > Predictions tab and displays balance and positions', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPolygon()
-          .withMetaMetricsOptIn()
-          .build(),
+        fixture: new FixtureBuilder().withPolygon().build(),
         restartDevice: true,
         testSpecificMock: PredictionExistingPolyMarketBalance,
       },
