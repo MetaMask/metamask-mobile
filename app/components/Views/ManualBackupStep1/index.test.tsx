@@ -121,6 +121,7 @@ jest.mock('../../../core', () => ({
 
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 const Logger = jest.requireMock('../../../util/Logger');
