@@ -12,7 +12,6 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   onNoPress,
   yesTeamColor,
   noTeamColor,
-  size = 'md',
   disabled = false,
   testID = 'predict-bet-buttons',
 }) => (
@@ -24,7 +23,6 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         onPress={onYesPress}
         variant="yes"
         teamColor={yesTeamColor}
-        size={size}
         disabled={disabled}
         testID={`${testID}-yes`}
       />
@@ -36,7 +34,6 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         onPress={onNoPress}
         variant="no"
         teamColor={noTeamColor}
-        size={size}
         disabled={disabled}
         testID={`${testID}-no`}
       />

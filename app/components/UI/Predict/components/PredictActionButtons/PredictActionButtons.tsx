@@ -14,7 +14,6 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   hasClaimableWinnings = false,
   claimableAmount = 0,
   isLoading = false,
-  size = 'lg',
   testID = 'predict-action-buttons',
 }) => {
   const isGameMarket = Boolean(market.game);
@@ -78,7 +77,6 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
           onNoPress={() => onBetPress(outcome.tokens[1])}
           yesTeamColor={buttonConfig.yesTeamColor}
           noTeamColor={buttonConfig.noTeamColor}
-          size={size}
           testID={`${testID}-bet`}
         />
       </Box>

@@ -127,35 +127,6 @@ describe('PredictBetButtons', () => {
     });
   });
 
-  describe('sizing', () => {
-    it('renders with small size', () => {
-      const props = createDefaultProps({ size: 'sm' });
-
-      renderWithProvider(<PredictBetButtons {...props} />);
-
-      expect(screen.getByTestId('bet-buttons-yes')).toBeOnTheScreen();
-      expect(screen.getByTestId('bet-buttons-no')).toBeOnTheScreen();
-    });
-
-    it('renders with medium size by default', () => {
-      const props = createDefaultProps();
-
-      renderWithProvider(<PredictBetButtons {...props} />);
-
-      expect(screen.getByTestId('bet-buttons-yes')).toBeOnTheScreen();
-      expect(screen.getByTestId('bet-buttons-no')).toBeOnTheScreen();
-    });
-
-    it('renders with large size', () => {
-      const props = createDefaultProps({ size: 'lg' });
-
-      renderWithProvider(<PredictBetButtons {...props} />);
-
-      expect(screen.getByTestId('bet-buttons-yes')).toBeOnTheScreen();
-      expect(screen.getByTestId('bet-buttons-no')).toBeOnTheScreen();
-    });
-  });
-
   describe('edge cases', () => {
     it('renders with equal prices (50/50 market)', () => {
       const props = createDefaultProps({

@@ -113,32 +113,6 @@ describe('PredictBetButton', () => {
     });
   });
 
-  describe('sizing', () => {
-    it('renders with small size', () => {
-      const props = createDefaultProps({ size: 'sm' });
-
-      renderWithProvider(<PredictBetButton {...props} />);
-
-      expect(screen.getByTestId('bet-button')).toBeOnTheScreen();
-    });
-
-    it('renders with medium size by default', () => {
-      const props = createDefaultProps();
-
-      renderWithProvider(<PredictBetButton {...props} />);
-
-      expect(screen.getByTestId('bet-button')).toBeOnTheScreen();
-    });
-
-    it('renders with large size', () => {
-      const props = createDefaultProps({ size: 'lg' });
-
-      renderWithProvider(<PredictBetButton {...props} />);
-
-      expect(screen.getByTestId('bet-button')).toBeOnTheScreen();
-    });
-  });
-
   describe('team color styling', () => {
     it('renders with team color background when teamColor is provided', () => {
       const props = createDefaultProps({ teamColor: '#002244' });
