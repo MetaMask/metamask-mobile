@@ -1,11 +1,16 @@
 import React, { useRef, useEffect } from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import PredictGameAboutSheet from './PredictGameAboutSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
+  openURL: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -137,7 +142,7 @@ describe('PredictGameAboutSheet', () => {
   });
 
   describe('terms link', () => {
-    it('opens Polymarket terms URL when pressed', () => {
+    it('opens Polymarket terms URL when pressed', async () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return (
@@ -146,14 +151,19 @@ describe('PredictGameAboutSheet', () => {
       };
 
       const { getByText } = render(<TestComponent />);
-      fireEvent.press(getByText('Read the full contract terms and conditions'));
+
+      await act(async () => {
+        fireEvent.press(
+          getByText('Read the full contract terms and conditions'),
+        );
+      });
 
       expect(Linking.openURL).toHaveBeenCalledWith(
         'https://polymarket.com/tos',
       );
     });
 
-    it('calls openURL only once per press', () => {
+    it('calls openURL only once per press', async () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return (
@@ -162,9 +172,42 @@ describe('PredictGameAboutSheet', () => {
       };
 
       const { getByText } = render(<TestComponent />);
-      fireEvent.press(getByText('Read the full contract terms and conditions'));
+
+      await act(async () => {
+        fireEvent.press(
+          getByText('Read the full contract terms and conditions'),
+        );
+      });
 
       expect(Linking.openURL).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs error when Linking.openURL fails', async () => {
+      const mockError = new Error('Failed to open URL');
+      (Linking.openURL as jest.Mock).mockRejectedValueOnce(mockError);
+
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictGameAboutSheet ref={ref} description={defaultDescription} />
+        );
+      };
+
+      const { getByText } = render(<TestComponent />);
+
+      await act(async () => {
+        fireEvent.press(
+          getByText('Read the full contract terms and conditions'),
+        );
+      });
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(mockError, {
+          message: 'Failed to open Polymarket terms URL',
+          feature: 'predict',
+          operation: 'openTermsUrl',
+        });
+      });
     });
   });
 

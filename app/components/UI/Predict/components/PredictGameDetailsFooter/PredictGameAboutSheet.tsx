@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useCallback } from 'react';
 import { Linking } from 'react-native';
 import {
   Box,
@@ -11,18 +11,26 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
+import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import { POLYMARKET_TERMS_URL } from '../../providers/polymarket/constants';
 import { PredictGameAboutSheetProps } from './PredictGameDetailsFooter.types';
-
-const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
 const PredictGameAboutSheet = forwardRef<
   BottomSheetRef,
   PredictGameAboutSheetProps
 >(({ description, onClose }, ref) => {
-  const handleTermsPress = () => {
-    Linking.openURL(POLYMARKET_TERMS_URL);
-  };
+  const handleTermsPress = useCallback(async () => {
+    try {
+      await Linking.openURL(POLYMARKET_TERMS_URL);
+    } catch (error) {
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        message: 'Failed to open Polymarket terms URL',
+        feature: 'predict',
+        operation: 'openTermsUrl',
+      });
+    }
+  }, []);
 
   const handleClose = () => {
     onClose?.();

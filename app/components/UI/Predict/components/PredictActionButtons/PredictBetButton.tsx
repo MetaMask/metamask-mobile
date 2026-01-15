@@ -37,7 +37,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
   return (
     <Button
       onPress={onPress}
-      disabled={disabled}
+      isDisabled={disabled}
       testID={testID}
       style={{ backgroundColor: getBackgroundColor() }}
       isFullWidth
