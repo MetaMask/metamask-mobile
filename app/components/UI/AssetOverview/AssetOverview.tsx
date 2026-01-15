@@ -705,7 +705,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           }
 
           {/* Merkl Rewards Section */}
-          <MerklRewards asset={asset} exchangeRate={exchangeRate} />
+          <MerklRewards asset={asset} />
 
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />

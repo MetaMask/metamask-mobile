@@ -51,7 +51,6 @@ interface UseMerklRewardsReturn {
  */
 export const useMerklRewards = ({
   asset,
-  exchangeRate,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
 
@@ -110,7 +109,6 @@ export const useMerklRewards = ({
     asset.address,
     asset.decimals,
     selectedAddress,
-    exchangeRate,
     nativeCurrency,
     conversionRateByTicker,
     currentCurrency,

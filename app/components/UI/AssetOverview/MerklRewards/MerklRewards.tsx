@@ -17,7 +17,10 @@ interface MerklRewardsProps {
  * Main component to display Merkl rewards information and claim functionality
  * Handles eligibility checking and reward data fetching internally
  */
-const MerklRewards: React.FC<MerklRewardsProps> = ({ asset, exchangeRate }) => {
+const MerklRewards: React.FC<MerklRewardsProps> = ({
+  asset,
+  exchangeRate: _exchangeRate,
+}) => {
   const isEligible = isEligibleForMerklRewards(
     asset.chainId as Hex,
     asset.address as Hex,
@@ -26,7 +29,6 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({ asset, exchangeRate }) => {
   // Fetch claimable rewards data
   const { claimableReward } = useMerklRewards({
     asset,
-    exchangeRate,
   });
 
   if (!isEligible) {
