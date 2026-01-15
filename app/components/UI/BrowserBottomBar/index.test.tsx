@@ -13,7 +13,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 // Mock dependencies
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
-const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockAddProperties = jest.fn((_props) => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
   build: mockBuild,
@@ -110,10 +110,12 @@ describe('BrowserBottomBar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDispatch.mockClear();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
+    // Ensure mock implementations are restored after clearing
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }));
+    mockAddProperties.mockImplementation((_props) => ({ build: mockBuild }));
   });
 
   describe('Navigation Controls', () => {
@@ -781,7 +783,6 @@ describe('BrowserBottomBar', () => {
 
   describe('iOS Spotlight Integration', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
       (Device.isIos as jest.Mock).mockReturnValue(true);
     });
 
