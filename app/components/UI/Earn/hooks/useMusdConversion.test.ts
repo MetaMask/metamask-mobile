@@ -41,7 +41,6 @@ const mockNavigation = {
   addListener: jest.fn(),
   removeListener: jest.fn(),
   getId: jest.fn(),
-  getParent: jest.fn(),
   dangerouslyGetState: jest.fn(),
 };
 

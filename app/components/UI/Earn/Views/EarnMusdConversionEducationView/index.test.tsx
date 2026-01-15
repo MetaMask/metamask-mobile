@@ -102,7 +102,6 @@ describe('EarnMusdConversionEducationView', () => {
     jest.clearAllMocks();
 
     mockUseDispatch.mockReturnValue(mockDispatch);
-    // @ts-expect-error - partial mock of navigation is sufficient for testing
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUseFocusEffect.mockImplementation((callback) => {
       callback();

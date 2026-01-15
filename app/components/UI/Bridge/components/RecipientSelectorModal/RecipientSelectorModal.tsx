@@ -86,13 +86,13 @@ const RecipientSelectorModal: React.FC = () => {
     if (internalAccountId) {
       const internalAccount = internalAccountsById[internalAccountId];
       dispatch(setDestAddress(internalAccount.address));
-      navigation.goBack();
+      NavigationService.navigation?.goBack();
     }
   };
 
   const handleSelectExternalAccount = (address: string) => {
     dispatch(setDestAddress(address));
-    navigation.goBack();
+    NavigationService.navigation?.goBack();
   };
 
   // Filter account sections to only include accounts that support the destScope

@@ -213,10 +213,10 @@ describe('useRampNavigation', () => {
 
       describe('token selection routing', () => {
         it('navigates to TokenSelection when no assetId is provided', () => {
-          const mockNavDetails = [
+          const mockNavDetails: [string, undefined] = [
             Routes.RAMP.TOKEN_SELECTION,
             undefined,
-          ] as const;
+          ];
           mockCreateTokenSelectionNavigationDetails.mockReturnValue(
             mockNavDetails,
           );
@@ -233,10 +233,10 @@ describe('useRampNavigation', () => {
 
         it('navigates to TokenSelection when intent is provided without assetId', () => {
           const intent = { amount: '100', currency: 'USD' };
-          const mockNavDetails = [
+          const mockNavDetails: [string, undefined] = [
             Routes.RAMP.TOKEN_SELECTION,
             undefined,
-          ] as const;
+          ];
           mockCreateTokenSelectionNavigationDetails.mockReturnValue(
             mockNavDetails,
           );
@@ -255,10 +255,10 @@ describe('useRampNavigation', () => {
 
         it('navigates to TokenSelection when routing decision is null', () => {
           mockGetRampRoutingDecision.mockReturnValue(null);
-          const mockNavDetails = [
+          const mockNavDetails: [string, undefined] = [
             Routes.RAMP.TOKEN_SELECTION,
             undefined,
-          ] as const;
+          ];
           mockCreateTokenSelectionNavigationDetails.mockReturnValue(
             mockNavDetails,
           );

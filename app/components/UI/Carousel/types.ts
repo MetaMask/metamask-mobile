@@ -18,7 +18,8 @@ interface NavigationScreen {
 
 export type NavigationRoute =
   | readonly [string]
-  | readonly [string, NavigationScreen];
+  | readonly [string, NavigationScreen]
+  | readonly [string, NavigationScreen | undefined];
 
 export interface UrlNavigationAction {
   type: 'url';
