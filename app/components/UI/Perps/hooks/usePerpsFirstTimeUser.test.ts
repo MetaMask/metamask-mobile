@@ -171,7 +171,7 @@ describe('usePerpsFirstTimeUser', () => {
     expect(() => result.current.resetFirstTimeUserState()).not.toThrow();
   });
 
-  it('should call PerpsController.clearPendingTransactionRequests when clearPendingTransactionRequests is called', () => {
+  it('calls PerpsController.clearPendingTransactionRequests when invoked', () => {
     // Arrange
     mockUsePerpsSelector.mockImplementation(
       <T>(selector: (state: PerpsControllerState) => T) => {
@@ -197,7 +197,7 @@ describe('usePerpsFirstTimeUser', () => {
     expect(mockClearPendingTransactionRequests).toHaveBeenCalledWith();
   });
 
-  it('should handle PerpsController being undefined gracefully for clearPendingTransactionRequests', () => {
+  it('handles PerpsController being undefined gracefully for clearPendingTransactionRequests', () => {
     // Arrange
     mockUsePerpsSelector.mockImplementation(
       <T>(selector: (state: PerpsControllerState) => T) => {
