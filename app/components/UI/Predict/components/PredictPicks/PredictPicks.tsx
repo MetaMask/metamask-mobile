@@ -16,6 +16,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictMarket, PredictPosition } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PredictPicksProps {
   market: PredictMarket;
@@ -68,7 +69,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   return (
     <Box testID={testID} twClassName="flex-col">
       <Text variant={TextVariant.HeadingMd} twClassName="font-medium py-2">
-        Your Picks
+        {strings('predict.market_details.your_picks')}
       </Text>
       {livePositions.map((position) => (
         <Box
@@ -78,8 +79,12 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
         >
           <Box>
             <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-              {formatPrice(position.initialValue, { maximumDecimals: 2 })} on{' '}
-              {position.outcome}
+              {strings('predict.position_pick_info', {
+                initialValue: formatPrice(position.initialValue, {
+                  maximumDecimals: 2,
+                }),
+                outcome: position.outcome,
+              })}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
@@ -100,7 +105,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
             testID={`predict-picks-cash-out-button-${position.id}`}
           >
             <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-              Cash Out
+              {strings('predict.cash_out')}
             </Text>
           </Button>
         </Box>

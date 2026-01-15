@@ -8,6 +8,7 @@ import {
 
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { formatPrice } from '../../utils/format';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PredictPicksForCardProps {
   marketId: string;
@@ -30,7 +31,14 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
           twClassName="flex-row justify-between items-center gap-2"
           key={position.id}
         >
-          <Text>{`${formatPrice(position.initialValue, { maximumDecimals: 2 })} on ${position.outcome} to win`}</Text>
+          <Text>
+            {strings('predict.position_pick_info_to_win', {
+              initialValue: formatPrice(position.initialValue, {
+                maximumDecimals: 2,
+              }),
+              outcome: position.outcome,
+            })}
+          </Text>
           <Box twClassName="flex-row gap-2">
             <Text
               color={

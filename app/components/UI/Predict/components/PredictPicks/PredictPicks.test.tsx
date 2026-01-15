@@ -209,7 +209,7 @@ describe('PredictPicks', () => {
 
       render(<PredictPicks market={createMockMarket()} />);
 
-      expect(screen.getByText('Your Picks')).toBeOnTheScreen();
+      expect(screen.getByText('Your picks')).toBeOnTheScreen();
     });
   });
 
@@ -282,7 +282,7 @@ describe('PredictPicks', () => {
 
       render(<PredictPicks market={createMockMarket()} />);
 
-      expect(screen.getByText('Cash Out')).toBeOnTheScreen();
+      expect(screen.getByText('Cash out')).toBeOnTheScreen();
     });
   });
 
@@ -323,7 +323,7 @@ describe('PredictPicks', () => {
 
       render(<PredictPicks market={createMockMarket()} />);
 
-      const cashOutButtons = screen.getAllByText('Cash Out');
+      const cashOutButtons = screen.getAllByText('Cash out');
 
       expect(cashOutButtons).toHaveLength(2);
     });
