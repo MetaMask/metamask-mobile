@@ -1,13 +1,11 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
-import { BigNumber } from 'bignumber.js';
 import Text, {
   TextColor,
   TextVariant,
@@ -33,7 +31,7 @@ import { getMusdConversionTransactionDetailsNavbar } from '../../../Navbar';
 import { useMultichainBlockExplorerTxUrl } from '../../../Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { calcHexGasTotal } from '../../../Bridge/utils/transactionGas';
-import { parseStandardTokenTransactionData } from '../../../../Views/confirmations/utils/transaction';
+import { getConversionTransfersFromLogs } from './utils';
 import {
   selectTransactionsByBatchId,
   selectTransactionsByIds,
@@ -67,9 +65,7 @@ export const MusdConversionTransactionDetails = ({
     chainId,
     status,
     time,
-    hash,
     metamaskPay,
-    txParams,
     batchId,
     requiredTransactionIds,
   } = transactionMeta;
@@ -108,73 +104,71 @@ export const MusdConversionTransactionDetails = ({
 
   // Find the last transaction with a valid hash (not '0x0' placeholder)
   // Child transactions are ordered by nonce, so the last one is the main conversion
-  const realTxHash = useMemo(() => {
-    // If the main transaction has a valid hash, use it
-    if (hash && hash !== '0x0') {
-      return hash;
-    }
-
+  const convertTransaction = useMemo(() => {
     // Find the last child transaction with a valid hash
     const transactionsWithHashes = relatedTransactions.filter(
       (tx) => tx.hash && tx.hash !== '0x0',
     );
 
     if (transactionsWithHashes.length > 0) {
-      return transactionsWithHashes[transactionsWithHashes.length - 1].hash;
+      return transactionsWithHashes[transactionsWithHashes.length - 1];
     }
 
     return undefined;
-  }, [hash, relatedTransactions]);
+  }, [relatedTransactions]);
 
   // Get block explorer URL using the same hook as Bridge/Swap
   const chainIdNumber = chainId ? parseInt(chainId, 16) : undefined;
   const explorerData = useMultichainBlockExplorerTxUrl({
     chainId: chainIdNumber,
-    txHash: realTxHash,
+    txHash: convertTransaction?.hash,
   });
 
   // Get source token data using useTokenWithBalance (same as swap flow)
-  const payChainId = (metamaskPay?.chainId ?? chainId) as Hex;
-  const payTokenAddress = (metamaskPay?.tokenAddress ?? '0x0') as Hex;
+  const payChainId = metamaskPay?.chainId ?? chainId;
+  const payTokenAddress = metamaskPay?.tokenAddress ?? '0x0';
   const sourceTokenInfo = useTokenWithBalance(payTokenAddress, payChainId);
 
-  // Parse transaction data to get the actual amount transferred
-  // Using the local parseStandardTokenTransactionData which is more robust
-  const parsedAmountRaw = useMemo(() => {
-    const data = txParams?.data;
-    if (!data) return null;
+  // Get MUSD token address for this chain
+  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
 
-    try {
-      const transactionData = parseStandardTokenTransactionData(data);
-      if (transactionData?.args?._value) {
-        // Convert BigNumber to string (base 10)
-        return new BigNumber(transactionData.args._value.toString()).toString(
-          10,
-        );
+  // State for input/output amounts from transaction logs
+  const [inputAmountRaw, setInputAmountRaw] = useState<string | null>(null);
+  const [outputAmountRaw, setOutputAmountRaw] = useState<string | null>(null);
+
+  // Fetch input and output transfer amounts from transaction logs
+  useEffect(() => {
+    const fetchTransfers = async () => {
+      if (!convertTransaction?.hash || !chainId) {
+        return;
       }
-    } catch {
-      // Ignore parsing errors
-    }
 
-    return null;
-  }, [txParams?.data]);
+      const { input, output } = await getConversionTransfersFromLogs(
+        convertTransaction.hash,
+        chainId,
+      );
 
-  // Get the actual amount formatted with proper decimals
+      if (input) {
+        setInputAmountRaw(input.amount);
+      }
+      if (output) {
+        setOutputAmountRaw(output.amount);
+      }
+    };
+
+    fetchTransfers();
+  }, [convertTransaction?.hash, chainId]);
+
+  // Get the source token amount from logs (first transfer)
   const sourceTokenAmount = useMemo(() => {
     const decimals = sourceTokenInfo?.decimals ?? 6; // Default to 6 for stablecoins
 
-    // Use parsed amount from transaction data
-    if (parsedAmountRaw) {
-      return calcTokenAmount(parsedAmountRaw, decimals).toFixed(5);
-    }
-
-    // Fallback to metamaskPay tokenAmount if available
-    if (metamaskPay?.tokenAmount) {
-      return calcTokenAmount(metamaskPay.tokenAmount, decimals).toFixed(5);
+    if (inputAmountRaw) {
+      return calcTokenAmount(inputAmountRaw, decimals).toFixed(5);
     }
 
     return '0';
-  }, [parsedAmountRaw, metamaskPay?.tokenAmount, sourceTokenInfo?.decimals]);
+  }, [inputAmountRaw, sourceTokenInfo?.decimals]);
 
   // Create source token object (same structure as swap flow)
   const sourceToken: BridgeToken | null = sourceTokenInfo
@@ -189,26 +183,32 @@ export const MusdConversionTransactionDetails = ({
     : null;
 
   // Get destination token data (MUSD) - same amount as source (1:1 conversion)
-  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId as Hex];
   const destinationToken: BridgeToken = {
     address: musdAddress || '0x0',
     symbol: MUSD_TOKEN.symbol,
     decimals: MUSD_TOKEN.decimals,
     name: MUSD_TOKEN.name,
-    image: getAssetImageUrl(musdAddress?.toLowerCase() ?? '', chainId as Hex),
-    chainId: chainId as Hex,
+    image: getAssetImageUrl(musdAddress?.toLowerCase() ?? '', chainId),
+    chainId,
   };
 
-  // MUSD amount is same as source amount (1:1 conversion)
-  const destinationTokenAmount = sourceTokenAmount;
+  // MUSD received amount from transaction logs (last transfer)
+  const destinationTokenAmount = useMemo(() => {
+    if (outputAmountRaw) {
+      return calcTokenAmount(outputAmountRaw, MUSD_TOKEN.decimals).toFixed(5);
+    }
+    // Fallback to source amount while loading
+    return sourceTokenAmount;
+  }, [outputAmountRaw, sourceTokenAmount]);
 
   const dateString = time ? toDateFormat(time) : 'N/A';
 
   // Calculate gas fee using the same method as swap flow
   const gasFee = useMemo(() => {
-    const hexGasTotal = calcHexGasTotal(transactionMeta);
+    if (!convertTransaction) return '0';
+    const hexGasTotal = calcHexGasTotal(convertTransaction);
     return calcTokenAmount(hexGasTotal, 18).toFixed(5);
-  }, [transactionMeta]);
+  }, [convertTransaction]);
 
   // Get native token symbol using the same method as swap flow
   const nativeTokenSymbol = useMemo(() => {
@@ -233,8 +233,11 @@ export const MusdConversionTransactionDetails = ({
   };
 
   return (
-    <ScreenView testID={MusdConversionTransactionDetailsSelectorsIDs.CONTAINER}>
-      <Box style={styles.transactionContainer}>
+    <ScreenView>
+      <Box
+        style={styles.transactionContainer}
+        testID={MusdConversionTransactionDetailsSelectorsIDs.CONTAINER}
+      >
         <Box style={styles.transactionAssetsContainer}>
           {sourceToken && (
             <TransactionAsset
@@ -250,7 +253,7 @@ export const MusdConversionTransactionDetails = ({
           <TransactionAsset
             token={destinationToken}
             tokenAmount={destinationTokenAmount}
-            chainId={chainId as Hex}
+            chainId={chainId}
             txType={TransactionType.swap}
           />
         </Box>
@@ -263,7 +266,7 @@ export const MusdConversionTransactionDetails = ({
           </Text>
           <Text
             variant={TextVariant.BodyMDMedium}
-            color={TxStatusToColorMap[status as TransactionStatus]}
+            color={TxStatusToColorMap[status]}
             style={styles.textTransform}
           >
             {status}

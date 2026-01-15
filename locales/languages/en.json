@@ -7298,8 +7298,7 @@
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",
-      "received_total": "Received total",
-      "steps": "Steps"
+      "received_total": "Received total"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
@@ -7312,8 +7311,7 @@
       "perps_deposit": "Add funds",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
-      "swap_approval": "Approve tokens",
-      "musd_conversion": "Convert to mUSD"
+      "swap_approval": "Approve tokens"
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
