@@ -297,7 +297,8 @@ jobs:
           fi
 
           # Decode the key
-          export EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          export EXPO_KEY_PRIV
           echo "✅ Expo key decoded and exported"
 
           echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
