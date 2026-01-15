@@ -85,7 +85,6 @@ import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
-import Device from '../../util/device';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -369,22 +368,6 @@ class AuthenticationService {
       }
     }
 
-    // if biometric option is disabled previously , fall back to PASSCODE ( for ios only )
-    // if passcode option is disable, do not return PASSCODE
-    if (
-      availableBiometryType &&
-      // Android having issue with passcode in keystore ( data in keystore not able secure by/prompt passcode)
-      Device.isIos() &&
-      biometryPreviouslyDisabled === TRUE &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType,
-      };
-    }
-
-    // if biometric option is previously disabled, do not return BIOMETRIC
     if (
       availableBiometryType &&
       !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
@@ -394,7 +377,16 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-
+    // Then check passcode
+    if (
+      availableBiometryType &&
+      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+    ) {
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
+    }
     // Default to password
     return {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -564,7 +556,12 @@ class AuthenticationService {
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
 
-    const authTypeComputed = await this.checkAuthenticationMethod();
+    const passcodeDisabled = await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    const biometryDisabled = await StorageWrapper.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+
     if (
       rememberMe &&
       ReduxService.store.getState().security.allowLoginWithRememberMe
@@ -576,22 +573,34 @@ class AuthenticationService {
     } else if (
       biometryChoice &&
       availableBiometryType &&
-      authTypeComputed.currentAuthType === AUTHENTICATION_TYPE.PASSCODE
+      biometryDisabled === TRUE &&
+      passcodeDisabled === TRUE
     ) {
+      // this case is where user disable both passcode and biometric
+      // we should not show the login switch for this case, hence will not reach this condition
+      // return biometric type for now to prevent unexpected behaviour
       return {
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType,
       };
     } else if (
       biometryChoice &&
       availableBiometryType &&
-      authTypeComputed.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC
+      biometryDisabled === TRUE
     ) {
+      // return passcode since biometric is disabled
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
+    } else if (biometryChoice && availableBiometryType) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType,
       };
     }
+
+    // if biometricChoice or availableBiometryType is false, return PASSWORD
     return {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
       availableBiometryType,

@@ -31,10 +31,7 @@ import {
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
 import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
@@ -126,15 +123,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
-  const [biometryType, setBiometryType] = useState<
-    BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null
+  const [biometryIconType, setBiometryIconType] = useState<
+    BIOMETRY_TYPE | AUTHENTICATION_TYPE.PASSCODE | null
   >(null);
+  const [biometrySwitchType, setBiometrySwitchType] =
+    useState<AUTHENTICATION_TYPE | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const [startFoxAnimation, setStartFoxAnimation] = useState<
     undefined | 'Start' | 'Loader'
   >(undefined);
@@ -218,29 +216,54 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const authData = await Authentication.getType();
 
       //Setup UI to handle Biometric
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
+      const biometricDisabled =
+        (await StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED)) === TRUE;
+      const passcodeDisabled =
+        (await StorageWrapper.getItem(PASSCODE_DISABLED)) === TRUE;
 
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-        setHasBiometricCredentials(!route?.params?.locked);
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
-      } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
-        setHasBiometricCredentials(false);
+      // priotize remember me
+      if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
         setRememberMe(true);
         setAllowLoginWithRememberMe(true);
+        return;
+      } else if (
+        authData.availableBiometryType &&
+        biometricDisabled &&
+        passcodeDisabled
+      ) {
+        // this case is where user disable both passcode and biometric
+        // we should not show the login switch for this case ?, but for backward compabilty
+        // set biometric type for biometric switch
+        setBiometrySwitchType(AUTHENTICATION_TYPE.BIOMETRIC);
+        setBiometryChoice(false);
+        // set accessory icon to null as both biometric and passcode is disabled
+        setBiometryIconType(null);
+        return;
+      } else if (authData.availableBiometryType && biometricDisabled) {
+        // set passcode for biometric switch since biometric is disabled
+        setBiometrySwitchType(AUTHENTICATION_TYPE.PASSCODE);
+        const hasCredentials =
+          authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE;
+        setBiometryChoice(hasCredentials);
+
+        // check if passcode credentials are available, if so set the icon type to passcode
+        if (hasCredentials) setBiometryIconType(AUTHENTICATION_TYPE.PASSCODE);
+        return;
       } else if (authData.availableBiometryType) {
-        Logger.log('authData', authData);
-        setBiometryType(authData.availableBiometryType);
-        setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
-        );
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+        // set biometric type for biometric switch since biometric is not disabled
+        setBiometrySwitchType(AUTHENTICATION_TYPE.BIOMETRIC);
+        const hasCredentials =
+          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC;
+        setBiometryChoice(hasCredentials);
+
+        // check if biometric credentials are available, if so set the icon type to biometric
+        if (hasCredentials) setBiometryIconType(authData.availableBiometryType);
+      } else {
+        // there are no biometric available, set all states to false
+        // hide both Icon and Switch
+        setBiometrySwitchType(null);
+        setBiometryIconType(null);
+        setBiometryChoice(false);
       }
     };
 
@@ -422,7 +445,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleLogin = async () => {
     await onLogin();
     setPassword('');
-    setHasBiometricCredentials(false);
     fieldRef.current?.clear();
   };
 
@@ -443,7 +465,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
       setLoading(false);
     } catch (tryBiometricError) {
-      setHasBiometricCredentials(true);
       setLoading(false);
       Logger.log(tryBiometricError);
     }
@@ -453,11 +474,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     fieldRef.current?.blur();
     await tryBiometric();
     setPassword('');
-    setHasBiometricCredentials(false);
     fieldRef.current?.clear();
   };
-  // show biometric switch to true even if biometric is disabled
-  const shouldRenderBiometricLogin = biometryType;
 
   // Redirect users to OAuthRehydration screen
   useEffect(() => {
@@ -483,13 +501,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     track(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS, {});
     downloadStateLogs(fullState, false);
   };
-
-  const shouldHideBiometricAccessoryButton = !(
-    biometryChoice &&
-    biometryType &&
-    hasBiometricCredentials &&
-    !route?.params?.locked
-  );
 
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
@@ -531,8 +542,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 endAccessory={
                   <BiometryButton
                     onPress={handleTryBiometric}
-                    hidden={shouldHideBiometricAccessoryButton}
-                    biometryType={biometryType as BIOMETRY_TYPE}
+                    hidden={!biometryIconType}
+                    biometryType={biometryIconType}
                   />
                 }
                 keyboardAppearance={themeAppearance}
@@ -554,7 +565,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
             <View style={styles.ctaWrapper} pointerEvents="box-none">
               <LoginOptionsSwitch
-                shouldRenderBiometricOption={shouldRenderBiometricLogin}
+                shouldRenderBiometricOption={biometrySwitchType}
                 biometryChoiceState={biometryChoice}
                 onUpdateBiometryChoice={updateBiometryChoice}
                 onUpdateRememberMe={setRememberMe}

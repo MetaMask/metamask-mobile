@@ -358,7 +358,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
-  it('returns PASSWORD type on Android when biometric is disabled (passcode not supported)', async () => {
+  it('returns PASSCODE type on Android when biometric is disabled ', async () => {
     mockDevice.isIos.mockReturnValue(false);
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
@@ -375,7 +375,7 @@ describe('Authentication', () => {
 
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
   it('returns PASSWORD type when both biometric and passcode are disabled', async () => {
@@ -605,31 +605,6 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
-  it('returns PASSWORD type for components on Android when passcode was previously chosen (passcode not supported)', async () => {
-    mockDevice.isIos.mockReturnValue(false);
-    SecureKeychain.getSupportedBiometryType = jest
-      .fn()
-      .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    // PASSCODE_DISABLED is not set (null/undefined) - represents user who chose PASSCODE
-    // BIOMETRY_CHOICE_DISABLED is set to represent that biometrics are disabled
-    await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
-    // Mock Redux store to return allowLoginWithRememberMe: false
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({
-        user: { existingUser: false },
-        security: { allowLoginWithRememberMe: false },
-      }),
-    } as unknown as ReduxStore);
-
-    const result = await Authentication.componentAuthenticationType(
-      true,
-      false,
-    );
-    expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
-  });
-
   it('returns BIOMETRIC type for components when biometric was previously chosen (PASSCODE_DISABLED is TRUE)', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
@@ -738,7 +713,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
   });
 
-  it('returns PASSWORD type when PASSCODE_DISABLED is TRUE and BIOMETRY_CHOICE_DISABLED is TRUE even if biometryChoice is true ', async () => {
+  it('returns BIOMETRIC type when PASSCODE_DISABLED is TRUE and BIOMETRY_CHOICE_DISABLED is TRUE and biometryChoice is true ', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
@@ -760,7 +735,7 @@ describe('Authentication', () => {
       false,
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
   describe('storePassword (protected method tested via updateAuthPreference)', () => {
