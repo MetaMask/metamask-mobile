@@ -1,27 +1,10 @@
 import { Matchers, Gestures, Assertions } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
-  TrendingViewSelectorsText,
+  SECTION_BACK_BUTTONS,
+  DETAILS_BACK_BUTTONS,
 } from '../../selectors/Trending/TrendingView.selectors';
 import { PredictMarketListSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
-
-// Map section to its full view back button Test ID
-const SECTION_BACK_BUTTONS: Record<string, string> = {
-  [TrendingViewSelectorsText.SECTION_TOKENS]:
-    'trending-tokens-header-back-button',
-  [TrendingViewSelectorsText.SECTION_PERPS]:
-    'perps-market-list-close-button-back-button',
-  [TrendingViewSelectorsText.SECTION_SITES]:
-    'sites-full-view-header-back-button',
-  [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button',
-};
-
-// Map item type to its details page back button Test ID
-const DETAILS_BACK_BUTTONS: Record<string, string> = {
-  token: 'back-arrow-button',
-  perp: 'perps-market-header-back-button',
-  prediction: 'predict-market-details-back-button',
-};
 
 class TrendingView {
   get trendingTab(): DetoxElement {
@@ -158,10 +141,37 @@ class TrendingView {
   }
 
   /**
+   * Scroll horizontally to make QuickAction button visible
+   */
+  private async scrollToQuickAction(
+    element: DetoxElement,
+    description: string,
+  ): Promise<void> {
+    await Gestures.scrollToElement(
+      element,
+      Matchers.getIdentifier(
+        TrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
+      ),
+      {
+        direction: 'right',
+        scrollAmount: 200,
+        elemDescription: description,
+      },
+    );
+  }
+
+  /**
    * Tap on QuickAction button (buttons below search bar)
    */
   async tapQuickAction(sectionTitle: string): Promise<void> {
     const quickActionButton = this.getQuickActionButton(sectionTitle);
+
+    // Scroll horizontally if needed to make the button visible
+    await this.scrollToQuickAction(
+      quickActionButton,
+      `Scroll to ${sectionTitle} QuickAction button`,
+    );
+
     await Gestures.tap(quickActionButton, {
       elemDescription: `Tap QuickAction button for ${sectionTitle}`,
     });
@@ -374,6 +384,21 @@ class TrendingView {
       Matchers.getElementByID(PredictMarketListSelectorsIDs.CATEGORY_TABS),
       {
         description: 'Predictions Category Tabs should be visible (Full View)',
+      },
+    );
+  }
+
+  /**
+   * Scroll down in search results to ensure Google Search Option is visible
+   */
+  async scrollToGoogleSearchOption(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.googleSearchButton,
+      Matchers.getIdentifier(TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST),
+      {
+        direction: 'down',
+        scrollAmount: 300,
+        elemDescription: 'Scroll to Google search option',
       },
     );
   }

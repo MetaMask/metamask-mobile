@@ -1,3 +1,5 @@
+import { PerpsMarketListViewSelectorsIDs } from '../Perps/Perps.selectors';
+
 export const TrendingViewSelectorsIDs = {
   TAB_BAR_ITEM: 'tab-bar-item-Trending',
   SEARCH_BUTTON: 'explore-view-search-button',
@@ -10,6 +12,8 @@ export const TrendingViewSelectorsIDs = {
   SITE_ROW_ITEM: 'site-row-item',
   SEARCH_FOOTER_GOOGLE_LINK: 'trending-search-footer-google-link',
   SCROLL_VIEW: 'trending-feed-scroll-view',
+  QUICK_ACTIONS_SCROLL_VIEW: 'quick-actions-scroll-view',
+  SEARCH_RESULTS_LIST: 'trending-search-results-list',
   VIEW_ALL_BUTTON_PREFIX: 'section-header-view-all-',
 } as const;
 
@@ -21,3 +25,20 @@ export const TrendingViewSelectorsText = {
   SECTION_PERPS: 'Perps',
   SECTION_SITES: 'Sites',
 } as const;
+
+// Map section to its full view back button Test ID
+export const SECTION_BACK_BUTTONS: Record<string, string> = {
+  [TrendingViewSelectorsText.SECTION_TOKENS]:
+    'trending-tokens-header-back-button',
+  [TrendingViewSelectorsText.SECTION_PERPS]: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+  [TrendingViewSelectorsText.SECTION_SITES]:
+    'sites-full-view-header-back-button',
+  [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button',
+};
+
+// Map item type to its details page back button Test ID
+export const DETAILS_BACK_BUTTONS: Record<string, string> = {
+  token: 'back-arrow-button',
+  perp: 'perps-market-header-back-button',
+  prediction: 'predict-market-details-back-button',
+};

@@ -8,16 +8,17 @@ import TrendingView from '../../pages/Trending/TrendingView';
 import { TrendingViewSelectorsText } from '../../selectors/Trending/TrendingView.selectors';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import {
+  remoteFeatureFlagTrendingTokensEnabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    // Enable the trending feature flag
+    // Enable the trending feature flag and predict trading (needed for Predictions section)
     await setupRemoteFeatureFlagsMock(mockServer, {
-      trendingTokens: true,
-      predictTradingEnabled: {
-        enabled: true,
-        minimumVersion: '7.60.0',
-      },
+      ...remoteFeatureFlagTrendingTokensEnabled(),
+      ...remoteFeatureFlagPredictEnabled(),
     });
 
     // Setup API mocks using centralized definition

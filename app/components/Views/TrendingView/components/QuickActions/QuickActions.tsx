@@ -32,7 +32,11 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
 
   return (
     <Box twClassName="mt-1 mb-4">
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        testID="quick-actions-scroll-view"
+      >
         <Box twClassName="flex-row gap-2">
           {visibleSections.map((section) => (
             <TouchableOpacity

@@ -11,13 +11,15 @@ import { Assertions } from '../../framework';
 import TrendingView from '../../pages/Trending/TrendingView';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     // Enable the trending feature flag
-    await setupRemoteFeatureFlagsMock(mockServer, {
-      trendingTokens: true,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureFlagTrendingTokensEnabled(),
+    );
 
     // Setup API mocks using centralized definition
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);

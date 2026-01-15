@@ -157,6 +157,10 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   },
 });
 
+export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
+  trendingTokens: enabled,
+});
+
 export const remoteFeatureFlagSendRedesignDisabled = {
   urlEndpoint:
     'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
