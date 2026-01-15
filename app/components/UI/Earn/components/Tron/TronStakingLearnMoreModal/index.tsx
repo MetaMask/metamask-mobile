@@ -8,26 +8,13 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import {
-  ButtonProps,
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button/Button.types';
-import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  EVENT_LOCATIONS,
-  EVENT_PROVIDERS,
-} from '../../../../Stake/constants/events';
 import { endTrace, trace, TraceName } from '../../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../constants/experiences';
 import useTronStakeApy from '../../../hooks/useTronStakeApy';
 import styleSheet from './TronStakingLearnMoreModal.styles';
+import { LearnMoreModalFooter } from '../../../../Stake/components/LearnMoreModal';
 
 const TRON_STAKING_FAQ_URL =
   'https://support.metamask.io/metamask-portfolio/move-crypto/stake/';
@@ -68,8 +55,6 @@ const BodyText = () => {
 
 const TronStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigate } = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const { apyPercent, isLoading } = useTronStakeApy();
@@ -92,42 +77,6 @@ const TronStakingLearnMoreModal = () => {
     }
   }, [isLoading, apyPercent]);
 
-  const redirectToLearnMore = () => {
-    navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: TRON_STAKING_FAQ_URL,
-      },
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          text: 'Learn More',
-          location: EVENT_LOCATIONS.LEARN_MORE_MODAL,
-        })
-        .build(),
-    );
-  };
-
-  const footerButtons: ButtonProps[] = [
-    {
-      variant: ButtonVariants.Secondary,
-      label: strings('stake.learn_more'),
-      size: ButtonSize.Lg,
-      labelTextVariant: TextVariant.BodyMDMedium,
-      onPress: redirectToLearnMore,
-    },
-    {
-      variant: ButtonVariants.Primary,
-      label: strings('stake.got_it'),
-      labelTextVariant: TextVariant.BodyMDMedium,
-      size: ButtonSize.Lg,
-      onPress: handleClose,
-    },
-  ];
-
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <ScrollView bounces={false}>
@@ -148,9 +97,9 @@ const TronStakingLearnMoreModal = () => {
         )}
         <BodyText />
       </ScrollView>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={footerButtons}
+      <LearnMoreModalFooter
+        onClose={handleClose}
+        learnMoreUrl={TRON_STAKING_FAQ_URL}
         style={styles.footer}
       />
     </BottomSheet>
