@@ -100,6 +100,21 @@ jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
 }));
 
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
+
+jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: jest.fn(() => ({
+    isEligible: true,
+    geolocation: 'US',
+    blockedCountries: [],
+  })),
+}));
+
+const mockUseMusdConversionEligibility =
+  useMusdConversionEligibility as jest.MockedFunction<
+    typeof useMusdConversionEligibility
+  >;
+
 jest.mock('../../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
     selectPrimaryEarnExperienceTypeForAsset: jest.fn(() => 'pooled-staking'),
@@ -248,6 +263,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
     isTokenWithCta?: boolean;
+    isGeoEligible?: boolean;
   }
 
   function prepareMocks({
@@ -255,6 +271,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
     isTokenWithCta = false,
+    isGeoEligible = true,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
@@ -266,7 +283,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     }));
 
     mockShouldShowTokenListItemCta.mockReturnValue(
-      isMusdConversionEnabled && isTokenWithCta,
+      isMusdConversionEnabled && isTokenWithCta && isGeoEligible,
     );
 
     // mUSD conversion mocks
@@ -279,6 +296,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
+    });
+    mockUseMusdConversionEligibility.mockReturnValue({
+      isEligible: isGeoEligible,
+      geolocation: isGeoEligible ? 'US' : 'GB',
+      blockedCountries: isGeoEligible ? [] : ['GB'],
     });
 
     // Default mock setup
@@ -575,6 +597,28 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+3.20%')).toBeOnTheScreen();
+      expect(queryByText('Convert to mUSD')).toBeNull();
+    });
+
+    it('hides mUSD conversion CTA when user is geo-blocked', () => {
+      prepareMocks({
+        asset: usdcAsset,
+        pricePercentChange1d: 1.5,
+        isMusdConversionEnabled: true,
+        isTokenWithCta: true,
+        isGeoEligible: false,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('+1.50%')).toBeOnTheScreen();
       expect(queryByText('Convert to mUSD')).toBeNull();
     });
 

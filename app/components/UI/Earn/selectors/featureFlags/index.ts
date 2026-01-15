@@ -266,3 +266,56 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
     return remoteValue ?? localValue ?? FALLBACK_MIN_ASSET_BALANCE_REQUIRED;
   },
 );
+
+/**
+ * Parses a comma-separated string of country codes into an array.
+ * Returns empty array if input is undefined/empty.
+ *
+ * @param envValue - Comma-separated country codes (e.g., "GB,US,FR")
+ * @returns Array of country codes
+ */
+export const parseBlockedCountriesEnv = (envValue?: string): string[] => {
+  if (!envValue || envValue.trim() === '') {
+    return [];
+  }
+  return envValue
+    .split(',')
+    .map((code) => code.trim().toUpperCase())
+    .filter((code) => code.length > 0);
+};
+
+/**
+ * Selects the geo-blocked countries for mUSD conversion from remote config or local fallback.
+ * Returns an array of ISO 3166-1 alpha-2 country codes (e.g., ['GB', 'US']).
+ *
+ * The Ramps geolocation API returns country codes like "GB" or "US-CA" (country-region).
+ * Matching uses startsWith to handle both country-only and country-region formats.
+ *
+ * Remote flag takes precedence over local env var.
+ *
+ * Examples:
+ * - Remote: { "blockedRegions": ["GB"] }      - Block users in Great Britain
+ * - Remote: { "blockedRegions": ["GB", "US"] } - Block users in GB and US
+ * - Local env: "GB,US,FR"                        - Block users in GB, US, and FR
+ *
+ * If both remote and local are unavailable or invalid, returns [] (no geo-blocking).
+ */
+export const selectMusdConversionBlockedCountries = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    // Try remote flag first (takes precedence)
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionGeoBlockedCountries as
+        | { blockedRegions?: string[] }
+        | undefined;
+
+    if (Array.isArray(remoteFlag?.blockedRegions)) {
+      return remoteFlag.blockedRegions;
+    }
+
+    // Fallback to local env var
+    return parseBlockedCountriesEnv(
+      process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES,
+    );
+  },
+);
