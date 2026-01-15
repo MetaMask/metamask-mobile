@@ -1,9 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import {
-  useNavigation,
-  useRoute,
-  useNavigationState,
-} from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
@@ -26,7 +22,6 @@ import { useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
-  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -54,7 +49,6 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
@@ -85,7 +79,6 @@ import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnect
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
@@ -151,15 +144,12 @@ import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const clearStackNavigatorOptions = {
@@ -1091,11 +1081,8 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
-  const navigation = useNavigation();
-  const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
-  const { isEnabled: checkMetricsEnabled } = useMetrics();
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
