@@ -1988,7 +1988,8 @@
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
       "resolved_early": "Resolved early",
-      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket."
+      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket.",
+      "your_picks": "Your picks"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2008,6 +2009,8 @@
     "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} on {{outcomeGroupTitle}} • {{outcome}} at {{initialPrice}}",
     "position_info": "{{initialValue}} on {{outcome}} to win {{shares}}",
+    "position_pick_info": "{{initialValue}} on {{outcome}}",
+    "position_pick_info_to_win": "{{initialValue}} on {{outcome}} to win",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
