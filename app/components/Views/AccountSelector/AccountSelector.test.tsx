@@ -458,11 +458,11 @@ describe('AccountSelector', () => {
       fireEvent.press(addWalletButton);
 
       // Check for the "Add wallet" header text which indicates the component is rendered
-      expect(screen.getByText('Add wallet')).toBeDefined();
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
 
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
 
       // Restore fake timers for other tests
       jest.useFakeTimers();
@@ -506,7 +506,7 @@ describe('AccountSelector', () => {
         screen.getByTestId(
           AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
         ),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
 
       // Restore fake timers for other tests
       jest.useFakeTimers();
