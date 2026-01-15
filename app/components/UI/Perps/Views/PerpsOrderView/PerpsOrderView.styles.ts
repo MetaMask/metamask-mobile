@@ -115,5 +115,34 @@ const createStyles = (colors: Colors) =>
     pointsRightContainer: {
       alignItems: 'flex-end',
     },
+    amountInputContainer: {
+      padding: 16,
+    },
+    balanceRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    amountInput: {
+      flex: 1,
+      color: colors.text.default,
+      fontSize: 16,
+      padding: 0,
+      marginRight: 8,
+    },
+    tokenSymbolLabel: {
+      marginLeft: 8,
+    },
   });
 export default createStyles;

@@ -12,7 +12,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -340,6 +346,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
     undefined,
   );
+  const [swapAmount, setSwapAmount] = useState<string>('');
+  const [depositAmount, setDepositAmount] = useState<string>('');
 
   // Get available payment tokens and set default if none selected
   const paymentTokens = usePerpsPaymentTokens();
@@ -1400,6 +1408,48 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
 
+            {/* Amount Input - Only show when token is selected */}
+            {selectedToken && (
+              <View style={[styles.detailItem, styles.detailItemMiddle]}>
+                <View style={styles.amountInputContainer}>
+                  {/* Balance Display */}
+                  <View style={styles.balanceRow}>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      Balance:
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Default}
+                    >
+                      {selectedToken.balance || '0'} {selectedToken.symbol}
+                    </Text>
+                  </View>
+                  {/* Amount Input */}
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.amountInput}
+                      value={swapAmount}
+                      onChangeText={setSwapAmount}
+                      placeholder="Enter amount"
+                      placeholderTextColor={colors.text.alternative}
+                      keyboardType="decimal-pad"
+                      testID="perps-order-swap-amount-input"
+                    />
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                      style={styles.tokenSymbolLabel}
+                    >
+                      {selectedToken.symbol}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
             {/* SWAP Button */}
             <View
               style={[
@@ -1417,6 +1467,56 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 disabled={!selectedToken}
                 testID="perps-order-swap-button"
               />
+            </View>
+
+            {/* Deposit Amount Input */}
+            <View style={[styles.detailItem, styles.detailItemMiddle]}>
+              <View style={styles.amountInputContainer}>
+                {/* USDC Balance Display */}
+                <View style={styles.balanceRow}>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    USDC Balance:
+                  </Text>
+                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                    {(() => {
+                      const arbitrumBalances =
+                        contractBalancesPerChainId[
+                          ARBITRUM_MAINNET_CHAIN_ID_HEX
+                        ] || {};
+                      const usdcBalance =
+                        arbitrumBalances[USDC_ARBITRUM_MAINNET_ADDRESS] ||
+                        '0x0';
+                      return renderFromTokenMinimalUnit(
+                        usdcBalance,
+                        USDC_DECIMALS,
+                      );
+                    })()}{' '}
+                    USDC
+                  </Text>
+                </View>
+                {/* Deposit Amount Input */}
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.amountInput}
+                    value={depositAmount}
+                    onChangeText={setDepositAmount}
+                    placeholder="Enter deposit amount"
+                    placeholderTextColor={colors.text.alternative}
+                    keyboardType="decimal-pad"
+                    testID="perps-order-deposit-amount-input"
+                  />
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.tokenSymbolLabel}
+                  >
+                    USDC
+                  </Text>
+                </View>
+              </View>
             </View>
 
             {/* DEPOSIT Button */}
@@ -1458,10 +1558,40 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       return;
                     }
 
+                    // Use depositAmount if provided, otherwise use full balance
+                    const depositAmountToUse =
+                      depositAmount && depositAmount.trim() !== ''
+                        ? depositAmount.trim()
+                        : balanceString;
+
+                    // Validate deposit amount
+                    const depositAmountNum =
+                      Number.parseFloat(depositAmountToUse);
+                    const balanceNum = Number.parseFloat(balanceString);
+                    if (
+                      Number.isNaN(depositAmountNum) ||
+                      depositAmountNum <= 0
+                    ) {
+                      Alert.alert(
+                        'Invalid Amount',
+                        'Please enter a valid deposit amount.',
+                        [{ text: 'OK' }],
+                      );
+                      return;
+                    }
+                    if (depositAmountNum > balanceNum) {
+                      Alert.alert(
+                        'Insufficient Balance',
+                        `You only have ${balanceString} USDC available.`,
+                        [{ text: 'OK' }],
+                      );
+                      return;
+                    }
+
                     // Show confirmation alert with deposit amount
                     Alert.alert(
                       'Confirm Deposit',
-                      `Deposit ${balanceString} USDC to Perps?`,
+                      `Deposit ${depositAmountToUse} USDC to Perps?`,
                       [
                         {
                           text: 'Cancel',
@@ -1488,9 +1618,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                               const bridgeContractAddress =
                                 route.contractAddress;
 
-                              // Convert balance to minimal units (USDC has 6 decimals)
+                              // Convert deposit amount to minimal units (USDC has 6 decimals)
                               const amountRaw = calcTokenValue(
-                                balanceString,
+                                depositAmountToUse,
                                 USDC_DECIMALS,
                               ).decimalPlaces(0, BigNumber.ROUND_UP);
 
