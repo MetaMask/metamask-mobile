@@ -217,7 +217,7 @@ jobs:
         run: |
           case "$TARGET" in
             exp)
-              SECRET_NAME="metamask-test-expo-signer"
+              SECRET_NAME="metamask-exp-expo-signer"
               ;;
             rc)
               SECRET_NAME="metamask-rc-expo-signer"
@@ -235,7 +235,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_TEST }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: 'us-east-2'
 
       - name: Fetch secret and export as environment variables
