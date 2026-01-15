@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { SwitchAccountModalSelectorIDs } from '../../../../../../../e2e/selectors/wallet/SwitchAccountModal.selectors';
+import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';

@@ -230,6 +230,12 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
+    perpsPerpGtmOnboardingModalEnabled: {
+      enabled: false,
+      minimumVersion: '7.60.0',
+    },
+  },
+  {
     enableMultichainAccounts: {
       enabled: true,
       featureVersion: '1',

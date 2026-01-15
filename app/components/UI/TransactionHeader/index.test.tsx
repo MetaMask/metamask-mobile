@@ -9,7 +9,7 @@ import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import TransactionTypes from '../../../core/TransactionTypes';
-import { TransactionReviewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/TransactionReview.selectors';
+import { TransactionReviewSelectorsIDs } from './TransactionReview.testIds';
 
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';

@@ -11,7 +11,7 @@ import {
   MOCK_ADDRESS_2,
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
 // eslint-disable-next-line import/no-namespace
 import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
