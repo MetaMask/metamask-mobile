@@ -119,6 +119,29 @@ interface TokenSelectorItemProps {
   isNoFeeAsset?: boolean;
 }
 
+const FiatBalanceView = ({
+  balance,
+  isSelected,
+}: {
+  balance?: string;
+  isSelected: boolean;
+}) => {
+  const { styles } = useStyles(createStyles, { isSelected });
+
+  if (!balance || balance === TOKEN_RATE_UNDEFINED) {
+    return null;
+  }
+
+  if (
+    balance === TOKEN_BALANCE_LOADING ||
+    balance === TOKEN_BALANCE_LOADING_UPPERCASE
+  ) {
+    return <View style={styles.skeleton} />;
+  }
+
+  return <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>;
+};
+
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   token,
   onPress,
@@ -244,13 +267,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
           {/* Token balance and fiat value */}
           <Box style={styles.balance} gap={4}>
-            {balance &&
-              (balance === TOKEN_BALANCE_LOADING ||
-              balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <View style={styles.skeleton} />
-              ) : balance === TOKEN_RATE_UNDEFINED ? null : (
-                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
-              ))}
+            <FiatBalanceView balance={balance} isSelected={isSelected} />
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
