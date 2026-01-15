@@ -1256,6 +1256,7 @@
       "transaction_id": "Transaction ID: {{txId}}",
       "swap_failed": "Swap Failed",
       "swap_error_message": "Failed to submit swap transaction: {{error}}",
+      "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
         "title": "Order placed successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",

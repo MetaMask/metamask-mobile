@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -65,6 +66,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { useUnifiedSwapBridgeContext } from '../../../Bridge/hooks/useUnifiedSwapBridgeContext';
 import { useTheme } from '../../../../../util/theme';
+import { ToastContext } from '../../../../../component-library/components/Toast';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -303,6 +305,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { markets } = usePerpsMarkets();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { toastRef } = useContext(ToastContext);
 
   // Find formatted market data for navigation
   const navigationMarketData = useMemo(
@@ -364,6 +367,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       return;
     }
 
+    // Show loading toast - use inProgress config as base
+    const inProgressConfig =
+      PerpsToastOptions.accountManagement.deposit.inProgress(undefined, '');
+    showToast({
+      ...inProgressConfig,
+      hasNoTimeout: true,
+      labelOptions: [
+        {
+          label: 'Converting balance to USDC on ARBITRUM',
+          isBold: true,
+        },
+      ],
+    });
+
     try {
       // Convert PerpsToken to BridgeToken format
       const sourceToken: BridgeToken = {
@@ -383,16 +400,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       dispatch(setDestToken(destToken));
       dispatch(setSelectedDestChainId(CHAIN_IDS.ARBITRUM));
 
-      // Get half of token balance for swap
       const fullBalance = selectedToken.balance || '0';
       const balanceNumber = Number.parseFloat(
         fullBalance === '.' ? '0' : fullBalance || '0',
       );
-      const halfBalance = (balanceNumber / 2).toString();
+      const partialBalance = (balanceNumber / 10).toString();
 
       // Normalize source amount to minimal units (half of balance)
       const normalizedSourceAmount = selectedToken.decimals
-        ? calcTokenValue(halfBalance, selectedToken.decimals).toFixed(0)
+        ? calcTokenValue(partialBalance, selectedToken.decimals).toFixed(0)
         : '0';
 
       // Request quote from BridgeController
@@ -434,26 +450,64 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
       // Show alert with transaction ID
       if (txResult?.id) {
-        Alert.alert(
-          strings('perps.order.swap_submitted'),
-          strings('perps.order.transaction_id', { txId: txResult.id }),
-          [{ text: 'OK' }],
+        Alert.alert('Swap Submitted', `Transaction ID: ${txResult.id}`, [
+          { text: 'OK' },
+        ]);
+
+        // Wait for transaction confirmation before closing toast
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionConfirmed',
+          () => {
+            // Close the loading toast when transaction is confirmed
+            toastRef?.current?.closeToast();
+          },
+          (transactionMeta) => transactionMeta.id === txResult.id,
         );
+
+        // Also handle failed/rejected transactions
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFailed',
+          () => {
+            toastRef?.current?.closeToast();
+          },
+          ({ transactionMeta }) => transactionMeta.id === txResult.id,
+        );
+
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionRejected',
+          () => {
+            toastRef?.current?.closeToast();
+          },
+          ({ transactionMeta }) => transactionMeta.id === txResult.id,
+        );
+      } else {
+        // If no transaction ID, close toast immediately
+        toastRef?.current?.closeToast();
       }
     } catch (error) {
+      // Close the loading toast on error
+      toastRef?.current?.closeToast();
       // Show error alert
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       Alert.alert(
-        strings('perps.order.swap_failed'),
-        strings('perps.order.swap_error_message', {
-          error: errorMessage,
-        }),
+        'Swap Failed',
+        `Failed to submit swap transaction: ${errorMessage}`,
         [{ text: 'OK' }],
       );
       console.error('Swap transaction failed:', error);
     }
-  }, [selectedToken, walletAddress, submitBridgeTx, context, quotes, dispatch]);
+  }, [
+    selectedToken,
+    walletAddress,
+    submitBridgeTx,
+    context,
+    quotes,
+    dispatch,
+    showToast,
+    PerpsToastOptions,
+    toastRef,
+  ]);
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
