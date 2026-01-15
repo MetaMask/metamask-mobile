@@ -738,7 +738,7 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
   });
 
-  it('returns PASSWORD type when PASSCODE_DISABLED is TRUE and biometryChoice is true, even if BIOMETRY_CHOICE_DISABLED was previously set', async () => {
+  it('returns PASSWORD type when PASSCODE_DISABLED is TRUE and BIOMETRY_CHOICE_DISABLED is TRUE even if biometryChoice is true ', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
