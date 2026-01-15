@@ -41,22 +41,8 @@ env:
   TARGET_CHANNEL: ${{ inputs.channel }}
 
 jobs:
-  setup-dependencies:
-    name: Setup Dependencies
-    needs:
-      - validate-pr
-    uses: ./.github/workflows/setup-node-modules.yml
-    with:
-      ref: ${{ inputs.commit_hash }}
-      fetch-depth: 0
-      upload-artifact: true
-      artifact-name: node-modules-eas-update
-      artifact-retention-days: 1
-
   fingerprint-comparison:
     name: Compare Expo Fingerprints
-    needs:
-      - setup-dependencies
     runs-on: ubuntu-latest
     outputs:
       branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
@@ -80,11 +66,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Download node_modules artifact (PR checkout)
-        uses: actions/download-artifact@v4
-        with:
-          name: node-modules-eas-update
 
       - name: Install dependencies
         run: |
@@ -213,7 +194,6 @@ jobs:
     needs:
       - fingerprint-comparison
       - approval
-      - setup-dependencies
       - validate-pr
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
@@ -277,20 +257,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: node-modules-eas-update
-
-      - name: Verify downloaded artifacts
+      - name: Install dependencies
         run: |
-          echo "✅ Verifying downloaded artifacts..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified"
+          echo "📦 Installing dependencies..."
+          yarn install --immutable
+
+      - name: Setup project
+        run: |
+          echo "🔧 Running setup for GitHub CI..."
+          yarn setup:github-ci
 
       - name: Display configuration
         run: |
