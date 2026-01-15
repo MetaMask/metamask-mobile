@@ -19,6 +19,7 @@ import type {
   MobileOptinDto,
   DiscoverSeasonsDto,
   SeasonMetadataDto,
+  LineaTokenRewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -148,6 +149,10 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getSeasonMetadata',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonOneLineaRewardTokens',
         expect.any(Function),
       );
     });
@@ -3257,6 +3262,182 @@ describe('RewardsDataService', () => {
           signal: expect.any(AbortSignal),
         }),
       );
+    });
+  });
+
+  describe('getSeasonOneLineaRewardTokens', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+    const mockToken = 'test-access-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully get Season 1 Linea reward tokens', async () => {
+      // Arrange
+      const mockResponseData = {
+        subscriptionId: mockSubscriptionId,
+        amount: 1000,
+      };
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockResponseData),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result =
+        await service.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/rewards/season-1/linea-tokens',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+          credentials: 'omit',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+      expect(result).toEqual({
+        subscriptionId: mockSubscriptionId,
+        amount: '1000',
+      } as LineaTokenRewardDto);
+    });
+
+    it('should convert bigint amount to string', async () => {
+      // Arrange
+      const mockResponseData = {
+        subscriptionId: mockSubscriptionId,
+        amount: 999999999999999999n, // BigInt value
+      };
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockResponseData),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result =
+        await service.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+
+      // Assert
+      expect(result).toEqual({
+        subscriptionId: mockSubscriptionId,
+        amount: '999999999999999999',
+      } as LineaTokenRewardDto);
+    });
+
+    it('should convert number amount to string', async () => {
+      // Arrange
+      const mockResponseData = {
+        subscriptionId: mockSubscriptionId,
+        amount: 5000,
+      };
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockResponseData),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result =
+        await service.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+
+      // Assert
+      expect(result).toEqual({
+        subscriptionId: mockSubscriptionId,
+        amount: '5000',
+      } as LineaTokenRewardDto);
+    });
+
+    it('should throw error when response is not ok', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Internal server error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+      ).rejects.toThrow('Failed to get Season 1 Linea reward tokens: 500');
+    });
+
+    it('should throw error when response status is 404', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({ message: 'Not found' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+      ).rejects.toThrow('Failed to get Season 1 Linea reward tokens: 404');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+      const mockResponseData = {
+        subscriptionId: mockSubscriptionId,
+        amount: 1000,
+      };
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockResponseData),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result =
+        await service.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
+      expect(result).toEqual({
+        subscriptionId: mockSubscriptionId,
+        amount: '1000',
+      } as LineaTokenRewardDto);
     });
   });
 });
