@@ -63,9 +63,10 @@ export const useWithdrawalRequests = (
     }
 
     // Filter by current account, normalizing addresses for comparison
-    return allWithdrawals.filter((req) => (
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase()
-      ));
+    return allWithdrawals.filter(
+      (req) =>
+        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
+    );
   });
 
   // Log only when pendingWithdrawals actually changes (not on every render)
