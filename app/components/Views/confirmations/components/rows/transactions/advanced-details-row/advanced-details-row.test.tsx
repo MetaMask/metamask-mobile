@@ -22,7 +22,7 @@ jest.mock('../../../../../../UI/Name', () => ({
 }));
 
 jest.mock(
-  '../../../../legacy/SendFlow/components/CustomNonceModal',
+  '../../../../legacy/components/CustomNonceModal',
   () => 'CustomNonceModal',
 );
 
