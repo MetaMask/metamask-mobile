@@ -136,6 +136,7 @@ interface MockConfirmModalParams {
     onPress: jest.Mock;
     variant?: string;
   };
+  onClose?: jest.Mock;
 }
 
 const createMockParams = (
@@ -265,6 +266,34 @@ describe('ConfirmModal', () => {
       fireEvent.press(closeButton);
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onClose callback when close button is pressed', () => {
+      const mockOnClose = jest.fn();
+      mockUseParams.mockReturnValue(
+        createMockParams({
+          onClose: mockOnClose,
+        }),
+      );
+
+      const { getByTestId } = render(<ConfirmModal />);
+      const closeButton = getByTestId('confirm-modal-close-button');
+
+      fireEvent.press(closeButton);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onClose when not provided and close button is pressed', () => {
+      mockUseParams.mockReturnValue(createMockParams());
+
+      const { getByTestId } = render(<ConfirmModal />);
+      const closeButton = getByTestId('confirm-modal-close-button');
+
+      fireEvent.press(closeButton);
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(undefined);
     });
   });
 

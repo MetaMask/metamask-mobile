@@ -387,6 +387,7 @@ const createTestStore = (initialState = {}) =>
 
 describe('ConfirmEmail Component', () => {
   const mockNavigate = jest.fn();
+  const mockReset = jest.fn();
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
@@ -404,6 +405,7 @@ describe('ConfirmEmail Component', () => {
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
     } as never);
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
@@ -1026,6 +1028,7 @@ describe('ConfirmEmail Component', () => {
           confirmAction: expect.objectContaining({
             label: 'Log in',
           }),
+          onClose: expect.any(Function),
         }),
       });
     });
@@ -1106,11 +1109,62 @@ describe('ConfirmEmail Component', () => {
 
       expect(capturedOnPress).toEqual(expect.any(Function));
 
-      mockNavigate.mockClear();
+      mockReset.mockClear();
 
       capturedOnPress?.();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      });
+    });
+
+    it('navigates to authentication screen when modal is closed', async () => {
+      const store = createTestStore();
+
+      let capturedOnClose: (() => void) | undefined;
+
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: null,
+        hasAccount: true,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      mockNavigate.mockImplementation((_route, params) => {
+        if (params?.params?.onClose) {
+          capturedOnClose = params.params.onClose;
+        }
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(capturedOnClose).toEqual(expect.any(Function));
+
+      mockReset.mockClear();
+
+      capturedOnClose?.();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      });
     });
 
     it('does not navigate to confirm modal when onboardingId is returned', async () => {
