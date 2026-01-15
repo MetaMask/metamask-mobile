@@ -383,15 +383,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       dispatch(setDestToken(destToken));
       dispatch(setSelectedDestChainId(CHAIN_IDS.ARBITRUM));
 
-      // Get full token balance for swap
-      const sourceAmount = selectedToken.balance || '0';
+      // Get half of token balance for swap
+      const fullBalance = selectedToken.balance || '0';
+      const balanceNumber = Number.parseFloat(
+        fullBalance === '.' ? '0' : fullBalance || '0',
+      );
+      const halfBalance = (balanceNumber / 2).toString();
 
-      // Normalize source amount to minimal units
+      // Normalize source amount to minimal units (half of balance)
       const normalizedSourceAmount = selectedToken.decimals
-        ? calcTokenValue(
-            sourceAmount === '.' ? '0' : sourceAmount || '0',
-            selectedToken.decimals,
-          ).toFixed(0)
+        ? calcTokenValue(halfBalance, selectedToken.decimals).toFixed(0)
         : '0';
 
       // Request quote from BridgeController
