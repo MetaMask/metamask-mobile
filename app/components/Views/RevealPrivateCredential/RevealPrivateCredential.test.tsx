@@ -6,7 +6,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';

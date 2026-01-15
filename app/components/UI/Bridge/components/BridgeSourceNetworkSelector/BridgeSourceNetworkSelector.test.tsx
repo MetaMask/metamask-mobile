@@ -10,7 +10,7 @@ import {
   setSelectedSourceChainIds,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
-import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import { BridgeSourceNetworkSelectorSelectorsIDs } from './BridgeSourceNetworkSelector.testIds';
 import { cloneDeep } from 'lodash';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';

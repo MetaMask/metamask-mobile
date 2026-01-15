@@ -1,13 +1,9 @@
 import { useSelector } from 'react-redux';
 import {
-  selectMusdConversionCTATokens,
   selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
 } from '../selectors/featureFlags';
-import {
-  isTokenAllowed,
-  isTokenInWildcardList,
-} from '../utils/wildcardTokenList';
+import { isTokenAllowed } from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
@@ -27,8 +23,6 @@ export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensBlocklist = useSelector(
     selectMusdConversionPaymentTokensBlocklist,
   );
-
-  const musdConversionCTATokens = useSelector(selectMusdConversionCTATokens);
 
   const allTokens = useAccountTokens({ includeNoBalance: false });
 
@@ -67,35 +61,6 @@ export const useMusdConversionTokens = () => {
     );
   };
 
-  const getConversionTokensWithCtas = useCallback(
-    (tokens: AssetType[]) =>
-      tokens.filter((token) =>
-        isTokenInWildcardList(
-          token.symbol,
-          musdConversionCTATokens,
-          token.chainId,
-        ),
-      ),
-    [musdConversionCTATokens],
-  );
-
-  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
-  const tokensWithCTAs = useMemo(
-    () => getConversionTokensWithCtas(conversionTokens),
-    [conversionTokens, getConversionTokensWithCtas],
-  );
-
-  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
-  const isTokenWithCta = (token?: AssetType | TokenI) => {
-    if (!token) return false;
-
-    return tokensWithCTAs.some(
-      (musdToken) =>
-        token.address.toLowerCase() === musdToken.address.toLowerCase() &&
-        token.chainId === musdToken.chainId,
-    );
-  };
-
   const isMusdSupportedOnChain = (chainId?: string) =>
     chainId
       ? Object.keys(MUSD_TOKEN_ADDRESS_BY_CHAIN).includes(toHex(chainId))
@@ -114,10 +79,8 @@ export const useMusdConversionTokens = () => {
   return {
     filterAllowedTokens,
     isConversionToken,
-    isTokenWithCta,
     isMusdSupportedOnChain,
     getMusdOutputChainId,
     tokens: conversionTokens,
-    tokensWithCTAs,
   };
 };

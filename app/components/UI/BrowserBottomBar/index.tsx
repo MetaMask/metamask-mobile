@@ -10,7 +10,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { ThemeColors } from '@metamask/design-tokens';
 

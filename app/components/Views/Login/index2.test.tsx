@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import Login from './index';
 import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';
@@ -15,10 +15,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
-import {
-  BIOMETRY_CHOICE_DISABLED,
-  OPTIN_META_METRICS_UI_SEEN,
-} from '../../../constants/storage';
+import { BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
 import { EndTraceRequest } from '../../../util/trace';
 import ReduxService from '../../../core/redux/ReduxService';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';

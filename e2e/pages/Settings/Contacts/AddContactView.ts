@@ -2,7 +2,7 @@ import Matchers from '../../../framework/Matchers';
 import {
   AddContactViewSelectorsIDs,
   AddContactViewSelectorsText,
-} from '../../../selectors/Settings/Contacts/AddContactView.selectors';
+} from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
 import Gestures from '../../../framework/Gestures';
 
 class AddContactView {
