@@ -11,7 +11,7 @@ import useGetUserKYCStatus from './useGetUserKYCStatus';
 import {
   AllowanceState,
   CardTokenAllowance,
-  CardWarning,
+  CardStateWarning,
   CardDetailsResponse,
   CardStatus,
   CardType,
@@ -306,13 +306,13 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NeedDelegation);
+      expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
     });
 
     it('returns warning from card details', () => {
@@ -320,7 +320,7 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.Frozen,
+        warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: false,
@@ -328,7 +328,7 @@ describe('useLoadCardData', () => {
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.Frozen);
+      expect(result.current.warning).toBe(CardStateWarning.Frozen);
     });
 
     it('returns authentication and cardholder status', () => {
@@ -614,7 +614,7 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
@@ -622,7 +622,7 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.Frozen,
+        warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: false,
@@ -630,7 +630,7 @@ describe('useLoadCardData', () => {
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NeedDelegation);
+      expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
     });
 
     it('handles Baanx login disabled state', () => {
@@ -939,38 +939,6 @@ describe('useLoadCardData', () => {
       expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
       expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
     });
-
-    it('refetchAllData includes delegation settings fetch for authenticated mode', async () => {
-      mockUseSelector.mockReturnValue(true); // Authenticated
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.refetchAllData();
-      });
-
-      expect(mockFetchDelegationSettings).toHaveBeenCalledTimes(1);
-      expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-      expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('refetchAllData only fetches priority token in unauthenticated mode', async () => {
-      mockUseSelector.mockReturnValue(false); // Unauthenticated
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.refetchAllData();
-      });
-
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-      expect(mockFetchDelegationSettings).not.toHaveBeenCalled();
-      expect(mockFetchExternalWalletDetails).not.toHaveBeenCalled();
-      expect(mockFetchCardDetails).not.toHaveBeenCalled();
-      expect(mockFetchKYCStatus).not.toHaveBeenCalled();
-    });
   });
 
   describe('KYC Status', () => {
@@ -1095,22 +1063,6 @@ describe('useLoadCardData', () => {
         expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
       });
 
-      it('fetches KYC status when refetchAllData is called', async () => {
-        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
-        mockFetchDelegationSettings.mockReset().mockResolvedValue(undefined);
-        mockFetchExternalWalletDetails.mockReset().mockResolvedValue(undefined);
-        mockFetchCardDetails.mockReset().mockResolvedValue(undefined);
-        mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        await act(async () => {
-          await result.current.refetchAllData();
-        });
-
-        expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
-      });
-
       it('handles KYC status update when status changes', () => {
         mockUseGetUserKYCStatus.mockReturnValue({
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
@@ -1191,19 +1143,6 @@ describe('useLoadCardData', () => {
 
         expect(mockFetchKYCStatus).not.toHaveBeenCalled();
       });
-
-      it('does not fetch KYC status when refetchAllData is called', async () => {
-        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
-        mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        await act(async () => {
-          await result.current.refetchAllData();
-        });
-
-        expect(mockFetchKYCStatus).not.toHaveBeenCalled();
-      });
     });
 
     describe('Mode Switching', () => {
@@ -1256,7 +1195,7 @@ describe('useLoadCardData', () => {
         allTokensWithAllowances: mockAllTokens,
         isLoading: false,
         error: false,
-        warning: CardWarning.NeedDelegation,
+        warning: CardStateWarning.NeedDelegation,
         fetchPriorityToken: mockFetchPriorityToken,
       });
 
@@ -1264,7 +1203,7 @@ describe('useLoadCardData', () => {
         cardDetails: mockCardDetails,
         isLoading: false,
         error: null,
-        warning: CardWarning.NoCard,
+        warning: CardStateWarning.NoCard,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
         isLoadingPollCardStatusUntilProvisioned: false,
@@ -1272,7 +1211,7 @@ describe('useLoadCardData', () => {
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.warning).toBe(CardWarning.NoCard);
+      expect(result.current.warning).toBe(CardStateWarning.NoCard);
     });
   });
 });

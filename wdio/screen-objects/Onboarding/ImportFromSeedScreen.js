@@ -1,6 +1,6 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { ImportFromSeedSelectorsIDs } from '../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
