@@ -17,7 +17,6 @@ import {
   login,
   onboardingFlowImportSRP,
 } from '../../../../utils/flows/Flows.js';
-import SendScreen from '../../../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';
@@ -44,7 +43,6 @@ test('Cold Start after importing a wallet', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   WalletActionModal.device = device;
-  SendScreen.device = device;
   ConfirmationScreen.device = device;
   AmountScreen.device = device;
   MultichainAccountEducationModal.device = device;

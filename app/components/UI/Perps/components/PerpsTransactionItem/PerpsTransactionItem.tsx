@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';

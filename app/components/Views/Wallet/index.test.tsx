@@ -99,7 +99,7 @@ import { screen as RNScreen } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
@@ -291,12 +291,9 @@ const mockInitialState = {
               'eip155:1': {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: false, // Default to false in base state
+                isUnifiedUIEnabled: false,
               },
             },
-          },
-          sendRedesign: {
-            enabled: false,
           },
         },
       },
@@ -698,10 +695,10 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
 
     it('should handle onSend callback correctly without native currency', async () => {
@@ -735,10 +732,10 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
 
     it('should pass correct props to AssetDetailsActions (no onBuy prop needed)', () => {
@@ -843,10 +840,10 @@ describe('Wallet', () => {
       await onSend();
 
       // Should still navigate even if there's an error
-      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView',
+      const sendNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'Send',
       );
-      expect(sendFlowNavigationCall).toBeDefined();
+      expect(sendNavigationCall).toBeDefined();
     });
   });
 

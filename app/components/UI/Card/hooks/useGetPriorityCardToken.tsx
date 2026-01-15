@@ -4,7 +4,7 @@ import { useCardSDK } from '../sdk';
 import {
   AllowanceState,
   CardTokenAllowance,
-  CardWarning,
+  CardStateWarning,
   CardExternalWalletDetail,
 } from '../types';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -122,7 +122,7 @@ interface State {
   isLoading: boolean;
   isLoadingAddToken: boolean;
   error: boolean;
-  warning: CardWarning | null;
+  warning: CardStateWarning | null;
 }
 
 /**
@@ -443,7 +443,7 @@ export const useGetPriorityCardToken = (
         }
 
         const warning = !priorityWalletDetail
-          ? CardWarning.NeedDelegation
+          ? CardStateWarning.NeedDelegation
           : null;
 
         setState((prevState) => ({
@@ -488,7 +488,9 @@ export const useGetPriorityCardToken = (
     }
 
     const priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
-    const warning = !priorityWalletDetail ? CardWarning.NeedDelegation : null;
+    const warning = !priorityWalletDetail
+      ? CardStateWarning.NeedDelegation
+      : null;
 
     setState((prevState) => ({
       ...prevState,

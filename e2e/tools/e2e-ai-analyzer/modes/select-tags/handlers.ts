@@ -11,9 +11,14 @@ import { smokeTags, flaskTags } from '../../../../tags';
  */
 const EXCLUDED_TAGS = [
   'SmokeSwaps',
-  'SmokeCard',
-  'SmokeRamps',
   'SmokeMultiChainAPI',
+  'SmokeCore',
+  'SmokeWalletUX',
+  'SmokeAssets',
+  'SmokeStake',
+  'SmokeNotifications',
+  'SmokeMultiChainPermissions',
+  'SmokeAnalytics',
 ];
 
 /**

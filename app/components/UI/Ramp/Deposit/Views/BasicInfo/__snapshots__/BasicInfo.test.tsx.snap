@@ -36,85 +36,27 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -169,14 +111,12 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -188,8 +128,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -198,57 +138,55 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -303,14 +241,12 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -322,8 +258,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1624,85 +1560,27 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -1757,14 +1635,12 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -1776,8 +1652,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1786,57 +1662,55 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -1891,14 +1765,12 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -1910,8 +1782,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3212,85 +3084,27 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -3345,14 +3159,12 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -3364,8 +3176,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3374,57 +3186,55 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -3479,14 +3289,12 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -3498,8 +3306,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -4800,85 +4608,27 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -4933,14 +4683,12 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -4952,8 +4700,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -4962,57 +4710,55 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -5067,14 +4813,12 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -5086,8 +4830,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -6388,85 +6132,27 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -6521,14 +6207,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -6540,8 +6224,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -6550,57 +6234,55 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -6655,14 +6337,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -6674,8 +6354,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -8036,85 +7716,27 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -8169,14 +7791,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -8188,8 +7808,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -8198,57 +7818,55 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -8303,14 +7921,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -8322,8 +7938,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -9669,85 +9285,27 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -9802,14 +9360,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -9821,8 +9377,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -9831,57 +9387,55 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
+                    },
+                    undefined,
+                  ]
                 }
-              }
+              >
+                Verify your identity
+              </Text>
+            </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -9936,14 +9490,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="deposit-close-navbar-button"
@@ -9955,8 +9507,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]

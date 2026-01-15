@@ -94,6 +94,7 @@ describe('Engine', () => {
   // Create a shared mock account for tests
   const validAddress = MOCK_ADDRESS_1;
   const mockAccount = createMockInternalAccount(validAddress, 'Test Account');
+  const TEST_ANALYTICS_ID = '59710bcf-06cc-4247-9386-12425e7fc905';
   let mockAppStateListener: (state: AppStateStatus) => void;
 
   beforeEach(() => {
@@ -108,7 +109,7 @@ describe('Engine', () => {
   });
 
   it('should expose an API', () => {
-    const engine = Engine.init({});
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
@@ -149,8 +150,8 @@ describe('Engine', () => {
   });
 
   it('calling Engine.init twice returns the same instance', () => {
-    const engine = Engine.init({});
-    const newEngine = Engine.init({});
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine).toStrictEqual(newEngine);
   });
 
@@ -159,8 +160,8 @@ describe('Engine', () => {
       success: true,
       vault: 'vault',
     });
-    const engine = Engine.init({});
-    const newEngine = Engine.init({});
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine).toStrictEqual(newEngine);
     // @ts-expect-error accessing protected property for testing
     engine.keyringController.messenger.publish(
@@ -178,8 +179,8 @@ describe('Engine', () => {
   it('should not backup vault when Engine is initialized and vault is empty', () => {
     // backupVault will not be called so return value doesn't matter here
     (backupVault as jest.Mock).mockResolvedValue(undefined);
-    const engine = Engine.init({});
-    const newEngine = Engine.init({});
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine).toStrictEqual(newEngine);
     // @ts-expect-error accessing protected property for testing
     engine.keyringController.messenger.publish(
@@ -195,15 +196,15 @@ describe('Engine', () => {
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {
-    const engine = Engine.init({});
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
     await engine.destroyEngineInstance();
-    const newEngine = Engine.init({});
+    const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine).not.toStrictEqual(newEngine);
   });
 
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
-    const engine = Engine.init({});
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
     const initialBackgroundState = engine.datamodel.state;
 
     // Get the current app version and migration version
@@ -218,6 +219,10 @@ describe('Engine', () => {
         // This is just hotfix, because it should not be empty but it reflects current state of Engine code
         // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
         accountsByChainId: {},
+      },
+      AnalyticsController: {
+        analyticsId: TEST_ANALYTICS_ID,
+        optedIn: false,
       },
       AppMetadataController: {
         currentAppVersion,
@@ -273,6 +278,7 @@ describe('Engine', () => {
       RampsController: {
         ...backgroundState.RampsController,
         eligibility: null,
+        tokens: null,
       },
     };
 
@@ -280,7 +286,7 @@ describe('Engine', () => {
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
-    const engine = Engine.init(backgroundState);
+    const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
     const invalidAddress = '0xInvalidAddress';
 
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
@@ -289,7 +295,7 @@ describe('Engine', () => {
   });
 
   it('setSelectedAccount successfully updates selected account when address exists', () => {
-    const engine = Engine.init(backgroundState);
+    const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
     const getAccountByAddressSpy = jest
       .spyOn(engine.context.AccountsController, 'getAccountByAddress')
@@ -311,7 +317,7 @@ describe('Engine', () => {
   });
 
   it('setAccountLabel successfully updates account label when address exists', () => {
-    const engine = Engine.init(backgroundState);
+    const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
     const label = 'New Account Name';
 
     const getAccountByAddressSpy = jest
@@ -334,7 +340,7 @@ describe('Engine', () => {
   });
 
   it('setAccountLabel throws an error if no account exists for the given address', () => {
-    const engine = Engine.init(backgroundState);
+    const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
     const invalidAddress = '0xInvalidAddress';
     const label = 'Test Account';
 
@@ -344,7 +350,7 @@ describe('Engine', () => {
   });
 
   it('getSnapKeyring gets or creates a snap keyring', async () => {
-    const engine = new EngineClass(backgroundState);
+    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
     const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
     jest
       .spyOn(engine.keyringController, 'getKeyringsByType')
@@ -360,7 +366,7 @@ describe('Engine', () => {
   });
 
   it('getSnapKeyring creates a new snap keyring if none exists', async () => {
-    const engine = new EngineClass(backgroundState);
+    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
     const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
 
     jest
@@ -395,7 +401,7 @@ describe('Engine', () => {
         },
       },
     };
-    const engine = Engine.init(state);
+    const engine = Engine.init(TEST_ANALYTICS_ID, state);
     expect(
       engine.datamodel.state.CurrencyRateController.currencyRates[ticker],
     ).toStrictEqual({
@@ -419,7 +425,7 @@ describe('Engine', () => {
       'enableRpcFailover',
     );
 
-    Engine.init(state);
+    Engine.init(TEST_ANALYTICS_ID, state);
 
     expect(enableRpcFailoverSpy).toHaveBeenCalled();
   });
@@ -438,7 +444,7 @@ describe('Engine', () => {
       'disableRpcFailover',
     );
 
-    Engine.init(state);
+    Engine.init(TEST_ANALYTICS_ID, state);
 
     expect(disableRpcFailoverSpy).toHaveBeenCalled();
   });
@@ -454,7 +460,7 @@ describe('Engine', () => {
       },
     };
     const keyringState = null;
-    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
+    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const enableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
       'enableRpcFailover',
@@ -473,7 +479,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(state, keyringState, metaMetricsId);
+    Engine.init(analyticsId, state, keyringState);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option
@@ -498,7 +504,7 @@ describe('Engine', () => {
       },
     };
     const keyringState = null;
-    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
+    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const disableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
       'disableRpcFailover',
@@ -517,7 +523,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(state, keyringState, metaMetricsId);
+    Engine.init(analyticsId, state, keyringState);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option
@@ -582,19 +588,23 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      const engine = Engine.init({
-        ...state,
-        AccountTrackerController: {
-          accountsByChainId: {
-            [chainId]: {
-              [selectedAddress]: {
-                balance: '0',
-                stakedBalance: '0',
+      const engine = Engine.init(
+        TEST_ANALYTICS_ID,
+        {
+          ...state,
+          AccountTrackerController: {
+            accountsByChainId: {
+              [chainId]: {
+                [selectedAddress]: {
+                  balance: '0',
+                  stakedBalance: '0',
+                },
               },
             },
           },
         },
-      });
+        null,
+      );
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
@@ -609,18 +619,22 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      const engine = Engine.init({
-        ...state,
-        TokenRatesController: {
-          marketData: {
-            [chainId]: {
-              [zeroAddress()]: {
-                pricePercentChange1d: ethPricePercentChange1d,
-              } as Partial<MarketDataDetails> as MarketDataDetails,
+      const engine = Engine.init(
+        TEST_ANALYTICS_ID,
+        {
+          ...state,
+          TokenRatesController: {
+            marketData: {
+              [chainId]: {
+                [zeroAddress()]: {
+                  pricePercentChange1d: ethPricePercentChange1d,
+                } as Partial<MarketDataDetails> as MarketDataDetails,
+              },
             },
           },
         },
-      });
+        null,
+      );
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -660,52 +674,56 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init({
-        ...state,
-        TokensController: {
-          allTokens: {
-            [chainId]: {
-              [selectedAddress]: tokens.map(
-                ({ address, balance, decimals, symbol }) => ({
-                  address,
-                  balance,
-                  decimals,
-                  symbol,
-                }),
-              ),
+      const engine = Engine.init(
+        TEST_ANALYTICS_ID,
+        {
+          ...state,
+          TokensController: {
+            allTokens: {
+              [chainId]: {
+                [selectedAddress]: tokens.map(
+                  ({ address, balance, decimals, symbol }) => ({
+                    address,
+                    balance,
+                    decimals,
+                    symbol,
+                  }),
+                ),
+              },
+            },
+            allIgnoredTokens: {},
+            allDetectedTokens: {},
+          },
+          TokenBalancesController: {
+            tokenBalances: {
+              [selectedAddress as Hex]: {
+                [chainId]: {
+                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
+                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                },
+              },
             },
           },
-          allIgnoredTokens: {},
-          allDetectedTokens: {},
-        },
-        TokenBalancesController: {
-          tokenBalances: {
-            [selectedAddress as Hex]: {
+          TokenRatesController: {
+            marketData: {
               [chainId]: {
-                [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                [zeroAddress()]: {
+                  pricePercentChange1d: ethPricePercentChange1d,
+                } as unknown as MarketDataDetails,
+                [token1Address]: {
+                  price: tokens[0].price,
+                  pricePercentChange1d: tokens[0].pricePercentChange1d,
+                } as unknown as MarketDataDetails,
+                [token2Address]: {
+                  price: tokens[1].price,
+                  pricePercentChange1d: tokens[1].pricePercentChange1d,
+                } as unknown as MarketDataDetails,
               },
             },
           },
         },
-        TokenRatesController: {
-          marketData: {
-            [chainId]: {
-              [zeroAddress()]: {
-                pricePercentChange1d: ethPricePercentChange1d,
-              } as unknown as MarketDataDetails,
-              [token1Address]: {
-                price: tokens[0].price,
-                pricePercentChange1d: tokens[0].pricePercentChange1d,
-              } as unknown as MarketDataDetails,
-              [token2Address]: {
-                price: tokens[1].price,
-                pricePercentChange1d: tokens[1].pricePercentChange1d,
-              } as unknown as MarketDataDetails,
-            },
-          },
-        },
-      });
+        null,
+      );
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -756,62 +774,66 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init({
-        ...state,
-        AccountTrackerController: {
-          accountsByChainId: {
-            [chainId]: {
-              [selectedAddress]: {
-                balance: (ethBalance * 1e18).toString(),
-                stakedBalance: (stakedEthBalance * 1e18).toString(),
-              },
-            },
-          },
-        },
-        TokensController: {
-          allTokens: {
-            [chainId]: {
-              [selectedAddress]: tokens.map(
-                ({ address, balance, decimals, symbol }) => ({
-                  address,
-                  balance,
-                  decimals,
-                  symbol,
-                }),
-              ),
-            },
-          },
-          allIgnoredTokens: {},
-          allDetectedTokens: {},
-        },
-        TokenBalancesController: {
-          tokenBalances: {
-            [selectedAddress as Hex]: {
+      const engine = Engine.init(
+        TEST_ANALYTICS_ID,
+        {
+          ...state,
+          AccountTrackerController: {
+            accountsByChainId: {
               [chainId]: {
-                [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                [selectedAddress]: {
+                  balance: (ethBalance * 1e18).toString(),
+                  stakedBalance: (stakedEthBalance * 1e18).toString(),
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              [chainId]: {
+                [selectedAddress]: tokens.map(
+                  ({ address, balance, decimals, symbol }) => ({
+                    address,
+                    balance,
+                    decimals,
+                    symbol,
+                  }),
+                ),
+              },
+            },
+            allIgnoredTokens: {},
+            allDetectedTokens: {},
+          },
+          TokenBalancesController: {
+            tokenBalances: {
+              [selectedAddress as Hex]: {
+                [chainId]: {
+                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
+                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                },
+              },
+            },
+          },
+          TokenRatesController: {
+            marketData: {
+              [chainId]: {
+                [zeroAddress()]: {
+                  pricePercentChange1d: ethPricePercentChange1d,
+                } as unknown as MarketDataDetails,
+                [token1Address]: {
+                  price: tokens[0].price,
+                  pricePercentChange1d: tokens[0].pricePercentChange1d,
+                } as unknown as MarketDataDetails,
+                [token2Address]: {
+                  price: tokens[1].price,
+                  pricePercentChange1d: tokens[1].pricePercentChange1d,
+                } as unknown as MarketDataDetails,
               },
             },
           },
         },
-        TokenRatesController: {
-          marketData: {
-            [chainId]: {
-              [zeroAddress()]: {
-                pricePercentChange1d: ethPricePercentChange1d,
-              } as unknown as MarketDataDetails,
-              [token1Address]: {
-                price: tokens[0].price,
-                pricePercentChange1d: tokens[0].pricePercentChange1d,
-              } as unknown as MarketDataDetails,
-              [token2Address]: {
-                price: tokens[1].price,
-                pricePercentChange1d: tokens[1].pricePercentChange1d,
-              } as unknown as MarketDataDetails,
-            },
-          },
-        },
-      });
+        null,
+      );
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       const ethFiat = (ethBalance + stakedEthBalance) * ethConversionRate;
@@ -845,13 +867,17 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init({
-      ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        isUnlocked: true,
+    const engine = Engine.init(
+      TEST_ANALYTICS_ID,
+      {
+        ...backgroundState,
+        KeyringController: {
+          ...backgroundState.KeyringController,
+          isUnlocked: true,
+        },
       },
-    });
+      null,
+    );
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -872,13 +898,17 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init({
-      ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        isUnlocked: true,
+    const engine = Engine.init(
+      TEST_ANALYTICS_ID,
+      {
+        ...backgroundState,
+        KeyringController: {
+          ...backgroundState.KeyringController,
+          isUnlocked: true,
+        },
       },
-    });
+      null,
+    );
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -898,7 +928,7 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+    const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to inactive
@@ -918,13 +948,17 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init({
-      ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        isUnlocked: false,
+    const engine = Engine.init(
+      TEST_ANALYTICS_ID,
+      {
+        ...backgroundState,
+        KeyringController: {
+          ...backgroundState.KeyringController,
+          isUnlocked: false,
+        },
       },
-    });
+      null,
+    );
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -942,7 +976,7 @@ describe('Engine', () => {
     const initState = { ...backgroundState };
     delete (initState as Partial<EngineState>).NetworkController;
 
-    const engine = Engine.init(initState);
+    const engine = Engine.init(TEST_ANALYTICS_ID, initState);
 
     const networkState = engine.context.NetworkController.state;
     const networks = networkState.networkConfigurationsByChainId;
@@ -974,7 +1008,7 @@ describe('Engine', () => {
     };
 
     // Act - Initialize engine with existing NetworkController state
-    const engine = Engine.init(initState);
+    const engine = Engine.init(TEST_ANALYTICS_ID, initState);
     const networkState = engine.context.NetworkController.state;
 
     // Assert - Ethereum network name remains unchanged for existing users
@@ -995,7 +1029,7 @@ describe('Engine', () => {
 
   describe('lookupEnabledNetworks', () => {
     it('should lookup all enabled networks successfully', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const mockNetworkClientId1 = 'network-client-1';
       const mockNetworkClientId2 = 'network-client-2';
 
@@ -1032,7 +1066,7 @@ describe('Engine', () => {
     });
 
     it('should only lookup enabled networks and skip disabled ones', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const mockNetworkClientId1 = 'network-client-1';
       const mockNetworkClientId2 = 'network-client-2';
 
@@ -1067,7 +1101,7 @@ describe('Engine', () => {
     });
 
     it('should handle empty enabled networks list', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       const findNetworkClientIdByChainIdSpy = jest.spyOn(
         engine.context.NetworkController,
@@ -1094,7 +1128,7 @@ describe('Engine', () => {
     });
 
     it('should handle undefined enabledNetworkMap', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       const findNetworkClientIdByChainIdSpy = jest.spyOn(
         engine.context.NetworkController,
@@ -1122,7 +1156,7 @@ describe('Engine', () => {
     });
 
     it('should handle undefined Eip155 namespace in enabledNetworkMap', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       const findNetworkClientIdByChainIdSpy = jest.spyOn(
         engine.context.NetworkController,
@@ -1147,7 +1181,7 @@ describe('Engine', () => {
     });
 
     it('should handle network lookup failures gracefully', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const mockNetworkClientId1 = 'network-client-1';
       const mockNetworkClientId2 = 'network-client-2';
 
@@ -1180,7 +1214,7 @@ describe('Engine', () => {
     });
 
     it('should handle findNetworkClientIdByChainId returning undefined', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       const findNetworkClientIdByChainIdSpy = jest
         .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
@@ -1211,7 +1245,7 @@ describe('Engine', () => {
     });
 
     it('should handle mixed success and failure scenarios', async () => {
-      const engine = Engine.init(backgroundState);
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const mockNetworkClientId1 = 'network-client-1';
       const mockNetworkClientId2 = 'network-client-2';
       const mockNetworkClientId3 = 'network-client-3';
@@ -1253,7 +1287,7 @@ describe('Engine', () => {
     });
 
     it('returns state from all controllers with state', () => {
-      Engine.init({});
+      Engine.init(TEST_ANALYTICS_ID, {});
       const controllersWithState = Object.entries(Engine.context)
         .filter(
           ([_, controller]) =>

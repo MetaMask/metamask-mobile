@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketTabs from './PerpsMarketTabs';
-import { PerpsMarketTabsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketTabsSelectorsIDs } from '../../Perps.testIds';
 import {
   defaultPerpsMarketStatsMock,
   defaultPerpsPositionMock,

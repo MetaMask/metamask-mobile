@@ -1,4 +1,4 @@
-import { Alert, InteractionManager, Linking, Switch, View } from 'react-native';
+import { Alert, Linking, Switch, View } from 'react-native';
 import {
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
@@ -8,7 +8,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -23,7 +23,8 @@ import generateDeviceAnalyticsMetaData, {
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { setDataCollectionForMarketing } from '../../../../../../actions/security';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../../../hooks/useMetrics';
+import { analytics } from '../../../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -46,8 +47,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const { trackEvent, enable, addTraitsToUser, isEnabled, createEventBuilder } =
-    useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -71,7 +70,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
-      enable(false);
+      analytics.optOut().catch(() => {
+        // Error already logged in optOut
+      });
       setAnalyticsEnabled(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
@@ -90,11 +91,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     if (isSeedlessOnboardingLoginFlow) {
       fetchMarketingStatus();
     }
-    setAnalyticsEnabled(isEnabled());
+    setAnalyticsEnabled(analytics.isEnabled());
   }, [
     setAnalyticsEnabled,
-    isEnabled,
-    enable,
     autoSignIn,
     isBasicFunctionalityEnabled,
     dispatch,
@@ -107,22 +106,22 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      await enable();
+      await analytics.optIn();
 
       setAnalyticsEnabled(true);
 
-      InteractionManager.runAfterInteractions(async () => {
-        await addTraitsToUser(consolidatedTraits);
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-            .addProperties({
-              is_metrics_opted_in: true,
-              updated_after_onboarding: true,
-              location: 'settings',
-            })
-            .build(),
-        );
-      });
+      analytics.identify(consolidatedTraits);
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+        )
+          .addProperties({
+            is_metrics_opted_in: true,
+            updated_after_onboarding: true,
+            location: 'settings',
+          })
+          .build(),
+      );
 
       // If user has not acknowledged PNA25 and is enabling metrics
       // we count this as an acknowledgement of PNA25
@@ -131,7 +130,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         dispatch(storePna25Acknowledged());
       }
     } else {
-      await enable(false);
+      await analytics.optOut();
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
@@ -144,22 +143,22 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   };
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
-    InteractionManager.runAfterInteractions(async () => {
-      await addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
-          ? UserProfileProperty.ON
-          : UserProfileProperty.OFF,
-      });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
-            updated_after_onboarding: true,
-            location: 'settings',
-          })
-          .build(),
-      );
+    analytics.identify({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
     });
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+      )
+        .addProperties({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
+          updated_after_onboarding: true,
+          location: 'settings',
+        })
+        .build(),
+    );
   };
 
   const toggleDataCollectionForMarketing = async (value: boolean) => {

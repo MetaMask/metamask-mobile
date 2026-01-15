@@ -10,7 +10,7 @@ import TestHelpers from '../../helpers';
 import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';

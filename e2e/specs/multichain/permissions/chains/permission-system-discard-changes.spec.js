@@ -1,11 +1,10 @@
 import TestHelpers from '../../../../helpers';
 import { RegressionNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import Assertions from '../../../../framework/Assertions';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
@@ -33,7 +32,7 @@ describe(RegressionNetworkAbstractions('Chain Permission Management'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();

@@ -18,15 +18,16 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import Device from '../../../util/device';
 import {
   BrowserUrlBarProps,
   BrowserUrlBarRef,
   ConnectionType,
 } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 import { strings } from '../../../../locales/i18n';
-import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
+import { BrowserURLBarSelectorsIDs } from './BrowserURLBar.testIds';
 import AccountRightButton from '../AccountRightButton';
 import Text from '../../../component-library/components/Texts/Text';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
@@ -41,6 +42,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { hasProperty } from '@metamask/utils';
+import TabCountIcon from '../Tabs/TabCountIcon';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -56,6 +58,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       setIsUrlBarFocused,
       isUrlBarFocused,
       showCloseButton,
+      showTabs,
     },
     ref,
   ) => {
@@ -300,6 +303,20 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             />
           ) : null}
         </View>
+        {!isUrlBarFocused && showTabs && (
+          <TouchableOpacity
+            onPress={showTabs}
+            testID="browser-tabs-button"
+            style={[
+              styles.tabsButton,
+              Device.isAndroid()
+                ? styles.tabsButtonAndroid
+                : styles.tabsButtonIOS,
+            ]}
+          >
+            <TabCountIcon style={styles.tabIcon} />
+          </TouchableOpacity>
+        )}
         <View style={styles.rightButton}>{renderRightButton()}</View>
       </View>
     );

@@ -21,7 +21,6 @@ import {
   RememberMeOptionSection,
   ProtectYourWallet,
   LoginOptionsSettings,
-  RevealPrivateKey,
   ChangePassword,
   AutoLock,
   ClearPrivacy,
@@ -29,7 +28,6 @@ import {
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
 import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
@@ -131,9 +129,6 @@ const Settings: React.FC = () => {
   useCheckMultiRpcModal();
 
   const type = useSelector(selectProviderType);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const isMainnet = type === MAINNET;
 
@@ -414,7 +409,6 @@ const Settings: React.FC = () => {
         <View style={styles.setting}>
           <RememberMeOptionSection />
         </View>
-        {!isMultichainAccountsState2Enabled ? <RevealPrivateKey /> : null}
         <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <View>
@@ -440,7 +434,6 @@ const Settings: React.FC = () => {
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />
-
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

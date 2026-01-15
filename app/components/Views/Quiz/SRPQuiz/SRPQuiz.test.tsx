@@ -8,7 +8,7 @@ import {
   SrpQuizGetStartedSelectorsIDs,
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
-} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+} from './SrpQuizModal.testIds';
 import SRPQuiz, { SRPQuizProps } from './SRPQuiz';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
@@ -103,7 +103,6 @@ describe('SRPQuiz', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         {
-          credentialName: 'seed_phrase',
           shouldUpdateNav: true,
           keyringId,
         },

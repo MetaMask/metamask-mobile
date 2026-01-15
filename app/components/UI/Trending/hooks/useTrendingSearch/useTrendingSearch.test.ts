@@ -61,6 +61,7 @@ describe('useTrendingSearch', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
 
     // Default mock implementations
     mockUseSearchRequest.mockReturnValue({
@@ -78,6 +79,11 @@ describe('useTrendingSearch', () => {
     });
 
     mockSortTrendingTokens.mockImplementation((tokens) => tokens);
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   it('returns sorted trending results when no search query provided', async () => {
@@ -109,6 +115,8 @@ describe('useTrendingSearch', () => {
     const { result } = renderHookWithProvider(() =>
       useTrendingSearch('ETH', 'h24_trending'),
     );
+
+    jest.advanceTimersByTime(200);
 
     await waitFor(() => {
       expect(result.current.data).toHaveLength(2);
@@ -144,6 +152,8 @@ describe('useTrendingSearch', () => {
     const { result } = renderHookWithProvider(() =>
       useTrendingSearch('ETH', 'h24_trending'),
     );
+
+    jest.advanceTimersByTime(200);
 
     await waitFor(() => {
       expect(result.current.data).toHaveLength(2);
@@ -187,6 +197,8 @@ describe('useTrendingSearch', () => {
       useTrendingSearch('ETH', 'h24_trending'),
     );
 
+    jest.advanceTimersByTime(200);
+
     expect(result.current.isLoading).toBe(true);
   });
 
@@ -211,6 +223,8 @@ describe('useTrendingSearch', () => {
     it('filters trending results by symbol case-insensitively', async () => {
       const { result } = renderHookWithProvider(() => useTrendingSearch('eth'));
 
+      jest.advanceTimersByTime(200);
+
       await waitFor(() => {
         expect(result.current.data).toHaveLength(1);
         expect(result.current.data[0].symbol).toBe('ETH');
@@ -222,6 +236,8 @@ describe('useTrendingSearch', () => {
         useTrendingSearch('ethereum'),
       );
 
+      jest.advanceTimersByTime(200);
+
       await waitFor(() => {
         expect(result.current.data).toHaveLength(1);
         expect(result.current.data[0].name).toBe('Ethereum');
@@ -230,6 +246,8 @@ describe('useTrendingSearch', () => {
 
     it('filters trending results by partial matches', async () => {
       const { result } = renderHookWithProvider(() => useTrendingSearch('dai'));
+
+      jest.advanceTimersByTime(200);
 
       await waitFor(() => {
         expect(result.current.data).toHaveLength(1);
@@ -242,6 +260,8 @@ describe('useTrendingSearch', () => {
         useTrendingSearch('NonExistent'),
       );
 
+      jest.advanceTimersByTime(200);
+
       await waitFor(() => {
         expect(result.current.data).toHaveLength(0);
       });
@@ -252,10 +272,35 @@ describe('useTrendingSearch', () => {
         useTrendingSearch('  ETH  '),
       );
 
+      jest.advanceTimersByTime(200);
+
       await waitFor(() => {
         expect(result.current.data).toHaveLength(1);
         expect(result.current.data[0].symbol).toBe('ETH');
       });
+    });
+  });
+
+  it('uses search immediately when debounce disabled', async () => {
+    mockUseSearchRequest.mockReturnValue({
+      results: mockSearchResults,
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch('USDC', 'h24_trending', null, false),
+    );
+
+    expect(mockUseSearchRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'USDC' }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(
+        expect.arrayContaining([expect.objectContaining({ symbol: 'USDC' })]),
+      );
     });
   });
 });
