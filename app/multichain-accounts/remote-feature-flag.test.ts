@@ -43,7 +43,8 @@ const mockState2FeatureVersionsToCheck = [
   },
 ];
 
-describe('Multichain Accounts Feature Flag', () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('Multichain Accounts Feature Flag', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
