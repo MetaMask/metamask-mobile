@@ -477,7 +477,7 @@ describe('TrendingTokenRowItem', () => {
       false,
     );
 
-    expect(getByText(/\$0\.00 cap • \$0\.00 vol/)).toBeTruthy();
+    expect(getByText(/- cap • - vol/)).toBeTruthy();
   });
 
   it('renders with very large market cap and volume', () => {
