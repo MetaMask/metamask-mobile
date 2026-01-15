@@ -27,11 +27,6 @@ import { parseCaipAccountId } from '@metamask/utils';
 
 jest.useFakeTimers();
 
-jest.mock('react-native-qrcode-svg', () => ({
-  __esModule: true,
-  default: 'QRCode',
-}));
-
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn().mockReturnValue({
     evmAccounts: [],
@@ -49,11 +44,6 @@ jest.mock('../../../core/Permissions', () => ({
 jest.mock('../BrowserTab/BrowserTab', () => ({
   __esModule: true,
   default: jest.fn(() => 'BrowserTab'),
-}));
-
-jest.mock('../DiscoveryTab/DiscoveryTab', () => ({
-  __esModule: true,
-  default: jest.fn(() => 'DiscoveryTab'),
 }));
 
 jest.mock('../../UI/Tabs/TabThumbnail/TabThumbnail', () => ({
