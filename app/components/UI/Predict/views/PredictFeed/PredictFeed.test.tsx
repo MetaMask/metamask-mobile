@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketListSelectorsIDs } from '../../Predict.testIds';
 import PredictFeed from './PredictFeed';
 
 jest.mock('react-native-pager-view', () => {

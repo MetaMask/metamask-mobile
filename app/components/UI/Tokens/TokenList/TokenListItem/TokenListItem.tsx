@@ -24,10 +24,7 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -47,6 +44,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
+import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -116,16 +114,14 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-
-    const { isTokenWithCta, getMusdOutputChainId } = useMusdConversionTokens();
-
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+    const { getMusdOutputChainId } = useMusdConversionTokens();
     const { initiateConversion } = useMusdConversion();
 
-    const shouldShowConvertToMusdCta =
-      isMusdConversionFlowEnabled && isTokenWithCta(asset);
+    const shouldShowConvertToMusdCta = useMemo(
+      () => shouldShowTokenListItemCta(asset),
+      [asset, shouldShowTokenListItemCta],
+    );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 

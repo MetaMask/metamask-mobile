@@ -47,6 +47,7 @@ jest.mock('../core/Analytics', () => ({
     getInstance: jest.fn(() => ({
       addTraitsToUser: mockAddTraitsToUser,
       trackEvent: jest.fn(),
+      updateDataRecordingFlag: jest.fn(),
     })),
   },
 }));

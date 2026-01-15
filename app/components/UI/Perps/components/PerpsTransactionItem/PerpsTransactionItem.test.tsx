@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { StyleSheet, Linking } from 'react-native';
 import PerpsTransactionItem, { FillType } from './PerpsTransactionItem';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,

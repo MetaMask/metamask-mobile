@@ -40,6 +40,9 @@ export interface GetMarketsParams {
   // Pagination
   offset?: number;
   limit?: number;
+
+  // Live sports configuration
+  liveSportsLeagues?: string[];
 }
 
 export interface Signer {
@@ -228,7 +231,10 @@ export interface PredictProvider {
 
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
-  getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
+  getMarketDetails(params: {
+    marketId: string;
+    liveSportsLeagues?: string[];
+  }): Promise<PredictMarket>;
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;

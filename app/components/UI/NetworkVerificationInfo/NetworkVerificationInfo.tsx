@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, Linking, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import Text, {
   TextVariant,
   TextColor,
@@ -35,7 +35,7 @@ import BottomSheetFooter, {
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { getNetworkImageSource } from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
-import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../NetworkModal/NetworkApprovalBottomSheet.testIds';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { isValidASCIIURL, toPunycodeURL } from '../../../util/url';

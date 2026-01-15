@@ -1,4 +1,4 @@
-import { NotificationDetailsViewSelectorsIDs } from '../../selectors/Notifications/NotificationDetailsView.selectors';
+import { NotificationDetailsViewSelectorsIDs } from '../../../app/components/Views/Notifications/Details/NotificationDetailsView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

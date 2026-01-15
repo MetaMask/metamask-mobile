@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import Login from './index';
 import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';

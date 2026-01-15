@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

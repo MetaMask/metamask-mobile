@@ -15,7 +15,7 @@ import {
 import { ActivityIndicator } from 'react-native';
 import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
 import createStyles from '../SecuritySettings.styles';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
 import {
   Box,
   BoxFlexDirection,

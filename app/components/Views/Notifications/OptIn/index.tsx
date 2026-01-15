@@ -18,7 +18,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { useHandleOptInCancel, useHandleOptInClick } from './OptIn.hooks';
-import { EnableNotificationModalSelectorsIDs } from '../../../../../e2e/selectors/Notifications/EnableNotificationModal.selectors';
+import { EnableNotificationModalSelectorsIDs } from './EnableNotificationModal.testIds';
 
 const OptIn = () => {
   const metrics = useMetrics();
