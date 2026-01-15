@@ -54,6 +54,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "BridgeStatusController": {
         "txHistory": {},
       },
+      "ConnectivityController": {
+        "connectivityStatus": "online",
+      },
       "CronjobController": {
         "events": {},
       },
@@ -832,6 +835,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "ConnectivityController": {
+        "connectivityStatus": "online",
       },
       "CronjobController": {
         "events": {},

@@ -126,6 +126,7 @@ import { getRampsControllerMessenger } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
+import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
@@ -159,6 +160,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AddressBookController: {
     getMessenger: getAddressBookControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ConnectivityController: {
+    getMessenger: getConnectivityControllerMessenger,
     getInitMessenger: noop,
   },
   ApprovalController: {

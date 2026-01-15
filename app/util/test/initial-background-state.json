@@ -658,6 +658,9 @@
   "BridgeStatusController": {
     "txHistory": {}
   },
+  "ConnectivityController": {
+    "connectivityStatus": "online"
+  },
   "MultichainAssetsRatesController": {
     "conversionRates": {},
     "historicalPrices": {}
