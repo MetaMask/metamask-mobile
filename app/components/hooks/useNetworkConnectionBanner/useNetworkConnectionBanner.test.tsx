@@ -1043,7 +1043,7 @@ describe('useNetworkConnectionBanner', () => {
       jest.mocked(selectIsDeviceOffline).mockReturnValue(true);
     });
 
-    it('should hide banner when device is offline even if network is unavailable', () => {
+    it('hides banner when device is offline even if network is unavailable', () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
         chainId: '0x89',
@@ -1062,7 +1062,7 @@ describe('useNetworkConnectionBanner', () => {
       });
     });
 
-    it('should not show degraded banner when device is offline', () => {
+    it('does not show degraded banner when device is offline', () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: false,
       });
@@ -1083,7 +1083,7 @@ describe('useNetworkConnectionBanner', () => {
       );
     });
 
-    it('should not show unavailable banner when device is offline', () => {
+    it('does not show unavailable banner when device is offline', () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: false,
       });
@@ -1104,7 +1104,7 @@ describe('useNetworkConnectionBanner', () => {
       );
     });
 
-    it('should not progress from degraded to unavailable when device goes offline', () => {
+    it('does not progress from degraded to unavailable when device goes offline', () => {
       // Device is offline with degraded banner showing
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
@@ -1135,7 +1135,7 @@ describe('useNetworkConnectionBanner', () => {
       );
     });
 
-    it('should not update banner if already hidden when offline', () => {
+    it('does not update banner if already hidden when offline', () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: false,
       });
@@ -1147,7 +1147,7 @@ describe('useNetworkConnectionBanner', () => {
       expect(actions).toHaveLength(0);
     });
 
-    it('should resume normal behavior when device comes back online', async () => {
+    it('resumes normal behavior when device comes back online', async () => {
       // Start offline
       jest.mocked(selectIsDeviceOffline).mockReturnValue(true);
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
@@ -1182,7 +1182,7 @@ describe('useNetworkConnectionBanner', () => {
       );
     });
 
-    it('should hide banner immediately when device goes offline while showing degraded', async () => {
+    it('hides banner immediately when device goes offline while showing degraded', async () => {
       // Start online with degraded banner
       jest.mocked(selectIsDeviceOffline).mockReturnValue(false);
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
@@ -1214,7 +1214,7 @@ describe('useNetworkConnectionBanner', () => {
       });
     });
 
-    it('should hide banner immediately when device goes offline while showing unavailable', async () => {
+    it('hides banner immediately when device goes offline while showing unavailable', async () => {
       // Start online with unavailable banner
       jest.mocked(selectIsDeviceOffline).mockReturnValue(false);
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
