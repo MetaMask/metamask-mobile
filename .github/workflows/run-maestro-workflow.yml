@@ -31,6 +31,21 @@ on:
         required: false
         type: boolean
         default: true
+      use-fixtures:
+        description: 'Use fixture server for pre-configured app state'
+        required: false
+        type: boolean
+        default: false
+      fixture-name:
+        description: 'Fixture name to load (e.g., import-srp, default, with-tokens)'
+        required: false
+        type: string
+        default: 'import-srp'
+      mock-preset:
+        description: 'Mock server preset (e.g., feature-flags, default)'
+        required: false
+        type: string
+        default: 'feature-flags'
 
 jobs:
   test-maestro:
@@ -156,6 +171,52 @@ jobs:
           # Create artifacts directory similar to Detox's e2e/artifacts/
           mkdir -p maestro-artifacts
 
+      - name: Start Fixture Server
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🚀 Starting fixture server..."
+          node e2e/maestro/scripts/simple-fixture-server.js ${{ inputs.fixture-name }} &
+          sleep 3
+          # Verify fixture server is running
+          if curl -s http://localhost:12345/state.json | head -c 100 > /dev/null; then
+            echo "✅ Fixture server running (port 12345)"
+          else
+            echo "❌ Fixture server failed to start"
+            exit 1
+          fi
+
+      - name: Start Mock Server
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🚀 Starting mock server..."
+          node e2e/maestro/scripts/mock-server.js --action start --preset ${{ inputs.mock-preset }} &
+          sleep 2
+          echo "✅ Mock server running (port 8000)"
+
+      - name: Setup Port Forwarding for Fixtures
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🔗 Setting up port forwarding..."
+          adb reverse tcp:12345 tcp:12345  # Fixture server
+          adb reverse tcp:8000 tcp:8000    # Mock server
+          echo "✅ Port forwarding configured"
+
+      - name: Clear App Data (for fixtures)
+        if: inputs.use-fixtures == true
+        run: |
+          echo "🧹 Clearing app data..."
+          adb shell pm clear io.metamask
+          echo "✅ App data cleared"
+
+      - name: Launch App (for fixtures)
+        if: inputs.use-fixtures == true
+        run: |
+          echo "📱 Launching app..."
+          adb shell am start -W -n io.metamask/.MainActivity > /dev/null 2>&1
+          echo "✅ App launched"
+          echo "⏳ Waiting for environment to stabilize..."
+          sleep 10
+
       - name: Run Maestro Test
         id: maestro-test
         continue-on-error: true
@@ -163,6 +224,7 @@ jobs:
           echo "🎭 Running Maestro test: ${{ inputs.test-file }}"
           echo "📍 Branch: ${{ inputs.branch }}"
           echo "🎥 Recording enabled: ${{ inputs.enable-recording }}"
+          echo "📦 Use fixtures: ${{ inputs.use-fixtures }}"
           
           # --debug-output captures screenshots, logs, and command metadata on failure
           if [[ "${{ inputs.enable-recording }}" == "true" ]]; then
@@ -191,6 +253,14 @@ jobs:
           # List artifacts for debugging
           echo "📁 Maestro artifacts:"
           ls -la maestro-artifacts/ || echo "No artifacts directory"
+
+      - name: Stop Servers
+        if: inputs.use-fixtures == true && always()
+        run: |
+          echo "🧹 Stopping servers..."
+          pkill -f "simple-fixture-server.js" 2>/dev/null || true
+          pkill -f "mock-server.js" 2>/dev/null || true
+          echo "✅ Servers stopped"
 
       - name: Rename artifacts with timestamp and test name
         if: env.TEST_RESULT == 'failure'
