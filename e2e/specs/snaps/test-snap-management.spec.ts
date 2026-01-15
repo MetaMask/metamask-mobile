@@ -7,6 +7,7 @@ import TestSnaps from '../../pages/Browser/TestSnaps';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SnapSettingsView from '../../pages/Settings/SnapSettingsView';
 import { Assertions } from '../../framework';
+import BrowserView from '../../pages/Browser/BrowserView';
 
 jest.setTimeout(150_000);
 
@@ -35,6 +36,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSnaps();
 
@@ -64,6 +66,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSnaps();
 
@@ -94,6 +97,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSnaps();
 
