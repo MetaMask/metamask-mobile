@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { selectTokenSelectors } from '../../selectors/Ramps/SelectToken.selectors';
+import { selectTokenSelectors } from '../../../app/components/UI/Ramp/Aggregator/components/TokenSelectModal/SelectToken.testIds';
 
 class TokenSelectBottomSheet {
   get tokenSearchInput(): DetoxElement {

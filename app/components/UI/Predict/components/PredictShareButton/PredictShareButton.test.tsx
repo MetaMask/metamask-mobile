@@ -4,7 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import PredictShareButton from './PredictShareButton';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 // Mock i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({

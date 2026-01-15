@@ -89,7 +89,7 @@ import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { isBridgeAllowed } from '../../../../../UI/Bridge/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../../constants/bridge';
 import { regex } from '../../../../../../util/regex';
-import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+import { AmountViewSelectorsIDs } from './AmountView.testIds';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';

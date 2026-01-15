@@ -245,7 +245,9 @@ export const PerpsEventValues = {
     MARKET_LIST: 'market_list',
     ASSET_DETAILS: 'asset_details',
     TRADING: 'trading',
-    HOMESCREEN: 'homescreen',
+    HOMESCREEN: 'homescreen', // Legacy - use WALLET_HOME_PERPS_TAB or PERPS_HOME instead
+    WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
+    PERPS_HOME: 'perps_home',
     POSITION_CLOSE: 'position_close',
     LEVERAGE: 'leverage',
     TUTORIAL: 'tutorial',
@@ -301,6 +303,7 @@ export const PerpsEventValues = {
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO: 'crypto',
     STOCKS: 'stocks',
+    GIVE_FEEDBACK: 'give_feedback',
   },
   BUTTON_LOCATION: {
     PERPS_HOME: 'perps_home',

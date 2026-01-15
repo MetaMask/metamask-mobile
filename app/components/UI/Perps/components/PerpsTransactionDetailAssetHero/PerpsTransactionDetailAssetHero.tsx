@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { TransactionDetailStyles } from '../../utils/transactionDetailStyles';

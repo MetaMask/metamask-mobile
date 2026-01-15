@@ -13,8 +13,13 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -1384,6 +1389,14 @@ export class PerpsController extends BaseController<
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(assetChainId);
 
+      const gasFeeToken =
+        transaction.to &&
+        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        transaction.to.toLowerCase() ===
+          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
+          ? (transaction.to as Hex)
+          : undefined;
+
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } =
@@ -1392,6 +1405,7 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
+          gasFeeToken,
         });
 
       // Store the transaction ID and try to get amount from transaction

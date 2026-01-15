@@ -11,7 +11,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';

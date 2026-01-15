@@ -17,7 +17,7 @@ import { getInternalAccountByAddress } from '../../../util/address';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
+import { SRPListItemSelectorsIDs } from './SRPListItem.testIds';
 import Avatar, {
   AvatarSize,
   AvatarVariant,

@@ -34,27 +34,28 @@ import {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import { NetworksViewSelectorsIDs } from '../../Views/Settings/NetworksSettings/NetworksView.testIds';
+import { SendLinkViewSelectorsIDs } from '../ReceiveRequest/SendLinkView.testIds';
+import { SendViewSelectorsIDs } from '../../Views/confirmations/legacy/SendFlow/SendView.testIds';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
+import { AddContactViewSelectorsIDs } from '../../Views/Settings/Contacts/AddContactView.testIds';
+import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.testIds';
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 import {
@@ -71,7 +72,6 @@ import {
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1342,85 +1342,6 @@ export function getNetworkNavbarOptions(
   };
 }
 
-/**
- * Function that returns the navigation options containing title and network indicator
- *
- * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
- */
-export function getWebviewNavbar(navigation, route, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
-      alignItems: 'center',
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.icon.default,
-    },
-  });
-
-  const title = route.params?.title ?? '';
-  const share = route.params?.dispatch;
-  return {
-    headerTitle: () => (
-      <Text style={innerStyles.headerTitleStyle}>{title}</Text>
-    ),
-    headerLeft: () =>
-      Device.isAndroid() ? (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={() => navigation.pop()}
-          style={styles.backButton}
-          {...generateTestId(Platform, BACK_BUTTON_SIMPLE_WEBVIEW)}
-        >
-          <IonicIcon
-            name={'arrow-back'}
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={() => navigation.pop()}
-          style={styles.backButton}
-        >
-          <IonicIcon
-            name="close"
-            size={38}
-            style={[innerStyles.headerIcon, styles.backIconIOS]}
-          />
-        </TouchableOpacity>
-      ),
-    headerRight: () =>
-      Device.isAndroid() ? (
-        <TouchableOpacity onPress={share} style={styles.backButton}>
-          <MaterialCommunityIcon
-            name="share-variant"
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity onPress={share} style={styles.backButton}>
-          <EvilIcons
-            name="share-apple"
-            size={32}
-            style={[innerStyles.headerIcon, styles.shareIconIOS]}
-          />
-        </TouchableOpacity>
-      ),
-    headerStyle: innerStyles.headerStyle,
-  };
-}
-
 export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -1867,63 +1788,33 @@ export function getDepositNavbarOptions(
   theme,
   onClose = undefined,
 ) {
-  const leftAction = () => navigation.pop();
-
-  return {
-    title,
-    headerStyle: {
-      backgroundColor: theme.colors.background.default,
-      elevation: 0,
-      shadowOpacity: 0,
-    },
-    headerTitleStyle: {
-      fontWeight: '600',
-      fontSize: 18,
-      color: theme.colors.text.default,
-    },
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: showBack
-      ? () => (
-          <ButtonIcon
-            onPress={leftAction}
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Lg}
-            style={styles.headerLeftButton}
-          />
-        )
-      : showConfiguration
-        ? () => (
-            <ButtonIcon
-              onPress={onConfigurationPress}
-              iconName={IconName.Setting}
-              size={ButtonIconSize.Lg}
-              testID="deposit-configuration-menu-button"
-              style={styles.headerLeftButton}
-            />
-          )
-        : null,
-    headerRight: showClose
-      ? () => (
-          <ButtonIcon
-            style={styles.headerRightButton}
-            iconName={IconName.Close}
-            size={ButtonIconSize.Lg}
-            onPress={() => {
-              navigation.dangerouslyGetParent()?.pop();
-              onClose?.();
-            }}
-            testID="deposit-close-navbar-button"
-          />
-        )
-      : null,
+  const handleClose = () => {
+    navigation.dangerouslyGetParent()?.pop();
+    onClose?.();
   };
+
+  let startButtonIconProps;
+  if (showBack) {
+    startButtonIconProps = {
+      iconName: IconName.ArrowLeft,
+      onPress: () => navigation.pop(),
+    };
+  } else if (showConfiguration) {
+    startButtonIconProps = {
+      iconName: IconName.Setting,
+      onPress: onConfigurationPress,
+      testID: 'deposit-configuration-menu-button',
+    };
+  }
+
+  return getHeaderCenterNavbarOptions({
+    title,
+    startButtonIconProps,
+    closeButtonProps: showClose
+      ? { onPress: handleClose, testID: 'deposit-close-navbar-button' }
+      : undefined,
+    includesTopInset: true,
+  });
 }
 
 export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
@@ -2177,54 +2068,5 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         iconColor={IconColor.Default}
       />
     ),
-  };
-}
-
-/**
- * Generic navbar with only a close button on the right
- * @param {Object} navigation - Navigation object
- * @param {Object} themeColors - Theme colors object
- * @param {Function} onClose - Optional custom close handler (defaults to navigation.goBack())
- * @returns {Object} - Navigation options
- */
-export function getCloseOnlyNavbar({
-  navigation,
-  themeColors,
-  backgroundColor = themeColors.background.default,
-  onClose = undefined,
-}) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerRight: {
-      marginHorizontal: 16,
-    },
-  });
-
-  const handleClosePress = () => {
-    if (onClose) {
-      onClose();
-      return;
-    }
-
-    navigation.goBack();
-  };
-
-  return {
-    headerShown: true,
-    headerTitle: () => null,
-    headerLeft: () => null,
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={handleClosePress}
-        style={innerStyles.headerRight}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
   };
 }

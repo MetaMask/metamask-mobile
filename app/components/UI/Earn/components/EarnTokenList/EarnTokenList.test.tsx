@@ -7,6 +7,20 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import EarnTokenList from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+// Prevent `useMetrics` from triggering async Engine readiness polling (`whenEngineReady`)
+// which can cause Jest timeouts / "import after environment torn down" errors.
+jest.mock('../../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    EARN_TOKEN_LIST_ITEM_CLICKED: 'EARN_TOKEN_LIST_ITEM_CLICKED',
+  },
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }),
+  }),
+}));
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -93,6 +107,16 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn().mockReturnValue(10),
+}));
+
+jest.mock('../../hooks/useTronStakeApy', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    apyDecimal: null,
+    apyPercent: null,
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 const initialState = {
@@ -195,11 +219,11 @@ describe('EarnTokenList', () => {
     // Token List
     // Ethereum
     expect(getAllByText('Ethereum').length).toBe(1);
-    expect(getAllByText('2.3% APR').length).toBe(1);
+    expect(getAllByText('2.29% APR').length).toBe(1);
 
     // USDC
     expect(getByText('USDC')).toBeDefined();
-    expect(getByText('4.0% APR')).toBeDefined();
+    expect(getByText('4% APR')).toBeDefined();
 
     expect(useEarnTokensSpy).toHaveBeenCalled();
     expect(useEarnNetworkPollingSpy).toHaveBeenCalled();

@@ -25,7 +25,7 @@ import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();

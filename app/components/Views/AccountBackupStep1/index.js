@@ -21,7 +21,7 @@ import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useTheme } from '../../../util/theme';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';

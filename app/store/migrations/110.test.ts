@@ -1,6 +1,15 @@
 import { captureException } from '@sentry/react-native';
-import migrate from './110';
 import { ensureValidState } from './util';
+import StorageWrapper from '../storage-wrapper';
+import migrate from './110';
+import {
+  AGREED,
+  DENIED,
+  METAMETRICS_ID,
+  METRICS_OPT_IN,
+  MIXPANEL_METAMETRICS_ID,
+  ANALYTICS_ID,
+} from '../../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -10,526 +19,336 @@ jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
-interface TestState {
-  engine: {
-    backgroundState: {
-      PerpsController?: {
-        withdrawalRequests?: {
-          id: string;
-          status: string;
-          amount: string;
-          asset: string;
-          accountAddress: string;
-          timestamp: number;
-          txHash?: string;
-        }[];
-        activeProvider?: string;
-        isTestnet?: boolean;
-        [key: string]: unknown;
-      };
-      [key: string]: unknown;
-    };
-  };
-}
+jest.mock('../storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
 
-const mockedEnsureValidState = jest.mocked(ensureValidState);
 const mockedCaptureException = jest.mocked(captureException);
+const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
-describe('Migration 110: Clear stuck pending withdrawal requests from PerpsController', () => {
+const migrationVersion = 110;
+
+const createValidState = () => ({
+  engine: {
+    backgroundState: {},
+  },
+});
+
+const createValidUUIDv4 = () => 'f2673eb8-db32-40bb-88a5-97cf5107d31d';
+
+describe(`migration #${migrationVersion}`, () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockedStorageWrapper.getItem.mockResolvedValue(null);
+    mockedStorageWrapper.setItem.mockResolvedValue(undefined);
+    mockedStorageWrapper.removeItem.mockResolvedValue(undefined);
   });
 
-  it('returns state unchanged if ensureValidState returns false', () => {
+  it('returns state unchanged if ensureValidState fails', async () => {
     const state = { some: 'state' };
     mockedEnsureValidState.mockReturnValue(false);
 
-    const result = migrate(state);
+    const migratedState = await migrate(state);
 
-    expect(result).toBe(state);
-  });
-
-  it('returns state unchanged if PerpsController does not exist', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          OtherController: { someData: true },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(result).toBe(state);
-    expect(result.engine.backgroundState.PerpsController).toBeUndefined();
+    expect(migratedState).toStrictEqual(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(mockedStorageWrapper.getItem).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged if PerpsController is not an object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PerpsController: 'invalid',
-        },
-      },
-    };
-
+  it('returns state unchanged and captures exception when storage read fails', async () => {
+    const state = createValidState();
     mockedEnsureValidState.mockReturnValue(true);
+    const storageError = new Error('Storage read failed');
+    mockedStorageWrapper.getItem.mockRejectedValue(storageError);
 
-    const result = migrate(state);
+    const migratedState = await migrate(state);
 
-    expect(result).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged if withdrawalRequests does not exist', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            activeProvider: 'hyperliquid',
-            isTestnet: false,
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(result).toBe(state);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toBeUndefined();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged if withdrawalRequests is not an array', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: 'not-an-array',
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state);
-
-    expect(result).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes pending withdrawal requests', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-                txHash: '0xabc',
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(1);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
-    ).toBe('withdrawal-2');
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0]
-        .status,
-    ).toBe('completed');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes bridging withdrawal requests', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'bridging',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-                txHash: '0xabc',
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(1);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
-    ).toBe('withdrawal-2');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes both pending and bridging withdrawal requests', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'bridging',
-                amount: '150',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-              {
-                id: 'withdrawal-3',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567892,
-                txHash: '0xabc',
-              },
-              {
-                id: 'withdrawal-4',
-                status: 'failed',
-                amount: '50',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567893,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(2);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.map(
-        (w) => w.id,
-      ),
-    ).toEqual(['withdrawal-3', 'withdrawal-4']);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('preserves completed and failed withdrawal requests', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'completed',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-                txHash: '0xabc',
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'failed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(2);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.map(
-        (w) => w.status,
-      ),
-    ).toEqual(['completed', 'failed']);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('clears array when all withdrawals are pending/bridging', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-              {
-                id: 'withdrawal-2',
-                status: 'bridging',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(0);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles empty withdrawalRequests array', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(0);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes invalid entries without status property', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              { id: 'invalid-1', amount: '100' }, // missing status
-              {
-                id: 'valid-1',
-                status: 'completed',
-                amount: '200',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567891,
-              },
-              null, // null entry
-              'string-entry', // invalid type
-            ],
-            activeProvider: 'hyperliquid',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(1);
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests?.[0].id,
-    ).toBe('valid-1');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('preserves other PerpsController properties', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-            ],
-            activeProvider: 'hyperliquid',
-            isTestnet: false,
-            someOtherProperty: 'preserved',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.PerpsController?.withdrawalRequests,
-    ).toHaveLength(0);
-    expect(result.engine.backgroundState.PerpsController?.activeProvider).toBe(
-      'hyperliquid',
-    );
-    expect(result.engine.backgroundState.PerpsController?.isTestnet).toBe(
-      false,
-    );
-    expect(
-      result.engine.backgroundState.PerpsController?.someOtherProperty,
-    ).toBe('preserved');
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('preserves other controllers in backgroundState', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [
-              {
-                id: 'withdrawal-1',
-                status: 'pending',
-                amount: '100',
-                asset: 'USDC',
-                accountAddress: '0x123',
-                timestamp: 1234567890,
-              },
-            ],
-          },
-          OtherController: {
-            shouldStayUntouched: true,
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state) as TestState;
-
-    expect(result.engine.backgroundState.OtherController).toEqual({
-      shouldStayUntouched: true,
-    });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles error during migration and captures exception', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            withdrawalRequests: [],
-          },
-        },
-      },
-    };
-
-    // Mock an error by making the property throw when accessed
-    Object.defineProperty(
-      state.engine.backgroundState.PerpsController,
-      'withdrawalRequests',
-      {
-        get() {
-          throw new Error('Test error');
-        },
-        configurable: true,
-      },
-    );
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const result = migrate(state);
-
-    expect(result).toBe(state);
+    expect(migratedState).toStrictEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          'Migration 110: Failed to clear stuck pending withdrawal requests',
+          'Migration 110: Failed to read legacy storage values',
         ),
       }),
     );
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
+  });
+
+  it('migrates analytics ID from METAMETRICS_ID to new MMKV key', async () => {
+    const state = createValidState();
+    const analyticsId = createValidUUIDv4();
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve(analyticsId);
+      }
+      if (key === ANALYTICS_ID) {
+        return Promise.resolve(null); // New key doesn't exist yet
+      }
+      return Promise.resolve(null);
+    });
+
+    const migratedState = await migrate(state);
+
+    // State is returned unchanged (migration only affects MMKV)
+    expect(migratedState).toStrictEqual(state);
+    // Analytics ID was written to new key
+    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
+      ANALYTICS_ID,
+      analyticsId,
+      { emitEvent: false },
+    );
+    // MIXPANEL_METAMETRICS_ID is deleted (already deprecated)
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+      MIXPANEL_METAMETRICS_ID,
+    );
+    // METAMETRICS_ID is kept (MetaMetrics still uses it)
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalledWith(
+      METAMETRICS_ID,
+    );
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('migrates opt-in from METRICS_OPT_IN AGREED to AnalyticsController state', async () => {
+    const state = createValidState();
+    const analyticsId = createValidUUIDv4();
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve(analyticsId);
+      }
+      if (key === METRICS_OPT_IN) {
+        return Promise.resolve(AGREED);
+      }
+      if (key === ANALYTICS_ID) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(null);
+    });
+
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
+
+    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
+      optedIn: true,
+    });
+    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
+      expect.stringContaining('OptedIn'),
+      expect.any(String),
+      expect.any(Object),
+    );
+  });
+
+  it('migrates opt-in from METRICS_OPT_IN DENIED to AnalyticsController state', async () => {
+    const state = createValidState();
+    const analyticsId = createValidUUIDv4();
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve(analyticsId);
+      }
+      if (key === METRICS_OPT_IN) {
+        return Promise.resolve(DENIED);
+      }
+      if (key === ANALYTICS_ID) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(null);
+    });
+
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
+
+    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
+      optedIn: false,
+    });
+    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
+      expect.stringContaining('OptedIn'),
+      expect.any(String),
+      expect.any(Object),
+    );
+  });
+
+  it('uses MIXPANEL_METAMETRICS_ID as fallback when METAMETRICS_ID is null and deletes it', async () => {
+    const state = createValidState();
+    const analyticsId = createValidUUIDv4();
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve(null);
+      }
+      if (key === MIXPANEL_METAMETRICS_ID) {
+        return Promise.resolve(analyticsId);
+      }
+      if (key === ANALYTICS_ID) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(null);
+    });
+
+    await migrate(state);
+
+    // Analytics ID was migrated from MIXPANEL_METAMETRICS_ID
+    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
+      ANALYTICS_ID,
+      analyticsId,
+      { emitEvent: false },
+    );
+    // MIXPANEL_METAMETRICS_ID is deleted after migration
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+      MIXPANEL_METAMETRICS_ID,
+    );
+  });
+
+  it('does not overwrite existing AnalyticsController state', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AnalyticsController: {
+            optedIn: true,
+          },
+        },
+      },
+    };
+    const legacyId = createValidUUIDv4();
+    const existingId = 'a1b2c3d4-e5f6-4789-a012-3456789abcde';
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve(legacyId);
+      }
+      if (key === ANALYTICS_ID) {
+        return Promise.resolve(existingId); // New key already has value
+      }
+      if (key === METRICS_OPT_IN) {
+        return Promise.resolve(DENIED); // Would migrate to false, but should not overwrite
+      }
+      return Promise.resolve(null);
+    });
+
+    const migratedState = (await migrate(state)) as typeof state;
+
+    // optedIn should remain true (not overwritten)
+    expect(
+      migratedState.engine.backgroundState.AnalyticsController.optedIn,
+    ).toBe(true);
+    // setItem should not be called for analytics ID that already exists
+    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
+      ANALYTICS_ID,
+      expect.any(String),
+      expect.any(Object),
+    );
+  });
+
+  it('skips analytics ID migration for invalid UUID', async () => {
+    const state = createValidState();
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve('invalid-id');
+      }
+      return Promise.resolve(null);
+    });
+
+    await migrate(state);
+
+    expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
+      ANALYTICS_ID,
+      expect.any(String),
+      expect.any(Object),
+    );
+  });
+
+  it('skips opt-in migration for invalid values', async () => {
+    const state = createValidState();
+    const analyticsId = createValidUUIDv4();
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve(analyticsId);
+      }
+      if (key === METRICS_OPT_IN) {
+        return Promise.resolve('invalid-value');
+      }
+      return Promise.resolve(null);
+    });
+
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
+
+    // AnalyticsController should not be created for invalid opt-in values
+    expect(
+      migratedState.engine.backgroundState.AnalyticsController,
+    ).toBeUndefined();
+  });
+
+  it('deletes MIXPANEL_METAMETRICS_ID but keeps METAMETRICS_ID after migration', async () => {
+    const state = createValidState();
+    const analyticsId = createValidUUIDv4();
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+      if (key === METAMETRICS_ID) {
+        return Promise.resolve(analyticsId);
+      }
+      if (key === METRICS_OPT_IN) {
+        return Promise.resolve(AGREED);
+      }
+      if (key === ANALYTICS_ID) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(null);
+    });
+
+    const migratedState = (await migrate(state)) as {
+      engine: {
+        backgroundState: {
+          AnalyticsController?: { optedIn: boolean };
+        };
+      };
+    };
+
+    // MIXPANEL_METAMETRICS_ID is deleted (already deprecated)
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+      MIXPANEL_METAMETRICS_ID,
+    );
+    // METAMETRICS_ID is kept (MetaMetrics still uses it)
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalledWith(
+      METAMETRICS_ID,
+    );
+    // METRICS_OPT_IN is kept (backward compatibility)
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalledWith(
+      METRICS_OPT_IN,
+    );
+    // Analytics ID was migrated to new key
+    expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
+      ANALYTICS_ID,
+      analyticsId,
+      { emitEvent: false },
+    );
+    // Opt-in was migrated to AnalyticsController state
+    expect(migratedState.engine.backgroundState.AnalyticsController).toEqual({
+      optedIn: true,
+    });
   });
 });
