@@ -24,7 +24,6 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   onBetPress,
   onClaimPress,
   onInfoPress,
-  hasClaimableWinnings = false,
   claimableAmount = 0,
   isLoading = false,
   testID = 'predict-game-details-footer',
@@ -36,6 +35,8 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   );
 
   const isMarketClosed = market.status !== 'open';
+  const hasClaimableWinnings = claimableAmount > 0;
+  const showClaimButton = hasClaimableWinnings && onClaimPress;
 
   if (isMarketClosed && !hasClaimableWinnings) {
     return null;
@@ -47,7 +48,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
       style={{ paddingBottom: Math.max(insets.bottom, 16) }}
       testID={testID}
     >
-      {!hasClaimableWinnings && (
+      {!showClaimButton && (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -91,7 +92,6 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         outcome={outcome}
         onBetPress={onBetPress}
         onClaimPress={onClaimPress}
-        hasClaimableWinnings={hasClaimableWinnings}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
         testID={`${testID}-action-buttons`}

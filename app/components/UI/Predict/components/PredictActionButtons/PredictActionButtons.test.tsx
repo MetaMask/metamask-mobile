@@ -115,10 +115,9 @@ describe('PredictActionButtons', () => {
   });
 
   describe('claim button', () => {
-    it('renders claim button when has claimable winnings', () => {
+    it('renders claim button when claimable amount is positive', () => {
       const mockOnClaimPress = jest.fn();
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 50.25,
         onClaimPress: mockOnClaimPress,
       });
@@ -131,7 +130,6 @@ describe('PredictActionButtons', () => {
     it('calls onClaimPress when claim button is pressed', () => {
       const mockOnClaimPress = jest.fn();
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 50.25,
         onClaimPress: mockOnClaimPress,
       });
@@ -144,7 +142,6 @@ describe('PredictActionButtons', () => {
 
     it('does not render claim button when claimable amount is zero', () => {
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 0,
         onClaimPress: jest.fn(),
       });
@@ -156,7 +153,6 @@ describe('PredictActionButtons', () => {
 
     it('does not render claim button when onClaimPress is not provided', () => {
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 50.25,
       });
 
@@ -257,7 +253,6 @@ describe('PredictActionButtons', () => {
     it('shows loading skeleton over claim button', () => {
       const props = createDefaultProps({
         isLoading: true,
-        hasClaimableWinnings: true,
         claimableAmount: 50.25,
         onClaimPress: jest.fn(),
       });
@@ -272,7 +267,6 @@ describe('PredictActionButtons', () => {
 
     it('shows claim button over bet buttons', () => {
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 50.25,
         onClaimPress: jest.fn(),
       });

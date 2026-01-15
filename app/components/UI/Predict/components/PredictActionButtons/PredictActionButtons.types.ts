@@ -41,7 +41,6 @@ export interface PredictActionButtonsProps {
   outcome: PredictOutcome;
   onBetPress: (token: PredictOutcomeToken) => void;
   onClaimPress?: () => void;
-  hasClaimableWinnings?: boolean;
   claimableAmount?: number;
   isLoading?: boolean;
   testID?: string;

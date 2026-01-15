@@ -33,7 +33,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   refreshing,
   onBetPress,
   onClaimPress,
-  hasClaimableWinnings = false,
   claimableAmount = 0,
   isLoading = false,
 }) => {
@@ -116,7 +115,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         onBetPress={onBetPress}
         onClaimPress={onClaimPress}
         onInfoPress={handleInfoPress}
-        hasClaimableWinnings={hasClaimableWinnings}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
       />

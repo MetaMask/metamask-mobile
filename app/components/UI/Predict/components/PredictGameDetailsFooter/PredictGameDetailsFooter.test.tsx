@@ -207,10 +207,9 @@ describe('PredictGameDetailsFooter', () => {
       expect(mockOnBetPress).toHaveBeenCalledWith(outcome.tokens[0]);
     });
 
-    it('renders claim button when has claimable winnings', () => {
+    it('renders claim button when claimable amount is positive', () => {
       const mockOnClaimPress = jest.fn();
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 75.5,
         onClaimPress: mockOnClaimPress,
       });
@@ -223,7 +222,6 @@ describe('PredictGameDetailsFooter', () => {
     it('calls onClaimPress when claim button is pressed', () => {
       const mockOnClaimPress = jest.fn();
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 75.5,
         onClaimPress: mockOnClaimPress,
       });
@@ -248,10 +246,10 @@ describe('PredictGameDetailsFooter', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides info row when user has claimable winnings', () => {
+    it('hides info row when claim button is displayed', () => {
       const props = createDefaultProps({
-        hasClaimableWinnings: true,
         claimableAmount: 50,
+        onClaimPress: jest.fn(),
       });
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
@@ -263,10 +261,37 @@ describe('PredictGameDetailsFooter', () => {
       expect(screen.queryByTestId('game-details-footer-volume')).toBeNull();
     });
 
-    it('renders claim button for closed market with claimable winnings', () => {
+    it('shows info row when claimableAmount is zero', () => {
+      const props = createDefaultProps({
+        claimableAmount: 0,
+        onClaimPress: jest.fn(),
+      });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.getByText('Pick a winner')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('game-details-footer-info-button'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows info row when onClaimPress is undefined', () => {
+      const props = createDefaultProps({
+        claimableAmount: 50,
+        onClaimPress: undefined,
+      });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.getByText('Pick a winner')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('game-details-footer-info-button'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders claim button for closed market with positive claimable amount', () => {
       const props = createDefaultProps({
         market: createMockMarket({ status: PredictMarketStatus.CLOSED }),
-        hasClaimableWinnings: true,
         claimableAmount: 100,
         onClaimPress: jest.fn(),
       });

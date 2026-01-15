@@ -11,7 +11,6 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   outcome,
   onBetPress,
   onClaimPress,
-  hasClaimableWinnings = false,
   claimableAmount = 0,
   isLoading = false,
   testID = 'predict-action-buttons',
@@ -53,7 +52,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
     return <PredictDetailsButtonsSkeleton testID={`${testID}-skeleton`} />;
   }
 
-  if (hasClaimableWinnings && claimableAmount > 0 && onClaimPress) {
+  if (claimableAmount > 0 && onClaimPress) {
     return (
       <Box twClassName="w-full mt-4">
         <PredictClaimButton
