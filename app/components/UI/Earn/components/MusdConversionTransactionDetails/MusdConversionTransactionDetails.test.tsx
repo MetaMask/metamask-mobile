@@ -25,6 +25,22 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockGetConversionTransfersFromLogs = jest.fn().mockResolvedValue({
+  input: {
+    amount: '1000000',
+    tokenContract: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  },
+  output: {
+    amount: '1000000',
+    tokenContract: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
+  },
+});
+
+jest.mock('./utils', () => ({
+  getConversionTransfersFromLogs: (...args: unknown[]) =>
+    mockGetConversionTransfersFromLogs(...args),
+}));
+
 const createMockTransactionMeta = (
   overrides: Partial<TransactionMeta> = {},
 ): TransactionMeta =>
@@ -43,6 +59,10 @@ const createMockTransactionMeta = (
       gas: '0x5208',
       gasPrice: '0x3b9aca00',
     },
+    txReceipt: {
+      gasUsed: '0xc480',
+      effectiveGasPrice: '0x2e90edd000',
+    },
     status: TransactionStatus.confirmed,
     metamaskPay: {
       chainId: '0x1',
@@ -52,12 +72,15 @@ const createMockTransactionMeta = (
     ...overrides,
   }) as TransactionMeta;
 
-const mockState = {
+const createMockState = (tx: TransactionMeta) => ({
   ...initialRootState,
   engine: {
     ...initialRootState.engine,
     backgroundState: {
       ...initialRootState.engine.backgroundState,
+      TransactionController: {
+        transactions: [tx],
+      },
       NetworkController: {
         ...initialRootState.engine.backgroundState.NetworkController,
         networkConfigurationsByChainId: {
@@ -93,11 +116,21 @@ const mockState = {
       },
     },
   },
-};
+});
 
 describe('MusdConversionTransactionDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetConversionTransfersFromLogs.mockResolvedValue({
+      input: {
+        amount: '1000000',
+        tokenContract: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      },
+      output: {
+        amount: '1000000',
+        tokenContract: '0x866e82a600a1414e583f7f13623f1ac5d58b0afa',
+      },
+    });
   });
 
   afterEach(() => {
@@ -115,7 +148,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(
@@ -133,7 +166,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(getByText(/status/i)).toBeOnTheScreen();
@@ -150,7 +183,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(getByText(/date/i)).toBeOnTheScreen();
@@ -166,7 +199,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(getByText(/total gas fee/i)).toBeOnTheScreen();
@@ -182,7 +215,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(getByText(/MUSD/)).toBeOnTheScreen();
@@ -202,7 +235,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(getByText(/confirmed/i)).toBeOnTheScreen();
@@ -220,7 +253,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(getByText(/submitted/i)).toBeOnTheScreen();
@@ -238,7 +271,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(getByText(/failed/i)).toBeOnTheScreen();
@@ -256,7 +289,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       // Navigation options are set in useEffect
@@ -277,7 +310,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(
@@ -297,7 +330,7 @@ describe('MusdConversionTransactionDetails', () => {
           />
         ),
         { name: Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS },
-        { state: mockState },
+        { state: createMockState(mockTx) },
       );
 
       expect(queryByText(/view on block explorer/i)).toBeNull();
