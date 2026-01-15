@@ -153,6 +153,7 @@ const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
 jest.mock('../../hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: jest.fn().mockReturnValue({
     isEligible: true,
+    isLoading: false,
     geolocation: 'US',
     blockedCountries: [],
   }),

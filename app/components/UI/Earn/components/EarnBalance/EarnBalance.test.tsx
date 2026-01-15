@@ -117,6 +117,7 @@ import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligi
 jest.mock('../../hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: jest.fn().mockReturnValue({
     isEligible: true,
+    isLoading: false,
     geolocation: 'US',
     blockedCountries: [],
   }),
@@ -300,6 +301,7 @@ describe('EarnBalance', () => {
 
       mockUseMusdConversionEligibility.mockReturnValue({
         isEligible: false,
+        isLoading: false,
         geolocation: 'GB',
         blockedCountries: ['GB'],
       });
@@ -329,6 +331,7 @@ describe('EarnBalance', () => {
 
       mockUseMusdConversionEligibility.mockReturnValue({
         isEligible: true,
+        isLoading: false,
         geolocation: 'US',
         blockedCountries: [],
       });

@@ -101,6 +101,7 @@ jest.mock('../../../Earn/hooks/useMusdCtaVisibility', () => ({
 jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: jest.fn(() => ({
     isEligible: true,
+    isLoading: false,
     geolocation: 'US',
     blockedCountries: [],
   })),
@@ -297,6 +298,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
     mockUseMusdConversionEligibility.mockReturnValue({
       isEligible: isGeoEligible,
+      isLoading: false,
       geolocation: isGeoEligible ? 'US' : 'GB',
       blockedCountries: isGeoEligible ? [] : ['GB'],
     });

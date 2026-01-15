@@ -26,16 +26,25 @@ describe('useMusdConversionEligibility', () => {
   });
 
   describe('isEligible', () => {
-    it('returns true when geolocation is null', () => {
+    it('returns false when geolocation is null (blocks by default for compliance)', () => {
       mockSelectGeolocation.mockReturnValue(null);
       mockSelectMusdConversionBlockedCountries.mockReturnValue(['GB']);
 
       const { result } = renderHook(() => useMusdConversionEligibility());
 
-      expect(result.current.isEligible).toBe(true);
+      expect(result.current.isEligible).toBe(false);
     });
 
-    it('returns true when blockedCountries is empty', () => {
+    it('returns false when geolocation is null even with empty blocked list', () => {
+      mockSelectGeolocation.mockReturnValue(null);
+      mockSelectMusdConversionBlockedCountries.mockReturnValue([]);
+
+      const { result } = renderHook(() => useMusdConversionEligibility());
+
+      expect(result.current.isEligible).toBe(false);
+    });
+
+    it('returns true when blockedCountries is empty and geolocation is known', () => {
       mockSelectGeolocation.mockReturnValue('GB');
       mockSelectMusdConversionBlockedCountries.mockReturnValue([]);
 
@@ -119,6 +128,26 @@ describe('useMusdConversionEligibility', () => {
       const { result } = renderHook(() => useMusdConversionEligibility());
 
       expect(result.current.blockedCountries).toEqual(blockedCountries);
+    });
+  });
+
+  describe('isLoading', () => {
+    it('returns true when geolocation is null', () => {
+      mockSelectGeolocation.mockReturnValue(null);
+      mockSelectMusdConversionBlockedCountries.mockReturnValue([]);
+
+      const { result } = renderHook(() => useMusdConversionEligibility());
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('returns false when geolocation is available', () => {
+      mockSelectGeolocation.mockReturnValue('US');
+      mockSelectMusdConversionBlockedCountries.mockReturnValue([]);
+
+      const { result } = renderHook(() => useMusdConversionEligibility());
+
+      expect(result.current.isLoading).toBe(false);
     });
   });
 });

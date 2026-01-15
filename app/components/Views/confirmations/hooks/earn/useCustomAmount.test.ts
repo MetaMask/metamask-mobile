@@ -34,6 +34,7 @@ describe('useCustomAmount', () => {
     });
     mockUseMusdConversionEligibility.mockReturnValue({
       isEligible: true,
+      isLoading: false,
       geolocation: 'US',
       blockedCountries: [],
     });
@@ -101,6 +102,7 @@ describe('useCustomAmount', () => {
     it('returns shouldShowOutputAmountTag false when user is geo-blocked', () => {
       mockUseMusdConversionEligibility.mockReturnValue({
         isEligible: false,
+        isLoading: false,
         geolocation: 'GB',
         blockedCountries: ['GB'],
       });

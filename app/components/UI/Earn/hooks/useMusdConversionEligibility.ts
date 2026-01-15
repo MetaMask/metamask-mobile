@@ -9,8 +9,13 @@ import { selectMusdConversionBlockedCountries } from '../selectors/featureFlags'
  * Uses the Ramps geolocation API (via RampsController) to get the user's country code
  * and compares it against a list of blocked countries from LaunchDarkly.
  *
+ * IMPORTANT: Defaults to BLOCKING when geolocation is unknown (null) to ensure
+ * regulatory compliance. Users in blocked regions cannot bypass restrictions
+ * by having geolocation fail to load.
+ *
  * @returns Object containing:
- * - isEligible: true if user is not in a blocked country (or if geolocation/blocked list unavailable)
+ * - isEligible: true only if geolocation is known AND user is not in a blocked country
+ * - isLoading: true if geolocation is still pending (null)
  * - geolocation: the user's country/region code (e.g., "GB", "US-CA") or null
  * - blockedCountries: array of blocked country codes from LaunchDarkly
  */
@@ -18,9 +23,16 @@ export const useMusdConversionEligibility = () => {
   const geolocation = useSelector(selectGeolocation);
   const blockedCountries = useSelector(selectMusdConversionBlockedCountries);
 
+  const isLoading = geolocation === null;
+
   const isEligible = useMemo(() => {
-    // Default to eligible if geolocation is unknown or no blocked countries configured
-    if (!geolocation || blockedCountries.length === 0) {
+    // Block by default when geolocation is unknown for regulatory compliance
+    if (!geolocation) {
+      return false;
+    }
+
+    // If no blocked countries configured, allow access
+    if (blockedCountries.length === 0) {
       return true;
     }
 
@@ -34,6 +46,7 @@ export const useMusdConversionEligibility = () => {
 
   return {
     isEligible,
+    isLoading,
     geolocation,
     blockedCountries,
   };

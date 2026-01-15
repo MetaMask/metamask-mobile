@@ -148,6 +148,7 @@ describe('useMusdCtaVisibility', () => {
     });
     mockUseMusdConversionEligibility.mockReturnValue({
       isEligible: true,
+      isLoading: false,
       geolocation: 'US',
       blockedCountries: [],
     });
@@ -678,6 +679,7 @@ describe('useMusdCtaVisibility', () => {
       it('returns shouldShowCta false when user is geo-blocked in all networks view', () => {
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: false,
+          isLoading: false,
           geolocation: 'GB',
           blockedCountries: ['GB'],
         });
@@ -710,6 +712,7 @@ describe('useMusdCtaVisibility', () => {
       it('returns shouldShowCta false when user is geo-blocked on single supported chain', () => {
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: false,
+          isLoading: false,
           geolocation: 'GB',
           blockedCountries: ['GB'],
         });
@@ -739,6 +742,7 @@ describe('useMusdCtaVisibility', () => {
       it('returns shouldShowCta true when user is not geo-blocked', () => {
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: true,
+          isLoading: false,
           geolocation: 'US',
           blockedCountries: ['GB'],
         });
@@ -943,6 +947,7 @@ describe('useMusdCtaVisibility', () => {
       it('returns false when user is geo-blocked', () => {
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: false,
+          isLoading: false,
           geolocation: 'GB',
           blockedCountries: ['GB'],
         });
@@ -967,6 +972,7 @@ describe('useMusdCtaVisibility', () => {
       it('returns false when user is geo-blocked even with mUSD balance on single chain', () => {
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: false,
+          isLoading: false,
           geolocation: 'GB',
           blockedCountries: ['GB'],
         });
@@ -999,6 +1005,7 @@ describe('useMusdCtaVisibility', () => {
       it('returns true when user is not geo-blocked and conditions are met', () => {
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: true,
+          isLoading: false,
           geolocation: 'US',
           blockedCountries: ['GB'],
         });
@@ -1098,6 +1105,7 @@ describe('useMusdCtaVisibility', () => {
         mockIsMusdConversionAssetOverviewEnabled = true;
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: false,
+          isLoading: false,
           geolocation: 'GB',
           blockedCountries: ['GB'],
         });
@@ -1114,6 +1122,7 @@ describe('useMusdCtaVisibility', () => {
         mockIsMusdConversionAssetOverviewEnabled = true;
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: true,
+          isLoading: false,
           geolocation: 'US',
           blockedCountries: ['GB'],
         });
