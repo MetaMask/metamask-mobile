@@ -46,6 +46,7 @@ export const useNavigateToInternalBrowserPage = (
 ) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const browserNavigation = navigation as NavigationProp<ParamListBase>;
 
   const navigateToInternalBrowserPage = useCallback(
     (page: CardInternalBrowserPage) => {
@@ -82,7 +83,7 @@ export const useNavigateToInternalBrowserPage = (
         timestamp: Date.now(),
       };
 
-      navigation.navigate(Routes.BROWSER.HOME, {
+      browserNavigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
         params,
       });
@@ -94,7 +95,7 @@ export const useNavigateToInternalBrowserPage = (
           .build(),
       );
     },
-    [browserTabs, navigation, trackEvent, createEventBuilder],
+    [browserTabs, browserNavigation, trackEvent, createEventBuilder],
   );
 
   return {

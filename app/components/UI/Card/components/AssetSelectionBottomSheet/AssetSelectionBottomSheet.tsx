@@ -1,6 +1,10 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { useCardSDK } from '../../sdk';
 import {
@@ -96,7 +100,7 @@ export const createAssetSelectionModalNavigationDetails =
 
 const AssetSelectionBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const {
     tokensWithAllowances,
     delegationSettings,
@@ -114,7 +118,9 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const { navigateToCardPage } = useNavigateToCardPage(
+    navigation as NavigationProp<ParamListBase>,
+  );
   const userCardLocation = useSelector(selectUserCardLocation);
 
   // Get supported tokens from the card SDK to display in the bottom sheet.
@@ -595,7 +601,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
         closeBottomSheetAndNavigate(() => {
           if (callerRoute) {
             // Navigate back to the caller route with the selected token
-            navigation.navigate(callerRoute, {
+            const nav = navigation as NavigationProp<ParamListBase>;
+            nav.navigate(callerRoute, {
               ...callerParams,
               returnedSelectedToken: token,
             });

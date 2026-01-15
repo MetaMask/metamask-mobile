@@ -87,6 +87,7 @@ export const openActivityDetailsSheet = (
   navigation: NavigationProp<ParamListBase>,
   props: ActivityDetailsSheetProps,
 ) => {
+  const nav = navigation as NavigationProp<ParamListBase>;
   const {
     event,
     activityTypes,
@@ -99,7 +100,7 @@ export const openActivityDetailsSheet = (
   } = props;
   const eventDetails = getEventDetails(event, activityTypes, accountName);
 
-  navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
+  nav.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
     title: eventDetails.title,
     description: (
       <ActivityDetailsSheet

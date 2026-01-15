@@ -28,6 +28,8 @@ import {
   useNavigation,
   useRoute,
   RouteProp,
+  NavigationProp,
+  ParamListBase,
 } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
@@ -132,7 +134,7 @@ const CardHome = () => {
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const dispatch = useDispatch();
   const theme = useTheme();
 
@@ -176,7 +178,7 @@ const CardHome = () => {
   const { provisionCard, isLoading: isLoadingProvisionCard } =
     useCardProvision();
   const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
-    useNavigateToCardPage(navigation);
+    useNavigateToCardPage(navigation as NavigationProp<ParamListBase>);
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
