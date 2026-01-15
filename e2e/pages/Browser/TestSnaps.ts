@@ -395,6 +395,11 @@ class TestSnaps {
       elemDescription: 'OK button',
       waitForElementToDisappear: true,
     });
+
+    await Gestures.tap(this.getConnectSnapButton, {
+      elemDescription: 'Connect Snap button',
+      waitForElementToDisappear: true,
+    });
   }
 
   async fillMessage(
