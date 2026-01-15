@@ -141,7 +141,7 @@ jobs:
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
-          yarn install --immutable --mode=skip-build
+          cd main && yarn install --immutable --mode=skip-build
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
