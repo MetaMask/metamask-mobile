@@ -486,8 +486,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(false);
       setError(null);
-    } catch (loginErr: unknown) {
-      await handleLoginError(loginErr);
+    } catch (loginErr) {
+      await handleLoginError(loginErr as Error);
     }
   }, [
     password,
@@ -529,8 +529,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(false);
       setError(null);
-    } catch (loginErr: unknown) {
-      await handleLoginError(loginErr);
+    } catch (loginErr) {
+      await handleLoginError(loginErr as Error);
     }
   }, [
     password,
