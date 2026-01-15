@@ -17,7 +17,7 @@ import {
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTabViewSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import {
   Icon,

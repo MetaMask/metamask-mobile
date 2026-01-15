@@ -1,4 +1,4 @@
-import { PredictFeeCollection } from '../types/flags';
+import { PredictFeeCollection, PredictLiveSportsFlag } from '../types/flags';
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
   enabled: true,
@@ -10,3 +10,8 @@ export const DEFAULT_FEE_COLLECTION_FLAG = {
   providerFee: 0.02, // 2%
   waiveList: [],
 } satisfies PredictFeeCollection;
+
+export const DEFAULT_LIVE_SPORTS_FLAG: PredictLiveSportsFlag = {
+  enabled: false,
+  leagues: [],
+};

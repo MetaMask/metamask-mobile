@@ -5,7 +5,7 @@ import {
   CardError,
   CardErrorType,
   CardStatus,
-  CardWarning,
+  CardStateWarning,
 } from '../types';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
@@ -14,7 +14,7 @@ import { AUTHENTICATED_CACHE_DURATION } from '../constants';
 
 interface CardDetailsResult {
   cardDetails: CardDetailsResponse | null;
-  warning: CardWarning | null;
+  warning: CardStateWarning | null;
 }
 
 interface State {
@@ -36,12 +36,12 @@ const useCardDetails = () => {
 
       try {
         const cardDetailsResponse = await sdk.getCardDetails();
-        let warning: CardWarning | null = null;
+        let warning: CardStateWarning | null = null;
 
         if (cardDetailsResponse.status === CardStatus.FROZEN) {
-          warning = CardWarning.Frozen;
+          warning = CardStateWarning.Frozen;
         } else if (cardDetailsResponse.status === CardStatus.BLOCKED) {
-          warning = CardWarning.Blocked;
+          warning = CardStateWarning.Blocked;
         }
 
         return {
@@ -53,7 +53,7 @@ const useCardDetails = () => {
           if (err.type === CardErrorType.NO_CARD) {
             return {
               cardDetails: null,
-              warning: CardWarning.NoCard,
+              warning: CardStateWarning.NoCard,
             };
           }
         }

@@ -11,6 +11,7 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 
 /**
  * Get the messenger for the AccountTreeController.
@@ -61,6 +62,8 @@ export function getAccountTreeControllerMessenger(
 export type AllowedInitializationEvents =
   AccountTreeControllerSelectedAccountGroupChangeEvent;
 
+type AccountTreeControllerInitMessengerActions = AnalyticsControllerActions;
+
 export type AccountTreeControllerInitMessenger = ReturnType<
   typeof getAccountTreeControllerInitMessenger
 >;
@@ -77,7 +80,7 @@ export function getAccountTreeControllerInitMessenger(
 ) {
   const messenger = new Messenger<
     'AccountTreeControllerInit',
-    never,
+    AccountTreeControllerInitMessengerActions,
     AllowedInitializationEvents,
     RootMessenger
   >({
@@ -85,7 +88,7 @@ export function getAccountTreeControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [],
+    actions: ['AnalyticsController:trackEvent'],
     events: ['AccountTreeController:selectedAccountGroupChange'],
     messenger,
   });

@@ -29,7 +29,7 @@ import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
 import { withRampNavigation } from '../Ramp/hooks/withRampNavigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
+import { RequestPaymentModalSelectorsIDs } from './RequestPaymentModal.testIds';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
@@ -197,7 +197,7 @@ class ReceiveRequest extends PureComponent {
             alignItems={BoxAlignItems.Center}
             twClassName="px-4 py-6"
           >
-            <Box twClassName="p-6 border border-muted rounded-2xl">
+            <Box twClassName="p-6 border border-muted rounded-2xl bg-white">
               <QRCode
                 logo={PNG_MM_LOGO_PATH}
                 logoSize={32}

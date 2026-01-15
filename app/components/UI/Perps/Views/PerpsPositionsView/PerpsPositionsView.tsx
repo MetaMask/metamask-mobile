@@ -31,7 +31,7 @@ import { getPositionDirection } from '../../utils/positionCalculations';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PerpsPositionsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});

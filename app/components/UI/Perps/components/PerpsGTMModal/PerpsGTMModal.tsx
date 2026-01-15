@@ -22,7 +22,7 @@ import { useTheme } from '../../../../../util/theme';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
 import createStyles from './PerpsGTMModal.styles';
 
-import { PerpsGTMModalSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsGTMModalSelectorsIDs } from '../../Perps.testIds';
 import {
   PERPS_GTM_MODAL_DECLINE,
   PERPS_GTM_MODAL_ENGAGE,

@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -7,28 +7,40 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       flexDirection: 'row',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingLeft: 16,
+      paddingRight: 12,
       borderWidth: 1,
       borderRadius: 12,
       borderColor: colors.border.muted,
-      justifyContent: 'space-between',
+      backgroundColor: colors.background.default,
+      alignItems: 'center',
+      gap: 16,
+    },
+    imageContainer: {
+      width: 78,
+      height: 78,
+      borderRadius: 12,
+      backgroundColor: colors.background.muted,
+      overflow: 'hidden',
+      justifyContent: 'center',
       alignItems: 'center',
     },
-    text: {
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
-      fontWeight: 600,
-    },
-    linkText: {
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
-      color: colors.primary.default,
-      fontWeight: 600,
-    },
     musdIcon: {
-      width: 84,
-      height: 84,
+      padding: 4,
+      width: 78,
+      height: 78,
+    },
+    textContainer: {
+      flex: 1,
+      gap: 4,
+      paddingVertical: 16,
+    },
+    title: {
+      color: colors.text.default,
+    },
+    closeButton: {
+      alignSelf: 'flex-start',
+      marginTop: 16,
     },
   });
 };
