@@ -89,11 +89,12 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               color={
-                position.cashPnl > 0
-                  ? TextColor.SuccessDefault
-                  : TextColor.ErrorDefault
+                position.cashPnl < 0
+                  ? TextColor.ErrorDefault
+                  : TextColor.SuccessDefault
               }
               twClassName="font-medium"
+              testID={`predict-picks-pnl-${position.id}`}
             >
               {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
             </Text>

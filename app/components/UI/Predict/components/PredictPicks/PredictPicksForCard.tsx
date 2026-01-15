@@ -42,11 +42,12 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
           <Box twClassName="flex-row gap-2">
             <Text
               color={
-                position.cashPnl > 0
-                  ? TextColor.SuccessDefault
-                  : TextColor.ErrorDefault
+                position.cashPnl < 0
+                  ? TextColor.ErrorDefault
+                  : TextColor.SuccessDefault
               }
               variant={TextVariant.BodyMd}
+              testID={`predict-picks-for-card-pnl-${position.id}`}
             >
               {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
             </Text>

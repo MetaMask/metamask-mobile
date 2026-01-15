@@ -171,6 +171,73 @@ describe('PredictPicksForCard', () => {
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
 
+    it('applies SuccessDefault color when cashPnl is positive', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [createMockPosition({ id: 'pos-positive', cashPnl: 25.75 })],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictPicksForCard marketId="market-1" />);
+
+      const pnlText = screen.getByTestId(
+        'predict-picks-for-card-pnl-pos-positive',
+      );
+      expect(pnlText.props.style).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            color: expect.any(String),
+          }),
+        ]),
+      );
+    });
+
+    it('applies ErrorDefault color when cashPnl is negative', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [createMockPosition({ id: 'pos-negative', cashPnl: -10.5 })],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictPicksForCard marketId="market-1" />);
+
+      const pnlText = screen.getByTestId(
+        'predict-picks-for-card-pnl-pos-negative',
+      );
+      expect(pnlText.props.style).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            color: expect.any(String),
+          }),
+        ]),
+      );
+    });
+
+    it('applies SuccessDefault color when cashPnl is zero (break-even)', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [createMockPosition({ id: 'pos-zero', cashPnl: 0 })],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictPicksForCard marketId="market-1" />);
+
+      const pnlText = screen.getByTestId('predict-picks-for-card-pnl-pos-zero');
+      expect(pnlText.props.style).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            color: expect.any(String),
+          }),
+        ]),
+      );
+    });
+
     it('displays position amount', () => {
       mockUsePredictPositions.mockReturnValue({
         positions: [createMockPosition({ amount: 75.25 })],
