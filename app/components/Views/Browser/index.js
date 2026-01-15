@@ -99,12 +99,11 @@ export const Browser = (props) => {
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
 
   const newTab = useCallback(
-    (url, linkType) => {
-      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    (url, linkType, { replaceActiveIfMax = false } = {}) => {
+      // if tabs.length > MAX_BROWSER_TABS, do not open a new tab
       if (tabs.length >= MAX_BROWSER_TABS) {
-        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-        // If a URL was provided, open it in the active tab instead of discarding it
-        if (url) {
+        if (url && replaceActiveIfMax) {
+          // If replaceActiveIfMax is true and a URL was provided, open it in the active tab
           const activeTab = tabs.find((tab) => tab.id === activeTabId);
           if (activeTab) {
             updateTab(activeTab.id, {
@@ -114,6 +113,9 @@ export const Browser = (props) => {
             });
             setCurrentUrl(url);
           }
+        } else {
+          // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
+          navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
         }
       } else {
         const newTabUrl = isTokenDiscoveryBrowserEnabled()
@@ -296,9 +298,13 @@ export const Browser = (props) => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
+      const fromTrending = route.params?.fromTrending;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from link.
-        newTab(newTabUrl, linkType);
+        // If coming from Explore (trending), replace active tab when at max capacity
+        newTab(newTabUrl, linkType, {
+          replaceActiveIfMax: fromTrending,
+        });
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {

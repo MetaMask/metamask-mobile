@@ -308,7 +308,7 @@ describe('Browser', () => {
     navigationSpy.mockRestore();
   });
 
-  it('should open URL in active tab when max tabs reached and a URL is provided', () => {
+  it('opens URL in active tab when max tabs reached and fromTrending is true', () => {
     const mockUpdateTab = jest.fn();
     const mockCreateNewTab = jest.fn();
 
@@ -340,7 +340,7 @@ describe('Browser', () => {
     const newSiteUrl = 'https://example.com';
     const navigationSpy = jest.spyOn(mockNavigation, 'navigate');
 
-    // rerender with a new URL when max tabs are reached
+    // rerender with a new URL when max tabs are reached, coming from Explore (fromTrending)
     rerender(
       <Provider store={mockStore(mockInitialState)}>
         <NavigationContainer independent>
@@ -349,7 +349,11 @@ describe('Browser', () => {
               {() => (
                 <Browser
                   route={{
-                    params: { newTabUrl: newSiteUrl, timestamp: Date.now() },
+                    params: {
+                      newTabUrl: newSiteUrl,
+                      timestamp: Date.now(),
+                      fromTrending: true,
+                    },
                   }}
                   tabs={mockTabs}
                   activeTab={1}
@@ -367,10 +371,8 @@ describe('Browser', () => {
       </Provider>,
     );
 
-    // Should show the modal
-    expect(navigationSpy).toHaveBeenCalledWith(
-      Routes.MODAL.MAX_BROWSER_TABS_MODAL,
-    );
+    // Should NOT show the modal when fromTrending is true
+    expect(navigationSpy).not.toHaveBeenCalled();
 
     // Should NOT create a new tab
     expect(mockCreateNewTab).not.toHaveBeenCalled();
@@ -378,7 +380,6 @@ describe('Browser', () => {
     // Should update the active tab with the new URL
     expect(mockUpdateTab).toHaveBeenCalledWith(1, {
       url: newSiteUrl,
-      linkType: undefined,
       isArchived: false,
     });
 
