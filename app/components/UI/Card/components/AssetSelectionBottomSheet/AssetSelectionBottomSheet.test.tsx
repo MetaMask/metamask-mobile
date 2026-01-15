@@ -226,7 +226,6 @@ const setupComponent = (paramsOverrides = {}) => {
     navigateToCardHomeOnPriorityToken: false,
     selectionOnly: false,
     onTokenSelect: undefined,
-    hideSolanaAssets: false,
     callerRoute: undefined,
     callerParams: undefined,
     ...paramsOverrides,
@@ -284,7 +283,6 @@ describe('AssetSelectionBottomSheet', () => {
       navigateToCardHomeOnPriorityToken: false,
       selectionOnly: false,
       onTokenSelect: undefined,
-      hideSolanaAssets: false,
       callerRoute: undefined,
       callerParams: undefined,
     });
@@ -389,7 +387,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('token filtering', () => {
-    it('filters out Solana tokens when hideSolanaAssets is true', () => {
+    it('shows Solana tokens', () => {
       const solanaToken = createMockToken({
         symbol: 'SOL',
         caipChainId: SolScope.Mainnet,
@@ -400,30 +398,13 @@ describe('AssetSelectionBottomSheet', () => {
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText, queryByText } = setupComponent({
+      const { getByText } = setupComponent({
         tokensWithAllowances: [solanaToken, lineaToken],
         delegationSettings,
-        hideSolanaAssets: true,
-      });
-
-      expect(getByText(/USDC on/)).toBeOnTheScreen();
-      expect(queryByText(/SOL on/)).toBeNull();
-    });
-
-    it('shows Solana tokens when hideSolanaAssets is false', () => {
-      const solanaToken = createMockToken({
-        symbol: 'SOL',
-        caipChainId: SolScope.Mainnet,
-      });
-      const delegationSettings = createMockDelegationSettings();
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [solanaToken],
-        delegationSettings,
-        hideSolanaAssets: false,
       });
 
       expect(getByText(/SOL on/)).toBeOnTheScreen();
+      expect(getByText(/USDC on/)).toBeOnTheScreen();
     });
 
     it('filters Linea tokens based on US location', () => {
@@ -959,52 +940,6 @@ describe('AssetSelectionBottomSheet', () => {
       fireEvent.press(getByText(/mUSD on/));
 
       expect(mockGoBack).toHaveBeenCalled();
-    });
-  });
-
-  describe('Solana not supported footer', () => {
-    it('displays Solana not supported button when hideSolanaAssets is true', () => {
-      const token = createMockToken();
-      const delegationSettings = createMockDelegationSettings();
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-        hideSolanaAssets: true,
-      });
-
-      expect(getByText('Others tokens on Solana')).toBeOnTheScreen();
-      expect(getByText('Enable on card.metamask.io')).toBeOnTheScreen();
-    });
-
-    it('calls navigateToCardPage when Solana not supported button is pressed', () => {
-      const token = createMockToken();
-      const delegationSettings = createMockDelegationSettings();
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-        hideSolanaAssets: true,
-      });
-
-      fireEvent.press(getByText('Others tokens on Solana'));
-
-      expect(mockNavigateToCardPage).toHaveBeenCalled();
-    });
-
-    it('does not display Solana not supported button when hideSolanaAssets is false', () => {
-      const token = createMockToken();
-      const delegationSettings = createMockDelegationSettings();
-
-      const { queryByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-        hideSolanaAssets: false,
-      });
-
-      expect(
-        queryByText('card.asset_selection.solana_not_supported_button_title'),
-      ).toBeNull();
     });
   });
 

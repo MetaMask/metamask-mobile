@@ -71,6 +71,29 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Mock crypto.randomUUID for Node.js test environment
+Object.defineProperty(globalThis, 'crypto', {
+  value: {
+    ...globalThis.crypto,
+    randomUUID: jest.fn().mockReturnValue('mock-uuid-1234'),
+  },
+});
+
+// Mock Solana Snap dependencies
+const mockHandleSnapRequest = jest.fn();
+
+jest.mock('../../../../core/Snaps/utils', () => ({
+  handleSnapRequest: (...args: unknown[]) => mockHandleSnapRequest(...args),
+}));
+
+jest.mock('../../../../core/SnapKeyring/SolanaWalletSnap', () => ({
+  SOLANA_WALLET_SNAP_ID: 'npm:@metamask/solana-wallet-snap',
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  ...jest.requireActual('@metamask/keyring-api'),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
@@ -116,6 +139,7 @@ describe('useCardDelegation', () => {
     generateDelegationToken: jest.Mock;
     encodeApproveTransaction: jest.Mock;
     completeEVMDelegation: jest.Mock;
+    completeSolanaDelegation: jest.Mock;
   };
   let mockTrackEvent: jest.Mock;
   let mockCreateEventBuilder: jest.Mock;
@@ -130,6 +154,7 @@ describe('useCardDelegation', () => {
       generateDelegationToken: jest.fn(),
       encodeApproveTransaction: jest.fn(),
       completeEVMDelegation: jest.fn(),
+      completeSolanaDelegation: jest.fn(),
     };
 
     mockUseCardSDK.mockReturnValue({
@@ -209,6 +234,10 @@ describe('useCardDelegation', () => {
     });
     mockSDK.encodeApproveTransaction.mockReturnValue('0xencodedData');
     mockSDK.completeEVMDelegation.mockResolvedValue({});
+    mockSDK.completeSolanaDelegation.mockResolvedValue({});
+
+    // Reset Solana snap mock
+    mockHandleSnapRequest.mockReset();
   });
 
   afterEach(() => {
@@ -1122,6 +1151,7 @@ describe('useCardDelegation', () => {
     it('uses raw address for solana network without checksum', async () => {
       const mockToken = createMockToken();
       const mockSolanaAddress = 'SolanaAddress123ABC';
+      const mockAccountId = 'solana-account-uuid-123';
       const params = {
         ...createMockDelegationParams(),
         network: 'solana' as const,
@@ -1130,8 +1160,17 @@ describe('useCardDelegation', () => {
       mockUseSelector.mockReturnValue(
         jest.fn().mockReturnValue({
           address: mockSolanaAddress,
+          id: mockAccountId,
         }),
       );
+
+      // Mock handleSnapRequest for both signCardMessage and approveCardAmount
+      mockHandleSnapRequest
+        .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
+        .mockResolvedValueOnce({ signature: 'mock-tx-signature' }); // approveCardAmount
+
+      // Mock completeSolanaDelegation
+      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1144,6 +1183,7 @@ describe('useCardDelegation', () => {
         'solana',
         mockSolanaAddress,
       );
+      expect(mockHandleSnapRequest).toHaveBeenCalledTimes(2);
     });
 
     it('uses checksummed address for linea network', async () => {

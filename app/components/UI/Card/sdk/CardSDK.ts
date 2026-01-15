@@ -969,6 +969,10 @@ export class CardSDK {
             delegationSettings,
           );
 
+        if (!tokenDetails) {
+          return null;
+        }
+
         const caipChainId = (() => {
           if (networkLower === 'solana') {
             return cardNetworkInfos.solana.caipChainId;
@@ -1188,7 +1192,7 @@ export class CardSDK {
         },
         body: JSON.stringify(requestBody),
       },
-      true, // authenticated
+      true,
     );
 
     if (!response.ok) {
@@ -1232,12 +1236,14 @@ export class CardSDK {
   }> => {
     // The endpoint only accepts linea or solana.
     // linea-us can be mapped to linea.
-    const mapNetworkPropToEndpointParam =
-      network === 'solana' ? 'solana' : 'linea';
+    const networkToEndpointParam: Partial<Record<CardNetwork, string>> = {
+      'linea-us': 'linea',
+    };
+    const endpointNetwork = networkToEndpointParam[network] ?? network;
     const response = await this.makeRequest(
-      `/v1/delegation/token?network=${mapNetworkPropToEndpointParam}&address=${address}`,
+      `/v1/delegation/token?network=${endpointNetwork}&address=${address}`,
       { method: 'GET' },
-      true, // authenticated
+      true,
     );
 
     if (!response.ok) {
@@ -1313,7 +1319,7 @@ export class CardSDK {
         method: 'POST',
         body: JSON.stringify(params),
       },
-      true, // authenticated
+      true,
     );
 
     if (!response.ok) {
@@ -1343,6 +1349,82 @@ export class CardSDK {
   };
 
   /**
+   * Complete Solana wallet delegation for spending limit increase
+   * This is Step 3 of the delegation process (after user completes SPL Token approve transaction)
+   * Uses the Solana-specific endpoint: /v1/delegation/solana/post-approval
+   */
+  completeSolanaDelegation = async (params: {
+    address: string;
+    network: CardNetwork;
+    currency: string;
+    amount: string;
+    txHash: string;
+    sigHash: string;
+    sigMessage: string;
+    token: string;
+  }): Promise<{ success: boolean }> => {
+    // Validate address format (must be valid Solana address - Base58, 32-44 characters)
+    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    if (!solanaAddressRegex.test(params.address)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid Solana address format',
+      );
+    }
+
+    // Validate transaction signature format (Base58, 87-88 characters)
+    const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+    if (!solanaTxHashRegex.test(params.txHash)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid Solana transaction signature format',
+      );
+    }
+
+    // Validate network is solana
+    if (params.network !== 'solana') {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid network for Solana delegation',
+      );
+    }
+
+    const response = await this.makeRequest(
+      '/v1/delegation/solana/post-approval',
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+      },
+      true, // authenticated
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to complete Solana delegation. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to complete Solana delegation. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const result = await response.json();
+    this.logDebugInfo('completeSolanaDelegation', result);
+
+    return result;
+  };
+
+  /**
    * Get delegation settings for a specific network (optional)
    * This fetches chain IDs, token contract addresses, and delegation contract addresses.
    * This needs to be cached at hook level to avoid unnecessary API calls.
@@ -1355,7 +1437,7 @@ export class CardSDK {
       const response = await this.makeRequest(
         `/v1/delegation/chain/config${queryParams}`,
         { method: 'GET' },
-        true, // authenticated
+        true,
       );
 
       if (!response.ok) {

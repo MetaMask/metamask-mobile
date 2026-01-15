@@ -27,7 +27,6 @@ interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
   userLocation: 'us' | 'international' | string;
   getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[];
-  hideSolana?: boolean;
 }
 
 /**
@@ -58,11 +57,12 @@ export function getCaipChainId(
 
 /**
  * Checks if a network should be processed based on filters
+ * @param network - Network configuration from delegation settings
+ * @param userLocation - User's location ('us' or 'international')
  */
 export function shouldProcessNetwork(
   network: DelegationSettingsResponse['networks'][0],
   userLocation: string,
-  hideSolana: boolean,
 ): boolean {
   const networkLower = network.network?.toLowerCase();
 
@@ -71,11 +71,6 @@ export function shouldProcessNetwork(
     !networkLower ||
     !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork)
   ) {
-    return false;
-  }
-
-  // Filter Solana if requested
-  if (hideSolana && network.network === 'solana') {
     return false;
   }
 
@@ -100,7 +95,6 @@ export function buildTokenListFromSettings({
   delegationSettings,
   userLocation,
   getSupportedTokensByChainId,
-  hideSolana = true,
 }: BuildTokenListParams): CardTokenAllowance[] {
   if (!delegationSettings?.networks) {
     return [];
@@ -109,7 +103,7 @@ export function buildTokenListFromSettings({
   const tokens: CardTokenAllowance[] = [];
 
   for (const network of delegationSettings.networks) {
-    if (!shouldProcessNetwork(network, userLocation, hideSolana)) {
+    if (!shouldProcessNetwork(network, userLocation)) {
       continue;
     }
 

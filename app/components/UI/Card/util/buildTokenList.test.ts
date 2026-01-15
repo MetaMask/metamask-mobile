@@ -109,7 +109,7 @@ describe('buildTokenList utilities', () => {
     it('returns false for unsupported networks', () => {
       const network = createNetwork('ethereum');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, 'international');
 
       expect(result).toBe(false);
     });
@@ -117,23 +117,15 @@ describe('buildTokenList utilities', () => {
     it('returns false for networks with no network name', () => {
       const network = createNetwork('');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, 'international');
 
       expect(result).toBe(false);
     });
 
-    it('returns false for solana when hideSolana is true', () => {
+    it('returns true for solana network', () => {
       const network = createNetwork('solana');
 
-      const result = shouldProcessNetwork(network, 'international', true);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true for solana when hideSolana is false', () => {
-      const network = createNetwork('solana');
-
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, 'international');
 
       expect(result).toBe(true);
     });
@@ -141,7 +133,7 @@ describe('buildTokenList utilities', () => {
     it('returns true for linea when user is international', () => {
       const network = createNetwork('linea');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, 'international');
 
       expect(result).toBe(true);
     });
@@ -149,7 +141,7 @@ describe('buildTokenList utilities', () => {
     it('returns false for linea when user is US', () => {
       const network = createNetwork('linea');
 
-      const result = shouldProcessNetwork(network, 'us', false);
+      const result = shouldProcessNetwork(network, 'us');
 
       expect(result).toBe(false);
     });
@@ -157,7 +149,7 @@ describe('buildTokenList utilities', () => {
     it('returns true for linea-us when user is US', () => {
       const network = createNetwork('linea-us');
 
-      const result = shouldProcessNetwork(network, 'us', false);
+      const result = shouldProcessNetwork(network, 'us');
 
       expect(result).toBe(true);
     });
@@ -165,7 +157,7 @@ describe('buildTokenList utilities', () => {
     it('returns false for linea-us when user is international', () => {
       const network = createNetwork('linea-us');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, 'international');
 
       expect(result).toBe(false);
     });
@@ -173,7 +165,7 @@ describe('buildTokenList utilities', () => {
     it('returns true for base network', () => {
       const network = createNetwork('base');
 
-      const result = shouldProcessNetwork(network, 'international', false);
+      const result = shouldProcessNetwork(network, 'international');
 
       expect(result).toBe(true);
     });
@@ -377,7 +369,7 @@ describe('buildTokenList utilities', () => {
       expect(result[0].stagingTokenAddress).toBeUndefined();
     });
 
-    it('filters out Solana when hideSolana is true', () => {
+    it('includes Solana tokens', () => {
       const delegationSettings = createDelegationSettings([
         {
           network: 'solana',
@@ -402,34 +394,11 @@ describe('buildTokenList utilities', () => {
       const result = buildTokenListFromSettings({
         delegationSettings,
         userLocation: 'international',
-        hideSolana: true,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].symbol).toBe('USDC');
-    });
-
-    it('includes Solana when hideSolana is false', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'solana',
-          chainId: '1',
-          environment: 'production',
-          delegationContract: '0xDelegation',
-          tokens: {
-            sol: { symbol: 'SOL', decimals: 9, address: 'SolAddress' },
-          },
-        },
-      ]);
-
-      const result = buildTokenListFromSettings({
-        delegationSettings,
-        userLocation: 'international',
-        hideSolana: false,
-      });
-
-      expect(result).toHaveLength(1);
-      expect(result[0].symbol).toBe('SOL');
+      expect(result).toHaveLength(2);
+      expect(result.some((t) => t.symbol === 'SOL')).toBe(true);
+      expect(result.some((t) => t.symbol === 'USDC')).toBe(true);
     });
   });
 

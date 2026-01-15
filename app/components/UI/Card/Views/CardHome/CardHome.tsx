@@ -967,22 +967,21 @@ const CardHome = () => {
           (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
         ]}
       >
-        {isBaanxLoginEnabled &&
-          !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
-            <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.manage_spending_limit',
-              )}
-              description={strings(
-                priorityToken?.allowanceState === AllowanceState.Enabled
-                  ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-                  : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={manageSpendingLimitAction}
-              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-            />
-          )}
+        {isBaanxLoginEnabled && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.manage_spending_limit',
+            )}
+            description={strings(
+              priorityToken?.allowanceState === AllowanceState.Enabled
+                ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+                : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={manageSpendingLimitAction}
+            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+          />
+        )}
       </View>
       <ManageCardListItem
         title={strings('card.card_home.manage_card_options.manage_card')}

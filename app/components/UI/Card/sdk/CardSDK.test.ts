@@ -15,6 +15,7 @@ import {
   CardLocation,
   CreateOnboardingConsentRequest,
   UserResponse,
+  DelegationSettingsNetwork,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -1762,6 +1763,30 @@ describe('CardSDK', () => {
   });
 
   describe('getCardExternalWalletDetails', () => {
+    // Helper to create delegation settings that match external wallet networks
+    const createDelegationSettings = (
+      network = 'linea',
+      tokens: string[] = ['USDC', 'USDT'],
+    ): DelegationSettingsNetwork[] => [
+      {
+        network,
+        environment: 'production',
+        chainId: network === 'solana' ? '1' : '59144',
+        delegationContract: '0xDelegationContract',
+        tokens: tokens.reduce(
+          (acc, symbol) => ({
+            ...acc,
+            [symbol.toLowerCase()]: {
+              symbol,
+              decimals: 6,
+              address: `0x${symbol}Address`,
+            },
+          }),
+          {},
+        ),
+      },
+    ];
+
     const createMockWalletData = (
       externalWallets: {
         address: string;
@@ -1854,7 +1879,9 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
@@ -2002,7 +2029,9 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       // Should be sorted by priority ascending (1 comes before 5)
       expect(result[0].priority).toBe(1);
@@ -2062,7 +2091,9 @@ describe('CardSDK', () => {
           },
         ]);
 
-        const result = await cardSDK.getCardExternalWalletDetails([]);
+        const result = await cardSDK.getCardExternalWalletDetails(
+          createDelegationSettings('linea', ['USDC', 'USDT']),
+        );
 
         expect(result).toHaveLength(1);
         expect(result[0].currency).toBe('USDT');
@@ -2084,7 +2115,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0].currency).toBe('USDC');
@@ -2115,7 +2148,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT', 'DAI', 'WETH']),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('WETH');
@@ -2136,7 +2171,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('USDT');

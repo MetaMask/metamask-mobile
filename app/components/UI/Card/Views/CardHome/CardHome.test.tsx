@@ -2099,31 +2099,6 @@ describe('CardHome Component', () => {
       expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
     });
 
-    it('hides manage spending limit button for Solana chain', () => {
-      // Given: authenticated with Solana chain
-      setupMockSelectors({ isAuthenticated: true });
-      mockIsSolanaChainId.mockReturnValue(true);
-      const solanaToken = {
-        ...mockPriorityToken,
-        caipChainId: 'solana:mainnet',
-        allowanceState: AllowanceState.Limited,
-      };
-      setupLoadCardDataMock({
-        priorityToken: solanaToken,
-        allTokens: [solanaToken],
-        isAuthenticated: true,
-        warning: null,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: should not display manage spending limit button
-      expect(
-        screen.queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
-      ).not.toBeOnTheScreen();
-    });
-
     it('hides close spending limit warning for Solana chain', () => {
       // Given: authenticated with Solana chain and close to limit (15% remaining)
       setupMockSelectors({ isAuthenticated: true });

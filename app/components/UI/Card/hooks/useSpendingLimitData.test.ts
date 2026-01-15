@@ -200,7 +200,7 @@ describe('useSpendingLimitData', () => {
       expect(networks).toContain('eip155:8453');
     });
 
-    it('filters out Solana network', () => {
+    it('includes Solana network', () => {
       mockUseGetDelegationSettings.mockReturnValue({
         data: createMockDelegationSettings({
           networks: [
@@ -231,10 +231,10 @@ describe('useSpendingLimitData', () => {
 
       const { result } = renderHook(() => useSpendingLimitData());
 
-      const hassolana = result.current.availableTokens.some((t) =>
+      const hasSolana = result.current.availableTokens.some((t) =>
         t.caipChainId.includes('solana'),
       );
-      expect(hassolana).toBe(false);
+      expect(hasSolana).toBe(true);
     });
 
     it('includes linea network for international users', () => {
