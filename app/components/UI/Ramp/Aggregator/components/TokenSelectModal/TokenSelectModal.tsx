@@ -10,7 +10,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -30,7 +30,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectTokenSelectors } from '../../../../../../../e2e/selectors/Ramps/SelectToken.selectors';
+import { selectTokenSelectors } from './SelectToken.testIds';
 import { useRampSDK } from '../../sdk';
 
 import styleSheet from './TokenSelectModal.styles';
@@ -244,11 +244,10 @@ function TokenSelectModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
       {isEditingNetworkFilter ? (
         <NetworksFilterSelector
           networks={uniqueNetworks}

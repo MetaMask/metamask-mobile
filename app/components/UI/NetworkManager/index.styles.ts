@@ -5,9 +5,6 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
 
-const SHEET_BORDER_RADIUS = 20;
-const TITLE_PADDING_TOP = 16;
-const TITLE_MARGIN_TOP = 4;
 const UNDERLINE_HEIGHT = 2;
 const TAB_PADDING_BOTTOM = 8;
 const TAB_PADDING_VERTICAL = 8;
@@ -20,27 +17,11 @@ const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors, typography } = theme;
 
-  const backgroundDefault = colors.background.default;
   const borderMuted = colors.border.muted;
   const textDefault = colors.text.default;
   const textAlternative = colors.text.alternative;
 
   return StyleSheet.create({
-    // reusable modal
-    sheet: {
-      backgroundColor: backgroundDefault,
-      borderTopLeftRadius: SHEET_BORDER_RADIUS,
-      borderTopRightRadius: SHEET_BORDER_RADIUS,
-    },
-    // network tabs selectors
-    networkTabsSelectorWrapper: {
-      height: '100%',
-    },
-    networkTabsSelectorTitle: {
-      alignSelf: 'center',
-      paddingTop: TITLE_PADDING_TOP,
-      marginTop: TITLE_MARGIN_TOP,
-    },
     // tab
     tabUnderlineStyle: {
       height: UNDERLINE_HEIGHT,

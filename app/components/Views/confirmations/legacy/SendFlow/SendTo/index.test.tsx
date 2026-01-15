@@ -8,7 +8,7 @@ import SendTo from './index';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { validateAddressOrENS } from '../../../../../../util/address';
-import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { SendViewSelectorsIDs } from '../SendView.testIds';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('@react-navigation/native', () => {

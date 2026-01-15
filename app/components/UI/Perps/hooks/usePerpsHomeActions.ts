@@ -92,6 +92,12 @@ export const usePerpsHomeActions = (
 
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
+      // Track geo-block screen viewed
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON,
+      });
       setIsEligibilityModalVisible(true);
       return;
     }
@@ -154,6 +160,12 @@ export const usePerpsHomeActions = (
 
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for withdraw');
+      // Track geo-block screen viewed
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.WITHDRAW_BUTTON,
+      });
       setIsEligibilityModalVisible(true);
       return;
     }

@@ -126,9 +126,9 @@ import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSh
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
-import MetalCardClaimBottomSheet from '../../UI/Rewards/components/MetalCardClaimBottomSheet/MetalCardClaimBottomSheet';
+import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import {
   TOKEN_TITLE,
   NFT_TITLE,
@@ -280,8 +280,8 @@ const RewardsHome = () => (
       component={ReferralBottomSheetModal}
     />
     <Stack.Screen
-      name={Routes.MODAL.REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET}
-      component={MetalCardClaimBottomSheet}
+      name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+      component={EndOfSeasonClaimBottomSheet}
     />
   </Stack.Navigator>
 );
@@ -1011,12 +1011,13 @@ const MainNavigator = () => {
         name="AddAsset"
         component={AddAsset}
         options={({ route, navigation }) => ({
-          ...getImportTokenNavbarOptions(
-            navigation,
-            strings(
+          ...getHeaderCenterNavbarOptions({
+            title: strings(
               `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
             ),
-          ),
+            onBack: () => navigation.goBack(),
+            includesTopInset: true,
+          }),
           headerShown: true,
         })}
       />

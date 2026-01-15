@@ -86,10 +86,10 @@ import { selectContractBalances } from '../../../../../../selectors/tokenBalance
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
+import { isBridgeAllowed } from '../../../../../UI/Bridge/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../../constants/bridge';
 import { regex } from '../../../../../../util/regex';
-import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+import { AmountViewSelectorsIDs } from './AmountView.testIds';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
@@ -1291,10 +1291,10 @@ class Amount extends PureComponent {
 
     const isSwappable =
       !isNativeToken(selectedAsset) &&
-      AppConstants.SWAPS.ACTIVE &&
+      AppConstants.BRIDGE.ACTIVE &&
       // SwapsLiveness service is deprecated and removed.
       // swapsIsLive &&
-      isSwapsAllowed(globalChainId) &&
+      isBridgeAllowed(globalChainId) &&
       amountError === strings('transaction.insufficient');
 
     const navigateToBuyOrSwaps = () => {

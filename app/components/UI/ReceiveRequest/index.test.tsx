@@ -6,7 +6,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
-import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
+import { RequestPaymentModalSelectorsIDs } from './RequestPaymentModal.testIds';
 import { fireEvent } from '@testing-library/react-native';
 
 const initialState = {

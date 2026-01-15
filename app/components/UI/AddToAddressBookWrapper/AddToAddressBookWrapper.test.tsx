@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';
-import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/SendFlow/AddAddressModal.selectors';
+import { AddAddressModalSelectorsIDs } from './AddAddressModal.testIds';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';

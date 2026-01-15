@@ -20,7 +20,7 @@ import PredictPosition from '../PredictPosition/PredictPosition';
 import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
 import PredictPositionSkeleton from '../PredictPositionSkeleton';
-import { PredictPositionsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionsSelectorsIDs } from '../../Predict.testIds';
 
 export interface PredictPositionsHandle {
   refresh: () => Promise<void>;

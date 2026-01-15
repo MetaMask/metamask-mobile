@@ -179,10 +179,42 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
+  card-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeCard')
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: card-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'SmokeCard'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
+
+  ramps-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeRamps')
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: ramps-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'SmokeRamps'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
+
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && inputs.selected_tags != '[]' }}
+    if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - confirmations-redesigned-ios-smoke
       - trade-ios-smoke
@@ -194,6 +226,8 @@ jobs:
       - network-expansion-ios-smoke
       - prediction-market-ios-smoke
       - rewards-ios-smoke
+      - card-ios-smoke
+      - ramps-ios-smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v4

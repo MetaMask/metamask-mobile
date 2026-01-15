@@ -12,13 +12,13 @@ export const createStyles = (colors: Colors) =>
     seedPhraseRoot: {
       flexDirection: 'column' as const,
       gap: 4,
+      marginTop: 8,
       marginBottom: 24,
     },
     seedPhraseContainer: {
       paddingTop: 16,
       backgroundColor: colors.background.section,
       borderRadius: 10,
-      marginTop: 16,
       minHeight: 210,
       maxHeight: 'auto',
     },

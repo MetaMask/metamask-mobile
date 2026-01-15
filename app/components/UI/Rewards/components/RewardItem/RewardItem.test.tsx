@@ -112,7 +112,7 @@ describe('RewardItem', () => {
     ).toBeDefined();
   });
 
-  it('should show claim button when reward is unlocked and unclaimed', () => {
+  it('renders claim button with default label when reward is unlocked and unclaimed', () => {
     const { getByText } = render(
       <RewardItem
         reward={mockReward}
@@ -121,6 +121,20 @@ describe('RewardItem', () => {
       />,
     );
     expect(getByText('rewards.unlocked_rewards.claim_label')).toBeDefined();
+  });
+
+  it('renders claim button with custom claimCtaLabel when provided', () => {
+    const { getByText, queryByText } = render(
+      <RewardItem
+        reward={mockReward}
+        seasonReward={mockSeasonReward}
+        isLocked={false}
+        claimCtaLabel="Custom Claim"
+      />,
+    );
+
+    expect(getByText('Custom Claim')).toBeDefined();
+    expect(queryByText('rewards.unlocked_rewards.claim_label')).toBeNull();
   });
 
   it('should not show claim button when reward is locked', () => {
@@ -185,13 +199,33 @@ describe('RewardItem', () => {
 
     const { getByText } = render(
       <RewardItem
+        reward={mockReward}
+        seasonReward={seasonRewardWithEndOfSeason}
+        isLocked={false}
+        isEndOfSeasonReward
+      />,
+    );
+
+    expect(getByText('End of season description')).toBeDefined();
+  });
+
+  it('displays check_back_soon for locked end of season rewards', () => {
+    const seasonRewardWithEndOfSeason: SeasonRewardDto = {
+      ...mockSeasonReward,
+      endOfSeasonShortDescription: 'End of season description',
+    };
+
+    const { getByText } = render(
+      <RewardItem
         seasonReward={seasonRewardWithEndOfSeason}
         isLocked
         isEndOfSeasonReward
       />,
     );
 
-    expect(getByText('End of season description')).toBeDefined();
+    expect(
+      getByText('rewards.end_of_season_rewards.check_back_soon'),
+    ).toBeDefined();
   });
 
   describe('end of season reward expiration', () => {
@@ -313,6 +347,30 @@ describe('RewardItem', () => {
       expect(getByText('rewards.unlocked_rewards.claimed_label')).toBeDefined();
     });
 
+    it('displays custom endOfSeasonClaimedDescription when provided for claimed end of season reward', () => {
+      const claimedReward: RewardDto = {
+        ...mockReward,
+        claimStatus: RewardClaimStatus.CLAIMED,
+      };
+      const seasonRewardWithFutureClaim: SeasonRewardDto = {
+        ...mockSeasonReward,
+        claimEndDate: futureDate,
+      };
+
+      const { getByText, queryByText } = render(
+        <RewardItem
+          reward={claimedReward}
+          seasonReward={seasonRewardWithFutureClaim}
+          isLocked={false}
+          isEndOfSeasonReward
+          endOfSeasonClaimedDescription="Custom claimed description"
+        />,
+      );
+
+      expect(getByText('Custom claimed description')).toBeDefined();
+      expect(queryByText('rewards.unlocked_rewards.claimed_label')).toBeNull();
+    });
+
     it('hides claim button for non-end-of-season reward when already claimed', () => {
       const claimedReward: RewardDto = {
         ...mockReward,
@@ -348,13 +406,13 @@ describe('RewardItem', () => {
       expect(getByText(mockSeasonReward.shortDescription)).toBeDefined();
     });
 
-    it('shows claim button for end of season reward when claimEndDate not set', () => {
+    it('does not show claim button for end of season reward when claimEndDate not set', () => {
       const seasonRewardWithoutClaimEndDate: SeasonRewardDto = {
         ...mockSeasonReward,
         claimEndDate: undefined,
       };
 
-      const { getByText } = render(
+      const { queryByTestId } = render(
         <RewardItem
           reward={mockReward}
           seasonReward={seasonRewardWithoutClaimEndDate}
@@ -363,7 +421,10 @@ describe('RewardItem', () => {
         />,
       );
 
-      expect(getByText('rewards.unlocked_rewards.claim_label')).toBeDefined();
+      // End of season rewards show arrow icon instead of claim button
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON),
+      ).toBeNull();
     });
 
     it('disables TouchableOpacity when end of season reward claim has expired', () => {
@@ -497,7 +558,7 @@ describe('RewardItem', () => {
       const touchableOpacity = UNSAFE_getByType(TouchableOpacity);
       touchableOpacity.props.onPress?.();
 
-      expect(mockOnPress).toHaveBeenCalledWith(mockReward.id, mockSeasonReward);
+      expect(mockOnPress).toHaveBeenCalledWith(mockReward, mockSeasonReward);
     });
 
     it('navigates to claim modal when no onPress callback provided', () => {
@@ -598,8 +659,8 @@ describe('RewardItem', () => {
       );
     });
 
-    it('uses Primary variant for end of season reward claim button', () => {
-      const { getByTestId } = render(
+    it('does not show claim button for end of season reward', () => {
+      const { queryByTestId } = render(
         <RewardItem
           reward={mockReward}
           seasonReward={mockSeasonReward}
@@ -608,10 +669,10 @@ describe('RewardItem', () => {
         />,
       );
 
-      const claimButton = getByTestId(
-        REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON,
-      );
-      expect(claimButton).toBeDefined();
+      // End of season rewards show arrow icon instead of claim button
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON),
+      ).toBeNull();
     });
   });
 

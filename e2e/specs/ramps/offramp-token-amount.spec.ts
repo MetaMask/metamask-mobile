@@ -3,7 +3,6 @@ import WalletView from '../../pages/wallet/WalletView';
 import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import { SmokeRamps } from '../../tags';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
@@ -35,7 +34,6 @@ describe(SmokeRamps('Off-ramp token amounts'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
-        await SellGetStartedView.tapGetStartedButton();
         await BuildQuoteView.enterAmount('5');
         await Assertions.expectTextDisplayed('5 ETH');
         await BuildQuoteView.tapKeypadDeleteButton(1);
