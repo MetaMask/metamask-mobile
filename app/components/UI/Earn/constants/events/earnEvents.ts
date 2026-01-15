@@ -1,5 +1,5 @@
 // Legacy events
-import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../Stake/constants/events';
+import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../../Stake/constants/events';
 
 export const EVENT_PROVIDERS = {
   CONSENSYS: 'consensys',
