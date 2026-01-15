@@ -1,4 +1,4 @@
-import { selectPredictEnabledFlag, selectPredictLiveNflEnabled } from '.';
+import { selectPredictEnabledFlag } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -32,7 +32,6 @@ describe('Predict Feature Flag Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.MM_PREDICT_ENABLED;
-    delete process.env.MM_PREDICT_LIVE_NFL_ENABLED;
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
       'hasMinimumRequiredVersion',
@@ -42,7 +41,6 @@ describe('Predict Feature Flag Selectors', () => {
 
   afterEach(() => {
     delete process.env.MM_PREDICT_ENABLED;
-    delete process.env.MM_PREDICT_LIVE_NFL_ENABLED;
     mockHasMinimumRequiredVersion?.mockRestore();
   });
 
@@ -54,9 +52,8 @@ describe('Predict Feature Flag Selectors', () => {
     });
 
     describe('remote flag precedence', () => {
-      it('returns true when remote flag enabled overrides local flag false', () => {
+      it('returns true when remote flag is enabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PREDICT_ENABLED = 'false';
         const stateWithEnabledRemoteFlag = {
           engine: {
             backgroundState: {
@@ -78,9 +75,8 @@ describe('Predict Feature Flag Selectors', () => {
         expect(result).toBe(true);
       });
 
-      it('returns false when remote flag disabled overrides local flag true', () => {
+      it('returns false when remote flag is disabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PREDICT_ENABLED = 'true';
         const stateWithDisabledRemoteFlag = {
           engine: {
             backgroundState: {
@@ -104,7 +100,6 @@ describe('Predict Feature Flag Selectors', () => {
 
       it('returns false when app version below minimum required version', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(false);
-        process.env.MM_PREDICT_ENABLED = 'true';
         const stateWithVersionCheckFailure = {
           engine: {
             backgroundState: {
@@ -127,10 +122,8 @@ describe('Predict Feature Flag Selectors', () => {
       });
     });
 
-    describe('local flag fallback', () => {
-      it('falls back to local flag when remote flag is invalid', () => {
-        // Note: Cannot reliably test MM_PREDICT_ENABLED=true in Jest due to process.env limitations
-        // This tests the default case where the env var is not set (returns false)
+    describe('default fallback', () => {
+      it('defaults to true when remote flag is invalid', () => {
         const stateWithInvalidRemoteFlag = {
           engine: {
             backgroundState: {
@@ -148,11 +141,11 @@ describe('Predict Feature Flag Selectors', () => {
         };
 
         const result = selectPredictEnabledFlag(stateWithInvalidRemoteFlag);
-        expect(result).toBe(false);
+
+        expect(result).toBe(true);
       });
 
-      it('returns false from local flag when remote flag is null', () => {
-        process.env.MM_PREDICT_ENABLED = 'false';
+      it('defaults to true when remote flag is null', () => {
         const stateWithInvalidRemoteFlag = {
           engine: {
             backgroundState: {
@@ -168,18 +161,16 @@ describe('Predict Feature Flag Selectors', () => {
 
         const result = selectPredictEnabledFlag(stateWithInvalidRemoteFlag);
 
-        expect(result).toBe(false);
+        expect(result).toBe(true);
       });
 
-      it('falls back to local flag when remote feature flags are empty', () => {
-        // Note: Cannot reliably test MM_PREDICT_ENABLED=true in Jest due to process.env limitations
-        // This tests the default case where the env var is not set (returns false)
+      it('defaults to true when remote feature flags are empty', () => {
         const result = selectPredictEnabledFlag(mockedEmptyFlagsState);
-        expect(result).toBe(false);
+
+        expect(result).toBe(true);
       });
 
-      it('returns false from local flag when controller is undefined', () => {
-        process.env.MM_PREDICT_ENABLED = 'false';
+      it('defaults to true when controller is undefined', () => {
         const stateWithUndefinedController = {
           engine: {
             backgroundState: {
@@ -190,175 +181,7 @@ describe('Predict Feature Flag Selectors', () => {
 
         const result = selectPredictEnabledFlag(stateWithUndefinedController);
 
-        expect(result).toBe(false);
-      });
-    });
-  });
-
-  describe('selectPredictLiveNflEnabled', () => {
-    it('returns true for enabled version-gated flag with valid version', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const stateWithEnabledRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictLiveNflEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictLiveNflEnabled(stateWithEnabledRemoteFlag);
-
-      expect(result).toBe(true);
-    });
-
-    describe('remote flag precedence', () => {
-      it('returns true when remote flag enabled overrides local flag false', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PREDICT_LIVE_NFL_ENABLED = 'false';
-        const stateWithEnabledRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  predictLiveNflEnabled: {
-                    enabled: true,
-                    minimumVersion: '1.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPredictLiveNflEnabled(stateWithEnabledRemoteFlag);
-
         expect(result).toBe(true);
-      });
-
-      it('returns false when remote flag disabled overrides local flag true', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PREDICT_LIVE_NFL_ENABLED = 'true';
-        const stateWithDisabledRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  predictLiveNflEnabled: {
-                    enabled: false,
-                    minimumVersion: '1.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPredictLiveNflEnabled(stateWithDisabledRemoteFlag);
-
-        expect(result).toBe(false);
-      });
-
-      it('returns false when app version below minimum required version', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(false);
-        process.env.MM_PREDICT_LIVE_NFL_ENABLED = 'true';
-        const stateWithVersionCheckFailure = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  predictLiveNflEnabled: {
-                    enabled: true,
-                    minimumVersion: '99.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPredictLiveNflEnabled(
-          stateWithVersionCheckFailure,
-        );
-
-        expect(result).toBe(false);
-      });
-    });
-
-    describe('local flag fallback', () => {
-      it('falls back to local flag when remote flag is invalid', () => {
-        const stateWithInvalidRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  predictLiveNflEnabled: {
-                    enabled: 'invalid',
-                    minimumVersion: 123,
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPredictLiveNflEnabled(stateWithInvalidRemoteFlag);
-
-        expect(result).toBe(false);
-      });
-
-      it('returns false from local flag when remote flag is null', () => {
-        process.env.MM_PREDICT_LIVE_NFL_ENABLED = 'false';
-        const stateWithNullRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  predictLiveNflEnabled: null,
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPredictLiveNflEnabled(stateWithNullRemoteFlag);
-
-        expect(result).toBe(false);
-      });
-
-      it('falls back to local flag when remote feature flags are empty', () => {
-        const result = selectPredictLiveNflEnabled(mockedEmptyFlagsState);
-
-        expect(result).toBe(false);
-      });
-
-      it('returns false from local flag when controller is undefined', () => {
-        process.env.MM_PREDICT_LIVE_NFL_ENABLED = 'false';
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectPredictLiveNflEnabled(
-          stateWithUndefinedController,
-        );
-
-        expect(result).toBe(false);
       });
     });
   });

@@ -6,7 +6,7 @@ import NetworkListModal from '../../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../../viewHelper';
 import Assertions from '../../../../../framework/Assertions';
 import WalletView from '../../../../../pages/wallet/WalletView';
 import NetworkNonPemittedBottomSheet from '../../../../../pages/Network/NetworkNonPemittedBottomSheet';
@@ -53,7 +53,7 @@ describe(RegressionNetworkExpansion('Per Dapp Management'), (): void => {
       async (): Promise<void> => {
         // Step 1: Navigate to browser view
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         // Step 2: Navigate to 1st test dApp to load page this should be connected to global network selector: Eth mainnet
@@ -133,7 +133,7 @@ describe(RegressionNetworkExpansion('Per Dapp Management'), (): void => {
         await NetworkEducationModal.tapGotItButton();
         await device.enableSynchronization();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
         // Navigate back to second Dapp and verify chain permissions

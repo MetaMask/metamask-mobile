@@ -1,7 +1,7 @@
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
-} from '../../selectors/Confirmation/ConfirmationView.selectors';
+} from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../framework/Matchers';
 import { Assertions, Gestures } from '../../framework';
 

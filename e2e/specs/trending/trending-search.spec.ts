@@ -9,6 +9,7 @@ import TrendingView from '../../pages/Trending/TrendingView';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
 import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -33,7 +34,7 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         await loginToApp();
 
         // 1. Navigate to Trending Tab
-        await TrendingView.tapTrendingTab();
+        await TabBarComponent.tapExploreButton();
 
         // 2. Verify Search Bar Visibility
         await Assertions.expectElementToBeVisible(TrendingView.searchButton, {

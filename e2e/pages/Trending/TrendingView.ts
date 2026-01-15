@@ -7,10 +7,6 @@ import {
 import { PredictMarketListSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
 
 class TrendingView {
-  get trendingTab(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.TAB_BAR_ITEM);
-  }
-
   get searchButton(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
@@ -89,6 +85,7 @@ class TrendingView {
   async typeSearchQuery(query: string): Promise<void> {
     await Gestures.typeText(this.searchInput, query, {
       elemDescription: 'Type search query',
+      hideKeyboard: true,
     });
   }
 

@@ -176,6 +176,7 @@ export const PerpsEventValues = {
     CRYPTO_BUTTON: 'crypto_button',
     STOCKS_BUTTON: 'stocks_button',
     CLOSE_TOAST: 'close_toast',
+    ASSET_DETAIL_SCREEN: 'asset_detail_screen',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -303,6 +304,7 @@ export const PerpsEventValues = {
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO: 'crypto',
     STOCKS: 'stocks',
+    GIVE_FEEDBACK: 'give_feedback',
   },
   BUTTON_LOCATION: {
     PERPS_HOME: 'perps_home',

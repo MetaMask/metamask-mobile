@@ -22,7 +22,7 @@ import { SmokeMultiChainAPI } from '../../../tags';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import MultichainTestDApp from '../../../pages/Browser/MultichainTestDApp';
-import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import MultichainUtilities from '../../../utils/MultichainUtilities';
 import Assertions from '../../../framework/Assertions';
 import { MULTICHAIN_TEST_TIMEOUTS } from '../../../selectors/Browser/MultichainTestDapp.selectors';

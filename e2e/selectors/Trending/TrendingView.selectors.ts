@@ -1,7 +1,6 @@
 import { PerpsMarketListViewSelectorsIDs } from '../Perps/Perps.selectors';
 
 export const TrendingViewSelectorsIDs = {
-  TAB_BAR_ITEM: 'tab-bar-item-Trending',
   SEARCH_BUTTON: 'explore-view-search-button',
   BROWSER_BUTTON: 'trending-view-browser-button',
   SEARCH_INPUT: 'explore-view-search-input',

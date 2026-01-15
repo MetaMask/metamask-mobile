@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import AssetDetailsActions from './AssetDetailsActions';
 import { strings } from '../../../../../locales/i18n';
-import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../UI/AssetOverview/TokenOverview.testIds';
 import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,

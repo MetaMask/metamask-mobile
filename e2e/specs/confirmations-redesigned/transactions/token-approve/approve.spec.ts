@@ -1,6 +1,6 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
@@ -80,7 +80,7 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
 
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: erc20Address,
         });
@@ -169,7 +169,7 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
 
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: erc721Address,
         });

@@ -1,4 +1,4 @@
-import { LoginViewSelectors } from '../../selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

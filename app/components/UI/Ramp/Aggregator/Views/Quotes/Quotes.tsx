@@ -60,7 +60,7 @@ import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../../util/Logger';
 import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
-import { QuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Quotes.selectors';
+import { QuoteSelectors } from './Quotes.testIds';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import { endTrace, TraceName } from '../../../../../../util/trace';
 
