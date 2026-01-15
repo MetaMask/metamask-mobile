@@ -7,11 +7,10 @@ import FixtureBuilder, {
 } from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestDApp from '../../pages/Browser/TestDApp';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Browser from '../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import { DappVariants } from '../../framework/Constants';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
@@ -37,7 +36,7 @@ describe(RegressionWalletPlatform('EVM Provider Events'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
@@ -89,7 +88,7 @@ describe(RegressionWalletPlatform('EVM Provider Events'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         const connectedAccountsBefore = await TestDApp.getConnectedAccounts();

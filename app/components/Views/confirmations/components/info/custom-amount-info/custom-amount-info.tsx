@@ -38,7 +38,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -53,7 +52,9 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
-import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -74,8 +75,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     currency,
     disablePay,
     hasMax,
-    preferredToken,
     overrideContent,
+    preferredToken,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -84,6 +85,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
 
+    const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
@@ -163,7 +165,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax}
+              hasMax={hasMax && !isNativePayToken}
             />
           )}
           {!hasTokens && <BuySection />}

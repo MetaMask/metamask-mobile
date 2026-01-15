@@ -1,4 +1,5 @@
 import { CaipAccountId, type Hex } from '@metamask/utils';
+import { createStandaloneInfoClient } from '../../utils/standaloneInfoClient';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -4466,6 +4467,45 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
+      // Path 0: Read-only mode for lightweight discovery queries
+      // Creates a standalone InfoClient without requiring full initialization
+      // No wallet, WebSocket, or account setup needed - just HTTP API call
+      // Use for discovery use cases like checking if a perps market exists
+      if (params?.readOnly) {
+        DevLogger.log(
+          'HyperLiquidProvider: Getting markets in readOnly mode (standalone client)',
+          { symbolCount: params?.symbols?.length },
+        );
+
+        // Create standalone client - bypasses all initialization (wallet, WebSocket, etc.)
+        const standaloneInfoClient = createStandaloneInfoClient({
+          isTestnet: this.clientService.isTestnetMode(),
+        });
+
+        // Simple path: fetch main DEX markets only (no HIP-3 multi-DEX)
+        const meta = await standaloneInfoClient.meta();
+
+        if (!meta?.universe || !Array.isArray(meta.universe)) {
+          throw new Error(
+            'Invalid universe data received from HyperLiquid API',
+          );
+        }
+
+        // Transform to MarketInfo format
+        const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+
+        // Filter by symbols if provided
+        if (params?.symbols?.length) {
+          return markets.filter((market) =>
+            params.symbols?.some(
+              (symbol) => market.name.toUpperCase() === symbol.toUpperCase(),
+            ),
+          );
+        }
+
+        return markets;
+      }
+
       // Ensure full initialization including asset mapping
       // This is deduplicated - concurrent calls wait for the same promise
       await this.ensureReady();

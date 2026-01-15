@@ -19,7 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
 import { AccountWalletId, AccountWalletType } from '@metamask/account-api';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
 import {

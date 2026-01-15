@@ -1,7 +1,7 @@
 import {
   AdvancedViewSelectorsIDs,
   AdvancedViewSelectorsText,
-} from '../../selectors/Settings/AdvancedView.selectors';
+} from '../../../app/components/Views/Settings/AdvancedSettings/AdvancedView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
