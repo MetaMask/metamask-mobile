@@ -384,8 +384,10 @@ export const Browser = (props) => {
   };
 
   const closeTabsView = () => {
-    if (tabs.length) {
-      setShouldShowTabs(false);
+    setShouldShowTabs(false);
+    // If no tabs left, navigate away from browser
+    if (tabs.length === 0) {
+      navigation.goBack();
     }
   };
 

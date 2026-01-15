@@ -2,8 +2,6 @@ import { cloneDeep } from 'lodash';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-  SendRedesignFlags,
-  selectSendRedesignFlags,
   selectMetaMaskPayFlags,
   BUFFER_STEP_DEFAULT,
   BUFFER_INITIAL_DEFAULT,
@@ -180,103 +178,6 @@ describe('Confirmation Redesign Feature Flags', () => {
     testFlagValues(
       selectConfirmationRedesignFlags(killSwitchState),
       expectedKillSwitchValues,
-    );
-  });
-});
-
-describe('Send Redesign Feature Flags', () => {
-  const sendRedesignFlagsDefaultValues: SendRedesignFlags = {
-    enabled: true,
-  };
-
-  const mockedSendRedesignFlags: SendRedesignFlags = {
-    enabled: false,
-  };
-
-  const mockedStateWithSendFlags = {
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            sendRedesign: mockedSendRedesignFlags,
-          },
-          cacheTimestamp: 0,
-        },
-      },
-    },
-  };
-
-  const testSendFlagValues = (result: unknown, expected: SendRedesignFlags) => {
-    const { enabled } = result as SendRedesignFlags;
-    const { enabled: expectedEnabled } = expected;
-
-    expect(enabled).toEqual(expectedEnabled);
-  };
-
-  it('returns default values (enabled: true) when empty feature flag state', () => {
-    testSendFlagValues(
-      selectSendRedesignFlags(mockedEmptyFlagsState),
-      sendRedesignFlagsDefaultValues,
-    );
-  });
-
-  it('returns default values (enabled: true) when undefined RemoteFeatureFlagController state', () => {
-    testSendFlagValues(
-      selectSendRedesignFlags(mockedUndefinedFlagsState),
-      sendRedesignFlagsDefaultValues,
-    );
-  });
-
-  it('returns remote flag values when sendRedesign flags are set', () => {
-    testSendFlagValues(
-      selectSendRedesignFlags(mockedStateWithSendFlags),
-      mockedSendRedesignFlags,
-    );
-  });
-
-  it('handles kill switch behavior - remote false overrides default true', () => {
-    const killSwitchState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              sendRedesign: {
-                enabled: false,
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    const expectedKillSwitchValues: SendRedesignFlags = {
-      enabled: false,
-    };
-
-    testSendFlagValues(
-      selectSendRedesignFlags(killSwitchState),
-      expectedKillSwitchValues,
-    );
-  });
-
-  it('returns default when sendRedesign object exists but enabled property is undefined', () => {
-    const stateWithUndefinedEnabled = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              sendRedesign: {},
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    testSendFlagValues(
-      selectSendRedesignFlags(stateWithUndefinedEnabled),
-      sendRedesignFlagsDefaultValues,
     );
   });
 });
