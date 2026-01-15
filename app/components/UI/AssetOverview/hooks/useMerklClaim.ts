@@ -8,7 +8,8 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { selectSelectedNetworkClientId } from '../../../../selectors/networkController';
 import { addTransaction } from '../../../../util/transaction-controller';
 
-const MERKL_DISTRIBUTOR_ADDRESS = '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
+const MERKL_DISTRIBUTOR_ADDRESS =
+  '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
 const MERKL_API_BASE_URL = 'https://api.merkl.xyz/v4';
 
 // ABI for the claim method
@@ -17,7 +18,7 @@ const DISTRIBUTOR_ABI = [
 ];
 
 interface MerklRewardData {
-  rewards: Array<{
+  rewards: {
     token: {
       address: string;
       chainId: number;
@@ -32,7 +33,7 @@ interface MerklRewardData {
     amount: string;
     claimed: string;
     recipient: string;
-  }>;
+  }[];
 }
 
 export const useMerklClaim = () => {
@@ -53,8 +54,6 @@ export const useMerklClaim = () => {
     setError(null);
 
     try {
-      console.log('Fetching Merkl rewards for:', selectedAddress);
-
       // Fetch claim data from Merkl API
       const response = await fetch(
         `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=1&test=true`,
@@ -65,7 +64,6 @@ export const useMerklClaim = () => {
       }
 
       const data: MerklRewardData[] = await response.json();
-      console.log('Merkl API response:', JSON.stringify(data, null, 2));
 
       // Get the first reward data
       if (!data?.[0]?.rewards?.[0]) {
@@ -73,7 +71,6 @@ export const useMerklClaim = () => {
       }
 
       const rewardData = data[0].rewards[0];
-      console.log('Reward data:', JSON.stringify(rewardData, null, 2));
 
       // Prepare claim parameters
       const users = [selectedAddress];
@@ -86,11 +83,10 @@ export const useMerklClaim = () => {
 
       const claimData = [users, tokens, amounts, proofs];
 
-      console.log('Claim data:', JSON.stringify(claimData, null, 2));
-
-      const encodedData = contractInterface.encodeFunctionData('claim', claimData);
-
-      console.log('Encoded claim data:', encodedData);
+      const encodedData = contractInterface.encodeFunctionData(
+        'claim',
+        claimData,
+      );
 
       // Create transaction params
       const txParams = {
@@ -101,8 +97,6 @@ export const useMerklClaim = () => {
         chainId: toHex(1), // Ethereum mainnet
       };
 
-      console.log('Submitting transaction:', txParams);
-
       // Submit transaction
       const result = await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -110,12 +104,9 @@ export const useMerklClaim = () => {
         origin: 'merkl-claim',
       });
 
-      console.log('Merkl claim transaction submitted:', result);
-
       return result;
     } catch (e) {
       const errorMessage = (e as Error).message;
-      console.error('Merkl claim failed:', errorMessage, e);
       setError(errorMessage);
       throw e;
     } finally {

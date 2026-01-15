@@ -81,8 +81,6 @@ export const useMerklRewards = ({
         );
 
         if (!response.ok) {
-          // TODO: remove console log
-          console.error('Failed to fetch Merkl rewards:', response.status);
           return;
         }
 
@@ -100,7 +98,7 @@ export const useMerklRewards = ({
           setClaimableReward(pendingAmount);
         }
       } catch (error) {
-        console.error('Error fetching Merkl rewards:', error);
+        // Silently handle errors - component will show no rewards if fetch fails
       }
     };
 

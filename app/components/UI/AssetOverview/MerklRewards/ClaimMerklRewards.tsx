@@ -23,7 +23,7 @@ const ClaimMerklRewards: React.FC = () => {
     try {
       await claimRewards();
     } catch (error) {
-      console.error('Claim failed:', error);
+      // Error is handled by useMerklClaim hook and displayed via claimError
     }
   };
 
