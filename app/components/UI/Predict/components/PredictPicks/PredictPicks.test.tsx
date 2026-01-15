@@ -21,6 +21,13 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
+jest.mock('../../hooks/useLivePositions', () => ({
+  useLivePositions: jest.fn((positions) => ({
+    livePositions: positions,
+    isConnected: false,
+    lastUpdateTime: null,
+  })),
+}));
 jest.mock('../../utils/format');
 
 const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
@@ -131,7 +138,7 @@ describe('PredictPicks', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('rendering states', () => {

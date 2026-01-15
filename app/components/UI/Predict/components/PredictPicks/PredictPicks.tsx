@@ -8,6 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { useLivePositions } from '../../hooks/useLivePositions';
 import { formatPrice } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -32,6 +33,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     marketId: market.id,
     autoRefreshTimeout: 10000,
   });
+  const { livePositions } = useLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
@@ -57,7 +59,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     );
   };
 
-  const hasPositions = positions.length > 0;
+  const hasPositions = livePositions.length > 0;
 
   if (!hasPositions) {
     return null;
@@ -68,7 +70,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
       <Text variant={TextVariant.HeadingMd} twClassName="font-medium py-2">
         Your Picks
       </Text>
-      {positions.map((position) => (
+      {livePositions.map((position) => (
         <Box
           testID={testID}
           twClassName="flex-row justify-between items-center py-3"
