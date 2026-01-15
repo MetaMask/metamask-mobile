@@ -2,7 +2,6 @@
 import { View } from 'react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ScrollableTabView, {
   ChangeTabProperties,
@@ -14,7 +13,6 @@ import { toHex } from '@metamask/controller-utils';
 // external dependencies
 import Engine from '../../../core/Engine';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { MetaMetrics } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { strings } from '../../../../locales/i18n';
@@ -30,9 +28,7 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import AccountAction from '../../Views/AccountAction';
 import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
@@ -90,8 +86,7 @@ const NetworkManager = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const safeAreaInsets = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
@@ -123,7 +118,7 @@ const NetworkManager = () => {
     return getEnabledNetworks(enabledNetworksByNamespace);
   }, [enabledNetworksByNamespace]);
 
-  const [showNetworkMenuModal, setNetworkMenuModal] =
+  const [showNetworkMenuModal, setShowNetworkMenuModal] =
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
@@ -160,11 +155,11 @@ const NetworkManager = () => {
   const containerStyle = useMemo(
     () => [
       {
-        paddingTop: safeAreaInsets.top + Device.getDeviceHeight() * 0.02,
-        paddingBottom: safeAreaInsets.bottom,
+        height: Device.getDeviceHeight() * 0.75,
+        maxHeight: Device.getDeviceHeight() * 0.75,
       },
     ],
-    [safeAreaInsets.top, safeAreaInsets.bottom],
+    [],
   );
 
   const defaultTabProps = useMemo(
@@ -231,7 +226,7 @@ const NetworkManager = () => {
   );
 
   const openModal = useCallback((networkMenuModal: NetworkMenuModalState) => {
-    setNetworkMenuModal((prev) => ({
+    setShowNetworkMenuModal((prev) => ({
       ...prev,
       ...networkMenuModal,
       isVisible: true,
@@ -240,7 +235,7 @@ const NetworkManager = () => {
   }, []);
 
   const closeModal = useCallback(() => {
-    setNetworkMenuModal(initialNetworkMenuModal);
+    setShowNetworkMenuModal(initialNetworkMenuModal);
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
@@ -311,13 +306,11 @@ const NetworkManager = () => {
       NetworkController.removeNetwork(chainId);
       disableNetwork(showConfirmDeleteModal.caipChainId);
 
-      MetaMetrics.getInstance().addTraitsToUser(
-        removeItemFromChainIdList(chainId),
-      );
+      addTraitsToUser(removeItemFromChainIdList(chainId));
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork]);
+  }, [showConfirmDeleteModal, disableNetwork, addTraitsToUser]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -368,37 +361,33 @@ const NetworkManager = () => {
       <BottomSheet
         testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
         ref={sheetRef}
-        style={containerStyle}
         shouldNavigateBack
       >
-        <View style={styles.sheet}>
-          <Text
-            variant={TextVariant.HeadingMD}
-            style={styles.networkTabsSelectorTitle}
+        <View style={containerStyle}>
+          <BottomSheetHeader
+            onClose={() => sheetRef.current?.onCloseBottomSheet()}
           >
             {strings('wallet.networks')}
-          </Text>
+          </BottomSheetHeader>
 
-          <View style={styles.networkTabsSelectorWrapper}>
-            <ScrollableTabView
-              renderTabBar={renderTabBar}
-              onChangeTab={onChangeTab}
-              initialPage={initialTabIndexRef.current ?? 0}
-            >
-              <NetworkMultiSelector
-                {...defaultTabProps}
-                openModal={openModal}
-                dismissModal={dismissModal}
-                openRpcModal={openRpcModal}
-              />
-              <CustomNetworkSelector
-                {...customTabProps}
-                openModal={openModal}
-                dismissModal={dismissModal}
-                openRpcModal={openRpcModal}
-              />
-            </ScrollableTabView>
-          </View>
+          <ScrollableTabView
+            renderTabBar={renderTabBar}
+            onChangeTab={onChangeTab}
+            initialPage={initialTabIndexRef.current ?? 0}
+          >
+            <NetworkMultiSelector
+              {...defaultTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+              openRpcModal={openRpcModal}
+            />
+            <CustomNetworkSelector
+              {...customTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+              openRpcModal={openRpcModal}
+            />
+          </ScrollableTabView>
         </View>
 
         {showNetworkMenuModal.isVisible && (
