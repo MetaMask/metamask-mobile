@@ -35,6 +35,7 @@ import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 import Authentication from '../../core/Authentication';
+import { MetaMetrics } from '../../core/Analytics';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -282,6 +283,15 @@ export function* startAppServices() {
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
+
+  // Configure MetaMetrics
+  MetaMetrics.getInstance()
+    .configure()
+    .catch((err) => {
+      Logger.error(err, 'Error configuring MetaMetrics');
+    });
+
+  // Apply vault initialization
   yield call(applyVaultInitialization);
 
   // Unblock the ControllersGate

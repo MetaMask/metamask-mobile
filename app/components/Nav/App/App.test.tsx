@@ -1,11 +1,7 @@
 import React from 'react';
-import {
-  DeepPartial,
-  renderScreen,
-} from '../../../util/test/renderWithProvider';
+import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import App from '.';
-import { MetaMetrics } from '../../../core/Analytics';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
@@ -64,8 +60,6 @@ jest.mock('expo-sensors', () => ({
     removeAllListeners: jest.fn(),
   },
 }));
-
-jest.mock('../../../core/Analytics/MetaMetrics');
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
@@ -199,8 +193,6 @@ jest.mock('../../../core/Multichain/networks', () => ({
   }),
 }));
 
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
-
 describe('App', () => {
   jest.useFakeTimers();
 
@@ -216,13 +208,6 @@ describe('App', () => {
 
   afterAll(() => {
     jest.useRealTimers();
-  });
-
-  it('configures MetaMetrics instance and identifies user on startup', async () => {
-    renderScreen(App, { name: 'App' }, { state: initialState });
-    await waitFor(() => {
-      expect(mockMetrics.configure).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('Renders multichain account details', () => {

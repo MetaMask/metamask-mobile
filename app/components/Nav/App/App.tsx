@@ -78,7 +78,6 @@ import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Con
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
-import { MetaMetrics } from '../../../core/Analytics';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
@@ -1123,16 +1122,6 @@ const App: React.FC = () => {
     },
   );
   const existingUser = useSelector(selectExistingUser);
-
-  useEffect(() => {
-    const initMetrics = async () => {
-      await MetaMetrics.getInstance().configure();
-    };
-
-    initMetrics().catch((err) => {
-      Logger.error(err, 'Error initializing MetaMetrics');
-    });
-  }, []);
 
   useEffect(() => {
     async function startApp() {
