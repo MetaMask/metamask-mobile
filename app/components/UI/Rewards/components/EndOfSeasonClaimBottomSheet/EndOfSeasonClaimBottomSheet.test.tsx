@@ -112,7 +112,7 @@ jest.mock('../../../../../util/theme', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'rewards.end_of_season_rewards.redeem_your_reward': 'Redeem Your Reward',
+      'rewards.end_of_season_rewards.reward_details': 'Reward Details',
       'rewards.end_of_season_rewards.confirm_label_default': 'Redeem',
       'rewards.end_of_season_rewards.confirm_label_access': 'Access',
       'rewards.end_of_season_rewards.redeem_success_title': 'Success!',
@@ -461,7 +461,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       );
 
       expect(getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL)).toBeOnTheScreen();
-      expect(getByText('Redeem Your Reward')).toBeOnTheScreen();
+      expect(getByText('Reward Details')).toBeOnTheScreen();
     });
 
     it('renders title for non-LINEA_TOKENS reward', () => {

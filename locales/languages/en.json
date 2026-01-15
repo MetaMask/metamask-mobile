@@ -7231,11 +7231,13 @@
       "confirm_label_default": "Confirm",
       "confirm_label_access": "Access",
       "redeem_success_title": "Reward redeemed",
+      "metal_card_claim_success": "Contact info confirmed.",
+      "linea_tokens_claim_success": "Address confirmed.",
       "arriving_soon": "Arriving soon",
       "check_back_soon": "Check back soon to claim",
       "redeem_failure_title": "Redeem failed",
       "redeem_failure_description": "Please try again later.",
-      "redeem_your_reward": "Redeem your reward",
+      "reward_details": "Reward Details",
       "select_account_description": "Select the account where you'd like this reward sent. Tokens will be distributed within two weeks."
     },
     "animation": {

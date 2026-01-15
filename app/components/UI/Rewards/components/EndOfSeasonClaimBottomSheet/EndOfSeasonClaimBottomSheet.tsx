@@ -147,13 +147,16 @@ const EndOfSeasonClaimBottomSheet = ({
   }, [navigation]);
 
   const showSuccessToastIfNeeded = useCallback(() => {
-    if (
-      rewardType === SeasonRewardType.LINEA_TOKENS ||
-      rewardType === SeasonRewardType.METAL_CARD
-    ) {
+    if (rewardType === SeasonRewardType.METAL_CARD) {
       showRewardsToast(
         RewardsToastOptions.success(
-          strings('rewards.end_of_season_rewards.redeem_success_title'),
+          strings('rewards.end_of_season_rewards.metal_card_claim_success'),
+        ),
+      );
+    } else if (rewardType === SeasonRewardType.LINEA_TOKENS) {
+      showRewardsToast(
+        RewardsToastOptions.success(
+          strings('rewards.end_of_season_rewards.linea_tokens_claim_success'),
         ),
       );
     }
@@ -526,7 +529,7 @@ const EndOfSeasonClaimBottomSheet = ({
       keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
     >
       <BottomSheetHeader onClose={handleModalClose}>
-        {strings('rewards.end_of_season_rewards.redeem_your_reward')}
+        {strings('rewards.end_of_season_rewards.reward_details')}
       </BottomSheetHeader>
       {needsKeyboardAvoiding ? (
         <KeyboardAwareScrollView
