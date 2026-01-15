@@ -248,15 +248,65 @@ describe('PredictGameDetailsFooter', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders nothing for closed market without claimable winnings', () => {
+    it('hides info row when user has claimable winnings', () => {
+      const props = createDefaultProps({
+        hasClaimableWinnings: true,
+        claimableAmount: 50,
+      });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.queryByText('Pick a winner')).toBeNull();
+      expect(
+        screen.queryByTestId('game-details-footer-info-button'),
+      ).toBeNull();
+      expect(screen.queryByTestId('game-details-footer-volume')).toBeNull();
+    });
+
+    it('renders claim button for closed market with claimable winnings', () => {
+      const props = createDefaultProps({
+        market: createMockMarket({ status: PredictMarketStatus.CLOSED }),
+        hasClaimableWinnings: true,
+        claimableAmount: 100,
+        onClaimPress: jest.fn(),
+      });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.getByTestId('game-details-footer')).toBeOnTheScreen();
+      expect(screen.getByText('Claim $100.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('footer visibility', () => {
+    it('returns null for closed market without claimable winnings', () => {
       const props = createDefaultProps({
         market: createMockMarket({ status: PredictMarketStatus.CLOSED }),
       });
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
-      expect(screen.queryByText('NO · 35¢')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('game-details-footer')).toBeNull();
+    });
+
+    it('returns null for resolved market without claimable winnings', () => {
+      const props = createDefaultProps({
+        market: createMockMarket({ status: PredictMarketStatus.RESOLVED }),
+      });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.queryByTestId('game-details-footer')).toBeNull();
+    });
+
+    it('renders footer for open market', () => {
+      const props = createDefaultProps({
+        market: createMockMarket({ status: PredictMarketStatus.OPEN }),
+      });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.getByTestId('game-details-footer')).toBeOnTheScreen();
     });
   });
 

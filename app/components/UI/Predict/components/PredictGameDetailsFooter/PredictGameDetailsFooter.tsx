@@ -30,11 +30,16 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   testID = 'predict-game-details-footer',
 }) => {
   const insets = useSafeAreaInsets();
-
   const formattedVolume = useMemo(
     () => formatVolume(market.volume ?? 0),
     [market.volume],
   );
+
+  const isMarketClosed = market.status !== 'open';
+
+  if (isMarketClosed && !hasClaimableWinnings) {
+    return null;
+  }
 
   return (
     <Box
@@ -42,42 +47,44 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
       style={{ paddingBottom: Math.max(insets.bottom, 16) }}
       testID={testID}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="mb-2"
-      >
+      {!hasClaimableWinnings && (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="mb-2"
         >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              testID={`${testID}-label`}
+            >
+              {strings('predict.game_details_footer.pick_a_winner')}
+            </Text>
+            <ButtonIcon
+              size={ButtonIconSize.Sm}
+              iconProps={{ color: IconColor.IconAlternative }}
+              iconName={IconName.Info}
+              onPress={onInfoPress}
+              testID={`${testID}-info-button`}
+            />
+          </Box>
+
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            testID={`${testID}-label`}
+            testID={`${testID}-volume`}
           >
-            {strings('predict.game_details_footer.pick_a_winner')}
+            {strings('predict.game_details_footer.volume_display', {
+              volume: formattedVolume,
+            })}
           </Text>
-          <ButtonIcon
-            size={ButtonIconSize.Sm}
-            iconProps={{ color: IconColor.IconAlternative }}
-            iconName={IconName.Info}
-            onPress={onInfoPress}
-            testID={`${testID}-info-button`}
-          />
         </Box>
-
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          testID={`${testID}-volume`}
-        >
-          {strings('predict.game_details_footer.volume_display', {
-            volume: formattedVolume,
-          })}
-        </Text>
-      </Box>
+      )}
 
       <PredictActionButtons
         market={market}
