@@ -16,7 +16,7 @@ import {
   AnvilPort,
   buildPermissions,
 } from '../../../../framework/fixtures/FixtureUtils';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';
@@ -75,7 +75,7 @@ async function goBackToWalletPage() {
 }
 
 async function connectTestDappToLocalhost() {
-  await TabBarComponent.tapBrowser();
+  await navigateToBrowserView();
   await BrowserView.navigateToTestDApp();
 }
 
@@ -162,7 +162,14 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(BrowserView.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
+        // Close browser to reveal app tab bar, then check activity
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Smart contract interaction');
 
@@ -248,7 +255,8 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         await FooterActions.tapConfirmButton();
 
         await goBackToWalletPage();
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Upgrade to smart account');
       },

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
 import MultichainAddWalletActions from './MultichainAddWalletActions';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';

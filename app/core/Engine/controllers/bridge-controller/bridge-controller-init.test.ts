@@ -8,21 +8,22 @@ import { fetch as expoFetch } from 'expo/fetch';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { getBridgeControllerMessenger } from '../../messengers/bridge-controller-messenger';
+import {
+  getBridgeControllerMessenger,
+  BridgeControllerInitMessenger,
+} from '../../messengers/bridge-controller-messenger';
 import { ControllerInitRequest } from '../../types';
 import {
   bridgeControllerInit,
   handleBridgeFetch,
 } from './bridge-controller-init';
-import { MetaMetrics } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/bridge-controller');
-jest.mock('../../../Analytics');
-jest.mock('../../../Analytics/MetricsEventBuilder');
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
 jest.mock('../../../../util/trace');
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -54,13 +55,23 @@ function buildTransactionControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
-): jest.Mocked<ControllerInitRequest<BridgeControllerMessenger>> {
+): jest.Mocked<
+  ControllerInitRequest<
+    BridgeControllerMessenger,
+    BridgeControllerInitMessenger
+  >
+> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+  const mockInitMessenger = {
+    call: jest.fn(),
+  } as unknown as BridgeControllerInitMessenger;
+
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),
+    initMessenger: mockInitMessenger,
     ...initRequestProperties,
   };
 
@@ -75,19 +86,14 @@ function buildInitRequestMock(
 
 describe('BridgeController Init', () => {
   const bridgeControllerClassMock = jest.mocked(BridgeController);
-  const metaMetricsInstanceMock = {
-    trackEvent: jest.fn(),
-  };
 
   beforeEach(() => {
     jest.resetAllMocks();
-    (MetaMetrics.getInstance as jest.Mock).mockReturnValue(
-      metaMetricsInstanceMock,
-    );
-    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn().mockReturnValue({ mockEvent: true }),
-      }),
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest
+        .fn()
+        .mockReturnValue({ name: 'bridge_completed', properties: {} }),
     });
     (trace as jest.Mock).mockImplementation((_label, fn) => fn());
   });
@@ -231,12 +237,13 @@ describe('BridgeController Init', () => {
       trackMetaMetricsFn('bridge_completed' as any, { property: 'value' });
 
       // Assert
-      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith({
-        category: 'bridge_completed',
-      });
-      expect(metaMetricsInstanceMock.trackEvent).toHaveBeenCalledWith({
-        mockEvent: true,
-      });
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'bridge_completed',
+      );
+      expect(requestMock.initMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.objectContaining({ name: 'bridge_completed' }),
+      );
     });
 
     it('handles trackMetaMetricsFn with no properties', () => {
@@ -255,10 +262,13 @@ describe('BridgeController Init', () => {
       trackMetaMetricsFn('bridge_completed' as any, {});
 
       // Assert
-      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith({
-        category: 'bridge_completed',
-      });
-      expect(metaMetricsInstanceMock.trackEvent).toHaveBeenCalled();
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'bridge_completed',
+      );
+      expect(requestMock.initMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.objectContaining({ name: 'bridge_completed' }),
+      );
     });
   });
 

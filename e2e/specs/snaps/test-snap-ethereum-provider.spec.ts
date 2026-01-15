@@ -1,9 +1,8 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
@@ -31,7 +30,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         await loginToApp();
 
         // Navigate to test snaps URL once for all tests
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectEthereumProviderButton');

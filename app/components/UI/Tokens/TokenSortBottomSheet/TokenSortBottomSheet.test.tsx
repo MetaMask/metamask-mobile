@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),

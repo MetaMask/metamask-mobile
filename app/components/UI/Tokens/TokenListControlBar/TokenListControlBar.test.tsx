@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { TokenListControlBar } from './TokenListControlBar';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 
 // Mock the feature flag
 jest.mock('../../../../util/networks', () => ({

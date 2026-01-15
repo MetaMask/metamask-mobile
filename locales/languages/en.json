@@ -974,6 +974,10 @@
       "not_now": "Not now",
       "try_now": "Get started"
     },
+    "discovery_banner": {
+      "title": "Trade {{symbol}} perp",
+      "subtitle": "Multiply your P&L up to {{leverage}}"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized PnL",
@@ -1746,13 +1750,16 @@
       "markets": "Markets"
     },
     "learn_more": {
-      "title": "Learn more about Perps",
+      "title": "Learn about Perps",
       "description": "Discover how perpetual trading works and how to get started",
       "cta": "Learn more"
     },
     "support": {
       "title": "Contact support",
       "description": "Contact MetaMask Support for assistance"
+    },
+    "feedback": {
+      "title": "Give us feedback"
     },
     "close_all_modal": {
       "title": "Close all positions",
@@ -2362,6 +2369,7 @@
     "network_fee": "Network fee",
     "lists": "Token lists",
     "hide_cta": "Hide token",
+    "perps_trading": "Perps trading",
     "options": {
       "title": "Token options",
       "view_on_portfolio": "View on Portfolio",
@@ -3314,6 +3322,7 @@
       "description": "We could not fetch any data for this token"
     },
     "your_balance": "Your balance",
+    "perps_position": "Perps position",
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
     "about_content_display": {
@@ -5700,8 +5709,8 @@
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "earn_rewards_when": "Earn rewards when",
-      "you_convert_to": "you convert to"
+      "boost_title": "Boost your stablecoin balance",
+      "boost_description": "Earn a bonus every time you convert stablecoins to"
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
@@ -6704,6 +6713,10 @@
         "blocked": {
           "title": "Your card is blocked",
           "description": "Please contact support to unblock your card"
+        },
+        "kyc_pending": {
+          "title": "Verification in progress",
+          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
       "kyc_status": {
@@ -6741,19 +6754,30 @@
     "card_spending_limit": {
       "title_change_token": "Change token and network",
       "title_enable_token": "Enable token",
+      "title_onboarding": "Enable spending",
+      "setup_title": "Set up your card",
+      "setup_description": "Select the token you'd like to use and set a limit for how much you can spend.",
+      "asset_label": "Asset",
+      "limit_label": "Limit",
+      "other_token": "Other",
       "full_access_title": "Full access",
-      "full_access_description": "Your card can use your funds automatically, without asking for approval each time.",
-      "restricted_limit_title": "Limited spending",
-      "restricted_limit_description": "You'll need to come back and pay a network fee every time you want to increase the limit.",
+      "full_access_description": "Your card can use your funds automatically without asking for approval each time.",
+      "restricted_limit_title": "Spending limit",
+      "restricted_limit_description": "You can only spend up to this limit. You'll pay a network fee every time this limit is updated.",
       "edit_limit": "Edit limit",
       "confirm_new_limit": "Confirm",
       "cancel": "Cancel",
+      "skip": "Skip for now",
       "set_new_limit": "Set a limit",
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
       "solana_not_supported": "Enable Solana tokens on card.metamask.io",
-      "select_token": "Select token"
+      "select_token": "Select token",
+      "loading": "Loading available tokens...",
+      "load_error": "Unable to load tokens. Please try again.",
+      "retry": "Try again",
+      "on_linea": "on Linea"
     },
     "change_asset": {
       "title": "Change token and network",
@@ -6865,6 +6889,13 @@
       "error_fetching_title": "Rewards couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
+    },
+    "linea_tokens": {
+      "default_title": "$LINEA",
+      "loading_subtitle": "Loading reward amount...",
+      "title_earned": "You earned {{amount}} $LINEA",
+      "error_fetching_title": "Couldn't load $LINEA reward amount",
+      "error_fetching_description": "Please try again later."
     },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
@@ -7199,12 +7230,16 @@
       "time_left": "left",
       "expired": "Expired"
     },
-    "claim_reward_redeem": {
-      "button_label": "Redeem",
-      "success_title": "Reward redeemed",
-      "success_description": "Arriving soon",
-      "failure_title": "Redeem failed",
-      "failure_description": "Please try again later."
+    "end_of_season_rewards": {
+      "confirm_label_default": "Confirm",
+      "confirm_label_access": "Access",
+      "redeem_success_title": "Reward redeemed",
+      "arriving_soon": "Arriving soon",
+      "check_back_soon": "Check back soon to claim",
+      "redeem_failure_title": "Redeem failed",
+      "redeem_failure_description": "Please try again later.",
+      "redeem_your_reward": "Redeem your reward",
+      "select_account_description": "Select the wallet where you'd like this reward sent. Tokens will be distributed within two weeks."
     },
     "animation": {
       "could_not_load": "Couldn't load"

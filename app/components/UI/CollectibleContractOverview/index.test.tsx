@@ -7,7 +7,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 import { fireEvent, render } from '@testing-library/react-native';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../AssetOverview/TokenOverview.testIds';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const mockStore = configureMockStore();
@@ -71,11 +71,7 @@ const initialState = {
         },
       },
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          sendRedesign: {
-            enabled: false,
-          },
-        },
+        remoteFeatureFlags: {},
       },
     },
   },
@@ -149,7 +145,10 @@ describe('CollectibleContractOverview', () => {
     );
     fireEvent.press(sendButton);
 
-    expect(navigationMock.navigate).toHaveBeenCalledWith('SendFlowView');
+    expect(navigationMock.navigate).toHaveBeenCalledWith(
+      'Send',
+      expect.any(Object),
+    );
   });
 
   it('calls onAdd and pushes to navigation when add button is pressed', () => {

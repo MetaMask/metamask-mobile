@@ -13,7 +13,7 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
 import WalletView from '../../../pages/wallet/WalletView.ts';
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import Assertions from '../../../framework/Assertions.ts';
-import { loginToApp } from '../../../viewHelper.ts';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
 import { DappVariants } from '../../../framework/Constants.ts';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
@@ -77,17 +77,28 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         // Make sure the dapp is connected to the predefined network in configuration (LOCAL_CHAIN_ID)
         // by checking chainId text in the test dapp
         await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 
+        // Close browser to reveal app tab bar before changing network
+        await Browser.tapCloseBrowserButton();
+
+        // Wait for browser screen to disappear and tab bar to be visible
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
+          {
+            description: 'Tab bar should be visible after closing browser',
+          },
+        );
+
         // Change the network to Ethereum Main Network in app
         await changeNetworkFromNetworkListModal('Ethereum Main Network');
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         // Assert the dapp is still connected the previously selected network (LOCAL_CHAIN_ID)
         await TestDApp.verifyCurrentNetworkText('Chain id ' + LOCAL_CHAIN_ID);
 
@@ -105,10 +116,27 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
         // Accept confirmation
         await ConfirmationFooterActions.tapConfirmButton();
 
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
+        // Close browser to reveal app tab bar before changing network
+        await Browser.tapCloseBrowserButton();
+
+        // Wait for browser screen to disappear and tab bar to be visible
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
+          {
+            description: 'Tab bar should be visible after closing browser',
+          },
+        );
+
         // Change the network to Localhost in app
         await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);
 
-        // Check activity tab
+        // Check activity tab (already on wallet from helper, just navigate)
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

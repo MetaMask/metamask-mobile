@@ -17,6 +17,10 @@ export const ALLOWLISTED_HOSTS = [
   'gamma-api.polymarket.com',
   'clob.polymarket.com',
   '*.polymarket.com',
+  'sepolia.infura.io',
+  'mainnet.infura.io',
+  'linea-sepolia.infura.io',
+  'linea-mainnet.infura.io',
 ];
 
 export const ALLOWLISTED_URLS = [
@@ -47,4 +51,6 @@ export const ALLOWLISTED_URLS = [
   'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
   'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
+  'https://api.hyperliquid.xyz/exchange',
+  'https://api.hyperliquid.xyz/info',
 ];

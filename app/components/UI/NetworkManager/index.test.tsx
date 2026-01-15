@@ -132,6 +132,7 @@ jest.mock('../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
+    addTraitsToUser: mockAddTraitsToUser,
   }),
   MetaMetricsEvents: {
     ASSET_FILTER_SELECTED: 'asset_filter_selected',
@@ -412,6 +413,36 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
 
 // Remove ReusableModal mock as component uses BottomSheet
 
+// Mock Banner component to avoid theme dependency issues
+jest.mock('../../../component-library/components/Banners/Banner', () => {
+  const { View: RNView, Text: RNText } = jest.requireActual('react-native');
+  const MockBanner = ({
+    description,
+    testID,
+  }: {
+    description?: string;
+    testID?: string;
+  }) => (
+    <RNView testID={testID || 'banner'}>
+      <RNText>{description}</RNText>
+    </RNView>
+  );
+  return {
+    __esModule: true,
+    default: MockBanner,
+    BannerVariant: {
+      Alert: 'Alert',
+      Tip: 'Tip',
+    },
+    BannerAlertSeverity: {
+      Info: 'Info',
+      Warning: 'Warning',
+      Error: 'Error',
+      Success: 'Success',
+    },
+  };
+});
+
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -533,6 +564,36 @@ jest.mock(
       Vertical: 'vertical',
     },
   }),
+);
+
+jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onPress }: { onPress?: () => void }) => (
+      <TouchableOpacity testID="button-icon" onPress={onPress} />
+    ),
+    ButtonIconSizes: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
+    },
+  };
+});
+
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
+  () => {
+    const { View: RNView, Text: RNText } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <RNView testID="header">
+          <RNText>{children}</RNText>
+        </RNView>
+      ),
+    };
+  },
 );
 
 jest.mock('../../../component-library/components/Buttons/Button', () => ({
@@ -704,18 +765,6 @@ describe('NetworkManager Component', () => {
       expect(getByTestId('custom-network-selector')).toBeOnTheScreen();
     });
 
-    it('should apply correct container styles with safe area insets', () => {
-      const { getByTestId } = renderComponent();
-      const modal = getByTestId('main-bottom-sheet');
-
-      expect(modal.props.style).toEqual([
-        {
-          paddingTop: 44 + 800 * 0.02, // safeAreaInsets.top + Device.getDeviceHeight() * 0.02
-          paddingBottom: 34, // safeAreaInsets.bottom
-        },
-      ]);
-    });
-
     it('should set initial tab to popular networks when selectedCount > 0', () => {
       (useNetworksByNamespace as jest.Mock).mockReturnValue({
         selectedCount: 3,
@@ -829,7 +878,7 @@ describe('NetworkManager Component', () => {
 
   describe('Network Deletion Workflow', () => {
     it('should show confirmation modal when delete is pressed', async () => {
-      const { getByTestId } = renderComponent();
+      const { getAllByTestId, getByTestId } = renderComponent();
 
       const openModalButton = getByTestId('open-modal-button');
       fireEvent.press(openModalButton);
@@ -841,13 +890,15 @@ describe('NetworkManager Component', () => {
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
       await waitFor(() => {
-        expect(getByTestId('header')).toBeOnTheScreen();
+        // There are now multiple headers (main sheet + delete modal)
+        const headers = getAllByTestId('header');
+        expect(headers.length).toBeGreaterThan(0);
         expect(getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
       });
     });
 
     it('should display correct network name in delete confirmation', async () => {
-      const { getByTestId, getByText } = renderComponent();
+      const { getAllByTestId, getByTestId, getByText } = renderComponent();
 
       const openModalButton = getByTestId('open-modal-button');
       fireEvent.press(openModalButton);
@@ -858,7 +909,9 @@ describe('NetworkManager Component', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('header')).toBeOnTheScreen();
+        // There are now multiple headers (main sheet + delete modal)
+        const headers = getAllByTestId('header');
+        expect(headers.length).toBeGreaterThan(0);
         // The network name appears as part of a larger text string, use partial match
         expect(getByText(/Ethereum Mainnet/)).toBeOnTheScreen();
         expect(getByText(/app_settings\.network_delete/)).toBeOnTheScreen();
@@ -1164,25 +1217,7 @@ describe('NetworkManager Component', () => {
       expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
     });
 
-    it('should enable and disable networks correctly during deletion', async () => {
-      const otherNetwork = {
-        id: 'eip155:137',
-        name: 'Polygon Mainnet',
-        caipChainId: 'eip155:137',
-        isSelected: false,
-        imageSource: { uri: 'polygon.png' },
-      };
-
-      (useNetworksByNamespace as jest.Mock).mockImplementation((args) => {
-        if (args.networkType === 'custom') {
-          return {
-            networks: [otherNetwork],
-            areAllNetworksSelected: false,
-          };
-        }
-        return { selectedCount: 2 };
-      });
-
+    it('disables network in filter during deletion without switching active network', async () => {
       mockUseNetworkEnablement.mockReturnValue({
         disableNetwork: mockDisableNetwork,
         enableNetwork: mockEnableNetwork,
@@ -1220,9 +1255,10 @@ describe('NetworkManager Component', () => {
       const confirmButton = getByTestId('footer-button-app_settings.delete');
       fireEvent.press(confirmButton);
 
-      // Should enable the other network and disable the deleted one
-      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:137');
+      // Only disables the deleted network, does not enable another one
+      // (we only allow deleting non-active networks, so no need to switch)
       expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,6 +1,6 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import { WhatsNewModalSelectorsIDs } from "../../../e2e/selectors/Onboarding/WhatsNewModal.selectors";
+import { WhatsNewModalSelectorsIDs } from '../../../app/components/UI/WhatsNewModal/WhatsNewModal.testIds';
 
 class WhatsNewModal {
   get container() {

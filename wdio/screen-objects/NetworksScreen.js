@@ -12,7 +12,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
-import { NetworksViewSelectorsIDs } from '../../e2e/selectors/Settings/NetworksView.selectors';
+import { NetworksViewSelectorsIDs } from '../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 
 class NetworksScreen {
 
