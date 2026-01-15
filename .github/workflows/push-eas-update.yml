@@ -97,19 +97,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable && corepack prepare yarn@4.10.3 --activate
-
-      - name: Clear yarn state before artifact download
-        run: |
-          echo "🧹 Clearing existing .yarn directory to avoid conflicts..."
-          rm -rf node_modules
-          echo "✅ Cleared"
-
       - name: Download node_modules artifact (PR checkout)
         uses: actions/download-artifact@v4
         with:
           name: node-modules-eas-update
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          yarn install --immutable --mode=skip-build
 
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
@@ -136,17 +132,16 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target commit fingerprint: ${FINGERPRINT}"
 
-      - name: Clear yarn state before artifact download (base branch)
-        run: |
-          echo "🧹 Clearing existing .yarn directory in main/ to avoid conflicts..."
-          rm -rf main/node_modules
-          echo "✅ Cleared"
-
       - name: Download node_modules artifact (base branch checkout)
         uses: actions/download-artifact@v4
         with:
           name: node-modules-eas-update
           path: main
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          yarn install --immutable --mode=skip-build
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
