@@ -8,6 +8,7 @@ import {
   getWildcardTokenListFromConfig,
   WildcardTokenList,
 } from '../../utils/wildcardTokenList';
+import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -273,7 +274,7 @@ export const parseBlockedCountriesEnv = (envValue?: string): string[] => {
  * - Remote: { "blockedRegions": ["GB", "US"] } - Block users in GB and US
  * - Local env: "GB,US,FR"                        - Block users in GB, US, and FR
  *
- * If both remote and local are unavailable or invalid, returns [] (no geo-blocking).
+ * If both remote and local are unavailable or invalid, defaults to blocking Great Britain.
  */
 export const selectMusdConversionBlockedCountries = createSelector(
   selectRemoteFeatureFlags,
@@ -289,8 +290,13 @@ export const selectMusdConversionBlockedCountries = createSelector(
     }
 
     // Fallback to local env var
-    return parseBlockedCountriesEnv(
+    const envBlockedCountries = parseBlockedCountriesEnv(
       process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES,
     );
+
+    // If env var is also empty, use default blocked countries
+    return envBlockedCountries.length > 0
+      ? envBlockedCountries
+      : DEFAULT_MUSD_BLOCKED_COUNTRIES;
   },
 );

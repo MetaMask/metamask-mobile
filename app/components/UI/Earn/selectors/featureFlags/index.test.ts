@@ -1843,7 +1843,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(['GB', 'US']);
     });
 
-    it('returns empty array when remote flag is undefined', () => {
+    it('returns default blocked countries when remote flag is undefined', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -1857,10 +1857,10 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdConversionBlockedCountries(state);
 
-      expect(result).toEqual([]);
+      expect(result).toEqual(['GB']);
     });
 
-    it('returns empty array when blockedRegions is not an array', () => {
+    it('returns default blocked countries when blockedRegions is not an array', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -1878,10 +1878,10 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdConversionBlockedCountries(state);
 
-      expect(result).toEqual([]);
+      expect(result).toEqual(['GB']);
     });
 
-    it('returns empty array when flag is null', () => {
+    it('returns default blocked countries when flag is null', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -1897,10 +1897,10 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdConversionBlockedCountries(state);
 
-      expect(result).toEqual([]);
+      expect(result).toEqual(['GB']);
     });
 
-    it('returns empty array when flag has wrong structure', () => {
+    it('returns default blocked countries when flag has wrong structure', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -1916,10 +1916,10 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdConversionBlockedCountries(state);
 
-      expect(result).toEqual([]);
+      expect(result).toEqual(['GB']);
     });
 
-    it('returns empty array when RemoteFeatureFlagController is undefined', () => {
+    it('returns default blocked countries when RemoteFeatureFlagController is undefined', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -1930,7 +1930,7 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdConversionBlockedCountries(state);
 
-      expect(result).toEqual([]);
+      expect(result).toEqual(['GB']);
     });
 
     describe('local env var fallback', () => {
@@ -2018,7 +2018,7 @@ describe('Earn Feature Flag Selectors', () => {
         expect(result).toEqual(['GB', 'US']);
       });
 
-      it('returns empty array when env var is empty string', () => {
+      it('returns default blocked countries when env var is empty string', () => {
         process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = '';
 
         const state = {
@@ -2034,7 +2034,7 @@ describe('Earn Feature Flag Selectors', () => {
 
         const result = selectMusdConversionBlockedCountries(state);
 
-        expect(result).toEqual([]);
+        expect(result).toEqual(['GB']);
       });
 
       it('filters out empty entries from env var', () => {
