@@ -44,7 +44,7 @@ jobs:
   fingerprint-comparison:
     name: Compare Expo Fingerprints
     needs:
-      - setup-dependencies
+      - validate-pr
     runs-on: ubuntu-latest
     outputs:
       branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
@@ -224,6 +224,14 @@ jobs:
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+      MM_NETWORK_UI_REDESIGN_ENABLED: 'false'
+      MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'false'
+      MM_PERPS_ENABLED: 'true'
+      MM_PERPS_BLOCKED_REGIONS: 'US,CA-ON,GB,BE'
+      MM_PERPS_HIP3_ENABLED: 'true'
+      MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
+      MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
+      MM_MUSD_CONVERSION_FLOW_ENABLED: 'false'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
