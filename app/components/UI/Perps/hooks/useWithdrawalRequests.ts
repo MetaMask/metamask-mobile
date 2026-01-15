@@ -59,46 +59,47 @@ export const useWithdrawalRequests = (
 
     // If no selected address, return empty array (don't show potentially wrong account's data)
     if (!selectedAddress) {
-      DevLogger.log(
-        'useWithdrawalRequests: No selected address, returning empty array',
-        {
-          totalCount: allWithdrawals.length,
-        },
-      );
       return [];
     }
 
     // Filter by current account, normalizing addresses for comparison
-    const filtered = allWithdrawals.filter((req) => {
-      const match =
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase();
-      return match;
-    });
+    return allWithdrawals.filter((req) => (
+        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase()
+      ));
+  });
 
-    DevLogger.log('useWithdrawalRequests: Filtered withdrawals by account', {
-      selectedAddress,
-      totalCount: allWithdrawals.length,
-      filteredCount: filtered.length,
-      withdrawals: filtered.map((w) => ({
+  // Log only when pendingWithdrawals actually changes (not on every render)
+  useEffect(() => {
+    DevLogger.log('Pending withdrawals from controller state:', {
+      count: pendingWithdrawals.length,
+      withdrawals: pendingWithdrawals.map((w) => ({
         id: w.id,
-        accountAddress: w.accountAddress,
+        timestamp: new Date(w.timestamp).toISOString(),
+        amount: w.amount,
+        asset: w.asset,
         status: w.status,
       })),
     });
 
-    return filtered;
-  });
+    if (selectedAddress) {
+      DevLogger.log('useWithdrawalRequests: Filtered withdrawals by account', {
+        selectedAddress,
+        totalCount: pendingWithdrawals.length,
+        filteredCount: pendingWithdrawals.length,
+        withdrawals: pendingWithdrawals.map((w) => ({
+          id: w.id,
+          accountAddress: w.accountAddress,
+          status: w.status,
+        })),
+      });
+    } else {
+      DevLogger.log(
+        'useWithdrawalRequests: No selected address, returning empty array',
+        { totalCount: 0 },
+      );
+    }
+  }, [pendingWithdrawals, selectedAddress]);
 
-  DevLogger.log('Pending withdrawals from controller state:', {
-    count: pendingWithdrawals.length,
-    withdrawals: pendingWithdrawals.map((w) => ({
-      id: w.id,
-      timestamp: new Date(w.timestamp).toISOString(),
-      amount: w.amount,
-      asset: w.asset,
-      status: w.status,
-    })),
-  });
   const [completedWithdrawals, setCompletedWithdrawals] = useState<
     WithdrawalRequest[]
   >([]);
