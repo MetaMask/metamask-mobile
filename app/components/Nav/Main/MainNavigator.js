@@ -15,6 +15,7 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import RegionSelectorModal from '../../Views/Settings/RegionSelectorModal/RegionSelectorModal';
+import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
@@ -538,6 +539,11 @@ const SettingsFlow = () => (
       name={Routes.SETTINGS.BACKUP_AND_SYNC}
       component={BackupAndSyncSettings}
       options={BackupAndSyncSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.REGION_SELECTOR}
+      component={RegionSelector}
+      options={RegionSelector.navigationOptions}
     />
     <Stack.Screen
       name={Routes.SETTINGS.MODALS.REGION_SELECTOR}

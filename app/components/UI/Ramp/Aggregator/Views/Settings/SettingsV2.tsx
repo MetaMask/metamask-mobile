@@ -18,7 +18,7 @@ import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
 import { selectUserRegion } from '../../../../../../selectors/rampsController';
 import useRampsRegions from '../../../../../Views/Settings/hooks/useRampsRegions';
-import { createRegionSelectorModalNavigationDetails } from '../../../../../Views/Settings/RegionSelectorModal/RegionSelectorModal';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
@@ -33,9 +33,6 @@ function SettingsV2({ isInternalBuild }: SettingsV2Props) {
   const { colors } = useAppTheme();
   const userRegion = useSelector(selectUserRegion);
   const { regions } = useRampsRegions();
-
-  console.log('userRegion', userRegion);
-  console.log('regions', regions);
 
   useEffect(() => {
     navigation.setOptions(
@@ -57,41 +54,60 @@ function SettingsV2({ isInternalBuild }: SettingsV2Props) {
     const countryCode = regionParts[0];
     const stateCode = regionParts[1];
 
-    const country = regions.find(
-      (r) => r.isoCode?.toLowerCase() === countryCode,
-    );
+    const country = regions.find((r) => {
+      if (r.isoCode?.toLowerCase() === countryCode) {
+        return true;
+      }
+      if (r.id) {
+        const id = r.id.toLowerCase();
+        if (id.startsWith('/regions/')) {
+          const extractedCode = id.replace('/regions/', '').split('/')[0];
+          return extractedCode === countryCode;
+        }
+        return id === countryCode || id.endsWith(`/${countryCode}`);
+      }
+      return false;
+    });
 
     if (!country) {
       return { regionDisplayName: null, regionFlag: '🏳️' };
     }
 
+    const flag = country.flag || '🏳️';
+
     if (stateCode && country.states) {
-      const state = country.states.find(
-        (s) =>
-          s.stateId?.toLowerCase() === stateCode ||
-          s.id?.toLowerCase().endsWith(`-${stateCode}`),
-      );
+      const state = country.states.find((s) => {
+        if (s.stateId?.toLowerCase() === stateCode) {
+          return true;
+        }
+        if (s.id) {
+          const stateId = s.id.toLowerCase();
+          if (
+            stateId.includes(`-${stateCode}`) ||
+            stateId.endsWith(`/${stateCode}`)
+          ) {
+            return true;
+          }
+        }
+        return false;
+      });
       if (state?.name) {
         return {
-          regionDisplayName: `${country.name}, ${state.name}`,
-          regionFlag: country.flag,
+          regionDisplayName: state.name,
+          regionFlag: flag,
         };
       }
     }
 
     return {
       regionDisplayName: country.name,
-      regionFlag: country.flag,
+      regionFlag: flag,
     };
   }, [userRegion, regions]);
 
   const handleChangeRegion = useCallback(() => {
-    if (regions) {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({ regions }),
-      );
-    }
-  }, [navigation, regions]);
+    navigation.navigate(Routes.SETTINGS.REGION_SELECTOR);
+  }, [navigation]);
 
   return (
     <ScreenLayout scrollable>
