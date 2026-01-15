@@ -6,15 +6,21 @@ import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useIsRevokeOperation } from '../useIsRevokeOperation';
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
+}));
+
+jest.mock('../useIsRevokeOperation', () => ({
+  useIsRevokeOperation: jest.fn(),
 }));
 
 describe('useAddressTrustSignalAlerts', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const mockUseIsRevokeOperation = jest.mocked(useIsRevokeOperation);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -24,6 +30,10 @@ describe('useAddressTrustSignalAlerts', () => {
       },
       chainId: '0x1',
     } as unknown as TransactionMeta);
+    mockUseIsRevokeOperation.mockReturnValue({
+      isRevoke: false,
+      isLoading: false,
+    });
   });
 
   it('returns a malicious alert if the address scan result is Malicious', () => {
@@ -225,5 +235,132 @@ describe('useAddressTrustSignalAlerts', () => {
     );
 
     expect(result.current).toEqual([]);
+  });
+
+  describe('revoke operations', () => {
+    it('returns no alerts for revoke operations with malicious address', () => {
+      mockUseIsRevokeOperation.mockReturnValue({
+        isRevoke: true,
+        isLoading: false,
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns no alerts for revoke operations with warning address', () => {
+      mockUseIsRevokeOperation.mockReturnValue({
+        isRevoke: true,
+        isLoading: false,
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Warning',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns alerts for non-revoke operations', () => {
+      mockUseIsRevokeOperation.mockReturnValue({
+        isRevoke: false,
+        isLoading: false,
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+    });
+
+    it('returns no alerts while revoke detection is loading', () => {
+      mockUseIsRevokeOperation.mockReturnValue({
+        isRevoke: false,
+        isLoading: true,
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toEqual([]);
+    });
   });
 });
