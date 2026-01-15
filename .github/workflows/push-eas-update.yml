@@ -3,8 +3,12 @@ name: Push OTA Update
 on:
   workflow_dispatch:
     inputs:
+      commit_hash:
+        description: 'Commit hash to publish'
+        required: true
+        type: string
       pr_number:
-        description: 'Pull request number to publish'
+        description: 'PR number associated with the commit'
         required: true
         type: string
       base_branch:
@@ -30,6 +34,7 @@ permissions:
   id-token: write
 
 env:
+  TARGET_COMMIT_HASH: ${{ inputs.commit_hash }}
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
   UPDATE_MESSAGE: ${{ inputs.message }}
@@ -44,10 +49,10 @@ jobs:
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     steps:
-      - name: Checkout target PR branch
+      - name: Checkout target commit
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
+          ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
       - name: Checkout base branch snapshot
@@ -61,7 +66,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
 
       - name: Install dependencies (workflow branch)
         run: |
@@ -118,20 +122,44 @@ jobs:
           BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
           MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
           MATCHES: ${{ steps.compare.outputs.equal }}
-          TARGET_PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
           BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
         run: |
           {
             echo "### Expo Fingerprint Comparison"
             echo ""
-            echo "- Target PR (#$TARGET_PR_NUMBER) fingerprint: \`$BRANCH_FP\`"
+            echo "- Target commit (\`$TARGET_COMMIT_HASH\`) fingerprint: \`$BRANCH_FP\`"
             echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  validate-pr:
+    name: Validate PR and Commit
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR contains commit
+        id: validate-pr
+        env:
+          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          .github/scripts/validate-pr-commit.sh
+
   approval:
     name: Require OTA Update Approval
-    needs: fingerprint-comparison
+    needs:
+      - fingerprint-comparison
+      - validate-pr
     if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -139,7 +167,7 @@ jobs:
         uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
         with:
           team: mobile-platform
-          pr-number: ${{ env.TARGET_PR_NUMBER }}
+          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
   push-update:
@@ -149,7 +177,10 @@ jobs:
     needs:
       - fingerprint-comparison
       - approval
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+      - validate-pr
+    if: >
+      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+      needs.approval.result == 'success'
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
@@ -201,14 +232,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
+          ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
 
       - name: Determine signing secret name
         shell: bash
@@ -269,18 +299,11 @@ jobs:
       - name: Display configuration
         run: |
           TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
-          TARGET_PROJECT_ID=$(node -p "require('./ota.config.js').PROJECT_ID")
           echo "🔧 Configuration:"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
-          # Fingerprint comparison temporarily disabled
-          echo ""
-          echo "📱 Project Info:"
-          echo "  Project ID (target branch): ${TARGET_PROJECT_ID}"
-          echo "  EXPO_PROJECT_ID (from secrets): $EXPO_PROJECT_ID"
-          echo "  EXPO_TOKEN (from secrets): $EXPO_TOKEN"
 
       - name: Build & Push EAS Update via build.sh
         env:
