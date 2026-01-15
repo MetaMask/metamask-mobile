@@ -125,7 +125,15 @@ export const Browser = (props) => {
         createNewTab(newTabUrl, linkType);
       }
     },
-    [tabs, navigation, createNewTab, homePageUrl, activeTabId, updateTab],
+    [
+      tabs,
+      navigation,
+      createNewTab,
+      homePageUrl,
+      activeTabId,
+      updateTab,
+      setCurrentUrl,
+    ],
   );
   const updateTabInfo = useCallback(
     (tabID, info) => {
