@@ -40,7 +40,7 @@ const createValidState = (
 describe(`Migration ${migrationVersion}`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFilesystemStorage.getItem.mockResolvedValue(null);
+    mockFilesystemStorage.getItem.mockResolvedValue(undefined);
     mockFilesystemStorage.setItem.mockResolvedValue(undefined);
   });
 
@@ -155,7 +155,7 @@ describe(`Migration ${migrationVersion}`, () => {
       if (key === makeStorageKey(existingChainId)) {
         return JSON.stringify({ timestamp: 999, data: {} });
       }
-      return null;
+      return undefined;
     });
 
     const state = createValidState({

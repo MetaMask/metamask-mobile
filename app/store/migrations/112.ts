@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import { hasProperty, isObject, Hex } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
 import { cloneDeep } from 'lodash';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 
@@ -15,13 +15,14 @@ const STORAGE_KEY_PREFIX = 'storageService:';
 const CONTROLLER_NAME = 'TokenListController';
 const CACHE_KEY_PREFIX = 'tokensChainsCache';
 
-type TokensChainsCache = Record<
-  Hex,
-  {
-    timestamp: number;
-    data: Record<string, unknown>;
-  }
->;
+interface TokenChainCacheEntry {
+  timestamp: number;
+  data: Record<string, unknown>;
+}
+
+interface TokensChainsCache {
+  [chainId: string]: TokenChainCacheEntry;
+}
 
 interface TokenListControllerState {
   tokensChainsCache?: TokensChainsCache;
@@ -79,8 +80,8 @@ export default async function migrate(stateAsync: unknown): Promise<unknown> {
       return state;
     }
 
-    const chainsCache = tokenListControllerState.tokensChainsCache;
-    const chainIds = Object.keys(chainsCache) as Hex[];
+    const chainsCache = tokenListControllerState.tokensChainsCache ?? {};
+    const chainIds = Object.keys(chainsCache);
 
     if (chainIds.length === 0) {
       return state;
@@ -116,7 +117,7 @@ export default async function migrate(stateAsync: unknown): Promise<unknown> {
       await Promise.all(
         chainsToMigrate.map(async (chainId) => {
           const storageKey = makeStorageKey(chainId);
-          const cacheData = chainsCache[chainId];
+          const cacheData = (chainsCache as TokensChainsCache)[chainId];
           try {
             await FilesystemStorage.setItem(
               storageKey,
