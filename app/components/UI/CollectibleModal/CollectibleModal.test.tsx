@@ -11,7 +11,6 @@ import {
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
-import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectChainId } from '../../../selectors/networkController';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
@@ -92,7 +91,6 @@ describe('CollectibleModal', () => {
       if (selector === collectiblesSelector) return collectibles;
       if (selector === selectIsIpfsGatewayEnabled) return false;
       if (selector === selectDisplayNftMedia) return false;
-      if (selector === selectSendRedesignFlags) return { enabled: false };
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
@@ -108,7 +106,6 @@ describe('CollectibleModal', () => {
       if (selector === collectiblesSelector) return collectibles;
       if (selector === selectIsIpfsGatewayEnabled) return true;
       if (selector === selectDisplayNftMedia) return true;
-      if (selector === selectSendRedesignFlags) return { enabled: false };
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
@@ -126,7 +123,6 @@ describe('CollectibleModal', () => {
       if (selector === collectiblesSelector) return collectibles;
       if (selector === selectIsIpfsGatewayEnabled) return false;
       if (selector === selectDisplayNftMedia) return false;
-      if (selector === selectSendRedesignFlags) return { enabled: false };
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
@@ -159,7 +155,6 @@ describe('CollectibleModal', () => {
       if (selector === collectiblesSelector) return collectibles;
       if (selector === selectIsIpfsGatewayEnabled) return false;
       if (selector === selectDisplayNftMedia) return false;
-      if (selector === selectSendRedesignFlags) return { enabled: false };
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
@@ -195,7 +190,6 @@ describe('CollectibleModal', () => {
       if (selector === collectiblesSelector) return collectibles;
       if (selector === selectIsIpfsGatewayEnabled) return false;
       if (selector === selectDisplayNftMedia) return false;
-      if (selector === selectSendRedesignFlags) return { enabled: false };
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
