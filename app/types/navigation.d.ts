@@ -19,7 +19,7 @@ import type {
   IconName,
 } from '../component-library/components/Icons/Icon';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { AccountGroupId } from '@metamask/account-api';
+import type { AccountGroupId , AccountGroupId } from '@metamask/account-api';
 import type { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { BasicInfoFormData } from '../components/UI/Ramp/Deposit/Views/BasicInfo/BasicInfo';
 import type { AddressFormData } from '../components/UI/Ramp/Deposit/Views/EnterAddress/EnterAddress';
@@ -99,6 +99,12 @@ import type { AccountConnectParams } from '../components/Views/AccountConnect/Ac
 import type { MarketDetailsParams } from '../components/UI/Perps/Views/PerpsMarketDetailsView';
 import type { RegionSelectorModalParams } from '../components/UI/Ramp/Deposit/Views/Modals/RegionSelectorModal/RegionSelectorModal.types';
 import type { TokenI } from '../components/UI/Tokens/types';
+import type { SeasonRewardType } from '../core/Engine/controllers/rewards-controller/types';
+import type { PredictNavigationParamList } from '../components/UI/Predict/types/navigation';
+import type {
+  ModalType,
+  ModalAction,
+} from '../components/UI/Rewards/components/RewardsBottomSheetModal';
 
 // =============================================================================
 // ROOT PARAM LIST
@@ -852,6 +858,57 @@ export type RootParamList = {
   StakeModals: NavigatorScreenParams<RootParamList> | undefined;
   RampModals: NavigatorScreenParams<RootParamList> | undefined;
   DepositModals: NavigatorScreenParams<RootParamList> | undefined;
+
+  // =========================================================================
+  // Predict Routes (Root Navigator)
+  // =========================================================================
+  Predict: NavigatorScreenParams<PredictNavigationParamList> | undefined;
+
+  // =========================================================================
+  // Rewards Modal Routes
+  // =========================================================================
+  RewardsBottomSheetModal: {
+    title: string | React.ReactNode;
+    description: string | React.ReactNode;
+    type?: ModalType;
+    confirmAction: ModalAction;
+    onCancel?: () => void;
+    cancelLabel?: string;
+    showCancelButton?: boolean;
+    cancelMode?: 'cta-button' | 'top-right-cross-icon';
+    showIcon?: boolean;
+    customIcon?: React.ReactNode;
+  };
+  RewardsClaimBottomSheetModal: {
+    rewardId: string;
+    seasonRewardId: string;
+    rewardType: SeasonRewardType;
+    claimUrl?: string;
+    isLocked: boolean;
+    hasClaimed: boolean;
+    title: string;
+    icon: DSIconName;
+    description: string;
+    showInput?: boolean;
+    inputPlaceholder?: string;
+  };
+  RewardOptInAccountGroupModal: {
+    accountGroupId: AccountGroupId;
+    addressData: {
+      address: string;
+      hasOptedIn: boolean;
+      scopes: string[];
+      isSupported?: boolean;
+    }[];
+  };
+  RewardsReferralBottomSheetModal: undefined;
+  RewardsIntroModal: undefined;
+
+  // =========================================================================
+  // Wallet Full View Screens
+  // =========================================================================
+  TokensFullView: undefined;
+  TrendingTokensFullView: undefined;
 
   // =========================================================================
   // Additional Modal Screens
