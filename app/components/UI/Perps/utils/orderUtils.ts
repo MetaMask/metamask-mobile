@@ -1,7 +1,8 @@
+import { capitalize } from 'lodash';
+import { strings } from '../../../../../locales/i18n';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { OrderParams, Order } from '../controllers/types';
 import { Position } from '../hooks';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { capitalize } from 'lodash';
 
 /**
  * Get the order direction based on the side and position size
@@ -17,15 +18,17 @@ export const getOrderDirection = (
 
   // No existing position → direction depends only on side
   if (!hasPosition) {
-    return side === 'buy' ? 'long' : 'short';
+    return side === 'buy'
+      ? strings('perps.market.long')
+      : strings('perps.market.short');
   }
 
   // Existing position → infer direction based on position size
   if (positionSize && parseFloat(positionSize) > 0) {
-    return 'long';
+    return strings('perps.market.long');
   }
 
-  return 'short';
+  return strings('perps.market.short');
 };
 
 export const willFlipPosition = (

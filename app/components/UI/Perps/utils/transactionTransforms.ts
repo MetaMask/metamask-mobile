@@ -1,4 +1,5 @@
 import { BigNumber } from 'bignumber.js';
+import { strings } from '../../../../../locales/i18n';
 import {
   Funding,
   Order,
@@ -315,8 +316,11 @@ export function transformFillsToTransactions(
     } else if (isAutoDeleveraging) {
       const startPositionNum = Number(fill.startPosition);
       if (Number.isNaN(startPositionNum)) return acc;
-      const directionLabel = Number(fill.startPosition) > 0 ? 'long' : 'short';
-      title = `${action} ${directionLabel}`;
+      const directionLabel =
+        Number(fill.startPosition) > 0
+          ? strings('perps.market.long')
+          : strings('perps.market.short');
+      title = `${action} ${directionLabel?.toLowerCase() || ''}`;
     } else {
       title = `${action} ${part2?.toLowerCase() || ''}`;
     }

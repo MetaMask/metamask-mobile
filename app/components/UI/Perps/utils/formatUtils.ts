@@ -2,6 +2,7 @@
  * Shared formatting utilities for Perps components
  */
 import { BigNumber } from 'bignumber.js';
+import { strings } from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import {
   FUNDING_RATE_CONFIG,
@@ -1079,7 +1080,7 @@ export const formatDateSection = (timestamp: number): string => {
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear()
   ) {
-    return 'Today';
+    return strings('perps.today');
   }
 
   // Check if it's yesterday
@@ -1088,7 +1089,7 @@ export const formatDateSection = (timestamp: number): string => {
     date.getMonth() === yesterday.getMonth() &&
     date.getFullYear() === yesterday.getFullYear()
   ) {
-    return 'Yesterday';
+    return strings('perps.yesterday');
   }
 
   const month = getIntlDateTimeFormatter('en-US', {

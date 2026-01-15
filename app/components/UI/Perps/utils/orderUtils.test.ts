@@ -290,22 +290,22 @@ describe('orderUtils', () => {
   describe('getOrderDirection', () => {
     it('should return long for buy with no position', () => {
       const result = getOrderDirection('buy', undefined);
-      expect(result).toBe('long');
+      expect(result).toBe('perps.market.long');
     });
 
     it('should return short for sell with no position', () => {
       const result = getOrderDirection('sell', undefined);
-      expect(result).toBe('short');
+      expect(result).toBe('perps.market.short');
     });
 
     it('should return long for positive position', () => {
       const result = getOrderDirection('sell', '1.5');
-      expect(result).toBe('long');
+      expect(result).toBe('perps.market.long');
     });
 
     it('should return short for negative position', () => {
       const result = getOrderDirection('buy', '-1.5');
-      expect(result).toBe('short');
+      expect(result).toBe('perps.market.short');
     });
   });
 
