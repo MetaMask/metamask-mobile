@@ -3,13 +3,17 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsUserRegion } from './useRampsUserRegion';
-import { RequestStatus } from '@metamask/ramps-controller';
+import { RequestStatus, type UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      updateUserRegion: jest.fn().mockResolvedValue('US'),
+      updateUserRegion: jest.fn().mockResolvedValue({
+        country: { isoCode: 'US', flag: '🇺🇸', name: 'United States' },
+        state: null,
+        regionCode: 'us',
+      }),
       setUserRegion: jest.fn().mockResolvedValue({
         aggregator: true,
         deposit: true,
@@ -18,6 +22,31 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+const createMockUserRegion = (regionCode: string): UserRegion => {
+  const parts = regionCode.toLowerCase().split('-');
+  const countryCode = parts[0].toUpperCase();
+  const stateCode = parts[1]?.toUpperCase();
+
+  return {
+    country: {
+      isoCode: countryCode,
+      flag: '🏳️',
+      name: countryCode,
+      phone: { prefix: '', placeholder: '', template: '' },
+      currency: '',
+      supported: true,
+    },
+    state: stateCode
+      ? {
+          stateId: stateCode,
+          name: stateCode,
+          supported: true,
+        }
+      : null,
+    regionCode: regionCode.toLowerCase(),
+  };
+};
 
 const createMockStore = (rampsControllerState = {}) =>
   configureStore({
@@ -62,11 +91,13 @@ describe('useRampsUserRegion', () => {
 
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
-      const store = createMockStore({ userRegion: 'US-CA' });
+      const store = createMockStore({
+        userRegion: createMockUserRegion('us-ca'),
+      });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.userRegion).toBe('US-CA');
+      expect(result.current.userRegion).toBe('us-ca');
     });
   });
 

@@ -17,7 +17,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
 import { selectUserRegion } from '../../../../../../selectors/rampsController';
-import useRampsRegions from '../../../../../Views/Settings/hooks/useRampsRegions';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
@@ -32,7 +31,6 @@ function SettingsV2({ isInternalBuild }: SettingsV2Props) {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
   const userRegion = useSelector(selectUserRegion);
-  const { regions } = useRampsRegions();
 
   useEffect(() => {
     navigation.setOptions(
@@ -46,64 +44,24 @@ function SettingsV2({ isInternalBuild }: SettingsV2Props) {
   }, [colors, navigation]);
 
   const { regionDisplayName, regionFlag } = useMemo(() => {
-    if (!userRegion || !regions) {
+    if (!userRegion) {
       return { regionDisplayName: null, regionFlag: '🏳️' };
     }
 
-    const regionParts = userRegion.toLowerCase().split('-');
-    const countryCode = regionParts[0];
-    const stateCode = regionParts[1];
+    const flag = userRegion.country.flag || userRegion.country.emoji || '🏳️';
 
-    const country = regions.find((r) => {
-      if (r.isoCode?.toLowerCase() === countryCode) {
-        return true;
-      }
-      if (r.id) {
-        const id = r.id.toLowerCase();
-        if (id.startsWith('/regions/')) {
-          const extractedCode = id.replace('/regions/', '').split('/')[0];
-          return extractedCode === countryCode;
-        }
-        return id === countryCode || id.endsWith(`/${countryCode}`);
-      }
-      return false;
-    });
-
-    if (!country) {
-      return { regionDisplayName: null, regionFlag: '🏳️' };
-    }
-
-    const flag = country.flag || '🏳️';
-
-    if (stateCode && country.states) {
-      const state = country.states.find((s) => {
-        if (s.stateId?.toLowerCase() === stateCode) {
-          return true;
-        }
-        if (s.id) {
-          const stateId = s.id.toLowerCase();
-          if (
-            stateId.includes(`-${stateCode}`) ||
-            stateId.endsWith(`/${stateCode}`)
-          ) {
-            return true;
-          }
-        }
-        return false;
-      });
-      if (state?.name) {
-        return {
-          regionDisplayName: state.name,
-          regionFlag: flag,
-        };
-      }
+    if (userRegion.state?.name) {
+      return {
+        regionDisplayName: userRegion.state.name,
+        regionFlag: flag,
+      };
     }
 
     return {
-      regionDisplayName: country.name,
+      regionDisplayName: userRegion.country.name,
       regionFlag: flag,
     };
-  }, [userRegion, regions]);
+  }, [userRegion]);
 
   const handleChangeRegion = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.REGION_SELECTOR);

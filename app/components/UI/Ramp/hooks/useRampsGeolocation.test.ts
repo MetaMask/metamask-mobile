@@ -3,16 +3,45 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsGeolocation } from './useRampsGeolocation';
-import { RequestStatus } from '@metamask/ramps-controller';
+import { RequestStatus, type UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      updateUserRegion: jest.fn().mockResolvedValue('US'),
+      updateUserRegion: jest.fn().mockResolvedValue({
+        country: { isoCode: 'US', flag: '🇺🇸', name: 'United States' },
+        state: null,
+        regionCode: 'us',
+      }),
     },
   },
 }));
+
+const createMockUserRegion = (regionCode: string): UserRegion => {
+  const parts = regionCode.toLowerCase().split('-');
+  const countryCode = parts[0].toUpperCase();
+  const stateCode = parts[1]?.toUpperCase();
+
+  return {
+    country: {
+      isoCode: countryCode,
+      flag: '🏳️',
+      name: countryCode,
+      phone: { prefix: '', placeholder: '', template: '' },
+      currency: '',
+      supported: true,
+    },
+    state: stateCode
+      ? {
+          stateId: stateCode,
+          name: stateCode,
+          supported: true,
+        }
+      : null,
+    regionCode: regionCode.toLowerCase(),
+  };
+};
 
 const createMockStore = (rampsControllerState = {}) =>
   configureStore({
@@ -87,13 +116,15 @@ describe('useRampsGeolocation', () => {
 
   describe('geolocation state', () => {
     it('returns geolocation from state', () => {
-      const store = createMockStore({ userRegion: 'US-CA' });
+      const store = createMockStore({
+        userRegion: createMockUserRegion('us-ca'),
+      });
 
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
 
-      expect(result.current.geolocation).toBe('US-CA');
+      expect(result.current.geolocation).toBe('us-ca');
     });
   });
 
@@ -210,7 +241,7 @@ describe('useRampsGeolocation', () => {
       const store = createMockStore();
       const mockUpdateUserRegion = Engine.context.RampsController
         .updateUserRegion as jest.Mock;
-      mockUpdateUserRegion.mockResolvedValue('US-CA');
+      mockUpdateUserRegion.mockResolvedValue(createMockUserRegion('us-ca'));
 
       renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
@@ -225,7 +256,7 @@ describe('useRampsGeolocation', () => {
       const store = createMockStore();
       const mockUpdateUserRegion = Engine.context.RampsController
         .updateUserRegion as jest.Mock;
-      mockUpdateUserRegion.mockResolvedValue('US-CA');
+      mockUpdateUserRegion.mockResolvedValue(createMockUserRegion('us-ca'));
 
       renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
@@ -287,7 +318,7 @@ describe('useRampsGeolocation', () => {
         requests: {
           'updateUserRegion:[]': {
             status: RequestStatus.SUCCESS,
-            data: 'US-CA',
+            data: createMockUserRegion('us-ca'),
             error: null,
             timestamp: Date.now(),
             lastFetchedAt: Date.now(),
@@ -350,7 +381,7 @@ describe('useRampsGeolocation', () => {
       const store = createMockStore();
       const mockUpdateUserRegion = Engine.context.RampsController
         .updateUserRegion as jest.Mock;
-      const expectedValue = 'US-NY';
+      const expectedValue = createMockUserRegion('us-ny');
       mockUpdateUserRegion.mockResolvedValue(expectedValue);
 
       const { result } = renderHook(() => useRampsGeolocation(), {
@@ -363,7 +394,7 @@ describe('useRampsGeolocation', () => {
 
       const returnedValue = await result.current.fetchGeolocation();
 
-      expect(returnedValue).toBe(expectedValue);
+      expect(returnedValue).toBe('us-ny');
     });
 
     it('returns different values on subsequent calls', async () => {
@@ -371,9 +402,9 @@ describe('useRampsGeolocation', () => {
       const mockUpdateUserRegion = Engine.context.RampsController
         .updateUserRegion as jest.Mock;
       mockUpdateUserRegion
-        .mockResolvedValueOnce('US')
-        .mockResolvedValueOnce('US-CA')
-        .mockResolvedValueOnce('US-NY');
+        .mockResolvedValueOnce(createMockUserRegion('us'))
+        .mockResolvedValueOnce(createMockUserRegion('us-ca'))
+        .mockResolvedValueOnce(createMockUserRegion('us-ny'));
 
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
@@ -385,37 +416,43 @@ describe('useRampsGeolocation', () => {
 
       const firstValue = await result.current.fetchGeolocation();
 
-      expect(firstValue).toBe('US-CA');
+      expect(firstValue).toBe('us-ca');
 
       const secondValue = await result.current.fetchGeolocation();
 
-      expect(secondValue).toBe('US-NY');
+      expect(secondValue).toBe('us-ny');
     });
   });
 
   describe('hook reads from store state', () => {
     it('reads geolocation from store state', () => {
-      const store = createMockStore({ userRegion: 'US-CA' });
+      const store = createMockStore({
+        userRegion: createMockUserRegion('us-ca'),
+      });
 
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),
       });
 
-      expect(result.current.geolocation).toBe('US-CA');
+      expect(result.current.geolocation).toBe('us-ca');
     });
 
     it('reads different geolocation values from different store states', () => {
-      const store1 = createMockStore({ userRegion: 'US-CA' });
+      const store1 = createMockStore({
+        userRegion: createMockUserRegion('us-ca'),
+      });
       const { result: result1 } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store1),
       });
-      expect(result1.current.geolocation).toBe('US-CA');
+      expect(result1.current.geolocation).toBe('us-ca');
 
-      const store2 = createMockStore({ userRegion: 'US-NY' });
+      const store2 = createMockStore({
+        userRegion: createMockUserRegion('us-ny'),
+      });
       const { result: result2 } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store2),
       });
-      expect(result2.current.geolocation).toBe('US-NY');
+      expect(result2.current.geolocation).toBe('us-ny');
     });
 
     it('reads isLoading from different request states', () => {
@@ -479,8 +516,21 @@ describe('useRampsGeolocation', () => {
       expect(result.current.geolocation).toBe(null);
     });
 
-    it('returns empty string geolocation when userRegion is empty string', () => {
-      const store = createMockStore({ userRegion: '' });
+    it('returns null geolocation when userRegion has empty regionCode', () => {
+      const store = createMockStore({
+        userRegion: {
+          country: {
+            isoCode: '',
+            flag: '🏳️',
+            name: '',
+            phone: { prefix: '', placeholder: '', template: '' },
+            currency: '',
+            supported: false,
+          },
+          state: null,
+          regionCode: '',
+        },
+      });
 
       const { result } = renderHook(() => useRampsGeolocation(), {
         wrapper: wrapper(store),

@@ -169,7 +169,7 @@ function RegionSelectorModal() {
     (region: RegionItem): boolean => {
       if (!userRegion) return false;
       const regionId = getRegionId(region);
-      const normalizedUserRegion = userRegion.toLowerCase();
+      const normalizedUserRegion = userRegion.regionCode.toLowerCase();
       const normalizedRegionId = regionId.toLowerCase();
 
       if (normalizedUserRegion === normalizedRegionId) {

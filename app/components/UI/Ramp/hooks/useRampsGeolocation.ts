@@ -1,11 +1,14 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
   selectGeolocation,
   selectGeolocationRequest,
 } from '../../../../selectors/rampsController';
-import { ExecuteRequestOptions } from '@metamask/ramps-controller';
+import {
+  ExecuteRequestOptions,
+  type UserRegion,
+} from '@metamask/ramps-controller';
 
 /**
  * Result returned by the useRampsGeolocation hook.
@@ -27,7 +30,7 @@ export interface UseRampsGeolocationResult {
   /**
    * Manually fetch the geolocation.
    */
-  fetchGeolocation: (options?: ExecuteRequestOptions) => Promise<string>;
+  fetchGeolocation: (options?: ExecuteRequestOptions) => Promise<string | null>;
 }
 
 /**
@@ -46,15 +49,23 @@ export interface UseRampsGeolocationResult {
  * ```
  */
 export function useRampsGeolocation(): UseRampsGeolocationResult {
-  const geolocation = useSelector(selectGeolocation);
+  const userRegion = useSelector(selectGeolocation) as UserRegion | null;
   const { isFetching, error } = useSelector(selectGeolocationRequest) as {
     isFetching: boolean;
     error: string | null;
   };
 
+  const geolocation = useMemo(
+    () => userRegion?.regionCode ?? null,
+    [userRegion],
+  );
+
   const fetchGeolocation = useCallback(
-    (options?: ExecuteRequestOptions) =>
-      Engine.context.RampsController.updateUserRegion(options),
+    async (options?: ExecuteRequestOptions) => {
+      const result =
+        await Engine.context.RampsController.updateUserRegion(options);
+      return result?.regionCode ?? null;
+    },
     [],
   );
 

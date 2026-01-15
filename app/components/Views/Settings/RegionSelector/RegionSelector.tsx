@@ -187,18 +187,15 @@ function RegionSelector() {
     (region: RegionItem): boolean => {
       if (!userRegion) return false;
       const regionId = getRegionId(region);
-      const normalizedUserRegion = userRegion.toLowerCase();
+      const userRegionCode = userRegion.regionCode;
       const normalizedRegionId = regionId.toLowerCase();
 
-      if (normalizedUserRegion === normalizedRegionId) {
+      if (userRegionCode === normalizedRegionId) {
         return true;
       }
 
-      if (
-        normalizedUserRegion.includes('-') &&
-        normalizedRegionId.includes('-')
-      ) {
-        const userParts = normalizedUserRegion.split('-');
+      if (userRegionCode.includes('-') && normalizedRegionId.includes('-')) {
+        const userParts = userRegionCode.split('-');
         const regionParts = normalizedRegionId.split('-');
         if (userParts.length === 2 && regionParts.length === 2) {
           return (
@@ -210,7 +207,7 @@ function RegionSelector() {
       if (
         'isoCode' in region &&
         region.isoCode &&
-        normalizedUserRegion.startsWith(region.isoCode.toLowerCase())
+        userRegionCode.startsWith(region.isoCode.toLowerCase())
       ) {
         return true;
       }
@@ -266,38 +263,18 @@ function RegionSelector() {
       let stateName: string | null = null;
       if (
         'isoCode' in region &&
-        userRegion &&
-        userRegion.includes('-') &&
+        userRegion?.state &&
         activeView === RegionViewType.COUNTRY
       ) {
-        const regionParts = userRegion.toLowerCase().split('-');
-        const countryCode = regionParts[0];
-        const stateCode = regionParts[1];
+        const countryCode = userRegion.country.isoCode?.toLowerCase();
+        const regionCountryCode = region.isoCode?.toLowerCase();
 
         if (
-          (region.isoCode?.toLowerCase() === countryCode ||
-            (region.id?.toLowerCase().startsWith(`/regions/${countryCode}`))) &&
-          stateCode &&
-          region.states
+          (regionCountryCode === countryCode ||
+            region.id?.toLowerCase().startsWith(`/regions/${countryCode}`)) &&
+          userRegion.state.name
         ) {
-          const state = region.states.find((s) => {
-            if (s.stateId?.toLowerCase() === stateCode) {
-              return true;
-            }
-            if (s.id) {
-              const stateId = s.id.toLowerCase();
-              if (
-                stateId.includes(`-${stateCode}`) ||
-                stateId.endsWith(`/${stateCode}`)
-              ) {
-                return true;
-              }
-            }
-            return false;
-          });
-          if (state?.name) {
-            stateName = state.name;
-          }
+          stateName = userRegion.state.name;
         }
       }
 
