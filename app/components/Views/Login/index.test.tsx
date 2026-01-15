@@ -18,6 +18,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passwordRequirementsMet } from '../../../util/password';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
+import { passcodeType } from '../../../util/authentication';
 import {
   TraceName,
   TraceOperation,
@@ -126,6 +127,11 @@ jest.mock('../../../actions/security', () => ({
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(null),
   setItem: jest.fn(),
+}));
+
+jest.mock('../../../util/authentication', () => ({
+  passcodeType: jest.fn(),
+  updateAuthTypeStorageFlags: jest.fn(),
 }));
 
 jest.mock('../../../core/BackupVault', () => ({
@@ -807,6 +813,7 @@ describe('Login', () => {
     });
 
     it('set up passcode authentication when auth type is PASSCODE', async () => {
+      (passcodeType as jest.Mock).mockReturnValue('TouchID');
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
         if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
         return Promise.resolve(null);
@@ -823,6 +830,7 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
       expect(
         getByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
       ).toBeOnTheScreen();
@@ -1126,6 +1134,7 @@ describe('Login', () => {
     });
 
     it('successfully authenticate with biometrics and navigate to home', async () => {
+      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
       (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(
         true,
       );
@@ -1153,6 +1162,7 @@ describe('Login', () => {
         fireEvent.press(biometryButton);
       });
 
+      expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         routes: [
@@ -1171,6 +1181,7 @@ describe('Login', () => {
 
     it('does not navigate when biometric authentication fails', async () => {
       // Arrange
+      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
         if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
         return Promise.resolve(null);
@@ -1198,6 +1209,7 @@ describe('Login', () => {
       });
 
       // Assert
+      expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
     });

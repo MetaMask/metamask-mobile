@@ -31,7 +31,10 @@ import {
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
 import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
-import { updateAuthTypeStorageFlags } from '../../../util/authentication';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
 import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
@@ -124,7 +127,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const [password, setPassword] = useState('');
   const [biometryIconType, setBiometryIconType] = useState<
-    BIOMETRY_TYPE | AUTHENTICATION_TYPE.PASSCODE | null
+    BIOMETRY_TYPE | AUTHENTICATION_TYPE.PASSCODE | string | null
   >(null);
   const [biometrySwitchType, setBiometrySwitchType] =
     useState<AUTHENTICATION_TYPE | null>(null);
@@ -245,9 +248,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         const hasCredentials =
           authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE;
         setBiometryChoice(hasCredentials);
-
+        const iconType = passcodeType(AUTHENTICATION_TYPE.PASSCODE);
         // check if passcode credentials are available, if so set the icon type to passcode
-        if (hasCredentials) setBiometryIconType(AUTHENTICATION_TYPE.PASSCODE);
+        if (hasCredentials) setBiometryIconType(iconType);
         return;
       } else if (authData.availableBiometryType) {
         // set biometric type for biometric switch since biometric is not disabled
