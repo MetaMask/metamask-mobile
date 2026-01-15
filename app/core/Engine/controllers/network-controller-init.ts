@@ -15,15 +15,15 @@ import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
 } from './network-controller/messenger-action-handlers';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
-import { MetaMetrics } from '../../Analytics';
 import { Hex, Json } from '@metamask/utils';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
+import { AnalyticsEventProperties } from '@metamask/analytics-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
 export const ADDITIONAL_DEFAULT_NETWORKS = [
-  ChainId['megaeth-testnet'],
+  ChainId['megaeth-testnet-v2'],
   ChainId['monad-testnet'],
 ];
 
@@ -37,6 +37,12 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState = getDefaultNetworkControllerState(
       ADDITIONAL_DEFAULT_NETWORKS,
     );
+
+    // MegaETH Testnet v2 change back the RPC URL from timothy to carrot again
+    // TODO: Remove this once the MegaETH Testnet v2 is updated and released from the controller utils
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['megaeth-testnet-v2']
+    ].rpcEndpoints[0].url = 'https://carrot.megaeth.com/rpc';
 
     // Add failovers for default Infura RPC endpoints
     initialNetworkControllerState.networkConfigurationsByChainId[
@@ -112,7 +118,7 @@ export const networkControllerInit: ControllerInitFunction<
   NetworkController,
   NetworkControllerMessenger,
   NetworkControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState }) => {
+> = ({ controllerMessenger, initMessenger, persistedState, analyticsId }) => {
   const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
 
   const controller = new NetworkController({
@@ -193,12 +199,22 @@ export const networkControllerInit: ControllerInitFunction<
         infuraProjectId,
         error,
         trackEvent: ({ event, properties }) => {
-          const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-            .addProperties(properties)
-            .build();
-          MetaMetrics.getInstance().trackEvent(metricsEvent);
+          try {
+            const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
+              event,
+            )
+              .addProperties((properties as AnalyticsEventProperties) || {})
+              .build();
+
+            initMessenger.call(
+              'AnalyticsController:trackEvent',
+              analyticsEvent,
+            );
+          } catch (trackingError) {
+            Logger.log('Error tracking analytics event', trackingError);
+          }
         },
-        metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        metaMetricsId: analyticsId ?? '',
       });
     },
   );
@@ -220,12 +236,23 @@ export const networkControllerInit: ControllerInitFunction<
         error,
         infuraProjectId,
         trackEvent: ({ event, properties }) => {
-          const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
-            .addProperties(properties)
-            .build();
-          MetaMetrics.getInstance().trackEvent(metricsEvent);
+          try {
+            const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
+              event,
+            )
+              .addProperties((properties as AnalyticsEventProperties) || {})
+              .build();
+
+            initMessenger.call(
+              'AnalyticsController:trackEvent',
+              analyticsEvent,
+            );
+          } catch (trackingError) {
+            // Analytics tracking failures should not break network functionality
+            // Error is logged but not thrown
+          }
         },
-        metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        metaMetricsId: analyticsId ?? '',
       });
     },
   );

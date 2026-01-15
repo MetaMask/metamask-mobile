@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import ExperienceEnhancerModal from './';
-import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors.js';
+import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 
 // Mock the BottomSheet component
 jest.mock(
