@@ -123,7 +123,7 @@ const CardWelcome = () => {
                 variant={TextVariant.BodyMDMedium}
                 style={styles.notNowButtonText}
               >
-                {strings('predict.gtm_content.not_now')}
+                {strings('card.card_onboarding.not_now_button')}
               </Text>
             }
           />

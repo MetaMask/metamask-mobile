@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,7 +7,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardScreens } from '../../util/metrics';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
-
+import AnimatedSpinner from '../../../AnimatedSpinner';
 /**
  * Screen shown after Veriff KYC WebView completes.
  * Polls the registration status to check if the user was approved or rejected.
@@ -59,7 +58,7 @@ const VerifyingVeriffKYC = () => {
 
   const renderFormFields = () => (
     <Box twClassName="flex flex-1 items-center justify-center">
-      <ActivityIndicator testID="verifying-veriff-kyc-spinner" size="large" />
+      <AnimatedSpinner testID="verifying-veriff-kyc-spinner" />
       <Text
         variant={TextVariant.BodyMd}
         twClassName="text-center text-text-alternative mt-4 px-4"

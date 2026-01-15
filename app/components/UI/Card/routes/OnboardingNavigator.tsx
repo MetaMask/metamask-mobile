@@ -13,7 +13,6 @@ import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
-import MailingAddress from '../components/Onboarding/MailingAddress';
 import { cardDefaultNavigationOptions, headerStyle } from '.';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
@@ -263,11 +262,6 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
         component={PhysicalAddress}
-        options={PostEmailNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
-        component={MailingAddress}
         options={PostEmailNavigationOptions}
       />
       <Stack.Screen

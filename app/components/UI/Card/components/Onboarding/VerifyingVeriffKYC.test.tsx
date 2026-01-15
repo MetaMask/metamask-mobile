@@ -10,6 +10,22 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+// Mock AnimatedSpinner to avoid theme context issues
+jest.mock('../../../AnimatedSpinner', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) =>
+      React.createElement(View, { testID: testID || 'animated-spinner' }),
+    SpinnerSize: {
+      SM: 'SM',
+      MD: 'MD',
+      LG: 'LG',
+    },
+  };
+});
+
 // Mock useUserRegistrationStatus hook
 jest.mock('../../hooks/useUserRegistrationStatus');
 
