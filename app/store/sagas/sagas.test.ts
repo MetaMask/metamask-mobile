@@ -28,6 +28,7 @@ import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
+import AppConstants from '../../core/AppConstants';
 
 const mockBioStateMachineId = '123';
 
@@ -52,6 +53,7 @@ jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     start: jest.fn(),
     pendingDeeplink: null,
+    pendingDeeplinkSource: null,
     clearPendingDeeplink: jest.fn(),
   },
 }));
@@ -531,6 +533,57 @@ describe('handleDeeplinkSaga', () => {
 
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
         });
+      });
+    });
+
+    describe('source tracking', () => {
+      it('passes pendingDeeplinkSource to parse when set', async () => {
+        const testLink = 'https://link.metamask.io/home';
+        AppStateEventProcessor.pendingDeeplink = testLink;
+        AppStateEventProcessor.pendingDeeplinkSource =
+          AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION;
+        Engine.context.KeyringController.isUnlocked = jest
+          .fn()
+          .mockReturnValue(true);
+
+        await expectSaga(handleDeeplinkSaga)
+          .withState({
+            ...defaultMockState,
+            onboarding: { completedOnboarding: true },
+          })
+          .dispatch(checkForDeeplink())
+          .silentRun();
+
+        expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+          testLink,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+          }),
+        );
+      });
+
+      it('defaults to ORIGIN_DEEPLINK when pendingDeeplinkSource is null', async () => {
+        const testLink = 'https://link.metamask.io/home';
+        AppStateEventProcessor.pendingDeeplink = testLink;
+        AppStateEventProcessor.pendingDeeplinkSource = null;
+        Engine.context.KeyringController.isUnlocked = jest
+          .fn()
+          .mockReturnValue(true);
+
+        await expectSaga(handleDeeplinkSaga)
+          .withState({
+            ...defaultMockState,
+            onboarding: { completedOnboarding: true },
+          })
+          .dispatch(checkForDeeplink())
+          .silentRun();
+
+        expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+          testLink,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          }),
+        );
       });
     });
   });
