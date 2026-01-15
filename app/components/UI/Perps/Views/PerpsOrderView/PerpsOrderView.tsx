@@ -1875,6 +1875,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={TextVariant.BodySM}
             />
           </View>
+          {/* Perps Balance - Available to Trade */}
+          <View style={styles.infoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              Available to Trade:
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {isLoadingAccount
+                ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+                : formatPerpsFiat(availableBalance, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })}
+            </Text>
+          </View>
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
