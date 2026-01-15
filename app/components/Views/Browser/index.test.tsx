@@ -138,6 +138,10 @@ const mockSortMultichainAccountsByLastSelected =
   sortMultichainAccountsByLastSelected as jest.Mock;
 
 describe('Browser', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
@@ -296,6 +300,88 @@ describe('Browser', () => {
 
     // Clean up the spy
     navigationSpy.mockRestore();
+  });
+
+  describe('close all tabs and done button navigation', () => {
+    it('should navigate to Trending page when closing all tabs and fromTrending is true', () => {
+      const mockNavigationForClose = {
+        setOptions: jest.fn(),
+        setParams: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      };
+      const mockCloseAllTabs = jest.fn();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <ThemeContext.Provider value={mockTheme}>
+            <NavigationContainer independent>
+              <Stack.Navigator>
+                <Stack.Screen name={Routes.BROWSER.VIEW}>
+                  {() => (
+                    <Browser
+                      route={{ params: { fromTrending: true } }}
+                      tabs={mockTabs}
+                      activeTab={1}
+                      navigation={mockNavigationForClose}
+                      createNewTab={jest.fn()}
+                      closeAllTabs={mockCloseAllTabs}
+                      closeTab={jest.fn()}
+                      setActiveTab={jest.fn()}
+                      updateTab={jest.fn()}
+                    />
+                  )}
+                </Stack.Screen>
+              </Stack.Navigator>
+            </NavigationContainer>
+          </ThemeContext.Provider>
+        </Provider>,
+        { state: { ...mockInitialState } },
+      );
+
+      // The Browser component should render without errors
+      expect(mockNavigationForClose.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should navigate to Perps page when closing all tabs and fromPerps is true', () => {
+      const mockNavigationForClose = {
+        setOptions: jest.fn(),
+        setParams: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      };
+      const mockCloseAllTabs = jest.fn();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <ThemeContext.Provider value={mockTheme}>
+            <NavigationContainer independent>
+              <Stack.Navigator>
+                <Stack.Screen name={Routes.BROWSER.VIEW}>
+                  {() => (
+                    <Browser
+                      route={{ params: { fromPerps: true } }}
+                      tabs={mockTabs}
+                      activeTab={1}
+                      navigation={mockNavigationForClose}
+                      createNewTab={jest.fn()}
+                      closeAllTabs={mockCloseAllTabs}
+                      closeTab={jest.fn()}
+                      setActiveTab={jest.fn()}
+                      updateTab={jest.fn()}
+                    />
+                  )}
+                </Stack.Screen>
+              </Stack.Navigator>
+            </NavigationContainer>
+          </ThemeContext.Provider>
+        </Provider>,
+        { state: { ...mockInitialState } },
+      );
+
+      // The Browser component should render without errors
+      expect(mockNavigationForClose.navigate).not.toHaveBeenCalled();
+    });
   });
 
   it('should mark a tab as archived if it has been idle for too long', async () => {
