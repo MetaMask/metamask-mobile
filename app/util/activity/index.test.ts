@@ -11,7 +11,7 @@ import {
   PAY_TYPES,
   isTransactionOnChains,
 } from '.';
-import { Token } from '../../components/UI/Swaps/utils/token-list-utils';
+import { Token } from '@metamask/assets-controllers';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
 import { DeepPartial } from '../test/renderWithProvider';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
