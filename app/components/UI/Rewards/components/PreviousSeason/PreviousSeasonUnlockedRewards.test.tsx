@@ -853,7 +853,7 @@ describe('PreviousSeasonUnlockedRewards', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('passes isLocked=false and arriving_soon description for NANSEN reward without URL', () => {
+  it('passes isLocked=true and undefined description for NANSEN reward without URL', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectUnlockedRewards)
         return [mockNansenUnlockedRewardWithoutUrl];
@@ -867,10 +867,10 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
 
     const rewardItem = getByTestId('reward-item-reward-nansen-without-url');
-    // NANSEN requires manual claim, so isLocked is false
-    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
+    // NANSEN without URL is locked since there's no URL to claim and it's not a redeemable reward
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:true');
     expect(rewardItem.props.accessibilityLabel).toContain(
-      'endOfSeasonClaimedDescription:Arriving soon',
+      'endOfSeasonClaimedDescription:undefined',
     );
   });
 
