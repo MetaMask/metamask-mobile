@@ -204,7 +204,10 @@ jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => {
     const { View, Text } = jest.requireActual('react-native');
-    return (props: { children: React.ReactNode; onBack?: () => void }) => (
+    const MockBottomSheetHeader = (props: {
+      children: React.ReactNode;
+      onBack?: () => void;
+    }) => (
       <View testID="bottom-sheet-header">
         {typeof props.children === 'string' ? (
           <Text>{props.children}</Text>
@@ -213,6 +216,10 @@ jest.mock(
         )}
       </View>
     );
+    return {
+      __esModule: true,
+      default: MockBottomSheetHeader,
+    };
   },
 );
 
@@ -455,6 +462,50 @@ describe('AccountSelector', () => {
 
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeDefined();
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
+    });
+
+    it('clicks Add account button and displays AddAccountActions bottomsheet (non-multichain)', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
+      // Disable the multichain accounts state 2 feature flag for this test
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+      // Ensure full-page mode is disabled (BottomSheet version)
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addAccountButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addAccountButton).toHaveTextContent(
+        'Add account or hardware wallet',
+      );
+
+      fireEvent.press(addAccountButton);
+
+      // Check for the header text which indicates the BottomSheetHeader is rendered
+      // "Create a new account" appears both in the header and in AddAccountActions content
+      expect(screen.getAllByText('Create a new account')).toHaveLength(2);
+
+      // Add Ethereum account button should be visible
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        ),
       ).toBeDefined();
 
       // Restore fake timers for other tests
