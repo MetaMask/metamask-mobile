@@ -173,6 +173,16 @@ export function usePerpsOrderValidation(
             minimumDecimals: 0,
             maximumDecimals: 0,
           }).replace('$', '');
+        } else if (
+          protocolValidation.error === PERPS_ERROR_CODES.ORDER_SIZE_MIN
+        ) {
+          // Provide minimum amount for the error message
+          errorContext.amount = minimumOrderSize.toString();
+        } else if (
+          protocolValidation.error === PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN
+        ) {
+          // Provide the coin that was not found
+          errorContext.coin = orderForm.asset;
         }
 
         // Translate error codes from provider to user-friendly messages
