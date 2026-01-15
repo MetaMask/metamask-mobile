@@ -71,11 +71,7 @@ const initialState = {
         },
       },
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          sendRedesign: {
-            enabled: false,
-          },
-        },
+        remoteFeatureFlags: {},
       },
     },
   },
@@ -149,7 +145,10 @@ describe('CollectibleContractOverview', () => {
     );
     fireEvent.press(sendButton);
 
-    expect(navigationMock.navigate).toHaveBeenCalledWith('SendFlowView');
+    expect(navigationMock.navigate).toHaveBeenCalledWith(
+      'Send',
+      expect.any(Object),
+    );
   });
 
   it('calls onAdd and pushes to navigation when add button is pressed', () => {
