@@ -178,13 +178,11 @@ const PreviousSeasonUnlockedRewards = () => {
                         (sr) => sr.id === unlockedReward.seasonRewardId,
                       ) as SeasonRewardDto;
 
-                    const requiresManualClaim =
+                    const claimIsRedeem =
                       seasonReward?.rewardType ===
                         SeasonRewardType.METAL_CARD ||
                       seasonReward?.rewardType ===
-                        SeasonRewardType.LINEA_TOKENS ||
-                      seasonReward?.rewardType === SeasonRewardType.OTHERSIDE ||
-                      seasonReward?.rewardType === SeasonRewardType.NANSEN;
+                        SeasonRewardType.LINEA_TOKENS;
 
                     const rewardUrl = (
                       unlockedReward.claim?.data as
@@ -200,19 +198,16 @@ const PreviousSeasonUnlockedRewards = () => {
                         isLast={unlockedReward === endOfSeasonRewards.at(-1)}
                         isEndOfSeasonReward
                         endOfSeasonClaimedDescription={
-                          requiresManualClaim
+                          claimIsRedeem
                             ? strings(
                                 'rewards.end_of_season_rewards.arriving_soon',
                               )
                             : undefined
                         }
                         compact
-                        isLocked={!rewardUrl && !requiresManualClaim}
-                        onPress={
-                          requiresManualClaim
-                            ? handleEndOfSeasonClaim
-                            : undefined
-                        }
+                        // Can't do anything if we don't have reward url allocated yet
+                        isLocked={!rewardUrl && !claimIsRedeem}
+                        onPress={handleEndOfSeasonClaim}
                       />
                     );
                   })}
