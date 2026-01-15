@@ -22,14 +22,14 @@ describe('useMusdBalance', () => {
   });
 
   describe('hook structure', () => {
-    it('returns object with hasMusdBalanceOnAnyChain and balancesByChain properties', () => {
+    it('returns object with hasMusdBalanceOnAnyChainOnAnyChain and balancesByChain properties', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current).toHaveProperty('hasMusdBalanceOnAnyChain');
       expect(result.current).toHaveProperty('balancesByChain');
     });
 
-    it('returns hasMusdBalanceOnAnyChain as boolean', () => {
+    it('returns hasMusdBalanceOnAnyChainOnAnyChain as boolean', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(typeof result.current.hasMusdBalanceOnAnyChain).toBe('boolean');

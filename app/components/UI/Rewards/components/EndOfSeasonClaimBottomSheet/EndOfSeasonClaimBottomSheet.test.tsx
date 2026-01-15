@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import EndOfSeasonClaimBottomSheet from './EndOfSeasonClaimBottomSheet';
 import { SeasonRewardType } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
-import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock selectors
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -40,6 +40,17 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
+
+// Mock Linking
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Linking: {
+      openURL: jest.fn(),
+    },
+  };
+});
 
 // Mock useMetrics
 const mockTrackEvent = jest.fn();
@@ -112,7 +123,7 @@ jest.mock('../../../../../util/theme', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'rewards.end_of_season_rewards.reward_details': 'Reward Details',
+      'rewards.end_of_season_rewards.redeem_your_reward': 'Redeem Your Reward',
       'rewards.end_of_season_rewards.confirm_label_default': 'Redeem',
       'rewards.end_of_season_rewards.confirm_label_access': 'Access',
       'rewards.end_of_season_rewards.redeem_success_title': 'Success!',
@@ -127,7 +138,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.metal_card_claim.telegram_label': 'Telegram (optional)',
       'rewards.metal_card_claim.telegram_placeholder': '@username',
       'rewards.linea_tokens.default_title': 'Claim your LINEA tokens',
+      'rewards.linea_tokens.loading_subtitle': 'Loading...',
       'rewards.linea_tokens.title_earned': `You earned ${params?.amount || ''} $LINEA`,
+      'rewards.linea_tokens.error_fetching_title': 'Error loading',
+      'rewards.linea_tokens.error_fetching_description': 'Please try again',
     };
     return translations[key] || key;
   }),
@@ -461,7 +475,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       );
 
       expect(getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL)).toBeOnTheScreen();
-      expect(getByText('Reward Details')).toBeOnTheScreen();
+      expect(getByText('Redeem Your Reward')).toBeOnTheScreen();
     });
 
     it('renders title for non-LINEA_TOKENS reward', () => {
@@ -723,7 +737,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
   });
 
   describe('claim actions', () => {
-    it('navigates to browser for NANSEN reward type', async () => {
+    it('opens URL for NANSEN reward type', async () => {
       const testUrl = 'https://nansen.ai/claim/test';
 
       const { getByTestId } = render(
@@ -743,16 +757,10 @@ describe('EndOfSeasonClaimBottomSheet', () => {
         fireEvent.press(confirmButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: testUrl,
-          timestamp: expect.any(Number),
-        },
-      });
+      expect(Linking.openURL).toHaveBeenCalledWith(testUrl);
     });
 
-    it('navigates to browser for OTHERSIDE reward type', async () => {
+    it('opens URL for OTHERSIDE reward type', async () => {
       const testUrl = 'https://otherside.xyz/claim/test';
 
       const { getByTestId } = render(
@@ -772,16 +780,10 @@ describe('EndOfSeasonClaimBottomSheet', () => {
         fireEvent.press(confirmButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: testUrl,
-          timestamp: expect.any(Number),
-        },
-      });
+      expect(Linking.openURL).toHaveBeenCalledWith(testUrl);
     });
 
-    it('does not navigate when URL is not provided for NANSEN', async () => {
+    it('does not open URL when URL is not provided for NANSEN', async () => {
       const { getByTestId } = render(
         <EndOfSeasonClaimBottomSheet
           route={createRoute({
@@ -799,7 +801,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
         fireEvent.press(confirmButton);
       });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
     });
 
     it('calls claimReward for METAL_CARD with valid email', async () => {

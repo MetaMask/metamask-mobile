@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { selectContractBalancesPerChainId } from '../../../../selectors/tokenBalancesController';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
@@ -41,10 +41,8 @@ export const useMusdBalance = () => {
     };
   }, [balancesPerChainId]);
 
-  const hasMusdBalanceOnChain = useCallback(
-    (chainId: Hex) => Boolean(balancesByChain[chainId]),
-    [balancesByChain],
-  );
+  const hasMusdBalanceOnChain = (chainId: Hex) =>
+    Boolean(balancesByChain[chainId]);
 
   return {
     hasMusdBalanceOnAnyChain,
