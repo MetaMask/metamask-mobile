@@ -106,11 +106,6 @@ jest.mock('expo-sensors', () => ({
   },
 }));
 
-const mockMetrics = {
-  configure: jest.fn(),
-  addTraitsToUser: jest.fn(),
-};
-
 // Mock Logger
 jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),

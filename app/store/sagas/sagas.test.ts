@@ -40,12 +40,10 @@ const mockReset = jest.fn();
 
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate: (screen: any, params?: any) => {
+    navigate: (screen: string, params?: unknown) => {
       params ? mockNavigate(screen, params) : mockNavigate(screen);
     },
-    reset: (state: any) => mockReset(state),
+    reset: (state: unknown) => mockReset(state),
   },
 }));
 
