@@ -172,5 +172,13 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       ],
       priority: 1000,
     },
+    {
+      urlEndpoint: /\/info.*/, // Hyperliquid /info endpoint
+      responseCode: 200,
+      response: {
+        status: 'ok',
+      },
+      priority: 1000,
+    },
   ],
 };
