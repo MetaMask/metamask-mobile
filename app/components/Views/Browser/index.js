@@ -112,6 +112,7 @@ export const Browser = (props) => {
               isArchived: false,
             });
             setCurrentUrl(url);
+            setShouldShowTabs(false);
           }
         } else {
           // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
@@ -133,6 +134,7 @@ export const Browser = (props) => {
       activeTabId,
       updateTab,
       setCurrentUrl,
+      setShouldShowTabs,
     ],
   );
   const updateTabInfo = useCallback(
