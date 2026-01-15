@@ -71,6 +71,7 @@ jobs:
         run: |
           echo "📦 Installing dependencies for current branch..."
           yarn install --immutable
+
       - name: Generate fingerprint (workflow branch)
         id: branch_fingerprint
         run: |
@@ -78,11 +79,13 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
+
       - name: Install dependencies (base branch)
         working-directory: main
         run: |
           echo "📦 Installing dependencies for base branch snapshot (${BASE_BRANCH_REF})..."
           yarn install --immutable
+
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
         working-directory: main
