@@ -90,7 +90,7 @@ const PhishingModal = ({
           onPress: () => null,
         },
         {
-          text: strings('phishing.proceed_anyway_alert_left_btn'),
+          text: strings('phishing.proceed_anyway_alert_right_btn'),
           onPress: () => {
             addToWhitelist(urlOrigin);
             setShowPhishingModal(false);
