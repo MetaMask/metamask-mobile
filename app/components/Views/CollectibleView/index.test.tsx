@@ -14,11 +14,7 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          sendRedesign: {
-            enabled: false,
-          },
-        },
+        remoteFeatureFlags: {},
       },
     },
   },
@@ -52,7 +48,7 @@ describe('CollectibleView Snapshot', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should navigate to SendFlowView when the send button is pressed', () => {
+  it('navigates to Send route when send button is pressed', () => {
     const props = {
       navigation: {
         navigate: jest.fn(),
@@ -77,6 +73,9 @@ describe('CollectibleView Snapshot', () => {
     const sendButton = wrapper.getByTestId('send-button');
     fireEvent.press(sendButton);
 
-    expect(props.navigation.navigate).toHaveBeenCalledWith('SendFlowView');
+    expect(props.navigation.navigate).toHaveBeenCalledWith(
+      'Send',
+      expect.any(Object),
+    );
   });
 });

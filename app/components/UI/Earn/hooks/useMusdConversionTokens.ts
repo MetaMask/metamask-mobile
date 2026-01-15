@@ -1,13 +1,10 @@
 import { useSelector } from 'react-redux';
 import {
-  selectMusdConversionCTATokens,
+  selectMusdConversionMinAssetBalanceRequired,
   selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
 } from '../selectors/featureFlags';
-import {
-  isTokenAllowed,
-  isTokenInWildcardList,
-} from '../utils/wildcardTokenList';
+import { isTokenAllowed } from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
@@ -18,6 +15,7 @@ import {
 } from '../constants/musd';
 import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 
 export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
@@ -28,27 +26,57 @@ export const useMusdConversionTokens = () => {
     selectMusdConversionPaymentTokensBlocklist,
   );
 
-  const musdConversionCTATokens = useSelector(selectMusdConversionCTATokens);
+  const musdConversionMinAssetBalanceRequired = useSelector(
+    selectMusdConversionMinAssetBalanceRequired,
+  );
 
   const allTokens = useAccountTokens({ includeNoBalance: false });
 
-  // Filter tokens based on allowlist and blocklist rules.
-  // If allowlist is non-empty, token must be in it.
-  // If blocklist is non-empty, token must NOT be in it.
-  const filterAllowedTokens = useCallback(
-    (tokens: AssetType[]) =>
-      tokens.filter((token) =>
-        isTokenAllowed(
-          token.symbol,
-          musdConversionPaymentTokensAllowlist,
-          musdConversionPaymentTokensBlocklist,
-          token.chainId,
-        ),
+  const filterTokensWithMinBalance = useCallback(
+    (token: AssetType) => {
+      const fiatBalance = token?.fiat?.balance;
+
+      // Can't use truthiness checks here, because `0` is valid when the threshold is '0'.
+      if (fiatBalance === undefined || fiatBalance === null) {
+        return false;
+      }
+
+      const fiatBalanceBn = new BigNumber(fiatBalance);
+      if (!fiatBalanceBn.isFinite()) {
+        return false;
+      }
+
+      return fiatBalanceBn.isGreaterThanOrEqualTo(
+        musdConversionMinAssetBalanceRequired,
+      );
+    },
+    [musdConversionMinAssetBalanceRequired],
+  );
+
+  const filterTokensWithAllowlistAndBlocklist = useCallback(
+    (token: AssetType) =>
+      isTokenAllowed(
+        token.symbol,
+        musdConversionPaymentTokensAllowlist,
+        musdConversionPaymentTokensBlocklist,
+        token.chainId,
       ),
     [
       musdConversionPaymentTokensAllowlist,
       musdConversionPaymentTokensBlocklist,
     ],
+  );
+
+  // Filter tokens based on allowlist and blocklist rules.
+  // If allowlist is non-empty, token must be in it.
+  // If blocklist is non-empty, token must NOT be in it.
+  // Token must have minimum balance to be eligible for conversion.
+  const filterAllowedTokens = useCallback(
+    (tokens: AssetType[]) =>
+      tokens
+        .filter(filterTokensWithAllowlistAndBlocklist)
+        .filter(filterTokensWithMinBalance),
+    [filterTokensWithAllowlistAndBlocklist, filterTokensWithMinBalance],
   );
 
   // Allowed tokens for conversion.
@@ -61,35 +89,6 @@ export const useMusdConversionTokens = () => {
     if (!token) return false;
 
     return conversionTokens.some(
-      (musdToken) =>
-        token.address.toLowerCase() === musdToken.address.toLowerCase() &&
-        token.chainId === musdToken.chainId,
-    );
-  };
-
-  const getConversionTokensWithCtas = useCallback(
-    (tokens: AssetType[]) =>
-      tokens.filter((token) =>
-        isTokenInWildcardList(
-          token.symbol,
-          musdConversionCTATokens,
-          token.chainId,
-        ),
-      ),
-    [musdConversionCTATokens],
-  );
-
-  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
-  const tokensWithCTAs = useMemo(
-    () => getConversionTokensWithCtas(conversionTokens),
-    [conversionTokens, getConversionTokensWithCtas],
-  );
-
-  // TODO: Temp - We'll move this into the useMusdCtaVisibility hook in a separate iteration.
-  const isTokenWithCta = (token?: AssetType | TokenI) => {
-    if (!token) return false;
-
-    return tokensWithCTAs.some(
       (musdToken) =>
         token.address.toLowerCase() === musdToken.address.toLowerCase() &&
         token.chainId === musdToken.chainId,
@@ -114,10 +113,8 @@ export const useMusdConversionTokens = () => {
   return {
     filterAllowedTokens,
     isConversionToken,
-    isTokenWithCta,
     isMusdSupportedOnChain,
     getMusdOutputChainId,
     tokens: conversionTokens,
-    tokensWithCTAs,
   };
 };

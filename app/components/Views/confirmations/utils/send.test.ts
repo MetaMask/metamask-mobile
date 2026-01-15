@@ -43,22 +43,10 @@ jest.mock('../../../../lib/ppom/ppom-util', () => ({
 }));
 
 describe('handleSendPageNavigation', () => {
-  it('navigates to legacy send page', () => {
-    const mockNavigate = jest.fn();
-    handleSendPageNavigation(mockNavigate, {
-      location: InitSendLocation.WalletActions,
-      isSendRedesignEnabled: false,
-      asset: {
-        name: 'ETHEREUM',
-      } as AssetType,
-    });
-    expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
-  });
   it('navigates to send redesign page', () => {
     const mockNavigate = jest.fn();
     handleSendPageNavigation(mockNavigate, {
       location: InitSendLocation.WalletActions,
-      isSendRedesignEnabled: true,
       asset: {
         name: 'ETHEREUM',
       } as AssetType,
@@ -76,7 +64,6 @@ describe('handleSendPageNavigation', () => {
 
       handleSendPageNavigation(mockNavigate, {
         location: InitSendLocation.QRScanner,
-        isSendRedesignEnabled: true,
         asset: undefined,
         predefinedRecipient,
       });
@@ -101,7 +88,6 @@ describe('handleSendPageNavigation', () => {
 
       handleSendPageNavigation(mockNavigate, {
         location: InitSendLocation.QRScanner,
-        isSendRedesignEnabled: true,
         asset,
         predefinedRecipient,
       });
@@ -129,7 +115,6 @@ describe('handleSendPageNavigation', () => {
 
       handleSendPageNavigation(mockNavigate, {
         location: InitSendLocation.QRScanner,
-        isSendRedesignEnabled: true,
         asset: nft,
         predefinedRecipient,
       });
@@ -140,50 +125,6 @@ describe('handleSendPageNavigation', () => {
           asset: nft,
           location: InitSendLocation.QRScanner,
           predefinedRecipient,
-        },
-      });
-    });
-
-    it('navigates to SendFlowView when send redesign is disabled', () => {
-      const mockNavigate = jest.fn();
-      const predefinedRecipient = {
-        address: '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576',
-        chainType: ChainType.EVM,
-      };
-
-      handleSendPageNavigation(mockNavigate, {
-        location: InitSendLocation.QRScanner,
-        isSendRedesignEnabled: false,
-        asset: undefined,
-        predefinedRecipient,
-      });
-
-      // Legacy flow doesn't use params, just navigates to SendFlowView
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
-    });
-
-    it('handles empty address in predefinedRecipient', () => {
-      const mockNavigate = jest.fn();
-
-      handleSendPageNavigation(mockNavigate, {
-        location: InitSendLocation.QRScanner,
-        isSendRedesignEnabled: true,
-        asset: undefined,
-        predefinedRecipient: {
-          address: '',
-          chainType: ChainType.EVM,
-        },
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('Send', {
-        screen: 'Asset',
-        params: {
-          asset: undefined,
-          location: InitSendLocation.QRScanner,
-          predefinedRecipient: {
-            address: '',
-            chainType: ChainType.EVM,
-          },
         },
       });
     });
