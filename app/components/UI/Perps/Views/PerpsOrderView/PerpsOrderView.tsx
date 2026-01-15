@@ -46,7 +46,7 @@ import Text, {
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { DefaultSwapDestTokens } from '../../../Bridge/constants/default-swap-dest-tokens';
 import { type BridgeToken } from '../../../Bridge/types';
 import {
@@ -54,9 +54,22 @@ import {
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { calcTokenValue } from '../../../../../util/transactions';
+import {
+  calcTokenValue,
+  generateTransferData,
+} from '../../../../../util/transactions';
 import { useSelector, useDispatch } from 'react-redux';
+import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import { toHex, BNToHex } from '@metamask/controller-utils';
+import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_DECIMALS,
+} from '../../constants/hyperLiquidConfig';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import {
   selectBridgeQuotes,
@@ -687,6 +700,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   ]);
 
   const { updatePositionTPSL } = usePerpsTrading();
+  const contractBalancesPerChainId = useSelector(
+    selectContractBalancesPerChainId,
+  );
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -1416,9 +1432,165 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 size={ButtonSize.Md}
                 width={ButtonWidthTypes.Full}
                 label="DEPOSIT"
-                onPress={() => {
-                  // TODO: Implement deposit functionality
-                  Alert.alert('Deposit', 'Deposit functionality coming soon');
+                onPress={async () => {
+                  try {
+                    // Get USDC balance on Arbitrum
+                    const arbitrumBalances =
+                      contractBalancesPerChainId[
+                        ARBITRUM_MAINNET_CHAIN_ID_HEX
+                      ] || {};
+                    const usdcBalance =
+                      arbitrumBalances[USDC_ARBITRUM_MAINNET_ADDRESS] || '0x0';
+
+                    // Convert from minimal units to readable format
+                    const balanceString = renderFromTokenMinimalUnit(
+                      usdcBalance,
+                      USDC_DECIMALS,
+                    );
+
+                    // Check if there's any balance to deposit
+                    if (balanceString === '0' || balanceString === '0.0') {
+                      Alert.alert(
+                        'No Balance',
+                        'You have no USDC on Arbitrum to deposit.',
+                        [{ text: 'OK' }],
+                      );
+                      return;
+                    }
+
+                    // Show confirmation alert with deposit amount
+                    Alert.alert(
+                      'Confirm Deposit',
+                      `Deposit ${balanceString} USDC to Perps?`,
+                      [
+                        {
+                          text: 'Cancel',
+                          style: 'cancel',
+                        },
+                        {
+                          text: 'Deposit',
+                          onPress: async () => {
+                            try {
+                              // Deposit all USDC to Perps directly without confirmation screen
+                              const {
+                                TransactionController,
+                                NetworkController,
+                                ApprovalController,
+                              } = Engine.context;
+                              const provider =
+                                Engine.context.PerpsController.getActiveProvider();
+
+                              // Get deposit routes from provider
+                              const depositRoutes = provider.getDepositRoutes({
+                                isTestnet: false,
+                              });
+                              const route = depositRoutes[0];
+                              const bridgeContractAddress =
+                                route.contractAddress;
+
+                              // Convert balance to minimal units (USDC has 6 decimals)
+                              const amountRaw = calcTokenValue(
+                                balanceString,
+                                USDC_DECIMALS,
+                              ).decimalPlaces(0, BigNumber.ROUND_UP);
+
+                              // Generate transfer data with the full balance
+                              // Use BNToHex to properly convert BigNumber to hex string
+                              const transferData = generateTransferData(
+                                'transfer',
+                                {
+                                  toAddress: bridgeContractAddress,
+                                  amount: BNToHex(amountRaw),
+                                },
+                              );
+
+                              // Get EVM account
+                              const evmAccount =
+                                getEvmAccountFromSelectedAccountGroup();
+                              if (!evmAccount) {
+                                throw new Error('No EVM account found');
+                              }
+
+                              // Parse CAIP asset ID to get chain ID and token address
+                              const parsedAsset = parseCaipAssetId(
+                                route.assetId,
+                              );
+                              const assetChainId = toHex(
+                                parsedAsset.chainId.split(':')[1],
+                              ) as Hex;
+                              const tokenAddress =
+                                parsedAsset.assetReference as Hex;
+
+                              // Find network client ID
+                              const networkClientId =
+                                NetworkController.findNetworkClientIdByChainId(
+                                  assetChainId,
+                                );
+
+                              // Build transaction with gas limit (same as DepositService)
+                              // Use skipInitialGasEstimate: true to avoid gas estimation issues
+                              const DEPOSIT_GAS_LIMIT = '0x186a0'; // 100000 in hex
+                              const transaction = {
+                                from: evmAccount.address as Hex,
+                                to: tokenAddress,
+                                value: '0x0',
+                                data: transferData,
+                                gas: DEPOSIT_GAS_LIMIT,
+                              };
+
+                              // Add transaction (this creates an approval request)
+                              // Use skipInitialGasEstimate: true to avoid incorrect gas estimates
+                              // Don't set gasFeeToken - use native ETH for gas to avoid "gas fee token not found" errors
+                              const { result, transactionMeta } =
+                                await TransactionController.addTransaction(
+                                  transaction,
+                                  {
+                                    networkClientId,
+                                    origin: 'metamask',
+                                    type: TransactionType.perpsDeposit,
+                                    skipInitialGasEstimate: true, // Skip gas estimation to avoid incorrect estimates
+                                    // gasFeeToken: undefined - use native ETH for gas
+                                  },
+                                );
+
+                              // Immediately approve the transaction to bypass confirmation screen
+                              await ApprovalController.accept(
+                                transactionMeta.id,
+                                undefined,
+                                {
+                                  waitForResult: false,
+                                },
+                              );
+
+                              // Wait for transaction to be submitted
+                              const txHash = await result;
+
+                              // Show success alert
+                              Alert.alert(
+                                'Deposit Submitted',
+                                `Transaction ID: ${txHash}`,
+                                [{ text: 'OK' }],
+                              );
+                            } catch (error) {
+                              Alert.alert(
+                                'Deposit Failed',
+                                error instanceof Error
+                                  ? error.message
+                                  : String(error),
+                                [{ text: 'OK' }],
+                              );
+                            }
+                          },
+                        },
+                      ],
+                    );
+                  } catch (error) {
+                    Alert.alert(
+                      'Deposit Failed',
+                      error instanceof Error ? error.message : String(error),
+                      [{ text: 'OK' }],
+                    );
+                  }
                 }}
                 disabled={!selectedToken}
                 testID="perps-order-deposit-button"
