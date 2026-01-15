@@ -285,11 +285,11 @@ export function* startAppServices() {
   AppStateEventProcessor.start();
 
   // Configure MetaMetrics
-  MetaMetrics.getInstance()
-    .configure()
-    .catch((err) => {
-      Logger.error(err, 'Error configuring MetaMetrics');
-    });
+  try {
+    yield call(MetaMetrics.getInstance().configure);
+  } catch (err) {
+    Logger.error(err as Error, 'Error configuring MetaMetrics');
+  }
 
   // Apply vault initialization
   yield call(applyVaultInitialization);
