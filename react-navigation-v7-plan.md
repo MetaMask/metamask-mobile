@@ -1,8 +1,8 @@
 # React Navigation v7 Migration Plan
 
-## Migration Status: IN PROGRESS (Runtime Fixes Complete)
+## Migration Status: IN PROGRESS (TypeScript Fixes ~80% Complete)
 
-**Last Updated:** January 13, 2026
+**Last Updated:** January 15, 2026
 
 ### Completed ✅
 
@@ -173,12 +173,36 @@ Bottom sheet modal stacks within features now use transparent modals:
   - Added `@deprecated` JSDoc tag with migration guidance
   - Direct `navigation.navigate(Routes.XXX, params)` provides full type safety with `RootParamList`
 
+**TypeScript Fixes (Completed):**
+
+- [x] Created `StakeStackParamList` with proper route-to-params mapping
+- [x] Updated Stake component types (`StakeConfirmationView`, `UnstakeConfirmationView`, `GasImpactModal`)
+- [x] Created `DepositParamList` with proper route definitions
+- [x] Fixed Send flow screen navigation typing (`useSendScreenNavigation.ts`)
+- [x] Fixed Perps navigation parameter types (`usePerpsNavigation.ts`, `PerpsTabView.tsx`)
+- [x] Fixed `NavigationProp<ParamListBase>` casts for utility functions:
+  - `EarnInputView.tsx`, `EarnWithdrawInputView.tsx` (handleTronStakingNavigationResult)
+  - `ActivityEventRow.tsx`, `ActivityDetailsSheet.test.tsx` (openActivityDetailsSheet)
+  - `OptIn/index.tsx` (useHandleOptInCancel, useHandleOptInClick)
+  - `ExploreSearchResults.tsx`, `QuickActions.tsx`, `SectionHeader.tsx`, `SectionCard.tsx`, `SectionCarrousel.tsx`
+- [x] Fixed `NavigationService.navigation` mock patterns in test files:
+  - `handleCardHome.test.ts`, `handleCardOnboarding.test.ts`, `handleFastOnboarding.test.ts`
+  - `handleHomeUrl.test.ts`, `handlePerpsUrl.test.ts`, `handlePredictUrl.test.ts`, `handleRewardsUrl.test.ts`
+- [x] Fixed `FeatureFlagOverride.test.tsx` mockNavigation typing
+- [x] Fixed `WhatsNewModal.tsx` callButton navigation prop typing
+- [x] Fixed `BaseControlBar.tsx` navigation helper calls
+- [x] Removed deprecated `independent` prop from `NavigationContainer` in tests
+- [x] Updated `WalletConnectV2.ts` to use `typeof NavigationService.navigation` type
+- [x] Updated `SDKConnect/InitializationManagement/init.ts` and `asyncInit.ts` to use `typeof NavigationService.navigation`
+
 ### In Progress 🔄
 
-- [ ] Fix remaining TypeScript errors (~143 errors)
-  - `ScreenComponentType` mismatches in feature routes
-  - Navigation prop type mismatches
-  - Stack navigator param list typing
+- [ ] Fix remaining TypeScript errors (~25 errors)
+  - Spread argument issues in Carousel, useMusdConversion, useOptout, useConfirmNavigation
+  - `ScreenComponentType` mismatches in Bridge routes
+  - handleDeepLinkModalDisplay params type
+  - handleCustomRpcCalls params type
+  - NavigationProvider Theme comparison issue
 
 ### Pending Testing 🧪
 
@@ -279,6 +303,8 @@ This approach is faster and results in cleaner code that follows v7 best practic
 11. **NavigationService Enhancements**
     - Added `popToTop()` helper method for convenience
     - Service now properly typed with `ParamListBase`
+    - `NavigationService.navigation` getter now returns `WrappedNavigation` type (internal class)
+    - Functions accepting navigation refs should use `typeof NavigationService.navigation` instead of `NavigationContainerRef<RootParamList>`
 
 12. **Navigation Theme**
     - Added complete theme object with font definitions to `NavigationContainer`
@@ -286,10 +312,11 @@ This approach is faster and results in cleaner code that follows v7 best practic
 
 ### 🔄 Remaining Work
 
-1. **TypeScript Errors** - Several type errors need resolution:
-   - `createNavigationDetails` return types
-   - Screen component type mismatches with `ScreenComponentType`
-   - Navigation prop type mismatches in some components
+1. **TypeScript Errors** (~25 remaining):
+   - **Spread argument issues** - Carousel, useMusdConversion, useOptout, useConfirmNavigation, ActivityView.test
+   - **Screen component type** - Bridge routes `BlockExplorersModal`
+   - **Navigation params** - handleDeepLinkModalDisplay, handleCustomRpcCalls, useDepositRouting, BuildQuote
+   - **NavigationProvider** - Theme comparison type mismatch (unrelated to navigation)
 
 2. **Testing** - Comprehensive testing needed:
    - Full E2E test suite run

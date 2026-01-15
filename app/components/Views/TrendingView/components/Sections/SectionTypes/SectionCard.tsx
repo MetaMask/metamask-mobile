@@ -5,7 +5,11 @@ import { useAppThemeFromContext } from '../../../../../../util/theme';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import { SectionId, SECTIONS_CONFIG } from '../../../sections.config';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -36,7 +40,12 @@ const SectionCard: React.FC<SectionCardProps> = ({
   const section = SECTIONS_CONFIG[sectionId];
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
-    ({ item }) => <section.RowItem item={item} navigation={navigation} />,
+    ({ item }) => (
+      <section.RowItem
+        item={item}
+        navigation={navigation as NavigationProp<ParamListBase>}
+      />
+    ),
     [navigation, section],
   );
 

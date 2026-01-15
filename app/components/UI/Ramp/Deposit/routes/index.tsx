@@ -3,8 +3,8 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { ParamListBase , RouteProp } from '@react-navigation/native';
+import { BuyQuote , DepositRegion } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
 import { DepositNavigationParams } from '../types';
 
@@ -34,14 +34,27 @@ import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsMod
 
 import Routes from '../../../../../constants/navigation/Routes';
 
-interface DepositParamList {
-  [key: string]:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | DepositNavigationParams
+interface DepositParamList extends ParamListBase {
+  [Routes.DEPOSIT.ROOT]: DepositNavigationParams | undefined;
+  [Routes.DEPOSIT.BUILD_QUOTE]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ENTER_EMAIL]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.OTP_CODE]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.VERIFY_IDENTITY]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.BASIC_INFO]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ENTER_ADDRESS]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.KYC_PROCESSING]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ORDER_PROCESSING]:
+    | { animationEnabled?: boolean; quote?: BuyQuote }
     | undefined;
+  [Routes.DEPOSIT.BANK_DETAILS]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ADDITIONAL_VERIFICATION]:
+    | { animationEnabled?: boolean }
+    | undefined;
+  [Routes.DEPOSIT.MODALS.ID]: undefined;
+  [Routes.DEPOSIT.MODALS.REGION_SELECTOR]:
+    | { regions: DepositRegion[] }
+    | undefined;
+  [Routes.DEPOSIT.MODALS.CONFIGURATION]: undefined;
 }
 
 const clearStackNavigatorOptions = {
@@ -70,7 +83,7 @@ const getAnimationOptions = ({
 };
 
 interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
+  route: RouteProp<DepositParamList, typeof Routes.DEPOSIT.ROOT>;
 }
 
 const MainRoutes = ({ route }: MainRoutesProps) => {

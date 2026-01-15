@@ -133,7 +133,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToTutorial = useCallback(
     (params?: PerpsNavigationParamList['PerpsTutorial']) => {
-      navigation.navigate(Routes.PERPS.TUTORIAL, params);
+      navigation.navigate(Routes.PERPS.TUTORIAL, params ?? {});
     },
     [navigation],
   );

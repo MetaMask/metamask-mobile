@@ -1,17 +1,16 @@
-import { NavigationContainerRef } from '@react-navigation/native';
-import type { RootParamList } from '../../../types/navigation';
 import { Platform } from 'react-native';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import asyncInit from './asyncInit';
 import DeeplinkProtocolService from '../SDKDeeplinkProtocol/DeeplinkProtocolService';
+import NavigationService from '../../NavigationService';
 
 async function init({
   navigation,
   context,
   instance,
 }: {
-  navigation: NavigationContainerRef<RootParamList>;
+  navigation: typeof NavigationService.navigation;
   context?: string;
   instance: SDKConnect;
 }) {

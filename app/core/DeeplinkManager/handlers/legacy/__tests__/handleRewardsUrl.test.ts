@@ -35,9 +35,9 @@ describe('handleRewardsUrl', () => {
 
     // Setup navigation mocks
     mockNavigate = jest.fn();
-    NavigationService.navigation = {
+    jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       navigate: mockNavigate,
-    } as unknown as typeof NavigationService.navigation;
+    } as unknown as typeof NavigationService.navigation);
 
     // Setup store mock
     mockDispatch = ReduxService.store.dispatch as jest.Mock;

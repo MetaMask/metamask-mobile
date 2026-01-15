@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../../../types/navigation';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 import { useSelector } from 'react-redux';
@@ -37,34 +38,42 @@ const Root = () => {
 
       if (createdOrder) {
         if (!isAuthenticatedFromToken) {
-          const [routeName, params] = createEnterEmailNavDetails({
+          const [routeName, navParams] = createEnterEmailNavDetails({
             redirectToRootAfterAuth: true,
           });
           navigation.reset({
             index: 0,
             routes: [
               {
-                name: routeName,
-                params: { ...params, animationEnabled: false },
+                name: routeName as keyof RootParamList,
+                params: { ...navParams, animationEnabled: false },
               },
             ],
           });
           return;
         }
 
-        const [routeName, params] = createBankDetailsNavDetails({
+        const [routeName2, navParams2] = createBankDetailsNavDetails({
           orderId: createdOrder.id,
         });
         navigation.reset({
           index: 0,
           routes: [
-            { name: routeName, params: { ...params, animationEnabled: false } },
+            {
+              name: routeName2 as keyof RootParamList,
+              params: { ...navParams2, animationEnabled: false },
+            },
           ],
         });
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+          routes: [
+            {
+              name: initialRoute as keyof RootParamList,
+              params: { animationEnabled: false },
+            },
+          ],
         });
       }
     };

@@ -7,7 +7,7 @@ export const useSendScreenNavigation = () => {
   const navigation = useNavigation();
 
   const gotToSendScreen = useCallback(
-    (screen = Routes.SEND.AMOUNT) => {
+    (screen: string = Routes.SEND.AMOUNT) => {
       navigation.navigate(Routes.SEND.DEFAULT, {
         screen,
       });

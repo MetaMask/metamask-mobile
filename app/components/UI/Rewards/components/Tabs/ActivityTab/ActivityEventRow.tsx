@@ -10,7 +10,11 @@ import {
   BoxJustifyContent,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import {
   CardEventPayload,
@@ -100,7 +104,7 @@ export const ActivityEventRow: React.FC<{
   if (!event || !eventDetails) return <></>;
 
   const handlePress = () => {
-    openActivityDetailsSheet(navigation, {
+    openActivityDetailsSheet(navigation as NavigationProp<ParamListBase>, {
       event,
       accountName,
       activityTypes,

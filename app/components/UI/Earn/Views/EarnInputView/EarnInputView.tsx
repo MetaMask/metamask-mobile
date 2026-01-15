@@ -6,6 +6,8 @@ import {
   useFocusEffect,
   useNavigation,
   useRoute,
+  NavigationProp,
+  ParamListBase,
 } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
@@ -627,7 +629,7 @@ const EarnInputView = () => {
     if (isTronEnabled) {
       const result = await tronConfirmStake?.(amountToken);
       handleTronStakingNavigationResult(
-        navigation,
+        navigation as NavigationProp<ParamListBase>,
         result,
         'stake',
         tronAccountId,

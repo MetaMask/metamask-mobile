@@ -270,7 +270,7 @@ describe('useFeatureFlagOverride Hook', () => {
 });
 
 describe('FeatureFlagOverride', () => {
-  let mockNavigation: ReturnType<typeof useNavigation>;
+  let mockNavigation: { setOptions: jest.Mock };
 
   // Helper to render with providers
   const renderWithProviders = (

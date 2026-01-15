@@ -168,9 +168,7 @@ const BuildQuote = () => {
           showClose: true,
           showConfiguration: true,
           onConfigurationPress: () => {
-            navigation.navigate(
-              ...createConfigurationModalNavigationDetails({}),
-            );
+            navigation.navigate(...createConfigurationModalNavigationDetails());
           },
         },
         theme,

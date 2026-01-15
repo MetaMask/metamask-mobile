@@ -2,8 +2,7 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
-import type { RootParamList } from '../../types/navigation';
+import NavigationService from '../NavigationService';
 import { IWalletKit, WalletKit, WalletKitTypes } from '@reown/walletkit';
 import { Core } from '@walletconnect/core';
 import { SessionTypes } from '@walletconnect/types';
@@ -40,7 +39,6 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
-import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -56,7 +54,7 @@ export const ERROR_MESSAGES = {
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
-  private navigation?: NavigationContainerRef<RootParamList>;
+  private navigation?: typeof NavigationService.navigation;
   private web3Wallet: IWalletKit;
   private sessions: { [topic: string]: WalletConnect2Session };
   private deeplinkSessions: {
@@ -68,7 +66,7 @@ export class WC2Manager {
     deeplinkSessions: {
       [topic: string]: { redirectUrl?: string; origin: string };
     },
-    navigation: NavigationContainerRef<RootParamList>,
+    navigation: typeof NavigationService.navigation,
     sessions: { [topic: string]: WalletConnect2Session } = {},
   ) {
     this.web3Wallet = web3Wallet;

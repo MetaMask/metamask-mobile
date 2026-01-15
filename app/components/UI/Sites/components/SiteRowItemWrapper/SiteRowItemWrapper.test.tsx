@@ -50,7 +50,10 @@ describe('SiteRowItemWrapper', () => {
       addListener: jest.fn(),
       removeListener: jest.fn(),
       dangerouslyGetState: jest.fn(),
-    } as jest.Mocked<NavigationProp<ParamListBase>>;
+      getId: jest.fn(),
+      navigateDeprecated: jest.fn(),
+      preload: jest.fn(),
+    } as unknown as jest.Mocked<NavigationProp<ParamListBase>>;
 
     mockSiteData = {
       id: '1',
