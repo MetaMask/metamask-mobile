@@ -17,6 +17,7 @@ import {
   selectMusdConversionCTATokens,
 } from '../selectors/featureFlags';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
+import { selectMusdConversionAssetDetailCtasSeen } from '../../../../reducers/user/selectors';
 import type { WildcardTokenList } from '../utils/wildcardTokenList';
 import type { TokenI } from '../../Tokens/types';
 import type { AssetType } from '../../../Views/confirmations/types/token';
@@ -120,6 +121,7 @@ describe('useMusdCtaVisibility', () => {
     totalBalanceInUserCurrency: 100,
     userCurrency: 'USD',
   };
+  let mockMusdConversionAssetDetailCtasSeen: Record<string, boolean> = {};
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -134,6 +136,7 @@ describe('useMusdCtaVisibility', () => {
       totalBalanceInUserCurrency: 100,
       userCurrency: 'USD',
     };
+    mockMusdConversionAssetDetailCtasSeen = {};
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsMusdGetBuyCtaEnabledFlag) {
         return mockIsMusdCtaEnabled;
@@ -149,6 +152,9 @@ describe('useMusdCtaVisibility', () => {
       }
       if (selector === selectAccountGroupBalanceForEmptyState) {
         return mockAccountBalance;
+      }
+      if (selector === selectMusdConversionAssetDetailCtasSeen) {
+        return mockMusdConversionAssetDetailCtasSeen;
       }
       return undefined;
     });
@@ -809,6 +815,12 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta true when user is not geo-blocked', () => {
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
         mockUseMusdConversionEligibility.mockReturnValue({
           isEligible: true,
           geolocation: 'US',
@@ -1122,6 +1134,28 @@ describe('useMusdCtaVisibility', () => {
       expect(isVisible).toBe(false);
     });
 
+    it('returns true even when asset detail CTA was dismissed (dismissal only affects asset overview)', () => {
+      mockMusdConversionAssetDetailCtasSeen = {
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      };
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
+      });
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(listItemToken);
+
+      expect(isVisible).toBe(true);
+    });
+
     describe('geo blocking', () => {
       it('returns false when user is geo-blocked', () => {
         mockUseMusdConversionEligibility.mockReturnValue({
@@ -1203,87 +1237,36 @@ describe('useMusdCtaVisibility', () => {
         expect(isVisible).toBe(true);
       });
     });
-  });
 
-  describe('shouldShowAssetOverviewCta', () => {
-    const conversionToken: AssetType = createMockToken({
-      chainId: CHAIN_IDS.MAINNET,
-      name: 'USD Coin',
-      symbol: 'USDC',
-      decimals: 6,
-      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      balance: '0',
-      balanceFiat: '0',
-    });
-
-    const assetOverviewToken: TokenI = {
-      ...conversionToken,
-      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    };
-
-    beforeEach(() => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [conversionToken],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        getMusdOutputChainId: jest.fn(),
+    describe('shouldShowAssetOverviewCta', () => {
+      const conversionToken: AssetType = createMockToken({
+        chainId: CHAIN_IDS.MAINNET,
+        name: 'USD Coin',
+        symbol: 'USDC',
+        decimals: 6,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        balance: '0',
+        balanceFiat: '0',
       });
-      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
-    });
 
-    it('returns false when asset overview CTA flag is disabled', () => {
-      mockIsMusdConversionAssetOverviewEnabled = false;
+      const assetOverviewToken: TokenI = {
+        ...conversionToken,
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      };
 
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      const isVisible =
-        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
-
-      expect(isVisible).toBe(false);
-    });
-
-    it('returns false when asset is undefined', () => {
-      mockIsMusdConversionAssetOverviewEnabled = true;
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      const isVisible = result.current.shouldShowAssetOverviewCta(undefined);
-
-      expect(isVisible).toBe(false);
-    });
-
-    it('returns true when flag is enabled and token is configured for CTA', () => {
-      mockIsMusdConversionAssetOverviewEnabled = true;
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      const isVisible =
-        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
-
-      expect(isVisible).toBe(true);
-    });
-
-    it('returns false when token is not configured for CTA', () => {
-      mockIsMusdConversionAssetOverviewEnabled = true;
-      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['DAI'] };
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      const isVisible =
-        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
-
-      expect(isVisible).toBe(false);
-    });
-
-    describe('geo blocking', () => {
-      it('returns false when user is geo-blocked', () => {
-        mockIsMusdConversionAssetOverviewEnabled = true;
-        mockUseMusdConversionEligibility.mockReturnValue({
-          isEligible: false,
-          geolocation: 'GB',
-          blockedCountries: ['GB'],
+      beforeEach(() => {
+        mockUseMusdConversionTokens.mockReturnValue({
+          tokens: [conversionToken],
+          filterAllowedTokens: jest.fn(),
+          isConversionToken: jest.fn(),
+          isMusdSupportedOnChain: jest.fn(),
+          getMusdOutputChainId: jest.fn(),
         });
+        mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
+      });
+
+      it('returns false when asset overview CTA flag is disabled', () => {
+        mockIsMusdConversionAssetOverviewEnabled = false;
 
         const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1293,13 +1276,18 @@ describe('useMusdCtaVisibility', () => {
         expect(isVisible).toBe(false);
       });
 
-      it('returns true when user is not geo-blocked and token is configured for CTA', () => {
+      it('returns false when asset is undefined', () => {
         mockIsMusdConversionAssetOverviewEnabled = true;
-        mockUseMusdConversionEligibility.mockReturnValue({
-          isEligible: true,
-          geolocation: 'US',
-          blockedCountries: ['GB'],
-        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible = result.current.shouldShowAssetOverviewCta(undefined);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns true when flag is enabled and token is configured for CTA', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
 
         const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1307,6 +1295,66 @@ describe('useMusdCtaVisibility', () => {
           result.current.shouldShowAssetOverviewCta(assetOverviewToken);
 
         expect(isVisible).toBe(true);
+      });
+
+      it('returns false when token is not configured for CTA', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+        mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['DAI'] };
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns false when token is dismissed', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+        mockMusdConversionAssetDetailCtasSeen = {
+          '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        };
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      describe('geo blocking', () => {
+        it('returns false when user is geo-blocked', () => {
+          mockIsMusdConversionAssetOverviewEnabled = true;
+          mockUseMusdConversionEligibility.mockReturnValue({
+            isEligible: false,
+            geolocation: 'GB',
+            blockedCountries: ['GB'],
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+
+          const isVisible =
+            result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+          expect(isVisible).toBe(false);
+        });
+
+        it('returns true when user is not geo-blocked and token is configured for CTA', () => {
+          mockIsMusdConversionAssetOverviewEnabled = true;
+          mockUseMusdConversionEligibility.mockReturnValue({
+            isEligible: true,
+            geolocation: 'US',
+            blockedCountries: ['GB'],
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+
+          const isVisible =
+            result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+          expect(isVisible).toBe(true);
+        });
       });
     });
   });

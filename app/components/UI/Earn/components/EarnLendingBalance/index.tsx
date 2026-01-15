@@ -1,9 +1,9 @@
-import { Hex } from '@metamask/utils';
+import { Hex, add0x } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
@@ -34,6 +34,8 @@ import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPri
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { setMusdConversionAssetDetailCtaSeen } from '../../../../../actions/user';
+import { toHexadecimal } from '../../../../../util/number';
 import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
@@ -56,6 +58,7 @@ export interface EarnLendingBalanceProps {
 const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { shouldShowAssetOverviewCta } = useMusdCtaVisibility();
+  const dispatch = useDispatch();
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -171,9 +174,18 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     }
   };
 
+  const handleMusdConversionAssetDetailCtaSeen = useCallback(() => {
+    if (!asset?.address || !asset?.chainId) return;
+    const ctaKey = `${add0x(toHexadecimal(asset.chainId))}-${asset.address.toLowerCase()}`;
+    dispatch(setMusdConversionAssetDetailCtaSeen(ctaKey));
+  }, [asset?.address, asset?.chainId, dispatch]);
+
   const renderMusdConversionCta = () => (
     <View style={styles.musdConversionCta}>
-      <MusdConversionAssetOverviewCta asset={asset} />
+      <MusdConversionAssetOverviewCta
+        asset={asset}
+        onDismiss={handleMusdConversionAssetDetailCtaSeen}
+      />
     </View>
   );
 
