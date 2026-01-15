@@ -45,9 +45,7 @@ describe('MusdConversionAssetOverviewCta', () => {
     jest.mocked(useMusdConversionTokens).mockReturnValue({
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       isConversionToken: jest.fn().mockReturnValue(false),
-      isTokenWithCta: jest.fn().mockReturnValue(false),
       tokens: [],
-      tokensWithCTAs: [],
       filterAllowedTokens: jest.fn(),
       getMusdOutputChainId: jest
         .fn()
