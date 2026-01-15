@@ -41,18 +41,6 @@ env:
   TARGET_CHANNEL: ${{ inputs.channel }}
 
 jobs:
-  setup-dependencies:
-    name: Setup Dependencies
-    needs:
-      - validate-pr
-    uses: ./.github/workflows/setup-node-modules.yml
-    with:
-      ref: ${{ inputs.commit_hash }}
-      fetch-depth: 0
-      upload-artifact: true
-      artifact-name: node-modules-eas-update
-      artifact-retention-days: 1
-
   fingerprint-comparison:
     name: Compare Expo Fingerprints
     needs:
@@ -63,7 +51,7 @@ jobs:
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     steps:
-      - name: Checkout target commit
+      - name: Checkout target PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ env.TARGET_COMMIT_HASH }}
@@ -81,15 +69,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Download node_modules artifact (PR checkout)
-        uses: actions/download-artifact@v4
-        with:
-          name: node-modules-eas-update
-
-      - name: Install dependencies
+      - name: Install dependencies (target commit)
         run: |
-          echo "📦 Installing dependencies..."
-          yarn install --immutable --mode=skip-build
+          echo "📦 Installing dependencies for current branch..."
+          yarn install --immutable
 
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
@@ -206,6 +189,18 @@ jobs:
           pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
+  setup-dependencies:
+    name: Setup Dependencies
+    needs:
+      - approval
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ inputs.commit_hash }}
+      fetch-depth: 0
+      upload-artifact: true
+      artifact-name: node-modules-eas-update
+      artifact-retention-days: 1
+
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
@@ -281,6 +276,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-modules-eas-update
+
+      - name: Initialize dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          yarn install --immutable --mode=skip-build
 
       - name: Verify downloaded artifacts
         run: |
