@@ -322,6 +322,9 @@ export default class MockServerE2E implements Resource {
         if (!isUrlAllowed(updatedUrl)) {
           const errorMessage = `Request going to live server: ${updatedUrl}`;
           logger.warn(errorMessage);
+          if (method === 'POST') {
+            logger.warn(`Request Body: ${requestBodyText}`);
+          }
           this._server?._liveRequests?.push({
             url: updatedUrl,
             method,
@@ -367,6 +370,9 @@ export default class MockServerE2E implements Resource {
       if (!isUrlAllowed(translatedUrl)) {
         const errorMessage = `Request going to live server: ${translatedUrl}`;
         logger.warn(errorMessage);
+        if (request.method === 'POST') {
+          logger.warn(`Request Body: ${await request.body.getText()}`);
+        }
         this._server?._liveRequests?.push({
           url: translatedUrl,
           method: request.method,
