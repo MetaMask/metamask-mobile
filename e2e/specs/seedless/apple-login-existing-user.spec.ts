@@ -1,10 +1,10 @@
 /**
- * E2E Test: Google Login - Existing User Flow
+ * E2E Test: Apple Login - Existing User Flow
  *
- * Tests the flow for an existing user logging in with Google OAuth:
+ * Tests the flow for an existing user logging in with Apple OAuth:
  * 1. Start at Onboarding screen
  * 2. Tap "Create Wallet" button
- * 3. Tap Google login button
+ * 3. Tap Apple login button
  * 4. OAuth mock returns success + existingUser: true
  * 5. Account Already Exists screen appears
  * 6. Tap "Log In" button
@@ -38,7 +38,7 @@ import {
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
 
-describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
+describe(SmokeWalletPlatform('Apple Login - Existing User'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000); // 5 minutes - social login flows can be slow
   });
@@ -46,19 +46,19 @@ describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
   beforeEach(async () => {
     // Reset OAuth mock state before each test
     E2EOAuthHelpers.reset();
-    // Configure for Google existing user scenario using E2E email pattern
-    E2EOAuthHelpers.configureGoogleExistingUser();
+    // Configure for Apple existing user scenario using E2E email pattern
+    E2EOAuthHelpers.configureAppleExistingUser();
   });
 
-  it('imports existing wallet with Google login', async () => {
+  it('imports existing wallet with Apple login', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          // Setup OAuth mock service for Google existing user
+          // Setup OAuth mock service for Apple existing user
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureGoogleExistingUser();
+          oAuthMockttpService.configureAppleExistingUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
@@ -77,9 +77,9 @@ describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
             'Onboarding sheet with social login options should appear',
         });
 
-        // Step 4: Tap Google login button
+        // Step 4: Tap Apple login button
         // The OAuth mock will return existing user success
-        await OnboardingSheet.tapGoogleLoginButton();
+        await OnboardingSheet.tapAppleLoginButton();
 
         // Step 5: Account Already Exists screen should appear
         await SocialLoginView.isAccountFoundScreenVisible();
@@ -88,14 +88,13 @@ describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
         await SocialLoginView.tapLoginButton();
 
         // Step 7: This navigates to Rehydration screen for password entry
-        // For full testing, we'd enter password and verify:
-        // - Wallet address matches MOCK_GOOGLE_ACCOUNT_WALLET_ADDRESS
-        // - E2E_SRP is recovered correctly
+        // For full testing, we'd enter password and verify wallet recovery
 
         // Verify OAuth was called with existing user configuration
         expect(E2EOAuthHelpers.wasOAuthCalled()).toBe(true);
-        expect(E2EOAuthHelpers.getE2EEmail()).toBe(E2E_EMAILS.GOOGLE_EXISTING_USER);
+        expect(E2EOAuthHelpers.getE2EEmail()).toBe(E2E_EMAILS.APPLE_EXISTING_USER);
         expect(E2EOAuthHelpers.isExistingUser()).toBe(true);
+        expect(E2EOAuthHelpers.getLoginProvider()).toBe('apple');
 
         // Log expected wallet address for verification
         console.log(
@@ -105,15 +104,15 @@ describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
     );
   });
 
-  it('shows Account Already Exists screen for existing user during Create Wallet', async () => {
+  it('shows Account Already Exists screen for existing Apple user during Create Wallet', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          // Setup OAuth mock service for Google existing user
+          // Setup OAuth mock service for Apple existing user
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureGoogleExistingUser();
+          oAuthMockttpService.configureAppleExistingUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
@@ -128,7 +127,7 @@ describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
           description: 'Onboarding sheet should appear',
         });
 
-        await OnboardingSheet.tapGoogleLoginButton();
+        await OnboardingSheet.tapAppleLoginButton();
 
         // Verify Account Already Exists screen is displayed
         await SocialLoginView.isAccountFoundScreenVisible();

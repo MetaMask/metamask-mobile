@@ -1,483 +1,426 @@
 /**
  * OAuth Mockttp Service for Seedless Onboarding E2E Tests
- * Matching MetaMask Extension's implementation pattern
  *
- * This service mocks all the HTTP endpoints needed for Google/Apple OAuth flows:
- * - Auth Server (token exchange, revoke, refresh)
- * - SSS Nodes (TOPRF operations)
- * - Metadata Service (encrypted seed phrase storage)
+ * This service proxies Auth Server calls to the backend QA mock endpoints,
+ * which generate cryptographically valid tokens using real SignerService.
  *
- * Usage:
- * const oAuthMockttpService = new OAuthMockttpService();
- * await oAuthMockttpService.setup(mockServer); // New user
- * await oAuthMockttpService.setup(mockServer, { userEmail: 'user@gmail.com' }); // Existing user
+ * Architecture:
+ * 1. App calls Auth Server /api/v1/oauth/token (intercepted by Mockttp)
+ * 2. Mockttp proxies to Backend QA Mock /api/v1/qa/mock/oauth/token
+ * 3. Backend generates valid tokens with SignerService
+ * 4. App receives valid tokens, authenticates with real TOPRF nodes
+ *
+ * @example
+ * const service = createOAuthMockttpService();
+ * service.configureGoogleNewUser();
+ * await service.setup(mockServer);
  */
 
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../helpers/mockHelpers';
 
 import {
   AuthServer,
   MetadataService,
-  SSSNodeKeyPairs,
+  E2E_EMAILS,
+  E2EScenario,
+  E2ELoginProvider,
+  parseE2EScenario,
   PasswordChangeItemId,
   E2E_SRP,
 } from './constants';
 
-import { MockAuthPubKey } from './data';
-
-import {
-  ToprfCommitmentRequestParams,
-  ToprfEvalRequestParams,
-  ToprfAuthenticateResponse,
-  OAuthMockttpServiceOptions,
-  SecretType,
-} from './types';
+import { OAuthMockttpServiceOptions, SecretType } from './types';
 
 /**
- * Pad hex string to specified length
+ * Configuration for E2E OAuth mock
  */
-function padHex(hex: string, length: number = 64): string {
-  return hex.length < length ? hex.padStart(length, '0') : hex;
+export interface E2EOAuthConfig {
+  loginProvider: E2ELoginProvider;
+  scenario: E2EScenario;
+  email: string;
 }
 
 /**
- * Generate a mock JWT token for testing
- * In production, this would be a real ES256 signed JWT
- */
-function generateMockJwtToken(userId: string): string {
-  const iat = Math.floor(Date.now() / 1000);
-  const exp = iat + 120;
-
-  // Create a mock JWT structure (not cryptographically valid, but works for E2E)
-  const header = Buffer.from(
-    JSON.stringify({ alg: 'ES256', typ: 'JWT' }),
-  ).toString('base64url');
-  const payload = Buffer.from(
-    JSON.stringify({
-      iss: 'torus-key-test',
-      aud: 'torus-key-test',
-      name: userId,
-      email: userId,
-      scope: 'email',
-      iat,
-      exp,
-    }),
-  ).toString('base64url');
-  const signature = 'mock-signature-for-e2e-testing';
-
-  return `${header}.${payload}.${signature}`;
-}
-
-/**
- * Generate mock encrypted secret data
- * Simulates the encrypted seed phrase response from metadata service
- */
-function generateMockEncryptedSecretData(): string[] {
-  // In Extension, this uses @noble/ciphers for real encryption
-  // For mobile E2E, we return pre-computed mock data
-  const mockEncryptedSrp = Buffer.from(
-    JSON.stringify({
-      data: Buffer.from(E2E_SRP).toString('base64'),
-      timestamp: Date.now(),
-      type: SecretType.Mnemonic,
-    }),
-  ).toString('base64');
-
-  const mockPasswordChangeItem = Buffer.from(
-    JSON.stringify({
-      itemId: PasswordChangeItemId,
-      data: 'mock-encrypted-password-change-data',
-    }),
-  ).toString('base64');
-
-  return [mockEncryptedSrp, mockPasswordChangeItem];
-}
-
-/**
- * OAuthMockttpService - Main mock service class
- * Matches the MetaMask Extension's implementation
+ * OAuthMockttpService - Proxies Auth Server to Backend QA Mock
+ *
+ * Key features:
+ * - Proxies /api/v1/oauth/token → /api/v1/qa/mock/oauth/token
+ * - Backend generates valid JWT tokens
+ * - Real TOPRF authentication works with valid tokens
  */
 export class OAuthMockttpService {
-  #sessionPubKey: string = '';
-  #latestAuthPubKey: string = MockAuthPubKey;
-  #numbOfRequestTokensCalls: number = 0;
+  private config: E2EOAuthConfig;
+
+  constructor() {
+    // Default config - new Google user
+    this.config = {
+      loginProvider: E2ELoginProvider.GOOGLE,
+      scenario: E2EScenario.NEW_USER,
+      email: E2E_EMAILS.GOOGLE_NEW_USER,
+    };
+  }
+
+  // ============================================
+  // CONFIGURATION METHODS
+  // ============================================
 
   /**
-   * Mock Auth Server token endpoint response
+   * Configure for Google New User flow
+   * @returns this for method chaining
    */
-  mockAuthServerToken(overrides?: OAuthMockttpServiceOptions): {
-    statusCode: number;
-    json: Record<string, unknown>;
-  } {
-    const userEmail =
-      overrides?.userEmail || `e2e-user-${Date.now()}@gmail.com`;
-    const idToken = generateMockJwtToken(userEmail);
-
-    this.#numbOfRequestTokensCalls += 1;
-
-    // Simulate auth error on second call if configured
-    if (
-      this.#numbOfRequestTokensCalls === 2 &&
-      overrides?.throwAuthenticationErrorAtUnlock &&
-      overrides?.passwordOutdated
-    ) {
-      return {
-        statusCode: 500,
-        json: { message: 'Internal server error' },
-      };
-    }
-
-    return {
-      statusCode: 200,
-      json: {
-        access_token: idToken,
-        id_token: idToken,
-        expires_in: 3600,
-        refresh_token: 'mock-refresh-token',
-        revoke_token: 'mock-revoke-token',
-        metadata_access_token: idToken,
-      },
+  configureGoogleNewUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.GOOGLE,
+      scenario: E2EScenario.NEW_USER,
+      email: E2E_EMAILS.GOOGLE_NEW_USER,
     };
-  }
-
-  onPostToken(overrides?: OAuthMockttpServiceOptions): {
-    statusCode: number;
-    json: Record<string, unknown>;
-  } {
-    return this.mockAuthServerToken(overrides);
-  }
-
-  onPostRevokeToken(): { statusCode: number; json: Record<string, unknown> } {
-    return {
-      statusCode: 200,
-      json: { message: 'Token revoked successfully' },
-    };
-  }
-
-  onPostRenewRefreshToken(): {
-    statusCode: number;
-    json: Record<string, unknown>;
-  } {
-    return {
-      statusCode: 200,
-      json: {
-        refresh_token: 'new-mock-refresh-token',
-        revoke_token: 'new-mock-revoke-token',
-      },
-    };
+    return this;
   }
 
   /**
-   * Handle TOPRF Commitment Request
+   * Configure for Google Existing User flow
+   * @returns this for method chaining
    */
-  onPostToprfCommitment(
-    params: ToprfCommitmentRequestParams,
-    nodeIndex: number,
-  ): { statusCode: number; json: Record<string, unknown> } {
-    const paddedTempPubKeyX = padHex(params.temp_pub_key_x);
-    const paddedTempPubKeyY = padHex(params.temp_pub_key_y);
-    this.#sessionPubKey = `04${paddedTempPubKeyX}${paddedTempPubKeyY}`;
-
-    return {
-      statusCode: 200,
-      json: {
-        id: 1,
-        jsonrpc: '2.0',
-        result: {
-          signature: 'mock-signature',
-          data: 'mock-data',
-          node_pub_x: params.temp_pub_key_x,
-          node_pub_y: params.temp_pub_key_y,
-          node_index: nodeIndex,
-        },
-      },
+  configureGoogleExistingUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.GOOGLE,
+      scenario: E2EScenario.EXISTING_USER,
+      email: E2E_EMAILS.GOOGLE_EXISTING_USER,
     };
+    return this;
   }
 
   /**
-   * Handle TOPRF Authenticate Request
+   * Configure for Apple New User flow
+   * @returns this for method chaining
    */
-  onPostToprfAuthenticate(
-    nodeIndex: number,
-    isNewUser: boolean = true,
-  ): { statusCode: number; json: Record<string, unknown> } {
-    const mockNodePubKey = SSSNodeKeyPairs[nodeIndex].pubKey;
-    const mockAuthToken = this.#generateMockAuthToken();
-
-    const authenticateResult: ToprfAuthenticateResponse = {
-      auth_token: mockAuthToken,
-      node_index: nodeIndex,
-      node_pub_key: mockNodePubKey,
+  configureAppleNewUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.APPLE,
+      scenario: E2EScenario.NEW_USER,
+      email: E2E_EMAILS.APPLE_NEW_USER,
     };
-
-    // For existing users, include key_index and pub_key
-    if (!isNewUser) {
-      authenticateResult.key_index = 1;
-      authenticateResult.pub_key = MockAuthPubKey;
-    }
-
-    return {
-      statusCode: 200,
-      json: {
-        id: 1,
-        jsonrpc: '2.0',
-        result: authenticateResult,
-      },
-    };
+    return this;
   }
 
   /**
-   * Handle TOPRF Eval Request
-   * Returns mock blinded output for the given blinded input
+   * Configure for Apple Existing User flow
+   * @returns this for method chaining
    */
-  onPostToprfEval(
-    _params: ToprfEvalRequestParams,
-    nodeIndex: number,
-  ): { statusCode: number; json: Record<string, unknown> } {
-    // In Extension, this does real elliptic curve math
-    // For mobile E2E, we return mock values
-    const mockBlindedOutputX = padHex(
-      `mock-blinded-output-x-node-${nodeIndex}`,
-      64,
-    );
-    const mockBlindedOutputY = padHex(
-      `mock-blinded-output-y-node-${nodeIndex}`,
-      64,
-    );
-
-    return {
-      statusCode: 200,
-      json: {
-        id: 1,
-        jsonrpc: '2.0',
-        result: {
-          blinded_output_x: mockBlindedOutputX,
-          blinded_output_y: mockBlindedOutputY,
-          key_share_index: 1,
-          node_index: nodeIndex,
-          pub_key: MockAuthPubKey,
-        },
-      },
+  configureAppleExistingUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.APPLE,
+      scenario: E2EScenario.EXISTING_USER,
+      email: E2E_EMAILS.APPLE_EXISTING_USER,
     };
+    return this;
   }
 
   /**
-   * Handle Metadata Get Request
-   * Returns encrypted seed phrase data for existing users
+   * Configure for error scenario
+   * @param errorType - Type of error to simulate
+   * @returns this for method chaining
    */
-  onPostMetadataGet(): { statusCode: number; json: Record<string, unknown> } {
-    const encryptedSecretData = generateMockEncryptedSecretData();
-
-    return {
-      statusCode: 200,
-      json: {
-        success: true,
-        data: encryptedSecretData,
-        ids: ['', PasswordChangeItemId],
-      },
+  configureError(
+    errorType: 'timeout' | 'invalid' | 'network' | 'auth_failed',
+  ): this {
+    const errorEmails: Record<string, string> = {
+      timeout: E2E_EMAILS.ERROR_TIMEOUT,
+      invalid: E2E_EMAILS.ERROR_INVALID_TOKEN,
+      network: E2E_EMAILS.ERROR_NETWORK,
+      auth_failed: E2E_EMAILS.ERROR_AUTH_FAILED,
     };
+
+    const errorScenarios: Record<string, E2EScenario> = {
+      timeout: E2EScenario.ERROR_TIMEOUT,
+      invalid: E2EScenario.ERROR_INVALID,
+      network: E2EScenario.ERROR_NETWORK,
+      auth_failed: E2EScenario.ERROR_AUTH_FAILED,
+    };
+
+    this.config = {
+      loginProvider: E2ELoginProvider.GOOGLE,
+      scenario: errorScenarios[errorType],
+      email: errorEmails[errorType],
+    };
+    return this;
   }
 
   /**
-   * MAIN SETUP METHOD - Register all mock handlers
+   * Configure with custom email
+   * @param email - Custom E2E email (must match *+e2e@web3auth.io pattern)
+   * @param loginProvider - Login provider (default: google)
+   * @returns this for method chaining
+   */
+  configureCustom(
+    email: string,
+    loginProvider: E2ELoginProvider = E2ELoginProvider.GOOGLE,
+  ): this {
+    this.config = {
+      loginProvider,
+      scenario: parseE2EScenario(email),
+      email,
+    };
+    return this;
+  }
+
+  // ============================================
+  // GETTERS
+  // ============================================
+
+  /**
+   * Get current configuration
+   */
+  getConfig(): E2EOAuthConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Get the E2E email for current configuration
+   * This email should be used in the OAuth flow
+   */
+  getE2EEmail(): string {
+    return this.config.email;
+  }
+
+  /**
+   * Check if current config is for existing user
+   */
+  isExistingUser(): boolean {
+    return this.config.scenario === E2EScenario.EXISTING_USER;
+  }
+
+  /**
+   * Check if current config is for error scenario
+   */
+  isErrorScenario(): boolean {
+    return [
+      E2EScenario.ERROR_TIMEOUT,
+      E2EScenario.ERROR_INVALID,
+      E2EScenario.ERROR_NETWORK,
+      E2EScenario.ERROR_AUTH_FAILED,
+    ].includes(this.config.scenario);
+  }
+
+  /**
+   * Get login provider
+   */
+  getLoginProvider(): E2ELoginProvider {
+    return this.config.loginProvider;
+  }
+
+  // ============================================
+  // SETUP METHODS
+  // ============================================
+
+  /**
+   * MAIN SETUP METHOD - Register mock handlers
+   *
+   * Sets up:
+   * 1. Auth Server token endpoint → Proxy to backend QA mock
+   * 2. Marketing opt-in mock
+   * 3. Metadata service mocks (optional)
    *
    * @param server - Mockttp server instance
    * @param options - Configuration options
-   * @param options.userEmail - If provided, simulates existing user; otherwise new user
-   * @param options.passwordOutdated - Simulates password outdated scenario
-   * @param options.throwAuthenticationErrorAtUnlock - Throws error on second token request
    */
   async setup(
     server: Mockttp,
     options?: OAuthMockttpServiceOptions,
   ): Promise<void> {
-    // Auth Server mocks
-    await this.#setupAuthServerMocks(server, options);
+    // Update config from options if provided
+    if (options?.userEmail) {
+      this.configureCustom(
+        options.userEmail,
+        options.loginProvider === 'apple'
+          ? E2ELoginProvider.APPLE
+          : E2ELoginProvider.GOOGLE,
+      );
+    }
 
-    // TOPRF/SSS Node mocks
-    await this.#setupToprfMocks(server, options);
+    // Setup Auth Server proxy to backend QA mock
+    await this.setupAuthServerProxy(server);
 
-    // Metadata Service mocks
-    await this.#setupMetadataServiceMocks(server);
+    // Setup marketing opt-in mock
+    await this.setupMarketingOptInMock(server);
+
+    // Setup metadata service mocks (unless explicitly disabled)
+    if (options?.mockMetadataService !== false) {
+      await this.setupMetadataServiceMocks(server);
+    }
   }
 
   /**
-   * Setup Auth Server endpoint mocks
+   * Proxy Auth Server token requests to backend QA mock
+   *
+   * This is the key integration point:
+   * - App calls: /api/v1/oauth/token
+   * - We proxy to: /api/v1/qa/mock/oauth/token
+   * - Backend returns valid tokens
    */
-  async #setupAuthServerMocks(
-    server: Mockttp,
-    options?: OAuthMockttpServiceOptions,
-  ): Promise<void> {
-    // Token endpoint
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: AuthServer.RequestToken,
-      response: this.onPostToken(options).json,
-      responseCode: this.onPostToken(options).statusCode,
-    });
+  private async setupAuthServerProxy(server: Mockttp): Promise<void> {
+    // Proxy token requests to backend QA mock
+    await server
+      .forPost('/api/v1/oauth/token')
+      .thenCallback(async (request) => {
+        try {
+          const requestBody = (await request.body.getText()) || '{}';
+          const body = JSON.parse(requestBody);
 
-    // Revoke token endpoint
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: AuthServer.RevokeToken,
-      response: this.onPostRevokeToken().json,
-      responseCode: this.onPostRevokeToken().statusCode,
-    });
+          // Override email with E2E email for scenario selection
+          body.email = this.config.email;
+          body.login_provider = this.config.loginProvider;
 
-    // Marketing opt-in status (GET)
-    await setupMockRequest(server, {
-      requestMethod: 'GET',
-      url: AuthServer.GetMarketingOptInStatus,
-      response: { is_opt_in: true },
-      responseCode: 200,
-    });
+          console.log(
+            `[E2E] Proxying OAuth token request for: ${this.config.email}`,
+          );
 
-    // Marketing opt-in status (POST)
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: AuthServer.GetMarketingOptInStatus,
-      response: { is_opt_in: true },
-      responseCode: 200,
-    });
+          // Call backend QA mock endpoint
+          const response = await fetch(AuthServer.MockRequestToken, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // Add internal secret header if required by backend
+              'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
+            },
+            body: JSON.stringify(body),
+          });
 
-    // Renew refresh token
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: AuthServer.RenewRefreshToken,
-      response: this.onPostRenewRefreshToken().json,
-      responseCode: this.onPostRenewRefreshToken().statusCode,
-    });
-  }
+          if (!response.ok) {
+            console.error(
+              `[E2E] Backend QA mock error: ${response.status}`,
+            );
+            return {
+              statusCode: response.status,
+              json: { error: 'Backend QA mock error' },
+            };
+          }
 
-  /**
-   * Setup TOPRF/SSS Node mocks for all 5 nodes
-   */
-  async #setupToprfMocks(
-    server: Mockttp,
-    options?: OAuthMockttpServiceOptions,
-  ): Promise<void> {
-    // Setup mocks for each of the 5 SSS nodes
-    for (let nodeIndex = 1; nodeIndex <= 5; nodeIndex++) {
-      const nodeUrl = `https://node-${nodeIndex}.dev-node.web3auth.io/sss/jrpc`;
+          const tokens = await response.json();
+          console.log('[E2E] Received valid tokens from backend QA mock');
 
-      // For each node, we need to handle different TOPRF methods
-      // Since setupMockRequest doesn't support dynamic request body parsing,
-      // we'll set up generic successful responses
-
-      // TOPRF Commitment
-      await setupMockRequest(server, {
-        requestMethod: 'POST',
-        url: nodeUrl,
-        response: this.#getToprfResponse(nodeIndex, options),
-        responseCode: 200,
+          return {
+            statusCode: 200,
+            json: tokens,
+          };
+        } catch (error) {
+          console.error('[E2E] Error proxying to backend QA mock:', error);
+          return {
+            statusCode: 500,
+            json: { error: 'Failed to proxy to backend QA mock' },
+          };
+        }
       });
-    }
+
+    // Also handle token renewal
+    await server
+      .forPost('/api/v2/oauth/renew_refresh_token')
+      .thenCallback(async (request) => {
+        try {
+          const requestBody = await request.body.getText();
+
+          const response = await fetch(AuthServer.MockRenewRefreshToken, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
+            },
+            body: requestBody,
+          });
+
+          const result = await response.json();
+          return { statusCode: response.status, json: result };
+        } catch (error) {
+          console.error('[E2E] Error renewing refresh token:', error);
+          return { statusCode: 500, json: { error: 'Renewal failed' } };
+        }
+      });
+
+    // Handle token revocation
+    await server
+      .forPost('/api/v2/oauth/revoke')
+      .thenCallback(async () => (
+        // Just return success for revocation
+        { statusCode: 200, json: { success: true } }
+      ));
   }
 
   /**
-   * Get generic TOPRF response for a node
-   * In Extension, this parses the request body to determine the method
-   * For mobile, we return a generic successful response
+   * Mock marketing opt-in status to avoid real API calls
    */
-  #getToprfResponse(
-    nodeIndex: number,
-    options?: OAuthMockttpServiceOptions,
-  ): Record<string, unknown> {
-    const isNewUser = !options?.userEmail;
-    const mockNodePubKey = SSSNodeKeyPairs[nodeIndex].pubKey;
+  private async setupMarketingOptInMock(server: Mockttp): Promise<void> {
+    // GET request
+    await server
+      .forGet('/api/v1/oauth/marketing_opt_in_status')
+      .thenJson(200, { is_opt_in: true });
 
-    // Return authenticate response by default (most common case)
-    const result: ToprfAuthenticateResponse = {
-      auth_token: this.#generateMockAuthToken(),
-      node_index: nodeIndex,
-      node_pub_key: mockNodePubKey,
-    };
-
-    if (!isNewUser) {
-      result.key_index = 1;
-      result.pub_key = options?.passwordOutdated
-        ? MockAuthPubKey
-        : MockAuthPubKey;
-    }
-
-    return {
-      id: 1,
-      jsonrpc: '2.0',
-      result,
-    };
+    // POST request
+    await server
+      .forPost('/api/v1/oauth/marketing_opt_in_status')
+      .thenJson(200, { is_opt_in: true });
   }
 
   /**
    * Setup Metadata Service mocks
+   * These may still be needed if backend doesn't handle metadata mocking
    */
-  async #setupMetadataServiceMocks(server: Mockttp): Promise<void> {
+  private async setupMetadataServiceMocks(server: Mockttp): Promise<void> {
+    const encryptedSecretData = this.generateMockEncryptedSecretData();
+
     // Set metadata
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: MetadataService.Set,
-      response: { success: true, message: 'Metadata set successfully' },
-      responseCode: 200,
+    await server.forPost(MetadataService.Set).thenJson(200, {
+      success: true,
+      message: 'Metadata set successfully',
     });
 
-    // Get metadata
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: MetadataService.Get,
-      response: this.onPostMetadataGet().json,
-      responseCode: 200,
+    // Get metadata - returns encrypted SRP for existing users
+    await server.forPost(MetadataService.Get).thenJson(200, {
+      success: true,
+      data: this.isExistingUser() ? encryptedSecretData : [],
+      ids: this.isExistingUser() ? ['', PasswordChangeItemId] : [],
     });
 
     // Acquire lock
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: MetadataService.AcquireLock,
-      response: { success: true, status: 1, id: 'MOCK_LOCK_ID' },
-      responseCode: 200,
+    await server.forPost(MetadataService.AcquireLock).thenJson(200, {
+      success: true,
+      status: 1,
+      id: 'E2E_MOCK_LOCK_ID',
     });
 
     // Release lock
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: MetadataService.ReleaseLock,
-      response: { success: true, status: 1 },
-      responseCode: 200,
+    await server.forPost(MetadataService.ReleaseLock).thenJson(200, {
+      success: true,
+      status: 1,
     });
 
     // Batch set
-    await setupMockRequest(server, {
-      requestMethod: 'POST',
-      url: MetadataService.BatchSet,
-      response: { success: true, message: 'Metadata set successfully' },
-      responseCode: 200,
+    await server.forPost(MetadataService.BatchSet).thenJson(200, {
+      success: true,
+      message: 'Metadata set successfully',
     });
   }
 
   /**
-   * Generate a mock encrypted auth token
+   * Generate mock encrypted secret data for existing user flow
+   * This simulates the encrypted seed phrase response from metadata service
    */
-  #generateMockAuthToken(): string {
-    // In Extension, this uses eccrypto for real encryption
-    // For mobile E2E, we return a mock token structure
-    return JSON.stringify({
-      data: 'mock-encrypted-auth-token-data',
-      metadata: {
-        iv: 'mock-iv',
-        ephemPublicKey: 'mock-ephemeral-public-key',
-        mac: 'mock-mac',
-      },
-    });
-  }
+  private generateMockEncryptedSecretData(): string[] {
+    const mockEncryptedSrp = Buffer.from(
+      JSON.stringify({
+        data: Buffer.from(E2E_SRP).toString('base64'),
+        timestamp: Date.now(),
+        type: SecretType.Mnemonic,
+      }),
+    ).toString('base64');
 
-  /**
-   * Extract node index from SSS URL
-   */
-  #extractNodeIndexFromUrl(url: string): number {
-    const match = url.match(/node-[1-5]/u);
-    if (!match) {
-      throw new Error('Invalid SSS Node URL');
-    }
-    return parseInt(match[0].replace('node-', ''), 10);
+    const mockPasswordChangeItem = Buffer.from(
+      JSON.stringify({
+        itemId: PasswordChangeItemId,
+        data: 'mock-encrypted-password-change-data',
+      }),
+    ).toString('base64');
+
+    return [mockEncryptedSrp, mockPasswordChangeItem];
   }
 }
 

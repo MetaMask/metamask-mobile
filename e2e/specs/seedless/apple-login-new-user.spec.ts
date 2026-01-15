@@ -1,10 +1,10 @@
 /**
- * E2E Test: Google Login - New User Onboarding Flow
+ * E2E Test: Apple Login - New User Onboarding Flow
  *
- * Tests the complete flow for a new user signing up with Google OAuth:
+ * Tests the complete flow for a new user signing up with Apple OAuth:
  * 1. Start at Onboarding screen
  * 2. Tap "Create Wallet" button
- * 3. Tap Google login button
+ * 3. Tap Apple login button
  * 4. OAuth mock returns success + existingUser: false
  * 5. (iOS) Social Login Success screen appears → tap "Set MetaMask PIN"
  * 6. (Android) Directly navigates to ChoosePassword
@@ -14,7 +14,6 @@
  * Uses Backend QA Mock Integration:
  * - E2E emails (*+e2e@web3auth.io) trigger specific test scenarios
  * - Backend generates valid tokens using SignerService
- * - No fake JWT generation - tokens work with real TOPRF nodes
  */
 
 import { Mockttp } from 'mockttp';
@@ -41,27 +40,27 @@ import { SmokeWalletPlatform } from '../../tags';
 
 const TEST_PASSWORD = 'Test123!@#';
 
-describe(SmokeWalletPlatform('Google Login - New User'), () => {
+describe(SmokeWalletPlatform('Apple Login - New User'), () => {
   beforeAll(async () => {
-    jest.setTimeout(300000); // social login flows can be slow
+    jest.setTimeout(300000); // 5 minutes - social login flows can be slow
   });
 
   beforeEach(async () => {
     // Reset OAuth mock state before each test
     E2EOAuthHelpers.reset();
-    // Configure for Google new user scenario using E2E email pattern
-    E2EOAuthHelpers.configureGoogleNewUser();
+    // Configure for Apple new user scenario using E2E email pattern
+    E2EOAuthHelpers.configureAppleNewUser();
   });
 
-  it('creates a new wallet with Google login', async () => {
+  it('creates a new wallet with Apple login', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          // Setup OAuth mock service for Google new user
+          // Setup OAuth mock service for Apple new user
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureGoogleNewUser();
+          oAuthMockttpService.configureAppleNewUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
@@ -80,9 +79,9 @@ describe(SmokeWalletPlatform('Google Login - New User'), () => {
             'Onboarding sheet with social login options should appear',
         });
 
-        // Step 4: Tap Google login button
+        // Step 4: Tap Apple login button
         // The OAuth mock will return success with E2E email
-        await OnboardingSheet.tapGoogleLoginButton();
+        await OnboardingSheet.tapAppleLoginButton();
 
         // Step 5: Handle platform-specific flow
         const isIOS = device.getPlatform() === 'ios';
@@ -117,7 +116,6 @@ describe(SmokeWalletPlatform('Google Login - New User'), () => {
         await CreatePasswordView.tapCreatePasswordButton();
 
         // Step 8: Handle onboarding completion screens
-        // MetaMetrics opt-in - for seedless onboarding, we just tap agree
         try {
           await Assertions.expectElementToBeVisible(
             MetaMetricsOptInView.container,
@@ -128,7 +126,6 @@ describe(SmokeWalletPlatform('Google Login - New User'), () => {
           // May not appear in all flows
         }
 
-        // Experience enhancer - tap agree to continue
         try {
           await ExperienceEnhancerBottomSheet.tapIAgree();
         } catch {
@@ -157,8 +154,9 @@ describe(SmokeWalletPlatform('Google Login - New User'), () => {
 
         // Verify OAuth was called with correct E2E email
         expect(E2EOAuthHelpers.wasOAuthCalled()).toBe(true);
-        expect(E2EOAuthHelpers.getE2EEmail()).toBe(E2E_EMAILS.GOOGLE_NEW_USER);
+        expect(E2EOAuthHelpers.getE2EEmail()).toBe(E2E_EMAILS.APPLE_NEW_USER);
         expect(E2EOAuthHelpers.isExistingUser()).toBe(false);
+        expect(E2EOAuthHelpers.getLoginProvider()).toBe('apple');
       },
     );
   });
