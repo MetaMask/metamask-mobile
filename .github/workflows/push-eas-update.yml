@@ -70,7 +70,7 @@ jobs:
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
-          yarn install --immutable --mode=skip-build
+          yarn install --immutable
 
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
@@ -92,7 +92,7 @@ jobs:
       - name: Install dependencies (base branch)
         run: |
           echo "📦 Installing dependencies..."
-          cd main && yarn install --immutable --mode=skip-build
+          cd main && yarn install --immutable
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint

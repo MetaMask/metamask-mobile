@@ -61,10 +61,11 @@ else
   exit 1
 fi
 
-# Validate base branch matches
+# Validate base branch matches (security-critical)
 if [ "$pr_base_ref" != "$BASE_BRANCH" ]; then
-  echo "⚠️  Warning: PR base branch (${pr_base_ref}) does not match provided base branch (${BASE_BRANCH})" >&2
-  echo "⚠️  Continuing validation, but this may indicate a mismatch..." >&2
+  echo "❌ Validation failed: PR base branch (${pr_base_ref}) does not match provided base branch (${BASE_BRANCH})" >&2
+  echo "💡 The base_branch input must exactly match the PR's actual base branch to prevent fingerprint comparison against the wrong target." >&2
+  exit 1
 fi
 
 # Validate that commit is the PR head (last commit)
