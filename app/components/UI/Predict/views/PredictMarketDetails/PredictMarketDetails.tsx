@@ -1305,6 +1305,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           (sum, p) => sum + (p.currentValue ?? 0),
           0,
         )}
+        isLoading={isClaimablePositionsLoading}
       />
     );
   }
