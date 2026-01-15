@@ -20,8 +20,8 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   // TODO: Update test to be BIP-44 compatible
   // https://github.com/MetaMask/metamask-mobile/issues/24146
   // eslint-disable-next-line jest/no-disabled-tests
-  describe.skip('When a dApp requests to switch to a new chain', () => {
-    it('should grant permission to the new chain and switch to it when approved', async () => {
+  describe('When a dApp requests to switch to a new chain', () => {
+    it('grants permission to the new chain and switches to it when approved', async () => {
       await withFixtures(
         {
           dapps: [
@@ -51,7 +51,10 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
           await ConnectBottomSheet.tapConnectButton();
-          await navigateToBrowserView();
+
+          // Verify browser is still visible after modal closes
+          await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+
           // Grant permission and switch to new chain
           await TestDApp.switchChainFromTestDapp();
           await ConnectBottomSheet.tapConnectButton();
