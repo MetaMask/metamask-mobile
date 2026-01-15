@@ -16,7 +16,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
-import { getNetworkName, NetworkPills } from './NetworkPills';
+import { NetworkPills } from './NetworkPills';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
@@ -53,7 +53,6 @@ import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export interface BridgeTokenSelectorRouteParams {
@@ -71,7 +70,6 @@ export const BridgeTokenSelector: React.FC = () => {
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const { styles } = useStyles(createStyles, {});
   const [searchString, setSearchString] = useState<string>('');
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const flatListRef = useRef<FlatList>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
 
@@ -330,7 +328,12 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
-      const networkName = getNetworkName(item.chainId, networkConfigurations);
+      // Get network name from chainRanking feature flag data
+      const chainData = enabledChainRanking.find(
+        (chain: { chainId: CaipChainId; name: string }) =>
+          chain.chainId === formatChainIdToCaip(item.chainId),
+      );
+      const networkName = chainData?.name ?? '';
 
       navigation.navigate('Asset', { ...item });
 
@@ -345,7 +348,7 @@ export const BridgeTokenSelector: React.FC = () => {
         },
       );
     },
-    [navigation, networkConfigurations],
+    [navigation, enabledChainRanking],
   );
 
   const renderToken = useCallback(
