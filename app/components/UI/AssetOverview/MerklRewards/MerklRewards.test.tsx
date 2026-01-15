@@ -130,7 +130,6 @@ describe('MerklRewards', () => {
 
     expect(mockUseMerklRewards).toHaveBeenCalledWith({
       asset: mockAsset,
-      exchangeRate: 2.5,
     });
   });
 
