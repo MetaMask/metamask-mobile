@@ -203,10 +203,10 @@ class AnvilManager implements Resource {
    * @returns {Promise<Block | undefined>} Block
    */
   async getBlockByNumber(blockNumber: bigint): Promise<Block | undefined> {
-    logger.debug(`Getting block by number: ${blockNumber}...`);
+    logger.debug(`Getting block by number: ${blockNumber}`);
     const { publicClient } = this.getProvider();
     const block = await publicClient.getBlock({ blockNumber });
-    logger.debug(`Block: ${JSON.stringify(block)}`);
+    logger.debug(`Got block with ${block.transactions.length} transaction(s)`);
     return block;
   }
 

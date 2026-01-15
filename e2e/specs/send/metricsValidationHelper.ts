@@ -20,11 +20,30 @@ export const validateTransactionHashInTransactionFinalizedEvent = async (
   const block = await localNode.getBlockByNumber(latestBlockNumber);
   const latestTransaction = block?.transactions[0];
 
+  if (!latestTransaction) {
+    throw new Error(
+      `No transactions found in block ${latestBlockNumber}. Expected at least one transaction.`,
+    );
+  }
+
   const events = await getEventsPayloads(mockServer);
   const transactionFinalizedEvent = events.find(
     (event) => event.event === 'Transaction Finalized',
   );
-  const eventTxHash = transactionFinalizedEvent?.properties.transaction_hash;
+
+  if (!transactionFinalizedEvent) {
+    throw new Error(
+      'Transaction Finalized event not found in analytics events.',
+    );
+  }
+
+  const eventTxHash = transactionFinalizedEvent.properties?.transaction_hash;
+
+  if (!eventTxHash) {
+    throw new Error(
+      'Transaction Finalized event does not contain a transaction_hash property.',
+    );
+  }
 
   if (latestTransaction !== eventTxHash) {
     throw new Error(
