@@ -28,6 +28,7 @@ import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
+  TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -247,7 +248,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <View style={styles.skeleton} />
-              ) : (
+              ) : balance === TOKEN_RATE_UNDEFINED ? null : (
                 <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
