@@ -36,6 +36,9 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -44,12 +47,19 @@ const MusdConversionAssetListCta = () => {
 
   const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
 
   const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
 
   const { shouldShowCta, showNetworkIcon, selectedChainId } =
     shouldShowBuyGetMusdCta();
+
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const networkName = useNetworkName(
+    selectedChainId ?? MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  );
 
   const canConvert = useMemo(
     () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
@@ -64,7 +74,35 @@ const MusdConversionAssetListCta = () => {
     return strings('earn.musd_conversion.get_musd');
   }, [canConvert]);
 
+  const submitCtaPressedEvent = () => {
+    const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+    const getRedirectLocation = () => {
+      if (!canConvert) {
+        return EVENT_LOCATIONS.BUY_SCREEN;
+      }
+
+      return hasSeenConversionEducationScreen
+        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+    };
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+        .addProperties({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: getRedirectLocation(),
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: ctaText,
+          network_chain_id: selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+          network_name: networkName,
+        })
+        .build(),
+    );
+  };
+
   const handlePress = async () => {
+    submitCtaPressedEvent();
     // Redirect users to deposit flow if they don't have any stablecoins to convert.
     if (!canConvert) {
       const rampIntent: RampIntent = {

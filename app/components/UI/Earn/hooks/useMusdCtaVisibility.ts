@@ -142,8 +142,7 @@ export const useMusdCtaVisibility = () => {
   );
 
   /**
-   * Buy/Get mUSD CTA depends on MM_RAMPS_UNIFIED_BUY_V1_ENABLED flag being enabled.
-   * If the flag is enabled, the buy/get mUSD CTA is shown.
+   * Note: shouldShowBuyGetMusdCta depends on MM_RAMPS_UNIFIED_BUY_V1_ENABLED flag being enabled.
    */
   const shouldShowBuyGetMusdCta = useCallback(() => {
     // If the buy/get mUSD CTA feature flag is disabled, don't show the buy/get mUSD CTA
