@@ -13,9 +13,10 @@ import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { StakeScreensParamList, StakeModalsParamList } from '../types';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createStackNavigator<StakeScreensParamList>();
+const ModalStack = createStackNavigator<StakeModalsParamList>();
 
 const clearStackNavigatorOptions = {
   headerShown: false,

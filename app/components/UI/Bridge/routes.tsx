@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeDestTokenSelector } from './components/BridgeDestTokenSelector';
 import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelector';
@@ -20,7 +21,7 @@ const clearStackNavigatorOptions = {
   animation: 'none' as const,
 };
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<ParamListBase>();
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -31,7 +32,7 @@ export const BridgeScreenStack = () => (
   </Stack.Navigator>
 );
 
-const ModalStack = createStackNavigator();
+const ModalStack = createStackNavigator<ParamListBase>();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{

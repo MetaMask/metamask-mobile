@@ -1,16 +1,8 @@
 import { RouteProp } from '@react-navigation/native';
+import { StakeModalsParamList, GasImpactModalRouteParams } from '../../types';
 
-interface GasImpactModalRouteParams {
-  amountWei: string;
-  amountFiat: string;
-  annualRewardsETH: string;
-  annualRewardsFiat: string;
-  annualRewardRate: string;
-  estimatedGasFee: string;
-  estimatedGasFeePercentage: string;
-  chainId: string;
-}
+export type { GasImpactModalRouteParams };
 
 export interface GasImpactModalProps {
-  route: RouteProp<{ params: GasImpactModalRouteParams }, 'params'>;
+  route: RouteProp<StakeModalsParamList, 'GasImpact'>;
 }

@@ -1,7 +1,7 @@
 # Remaining TypeScript Errors - React Navigation v7 Migration
 
 **Last Updated:** January 15, 2026  
-**Total Errors:** 81
+**Total Errors:** 78
 
 ---
 
@@ -9,43 +9,47 @@
 
 | Error Code | Description              | Count |
 | ---------- | ------------------------ | ----- |
-| TS2345     | Argument type mismatch   | ~50   |
-| TS2322     | Type not assignable      | ~20   |
-| TS2769     | No overload matches call | ~5    |
+| TS2322     | Type not assignable      | 43    |
+| TS2345     | Argument type mismatch   | 29    |
+| TS2769     | No overload matches call | 2     |
 | TS2367     | Unintentional comparison | 1     |
 | TS2352     | Type conversion mistake  | 1     |
+| TS2314     | Generic requires args    | 1     |
+| TS18046    | Variable is unknown      | 1     |
 
 ---
 
 ## Summary by Category
 
-| Category | Description                                    | Count | Status     |
-| -------- | ---------------------------------------------- | ----- | ---------- |
-| 1        | NavigationProp<RootParamList> vs ParamListBase | ~15   | 🔴 Pending |
-| 2        | Spread argument issues                         | ~10   | 🔴 Pending |
-| 3        | Route param mismatches (undefined vs params)   | ~10   | 🔴 Pending |
-| 4        | String vs keyof RootParamList                  | ~5    | 🔴 Pending |
-| 5        | Null/undefined type narrowing                  | ~5    | 🔴 Pending |
-| 6        | Screen component type issues                   | ~5    | 🔴 Pending |
-| 7        | Test file mock issues                          | ~10   | 🔴 Pending |
-| 8        | Theme comparison                               | 1     | 🔴 Pending |
+| Category | Description                                    | Count | Status       |
+| -------- | ---------------------------------------------- | ----- | ------------ |
+| 1        | NavigationProp<RootParamList> vs ParamListBase | ~15   | ✅ Completed |
+| 2        | Spread argument issues                         | ~10   | 🔴 Pending   |
+| 3        | Route param mismatches (undefined vs params)   | ~10   | 🔴 Pending   |
+| 4        | String vs keyof RootParamList                  | ~5    | 🔴 Pending   |
+| 5        | Null/undefined type narrowing                  | ~5    | 🔴 Pending   |
+| 6        | Screen component type issues                   | ~40   | 🔴 Pending   |
+| 7        | Test file mock issues                          | ~5    | 🔴 Pending   |
+| 8        | Theme comparison                               | 1     | 🔴 Pending   |
 
 ---
 
-## Category 1: NavigationProp Type Mismatch (TS2345)
+## Category 1: NavigationProp Type Mismatch (TS2345) ✅ COMPLETED
 
 Functions typed with `NavigationProp<ParamListBase>` receiving `NavigationProp<RootParamList>`.
 
-### Files:
+### Fix Applied
 
-1. **app/components/UI/Card/components/AssetSelectionBottomSheet/AssetSelectionBottomSheet.tsx:117**
-2. **app/components/UI/Card/Views/CardHome/CardHome.tsx:179**
-3. **app/components/UI/Earn/Views/EarnInputView/EarnInputView.tsx:630**
-4. **app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.tsx:584**
-5. **app/components/UI/Rewards/components/Tabs/ActivityTab/ActivityEventRow.tsx:103**
-6. **app/components/UI/Rewards/components/Tabs/ActivityTab/EventDetails/ActivityDetailsSheet.test.tsx:322, 366, 403, 442**
+- Helper functions (`useNavigateToCardPage`, `handleTronStakingNavigationResult`, `openActivityDetailsSheet`) now accept `NavigationProp<ParamListBase>`
+- Call sites cast navigation to `ParamListBase` to avoid circular type issues
+- Files fixed:
+  - `app/components/UI/Card/hooks/useNavigateToCardPage.tsx`
+  - `app/components/UI/Card/components/AssetSelectionBottomSheet/AssetSelectionBottomSheet.tsx`
+  - `app/components/UI/Card/Views/CardHome/CardHome.tsx`
+  - `app/components/UI/Earn/utils/tron.ts`
+  - `app/components/UI/Rewards/components/Tabs/ActivityTab/EventDetails/ActivityDetailsSheet.tsx`
 
-### Fix Strategy
+### Original Fix Strategy
 
 **Option A: Use NavigationProp<ParamListBase>** (Pragmatic - User's preference)
 
@@ -249,12 +253,11 @@ if (theme === AppThemeKey.dark) { ... }
 
 ## Recommended Fix Order
 
-1. **Category 3: Route param mismatches** - Update RootParamList (quick fix)
-2. **Category 4: String vs keyof** - Add undefined params where needed
-3. **Category 5: Null narrowing** - Add null checks
-4. **Category 1: NavigationProp type** - Accept ParamListBase in utilities
-5. **Category 2: Spread arguments** - Migrate to direct navigate
-6. **Category 6-8** - Component and test fixes
+1. ~~**Category 1: NavigationProp type** - Accept ParamListBase in utilities~~ ✅
+2. **Category 6: Screen component type issues** - Largest remaining (~40 errors)
+3. **Category 3: Route param mismatches** - Update RootParamList
+4. **Category 2: Spread arguments** - Migrate to direct navigate
+5. **Category 4-5, 7-8** - Misc fixes
 
 ---
 
@@ -262,6 +265,7 @@ if (theme === AppThemeKey.dark) { ... }
 
 ### Completed ✅
 
+- **Category 1** - NavigationProp type mismatches fixed (Jan 15)
 - Category 2 (Ramp/Deposit split functions) - Resolved TS2556 errors
 - Missing routes in RootParamList - Added Predict, Rewards routes
 - Test file fixes - PredictBuyPreview, PredictSellPreview mocks
@@ -270,7 +274,7 @@ if (theme === AppThemeKey.dark) { ... }
 
 ### In Progress 🔄
 
-- Remaining 81 TypeScript errors across all categories
+- Remaining 78 TypeScript errors across categories 2-8
 
 ### Not Started 🔴
 

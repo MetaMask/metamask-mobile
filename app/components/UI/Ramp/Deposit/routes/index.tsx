@@ -52,9 +52,9 @@ const clearStackNavigatorOptions = {
   animation: 'none' as const,
 };
 
-const RootStack = createStackNavigator();
+const RootStack = createStackNavigator<DepositParamList>();
 const Stack = createStackNavigator<DepositParamList>();
-const ModalsStack = createStackNavigator();
+const ModalsStack = createStackNavigator<DepositParamList>();
 
 const getAnimationOptions = ({
   route,

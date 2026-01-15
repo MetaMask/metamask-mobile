@@ -71,7 +71,7 @@ const Stack = createStackNavigator();
 describe('DiscoveryTab', () => {
   it('should render correctly', async () => {
     renderWithProvider(
-      <NavigationContainer independent>
+      <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
             {() => <DiscoveryTab {...mockProps} />}
@@ -92,7 +92,7 @@ describe('DiscoveryTab', () => {
       return 'UrlAutocomplete';
     });
     renderWithProvider(
-      <NavigationContainer independent>
+      <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
             {() => <DiscoveryTab {...mockProps} />}
@@ -130,7 +130,7 @@ describe('DiscoveryTab', () => {
 
     const updateTabInfo = jest.fn();
     renderWithProvider(
-      <NavigationContainer independent>
+      <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
             {() => (
