@@ -97,11 +97,18 @@ export function getInitialNetworkControllerState(persistedState: {
       ChainId['polygon-mainnet']
     ].name = 'Polygon';
 
+    delete initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ];
+    delete initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['zksync-era-mainnet']
+    ];
+
     // Remove Sei from initial state so it appears in Additional Networks section
     // Users can add it manually, and it will be available in FEATURED_RPCS
-    delete initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['sei-mainnet']
-    ];
+    //   delete initialNetworkControllerState.networkConfigurationsByChainId[
+    //     ChainId['sei-mainnet']
+    //   ];
   }
 
   return initialNetworkControllerState;
