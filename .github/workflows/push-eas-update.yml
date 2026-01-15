@@ -303,6 +303,8 @@ jobs:
 
           # Decode the key
           export EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          masked_expo_key_priv=$(printf '%s' "$EXPO_KEY_PRIV" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' -e 's/\n/%0A/g')
+          echo "::add-mask::$masked_expo_key_priv"
           echo "✅ Expo key decoded and exported"
 
           echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
