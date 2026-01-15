@@ -13,7 +13,9 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign/Send TRX'), () => {
     jest.setTimeout(150000);
   });
 
-  it('Should be able to sign a TRX transaction', async () => {
+  // Due to not being able to mock API calls from the snap we cannot sign transactions
+  // because transaction simulation call fails because the account has no balance
+  it.skip('Should be able to sign a TRX transaction', async () => {
     await withTronAccountEnabled({}, async () => {
       await navigateToTronTestDApp();
 
