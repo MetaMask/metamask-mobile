@@ -78,17 +78,18 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
       onStartShouldSetResponder={[Function]}
     >
       <SvgMock
-        color="#121314"
         fill="currentColor"
-        height={24}
         name="ArrowLeft"
         style={
-          {
-            "height": 24,
-            "width": 24,
-          }
+          [
+            {
+              "color": "#121314",
+              "height": 24,
+              "width": 24,
+            },
+            undefined,
+          ]
         }
-        width={24}
       />
     </View>
     <View

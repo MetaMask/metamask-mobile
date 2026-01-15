@@ -1,15 +1,16 @@
 import React, { forwardRef } from 'react';
 import { Linking, Pressable } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { PredictGameAboutSheetProps } from './PredictGameDetailsFooter.types';
 
@@ -29,7 +30,7 @@ const PredictGameAboutSheet = forwardRef<
     <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
       <SheetHeader title={strings('predict.tabs.about')} />
       <Box twClassName="px-4 pb-6 flex-col gap-4">
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
           {description}
         </Text>
 
@@ -38,8 +39,8 @@ const PredictGameAboutSheet = forwardRef<
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Text
-            color={TextColor.Info}
-            variant={TextVariant.BodyMD}
+            color={TextColor.InfoDefault}
+            variant={TextVariant.BodyMd}
             style={tw.style('underline')}
           >
             {strings('predict.game_details_footer.read_terms')}

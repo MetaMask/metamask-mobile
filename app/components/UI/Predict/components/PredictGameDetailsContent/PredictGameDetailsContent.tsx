@@ -12,12 +12,12 @@ import {
   Text,
   TextVariant,
   TextColor,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconColor,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
@@ -66,7 +66,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           <Icon
             name={IconName.ArrowLeft}
             size={IconSize.Lg}
-            color={colors.icon.default}
+            color={IconColor.IconDefault}
           />
         </Pressable>
 

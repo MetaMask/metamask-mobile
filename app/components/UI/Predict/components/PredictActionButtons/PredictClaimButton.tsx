@@ -5,7 +5,6 @@ import {
   Text,
   TextVariant,
   TextColor,
-  ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -36,7 +35,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
 
   return (
     <ButtonHero
-      size={ButtonSizeHero.Lg}
+      size={ButtonSize.Lg}
       onPress={onPress}
       isDisabled={disabled}
       testID={testID}

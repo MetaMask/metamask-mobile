@@ -5,17 +5,14 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
+  ButtonIcon,
+  ButtonIconSize,
   IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { formatVolume } from '../../utils/format';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
@@ -66,15 +63,15 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
           alignItems={BoxAlignItems.Center}
         >
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
             testID={`${testID}-label`}
           >
             {strings('predict.game_details_footer.pick_a_winner')}
           </Text>
           <ButtonIcon
-            size={TooltipSizes.Sm}
-            iconColor={IconColor.Alternative}
+            size={ButtonIconSize.Sm}
+            iconProps={{ color: IconColor.IconAlternative }}
             iconName={IconName.Info}
             onPress={handleInfoPress}
             testID={`${testID}-info-button`}
@@ -82,8 +79,8 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         </Box>
 
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           testID={`${testID}-volume`}
         >
           {strings('predict.game_details_footer.volume_display', {
