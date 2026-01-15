@@ -2,7 +2,7 @@ import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import {
   InteractionManager,
   BackHandler,
@@ -32,7 +32,6 @@ import {
   TRUE,
 } from '../../../constants/storage';
 import { useMetrics } from '../../hooks/useMetrics';
-import { setExistingUser } from '../../../actions/user';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -125,13 +124,6 @@ jest.mock('../../../actions/security', () => ({
   },
 }));
 
-jest.mock('../../../actions/user', () => ({
-  setExistingUser: jest.fn((value) => ({
-    type: 'SET_EXISTING_USER',
-    existingUser: value,
-  })),
-}));
-
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(null),
   setItem: jest.fn(),
@@ -162,6 +154,10 @@ jest.mock('rive-react-native', () => ({
   default: () => null,
   Fit: { Contain: 'contain' },
   Alignment: { Center: 'center' },
+}));
+
+jest.mock('../../UI/ScreenshotDeterrent', () => ({
+  ScreenshotDeterrent: () => null,
 }));
 
 // Mock safe area context
@@ -790,102 +786,6 @@ describe('Login', () => {
 
       // Assert
       expect(passwordInput).toBeOnTheScreen();
-    });
-  });
-
-  describe('Vault Recovery', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('dispatches setExistingUser after successful login from vault recovery', async () => {
-      // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-          isVaultRecovery: true,
-        },
-      });
-
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve('true');
-        return Promise.resolve(null);
-      });
-
-      (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
-        undefined,
-      );
-      (
-        Authentication.componentAuthenticationType as jest.Mock
-      ).mockResolvedValueOnce({
-        currentAuthType: 'password',
-      });
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      // Act
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'validPassword123');
-      });
-
-      await act(async () => {
-        fireEvent.press(loginButton);
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      // Assert
-      expect(setExistingUser).toHaveBeenCalledWith(true);
-    });
-
-    it('does not dispatch setExistingUser when not from vault recovery', async () => {
-      // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-          isVaultRecovery: false,
-        },
-      });
-
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve('true');
-        return Promise.resolve(null);
-      });
-
-      (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
-        undefined,
-      );
-      (
-        Authentication.componentAuthenticationType as jest.Mock
-      ).mockResolvedValueOnce({
-        currentAuthType: 'password',
-      });
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      // Act
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'validPassword123');
-      });
-
-      await act(async () => {
-        fireEvent.press(loginButton);
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      // Assert
-      expect(setExistingUser).not.toHaveBeenCalled();
     });
   });
 

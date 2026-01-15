@@ -38,7 +38,9 @@ jest.mock(
       searchQuery?: string,
       sortBy?: unknown,
       chainIds?: unknown,
-    ) => mockUseTrendingSearch({ searchQuery, sortBy, chainIds }),
+      enableDebounce?: boolean,
+    ) =>
+      mockUseTrendingSearch({ searchQuery, sortBy, chainIds, enableDebounce }),
   }),
 );
 

@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
+import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -20,9 +22,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Mock Redux
+// Mock Redux - default feedback disabled
+const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => false), // isRewardsEnabled
+  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
 // Mock components to prevent complex module initialization chains
@@ -369,6 +372,37 @@ jest.mock(
   },
 );
 jest.mock('../../components/PerpsCard', () => 'PerpsCard');
+jest.mock('../../components/PerpsNavigationCard/PerpsNavigationCard', () => {
+  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: function MockPerpsNavigationCard({
+      items,
+    }: {
+      items: { label: string; onPress: () => void; testID?: string }[];
+    }) {
+      return (
+        <View testID="perps-navigation-card">
+          {items.map(
+            (
+              item: { label: string; onPress: () => void; testID?: string },
+              index: number,
+            ) => (
+              <TouchableOpacity
+                key={index}
+                testID={item.testID}
+                onPress={item.onPress}
+              >
+                <Text>{item.label}</Text>
+              </TouchableOpacity>
+            ),
+          )}
+        </View>
+      );
+    },
+  };
+});
 jest.mock(
   '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets',
   () => 'PerpsWatchlistMarkets',
@@ -742,5 +776,62 @@ describe('PerpsHomeView', () => {
 
     // Assert - Component is rendered, it handles empty state internally
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+  });
+
+  describe('Feedback Feature', () => {
+    beforeEach(() => {
+      jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('does not show feedback button when feature flag is disabled', () => {
+      // Arrange - Feature flag disabled (default)
+      mockUseSelector.mockReturnValue(false);
+
+      // Act
+      const { queryByTestId } = render(<PerpsHomeView />);
+
+      // Assert
+      expect(queryByTestId('perps-home-feedback-button')).toBeNull();
+    });
+
+    it('shows feedback button when feature flag is enabled', () => {
+      // Arrange - Enable feedback feature flag
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsFeedbackEnabledFlag) {
+          return true;
+        }
+        return false;
+      });
+
+      // Act
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      // Assert
+      expect(getByTestId('perps-home-feedback-button')).toBeTruthy();
+    });
+
+    it('opens survey URL in external browser when feedback button is pressed', () => {
+      // Arrange - Enable feedback feature flag
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsFeedbackEnabledFlag) {
+          return true;
+        }
+        return false;
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      // Act
+      fireEvent.press(getByTestId('perps-home-feedback-button'));
+
+      // Assert
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
+      );
+    });
   });
 });

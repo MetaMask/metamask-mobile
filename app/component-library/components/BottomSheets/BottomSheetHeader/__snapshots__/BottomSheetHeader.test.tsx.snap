@@ -8,7 +8,7 @@ exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] =
         "alignItems": "center",
         "flexDirection": "row",
         "gap": 16,
-        "height": 48,
+        "height": 56,
       },
       false,
       {
@@ -119,7 +119,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
         "alignItems": "center",
         "flexDirection": "row",
         "gap": 16,
-        "height": 48,
+        "height": 56,
       },
       false,
       {

@@ -3,9 +3,8 @@ import Browser from '../../../pages/Browser/BrowserView';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import {
@@ -95,7 +94,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
         async () => {
           await loginToApp();
 
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
 
           // cancel request

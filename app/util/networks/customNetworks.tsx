@@ -373,6 +373,7 @@ export const NETWORK_CHAIN_ID: {
   readonly FRAXTAL: '0xfc';
   readonly XDC: '0x32';
   readonly MEGAETH_MAINNET: '0x10e6';
+  readonly MEGAETH_TESTNET_V2: '0x18c7';
   readonly HEMI: '0xa867';
   readonly LUKSO: '0x2a';
   readonly INJECTIVE: '0x6f0';
@@ -380,6 +381,11 @@ export const NETWORK_CHAIN_ID: {
   readonly CRONOS: '0x19';
   readonly HYPE: '0x3e7';
   readonly X_LAYER: '0xc4';
+  readonly ETHERLINK: '0xa729';
+  readonly MSU: '0x10b3e';
+  readonly BOB: '0xed88';
+  readonly ROOTSTOCK: '0x1e';
+  readonly ROOTSTOCK_TESTNET: '0x1f';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -409,6 +415,7 @@ export const NETWORK_CHAIN_ID: {
   FRAXTAL: '0xfc',
   XDC: '0x32',
   MEGAETH_MAINNET: '0x10e6',
+  MEGAETH_TESTNET_V2: '0x18c7',
   HEMI: '0xa867',
   LUKSO: '0x2a',
   INJECTIVE: '0x6f0',
@@ -416,6 +423,11 @@ export const NETWORK_CHAIN_ID: {
   CRONOS: '0x19',
   HYPE: '0x3e7',
   X_LAYER: '0xc4',
+  ETHERLINK: '0xa729',
+  MSU: '0x10b3e',
+  BOB: '0xed88',
+  ROOTSTOCK: '0x1e',
+  ROOTSTOCK_TESTNET: '0x1f',
   ...CHAIN_IDS,
 };
 
@@ -450,7 +462,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
-  [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
+  [NETWORK_CHAIN_ID.MEGAETH_TESTNET_V2]: require('../../images/megaeth-testnet-logo.png'),
   [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
   [NETWORK_CHAIN_ID.LUKSO]: require('../../images/lukso.png'),
   [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),
@@ -458,4 +470,9 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
   [NETWORK_CHAIN_ID.HYPE]: require('../../images/hyperevm.png'),
   [NETWORK_CHAIN_ID.X_LAYER]: require('../../images/x-layer.png'),
+  [NETWORK_CHAIN_ID.ETHERLINK]: require('../../images/etherlink.png'),
+  [NETWORK_CHAIN_ID.MSU]: require('../../images/msu.png'),
+  [NETWORK_CHAIN_ID.BOB]: require('../../images/bob.png'),
+  [NETWORK_CHAIN_ID.ROOTSTOCK]: require('../../images/rootstock.png'),
+  [NETWORK_CHAIN_ID.ROOTSTOCK_TESTNET]: require('../../images/rootstock.png'),
 };

@@ -6,7 +6,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
@@ -100,6 +100,16 @@ const mockUseHasExistingPosition = jest.fn();
 // Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: mockUsePerpsLiveAccount,
+}));
+
+// Mock usePerpsMarketFills to avoid Redux selector issues
+jest.mock('../../hooks/usePerpsMarketFills', () => ({
+  usePerpsMarketFills: jest.fn(() => ({
+    fills: [],
+    isInitialLoading: false,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  })),
 }));
 
 // Navigation mock functions
@@ -259,6 +269,23 @@ jest.mock('../../hooks/usePerpsOrderFills', () => ({
   usePerpsOrderFills: () => mockUsePerpsOrderFillsImpl(),
 }));
 
+// Mock for usePerpsMarkets that can be modified per test
+const mockUsePerpsMarketsImpl = jest.fn<
+  ReturnType<typeof import('../../hooks/usePerpsMarkets').usePerpsMarkets>,
+  []
+>(() => ({
+  markets: [],
+  isLoading: false,
+  error: null,
+  refresh: jest.fn(),
+  isRefreshing: false,
+}));
+
+// Mock the direct import path for usePerpsMarkets
+jest.mock('../../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+}));
+
 const mockRefreshMarketStats = jest.fn();
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
   usePerpsMarketStats: () => ({
@@ -346,13 +373,7 @@ jest.mock('../../hooks', () => ({
     closePosition: jest.fn(),
     isClosing: false,
   })),
-  usePerpsMarkets: jest.fn(() => ({
-    markets: [],
-    isLoading: false,
-    error: null,
-    refresh: jest.fn(),
-    isRefreshing: false,
-  })),
+  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
@@ -409,7 +430,7 @@ jest.mock('../../components/PerpsMarketStatisticsCard', () => {
   const { View, TouchableOpacity } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   const { PerpsMarketDetailsViewSelectorsIDs: SelectorsIDs } =
-    jest.requireActual('../../../../../../e2e/selectors/Perps/Perps.selectors');
+    jest.requireActual('../../Perps.testIds');
 
   return {
     __esModule: true,
@@ -2175,6 +2196,134 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(chart).toBeTruthy();
+    });
+  });
+
+  describe('Market data enrichment', () => {
+    beforeEach(() => {
+      // Reset to default market with maxLeverage
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$45,000.00',
+        change24h: '+$1,125.00',
+        change24hPercent: '+2.50%',
+        volume: '$1.23B',
+        maxLeverage: '40x',
+      };
+    });
+
+    it('uses route market data when maxLeverage is present (no enrichment needed)', () => {
+      // Route has complete market data including maxLeverage
+      mockRouteParams.market = {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '$3,000.00',
+        change24h: '+$50.00',
+        change24hPercent: '+1.50%',
+        volume: '$500M',
+        maxLeverage: '25x',
+      };
+
+      // Mock usePerpsMarkets to return empty (should not be used)
+      mockUsePerpsMarketsImpl.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Should show the route market's leverage badge
+      expect(getByText('25x')).toBeTruthy();
+      expect(getByText('ETH-USD')).toBeTruthy();
+    });
+
+    it('enriches market data from usePerpsMarkets when route has minimal data', async () => {
+      // Route has minimal market data (no maxLeverage)
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+      } as typeof mockRouteParams.market;
+
+      // Mock usePerpsMarkets to return full market with maxLeverage
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$45,000.00',
+            change24h: '+$1,125.00',
+            change24hPercent: '+2.50%',
+            volume: '$1.23B',
+            maxLeverage: '40x',
+            volumeNumber: 1230000000,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Verify the header renders with correct market symbol
+      expect(getByTestId('perps-market-header')).toBeTruthy();
+      expect(getByText('BTC-USD')).toBeTruthy();
+
+      // Should show the enriched market's leverage badge from usePerpsMarkets
+      await waitFor(() => {
+        expect(getByText('40x')).toBeTruthy();
+      });
+    });
+
+    it('gracefully handles when enrichment data is not available', () => {
+      // Route has minimal market data (no maxLeverage)
+      mockRouteParams.market = {
+        symbol: 'UNKNOWN',
+        name: 'Unknown Asset',
+      } as typeof mockRouteParams.market;
+
+      // Mock usePerpsMarkets to return empty (market not found)
+      mockUsePerpsMarketsImpl.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Should show the asset name but no leverage badge (since no maxLeverage available)
+      expect(getByText('UNKNOWN-USD')).toBeTruthy();
+      // No leverage badge should be shown
+      expect(queryByText('40x')).toBeNull();
+      expect(queryByText('25x')).toBeNull();
     });
   });
 });

@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
-import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   createMockInternalAccount,
@@ -519,11 +519,9 @@ describe('AccountActions', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
       {
-        credentialName: 'private_key',
-        shouldUpdateNav: true,
-        selectedAccount: MOCK_ACCOUNT,
+        account: MOCK_ACCOUNT,
       },
     );
   });

@@ -5,7 +5,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
 import ContactForm from '.';
-import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xf55C0d639d99699bFd7EC54d9FAFee40E4d272C4';

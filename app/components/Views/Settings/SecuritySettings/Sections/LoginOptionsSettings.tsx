@@ -15,7 +15,7 @@ import {
 import { ActivityIndicator } from 'react-native';
 import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
 import createStyles from '../SecuritySettings.styles';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
 import {
   Box,
   BoxFlexDirection,
@@ -100,7 +100,7 @@ const LoginOptionsSettings = () => {
           : AUTHENTICATION_TYPE.PASSWORD;
 
         // Enabling biometrics is handled by the catch condition  "isPasswordRequiredError"
-        await Authentication.updateAuthPreference(authType);
+        await Authentication.updateAuthPreference({ authType });
 
         // Only update UI if operation completed successfully
         setBiometryChoice(enabled);
@@ -125,10 +125,10 @@ const LoginOptionsSettings = () => {
               // Set loading back to true when callback is invoked
               setIsBiometricLoading(true);
               try {
-                await Authentication.updateAuthPreference(
+                await Authentication.updateAuthPreference({
                   authType,
-                  enteredPassword,
-                );
+                  password: enteredPassword,
+                });
 
                 // Update UI state after successful password entry and update
                 setBiometryChoice(enabled);
@@ -188,7 +188,7 @@ const LoginOptionsSettings = () => {
           : AUTHENTICATION_TYPE.PASSWORD;
 
         // Enabling passcode is handled by the catch condition  "isPasswordRequiredError"
-        await Authentication.updateAuthPreference(authType);
+        await Authentication.updateAuthPreference({ authType });
 
         // Only update UI if operation completed successfully
         setPasscodeChoice(enabled);
@@ -213,10 +213,10 @@ const LoginOptionsSettings = () => {
               // Set loading back to true when callback is invoked
               setIsPasscodeLoading(true);
               try {
-                await Authentication.updateAuthPreference(
+                await Authentication.updateAuthPreference({
                   authType,
-                  enteredPassword,
-                );
+                  password: enteredPassword,
+                });
 
                 // Update UI state after successful password entry and update
                 setPasscodeChoice(enabled);

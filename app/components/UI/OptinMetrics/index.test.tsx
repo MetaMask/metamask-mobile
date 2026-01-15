@@ -1,10 +1,8 @@
-import OptinMetrics from './';
+import OptinMetrics from './index.tsx';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
 
@@ -14,16 +12,38 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+// Mock analytics module
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => true),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
 
-const mockMetrics = {
-  trackEvent: jest.fn().mockImplementation(() => Promise.resolve()),
-  enable: jest.fn(() => Promise.resolve()),
-  addTraitsToUser: jest.fn(() => Promise.resolve()),
-  isEnabled: jest.fn(() => true),
-};
+// Mock MetaMetrics for events and getInstance
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
+    .MetaMetricsEvents,
+  getInstance: jest.fn(() => ({
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
+  })),
+}));
 
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+// Import analytics to access mocks
+import { analytics } from '../../../util/analytics/analytics';
+
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 jest.mock(
   '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
@@ -122,20 +142,19 @@ describe('OptinMetrics', () => {
         }),
       );
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-          )
-            .addProperties({
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.objectContaining({
               has_marketing_consent: false,
               is_metrics_opted_in: true,
               location: 'onboarding_metametrics',
               updated_after_onboarding: false,
-            })
-            .build(),
+            }),
+          }),
         );
-        expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
+        expect(mockAnalytics.identify).toHaveBeenNthCalledWith(1, {
           chain_id_list: ['eip155:1'],
           deviceProp: 'Device value',
           userProp: 'User value',
@@ -154,20 +173,19 @@ describe('OptinMetrics', () => {
         }),
       );
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-          )
-            .addProperties({
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.objectContaining({
               has_marketing_consent: true,
               is_metrics_opted_in: true,
               location: 'onboarding_metametrics',
               updated_after_onboarding: false,
-            })
-            .build(),
+            }),
+          }),
         );
-        expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
+        expect(mockAnalytics.identify).toHaveBeenNthCalledWith(1, {
           chain_id_list: ['eip155:1'],
           deviceProp: 'Device value',
           userProp: 'User value',
@@ -196,7 +214,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
       });
 
       jest.clearAllMocks();
@@ -206,7 +224,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+        expect(mockAnalytics.optOut).toHaveBeenCalled();
       });
     });
 
@@ -219,7 +237,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
       });
 
       jest.clearAllMocks();
@@ -229,7 +247,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+        expect(mockAnalytics.optOut).toHaveBeenCalled();
       });
     });
 
@@ -239,7 +257,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
       });
     });
 
@@ -254,7 +272,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+        expect(mockAnalytics.optOut).toHaveBeenCalled();
       });
     });
   });
@@ -306,7 +324,7 @@ describe('OptinMetrics', () => {
       );
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: false,
@@ -328,7 +346,7 @@ describe('OptinMetrics', () => {
       );
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: true,
@@ -357,7 +375,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+        expect(mockAnalytics.optOut).toHaveBeenCalled();
       });
     });
   });
@@ -483,7 +501,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalled();
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
       });
     });
 
@@ -498,7 +516,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: false,
@@ -515,7 +533,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: true,
@@ -582,7 +600,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             name: 'Analytics Preference Selected',
           }),
@@ -651,7 +669,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.enable).toHaveBeenCalled();
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
       });
     });
 
@@ -695,7 +713,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: true,
@@ -712,7 +730,7 @@ describe('OptinMetrics', () => {
       fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: false,
@@ -780,7 +798,7 @@ describe('OptinMetrics', () => {
       );
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: true,
@@ -806,7 +824,7 @@ describe('OptinMetrics', () => {
       );
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: expect.objectContaining({
               has_marketing_consent: false,

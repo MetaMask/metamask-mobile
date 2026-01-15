@@ -16,7 +16,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { BuildQuoteSelectors } from '../../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import stylesheet from './AccountSelector.styles';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
@@ -42,6 +42,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       navigation.navigate(
         ...createAccountSelectorNavDetails({
           disablePrivacyMode: true,
+          disableAddAccountButton: true,
           isEvmOnly,
         }),
       ),

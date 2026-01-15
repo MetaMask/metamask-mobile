@@ -2,13 +2,14 @@ import React, { useCallback, useEffect } from 'react';
 import { View, SafeAreaView } from 'react-native';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useParams } from '../../../util/navigation/navUtils';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { getImportTokenNavbarOptions } from '../Navbar';
+import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -29,9 +30,9 @@ import BottomSheetFooter, {
 import { ScrollView } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Box from '../Ramp/Aggregator/components/Box';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Routes from '../../../constants/navigation/Routes';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
@@ -112,11 +113,11 @@ const ConfirmAddAsset = () => {
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
-      getImportTokenNavbarOptions(
-        navigation,
-        strings(`add_asset.${TOKEN_TITLE}`),
-        () => setShowExitModal(true),
-      ),
+      getHeaderCenterNavbarOptions({
+        title: strings(`add_asset.${TOKEN_TITLE}`),
+        onBack: () => setShowExitModal(true),
+        includesTopInset: true,
+      }),
     );
   }, [navigation]);
 
@@ -136,38 +137,40 @@ const ConfirmAddAsset = () => {
       backdropColor={colors.overlay.default}
       backdropOpacity={1}
     >
-      <View
+      <SafeAreaView
         style={styles.box}
         testID={ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL}
       >
         <View style={styles.notch} />
-        <SheetHeader title={strings('wallet.are_you_sure_exit')} />
+        <HeaderCenter
+          title={strings('wallet.are_you_sure_exit')}
+          onClose={() => setShowExitModal(false)}
+        />
 
         <Box style={styles.boxContent}>
-          <Text style={styles.title}>
+          <Text color={TextColor.Alternative}>
             {strings('wallet.search_information_not_saved')}
           </Text>
         </Box>
-        <Box style={styles.boxContent}>
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                onPress: showExitModalFunction,
-                label: strings('confirmation_modal.cancel_cta'),
-                variant: ButtonVariants.Secondary,
-                size: ButtonSize.Lg,
-              },
-              {
-                onPress: goToWalletPage,
-                label: strings('confirmation_modal.confirm_cta'),
-                variant: ButtonVariants.Primary,
-                size: ButtonSize.Lg,
-              },
-            ]}
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-          />
-        </Box>
-      </View>
+        <BottomSheetFooter
+          buttonPropsArray={[
+            {
+              onPress: showExitModalFunction,
+              label: strings('confirmation_modal.cancel_cta'),
+              variant: ButtonVariants.Secondary,
+              size: ButtonSize.Lg,
+            },
+            {
+              onPress: goToWalletPage,
+              label: strings('confirmation_modal.confirm_cta'),
+              variant: ButtonVariants.Primary,
+              size: ButtonSize.Lg,
+            },
+          ]}
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          style={styles.modalFooterContainer}
+        />
+      </SafeAreaView>
     </Modal>
   );
 
@@ -223,29 +226,27 @@ const ConfirmAddAsset = () => {
         ))}
       </ScrollView>
 
-      <View style={styles.bottomContainer}>
-        <BottomSheetFooter
-          buttonPropsArray={[
-            {
-              onPress: showExitModalFunction,
-              label: strings('confirmation_modal.cancel_cta'),
-              variant: ButtonVariants.Secondary,
-              size: ButtonSize.Lg,
+      <BottomSheetFooter
+        buttonPropsArray={[
+          {
+            onPress: showExitModalFunction,
+            label: strings('confirmation_modal.cancel_cta'),
+            variant: ButtonVariants.Secondary,
+            size: ButtonSize.Lg,
+          },
+          {
+            onPress: async () => {
+              await addTokenList();
+              goToWalletPage();
             },
-            {
-              onPress: async () => {
-                await addTokenList();
-                goToWalletPage();
-              },
-              label: strings('swaps.Import'),
-              variant: ButtonVariants.Primary,
-              size: ButtonSize.Lg,
-            },
-          ]}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-          style={styles.button}
-        />
-      </View>
+            label: strings('swaps.Import'),
+            variant: ButtonVariants.Primary,
+            size: ButtonSize.Lg,
+          },
+        ]}
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        style={styles.buttonContainer}
+      />
       {renderImportModal()}
     </SafeAreaView>
   );
