@@ -31,7 +31,7 @@ export function formatCompactUSD(value: number): string {
  * @returns Formatted string (e.g., "$13B cap • $34.2M vol" or "— cap • — vol" for zeros)
  */
 export function formatMarketStats(marketCap: number, volume: number): string {
-  const capStr = marketCap === 0 ? '—' : formatCompactUSD(marketCap);
-  const volStr = volume === 0 ? '—' : formatCompactUSD(volume);
+  const capStr = marketCap === 0 ? '-' : formatCompactUSD(marketCap);
+  const volStr = volume === 0 ? '-' : formatCompactUSD(volume);
   return `${capStr} cap • ${volStr} vol`;
 }

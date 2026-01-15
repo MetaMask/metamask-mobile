@@ -132,12 +132,14 @@ export const formatPrice = (
  * - Uses min 2, max 4 decimal places for regular values
  * @param price - The price value to format (string or number)
  * @returns Formatted price string with $ prefix or "—" for zero
- * @example formatTrendingPrice(1.99) => "$1.99"
- * @example formatTrendingPrice(0.144566) => "$0.1446"
- * @example formatTrendingPrice(0.00000614) => "$0.0₆14"
- * @example formatTrendingPrice(0) => "—"
+ * @example formatPriceWithSubscriptNotation(1.99) => "$1.99"
+ * @example formatPriceWithSubscriptNotation(0.144566) => "$0.1446"
+ * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₆14"
+ * @example formatPriceWithSubscriptNotation(0) => "—"
  */
-export const formatTrendingPrice = (price: string | number): string => {
+export const formatPriceWithSubscriptNotation = (
+  price: string | number,
+): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
 
   if (isNaN(num)) {
