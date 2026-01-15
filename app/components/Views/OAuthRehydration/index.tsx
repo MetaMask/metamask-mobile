@@ -69,7 +69,6 @@ import {
 import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
-import { Authentication } from '../../../core';
 import {
   ParamListBase,
   RouteProp,
@@ -98,6 +97,7 @@ import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
+import { useAuthentication } from '../../../core/Authentication';
 
 const EmptyRecordConstant = {};
 
@@ -119,19 +119,41 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const fieldRef = useRef<TextInput>(null);
 
+  const route =
+    useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
+  const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
+  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
+
   const [password, setPassword] = useState('');
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(
+    isSeedlessPasswordOutdated
+      ? strings('login.seedless_password_outdated')
+      : null,
+  );
+  const [disabledInput, setDisabledInput] = useState(false);
+
+  const { isDeletingInProgress, promptSeedlessRelogin } =
+    usePromptSeedlessRelogin();
+  const netInfo = useNetInfo();
+  const isMountedRef = useRef(true);
+
+  const finalLoading = useMemo(
+    () => loading || isDeletingInProgress,
+    [loading, isDeletingInProgress],
+  );
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route =
-    useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
+
+  const { componentAuthenticationType, unlockWallet } = useAuthentication();
 
   const track = useCallback(
     (
@@ -161,27 +183,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   useEffect(() => {
     updateBiometryChoice(true);
   }, [updateBiometryChoice]);
-
-  const navigateToHome = useCallback(async () => {
-    navigation.replace(Routes.ONBOARDING.HOME_NAV);
-  }, [navigation]);
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [disabledInput, setDisabledInput] = useState(false);
-
-  const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
-  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
-
-  const { isDeletingInProgress, promptSeedlessRelogin } =
-    usePromptSeedlessRelogin();
-  const netInfo = useNetInfo();
-  const isMountedRef = useRef(true);
-
-  const finalLoading = useMemo(
-    () => loading || isDeletingInProgress,
-    [loading, isDeletingInProgress],
-  );
 
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
@@ -459,10 +460,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(true);
 
       // try default with biometric if available and no remember me flag
-      const authType = await Authentication.componentAuthenticationType(
-        biometryChoice,
-        false,
-      );
+      const authType = await componentAuthenticationType(biometryChoice, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = true;
@@ -473,7 +471,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await Authentication.userEntryAuth(password, authType);
+          await unlockWallet({ password, authPreference: authType });
         },
       );
 
@@ -490,8 +488,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       endTrace({ name: TraceName.OnboardingExistingSocialLogin });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      await navigateToHome();
-
       setLoading(false);
       setError(null);
     } catch (loginErr: unknown) {
@@ -504,8 +500,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     rehydrationFailedAttempts,
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
-    navigateToHome,
     track,
+    componentAuthenticationType,
+    unlockWallet,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -519,10 +516,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(true);
 
       // try default with biometric if available and no remember me flag
-      const authType = await Authentication.componentAuthenticationType(
-        biometryChoice,
-        false,
-      );
+      const authType = await componentAuthenticationType(biometryChoice, false);
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
       authType.oauth2Login = false;
@@ -533,10 +527,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await Authentication.userEntryAuth(password, authType);
+          await unlockWallet({ password, authPreference: authType });
         },
       );
-      await navigateToHome();
 
       setLoading(false);
       setError(null);
@@ -548,7 +541,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     biometryChoice,
     finalLoading,
     handleLoginError,
-    navigateToHome,
+    componentAuthenticationType,
+    unlockWallet,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -588,16 +582,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
     }
   }, [route.params?.onboardingTraceCtx]);
-
-  // Handle password outdated state
-  useEffect(() => {
-    if (isSeedlessPasswordOutdated) {
-      setError(strings('login.seedless_password_outdated'));
-      Authentication.resetPassword().catch((e) => {
-        Logger.error(e);
-      });
-    }
-  }, [isSeedlessPasswordOutdated]);
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
