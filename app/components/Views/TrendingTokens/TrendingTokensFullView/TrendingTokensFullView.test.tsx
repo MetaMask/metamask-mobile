@@ -391,11 +391,11 @@ describe('TrendingTokensFullView', () => {
     );
 
     // Open search
-    const searchIcon = getByTestId('search-icon');
-    fireEvent.press(searchIcon);
+    const searchToggle = getByTestId('trending-tokens-header-search-toggle');
+    fireEvent.press(searchToggle);
 
     // Type search query
-    const searchInput = getByTestId('trending-search-input');
+    const searchInput = getByTestId('trending-tokens-header-search-bar');
     fireEvent.changeText(searchInput, 'nonexistenttoken');
 
     expect(getByTestId('empty-search-result-state')).toBeOnTheScreen();
