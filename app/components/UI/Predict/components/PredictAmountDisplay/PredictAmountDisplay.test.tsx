@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
 import PredictAmountDisplay from './PredictAmountDisplay';
 
 jest.mock('../../../../../util/theme', () => ({

@@ -11,17 +11,28 @@ export const selectRampsControllerState = createSelector(
 );
 
 /**
- * Selects the user's geolocation from state.
+ * Selects the user's region from state.
  */
-export const selectGeolocation = createSelector(
+export const selectUserRegion = createSelector(
   selectRampsControllerState,
-  (rampsControllerState) => rampsControllerState?.geolocation ?? null,
+  (rampsControllerState) => rampsControllerState?.userRegion ?? null,
 );
 
 /**
- * Selects the geolocation request state
+ * Selects the user region request state
  */
-export const selectGeolocationRequest = createRequestSelector<
-  RootState,
-  string
->(selectRampsControllerState, 'updateGeolocation', []);
+export const selectUserRegionRequest = createRequestSelector<RootState, string>(
+  selectRampsControllerState,
+  'updateUserRegion',
+  [],
+);
+
+/**
+ * Selects the user's geolocation (alias for userRegion).
+ */
+export const selectGeolocation = selectUserRegion;
+
+/**
+ * Selects the geolocation request state (alias for userRegionRequest).
+ */
+export const selectGeolocationRequest = selectUserRegionRequest;

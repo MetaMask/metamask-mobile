@@ -205,6 +205,7 @@ jest.mock('../BackupVault/backupVault', () => ({
 jest.mock('../Analytics/MetaMetrics', () => {
   const mockInstance = {
     createDataDeletionTask: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
   };
   return {
     __esModule: true,
