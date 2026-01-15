@@ -11,7 +11,6 @@ import { useTheme } from '../../../../../../util/theme';
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { regex } from '../../../../../../util/regex';
-import { SendViewSelectorsIDs } from '../SendView.testIds';
 import { selectInternalEvmAccounts } from '../../../../../../selectors/accountsController';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -200,7 +199,6 @@ const AddressList = ({
               onAccountPress={onAccountPress}
               onIconPress={onIconPress}
               onAccountLongPress={onAccountLongPress}
-              testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
               chainId={chainId}
             />
           )}
@@ -227,7 +225,6 @@ const AddressList = ({
         onIconPress={onIconPress}
         onAccountPress={onAccountPress}
         onAccountLongPress={onAccountLongPress}
-        testID={SendViewSelectorsIDs.ADDRESS_BOOK_ACCOUNT}
         isAmbiguousAddress={addressElement.isAmbiguousAddress}
         chainId={addressElement.chainId as Hex}
         displayNetworkBadge={addressElement.displayNetworkBadge}

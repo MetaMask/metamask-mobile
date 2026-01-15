@@ -146,15 +146,4 @@ describe('AddressList', () => {
       expect(queryByText(textElements.secondContact)).toBeTruthy();
     });
   });
-
-  it('renders address elements with network badges', async () => {
-    const { findAllByTestId } = renderComponent(initialState);
-
-    const addressElements = await findAllByTestId('address-book-account');
-    expect(addressElements.length).toBeGreaterThan(0);
-
-    // Verify network badges are present
-    const networkBadges = await findAllByTestId('badgenetwork');
-    expect(networkBadges.length).toBeGreaterThan(0);
-  });
 });

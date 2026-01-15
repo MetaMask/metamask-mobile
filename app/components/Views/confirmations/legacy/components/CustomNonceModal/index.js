@@ -1,6 +1,6 @@
 import React from 'react';
-import { fontStyles } from '../../../../../../../styles/common';
-import { strings } from '../../../../../../../../locales/i18n';
+import { fontStyles } from '../../../../../../styles/common';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   StyleSheet,
   View,
@@ -9,15 +9,15 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import ModalDragger from '../../../../../../Base/ModalDragger';
-import Text from '../../../../../../Base/Text';
-import StyledButton from '../../../../../../UI/StyledButton';
+import ModalDragger from '../../../../../Base/ModalDragger';
+import Text from '../../../../../Base/Text';
+import StyledButton from '../../../../../UI/StyledButton';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import { useTheme } from '../../../../../../../util/theme';
-import { isNumber } from '../../../../../../../util/number';
+import { useTheme } from '../../../../../../util/theme';
+import { isNumber } from '../../../../../../util/number';
 
 const createStyles = (colors) =>
   StyleSheet.create({
