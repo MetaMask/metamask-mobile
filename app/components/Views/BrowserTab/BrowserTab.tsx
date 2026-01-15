@@ -39,7 +39,6 @@ import {
 } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
@@ -104,7 +103,6 @@ import BrowserUrlBar, {
 import { getMaskedUrl, isENSUrl } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, {
   AutocompleteSearchResult,
@@ -136,8 +134,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     id: tabId,
     isIpfsGatewayEnabled,
     addToWhitelist: triggerAddToWhitelist,
-    isFullscreen,
-    toggleFullscreen,
     showTabs,
     linkType,
     updateTabInfo,
@@ -146,7 +142,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     initialUrl,
     ipfsGateway,
     newTab,
-    homePageUrl,
     activeChainId,
     fromTrending,
     fromPerps,
@@ -160,7 +155,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const [progress, setProgress] = useState(0);
     const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
     const [error, setError] = useState<boolean | WebViewError>(false);
-    const [showOptions, setShowOptions] = useState(false);
     const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>();
     const [showPhishingModal, setShowPhishingModal] = useState(false);
     const [blockedUrl, setBlockedUrl] = useState<string>();
@@ -236,8 +230,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const { faviconURI: favicon } = useFavicon(resolvedUrlRef.current);
-    const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
-      useMetrics();
+    const { isEnabled, getMetaMetricsId } = useMetrics();
     /**
      * Is the current tab the active tab
      */
@@ -283,38 +276,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [isTabActive]);
 
     /**
-     * Toggle the options menu
-     */
-    const toggleOptions = useCallback(() => {
-      dismissTextSelectionIfNeeded();
-      setShowOptions(!showOptions);
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.DAPP_BROWSER_OPTIONS).build(),
-      );
-    }, [
-      dismissTextSelectionIfNeeded,
-      showOptions,
-      trackEvent,
-      createEventBuilder,
-    ]);
-
-    /**
-     * Show the options menu
-     */
-    const toggleOptionsIfNeeded = useCallback(() => {
-      if (showOptions) {
-        toggleOptions();
-      }
-    }, [showOptions, toggleOptions]);
-
-    /**
      * Go back to previous website in history
      */
     const goBack = useCallback(() => {
       if (!backEnabled) return;
 
-      toggleOptionsIfNeeded();
       const { current } = webviewRef;
       if (!current) {
         Logger.log('WebviewRef current is not defined!');
@@ -322,7 +288,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       // Reset error state
       setError(false);
       current?.goBack?.();
-    }, [backEnabled, toggleOptionsIfNeeded]);
+    }, [backEnabled]);
 
     /**
      * Go forward to the next website in history
@@ -330,10 +296,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const goForward = useCallback(async () => {
       if (!forwardEnabled) return;
 
-      toggleOptionsIfNeeded();
       const { current } = webviewRef;
       current?.goForward?.();
-    }, [forwardEnabled, toggleOptionsIfNeeded]);
+    }, [forwardEnabled]);
 
     /**
      * Check if an origin is allowed
@@ -508,12 +473,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const openNewTab = useCallback(
       (newTabUrl?: string) => {
-        toggleOptionsIfNeeded();
         dismissTextSelectionIfNeeded();
         newTab(newTabUrl);
       },
-      [dismissTextSelectionIfNeeded, newTab, toggleOptionsIfNeeded],
+      [dismissTextSelectionIfNeeded, newTab],
     );
+
+    /**
+     * Show the tabs view
+     */
+    const showTabsView = useCallback(() => {
+      dismissTextSelectionIfNeeded();
+      showTabs();
+    }, [dismissTextSelectionIfNeeded, showTabs]);
 
     /**
      * Handle when the drawer (app menu) is opened
@@ -771,9 +743,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 }
               },
             })
-            .catch((error) => {
+            .catch((deeplinkError) => {
               Logger.error(
-                error,
+                deeplinkError,
                 'BrowserTab: Failed to handle internal deeplink in browser',
               );
             });
@@ -1108,36 +1080,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [progress, styles.progressBarWrapper],
     );
 
-    /**
-     * Track new tab event
-     */
-    const trackNewTabEvent = useCallback(() => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
-          .addProperties({
-            option_chosen: 'Browser Options',
-            number_of_tabs: undefined,
-          })
-          .build(),
-      );
-    }, [trackEvent, createEventBuilder]);
-
-    /**
-     * Handle new tab button press
-     */
-    const onNewTabPress = useCallback(() => {
-      openNewTab();
-      trackNewTabEvent();
-    }, [openNewTab, trackNewTabEvent]);
-
-    /**
-     * Show the different tabs
-     */
-    const triggerShowTabs = useCallback(() => {
-      dismissTextSelectionIfNeeded();
-      showTabs();
-    }, [dismissTextSelectionIfNeeded, showTabs]);
-
     const isExternalLink = useMemo(
       () => linkType === EXTERNAL_LINK_TYPE,
       [linkType],
@@ -1213,23 +1155,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [onSubmitEditing]);
 
     /**
-     * Go to home page, reload if already on homepage
-     */
-    const goToHomepage = useCallback(async () => {
-      onSubmitEditing(homePageUrl);
-      toggleOptionsIfNeeded();
-      triggerDappViewedEvent(resolvedUrlRef.current);
-      trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
-    }, [
-      toggleOptionsIfNeeded,
-      triggerDappViewedEvent,
-      trackEvent,
-      createEventBuilder,
-      onSubmitEditing,
-      homePageUrl,
-    ]);
-
-    /**
      * Reload current page
      */
     const reload = useCallback(() => {
@@ -1262,7 +1187,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [onSubmitEditing]);
 
     /**
-     * Render the bottom (navigation/options) bar
+     * Render the bottom navigation bar
      */
     const renderBottomBar = useCallback(
       () =>
@@ -1270,14 +1195,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           <BrowserBottomBar
             canGoBack={backEnabled}
             canGoForward={forwardEnabled}
-            goForward={goForward}
             goBack={goBack}
-            showTabs={triggerShowTabs}
-            showUrlModal={toggleUrlModal}
-            toggleOptions={toggleOptions}
-            goHome={goToHomepage}
-            toggleFullscreen={toggleFullscreen}
-            isFullscreen={isFullscreen}
+            goForward={goForward}
+            reload={reload}
+            openNewTab={openNewTab}
+            activeUrl={resolvedUrlRef.current}
+            getMaskedUrl={getMaskedUrl}
+            title={titleRef.current}
+            sessionENSNames={sessionENSNamesRef.current}
+            favicon={favicon}
+            icon={iconRef.current}
           />
         ) : null,
       [
@@ -1287,12 +1214,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         forwardEnabled,
         goForward,
         goBack,
-        triggerShowTabs,
-        toggleUrlModal,
-        toggleOptions,
-        goToHomepage,
-        toggleFullscreen,
-        isFullscreen,
+        reload,
+        openNewTab,
+        favicon,
       ],
     );
 
@@ -1334,7 +1258,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [],
     );
 
-    const handleBackPress = useCallback(() => {
+    const handleClosePress = useCallback(() => {
       if (fromPerps) {
         // If opened from Perps, navigate back to PerpsHome
         navigation.navigate(Routes.PERPS.ROOT, {
@@ -1343,13 +1267,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       } else if (fromTrending) {
         // If within trending follow the normal back button behavior
         navigation.goBack();
-      } else {
-        // By default go to trending
+      } else if (isAssetsTrendingTokensEnabled) {
+        // If trending is enabled, go to trending view
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
+      } else {
+        // If trending is disabled, go back to wallet home
+        navigation.navigate(Routes.WALLET.HOME);
       }
-    }, [navigation, fromTrending, fromPerps]);
+    }, [navigation, fromTrending, fromPerps, isAssetsTrendingTokensEnabled]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
@@ -1358,8 +1285,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, [hideAutocomplete]);
-
-    const showBackButton = isAssetsTrendingTokensEnabled;
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
@@ -1485,15 +1410,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
             >
-              {showBackButton && (
-                <ButtonIcon
-                  iconName={IconName.ArrowLeft}
-                  size={ButtonIconSize.Lg}
-                  onPress={handleBackPress}
-                  testID="browser-tab-back-button"
-                />
-              )}
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSize.Lg}
+                onPress={handleClosePress}
+                testID="browser-tab-close-button"
+              />
               <Box twClassName="flex-1">
                 <BrowserUrlBar
                   ref={urlBarRef}
@@ -1510,6 +1434,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   showCloseButton={
                     fromTrending && isAssetsTrendingTokensEnabled
                   }
+                  showTabs={showTabsView}
                 />
               </Box>
             </Box>
@@ -1578,20 +1503,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 addToWhitelist={triggerAddToWhitelist}
                 activeUrl={resolvedUrlRef.current}
                 goToUrl={onSubmitEditing}
-              />
-            )}
-            {isTabActive && showOptions && (
-              <Options
-                toggleOptions={toggleOptions}
-                onNewTabPress={onNewTabPress}
-                toggleOptionsIfNeeded={toggleOptionsIfNeeded}
-                activeUrl={resolvedUrlRef.current}
-                getMaskedUrl={getMaskedUrl}
-                title={titleRef}
-                reload={reload}
-                sessionENSNames={sessionENSNamesRef.current}
-                favicon={favicon}
-                icon={iconRef}
               />
             )}
 

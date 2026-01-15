@@ -18,6 +18,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import Device from '../../../util/device';
 import {
   BrowserUrlBarProps,
   BrowserUrlBarRef,
@@ -41,6 +42,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { hasProperty } from '@metamask/utils';
+import TabCountIcon from '../Tabs/TabCountIcon';
 
 const BrowserUrlBar = React.memo(
   forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
@@ -57,6 +59,7 @@ const BrowserUrlBar = React.memo(
         setIsUrlBarFocused,
         isUrlBarFocused,
         showCloseButton,
+        showTabs,
       },
       ref,
     ) => {
@@ -302,6 +305,20 @@ const BrowserUrlBar = React.memo(
               />
             ) : null}
           </View>
+          {!isUrlBarFocused && showTabs && (
+            <TouchableOpacity
+              onPress={showTabs}
+              testID="browser-tabs-button"
+              style={[
+                styles.tabsButton,
+                Device.isAndroid()
+                  ? styles.tabsButtonAndroid
+                  : styles.tabsButtonIOS,
+              ]}
+            >
+              <TabCountIcon style={styles.tabIcon} />
+            </TouchableOpacity>
+          )}
           <View style={styles.rightButton}>{renderRightButton()}</View>
         </View>
       );

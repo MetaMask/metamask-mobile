@@ -21,6 +21,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
+import Browser from '../../../pages/Browser/BrowserView';
 
 describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -108,7 +109,14 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

@@ -35,7 +35,7 @@ import {
   isTestNet,
   isTestNetworkWithFaucet,
 } from '../../../../../../../util/networks';
-import CustomNonceModal from '../../../SendFlow/components/CustomNonceModal';
+import CustomNonceModal from '../../CustomNonceModal';
 import {
   setNonce,
   setProposedNonce,
@@ -46,7 +46,7 @@ import CustomNonce from '../../CustomNonce';
 import Logger from '../../../../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../../../../util/theme';
 import AppConstants from '../../../../../../../core/AppConstants';
-import WarningMessage from '../../../SendFlow/WarningMessage';
+import WarningMessage from '../../WarningMessage';
 import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
