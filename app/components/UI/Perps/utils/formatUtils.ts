@@ -12,7 +12,6 @@ import {
   getIntlNumberFormatter,
   getIntlDateTimeFormatter,
 } from '../../../../util/intl';
-import { strings } from '../../../../../locales/i18n';
 
 /**
  * Price threshold constants for PRICE_RANGES_UNIVERSAL
@@ -1080,7 +1079,7 @@ export const formatDateSection = (timestamp: number): string => {
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear()
   ) {
-    return strings('perps.today');
+    return 'Today';
   }
 
   // Check if it's yesterday
@@ -1089,7 +1088,7 @@ export const formatDateSection = (timestamp: number): string => {
     date.getMonth() === yesterday.getMonth() &&
     date.getFullYear() === yesterday.getFullYear()
   ) {
-    return strings('perps.yesterday');
+    return 'Yesterday';
   }
 
   const month = getIntlDateTimeFormatter('en-US', {

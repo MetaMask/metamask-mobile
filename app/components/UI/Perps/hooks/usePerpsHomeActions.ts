@@ -9,7 +9,7 @@ import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import type { PerpsNavigationParamList } from '../controllers/types';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import {
   PerpsEventValues,

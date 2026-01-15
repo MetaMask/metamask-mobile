@@ -1,4 +1,3 @@
-import { strings } from '../../../../../locales/i18n';
 import { OrderParams, Order } from '../controllers/types';
 import { Position } from '../hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -8,7 +7,7 @@ import { capitalize } from 'lodash';
  * Get the order direction based on the side and position size
  * @param side - The side of the order
  * @param positionSize - The size of the position
- * @returns The order direction
+ * @returns The order direction ('long' or 'short')
  */
 export const getOrderDirection = (
   side: 'buy' | 'sell',
@@ -18,17 +17,15 @@ export const getOrderDirection = (
 
   // No existing position → direction depends only on side
   if (!hasPosition) {
-    return side === 'buy'
-      ? strings('perps.market.long')
-      : strings('perps.market.short');
+    return side === 'buy' ? 'long' : 'short';
   }
 
   // Existing position → infer direction based on position size
   if (positionSize && parseFloat(positionSize) > 0) {
-    return strings('perps.market.long');
+    return 'long';
   }
 
-  return strings('perps.market.short');
+  return 'short';
 };
 
 export const willFlipPosition = (

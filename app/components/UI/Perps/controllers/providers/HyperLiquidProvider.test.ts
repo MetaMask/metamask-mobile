@@ -20,6 +20,7 @@ import {
   OrderParams,
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
@@ -495,7 +496,7 @@ describe('HyperLiquidProvider', () => {
         const route = routes[0];
         expect(route.constraints).toBeDefined();
         expect(route.constraints?.minAmount).toBe('1.01');
-        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.estimatedMinutes).toBe(5);
         expect(route.constraints?.fees).toEqual({
           fixed: 1,
           token: 'USDC',
@@ -512,7 +513,7 @@ describe('HyperLiquidProvider', () => {
         const route = routes[0];
         expect(route.constraints).toBeDefined();
         expect(route.constraints?.minAmount).toBe('1.01');
-        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.estimatedMinutes).toBe(5);
         expect(route.constraints?.fees).toEqual({
           fixed: 1,
           token: 'USDC',
@@ -987,7 +988,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('perps.order.validation.price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       expect(
         mockClientService.getExchangeClient().order,
       ).not.toHaveBeenCalled();
@@ -2195,7 +2196,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('perps.order.validation.price_required');
+      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
     it('should handle missing position in close operation', async () => {
@@ -2504,7 +2505,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.minimum_amount');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should reject close position below minimum value on testnet', async () => {
@@ -2520,7 +2521,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.minimum_amount');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should accept close position at minimum value', async () => {
@@ -2565,7 +2566,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.limit_price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
     });
 
     it('should handle validation when currentPrice is not provided', async () => {
@@ -2915,7 +2916,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.placeOrder(orderParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('perps.order.validation.price_required');
+        expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       });
 
       it('should handle order with custom slippage', async () => {
@@ -4270,7 +4271,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateOrder(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
     it('should fail validation when order value is below minimum', async () => {
@@ -4286,7 +4287,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateOrder(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('perps.order.validation.minimum_amount');
+      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should fail validation when basic params are invalid', async () => {
@@ -4402,7 +4403,7 @@ describe('HyperLiquidProvider', () => {
 
         expect(result.isValid).toBe(false);
         expect(result.error).toBe(
-          'perps.order.validation.leverage_below_position',
+          PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION,
         );
       });
 

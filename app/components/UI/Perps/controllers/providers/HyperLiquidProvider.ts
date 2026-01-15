@@ -1,10 +1,9 @@
 import { CaipAccountId, type Hex } from '@metamask/utils';
 import { createStandaloneInfoClient } from '../../utils/standaloneInfoClient';
 import { v4 as uuidv4 } from 'uuid';
-import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import {
   BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
@@ -71,7 +70,6 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
-import { formatPerpsFiat } from '../../utils/formatUtils';
 import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
@@ -129,7 +127,7 @@ import type {
   TransferBetweenDexsResult,
   UserHistoryItem,
 } from '../types';
-import { PERPS_ERROR_CODES } from '../PerpsController';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type {
   ExtendedAssetMeta,
   ExtendedPerpDex,
@@ -1577,22 +1575,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const supportedAssets = getSupportedPaths({ ...params, isTestnet });
     const bridgeInfo = getBridgeInfo(isTestnet);
 
-    const estimatedTimeString =
-      HYPERLIQUID_WITHDRAWAL_MINUTES > 1
-        ? strings('time.minutes_format_plural', {
-            count: HYPERLIQUID_WITHDRAWAL_MINUTES,
-          })
-        : strings('time.minutes_format', {
-            count: HYPERLIQUID_WITHDRAWAL_MINUTES,
-          });
-
     return supportedAssets.map((assetId) => ({
       assetId,
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
       constraints: {
         minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
-        estimatedTime: estimatedTimeString,
+        estimatedMinutes: HYPERLIQUID_WITHDRAWAL_MINUTES,
         fees: {
           fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
           token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,
@@ -2734,7 +2723,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (size <= 0) {
         return {
           success: false,
-          error: strings('perps.errors.orderValidation.sizePositive'),
+          error: PERPS_ERROR_CODES.ORDER_SIZE_POSITIVE,
         };
       }
 
@@ -2797,9 +2786,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       } else {
         if (!params.newOrder.price) {
-          throw new Error(
-            strings('perps.errors.orderValidation.limitPriceRequired'),
-          );
+          throw new Error(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
         }
         orderPrice = parseFloat(params.newOrder.price);
         formattedSize = formatHyperLiquidSize({
@@ -4938,7 +4925,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           if (!priceForValidation) {
             return {
               isValid: false,
-              error: strings('perps.order.validation.price_required'),
+              error: PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED,
             };
           }
 
@@ -4956,9 +4943,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         if (orderValueUSD < minimumOrderSize) {
           return {
             isValid: false,
-            error: strings('perps.order.validation.minimum_amount', {
-              amount: minimumOrderSize.toString(),
-            }),
+            error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
           };
         }
       }
@@ -4970,10 +4955,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           if (params.leverage < 1 || params.leverage > maxLeverage) {
             return {
               isValid: false,
-              error: strings('perps.order.validation.invalid_leverage', {
-                min: '1',
-                max: maxLeverage.toString(),
-              }),
+              error: PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
             };
           }
         } catch (error) {
@@ -4984,10 +4966,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {
             return {
               isValid: false,
-              error: strings('perps.order.validation.invalid_leverage', {
-                min: '1',
-                max: defaultMaxLeverage.toString(),
-              }),
+              error: PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
             };
           }
         }
@@ -5001,10 +4980,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       ) {
         return {
           isValid: false,
-          error: strings('perps.order.validation.leverage_below_position', {
-            required: params.existingPositionLeverage.toString(),
-            provided: params.leverage.toString(),
-          }),
+          error: PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION,
         };
       }
 
@@ -5019,12 +4995,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           if (orderValue > maxOrderValue) {
             return {
               isValid: false,
-              error: strings('perps.order.validation.max_order_value', {
-                maxValue: formatPerpsFiat(maxOrderValue, {
-                  minimumDecimals: 0,
-                  maximumDecimals: 0,
-                }).replace('$', ''),
-              }),
+              error: PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED,
             };
           }
         } catch (error) {
@@ -5040,7 +5011,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error:
           error instanceof Error
             ? error.message
-            : strings('perps.errors.unknownError'),
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
     }
   }
@@ -5058,7 +5029,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (!params.coin) {
         return {
           isValid: false,
-          error: strings('perps.errors.orderValidation.coinRequired'),
+          error: PERPS_ERROR_CODES.ORDER_COIN_REQUIRED,
         };
       }
 
@@ -5066,7 +5037,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (params.orderType === 'limit' && !params.price) {
         return {
           isValid: false,
-          error: strings('perps.order.validation.limit_price_required'),
+          error: PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED,
         };
       }
 
@@ -5088,9 +5059,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         if (isNaN(closeSize) || closeSize <= 0) {
           return {
             isValid: false,
-            error: strings('perps.order.validation.minimum_amount', {
-              amount: minimumOrderSize.toString(),
-            }),
+            error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
           };
         }
 
@@ -5098,9 +5067,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         if (orderValueUSD !== undefined && orderValueUSD < minimumOrderSize) {
           return {
             isValid: false,
-            error: strings('perps.order.validation.minimum_amount', {
-              amount: minimumOrderSize.toString(),
-            }),
+            error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
           };
         }
 
@@ -5117,7 +5084,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error:
           error instanceof Error
             ? error.message
-            : strings('perps.errors.unknownError'),
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
     }
   }
@@ -5190,14 +5157,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.assetId) {
-        const error = strings(
-          'perps.errors.withdrawValidation.assetIdRequired',
-        );
         DevLogger.log('HyperLiquidProvider: MISSING ASSET ID', {
-          error,
+          error: PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED,
           params,
         });
-        throw new Error(error);
+        throw new Error(PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED);
       }
 
       const assetValidation = validateAssetSupport(
@@ -5250,12 +5214,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
-        const error = strings('perps.errors.withdrawValidation.amountRequired');
         DevLogger.log('HyperLiquidProvider: MISSING AMOUNT', {
-          error,
+          error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED,
           params,
         });
-        throw new Error(error);
+        throw new Error(PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED);
       }
 
       const withdrawAmount = parseFloat(params.amount);
@@ -5618,7 +5581,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error:
           error instanceof Error
             ? error.message
-            : strings('perps.errors.unknownError'),
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
     }
   }

@@ -1,6 +1,6 @@
 import Logger from '../../../../../util/Logger';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import { isTPSLOrder } from '../../constants/orderTypes';
 import {
   trace,

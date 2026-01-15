@@ -13,7 +13,7 @@ import type { CandleData } from '../types/perps-types';
 
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import type { SubscribeCandlesParams } from '../controllers/types';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';

@@ -12,7 +12,6 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
-import { strings } from '../../../../../locales/i18n';
 import { getPerpsDisplaySymbol } from './marketUtils';
 
 /**
@@ -316,11 +315,8 @@ export function transformFillsToTransactions(
     } else if (isAutoDeleveraging) {
       const startPositionNum = Number(fill.startPosition);
       if (Number.isNaN(startPositionNum)) return acc;
-      const directionLabel =
-        Number(fill.startPosition) > 0
-          ? strings('perps.market.long')
-          : strings('perps.market.short');
-      title = `${action} ${directionLabel?.toLowerCase() || ''}`;
+      const directionLabel = Number(fill.startPosition) > 0 ? 'long' : 'short';
+      title = `${action} ${directionLabel}`;
     } else {
       title = `${action} ${part2?.toLowerCase() || ''}`;
     }

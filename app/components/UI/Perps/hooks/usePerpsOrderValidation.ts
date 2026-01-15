@@ -8,6 +8,7 @@ import {
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types/perps-types';
+import { translatePerpsError } from '../utils/translatePerpsError';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
@@ -139,10 +140,11 @@ export function usePerpsOrderValidation(
       // Merge immediate errors with protocol validation results
       const errors: string[] = [...immediateErrors];
       if (!protocolValidation.isValid && protocolValidation.error) {
+        // Translate error codes from provider to user-friendly messages
+        const translatedError = translatePerpsError(protocolValidation.error);
         // Only add protocol error if not already covered by immediate validation
-        const errorStr = protocolValidation.error;
-        if (!errors.some((e) => e.includes(errorStr))) {
-          errors.push(protocolValidation.error);
+        if (!errors.some((e) => e.includes(translatedError))) {
+          errors.push(translatedError);
         }
       }
 
