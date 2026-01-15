@@ -236,7 +236,7 @@ jobs:
       # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
       - name: Upload iOS Source Map
         id: upload-sourcemap
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true'  }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: index.js.map
