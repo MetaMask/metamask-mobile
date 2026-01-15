@@ -2042,6 +2042,7 @@
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
+    "claim_winnings_text": "Claim winnings",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Unable to load",
@@ -2180,6 +2181,11 @@
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
       "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
+    },
+    "game_details_footer": {
+      "pick_a_winner": "Pick a winner",
+      "volume_display": "${{volume}} Vol",
+      "read_terms": "Read the full contract terms and conditions"
     },
     "sports": {
       "halftime": "Halftime",
