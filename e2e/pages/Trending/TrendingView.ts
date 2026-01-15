@@ -4,7 +4,8 @@ import {
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
 } from '../../selectors/Trending/TrendingView.selectors';
-import { PredictMarketListSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
+import TabBarComponent from '../wallet/TabBarComponent';
 
 class TrendingView {
   get searchButton(): DetoxElement {
@@ -65,9 +66,7 @@ class TrendingView {
   }
 
   async tapTrendingTab(): Promise<void> {
-    await Gestures.tap(this.trendingTab, {
-      elemDescription: 'Tap Trending tab',
-    });
+    await TabBarComponent.tapExploreButton();
   }
 
   async tapSearchButton(): Promise<void> {

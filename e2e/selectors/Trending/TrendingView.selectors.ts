@@ -1,4 +1,4 @@
-import { PerpsMarketListViewSelectorsIDs } from '../Perps/Perps.selectors';
+import { PerpsMarketListViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
 export const TrendingViewSelectorsIDs = {
   SEARCH_BUTTON: 'explore-view-search-button',
