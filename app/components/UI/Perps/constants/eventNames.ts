@@ -210,6 +210,7 @@ export const PerpsEventValues = {
     TRADE_ACTION: 'trade_action',
     ADD_FUNDS_ACTION: 'add_funds_action',
     CANCEL_ORDER: 'cancel_order',
+    ASSET_DETAIL_SCREEN: 'asset_detail_screen',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
