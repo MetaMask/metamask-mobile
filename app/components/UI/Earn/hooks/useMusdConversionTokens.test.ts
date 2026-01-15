@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import {
+  selectMusdConversionMinAssetBalanceRequired,
   selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
 } from '../selectors/featureFlags';
@@ -39,6 +40,11 @@ describe('useMusdConversionTokens', () => {
     name: 'USD Coin',
     decimals: 6,
     balance: '1000000',
+    fiat: {
+      balance: 100,
+      currency: 'usd',
+      conversionRate: 1,
+    },
     logo: 'https://example.com/usdc.png',
     isETH: false,
     aggregators: [],
@@ -52,6 +58,11 @@ describe('useMusdConversionTokens', () => {
     name: 'Tether USD',
     decimals: 6,
     balance: '2000000',
+    fiat: {
+      balance: 200,
+      currency: 'usd',
+      conversionRate: 1,
+    },
     logo: 'https://example.com/usdt.png',
     isETH: false,
     aggregators: [],
@@ -65,6 +76,11 @@ describe('useMusdConversionTokens', () => {
     name: 'USD Coin',
     decimals: 6,
     balance: '500000',
+    fiat: {
+      balance: 50,
+      currency: 'usd',
+      conversionRate: 1,
+    },
     logo: 'https://example.com/usdc.png',
     isETH: false,
     aggregators: [],
@@ -78,6 +94,11 @@ describe('useMusdConversionTokens', () => {
     name: 'Dai Stablecoin',
     decimals: 18,
     balance: '3000000',
+    fiat: {
+      balance: 300,
+      currency: 'usd',
+      conversionRate: 1,
+    },
     logo: 'https://example.com/dai.png',
     isETH: false,
     aggregators: [],
@@ -92,6 +113,9 @@ describe('useMusdConversionTokens', () => {
       }
       if (selector === selectMusdConversionPaymentTokensBlocklist) {
         return mockBlocklist;
+      }
+      if (selector === selectMusdConversionMinAssetBalanceRequired) {
+        return 0.01;
       }
       return undefined;
     });
@@ -219,6 +243,85 @@ describe('useMusdConversionTokens', () => {
 
       expect(result.current.tokens).toHaveLength(1);
       expect(result.current.tokens[0]).toEqual(uppercaseUsdcMainnet);
+    });
+
+    it('filters out token when fiat balance is below min threshold', () => {
+      const usdcBelowMin: AssetType = {
+        ...mockUsdcMainnet,
+        fiat: {
+          balance: 0.009,
+          currency: 'usd',
+          conversionRate: 1,
+        },
+      };
+
+      mockUseAccountTokens.mockReturnValue([usdcBelowMin]);
+      mockIsTokenAllowed.mockReturnValue(true);
+
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      expect(result.current.tokens).toEqual([]);
+    });
+
+    it('filters out token when fiat balance is below selector min threshold', () => {
+      const usdcBelowSelectorMin: AssetType = {
+        ...mockUsdcMainnet,
+        fiat: {
+          balance: 0.049,
+          currency: 'usd',
+          conversionRate: 1,
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMusdConversionPaymentTokensAllowlist) {
+          return mockAllowlist;
+        }
+        if (selector === selectMusdConversionPaymentTokensBlocklist) {
+          return mockBlocklist;
+        }
+        if (selector === selectMusdConversionMinAssetBalanceRequired) {
+          return 0.05;
+        }
+        return undefined;
+      });
+      mockUseAccountTokens.mockReturnValue([usdcBelowSelectorMin]);
+      mockIsTokenAllowed.mockReturnValue(true);
+
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      expect(result.current.tokens).toEqual([]);
+    });
+
+    it('includes token when fiat balance equals zero and minimum required balance is zero', () => {
+      const usdcFiatZero: AssetType = {
+        ...mockUsdcMainnet,
+        rawBalance: '0x1',
+        fiat: {
+          balance: 0,
+          currency: 'usd',
+          conversionRate: 1,
+        },
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMusdConversionPaymentTokensAllowlist) {
+          return mockAllowlist;
+        }
+        if (selector === selectMusdConversionPaymentTokensBlocklist) {
+          return mockBlocklist;
+        }
+        if (selector === selectMusdConversionMinAssetBalanceRequired) {
+          return 0;
+        }
+        return undefined;
+      });
+      mockUseAccountTokens.mockReturnValue([usdcFiatZero]);
+      mockIsTokenAllowed.mockReturnValue(true);
+
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      expect(result.current.tokens).toEqual([usdcFiatZero]);
     });
   });
 

@@ -240,6 +240,52 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Determine signing secret name
+        shell: bash
+        env:
+          TARGET: ${{ inputs.channel }}
+        run: |
+          case "$TARGET" in
+            exp)
+              SECRET_NAME="metamask-exp-expo-signer"
+              ;;
+            rc)
+              SECRET_NAME="metamask-rc-expo-signer"
+              ;;
+            production)
+              SECRET_NAME="metamask-prod-expo-signer"
+              ;;
+            *)
+              echo "❌ Unknown target: $TARGET"
+              exit 1
+              ;;
+          esac
+          echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch secret and export as environment variables
+        shell: bash
+        run: |
+          echo "🔐 Fetching secret from Secrets Manager..."
+          secret_json=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "${AWS_SIGNING_CERT_SECRET_NAME}" \
+            --query SecretString \
+            --output text)
+
+          keys=$(echo "$secret_json" | jq -r 'keys[]')
+          for key in $keys; do
+            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
+            echo "::add-mask::$value"
+            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+            echo "✅ Set secret for key: $key"
+          done
+
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
@@ -261,14 +307,23 @@ jobs:
 
       - name: Build & Push EAS Update via build.sh
         env:
-          EXPO_KEY_PRIV: ${{ secrets.EXPO_KEY_PRIV }}
-          # Skip linting during Metro transform in CI (linting already done separately)
           SKIP_TRANSFORM_LINT: 'true'
           # Increase Node heap to avoid OOM during Expo export in CI
           NODE_OPTIONS: '--max_old_space_size=8192'
           # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
           EXPO_NO_LAVAMOAT: '1'
         run: |
+          echo "📦 Configuring EXPO key..."
+          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
+            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
+            exit 1
+          fi
+
+          # Decode the key
+          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          export EXPO_KEY_PRIV
+          echo "✅ Expo key decoded and exported"
+
           echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
           case "${TARGET_CHANNEL}" in
             exp)
