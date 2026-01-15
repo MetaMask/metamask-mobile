@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
+import { useStableArray } from './useStableArray';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
@@ -53,21 +54,18 @@ export const useWithdrawalRequests = (
     'eip155:1',
   )?.address;
 
-  // Get pending withdrawals from controller state and filter by current account
-  const pendingWithdrawals = usePerpsSelector((state) => {
-    const allWithdrawals = state?.withdrawalRequests || [];
-
-    // If no selected address, return empty array (don't show potentially wrong account's data)
-    if (!selectedAddress) {
-      return [];
-    }
-
-    // Filter by current account, normalizing addresses for comparison
-    return allWithdrawals.filter(
-      (req) =>
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
-    );
-  });
+  // Get pending withdrawals from controller state, filtered by current account
+  // useStableArray ensures we only get a new reference when the actual data changes
+  const pendingWithdrawals = useStableArray(
+    usePerpsSelector((state) => {
+      const allWithdrawals = state?.withdrawalRequests || [];
+      if (!selectedAddress) return [];
+      return allWithdrawals.filter(
+        (req) =>
+          req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
+      );
+    }),
+  );
 
   // Track previous withdrawal states to detect meaningful changes
   const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
