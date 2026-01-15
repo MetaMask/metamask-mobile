@@ -23,6 +23,11 @@ interface TestState {
           timestamp: number;
           txHash?: string;
         }[];
+        withdrawalProgress?: {
+          progress: number;
+          lastUpdated: number;
+          activeWithdrawalId: string | null;
+        };
         activeProvider?: string;
         isTestnet?: boolean;
         [key: string]: unknown;
@@ -493,6 +498,82 @@ describe('Migration 112: Clear stuck pending withdrawal requests from PerpsContr
     expect(result.engine.backgroundState.OtherController).toEqual({
       shouldStayUntouched: true,
     });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('resets withdrawalProgress when removing pending withdrawals', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+            ],
+            withdrawalProgress: {
+              progress: 50,
+              lastUpdated: 1234567800,
+              activeWithdrawalId: 'withdrawal-1',
+            },
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalProgress
+        ?.progress,
+    ).toBe(0);
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalProgress
+        ?.activeWithdrawalId,
+    ).toBeNull();
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalProgress
+        ?.lastUpdated,
+    ).toBeGreaterThan(0);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('leaves withdrawalProgress unchanged if not present', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            withdrawalRequests: [
+              {
+                id: 'withdrawal-1',
+                status: 'pending',
+                amount: '100',
+                asset: 'USDC',
+                accountAddress: '0x123',
+                timestamp: 1234567890,
+              },
+            ],
+            activeProvider: 'hyperliquid',
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const result = migrate(state) as TestState;
+
+    expect(
+      result.engine.backgroundState.PerpsController?.withdrawalProgress,
+    ).toBeUndefined();
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 

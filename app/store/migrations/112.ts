@@ -48,6 +48,15 @@ const migration = (state: unknown): unknown => {
         return status !== 'pending' && status !== 'bridging';
       });
 
+    // Reset withdrawal progress to prevent stale references to removed withdrawals
+    if (hasProperty(perpsController, 'withdrawalProgress')) {
+      perpsController.withdrawalProgress = {
+        progress: 0,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: null,
+      };
+    }
+
     return state;
   } catch (error) {
     captureException(
