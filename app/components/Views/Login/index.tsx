@@ -55,7 +55,7 @@ import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
@@ -103,6 +103,7 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -593,6 +594,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
           </TouchableOpacity>
         )}
+        <ScreenshotDeterrent enabled isSRP={false} />
       </SafeAreaView>
     </ErrorBoundary>
   );

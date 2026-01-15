@@ -1,12 +1,12 @@
 import { RegressionConfirmations } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import Assertions from '../../framework/Assertions';
 import {
   buildPermissions,
@@ -67,7 +67,7 @@ describe(RegressionConfirmations('ERC721 tokens'), () => {
           await contractRegistry?.getContractAddress(NFT_CONTRACT);
         await loginToApp();
         // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: nftsAddress,
         });

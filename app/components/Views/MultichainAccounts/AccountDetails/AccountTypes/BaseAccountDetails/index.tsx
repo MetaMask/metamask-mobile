@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
 import Text, {
@@ -27,19 +26,14 @@ import Avatar, {
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import HeaderBase from '../../../../../../component-library/components/HeaderBase';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { useSelector } from 'react-redux';
 import {
   selectWalletByAccount,
   selectAccountToGroupMap,
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
-
-export const createEditAccountNameNavigationDetails = createNavigationDetails<{
-  accountGroup: AccountGroupObject;
-}>(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME);
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -65,14 +59,15 @@ export const BaseAccountDetails = ({
 
   const handleEditAccountName = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
-      // Use multichain edit account name for account groups (same as MultichainAccountActions)
+      // Use multichain edit account name for account groups
+      // Navigate to account group details with nested screen
       const accountGroup = accountToGroupMap[account.id];
       if (accountGroup) {
-        navigation.navigate(
-          ...createEditAccountNameNavigationDetails({
-            accountGroup,
-          }),
-        );
+        navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS, {
+          accountGroup,
+          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+          params: { accountGroup },
+        });
       }
     } else {
       // Use legacy edit account name for individual accounts

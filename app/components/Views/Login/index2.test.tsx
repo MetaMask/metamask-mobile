@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import Login from './index';
 import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';
@@ -127,6 +127,10 @@ const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
 jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
   isMultichainAccountsState2Enabled: () =>
     mockIsMultichainAccountsState2Enabled(),
+}));
+
+jest.mock('../../UI/ScreenshotDeterrent', () => ({
+  ScreenshotDeterrent: () => null,
 }));
 
 describe('Login test suite 2', () => {

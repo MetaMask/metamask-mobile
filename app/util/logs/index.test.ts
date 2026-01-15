@@ -12,7 +12,6 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import { merge } from 'lodash';
-import MetaMetrics from '../../core/Analytics/MetaMetrics';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
@@ -55,7 +54,34 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/Analytics/MetaMetrics');
+// Mock analytics module
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
+// Mock MetaMetrics for any remaining methods
+const mockIsEnabled = jest.fn(() => true);
+jest.mock('../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => ({
+    isEnabled: mockIsEnabled,
+    getMetaMetricsId: jest.fn(() => Promise.resolve('test-metametrics-id')),
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
+  }),
+}));
 
 jest.mock(
   '../../core/Engine/controllers/remote-feature-flag-controller/utils',
@@ -64,15 +90,6 @@ jest.mock(
     getFeatureFlagAppDistribution: jest.fn(() => 'Main'),
   }),
 );
-
-const mockMetrics = {
-  isEnabled: jest.fn(() => true),
-  getMetaMetricsId: jest.fn(() =>
-    Promise.resolve('6D796265-7374-4953-6D65-74616D61736B'),
-  ),
-};
-
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 describe('logs :: generateStateLogs', () => {
   beforeEach(() => {
@@ -896,7 +913,7 @@ describe('logs :: downloadStateLogs', () => {
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
-    (mockMetrics.isEnabled as jest.Mock).mockReturnValue(false);
+    mockIsEnabled.mockReturnValue(false);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {

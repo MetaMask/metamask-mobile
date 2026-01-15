@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EditAccountNameSelectorIDs } from '../../selectors/wallet/EditAccountName.selectors';
+import { EditAccountNameSelectorIDs } from '../../../app/components/Views/EditAccountName/EditAccountName.testIds';
 
 class EditAccountNameView {
   get saveButton(): DetoxElement {

@@ -24,7 +24,7 @@ import {
 } from '../../../../../../util/confirmation/signatureUtils';
 import { isExternalHardwareAccount } from '../../../../../../util/address';
 import createExternalSignModelNav from '../../../../../../util/hardwareWallet/signatureUtils';
-import { SigningBottomSheetSelectorsIDs } from '../../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../SigningBottomSheet.testIds';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectProviderTypeByChainId } from '../../../../../../selectors/networkController';
 import { selectSignatureRequestById } from '../../../../../../selectors/signatureController';

@@ -44,7 +44,7 @@ const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding
 const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 import Character from '../../../../../images/character_3x.png';
-import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -476,6 +476,14 @@ const PerpsTutorialCarousel: React.FC = () => {
       {/* Footer */}
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={buttonLabel}
+            onPress={handleContinue}
+            size={ButtonSize.Lg}
+            testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
+            style={styles.continueButton}
+          />
           {isLastScreen && (
             <Button
               variant={ButtonVariants.Secondary}
@@ -486,14 +494,6 @@ const PerpsTutorialCarousel: React.FC = () => {
               testID={PerpsTutorialSelectorsIDs.LEARN_MORE_BUTTON}
             />
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
-            onPress={handleContinue}
-            size={ButtonSize.Lg}
-            testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
-            style={styles.continueButton}
-          />
           {!isLastScreen && (
             <View style={styles.skipButton}>
               <TouchableOpacity
