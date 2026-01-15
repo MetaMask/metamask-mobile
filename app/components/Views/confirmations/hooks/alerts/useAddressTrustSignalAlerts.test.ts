@@ -6,21 +6,27 @@ import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useIsRevokeOperation } from '../useIsRevokeOperation';
+import { useApproveTransactionData } from '../useApproveTransactionData';
+import { useSignatureRequest } from '../signatures/useSignatureRequest';
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
 
-jest.mock('../useIsRevokeOperation', () => ({
-  useIsRevokeOperation: jest.fn(),
+jest.mock('../useApproveTransactionData', () => ({
+  useApproveTransactionData: jest.fn(),
+}));
+
+jest.mock('../signatures/useSignatureRequest', () => ({
+  useSignatureRequest: jest.fn(),
 }));
 
 describe('useAddressTrustSignalAlerts', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const mockUseIsRevokeOperation = jest.mocked(useIsRevokeOperation);
+  const mockUseApproveTransactionData = jest.mocked(useApproveTransactionData);
+  const mockUseSignatureRequest = jest.mocked(useSignatureRequest);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,10 +36,11 @@ describe('useAddressTrustSignalAlerts', () => {
       },
       chainId: '0x1',
     } as unknown as TransactionMeta);
-    mockUseIsRevokeOperation.mockReturnValue({
+    mockUseApproveTransactionData.mockReturnValue({
       isRevoke: false,
       isLoading: false,
     });
+    mockUseSignatureRequest.mockReturnValue(undefined);
   });
 
   it('returns a malicious alert if the address scan result is Malicious', () => {
@@ -238,8 +245,8 @@ describe('useAddressTrustSignalAlerts', () => {
   });
 
   describe('revoke operations', () => {
-    it('returns no alerts for revoke operations with malicious address', () => {
-      mockUseIsRevokeOperation.mockReturnValue({
+    it('returns no alerts for transaction revoke operations with malicious address', () => {
+      mockUseApproveTransactionData.mockReturnValue({
         isRevoke: true,
         isLoading: false,
       });
@@ -269,8 +276,8 @@ describe('useAddressTrustSignalAlerts', () => {
       expect(result.current).toEqual([]);
     });
 
-    it('returns no alerts for revoke operations with warning address', () => {
-      mockUseIsRevokeOperation.mockReturnValue({
+    it('returns no alerts for transaction revoke operations with warning address', () => {
+      mockUseApproveTransactionData.mockReturnValue({
         isRevoke: true,
         isLoading: false,
       });
@@ -301,7 +308,7 @@ describe('useAddressTrustSignalAlerts', () => {
     });
 
     it('returns alerts for non-revoke operations', () => {
-      mockUseIsRevokeOperation.mockReturnValue({
+      mockUseApproveTransactionData.mockReturnValue({
         isRevoke: false,
         isLoading: false,
       });
@@ -333,7 +340,7 @@ describe('useAddressTrustSignalAlerts', () => {
     });
 
     it('returns no alerts while revoke detection is loading', () => {
-      mockUseIsRevokeOperation.mockReturnValue({
+      mockUseApproveTransactionData.mockReturnValue({
         isRevoke: false,
         isLoading: true,
       });
