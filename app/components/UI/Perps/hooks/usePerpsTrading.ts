@@ -9,6 +9,7 @@ import type {
   FeeCalculationResult,
   FlipPositionParams,
   GetAccountStateParams,
+  GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetFundingParams,
@@ -61,7 +62,7 @@ export function usePerpsTrading() {
   );
 
   const getMarkets = useCallback(
-    async (params?: { symbols?: string[] }): Promise<MarketInfo[]> => {
+    async (params?: GetMarketsParams): Promise<MarketInfo[]> => {
       const controller = Engine.context.PerpsController;
       return controller.getMarkets(params);
     },

@@ -30,8 +30,6 @@ import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
-import SendLegacy from '../../Views/confirmations/legacy/Send';
-import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -46,8 +44,6 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Amount from '../../Views/confirmations/legacy/SendFlow/Amount';
-import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
@@ -79,7 +75,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectBrowserFullscreen } from '../../../selectors/browser';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
@@ -121,13 +116,12 @@ import SampleFeature from '../../../features/SampleFeature/components/views/Samp
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
-import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
-import MetalCardClaimBottomSheet from '../../UI/Rewards/components/MetalCardClaimBottomSheet/MetalCardClaimBottomSheet';
+import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import {
@@ -281,8 +275,8 @@ const RewardsHome = () => (
       component={ReferralBottomSheetModal}
     />
     <Stack.Screen
-      name={Routes.MODAL.REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET}
-      component={MetalCardClaimBottomSheet}
+      name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+      component={EndOfSeasonClaimBottomSheet}
     />
   </Stack.Navigator>
 );
@@ -581,8 +575,6 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
-  const isBrowserFullscreen = useSelector(selectBrowserFullscreen);
-
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -693,13 +685,13 @@ const HomeTabs = () => {
       return null;
     }
 
-    // Hide tab bar when browser is in fullscreen mode
+    // Hide tab bar when in browser
     const currentStackRouteName =
       currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
     const isInBrowser =
       currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
       currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
-    if (isBrowserFullscreen && isInBrowser) {
+    if (isInBrowser) {
       return null;
     }
 
@@ -784,16 +776,6 @@ const Webview = () => (
   </Stack.Navigator>
 );
 
-const SendView = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="Send"
-      component={SendLegacy}
-      options={SendLegacy.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NftDetailsModeView = (props) => (
   <Stack.Navigator>
@@ -816,30 +798,6 @@ const NftDetailsFullImageModeView = (props) => (
       initialParams={{
         collectible: props.route.params?.collectible,
       }}
-    />
-  </Stack.Navigator>
-);
-
-const SendFlowView = () => (
-  <Stack.Navigator headerMode="screen">
-    <Stack.Screen
-      name="SendTo"
-      component={SendTo}
-      options={SendTo.navigationOptions}
-    />
-    <Stack.Screen
-      name="Amount"
-      component={Amount}
-      options={Amount.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SEND_FLOW.CONFIRM}
-      component={Confirm}
-      options={Confirm.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-      component={RedesignedConfirm}
     />
   </Stack.Navigator>
 );
@@ -969,9 +927,6 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
-  const { enabled: isSendRedesignEnabled } = useSelector(
-    selectSendRedesignFlags,
-  );
 
   return (
     <Stack.Navigator
@@ -1092,17 +1047,9 @@ const MainNavigator = () => {
       />
 
       <Stack.Screen name="Webview" component={Webview} />
-      <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
         name="Send"
         component={Send}
-        //Disabling swipe down on IOS
-        options={{ gestureEnabled: false }}
-      />
-      <Stack.Screen
-        name="SendFlowView"
-        component={isSendRedesignEnabled ? Send : SendFlowView}
-        //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

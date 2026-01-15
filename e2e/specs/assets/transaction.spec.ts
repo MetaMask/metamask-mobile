@@ -1,7 +1,6 @@
 import TestHelpers from '../../helpers';
 import { RegressionAssets } from '../../tags';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
+import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -72,11 +71,9 @@ describe(RegressionAssets('Transaction'), () => {
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
 
-        await SendView.inputAddress(RECIPIENT);
-        await SendView.tapNextButton();
-
-        await AmountView.typeInTransactionAmount(AMOUNT);
-        await AmountView.tapNextButton();
+        await RedesignedSendView.inputRecipientAddress(RECIPIENT);
+        await RedesignedSendView.typeInTransactionAmount(AMOUNT);
+        await RedesignedSendView.pressReviewButton();
 
         await TransactionConfirmationView.tapConfirmButton();
         await Assertions.expectElementToBeVisible(ToastModal.notificationTitle);
