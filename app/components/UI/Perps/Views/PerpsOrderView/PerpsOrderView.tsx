@@ -404,7 +404,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       const balanceNumber = Number.parseFloat(
         fullBalance === '.' ? '0' : fullBalance || '0',
       );
-      const partialBalance = (balanceNumber / 10).toString();
+      const partialBalance = (balanceNumber / 5).toString();
 
       // Normalize source amount to minimal units (half of balance)
       const normalizedSourceAmount = selectedToken.decimals
@@ -431,15 +431,48 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         context,
       );
 
-      // Wait a bit for quote to be fetched
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Poll for quote with retries (max 15 seconds)
+      // Wait a bit initially for quote to start fetching
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Get the quote from Redux state
-      const bestQuote = quotes?.recommendedQuote;
+      let bestQuote = quotes?.recommendedQuote;
+      const maxRetries = 28; // 28 retries * 500ms = 14 seconds + 1s initial = 15 seconds max
+      let retries = 0;
+
+      // Keep checking quotes from Redux state by re-reading from store
+      const getQuotesFromStore = () => {
+        try {
+          // Access the store through Engine if available
+          const state = (Engine as any).store?.getState?.();
+          if (state) {
+            return selectBridgeQuotes(state);
+          }
+        } catch {
+          // Fallback to quotes from useSelector
+        }
+        return quotes;
+      };
+
+      while (!bestQuote && retries < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const currentQuotes = getQuotesFromStore();
+        bestQuote = currentQuotes?.recommendedQuote;
+        retries++;
+      }
+
+      // Final check - quotes should be available by now
+      // If still not available, try one more time after a longer wait
+      if (!bestQuote) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const finalQuotes = getQuotesFromStore();
+        bestQuote = finalQuotes?.recommendedQuote;
+      }
 
       if (!bestQuote) {
-        Alert.alert('Error', 'No quote available', [{ text: 'OK' }]);
-        // TODO: Show error toast - no quote available
+        Alert.alert('Error', 'No quote available after waiting', [
+          { text: 'OK' },
+        ]);
+        toastRef?.current?.closeToast();
         return;
       }
 
@@ -1356,7 +1389,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               style={[
                 styles.detailItem,
                 // Position based on what's below
-                hideTPSL ? styles.detailItemLast : styles.detailItemMiddle,
+                styles.detailItemMiddle,
               ]}
             >
               <Button
@@ -1367,6 +1400,28 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onPress={handleSwapPress}
                 disabled={!selectedToken}
                 testID="perps-order-swap-button"
+              />
+            </View>
+
+            {/* DEPOSIT Button */}
+            <View
+              style={[
+                styles.detailItem,
+                // Position based on what's below
+                hideTPSL ? styles.detailItemLast : styles.detailItemMiddle,
+              ]}
+            >
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                width={ButtonWidthTypes.Full}
+                label="DEPOSIT"
+                onPress={() => {
+                  // TODO: Implement deposit functionality
+                  Alert.alert('Deposit', 'Deposit functionality coming soon');
+                }}
+                disabled={!selectedToken}
+                testID="perps-order-deposit-button"
               />
             </View>
 
