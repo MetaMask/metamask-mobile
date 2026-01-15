@@ -7236,7 +7236,7 @@
       "redeem_failure_title": "Redeem failed",
       "redeem_failure_description": "Please try again later.",
       "redeem_your_reward": "Redeem your reward",
-      "select_account_description": "Select the wallet where you'd like this reward sent. Tokens will be distributed within two weeks."
+      "select_account_description": "Select the account where you'd like this reward sent. Tokens will be distributed within two weeks."
     },
     "animation": {
       "could_not_load": "Couldn't load"
