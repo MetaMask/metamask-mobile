@@ -98,6 +98,7 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import { useAuthentication } from '../../../core/Authentication';
+import { containsErrorMessage } from '../../../util/errorHandling';
 
 const EmptyRecordConstant = {};
 
@@ -371,9 +372,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, []);
 
   const handleLoginError = useCallback(
-    async (loginErr: unknown) => {
-      const loginError = loginErr as Error;
-      const loginErrorMessage = loginError.toString();
+    async (loginError: Error) => {
+      const loginErrorMessage = loginError.message || loginError.toString();
 
       if (route.params?.onboardingTraceCtx) {
         trace({
@@ -391,9 +391,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       const isWrongPasswordError =
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2);
+        containsErrorMessage(loginError, WRONG_PASSWORD_ERROR) ||
+        containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
+        containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
       if (isWrongPasswordError && isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
@@ -403,19 +403,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         });
       }
 
-      const isPasswordError =
-        isWrongPasswordError ||
-        loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
-
-      if (isPasswordError) {
+      if (isWrongPasswordError) {
         handlePasswordError(loginErrorMessage);
         return;
-      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      } else if (containsErrorMessage(loginError, PASSCODE_NOT_SET_ERROR)) {
         Alert.alert(
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
         );
-      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      } else if (containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID)) {
         updateBiometryChoice(false);
       } else {
         setError(loginErrorMessage);
@@ -430,7 +426,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       setLoading(false);
-      Logger.error(loginErr as Error, 'Failed to rehydrate');
+      Logger.error(loginError, 'Failed to rehydrate');
     },
     [
       rehydrationFailedAttempts,
