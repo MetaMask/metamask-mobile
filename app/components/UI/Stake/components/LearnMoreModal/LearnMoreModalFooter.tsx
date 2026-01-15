@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, TextStyle, View, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -9,7 +9,10 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
@@ -20,7 +23,7 @@ interface LearnMoreModalFooterProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const LearnMoreModalFooter = ({
+export const LearnMoreModalFooter = ({
   onClose,
   learnMoreUrl,
   style,
@@ -73,4 +76,51 @@ const LearnMoreModalFooter = ({
   );
 };
 
-export default LearnMoreModalFooter;
+export interface StakingInfoStrings {
+  stakeAnyAmount: string;
+  noMinimumRequired: string;
+  earnRewards: string;
+  earnRewardsDescription: string;
+  flexibleUnstaking: string;
+  flexibleUnstakingDescription: string;
+  disclaimer: string;
+}
+
+interface StakingInfoBodyTextProps {
+  strings: StakingInfoStrings;
+  styles: {
+    bodyTextContainer: ViewStyle;
+    italicText: TextStyle;
+  };
+}
+
+export const StakingInfoBodyText = ({
+  strings: textStrings,
+  styles,
+}: StakingInfoBodyTextProps) => (
+  <View style={styles.bodyTextContainer}>
+    <Text variant={TextVariant.BodyMDMedium}>
+      {textStrings.stakeAnyAmount}{' '}
+      <Text color={TextColor.Alternative}>{textStrings.noMinimumRequired}</Text>
+    </Text>
+    <Text variant={TextVariant.BodyMDMedium}>
+      {textStrings.earnRewards}{' '}
+      <Text color={TextColor.Alternative}>
+        {textStrings.earnRewardsDescription}
+      </Text>
+    </Text>
+    <Text variant={TextVariant.BodyMDMedium}>
+      {textStrings.flexibleUnstaking}{' '}
+      <Text color={TextColor.Alternative}>
+        {textStrings.flexibleUnstakingDescription}
+      </Text>
+    </Text>
+    <Text
+      variant={TextVariant.BodySM}
+      color={TextColor.Alternative}
+      style={styles.italicText}
+    >
+      {textStrings.disclaimer}
+    </Text>
+  </View>
+);

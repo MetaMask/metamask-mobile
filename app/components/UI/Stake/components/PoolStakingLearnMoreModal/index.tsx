@@ -3,10 +3,9 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
@@ -31,7 +30,11 @@ import { Hex } from 'viem/_types/types/misc';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { LearnMoreModalFooter } from '../LearnMoreModal';
+import {
+  LearnMoreModalFooter,
+  StakingInfoBodyText,
+  StakingInfoStrings,
+} from '../LearnMoreModal';
 
 interface PoolStakingLearnMoreModalRouteParams {
   chainId: Hex;
@@ -41,40 +44,6 @@ type PoolStakingLearnMoreModalRouteProp = RouteProp<
   { params: PoolStakingLearnMoreModalRouteParams },
   'params'
 >;
-
-const BodyText = () => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View style={styles.bodyTextContainer}>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.stake_any_amount_of_eth')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.no_minimum_required')}
-        </Text>
-      </Text>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.earn_eth_rewards')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.earn_eth_rewards_description')}
-        </Text>
-      </Text>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.flexible_unstaking')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.flexible_unstaking_description')}
-        </Text>
-      </Text>
-      <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
-        style={styles.italicText}
-      >
-        {strings('stake.disclaimer')}
-      </Text>
-    </View>
-  );
-};
 
 const PoolStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -138,6 +107,21 @@ const PoolStakingLearnMoreModal = () => {
     );
   };
 
+  const bodyTextStrings: StakingInfoStrings = useMemo(
+    () => ({
+      stakeAnyAmount: strings('stake.stake_any_amount_of_eth'),
+      noMinimumRequired: strings('stake.no_minimum_required'),
+      earnRewards: strings('stake.earn_eth_rewards'),
+      earnRewardsDescription: strings('stake.earn_eth_rewards_description'),
+      flexibleUnstaking: strings('stake.flexible_unstaking'),
+      flexibleUnstakingDescription: strings(
+        'stake.flexible_unstaking_description',
+      ),
+      disclaimer: strings('stake.disclaimer'),
+    }),
+    [],
+  );
+
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <ScrollView bounces={false}>
@@ -176,7 +160,7 @@ const PoolStakingLearnMoreModal = () => {
             isLoading={isLoadingVaultApyAverages || isLoadingVaultApys}
           />
         )}
-        <BodyText />
+        <StakingInfoBodyText strings={bodyTextStrings} styles={styles} />
       </ScrollView>
       <LearnMoreModalFooter
         onClose={handleClose}

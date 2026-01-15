@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -14,44 +14,14 @@ import { endTrace, trace, TraceName } from '../../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../constants/experiences';
 import useTronStakeApy from '../../../hooks/useTronStakeApy';
 import styleSheet from './TronStakingLearnMoreModal.styles';
-import { LearnMoreModalFooter } from '../../../../Stake/components/LearnMoreModal';
+import {
+  LearnMoreModalFooter,
+  StakingInfoBodyText,
+  StakingInfoStrings,
+} from '../../../../Stake/components/LearnMoreModal';
 
 const TRON_STAKING_FAQ_URL =
   'https://support.metamask.io/metamask-portfolio/move-crypto/stake/';
-
-const BodyText = () => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View style={styles.bodyTextContainer}>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.trx_learn_more.stake_any_amount')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.no_minimum_required')}
-        </Text>
-      </Text>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.trx_learn_more.earn_trx_rewards')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.trx_learn_more.earn_trx_rewards_description')}
-        </Text>
-      </Text>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.flexible_unstaking')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.trx_learn_more.flexible_unstaking_description')}
-        </Text>
-      </Text>
-      <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
-        style={styles.italicText}
-      >
-        {strings('stake.disclaimer')}
-      </Text>
-    </View>
-  );
-};
 
 const TronStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -77,6 +47,23 @@ const TronStakingLearnMoreModal = () => {
     }
   }, [isLoading, apyPercent]);
 
+  const bodyTextStrings: StakingInfoStrings = useMemo(
+    () => ({
+      stakeAnyAmount: strings('stake.trx_learn_more.stake_any_amount'),
+      noMinimumRequired: strings('stake.no_minimum_required'),
+      earnRewards: strings('stake.trx_learn_more.earn_trx_rewards'),
+      earnRewardsDescription: strings(
+        'stake.trx_learn_more.earn_trx_rewards_description',
+      ),
+      flexibleUnstaking: strings('stake.flexible_unstaking'),
+      flexibleUnstakingDescription: strings(
+        'stake.trx_learn_more.flexible_unstaking_description',
+      ),
+      disclaimer: strings('stake.disclaimer'),
+    }),
+    [],
+  );
+
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
       <ScrollView bounces={false}>
@@ -95,7 +82,7 @@ const TronStakingLearnMoreModal = () => {
             </Text>
           </View>
         )}
-        <BodyText />
+        <StakingInfoBodyText strings={bodyTextStrings} styles={styles} />
       </ScrollView>
       <LearnMoreModalFooter
         onClose={handleClose}
