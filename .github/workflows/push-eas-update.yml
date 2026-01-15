@@ -67,50 +67,30 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Install dependencies (workflow branch)
         run: |
-          echo "📦 Installing dependencies..."
+          echo "📦 Installing dependencies for current branch..."
           yarn install --immutable
-
-      - name: Generate fingerprint (target commit)
+      - name: Generate fingerprint (workflow branch)
         id: branch_fingerprint
         run: |
-          set -x  # Enable command tracing
-          # Run with verbose output to capture errors
-          yarn fingerprint:generate 2>&1 | tee /tmp/fingerprint_output.txt
-          RESULT=${PIPESTATUS[0]}
-          if [ "$RESULT" -ne 0 ]; then
-            echo "❌ Fingerprint generation failed with exit code ${RESULT}"
-            echo "📄 Output:"
-            cat /tmp/fingerprint_output.txt
-            exit "$RESULT"
-          fi
-          FINGERPRINT=$(tail -n 1 /tmp/fingerprint_output.txt)
-          echo "fingerprint=${FINGERPRINT}" >> "${GITHUB_OUTPUT}"
-          echo "Target commit fingerprint: ${FINGERPRINT}"
-
+          echo "🧬 Generating fingerprint for current branch..."
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Target PR fingerprint: $FINGERPRINT"
       - name: Install dependencies (base branch)
+        working-directory: main
         run: |
-          echo "📦 Installing dependencies..."
-          cd main && yarn install --immutable
-
+          echo "📦 Installing dependencies for base branch snapshot (${BASE_BRANCH_REF})..."
+          yarn install --immutable
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
         working-directory: main
         run: |
-          set -x  # Enable command tracing
-          # Run with verbose output to capture errors
-          yarn fingerprint:generate 2>&1 | tee /tmp/fingerprint_output.txt
-          RESULT=${PIPESTATUS[0]}
-          if [ "$RESULT" -ne 0 ]; then
-            echo "❌ Fingerprint generation failed with exit code ${RESULT}"
-            echo "📄 Output:"
-            cat /tmp/fingerprint_output.txt
-            exit "$RESULT"
-          fi
-          FINGERPRINT=$(tail -n 1 /tmp/fingerprint_output.txt)
-          echo "fingerprint=${FINGERPRINT}" >> "${GITHUB_OUTPUT}"
-          echo "Base branch fingerprint: ${FINGERPRINT}"
+          echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Base branch fingerprint: $FINGERPRINT"
 
       - name: Compare fingerprints
         id: compare
@@ -283,6 +263,8 @@ jobs:
           SKIP_TRANSFORM_LINT: 'true'
           # Increase Node heap to avoid OOM during Expo export in CI
           NODE_OPTIONS: '--max_old_space_size=8192'
+          # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
+          EXPO_NO_LAVAMOAT: '1'
         run: |
           echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
           case "${TARGET_CHANNEL}" in
