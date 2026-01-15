@@ -16,6 +16,7 @@ import {
   type SubscriptionSeasonReferralDetailState,
   type SeasonStateDto,
   SeasonRewardType,
+  type LineaTokenRewardDto,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -440,6 +441,10 @@ describe('RewardsController', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsController:getReferralDetails',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getSeasonOneLineaRewardTokens',
         expect.any(Function),
       );
     });
@@ -13734,6 +13739,152 @@ describe('RewardsController', () => {
         mockSubscriptionId,
         'all seasons',
       );
+    });
+  });
+
+  describe('getSeasonOneLineaRewardTokens', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+
+    beforeEach(() => {
+      mockMessenger.call.mockClear();
+      mockLogger.log.mockClear();
+    });
+
+    it('should successfully get Season 1 Linea reward tokens', async () => {
+      // Arrange
+      const mockLineaTokenReward: LineaTokenRewardDto = {
+        subscriptionId: mockSubscriptionId,
+        amount: '1000',
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockLineaTokenReward);
+
+      // Act
+      const result =
+        await controller.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonOneLineaRewardTokens',
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockLineaTokenReward);
+    });
+
+    it('should throw error when rewards are not enabled', async () => {
+      // Arrange
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      // Act & Assert
+      await expect(
+        disabledController.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+      ).rejects.toThrow('Rewards are not enabled');
+
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('should handle and re-throw API errors', async () => {
+      // Arrange
+      const mockError = new Error('API Error: Failed to get tokens');
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockRejectedValue(mockError);
+
+      // Act & Assert
+      await expect(
+        controller.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+      ).rejects.toThrow('API Error: Failed to get tokens');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonOneLineaRewardTokens',
+        mockSubscriptionId,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get Season 1 Linea reward tokens:',
+        'API Error: Failed to get tokens',
+      );
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+      // Arrange
+      const mockError = 'String error';
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+      mockMessenger.call.mockRejectedValue(mockError);
+
+      // Act & Assert
+      await expect(
+        controller.getSeasonOneLineaRewardTokens(mockSubscriptionId),
+      ).rejects.toBe('String error');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get Season 1 Linea reward tokens:',
+        'String error',
+      );
+    });
+
+    it('should return null when data service returns null', async () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Act
+      const result =
+        await controller.getSeasonOneLineaRewardTokens(mockSubscriptionId);
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonOneLineaRewardTokens',
+        mockSubscriptionId,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('should handle different subscription IDs correctly', async () => {
+      // Arrange
+      const differentSubscriptionId = 'different-subscription-456';
+      const mockLineaTokenReward: LineaTokenRewardDto = {
+        subscriptionId: differentSubscriptionId,
+        amount: '5000',
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockLineaTokenReward);
+
+      // Act
+      const result = await controller.getSeasonOneLineaRewardTokens(
+        differentSubscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonOneLineaRewardTokens',
+        differentSubscriptionId,
+      );
+      expect(result).toEqual(mockLineaTokenReward);
     });
   });
 
