@@ -39,11 +39,14 @@ import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
   InterstitialState,
+  BranchParams,
 } from '../../types/deepLinkAnalytics.types';
 import { SupportedAction } from '../../types/deepLink.types';
 import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
 import ReduxService from '../../../redux';
 import { analytics } from '../../../../util/analytics/analytics';
+import branch from 'react-native-branch';
+import Logger from '../../../../util/Logger';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -256,6 +259,41 @@ async function handleUniversalLink({
   // Extract URL params once (will be used for analytics)
   const { params } = extractURLParams(url);
 
+  /**
+   * Branch.io parameters for analytics context.
+   * Fetched once and reused across all analytics contexts to avoid duplicate API calls.
+   * May be undefined if fetch fails, times out, or returns empty/null data.
+   * Used by detectAppInstallation to determine app installation status.
+   */
+  let branchParams: BranchParams | undefined;
+  try {
+    // Add timeout to prevent blocking deep link processing
+    const rawParams = await Promise.race([
+      branch.getLatestReferringParams(),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Branch.io params fetch timeout')),
+          500,
+        ),
+      ),
+    ]);
+
+    // Validate before casting - handle null/empty edge cases
+    if (
+      rawParams &&
+      typeof rawParams === 'object' &&
+      Object.keys(rawParams).length > 0
+    ) {
+      branchParams = rawParams as BranchParams;
+    }
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'DeepLinkManager: Error getting Branch.io params',
+    );
+    // branchParams remains undefined
+  }
+
   // Build analytics context - determine signature status
   // Check if signature parameter exists and has a value
   const sigParam = validatedUrl.searchParams.get('sig');
@@ -291,6 +329,7 @@ async function handleUniversalLink({
       url,
       route,
       urlParams: params || {},
+      branchParams,
       signatureStatus,
       interstitialShown: false,
       interstitialDisabled,
@@ -331,6 +370,7 @@ async function handleUniversalLink({
         url,
         route,
         urlParams: params || {},
+        branchParams,
         signatureStatus,
         interstitialShown: false, // Initially false, will be set to true when modal is shown
         interstitialDisabled,

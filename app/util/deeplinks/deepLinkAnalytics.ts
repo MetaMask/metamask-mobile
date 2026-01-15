@@ -10,8 +10,10 @@ import {
   SignatureStatus,
   DeepLinkRoute,
   DeepLinkAnalyticsContext,
+  BranchParams,
 } from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
 import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../core/DeeplinkManager/types/deepLink.types';
 import { ACTIONS } from '../../constants/deeplinks';
@@ -68,10 +70,17 @@ export const determineAppInstallationStatus = (params: unknown): boolean => {
 
 /**
  * Detect if the app was installed based on Branch.io parameters
- * Uses validated logic from our testing
+ * @param branchParams - Optional Branch.io parameters to reuse (avoids duplicate API calls)
  * @returns Promise<boolean> - true if app was already installed, false for deferred deep link
  */
-export const detectAppInstallation = async (): Promise<boolean> => {
+export const detectAppInstallation = async (
+  branchParams?: BranchParams,
+): Promise<boolean> => {
+  // Use provided params if available, otherwise fetch
+  if (branchParams) {
+    return determineAppInstallationStatus(branchParams);
+  }
+
   try {
     const latestParams = await branch.getLatestReferringParams();
     return determineAppInstallationStatus(latestParams);
@@ -468,8 +477,8 @@ export const createDeepLinkUsedEventBuilder = async (
 ): Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> => {
   const { url, route, signatureStatus } = context;
 
-  // Detect app installation status
-  const wasAppInstalled = await detectAppInstallation();
+  // Pass branchParams to avoid duplicate fetch
+  const wasAppInstalled = await detectAppInstallation(context.branchParams);
 
   // Extract sensitive properties
   const sensitiveProperties = extractSensitiveProperties(
@@ -480,20 +489,22 @@ export const createDeepLinkUsedEventBuilder = async (
   // Determine interstitial state
   const interstitial = determineInterstitialState(context);
 
-  // Build the event properties
-  const eventProperties = {
-    route: route.toString(),
-    was_app_installed: wasAppInstalled,
-    signature: signatureStatus,
-    interstitial,
-    attribution_id: context.urlParams.attributionId,
-    utm_source: context.urlParams.utm_source,
-    utm_medium: context.urlParams.utm_medium,
-    utm_campaign: context.urlParams.utm_campaign,
-    utm_term: context.urlParams.utm_term,
-    utm_content: context.urlParams.utm_content,
-    target: route === DeepLinkRoute.INVALID ? url : undefined,
-  };
+  // Build the event properties, filtering out undefined values
+  const eventProperties = Object.fromEntries(
+    Object.entries({
+      route: route.toString(),
+      was_app_installed: wasAppInstalled,
+      signature: signatureStatus,
+      interstitial,
+      attribution_id: context.urlParams.attributionId,
+      utm_source: context.urlParams.utm_source,
+      utm_medium: context.urlParams.utm_medium,
+      utm_campaign: context.urlParams.utm_campaign,
+      utm_term: context.urlParams.utm_term,
+      utm_content: context.urlParams.utm_content,
+      target: route === DeepLinkRoute.INVALID ? url : undefined,
+    }).filter(([_, value]) => value !== undefined),
+  ) as AnalyticsEventProperties;
 
   // Create the AnalyticsEventBuilder with all deep link properties
   const eventBuilder = AnalyticsEventBuilder.createEventBuilder(

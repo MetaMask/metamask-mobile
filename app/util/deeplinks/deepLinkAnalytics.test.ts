@@ -11,6 +11,7 @@ import {
   extractRouteFromUrl,
   mapSupportedActionToRoute,
   createDeepLinkUsedEventBuilder,
+  detectAppInstallation,
 } from './deepLinkAnalytics';
 import { DeeplinkUrlParams } from '../../core/DeeplinkManager/types/deepLink.types';
 import {
@@ -302,6 +303,42 @@ describe('deepLinkAnalytics', () => {
       const result = determineInterstitialState(context);
       expect(result).toBe(InterstitialState.NOT_SHOWN);
     });
+
+    it('return NOT_SHOWN for deferred deep link when interstitial not shown', () => {
+      const context = createMockContext({
+        interstitialShown: false,
+        branchParams: {
+          '+clicked_branch_link': true,
+          '+is_first_session': true,
+        },
+      });
+
+      const result = determineInterstitialState(context);
+      expect(result).toBe(InterstitialState.NOT_SHOWN);
+    });
+
+    it('return NOT_SHOWN for regular deep link when interstitial not shown', () => {
+      const context = createMockContext({
+        interstitialShown: false,
+        branchParams: {
+          '+clicked_branch_link': true,
+          '+is_first_session': false,
+        },
+      });
+
+      const result = determineInterstitialState(context);
+      expect(result).toBe(InterstitialState.NOT_SHOWN);
+    });
+
+    it('return NOT_SHOWN when branchParams is undefined (timeout/failure scenario)', () => {
+      const context = createMockContext({
+        interstitialShown: false,
+        branchParams: undefined,
+      });
+
+      const result = determineInterstitialState(context);
+      expect(result).toBe(InterstitialState.NOT_SHOWN);
+    });
   });
 
   describe('determineSignatureStatus', () => {
@@ -566,6 +603,114 @@ describe('deepLinkAnalytics', () => {
         symbol: 'BTC',
         screen: 'markets',
       });
+    });
+
+    it('passes branchParams to detectAppInstallation when available', async () => {
+      // Mock Branch.io to verify detectAppInstallation uses provided params
+      const mockBranch = jest.requireMock('react-native-branch');
+      mockBranch.getLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': false,
+        '+is_first_session': false,
+      });
+
+      const branchParams = {
+        '+clicked_branch_link': true,
+        '+is_first_session': true,
+      };
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/swap',
+        route: DeepLinkRoute.SWAP,
+        branchParams,
+        urlParams: {},
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const eventBuilder = await createDeepLinkUsedEventBuilder(context);
+      const result = eventBuilder.build();
+
+      // Verify was_app_installed is false (deferred deep link) - meaning branchParams were used
+      expect(result.properties.was_app_installed).toBe(false);
+      // Verify Branch.io was NOT called (params were reused)
+      expect(mockBranch.getLatestReferringParams).not.toHaveBeenCalled();
+    });
+
+    it('calls detectAppInstallation without params when branchParams is undefined', async () => {
+      // Mock Branch.io to return app already installed
+      const mockBranch = jest.requireMock('react-native-branch');
+      mockBranch.getLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': true,
+        '+is_first_session': false,
+      });
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/swap',
+        route: DeepLinkRoute.SWAP,
+        branchParams: undefined,
+        urlParams: {},
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const eventBuilder = await createDeepLinkUsedEventBuilder(context);
+      const result = eventBuilder.build();
+
+      // Verify was_app_installed is true (app already installed) - meaning Branch.io was called
+      expect(result.properties.was_app_installed).toBe(true);
+      // Verify Branch.io WAS called (no params provided)
+      expect(mockBranch.getLatestReferringParams).toHaveBeenCalled();
+    });
+  });
+
+  describe('detectAppInstallation', () => {
+    let mockBranch: {
+      getLatestReferringParams: jest.Mock;
+    };
+    let actualDetectAppInstallation: typeof detectAppInstallation;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBranch = jest.requireMock('react-native-branch');
+      // Get the actual implementation, not the mock
+      const actualModule = jest.requireActual('./deepLinkAnalytics');
+      actualDetectAppInstallation = actualModule.detectAppInstallation;
+    });
+
+    it('uses provided branchParams instead of fetching when available', async () => {
+      const branchParams = {
+        '+clicked_branch_link': true,
+        '+is_first_session': true,
+      };
+
+      const result = await actualDetectAppInstallation(branchParams);
+
+      expect(result).toBe(false); // Deferred deep link
+      expect(mockBranch.getLatestReferringParams).not.toHaveBeenCalled();
+    });
+
+    it('fetches from Branch.io when branchParams not provided', async () => {
+      mockBranch.getLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': true,
+        '+is_first_session': false,
+      });
+
+      const result = await actualDetectAppInstallation();
+
+      expect(result).toBe(true); // App already installed
+      expect(mockBranch.getLatestReferringParams).toHaveBeenCalled();
+    });
+
+    it('defaults to app installed when Branch.io fetch fails', async () => {
+      mockBranch.getLatestReferringParams.mockRejectedValue(
+        new Error('Branch.io error'),
+      );
+
+      const result = await actualDetectAppInstallation();
+
+      expect(result).toBe(true);
     });
   });
 });
