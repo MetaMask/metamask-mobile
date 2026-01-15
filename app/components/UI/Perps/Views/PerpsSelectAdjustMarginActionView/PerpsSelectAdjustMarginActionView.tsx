@@ -49,10 +49,10 @@ const PerpsSelectAdjustMarginActionView: React.FC<
       if (!position) return;
 
       // Track UI interaction for add/remove margin selection
-      const interactionType =
-        action === 'add_margin'
-          ? PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN
-          : PerpsEventValues.INTERACTION_TYPE.REMOVE_MARGIN;
+      const interactionType = {
+        add_margin: PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN,
+        reduce_margin: PerpsEventValues.INTERACTION_TYPE.REMOVE_MARGIN,
+      }[action];
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
