@@ -127,7 +127,7 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
-      - name: Restore APKs matching fingerprint from branch cache
+      - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -136,7 +136,7 @@ jobs:
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-${{ github.ref_name }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
-      - name: Restore APKs matching fingerprint from main cache
+      - name: Restore iOS app matching fingerprint from main cache
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: cache-restore-main
         # This will only restore the cache, not update it
