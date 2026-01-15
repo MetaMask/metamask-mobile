@@ -25,10 +25,7 @@ enum eventsToCheck {
 }
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-// TODO: Update test to be BIP-44 compatible
-// https://github.com/MetaMask/metamask-mobile/issues/24154
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip(SmokeTrade('Bridge functionality'), () => {
+describe(SmokeTrade('Bridge functionality'), () => {
   jest.setTimeout(120000);
   const eventsToAssert: {
     event: string;
