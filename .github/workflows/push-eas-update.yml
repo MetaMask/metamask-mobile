@@ -251,7 +251,8 @@ jobs:
           keys=$(echo "$secret_json" | jq -r 'keys[]')
           for key in $keys; do
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
-            echo "::add-mask::$value"
+            masked_value=$(printf '%s' "$value" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' -e 's/\n/%0A/g')
+            echo "::add-mask::$masked_value"
             {
               echo "$key<<EOF"
               printf '%s\n' "$value"
