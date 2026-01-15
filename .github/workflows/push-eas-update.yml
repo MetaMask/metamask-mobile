@@ -253,10 +253,14 @@ jobs:
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
             masked_value=$(printf '%s' "$value" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' -e 's/\n/%0A/g')
             echo "::add-mask::$masked_value"
+            delimiter="EOF_$(date +%s%N)_${RANDOM}${RANDOM}"
+            while [[ "$value" == *"$delimiter"* ]]; do
+              delimiter="EOF_$(date +%s%N)_${RANDOM}${RANDOM}"
+            done
             {
-              echo "$key<<EOF"
+              echo "$key<<$delimiter"
               printf '%s\n' "$value"
-              echo "EOF"
+              echo "$delimiter"
             } >> "$GITHUB_ENV"
             echo "✅ Set secret for key: $key"
           done
