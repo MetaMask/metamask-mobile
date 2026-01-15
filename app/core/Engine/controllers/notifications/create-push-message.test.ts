@@ -72,7 +72,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('NFT sent');
-    expect(result?.description).toContain('You have successfully sent an NFT');
+    expect(result?.description).toContain('You successfully sent an NFT');
   });
 
   test('displays erc721 received notification', () => {
@@ -92,7 +92,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('NFT sent');
-    expect(result?.description).toContain('You have successfully sent an NFT');
+    expect(result?.description).toContain('You successfully sent an NFT');
   });
 
   test('displays erc1155 received notification', () => {
