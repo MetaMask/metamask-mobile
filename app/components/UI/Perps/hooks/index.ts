@@ -83,6 +83,7 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
+export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
 
 // Performance tracking hooks
 // Removed: usePerpsScreenTracking - migrated to usePerpsMeasurement

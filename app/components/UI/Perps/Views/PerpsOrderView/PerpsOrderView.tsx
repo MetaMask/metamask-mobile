@@ -849,6 +849,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
           source,
+          // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
+          // Note: flip_position is tracked separately via TradingService.flipPosition
+          tradeAction: currentMarketPosition
+            ? 'increase_exposure'
+            : 'create_position',
         },
       };
 
@@ -1435,7 +1440,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             ...eventProperties,
             [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SETTING_CHANGED,
+              PerpsEventValues.INTERACTION_TYPE.LEVERAGE_CHANGED,
             [PerpsEventProperties.SETTING_TYPE]:
               PerpsEventValues.SETTING_TYPE.LEVERAGE,
           });
