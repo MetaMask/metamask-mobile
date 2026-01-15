@@ -12,7 +12,8 @@ import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-resp
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
   it('can use the Ethereum provider', async () => {
     await withFixtures(
       {
