@@ -14,34 +14,29 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign/Send TRX'), () => {
   });
 
   it('Should be able to sign a TRX transaction', async () => {
-    await withTronAccountEnabled(
-      {
-        tronAccountPermitted: true,
-      },
-      async () => {
-        await navigateToTronTestDApp();
+    await withTronAccountEnabled({}, async () => {
+      await navigateToTronTestDApp();
 
-        // 1. Connect
-        await connectTronTestDapp();
+      // 1. Connect
+      await connectTronTestDapp();
 
-        const header = TronTestDApp.getHeader();
+      const header = TronTestDApp.getHeader();
 
-        // Verify we are connected
-        const account = await header.getAccount();
-        await Assertions.checkIfTextMatches(account, account1Short);
-        const connectionStatus = await header.getConnectionStatus();
-        await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
+      // Verify we are connected
+      const account = await header.getAccount();
+      await Assertions.checkIfTextMatches(account, account1Short);
+      const connectionStatus = await header.getConnectionStatus();
+      await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
-        // 2. Sign transaction
-        await TronTestDApp.getSendTrxTest().signTransaction();
+      // 2. Sign transaction
+      await TronTestDApp.getSendTrxTest().signTransaction();
 
-        // Approve the signature
-        await TronTestDApp.confirmTransaction();
+      // Approve the signature
+      await TronTestDApp.confirmTransaction();
 
-        const signedTransaction =
-          await TronTestDApp.getSendTrxTest().getSignedTransaction();
-        console.log(signedTransaction);
-      },
-    );
+      const signedTransaction =
+        await TronTestDApp.getSendTrxTest().getSignedTransaction();
+      console.log(signedTransaction);
+    });
   });
 });
