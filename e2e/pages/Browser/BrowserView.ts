@@ -12,7 +12,7 @@ import {
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Gestures, Matchers } from '../../framework';
+import { Gestures, Matchers, Utilities } from '../../framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -165,9 +165,17 @@ class Browser {
   }
 
   async tapCloseBrowserButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeBrowserButton, {
-      elemDescription: 'Close browser button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.closeBrowserButton, {
+          elemDescription: 'Close browser button',
+        });
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Close Browser Button',
+      },
+    );
   }
 
   // Legacy methods for backward compatibility with existing tests
