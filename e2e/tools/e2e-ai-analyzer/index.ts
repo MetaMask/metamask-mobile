@@ -12,7 +12,12 @@ import {
   getPRFiles,
   validatePRNumber,
 } from './utils/git-utils';
-import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
+import {
+  MODES,
+  validateMode,
+  analyzeWithAgent,
+  AnalysisContext,
+} from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
 import {
   createProvider,
@@ -238,6 +243,18 @@ async function main() {
     console.log(`⚠️  ${criticalFiles.length} critical files detected`);
   }
 
+  // Build analysis context
+  const analysisContext: AnalysisContext = {
+    baseDir,
+    baseBranch,
+    prNumber: options.prNumber,
+    githubRepo,
+  };
+
+  if (options.prNumber) {
+    console.log(`🔗 PR #${options.prNumber} - using gh CLI for diffs`);
+  }
+
   // Get provider order (forced provider or priority from config)
   const providerOrder = getProviderOrder(forcedProvider);
   console.log(`📋 Provider failover order: ${providerOrder.join(' → ')}`);
@@ -258,8 +275,7 @@ async function main() {
         allChangedFiles,
         criticalFiles,
         mode,
-        baseDir,
-        baseBranch,
+        analysisContext,
       );
 
       // Success - output results and exit

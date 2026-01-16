@@ -9,7 +9,7 @@
 import { ToolInput, ModeAnalysisTypes } from '../types';
 import { LLM_CONFIG } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
-import { executeTool } from '../ai-tools/tool-executor';
+import { executeTool, ToolContext } from '../ai-tools/tool-executor';
 import {
   ILLMProvider,
   LLMMessage,
@@ -74,22 +74,30 @@ export function validateMode(modeInput?: string): ModeKey {
 }
 
 /**
+ * Analysis context containing all parameters needed for the analysis
+ */
+export interface AnalysisContext {
+  baseDir: string;
+  baseBranch: string;
+  prNumber?: number;
+  githubRepo?: string;
+}
+
+/**
  * Main AI analysis using agentic loop with tools
  *
  * @param provider - The LLM provider to use (Anthropic, OpenAI, or Google)
  * @param allChangedFiles - List of all changed files in the PR
  * @param criticalFiles - List of critical files that need special attention
  * @param mode - The analysis mode to use
- * @param baseDir - Base directory for file operations
- * @param baseBranch - Git base branch for comparisons
+ * @param context - Analysis context (baseDir, baseBranch, prNumber, githubRepo)
  */
 export async function analyzeWithAgent<M extends ModeKey>(
   provider: ILLMProvider,
   allChangedFiles: string[],
   criticalFiles: string[],
   mode: M,
-  baseDir: string,
-  baseBranch: string,
+  context: AnalysisContext,
 ): Promise<ModeAnalysisResult<M>> {
   // Get mode configuration with prompt builders
   const modeConfig = MODES[mode];
@@ -105,14 +113,8 @@ export async function analyzeWithAgent<M extends ModeKey>(
 
   console.log(`🤖 Using provider: ${provider.displayName}`);
 
-  for (
-    let iteration = 0;
-    iteration < LLM_CONFIG.maxIterations;
-    iteration++
-  ) {
-    console.log(
-      `🔄 Iteration ${iteration + 1}/${LLM_CONFIG.maxIterations}...`,
-    );
+  for (let iteration = 0; iteration < LLM_CONFIG.maxIterations; iteration++) {
+    console.log(`🔄 Iteration ${iteration + 1}/${LLM_CONFIG.maxIterations}...`);
 
     const response = await provider.createMessage({
       model: provider.getDefaultModel(),
@@ -140,10 +142,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
           const toolResult = await executeTool(
             toolUse.name,
             toolUse.input as ToolInput,
-            {
-              baseDir,
-              baseBranch,
-            },
+            context as ToolContext,
           );
 
           // Log tool result with status indicator
@@ -171,7 +170,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
           if (toolUse.name === modeConfig.finalizeToolName) {
             const analysis = await modeConfig.processAnalysis(
               toolResult,
-              baseDir,
+              context.baseDir,
             );
 
             if (analysis) {
@@ -194,7 +193,8 @@ export async function analyzeWithAgent<M extends ModeKey>(
       // Update conversation history
       conversationHistory.push({
         role: 'user',
-        content: typeof currentMessage === 'string' ? currentMessage : currentMessage,
+        content:
+          typeof currentMessage === 'string' ? currentMessage : currentMessage,
       });
       conversationHistory.push({
         role: 'assistant',
@@ -206,13 +206,11 @@ export async function analyzeWithAgent<M extends ModeKey>(
     }
 
     // Handle text response (fallback)
-    const textContent = response.content.find(
-      (block) => block.type === 'text',
-    );
+    const textContent = response.content.find((block) => block.type === 'text');
     if (textContent && textContent.type === 'text') {
       const analysis = await modeConfig.processAnalysis(
         textContent.text,
-        baseDir,
+        context.baseDir,
       );
       if (analysis) {
         console.log(`✅ Analysis complete!`);
