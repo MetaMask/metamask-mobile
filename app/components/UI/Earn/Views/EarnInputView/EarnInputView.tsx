@@ -239,6 +239,17 @@ const EarnInputView = () => {
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
+
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // Navigate to TRX staking learn more modal
+      if (isTronNative) {
+        navigation.navigate('StakeModals', {
+          screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
+        });
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: earnToken?.chainId },
