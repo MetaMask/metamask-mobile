@@ -48,6 +48,7 @@ import {
   getPredictMarketListSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import {
   PredictCategory,
@@ -442,6 +443,8 @@ interface PredictSearchOverlayProps {
   onClose: () => void;
 }
 
+const SEARCH_DEBOUNCE_MS = 200;
+
 const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   isVisible,
   onClose,
@@ -450,12 +453,19 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(
+    searchQuery,
+    SEARCH_DEBOUNCE_MS,
+  );
+  const isDebouncing = searchQuery !== debouncedSearchQuery;
 
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
-    q: searchQuery,
+    q: debouncedSearchQuery,
     pageSize: 20,
   });
+
+  const isSearchLoading = isDebouncing || isFetching;
 
   const handleSearch = useCallback((text: string) => {
     setSearchQuery(text);
@@ -534,7 +544,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 
       {searchQuery.length > 0 && (
         <Box twClassName="flex-1">
-          {isFetching ? (
+          {isSearchLoading ? (
             <Box twClassName="px-4 pt-4">
               <PredictMarketSkeleton testID="search-skeleton-1" />
               <PredictMarketSkeleton testID="search-skeleton-2" />

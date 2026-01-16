@@ -53,6 +53,7 @@ import {
   BoxAlignItems,
   IconName as DSIconName,
 } from '@metamask/design-system-react-native';
+import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -466,7 +467,11 @@ const TrendingTokensFullView = () => {
           ))}
         </View>
       ) : (searchResults as TrendingAsset[]).length === 0 ? (
-        <EmptyErrorTrendingState onRetry={handleRefresh} />
+        searchQuery.trim().length > 0 ? (
+          <EmptySearchResultState />
+        ) : (
+          <EmptyErrorTrendingState onRetry={handleRefresh} />
+        )
       ) : (
         <View style={styles.listContainer}>
           <TrendingTokensList
