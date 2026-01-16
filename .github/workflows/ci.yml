@@ -102,8 +102,13 @@ jobs:
             echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
           fi
+
   git-safe-dependencies:
+    name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -263,10 +268,20 @@ jobs:
           else
             echo "No changes detected"
           fi
+
   needs_e2e_build:
+    name: Determine if E2E builds are needed
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     uses: ./.github/workflows/needs-e2e-build.yml
+
   component-view-test:
+    name: Component view test
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
