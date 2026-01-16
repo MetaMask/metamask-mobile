@@ -38,6 +38,7 @@ import {
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
+import { captureException } from '@sentry/react-native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -192,6 +193,10 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
+  onSendSentryTestError = () => {
+    captureException(new Error('OTA update Sentry test error v4'));
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -222,6 +227,9 @@ class AppInformation extends PureComponent {
             <Text style={styles.versionInfo}>
               {getFullVersion(this.state.appInfo)}
             </Text>
+            <TouchableOpacity onPress={this.onSendSentryTestError}>
+              <Text style={styles.link}>Send Sentry test error</Text>
+            </TouchableOpacity>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
