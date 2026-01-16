@@ -8678,7 +8678,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^3.0.0":
+"@metamask/ramps-controller@npm:3.0.0":
   version: 3.0.0
   resolution: "@metamask/ramps-controller@npm:3.0.0"
   dependencies:
@@ -8686,6 +8686,17 @@ __metadata:
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
   checksum: 10/00e3a8532d19a50e719b95f13b9404abf24e79651d2410845d041d55887473cbdcd306ad5e294ce43e4b740465d7bcf96ceff8389026b06e9ba63cf4a67f8fff
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-3.0.0-1d23ef3e56.patch":
+  version: 3.0.0
+  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-3.0.0-1d23ef3e56.patch::version=3.0.0&hash=8abcff"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.18.0"
+    "@metamask/messenger": "npm:^0.3.0"
+  checksum: 10/958a86284cb2f40a963c27e6105ae04a6a1c408fb8d61c901877d2da1d30cd874185fbadc0f5242606b5a4c3587ab1663bf2e39eae76c43ab50c1f83c28cf7b9
   languageName: node
   linkType: hard
 
@@ -34070,7 +34081,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^3.0.0"
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-3.0.0-1d23ef3e56.patch"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"

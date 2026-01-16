@@ -37,11 +37,11 @@ import { useStyles } from '../../../hooks/useStyles';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import { useAppTheme } from '../../../../util/theme';
-import Engine from '../../../../core/Engine';
 import { Country, State } from '@metamask/ramps-controller';
 import { selectUserRegion } from '../../../../selectors/rampsController';
 import { useSelector } from 'react-redux';
 import useRampsRegions from '../hooks/useRampsRegions';
+import { useRampsUserRegion } from '../../../../components/UI/Ramp/hooks/useRampsUserRegion';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -51,6 +51,14 @@ enum RegionViewType {
 }
 
 type RegionItem = Country | State;
+
+function isCountry(region: RegionItem): region is Country {
+  return 'isoCode' in region;
+}
+
+function isState(region: RegionItem): region is State {
+  return !('isoCode' in region);
+}
 
 function RegionSelector() {
   const navigation = useNavigation();
@@ -64,6 +72,7 @@ function RegionSelector() {
   const [currentData, setCurrentData] = useState<RegionItem[]>(regions || []);
   const [regionInTransit, setRegionInTransit] = useState<Country | null>(null);
   const { styles } = useStyles(styleSheet, {});
+  const { setUserRegion } = useRampsUserRegion();
 
   useEffect(() => {
     navigation.setOptions(
@@ -88,7 +97,7 @@ function RegionSelector() {
   const fuseData = useMemo(() => {
     const flatRegions: RegionItem[] = currentData.reduce(
       (acc: RegionItem[], region: RegionItem) => {
-        if ('states' in region && region.states) {
+        if (isCountry(region) && region.states) {
           return [...acc, region, ...region.states];
         }
         return [...acc, region];
@@ -113,115 +122,55 @@ function RegionSelector() {
         ?.slice(0, MAX_REGION_RESULTS);
 
       const mappedResults: RegionItem[] =
-        results
-          ?.map((result) =>
-            typeof result === 'object' && result !== null && 'item' in result
-              ? result.item
-              : result,
-          )
-          .filter((item): item is RegionItem => Boolean(item)) || [];
+        (results?.map((result) =>
+          'item' in result ? result.item : result,
+        ) as RegionItem[]) ?? [];
 
       return mappedResults;
     }
 
-    if (!currentData?.length) return [];
+    if (!currentData.length) return [];
 
     return [...currentData].sort((a, b) => {
-      if (
-        'recommended' in a &&
-        a.recommended &&
-        !('recommended' in b && b.recommended)
-      )
-        return -1;
-      if (
-        !('recommended' in a && a.recommended) &&
-        'recommended' in b &&
-        b.recommended
-      )
-        return 1;
+      const aRecommended = a.recommended ?? false;
+      const bRecommended = b.recommended ?? false;
+      if (aRecommended && !bRecommended) return -1;
+      if (!aRecommended && bRecommended) return 1;
       return 0;
     });
   }, [searchString, fuseData, currentData]);
 
   const scrollToTop = useCallback(() => {
-    if (listRef?.current) {
-      listRef.current.scrollToOffset({
-        animated: false,
-        offset: 0,
-      });
-    }
+    listRef.current?.scrollToOffset({
+      animated: false,
+      offset: 0,
+    });
   }, []);
 
-  const getRegionId = useCallback(
-    (region: RegionItem): string => {
-      if ('isoCode' in region && region.isoCode) {
-        return region.isoCode.toLowerCase();
-      }
-      if ('id' in region && region.id) {
-        const id = region.id.toLowerCase();
-        if (id.startsWith('/regions/')) {
-          return id.replace('/regions/', '').replace(/\//g, '-');
-        }
-        return id;
-      }
-      if ('stateId' in region && region.stateId && regionInTransit) {
-        if (regionInTransit.isoCode) {
-          return `${regionInTransit.isoCode.toLowerCase()}-${region.stateId.toLowerCase()}`;
-        }
-        if (regionInTransit.id) {
-          const countryId = regionInTransit.id.toLowerCase();
-          if (countryId.startsWith('/regions/')) {
-            const countryCode = countryId
-              .replace('/regions/', '')
-              .split('/')[0];
-            return `${countryCode}-${region.stateId.toLowerCase()}`;
-          }
-        }
-      }
-      return '';
-    },
-    [regionInTransit],
-  );
+  const getRegionId = useCallback((region: RegionItem): string => {
+    if (isCountry(region)) {
+      return region.isoCode.toLowerCase();
+    }
+    if (isState(region) && region.stateId) {
+      return region.stateId.toLowerCase();
+    }
+    return '';
+  }, []);
 
   const isRegionSelected = useCallback(
     (region: RegionItem): boolean => {
       if (!userRegion) return false;
       const regionId = getRegionId(region);
-      const userRegionCode = userRegion.regionCode;
-      const normalizedRegionId = regionId.toLowerCase();
-
-      if (userRegionCode === normalizedRegionId) {
-        return true;
-      }
-
-      if (userRegionCode.includes('-') && normalizedRegionId.includes('-')) {
-        const userParts = userRegionCode.split('-');
-        const regionParts = normalizedRegionId.split('-');
-        if (userParts.length === 2 && regionParts.length === 2) {
-          return (
-            userParts[0] === regionParts[0] && userParts[1] === regionParts[1]
-          );
-        }
-      }
-
-      if (
-        'isoCode' in region &&
-        region.isoCode &&
-        userRegionCode.startsWith(region.isoCode.toLowerCase())
-      ) {
-        return true;
-      }
-
-      return false;
+      return userRegion.regionCode === regionId;
     },
     [userRegion, getRegionId],
   );
 
   const handleOnRegionPressCallback = useCallback(
     async (region: RegionItem) => {
-      if ('states' in region && region.states && region.states.length > 0) {
+      if (isCountry(region) && region.states && region.states.length > 0) {
         setActiveView(RegionViewType.STATE);
-        setRegionInTransit(region as Country);
+        setRegionInTransit(region);
         setCurrentData(region.states);
         setSearchString('');
         scrollToTop();
@@ -231,8 +180,7 @@ function RegionSelector() {
       const regionId = getRegionId(region);
       if (regionId) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (Engine.context.RampsController as any).setUserRegion(regionId);
+          await setUserRegion(regionId);
         } catch (error) {
           // Error is handled by controller state
         }
@@ -240,45 +188,69 @@ function RegionSelector() {
 
       navigation.goBack();
     },
-    [getRegionId, scrollToTop, navigation],
+    [getRegionId, scrollToTop, navigation, setUserRegion],
   );
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: RegionItem }) => {
-      if (!region) return null;
-
       const isSelected = isRegionSelected(region);
-      const isSupported =
-        'supported' in region ? region.supported !== false : true;
-      const hasStates =
-        'states' in region && region.states && region.states.length > 0;
-      const regionName = 'name' in region ? region.name : '';
-      const regionFlag: string =
-        ('flag' in region && typeof region.flag === 'string' && region.flag) ||
-        ('emoji' in region &&
-          typeof region.emoji === 'string' &&
-          region.emoji) ||
-        '';
 
-      let stateName: string | null = null;
-      if (
-        'isoCode' in region &&
-        userRegion?.state &&
-        activeView === RegionViewType.COUNTRY
-      ) {
-        const countryCode = userRegion.country.isoCode?.toLowerCase();
-        const regionCountryCode = region.isoCode?.toLowerCase();
+      if (isCountry(region)) {
+        const isSupported = region.supported !== false;
+        const showStateName =
+          userRegion?.state &&
+          activeView === RegionViewType.COUNTRY &&
+          userRegion.country.isoCode.toLowerCase() ===
+            region.isoCode.toLowerCase() &&
+          userRegion.state.name;
 
-        if (
-          (regionCountryCode === countryCode ||
-            region.id?.toLowerCase().startsWith(`/regions/${countryCode}`)) &&
-          userRegion.state.name
-        ) {
-          stateName = userRegion.state.name;
-        }
+        return (
+          <ListItemSelect
+            isSelected={isSelected}
+            onPress={() => handleOnRegionPressCallback(region)}
+            accessibilityRole="button"
+            accessible
+            disabled={!isSupported}
+          >
+            <ListItemColumn widthType={WidthType.Fill}>
+              <View style={styles.region}>
+                {region.flag && (
+                  <View style={styles.emoji}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={
+                        isSupported ? TextColor.Default : TextColor.Alternative
+                      }
+                    >
+                      {region.flag}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.textContainer}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={
+                      isSupported ? TextColor.Default : TextColor.Alternative
+                    }
+                  >
+                    {region.name}
+                  </Text>
+                  {showStateName && userRegion.state && (
+                    <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+                      {userRegion.state.name}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </ListItemColumn>
+            {region.states && region.states.length > 0 && (
+              <ListItemColumn>
+                <Icon name={IconName.ArrowRight} />
+              </ListItemColumn>
+            )}
+          </ListItemSelect>
+        );
       }
-
-      const showStateName = Boolean(stateName);
 
       return (
         <ListItemSelect
@@ -286,44 +258,22 @@ function RegionSelector() {
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
-          disabled={!isSupported}
+          disabled={!region.supported}
         >
           <ListItemColumn widthType={WidthType.Fill}>
             <View style={styles.region}>
-              {regionFlag && (
-                <View style={styles.emoji}>
-                  <Text
-                    variant={TextVariant.BodyLGMedium}
-                    color={
-                      isSupported ? TextColor.Default : TextColor.Alternative
-                    }
-                  >
-                    {regionFlag}
-                  </Text>
-                </View>
-              )}
               <View style={styles.textContainer}>
                 <Text
                   variant={TextVariant.BodyLGMedium}
                   color={
-                    isSupported ? TextColor.Default : TextColor.Alternative
+                    region.supported ? TextColor.Default : TextColor.Alternative
                   }
                 >
-                  {regionName}
+                  {region.name || ''}
                 </Text>
-                {showStateName && (
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-                    {stateName}
-                  </Text>
-                )}
               </View>
             </View>
           </ListItemColumn>
-          {hasStates && (
-            <ListItemColumn>
-              <Icon name={IconName.ArrowRight} />
-            </ListItemColumn>
-          )}
         </ListItemSelect>
       );
     },
@@ -434,11 +384,11 @@ function RegionSelector() {
         renderItem={renderRegionItem}
         extraData={userRegion}
         keyExtractor={(item, index) => {
-          if ('isoCode' in item) {
+          if (isCountry(item)) {
             return item.isoCode;
           }
-          if ('id' in item && item.id) {
-            return item.id;
+          if (isState(item) && item.stateId && regionInTransit) {
+            return `${regionInTransit.isoCode}-${item.stateId}`;
           }
           return `region-${index}`;
         }}

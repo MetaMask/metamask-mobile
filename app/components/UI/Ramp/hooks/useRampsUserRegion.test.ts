@@ -223,7 +223,26 @@ describe('useRampsUserRegion', () => {
     });
   });
 
-  describe('useEffect error handling', () => {
+  describe('useEffect behavior', () => {
+    it('does not fetch user region when userRegion already exists', async () => {
+      const mockUserRegion = createMockUserRegion('us-co');
+      const store = createMockStore({
+        userRegion: mockUserRegion,
+      });
+      const mockUpdateUserRegion = Engine.context.RampsController
+        .updateUserRegion as jest.Mock;
+      mockUpdateUserRegion.mockClear();
+
+      const { result } = renderHook(() => useRampsUserRegion(), {
+        wrapper: wrapper(store),
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(mockUpdateUserRegion).not.toHaveBeenCalled();
+      expect(result.current.userRegion).toStrictEqual(mockUserRegion);
+    });
+
     it('returns default state when fetchUserRegion rejects in useEffect', async () => {
       const store = createMockStore();
       const mockUpdateUserRegion = Engine.context.RampsController

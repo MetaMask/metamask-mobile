@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 import ScreenLayout from '../../components/ScreenLayout';
@@ -42,26 +42,6 @@ function SettingsV2({ isInternalBuild }: SettingsV2Props) {
     );
   }, [colors, navigation]);
 
-  const { regionDisplayName, regionFlag } = useMemo(() => {
-    if (!userRegion) {
-      return { regionDisplayName: null, regionFlag: '🏳️' };
-    }
-
-    const flag = userRegion.country.flag || '🏳️';
-
-    if (userRegion.state?.name) {
-      return {
-        regionDisplayName: userRegion.state.name,
-        regionFlag: flag,
-      };
-    }
-
-    return {
-      regionDisplayName: userRegion.country.name,
-      regionFlag: flag,
-    };
-  }, [userRegion]);
-
   const handleChangeRegion = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.REGION_SELECTOR);
   }, [navigation]);
@@ -77,11 +57,12 @@ function SettingsV2({ isInternalBuild }: SettingsV2Props) {
 
             <ListItem>
               <ListItemColumn>
-                <Text>{regionFlag}</Text>
+                <Text>{userRegion?.country.flag || '🏳️'}</Text>
               </ListItemColumn>
               <ListItemColumn>
                 <Text>
-                  {regionDisplayName ||
+                  {userRegion?.state?.name ||
+                    userRegion?.country.name ||
                     strings('app_settings.fiat_on_ramp.no_region_selected')}
                 </Text>
               </ListItemColumn>
