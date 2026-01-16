@@ -253,6 +253,55 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(false);
   });
 
+  it('handles no matching token in rewards', async () => {
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x1111111111111111111111111111111111111111', // Different token
+              chainId: 1,
+              symbol: 'OTHER',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1000000000000000000',
+            pending: '0',
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            ],
+            amount: '1000000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockRewardData,
+    });
+
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
+
+    await act(async () => {
+      try {
+        await result.current.claimRewards();
+      } catch {
+        // Expected to throw
+      }
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBeTruthy();
+    });
+
+    expect(result.current.error).toBe('No claimable rewards found');
+    expect(result.current.isClaiming).toBe(false);
+  });
+
   it('handles network error', async () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
@@ -338,6 +387,7 @@ describe('useMerklClaim', () => {
     const lineaAsset: TokenI = {
       ...mockAsset,
       chainId: CHAIN_IDS.LINEA_MAINNET,
+      address: '0x1234567890123456789012345678901234567890' as const, // Match test data
     };
 
     const mockRewardData = [

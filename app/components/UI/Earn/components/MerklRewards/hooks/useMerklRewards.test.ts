@@ -3,10 +3,6 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { isEligibleForMerklRewards, useMerklRewards } from './useMerklRewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import {
-  selectCurrentCurrency,
-  selectCurrencyRates,
-} from '../../../../../../selectors/currencyRateController';
 import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -29,9 +25,6 @@ const mockRenderFromTokenMinimalUnit =
   >;
 
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
-const mockNativeCurrency = 'ETH';
-const mockConversionRateByTicker = { ETH: { USD: 2000 } };
-const mockCurrentCurrency = 'USD';
 
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
@@ -119,20 +112,6 @@ describe('useMerklRewards', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (selector === selectCurrencyRates) {
-        return mockConversionRateByTicker;
-      }
-      if (selector === selectCurrentCurrency) {
-        return mockCurrentCurrency;
-      }
-      // Handle selectNativeCurrencyByChainId - when used with useSelector as:
-      // (state) => selectNativeCurrencyByChainId(state, asset.chainId)
-      if (typeof selector === 'function') {
-        const selectorStr = selector.toString();
-        if (selectorStr.includes('selectNativeCurrencyByChainId')) {
-          return mockNativeCurrency;
-        }
-      }
       return undefined;
     });
 
@@ -183,18 +162,6 @@ describe('useMerklRewards', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
       }
-      if (selector === selectCurrencyRates) {
-        return mockConversionRateByTicker;
-      }
-      if (selector === selectCurrentCurrency) {
-        return mockCurrentCurrency;
-      }
-      if (typeof selector === 'function') {
-        const selectorStr = selector.toString();
-        if (selectorStr.includes('selectNativeCurrencyByChainId')) {
-          return mockNativeCurrency;
-        }
-      }
       return undefined;
     });
 
@@ -212,7 +179,20 @@ describe('useMerklRewards', () => {
       {
         rewards: [
           {
-            pending: '1500000000000000000', // 1.5 tokens in wei
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1500000000000000000', // 1.5 tokens in wei
+            pending: '0',
+            proofs: [],
+            amount: '1500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
           },
         ],
       },
@@ -300,12 +280,64 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
-  it('handles zero pending amounts', async () => {
+  it('handles no matching token in rewards', async () => {
     const mockRewardData = [
       {
         rewards: [
           {
+            token: {
+              address: '0x1111111111111111111111111111111111111111', // Different token
+              chainId: 1,
+              symbol: 'OTHER',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1500000000000000000',
             pending: '0',
+            proofs: [],
+            amount: '1500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    // Should remain null when no matching token is found
+    expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('handles zero unclaimed amounts', async () => {
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '0',
+            pending: '0',
+            proofs: [],
+            amount: '0',
+            claimed: '0',
+            recipient: mockSelectedAddress,
           },
         ],
       },
@@ -330,7 +362,20 @@ describe('useMerklRewards', () => {
       {
         rewards: [
           {
-            pending: '1', // Very small amount
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1', // Very small amount
+            pending: '0',
+            proofs: [],
+            amount: '1',
+            claimed: '0',
+            recipient: mockSelectedAddress,
           },
         ],
       },
@@ -358,7 +403,20 @@ describe('useMerklRewards', () => {
       {
         rewards: [
           {
-            pending: '1500000000000000000',
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1500000000000000000',
+            pending: '0',
+            proofs: [],
+            amount: '1500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
           },
         ],
       },
@@ -420,7 +478,7 @@ describe('useMerklRewards', () => {
     expect(global.fetch).toHaveBeenCalled();
   });
 
-  it('uses asset decimals when provided', async () => {
+  it('uses token decimals from API when available', async () => {
     const assetWithDecimals: TokenI = {
       ...mockAsset,
       decimals: 6,
@@ -430,7 +488,20 @@ describe('useMerklRewards', () => {
       {
         rewards: [
           {
-            pending: '1500000', // 1.5 tokens with 6 decimals
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18, // API returns 18 decimals
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1500000000000000000', // 1.5 tokens with 18 decimals
+            pending: '0',
+            proofs: [],
+            amount: '1500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
           },
         ],
       },
@@ -451,14 +522,15 @@ describe('useMerklRewards', () => {
       expect(result.current.claimableReward).toBe('1.50');
     });
 
+    // Should use token decimals from API (18) not asset decimals (6)
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      '1500000',
-      6,
+      '1500000000000000000',
+      18,
       2,
     );
   });
 
-  it('defaults to 18 decimals when asset decimals is undefined', async () => {
+  it('defaults to 18 decimals when token and asset decimals are undefined', async () => {
     const assetWithoutDecimals: TokenI = {
       ...mockAsset,
       decimals: undefined as unknown as number,
@@ -468,7 +540,20 @@ describe('useMerklRewards', () => {
       {
         rewards: [
           {
-            pending: '1500000000000000000',
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: undefined as unknown as number, // API doesn't provide decimals
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1500000000000000000',
+            pending: '0',
+            proofs: [],
+            amount: '1500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
           },
         ],
       },

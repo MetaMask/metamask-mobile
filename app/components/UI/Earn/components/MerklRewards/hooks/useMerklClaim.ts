@@ -76,12 +76,17 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
 
       const data: MerklRewardData[] = await response.json();
 
-      // Get the first reward data
-      if (!data?.[0]?.rewards?.[0]) {
+      // Filter rewards to match the asset's token address (case-insensitive)
+      const assetAddressLower = (asset.address as string).toLowerCase();
+      const matchingReward = data?.[0]?.rewards?.find(
+        (reward) => reward.token.address.toLowerCase() === assetAddressLower,
+      );
+
+      if (!matchingReward) {
         throw new Error('No claimable rewards found');
       }
 
-      const rewardData = data[0].rewards[0];
+      const rewardData = matchingReward;
 
       // Prepare claim parameters
       const users = [selectedAddress];
@@ -127,7 +132,7 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
     } finally {
       setIsClaiming(false);
     }
-  }, [selectedAddress, networkClientId, asset.chainId]);
+  }, [selectedAddress, networkClientId, asset.chainId, asset.address]);
 
   return {
     claimRewards,

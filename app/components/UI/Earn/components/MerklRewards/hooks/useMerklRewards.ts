@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import {
-  selectCurrentCurrency,
-  selectCurrencyRates,
-} from '../../../../../../selectors/currencyRateController';
-import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
 import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
-import { RootState } from '../../../../../../reducers';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
@@ -49,7 +43,20 @@ export const isEligibleForMerklRewards = (
 
 interface MerklRewardData {
   rewards: {
+    token: {
+      address: string;
+      chainId: number;
+      symbol: string;
+      decimals: number;
+      price: number | null;
+    };
+    accumulated: string;
+    unclaimed: string;
     pending: string;
+    proofs: string[];
+    amount: string;
+    claimed: string;
+    recipient: string;
   }[];
 }
 
@@ -72,11 +79,6 @@ export const useMerklRewards = ({
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
-  );
-  const conversionRateByTicker = useSelector(selectCurrencyRates);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const nativeCurrency = useSelector((state: RootState) =>
-    selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
 
   useEffect(() => {
@@ -118,25 +120,39 @@ export const useMerklRewards = ({
           return;
         }
 
-        // Get pending amount from [0].rewards[0].pending
-        const pendingWei = data?.[0]?.rewards?.[0]?.pending;
-        if (pendingWei && BigInt(pendingWei) > 0n) {
-          // Convert from wei to token amount (assuming 18 decimals)
-          const pendingAmount = renderFromTokenMinimalUnit(
-            pendingWei,
-            asset.decimals || 18,
+        // Filter rewards to match the asset's token address (case-insensitive)
+        const assetAddressLower = (asset.address as string).toLowerCase();
+        const matchingReward = data?.[0]?.rewards?.find(
+          (reward) => reward.token.address.toLowerCase() === assetAddressLower,
+        );
+
+        if (!matchingReward) {
+          return;
+        }
+
+        // Use unclaimed amount as it represents claimable rewards in the Merkle tree
+        // Use token decimals from API response, fallback to asset decimals
+        const unclaimedWei = matchingReward.unclaimed;
+        const tokenDecimals =
+          matchingReward.token.decimals ?? asset.decimals ?? 18;
+
+        if (unclaimedWei && BigInt(unclaimedWei) > 0n) {
+          // Convert from wei to token amount
+          const unclaimedAmount = renderFromTokenMinimalUnit(
+            unclaimedWei,
+            tokenDecimals,
             2, // Show 2 decimal places
           );
           // Double-check that the rendered amount is not '0' or '0.00'
           // This handles edge cases where very small amounts round to zero
           if (
-            pendingAmount &&
-            pendingAmount !== '0' &&
-            pendingAmount !== '0.00'
+            unclaimedAmount &&
+            unclaimedAmount !== '0' &&
+            unclaimedAmount !== '0.00'
           ) {
             // Final check before setting state to ensure effect is still active
             if (!abortController.signal.aborted) {
-              setClaimableReward(pendingAmount);
+              setClaimableReward(unclaimedAmount);
             }
           }
         }
@@ -155,15 +171,7 @@ export const useMerklRewards = ({
     return () => {
       abortController.abort();
     };
-  }, [
-    asset.address,
-    asset.decimals,
-    selectedAddress,
-    nativeCurrency,
-    conversionRateByTicker,
-    currentCurrency,
-    asset.chainId,
-  ]);
+  }, [asset.address, asset.decimals, selectedAddress, asset.chainId]);
 
   return {
     claimableReward,
