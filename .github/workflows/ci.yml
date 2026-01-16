@@ -260,7 +260,7 @@ jobs:
         shell: bash
 
   unit-tests:
-    name: Unit tests
+    name: Unit tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
     if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
     needs:
