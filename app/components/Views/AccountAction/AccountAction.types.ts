@@ -1,4 +1,5 @@
-import { TouchableOpacityProps } from 'react-native';
+import { Props } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import {
   IconName,
   IconSize,

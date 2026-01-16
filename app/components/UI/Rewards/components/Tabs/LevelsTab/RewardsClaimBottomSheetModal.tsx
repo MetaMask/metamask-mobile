@@ -32,7 +32,8 @@ import BottomSheet, {
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
-import { Linking, TouchableOpacity } from 'react-native';
+import { Linking } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { formatUrl } from '../../../utils/formatUtils';
 import TextField, {
   TextFieldSize,

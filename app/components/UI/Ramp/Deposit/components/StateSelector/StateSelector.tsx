@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleProp, ViewStyle } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Label from '../../../../../../component-library/components/Form/Label';

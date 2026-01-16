@@ -1,13 +1,11 @@
 import React, { PureComponent } from 'react';
-import {
-  TouchableOpacity,
-  ScrollView,
+import { ScrollView,
   Text,
   View,
   StyleSheet,
   InteractionManager,
-  BackHandler,
-} from 'react-native';
+  BackHandler } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';

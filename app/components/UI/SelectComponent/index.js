@@ -1,12 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  ScrollView,
+import { ScrollView,
   StyleSheet,
   Text,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+  View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';

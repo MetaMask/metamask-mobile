@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from '../styles';
 import {

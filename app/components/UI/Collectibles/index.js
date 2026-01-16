@@ -4,11 +4,11 @@ import {
   Alert,
   ScrollView,
   RefreshControl,
-  FlatList,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from '@metamask/react-native-actionsheet';

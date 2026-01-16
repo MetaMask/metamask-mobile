@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Box } from '../../../../UI/Box/Box';

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
+import { RefreshControl, View, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import PropTypes from 'prop-types';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { connect, useSelector } from 'react-redux';

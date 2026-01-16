@@ -33,7 +33,7 @@ import {
   Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useCardSDK } from '../../sdk';
 
 const SetPhoneNumber = () => {

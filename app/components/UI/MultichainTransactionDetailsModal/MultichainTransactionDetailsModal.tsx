@@ -1,6 +1,7 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React from 'react';
-import { View, TouchableOpacity, TextStyle } from 'react-native';
+import { View, TextStyle } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Feather';
 import { Transaction } from '@metamask/keyring-api';

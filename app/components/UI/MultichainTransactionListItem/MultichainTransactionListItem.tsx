@@ -2,10 +2,10 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   Image,
-  TouchableHighlight,
   TextStyle,
   useColorScheme,
 } from 'react-native';
+import { TouchableHighlight } from 'react-native-gesture-handler';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import ListItem from '../../Base/ListItem';

@@ -1,4 +1,6 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import { ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -167,6 +169,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         keyExtractor={keyExtractor}
         contentContainerStyle={tw.style('px-4')}
         showsVerticalScrollIndicator={false}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
         testID="trending-search-results-list"
         ListFooterComponent={renderFooter}
       />

@@ -1,6 +1,7 @@
 // Third party depencies
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 // External dependencies.
 import Avatar, {

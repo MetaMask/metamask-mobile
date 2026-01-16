@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useRef } from 'react';
-import { Alert, TouchableOpacity, View } from 'react-native';
+import { Alert, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../component-library/hooks';

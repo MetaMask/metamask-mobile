@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {

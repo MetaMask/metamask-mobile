@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button, {
   ButtonSize,

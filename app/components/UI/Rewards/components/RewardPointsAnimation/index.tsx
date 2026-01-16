@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 import Animated from 'react-native-reanimated';
 import {

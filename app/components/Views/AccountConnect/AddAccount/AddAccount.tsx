@@ -10,7 +10,8 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import { SafeAreaView, TouchableWithoutFeedback } from 'react-native';
+import { SafeAreaView } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useStyles } from '../../../hooks/useStyles';
 import styleSheet from './AddAccount.styles';
 import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';

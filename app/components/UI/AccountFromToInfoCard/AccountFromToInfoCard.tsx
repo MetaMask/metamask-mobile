@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 
 import TransactionTypes from '../../../core/TransactionTypes';
 import { strings } from '../../../../locales/i18n';

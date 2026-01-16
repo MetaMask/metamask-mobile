@@ -1,11 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import {
-  View,
-  Image,
-  Text,
-  TouchableOpacity,
-  LayoutAnimation,
-} from 'react-native';
+import { View, Image, Text, LayoutAnimation } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';

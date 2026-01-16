@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextColor,

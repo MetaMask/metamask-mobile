@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { FlatList, Linking } from 'react-native';
+import { Linking } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
   Text,

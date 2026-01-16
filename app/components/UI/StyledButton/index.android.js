@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, TouchableNativeFeedback } from 'react-native';
+import { Text, View } from 'react-native';
+import { TouchableNativeFeedback } from 'react-native-gesture-handler';
 import coalesceNonElementChildren from '@metamask/react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';

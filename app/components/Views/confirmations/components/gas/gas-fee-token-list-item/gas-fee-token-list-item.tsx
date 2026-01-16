@@ -8,7 +8,8 @@ import { useGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Text, {
   TextColor,
   TextVariant,

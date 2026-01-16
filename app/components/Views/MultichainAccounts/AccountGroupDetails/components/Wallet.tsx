@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
 import { Box } from '../../../../UI/Box/Box';

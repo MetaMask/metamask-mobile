@@ -1,10 +1,6 @@
 import React, { useMemo } from 'react';
-import {
-  Dimensions,
-  TouchableOpacity,
-  Platform,
-  ActivityIndicator,
-} from 'react-native';
+import { Dimensions, Platform, ActivityIndicator } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import {
   Gesture,
   GestureDetector,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
 import PerpsStocksCommoditiesDropdown from '../../../../components/PerpsStocksCommoditiesDropdown';

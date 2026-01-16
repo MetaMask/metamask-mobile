@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';

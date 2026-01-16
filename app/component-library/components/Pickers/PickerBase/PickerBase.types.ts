@@ -1,5 +1,6 @@
 // Third party dependencies.
-import { TouchableOpacityProps, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
+import { TouchableOpacityProps } from '../../../../components/Base/TouchableOpacity';
 import { IconSize } from '../../Icons/Icon';
 
 /**

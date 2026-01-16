@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useState, useEffect, useMemo } from 'react';
-import { View, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
+import TouchableOpacity from '../../../../../components/Base/TouchableOpacity';
 
 import {
   Icon,

@@ -4,7 +4,9 @@ import {
   RefreshControl,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  ScrollViewProps,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -191,6 +193,9 @@ const MultichainTransactionsView = ({
               }
               onScroll={onScroll}
               scrollEnabled={!isChartBeingTouched}
+              renderScrollComponent={
+                ScrollView as React.ComponentType<ScrollViewProps>
+              }
             />
           )}
         </PriceChartContext.Consumer>

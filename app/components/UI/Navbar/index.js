@@ -3,15 +3,8 @@ import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
-import {
-  Alert,
-  Image,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Image, Platform, StyleSheet, Text, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import { View, Image } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../../component-library/hooks';

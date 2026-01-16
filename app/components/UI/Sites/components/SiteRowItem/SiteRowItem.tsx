@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, Image } from 'react-native';
+import { Image } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import {
   Box,
   Text,

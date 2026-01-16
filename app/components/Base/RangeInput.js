@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet } from 'react-native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import TouchableOpacity from './TouchableOpacity';
 import Text from './Text';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';

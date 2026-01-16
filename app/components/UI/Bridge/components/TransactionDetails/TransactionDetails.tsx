@@ -21,7 +21,8 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
 import { calcTokenAmount } from '../../../../../util/transactions';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';

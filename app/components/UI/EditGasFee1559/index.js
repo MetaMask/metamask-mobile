@@ -1,12 +1,10 @@
 /* eslint-disable react/display-name */
 import React, { useState } from 'react';
-import {
-  View,
+import { View,
   StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TouchableWithoutFeedback,
-} from 'react-native';
+  ScrollView } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';

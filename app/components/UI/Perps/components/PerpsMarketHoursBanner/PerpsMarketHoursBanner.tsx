@@ -14,7 +14,8 @@ import {
   BoxBackgroundColor,
   IconColor,
 } from '@metamask/design-system-react-native';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../../component-library/hooks';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import type { PerpsMarketHoursBannerProps } from './PerpsMarketHoursBanner.types';

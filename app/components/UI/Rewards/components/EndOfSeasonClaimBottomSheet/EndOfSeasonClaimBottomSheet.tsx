@@ -12,7 +12,8 @@ import useRewardsToast from '../../hooks/useRewardsToast';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import { Linking, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Linking, ActivityIndicator } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import {
   BoxFlexDirection,
   ButtonVariant,

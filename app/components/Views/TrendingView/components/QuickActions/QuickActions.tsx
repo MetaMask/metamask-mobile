@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,

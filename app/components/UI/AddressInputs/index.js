@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TextInput } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';

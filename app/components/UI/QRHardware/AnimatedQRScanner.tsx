@@ -3,14 +3,8 @@
 
 'use strict';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import {
-  SafeAreaView,
-  Image,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from 'react-native';
+import { SafeAreaView, Image, Text, View, StyleSheet } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import {
   Camera,
   useCameraDevice,

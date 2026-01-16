@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef, useMemo } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -166,6 +167,9 @@ const TokenListComponent = ({
           }
           extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
           contentContainerStyle={!isFullView ? undefined : tw`px-4`}
+          renderScrollComponent={
+            ScrollView as React.ComponentType<ScrollViewProps>
+          }
         />
       </Box>
     );

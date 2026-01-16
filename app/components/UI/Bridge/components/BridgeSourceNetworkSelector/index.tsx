@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '../../../Box/Box';

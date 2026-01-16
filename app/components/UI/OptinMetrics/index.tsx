@@ -4,13 +4,13 @@ import {
   ScrollView,
   BackHandler,
   Alert,
-  TouchableOpacity,
   Platform,
   Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   LayoutChangeEvent,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';

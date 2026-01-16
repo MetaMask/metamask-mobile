@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {

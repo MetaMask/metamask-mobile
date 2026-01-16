@@ -1,15 +1,13 @@
 import React, { Component } from 'react';
-import {
-  TouchableOpacity,
-  View,
+import { View,
   StyleSheet,
   Linking,
   Alert,
   Modal,
   KeyboardAvoidingView,
   DevSettings,
-  TextInput,
-} from 'react-native';
+  TextInput } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
 import {

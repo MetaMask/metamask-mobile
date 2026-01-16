@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
@@ -50,6 +51,9 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
         refreshControl={refreshControl as React.ReactElement}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
         testID="trending-tokens-list"
       />
     );

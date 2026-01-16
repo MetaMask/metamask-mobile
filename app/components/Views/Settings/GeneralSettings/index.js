@@ -1,12 +1,10 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  StyleSheet,
+import { StyleSheet,
   ScrollView,
   Switch,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+  View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';

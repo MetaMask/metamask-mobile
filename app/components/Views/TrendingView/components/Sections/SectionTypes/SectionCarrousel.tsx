@@ -1,7 +1,8 @@
 import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useRef } from 'react';
-import { Dimensions } from 'react-native';
+import { Dimensions, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { SectionId, SECTIONS_CONFIG } from '../../../sections.config';
 import { useNavigation } from '@react-navigation/native';
@@ -65,6 +66,9 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
         showsHorizontalScrollIndicator={false}
         snapToInterval={CARD_WIDTH}
         decelerationRate="fast"
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
         testID={`${sectionId}-flash-list`}
       />
     </Box>

@@ -1,4 +1,6 @@
 import React from 'react';
+import { ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
@@ -32,6 +34,9 @@ const SitesList: React.FC<SitesListProps> = ({
       showsVerticalScrollIndicator={false}
       refreshControl={refreshControl}
       ListFooterComponent={ListFooterComponent}
+      renderScrollComponent={
+        ScrollView as React.ComponentType<ScrollViewProps>
+      }
     />
   );
 };

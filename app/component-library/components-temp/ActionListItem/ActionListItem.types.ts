@@ -1,6 +1,7 @@
 // Third party dependencies
 import { ReactNode } from 'react';
-import { PressableProps } from 'react-native';
+import { Props } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 // External dependencies
 import {

@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
-import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';

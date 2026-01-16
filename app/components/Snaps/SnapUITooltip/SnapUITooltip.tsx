@@ -1,6 +1,8 @@
 import React, { FunctionComponent, ReactNode, useState } from 'react';
 import ApprovalModal from '../../Approvals/ApprovalModal';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './SnapUITooltip.styles';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';

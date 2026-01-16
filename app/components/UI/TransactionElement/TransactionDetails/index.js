@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { query } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
 

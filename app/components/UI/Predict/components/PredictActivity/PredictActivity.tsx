@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,

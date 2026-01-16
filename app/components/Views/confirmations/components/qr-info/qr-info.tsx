@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Linking, TouchableOpacity } from 'react-native';
+import { View, Linking } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';

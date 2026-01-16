@@ -2,13 +2,12 @@ import React, { ReactNode } from 'react';
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
   ViewStyle,
   StyleProp,
-  TouchableOpacityProps,
   ViewProps,
   TextStyle,
 } from 'react-native';
+import TouchableOpacity, { TouchableOpacityProps } from './TouchableOpacity';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Text from './Text';
 import { useTheme } from '../../util/theme';

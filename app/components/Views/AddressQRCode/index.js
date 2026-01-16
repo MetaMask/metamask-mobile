@@ -1,12 +1,10 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import {
-  TouchableOpacity,
-  Dimensions,
+import { Dimensions,
   StyleSheet,
   View,
-  Text,
-} from 'react-native';
+  Text } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { fontStyles } from '../../../styles/common';
 import { useSelector, useDispatch } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';

@@ -1,9 +1,7 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ImageSourcePropType,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet,
+  ImageSourcePropType } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';

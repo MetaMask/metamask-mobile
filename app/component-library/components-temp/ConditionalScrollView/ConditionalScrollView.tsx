@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { ConditionalScrollViewProps } from './ConditionalScrollView.types';
 
 /**

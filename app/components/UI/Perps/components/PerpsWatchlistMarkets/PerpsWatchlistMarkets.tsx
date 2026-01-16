@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
+import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,

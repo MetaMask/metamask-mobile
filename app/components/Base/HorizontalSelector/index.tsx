@@ -1,5 +1,6 @@
 import React, { Fragment, ReactNode, useCallback, useMemo } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import TouchableOpacity from '../TouchableOpacity';
 import Text from '../Text';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '@metamask/design-tokens';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Image as ImageRN, Platform } from 'react-native';
+import { Image as ImageRN, Platform } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useTheme } from '../../../util/theme';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';

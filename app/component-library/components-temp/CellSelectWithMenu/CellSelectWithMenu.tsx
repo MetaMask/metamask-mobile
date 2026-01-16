@@ -2,9 +2,11 @@
 
 // Third library dependencies.
 import React from 'react';
-import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { View } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 // External dependencies.
+import TouchableOpacity from '../../../components/Base/TouchableOpacity';
 import { useStyles } from '../../hooks';
 import Tag from '../../../component-library/components/Tags/Tag';
 

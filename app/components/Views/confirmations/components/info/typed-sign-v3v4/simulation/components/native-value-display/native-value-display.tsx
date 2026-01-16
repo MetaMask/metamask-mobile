@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';

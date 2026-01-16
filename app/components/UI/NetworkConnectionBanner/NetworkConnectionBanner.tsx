@@ -14,7 +14,8 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { Platform, Pressable } from 'react-native';
+import { Platform } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import {
   FontWeight,
   Icon,

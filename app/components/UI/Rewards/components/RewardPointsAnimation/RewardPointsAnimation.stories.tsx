@@ -3,7 +3,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-native/no-color-literals */
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import RewardPointsAnimationComponent, { RewardAnimationState } from './index';
 
 /**

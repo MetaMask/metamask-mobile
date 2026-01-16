@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  TouchableOpacity,
-  TouchableHighlight,
   StyleSheet,
   Image,
   Text,
-  View,
-} from 'react-native';
+  View } from 'react-native';
+import { TouchableHighlight } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';

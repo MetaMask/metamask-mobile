@@ -1,11 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+import { View, Text, StyleSheet, TextInput } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import { fontStyles } from '../../../../../../../styles/common';
 import StyledButton from '../../../../../../UI/StyledButton';
 import { strings } from '../../../../../../../../locales/i18n';

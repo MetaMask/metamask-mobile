@@ -2,9 +2,10 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
+import TouchableOpacity from '../../../../components/Base/TouchableOpacity';
 import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Icon, { IconName, IconSize } from '../../Icons/Icon';
 import Text, { TextVariant } from '../../Texts/Text';

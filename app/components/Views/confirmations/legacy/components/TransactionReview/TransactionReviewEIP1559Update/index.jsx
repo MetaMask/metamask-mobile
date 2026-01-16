@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, TouchableOpacity, View } from 'react-native';
+import { Linking, View } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { EditGasViewSelectorsIDs } from '../../EditGasView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';

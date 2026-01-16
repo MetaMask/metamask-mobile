@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 // External dependencies
 import {

@@ -7,13 +7,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import {
   SafeAreaView,
   useSafeAreaInsets,

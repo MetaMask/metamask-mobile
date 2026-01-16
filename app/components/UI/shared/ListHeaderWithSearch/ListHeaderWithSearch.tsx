@@ -1,12 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Pressable,
-  Keyboard,
-  TextInput,
-  Platform,
-} from 'react-native';
+import { View, Pressable, Keyboard, TextInput, Platform } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../component-library/hooks';
 import {

@@ -6,7 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 const ReferralRewardsView: React.FC = () => {

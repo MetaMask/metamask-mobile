@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { Theme } from '../../../../../../util/theme/models';
 import { useAppThemeFromContext } from '../../../../../../util/theme';
 import Card from '../../../../../../component-library/components/Cards/Card';
@@ -55,6 +56,9 @@ const SectionCard: React.FC<SectionCardProps> = ({
           renderItem={renderFlatItem}
           keyExtractor={(_, index) => `${section.id}-${index}`}
           keyboardShouldPersistTaps="handled"
+          renderScrollComponent={
+            ScrollView as React.ComponentType<ScrollViewProps>
+          }
           testID="perps-tokens-list"
         />
       )}

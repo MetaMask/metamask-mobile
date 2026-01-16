@@ -1,6 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useEffect } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 

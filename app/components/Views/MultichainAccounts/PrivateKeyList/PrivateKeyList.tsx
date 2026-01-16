@@ -6,7 +6,8 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { View, TextInput, Linking } from 'react-native';
+import { View, TextInput, Linking, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -272,6 +273,9 @@ export const PrivateKeyList = () => {
           onLoad={() => {
             endTrace({ name: TraceName.ShowAccountPrivateKeyList });
           }}
+          renderScrollComponent={
+            ScrollView as React.ComponentType<ScrollViewProps>
+          }
         />
       </View>
     ),

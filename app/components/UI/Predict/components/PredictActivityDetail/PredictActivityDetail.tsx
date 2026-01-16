@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useEffect } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import {
   SafeAreaView,
   useSafeAreaInsets,

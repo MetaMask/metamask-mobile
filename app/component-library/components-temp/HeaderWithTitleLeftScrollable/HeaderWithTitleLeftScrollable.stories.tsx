@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import {
   Box,

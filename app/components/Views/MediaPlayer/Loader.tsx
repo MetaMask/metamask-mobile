@@ -1,10 +1,8 @@
 import React from 'react';
-import {
-  View,
+import { View,
   StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+  ActivityIndicator } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import Text from '../../Base/Text';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';

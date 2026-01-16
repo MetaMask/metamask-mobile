@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { Switch, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';

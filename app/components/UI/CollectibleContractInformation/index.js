@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
   Text,
   View,
@@ -10,6 +9,7 @@ import {
   InteractionManager,
   Image,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';

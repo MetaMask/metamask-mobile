@@ -1,11 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  SafeAreaView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, SafeAreaView, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';

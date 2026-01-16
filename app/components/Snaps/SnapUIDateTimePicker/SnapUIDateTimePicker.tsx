@@ -13,7 +13,8 @@ import DateTimePicker, {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import { Platform, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, TextInput, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import stylesheet from './SnapUIDateTimePicker.styles';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';

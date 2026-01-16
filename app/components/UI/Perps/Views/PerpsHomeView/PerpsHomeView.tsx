@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, ScrollView, Modal, Linking } from 'react-native';
+import { View, Modal, Linking } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,

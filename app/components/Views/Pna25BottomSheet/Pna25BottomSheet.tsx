@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import { Linking } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {

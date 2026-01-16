@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import TouchableOpacity from '../../../../../components/Base/TouchableOpacity';
 
 import { useStyles } from '../../../../hooks';
 import Text, {

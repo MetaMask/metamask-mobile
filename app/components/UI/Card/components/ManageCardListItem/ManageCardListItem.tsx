@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useTheme } from '../../../../../util/theme';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Icon, {

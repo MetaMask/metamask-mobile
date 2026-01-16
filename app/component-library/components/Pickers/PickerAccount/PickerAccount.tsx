@@ -2,9 +2,10 @@
 
 // Third party dependencies.
 import React, { forwardRef, useState, useCallback } from 'react';
-import { TouchableOpacity, GestureResponderEvent } from 'react-native';
+import { GestureResponderEvent } from 'react-native';
 
 // External dependencies.
+import TouchableOpacity from '../../../../components/Base/TouchableOpacity';
 import DSText, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 import { IconSize } from '../../Icons/Icon';

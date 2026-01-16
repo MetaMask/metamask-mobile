@@ -1,5 +1,7 @@
 import React from 'react';
-import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import {
   SafeAreaView,
   useSafeAreaInsets,

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';

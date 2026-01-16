@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Text,
+import { Text,
   TextInput,
   View,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+  StyleSheet } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import {
   ToastContext,
   ToastVariants,

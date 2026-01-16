@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, TouchableHighlight } from 'react-native';
+import { TouchableHighlight } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';

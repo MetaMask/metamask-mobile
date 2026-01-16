@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import Icon, {
   IconName,
   IconSize,

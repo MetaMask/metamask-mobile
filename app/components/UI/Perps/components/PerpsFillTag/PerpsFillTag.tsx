@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, Linking } from 'react-native';
+import { Linking } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,

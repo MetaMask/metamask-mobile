@@ -1,5 +1,6 @@
 import React from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { Platform, View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';

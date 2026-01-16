@@ -1,5 +1,6 @@
 import React, { Fragment, useMemo } from 'react';
-import { FlatList, ImageSourcePropType, View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { PositionTypes } from './position-types';
 import styleSheet from './DeFiProtocolPositionGroups.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';

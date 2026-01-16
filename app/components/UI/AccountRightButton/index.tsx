@@ -6,14 +6,12 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  TouchableOpacity,
-  StyleSheet,
+import { StyleSheet,
   TextInput,
   Keyboard,
   Platform,
-  EmitterSubscription,
-} from 'react-native';
+  EmitterSubscription } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Device from '../../../util/device';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';

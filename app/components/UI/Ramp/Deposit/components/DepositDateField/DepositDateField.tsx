@@ -5,16 +5,14 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import {
-  TouchableWithoutFeedback,
+import { TouchableWithoutFeedback,
   Platform,
   Modal,
   View,
   Button,
   TextInput,
-  TextInputProps,
-  TouchableOpacity,
-} from 'react-native';
+  TextInputProps } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DepositTextField from '../DepositTextField';
 import { useStyles } from '../../../../../hooks/useStyles';

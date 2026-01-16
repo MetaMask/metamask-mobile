@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 import { strings } from '../../../../locales/i18n';
 import InfoModal from '../../../components/Base/InfoModal';

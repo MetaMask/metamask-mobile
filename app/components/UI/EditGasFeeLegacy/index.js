@@ -1,12 +1,10 @@
 /* eslint-disable react/display-name */
 import React, { useState } from 'react';
-import {
-  View,
+import { View,
   StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TouchableWithoutFeedback,
-} from 'react-native';
+  ScrollView } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';

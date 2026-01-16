@@ -8,7 +8,8 @@ import React, {
   useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { ImageSourcePropType, View } from 'react-native';
+import { ImageSourcePropType, View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { Box } from '@metamask/design-system-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
@@ -369,6 +370,9 @@ const NetworkMultiSelectList = ({
         itemVisiblePercentThreshold: 50,
         minimumViewTime: 100,
       }}
+      renderScrollComponent={
+        ScrollView as React.ComponentType<ScrollViewProps>
+      }
       {...props}
     />
   );

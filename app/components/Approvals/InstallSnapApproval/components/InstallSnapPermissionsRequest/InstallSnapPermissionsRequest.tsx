@@ -1,6 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import styleSheet from '../../InstallSnapApproval.styles';
 import { strings } from '../../../../../../locales/i18n';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';

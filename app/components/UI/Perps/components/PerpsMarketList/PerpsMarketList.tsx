@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList } from '@shopify/flash-list';
 import Text, {
   TextVariant,
@@ -87,6 +88,9 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       ListHeaderComponent={ListHeaderComponent}
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       removeClippedSubviews
+      renderScrollComponent={
+        ScrollView as React.ComponentType<ScrollViewProps>
+      }
       testID={testID}
     />
   );

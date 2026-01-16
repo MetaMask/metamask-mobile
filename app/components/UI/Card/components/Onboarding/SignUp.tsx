@@ -35,7 +35,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,

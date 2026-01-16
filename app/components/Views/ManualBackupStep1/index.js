@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  View,
+import { View,
   ActivityIndicator,
   KeyboardAvoidingView,
-  FlatList,
-  TouchableOpacity,
-  ImageBackground,
-} from 'react-native';
+  ImageBackground } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';

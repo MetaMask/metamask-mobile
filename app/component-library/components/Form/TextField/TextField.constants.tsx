@@ -1,9 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
+import TouchableOpacity from '../../../../components/Base/TouchableOpacity';
 import { TextVariant } from '../../Texts/Text';
 import { SAMPLE_ICON_PROPS } from '../../Icons/Icon/Icon.constants';
 import Icon from '../../Icons/Icon';

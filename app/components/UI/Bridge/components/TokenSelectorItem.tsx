@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ImageSourcePropType,
-  View,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { StyleSheet, ImageSourcePropType, View, Platform } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';

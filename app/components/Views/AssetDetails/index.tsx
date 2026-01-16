@@ -4,9 +4,9 @@ import {
   StyleSheet,
   ScrollView,
   Text as RNText,
-  TouchableOpacity,
   InteractionManager,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {

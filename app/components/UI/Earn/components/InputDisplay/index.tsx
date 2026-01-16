@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';

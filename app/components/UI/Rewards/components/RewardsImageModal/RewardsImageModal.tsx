@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  Modal,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  ImageSourcePropType,
-} from 'react-native';
+import { Modal, Image, Dimensions, ImageSourcePropType } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import {
   Box,
   ButtonIcon,

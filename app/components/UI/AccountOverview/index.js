@@ -5,9 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';

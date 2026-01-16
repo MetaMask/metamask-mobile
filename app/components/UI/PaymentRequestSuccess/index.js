@@ -7,9 +7,9 @@ import {
   Text,
   StyleSheet,
   InteractionManager,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text, {
   TextVariant,

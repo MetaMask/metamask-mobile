@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 // External dependencies.
 import { useStyles } from '../../hooks';

@@ -5,9 +5,9 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';

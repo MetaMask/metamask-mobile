@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  Button,
-  InteractionManager,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Button, InteractionManager, Text, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';

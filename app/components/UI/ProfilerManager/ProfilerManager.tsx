@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Platform, Pressable, Share } from 'react-native';
+import { Platform, Share } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { getBundleId, getVersion } from 'react-native-device-info';
 import ShakeDetector from './ShakeDetector';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';

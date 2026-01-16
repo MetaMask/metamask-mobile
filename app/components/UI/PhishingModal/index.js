@@ -1,12 +1,10 @@
 import React, { PureComponent } from 'react';
-import {
-  View,
+import { View,
   Text,
   StyleSheet,
   Platform,
-  Linking,
-  TouchableOpacity,
-} from 'react-native';
+  Linking } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '../../../styles/common';

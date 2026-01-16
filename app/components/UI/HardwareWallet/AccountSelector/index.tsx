@@ -1,5 +1,7 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
+import { FlatList } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';

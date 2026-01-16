@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Text, SafeAreaView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import PropTypes from 'prop-types';
 
 import Routes from '../../../constants/navigation/Routes';

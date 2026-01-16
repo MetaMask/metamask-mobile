@@ -1,5 +1,6 @@
 // third party dependencies
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, ScrollViewProps, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
@@ -209,6 +210,9 @@ const CustomNetworkSelector = ({
         contentContainerStyle={{
           paddingBottom: safeAreaInsets.bottom,
         }}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
       />
     </ScrollView>
   );

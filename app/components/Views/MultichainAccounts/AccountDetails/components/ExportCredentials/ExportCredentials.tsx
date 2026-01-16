@@ -13,7 +13,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Icon, {
   IconName,
   IconSize,

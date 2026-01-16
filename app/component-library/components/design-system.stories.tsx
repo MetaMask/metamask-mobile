@@ -1,6 +1,7 @@
 // Third party dependencies
 import React from 'react';
-import { ScrollView, Pressable } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 
 // Internal dependencies
 import {

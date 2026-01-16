@@ -1,6 +1,7 @@
 import React, { ReactElement, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { View, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { View, Platform, TextInput } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AddAddressModalSelectorsIDs } from './AddAddressModal.testIds';

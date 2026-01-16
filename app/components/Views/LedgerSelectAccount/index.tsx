@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import Engine from '../../../core/Engine';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import BlockingActionModal from '../../UI/BlockingActionModal';

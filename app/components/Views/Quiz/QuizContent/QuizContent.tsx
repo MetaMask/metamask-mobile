@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { IQuizInformationProps } from '../types';
 import Icon, {
   IconSize,

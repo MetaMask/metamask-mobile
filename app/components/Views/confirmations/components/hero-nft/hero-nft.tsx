@@ -1,7 +1,8 @@
 import { Nft } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';

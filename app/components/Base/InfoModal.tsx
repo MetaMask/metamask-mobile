@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
+import { StyleSheet, View, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import TouchableOpacity from './TouchableOpacity';
 import Text from './Text';
 import Title from './Title';
 import { useTheme } from '../../util/theme';

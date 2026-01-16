@@ -1,13 +1,11 @@
 import React from 'react';
 import { fontStyles } from '../../../../../../styles/common';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  StyleSheet,
+import { StyleSheet,
   View,
   TextInput,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
+  SafeAreaView } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ModalDragger from '../../../../../Base/ModalDragger';
 import Text from '../../../../../Base/Text';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -11,6 +11,7 @@ import {
   type BoxProps,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import TouchableOpacity from '../TouchableOpacity';
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 

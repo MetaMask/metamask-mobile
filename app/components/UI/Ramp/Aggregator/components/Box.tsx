@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  StyleProp,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import Label from '../../../../../component-library/components/Form/Label';

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
+import { StyleSheet, Platform, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import {
   TextVariant,
   TextColor,

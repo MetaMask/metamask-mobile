@@ -6,7 +6,8 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { Animated, ScrollView, LayoutChangeEvent } from 'react-native';
+import { Animated, LayoutChangeEvent } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

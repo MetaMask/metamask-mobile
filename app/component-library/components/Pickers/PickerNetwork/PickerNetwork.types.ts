@@ -1,5 +1,6 @@
 // Third party dependencies.
-import { ImageSourcePropType, TouchableOpacityProps } from 'react-native';
+import { ImageSourcePropType } from 'react-native';
+import { TouchableOpacityProps } from '../../../../components/Base/TouchableOpacity';
 
 /**
  * PickerNetwork component props.

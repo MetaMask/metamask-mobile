@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { act } from '@testing-library/react-hooks';
 import AddressQRCode from './index';

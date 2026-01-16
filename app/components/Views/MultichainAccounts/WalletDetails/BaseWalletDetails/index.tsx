@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';

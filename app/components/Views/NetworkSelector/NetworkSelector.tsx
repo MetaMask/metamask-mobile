@@ -4,9 +4,9 @@ import {
   KeyboardAvoidingView,
   Linking,
   Switch,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';

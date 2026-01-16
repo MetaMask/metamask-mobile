@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -203,6 +204,9 @@ const AddressList = ({
             />
           )}
           keyExtractor={(item) => item.id}
+          renderScrollComponent={
+            ScrollView as React.ComponentType<ScrollViewProps>
+          }
         />
       </View>
     );

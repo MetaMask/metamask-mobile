@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';

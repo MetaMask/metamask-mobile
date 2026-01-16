@@ -1,15 +1,13 @@
 /* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
-import {
-  SafeAreaView,
+import { SafeAreaView,
   StyleSheet,
   Image,
   Text,
   InteractionManager,
   View,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+  ScrollView } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import {
   getApplicationName,
   getVersion,

@@ -1,6 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import AnimatedLottieView from 'lottie-react-native';
 

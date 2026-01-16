@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { connect, useSelector } from 'react-redux';
 import {
   ScrollView,
-  TouchableOpacity,
   Text,
   View,
   SafeAreaView,
@@ -10,6 +9,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '../../../styles/common';

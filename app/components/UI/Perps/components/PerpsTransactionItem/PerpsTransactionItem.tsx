@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
+import { View, ViewStyle, TextStyle } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';

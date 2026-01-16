@@ -5,13 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Image,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-  ScrollView,
-} from 'react-native';
+import { Image, View, useColorScheme, ScrollView } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';

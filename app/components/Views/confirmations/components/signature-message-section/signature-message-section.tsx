@@ -1,5 +1,7 @@
 import React, { ReactNode } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { ConfirmationRowComponentIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';

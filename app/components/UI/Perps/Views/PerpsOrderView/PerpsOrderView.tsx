@@ -11,7 +11,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 import {
   SafeAreaView,
   useSafeAreaInsets,

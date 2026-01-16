@@ -16,7 +16,7 @@ import {
 import styleSheet from './SmartAccount.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Icon, {
   IconName,
   IconSize,

@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react-native';
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,

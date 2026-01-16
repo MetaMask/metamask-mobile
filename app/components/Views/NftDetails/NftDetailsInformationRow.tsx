@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import { NftDetailsInformationRowProps } from './NftDetails.types';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 
 const createStyles = () =>
   StyleSheet.create({

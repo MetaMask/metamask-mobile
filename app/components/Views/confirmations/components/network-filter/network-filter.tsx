@@ -5,7 +5,8 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Pressable, ImageSourcePropType } from 'react-native';
+import { ImageSourcePropType } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';

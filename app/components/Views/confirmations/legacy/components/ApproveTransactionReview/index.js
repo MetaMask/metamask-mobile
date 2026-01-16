@@ -1,11 +1,6 @@
 import React, { PureComponent } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  InteractionManager,
-  Linking,
-  ScrollView,
-} from 'react-native';
+import { View, InteractionManager, Linking, ScrollView } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Eth from '@metamask/ethjs-query';
 import ActionView, { ConfirmButtonState } from '../../../../../UI/ActionView';
 import PropTypes from 'prop-types';

@@ -1,12 +1,10 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React from 'react';
-import {
-  Text,
+import { Text,
   StyleSheet,
   Linking,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+  View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import Icon, {
   IconColor,
   IconName,

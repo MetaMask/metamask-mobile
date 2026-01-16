@@ -1,5 +1,6 @@
 // Third party dependencies.
-import { PressableProps, LayoutChangeEvent } from 'react-native';
+import { Props, LayoutChangeEvent } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 /**
  * Tab component props

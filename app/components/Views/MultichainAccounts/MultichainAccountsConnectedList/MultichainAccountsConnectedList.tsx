@@ -1,6 +1,8 @@
 // Third party dependencies.
 import React, { useCallback, useContext, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 
 // external dependencies
 import { strings } from '../../../../../locales/i18n';
@@ -129,6 +131,9 @@ const MultichainAccountsConnectedList = ({
           showsVerticalScrollIndicator={false}
           keyExtractor={(item, index) => `${item.id || index}`}
           removeClippedSubviews={false}
+          renderScrollComponent={
+            ScrollView as React.ComponentType<ScrollViewProps>
+          }
           ListFooterComponent={
             <TouchableOpacity
               style={styles.editAccountsContainer}

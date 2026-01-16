@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, View, ViewStyle } from 'react-native';
+import { View, ViewStyle } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarSize,

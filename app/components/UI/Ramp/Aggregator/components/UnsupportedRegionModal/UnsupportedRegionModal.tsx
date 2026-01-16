@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { View, TouchableOpacity, Linking } from 'react-native';
+import { View, Linking } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 
 import Text, {

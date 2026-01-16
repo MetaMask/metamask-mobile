@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacityProps, StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
+import { TouchableOpacityProps } from '../../../components/Base/TouchableOpacity';
 
 /**
  * Checkbox component props.

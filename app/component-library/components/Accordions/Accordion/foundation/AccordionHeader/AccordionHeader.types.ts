@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { TouchableOpacityProps } from 'react-native';
+import { TouchableOpacityProps } from '../../../../../../components/Base/TouchableOpacity';
 
 /**
  * AccordionHeader Alignment options.

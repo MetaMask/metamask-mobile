@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { Platform, TouchableOpacity, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabCountIcon from '../Tabs/TabCountIcon';
 import Icon from 'react-native-vector-icons/FontAwesome';

@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
-import { View, Image, ScrollView, Dimensions, Platform } from 'react-native';
+import { View, Image, Dimensions, Platform } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';

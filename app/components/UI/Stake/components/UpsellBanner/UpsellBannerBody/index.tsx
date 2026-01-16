@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import styleSheet from './UpsellBannerBody.styles';
 import { UpsellBannerBodyProps } from '../UpsellBanner.types';
 import { useStyles } from '../../../../../hooks/useStyles';

@@ -10,7 +10,8 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,

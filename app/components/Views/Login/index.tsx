@@ -4,11 +4,11 @@ import {
   View,
   SafeAreaView,
   BackHandler,
-  TouchableOpacity,
   TextInput,
   Platform,
   Image,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';

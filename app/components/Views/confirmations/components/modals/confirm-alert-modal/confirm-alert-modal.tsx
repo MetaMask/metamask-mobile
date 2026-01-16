@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useTheme } from '../../../../../../util/theme';
 import BottomModal from '../../../components/UI/bottom-modal';
 import Button, {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';

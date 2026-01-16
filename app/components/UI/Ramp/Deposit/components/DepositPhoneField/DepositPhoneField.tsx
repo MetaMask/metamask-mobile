@@ -1,5 +1,6 @@
 import React, { useCallback, forwardRef, useState } from 'react';
-import { TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 
 import Text from '../../../../../../component-library/components/Texts/Text';

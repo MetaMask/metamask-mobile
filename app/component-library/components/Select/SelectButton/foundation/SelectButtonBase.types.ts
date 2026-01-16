@@ -1,6 +1,6 @@
 // Third party dependencies.
 import { SelectValueProps } from '../../SelectValue/SelectValue.types';
-import { TouchableOpacityProps } from 'react-native';
+import { TouchableOpacityProps } from '../../../../../components/Base/TouchableOpacity';
 
 /**
  * SelectButtonBase component props.

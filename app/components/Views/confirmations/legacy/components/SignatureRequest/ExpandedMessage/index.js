@@ -1,13 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
+import { StyleSheet,
   View,
   Text,
-  TouchableOpacity,
-  ScrollView,
-  TouchableWithoutFeedback,
-} from 'react-native';
+  ScrollView } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import { fontStyles, baseStyles } from '../../../../../../../styles/common';
 import WebsiteIcon from '../../../../../../UI/WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';

@@ -1,5 +1,6 @@
 import { Hex } from '@metamask/utils';
-import { TouchableOpacityProps } from 'react-native';
+import { Props } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 
 export interface AddressElementProps extends TouchableOpacityProps {
   /**

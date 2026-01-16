@@ -16,7 +16,7 @@ import React, {
   useImperativeHandle,
   useMemo,
 } from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { PredictPositionsHeaderSelectorsIDs } from '../../Predict.testIds';

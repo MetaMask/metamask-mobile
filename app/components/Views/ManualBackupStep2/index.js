@@ -1,12 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import {
-  InteractionManager,
-  Alert,
-  TouchableOpacity,
-  View,
-  FlatList,
-  Dimensions,
-} from 'react-native';
+import { InteractionManager, Alert, View, Dimensions } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import ActionView from '../../UI/ActionView';

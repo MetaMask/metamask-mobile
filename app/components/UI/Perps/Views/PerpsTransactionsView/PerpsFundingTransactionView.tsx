@@ -5,7 +5,8 @@ import {
 } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
 import React from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';

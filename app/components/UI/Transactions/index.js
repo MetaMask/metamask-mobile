@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   InteractionManager,
   RefreshControl,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';

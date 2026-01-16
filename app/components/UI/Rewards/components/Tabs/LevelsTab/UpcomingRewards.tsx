@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
+import { Animated, ActivityIndicator } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import {
   Box,

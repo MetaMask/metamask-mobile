@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Button, {
   ButtonSize,

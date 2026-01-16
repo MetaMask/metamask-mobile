@@ -1,5 +1,6 @@
 import React, { Fragment } from 'react';
-import { Image, View, Linking, ScrollView } from 'react-native';
+import { Image, View, Linking } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import Button, {
   ButtonVariants,

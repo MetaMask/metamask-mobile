@@ -12,7 +12,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 interface RewardsReferralCodeTagProps {
   referralCode: string;
   backgroundColor?: string;

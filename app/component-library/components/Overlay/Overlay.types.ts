@@ -1,5 +1,6 @@
 // Third party dependencies.
-import { ColorValue, TouchableOpacityProps } from 'react-native';
+import { ColorValue } from 'react-native';
+import { TouchableOpacityProps } from '../../../components/Base/TouchableOpacity';
 
 /**
  * Overlay component props.

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from 'react';
-import { Pressable, TextProps, View, ViewStyle } from 'react-native';
+import { TextProps, View, ViewStyle } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,

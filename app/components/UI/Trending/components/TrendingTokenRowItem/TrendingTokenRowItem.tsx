@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {

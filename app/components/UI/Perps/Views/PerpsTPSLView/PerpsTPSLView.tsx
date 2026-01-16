@@ -1,11 +1,6 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
-import {
-  Keyboard,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Keyboard, ScrollView, TextInput, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';

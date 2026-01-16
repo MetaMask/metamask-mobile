@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { InteractionManager, TouchableOpacity, View } from 'react-native';
+import { InteractionManager, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';

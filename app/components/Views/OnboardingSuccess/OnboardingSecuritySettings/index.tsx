@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../component-library/hooks';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';

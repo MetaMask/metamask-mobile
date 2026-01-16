@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Text, {
   TextVariant,

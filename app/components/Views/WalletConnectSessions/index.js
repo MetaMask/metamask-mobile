@@ -1,13 +1,11 @@
 import React, { PureComponent } from 'react';
-import {
-  Alert,
+import { Alert,
   ScrollView,
   SafeAreaView,
   StyleSheet,
   View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+  Text } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';

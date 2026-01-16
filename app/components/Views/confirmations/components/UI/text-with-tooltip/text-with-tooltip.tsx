@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
+import { StyleProp, TextStyle, View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import Text from '../../../../../../component-library/components/Texts/Text';

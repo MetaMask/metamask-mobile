@@ -1,5 +1,5 @@
 import React from 'react';
-import { SectionList } from 'react-native';
+import { SectionList } from 'react-native-gesture-handler';
 import { act, render, screen } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../types';

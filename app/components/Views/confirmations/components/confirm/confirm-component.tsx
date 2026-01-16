@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect } from 'react';
-import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { BackHandler, View } from 'react-native';
+import { ScrollView, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';

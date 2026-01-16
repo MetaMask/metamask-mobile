@@ -42,7 +42,8 @@ import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import Logger from '../../../../../util/Logger';
-import { Linking, TouchableOpacity } from 'react-native';
+import { Linking } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import {

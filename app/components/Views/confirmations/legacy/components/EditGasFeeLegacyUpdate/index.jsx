@@ -3,12 +3,10 @@
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  ScrollView,
-  TouchableOpacity,
+import { ScrollView,
   TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+  View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSelector } from 'react-redux';

@@ -29,7 +29,8 @@ import {
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import fallbackTierImage from '../../../../../images/rewards/tiers/rewards-s1-tier-1.png';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
 import RewardsImageModal from '../RewardsImageModal';

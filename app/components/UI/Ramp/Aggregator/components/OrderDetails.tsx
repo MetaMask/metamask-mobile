@@ -1,11 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  Image,
-  Linking,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, Linking, StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';

@@ -21,7 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
 import { hasTransactionType } from '../../../utils/transaction';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 

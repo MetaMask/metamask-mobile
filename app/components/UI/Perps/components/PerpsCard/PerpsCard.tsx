@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextColor,

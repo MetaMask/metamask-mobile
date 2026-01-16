@@ -2,9 +2,9 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
+import TouchableOpacity from '../../../../components/Base/TouchableOpacity';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.

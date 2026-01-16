@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Image } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import ActionModal from '../ActionModal';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';

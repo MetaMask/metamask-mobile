@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, Linking, View } from 'react-native';
+import { Linking, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import { useStyles } from '../../../../component-library/hooks';

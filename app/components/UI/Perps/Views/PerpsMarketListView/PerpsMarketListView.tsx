@@ -5,7 +5,8 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { View, Animated, ScrollView, Dimensions } from 'react-native';
+import { View, Animated, Dimensions } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,

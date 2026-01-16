@@ -1,6 +1,7 @@
 import type { ThemeColors } from '@metamask/design-tokens';
 import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../util/theme';
 

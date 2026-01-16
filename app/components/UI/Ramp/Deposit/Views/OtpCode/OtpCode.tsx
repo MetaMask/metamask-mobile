@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
-import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
+import { TextInput, View, Linking } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Text, {
   TextVariant,

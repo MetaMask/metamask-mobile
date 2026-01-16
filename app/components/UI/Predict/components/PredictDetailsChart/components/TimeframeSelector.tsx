@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,

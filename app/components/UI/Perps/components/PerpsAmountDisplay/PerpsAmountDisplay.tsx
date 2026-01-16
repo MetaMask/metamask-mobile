@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import Text, {

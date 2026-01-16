@@ -1,5 +1,6 @@
 import React, { useCallback, useContext } from 'react';
-import { Pressable, Share } from 'react-native';
+import { Share } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import Icon, {
   IconName,
   IconSize,

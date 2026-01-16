@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 // External dependencies.
 import { ButtonSize } from '../../components/Buttons/Button/Button.types';

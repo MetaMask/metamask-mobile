@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';

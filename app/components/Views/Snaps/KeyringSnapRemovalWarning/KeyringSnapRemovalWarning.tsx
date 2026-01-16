@@ -6,8 +6,11 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { View, TextInput, ScrollView } from 'react-native';
-import { NativeViewGestureHandler } from 'react-native-gesture-handler';
+import { View, TextInput } from 'react-native';
+import {
+  ScrollView,
+  NativeViewGestureHandler,
+} from 'react-native-gesture-handler';
 import { Snap } from '@metamask/snaps-utils';
 import BottomSheet, {
   BottomSheetRef,

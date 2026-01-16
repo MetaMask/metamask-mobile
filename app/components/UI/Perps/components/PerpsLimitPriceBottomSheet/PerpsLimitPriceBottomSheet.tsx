@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
-import { TouchableOpacity, View, Animated } from 'react-native';
+import { View, Animated } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {

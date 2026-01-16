@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import useStyles from '../List/useStyles';
 interface NotificationRootProps {
   children: React.ReactNode;

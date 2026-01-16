@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import Icon from '../../../../../../../component-library/components/Icons/Icon';
 import {
   IconColor,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, LayoutChangeEvent } from 'react-native';
+import { View, LayoutChangeEvent } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Feather from 'react-native-vector-icons/Feather';
 import Animated, {
   Easing,

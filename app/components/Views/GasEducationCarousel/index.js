@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {
-  View,
+import { View,
   ScrollView,
   StyleSheet,
   Image,
-  Dimensions,
-  TouchableOpacity,
-} from 'react-native';
+  Dimensions } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import StyledButton from '../../UI/StyledButton';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';

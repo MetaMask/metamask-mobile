@@ -20,6 +20,7 @@ import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 /**
  * Top level of the component hierarchy
@@ -68,30 +69,32 @@ const Root = ({ foxCode }: RootProps) => {
 
   return (
     <SafeAreaProvider>
-      <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
-            <SnapsExecutionWebView />
-            ///: END:ONLY_INCLUDE_IF
-          }
-          <FeatureFlagOverrideProvider>
-            <ThemeProvider>
-              <NavigationProvider>
-                <ControllersGate>
-                  <ToastContextWrapper>
-                    <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </ErrorBoundary>
-                  </ToastContextWrapper>
-                </ControllersGate>
-              </NavigationProvider>
-            </ThemeProvider>
-          </FeatureFlagOverrideProvider>
-        </PersistGate>
-      </Provider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Provider store={store}>
+          <PersistGate persistor={persistor}>
+            {
+              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+              // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+              <SnapsExecutionWebView />
+              ///: END:ONLY_INCLUDE_IF
+            }
+            <FeatureFlagOverrideProvider>
+              <ThemeProvider>
+                <NavigationProvider>
+                  <ControllersGate>
+                    <ToastContextWrapper>
+                      <ErrorBoundary view="Root">
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </ErrorBoundary>
+                    </ToastContextWrapper>
+                  </ControllersGate>
+                </NavigationProvider>
+              </ThemeProvider>
+            </FeatureFlagOverrideProvider>
+          </PersistGate>
+        </Provider>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 };

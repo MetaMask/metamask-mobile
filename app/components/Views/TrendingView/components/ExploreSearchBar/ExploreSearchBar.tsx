@@ -1,5 +1,6 @@
 import React from 'react';
-import { TextInput, TouchableOpacity } from 'react-native';
+import { TextInput } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import {
   Box,
   BoxFlexDirection,

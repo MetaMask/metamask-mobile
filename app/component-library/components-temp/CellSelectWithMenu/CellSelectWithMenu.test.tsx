@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
 
+import TouchableOpacity from '../../../components/Base/TouchableOpacity';
 import CellSelectWithMenu from './CellSelectWithMenu';
 import { CellComponentSelectorsIDs } from '../../components/Cells/Cell/CellComponent.testIds';
 

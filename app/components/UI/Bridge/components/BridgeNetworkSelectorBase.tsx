@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';

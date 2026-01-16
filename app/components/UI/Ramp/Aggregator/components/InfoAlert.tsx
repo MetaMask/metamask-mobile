@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Modal from 'react-native-modal';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';

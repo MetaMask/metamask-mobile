@@ -4,9 +4,9 @@ import {
   InteractionManager,
   View,
   ViewStyle,
-  TouchableOpacity,
   ScrollViewProps,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { ScrollView } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';

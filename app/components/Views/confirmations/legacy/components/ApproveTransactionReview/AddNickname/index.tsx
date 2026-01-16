@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, TextInput } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../../../../../UI/EthereumAddress';
 import Engine from '../../../../../../../core/Engine';

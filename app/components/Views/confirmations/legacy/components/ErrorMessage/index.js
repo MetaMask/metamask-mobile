@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../../Base/Alert';

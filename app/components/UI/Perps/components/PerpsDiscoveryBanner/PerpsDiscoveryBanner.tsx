@@ -9,7 +9,8 @@ import {
   BoxAlignItems,
   BoxBackgroundColor,
 } from '@metamask/design-system-react-native';
-import { Image, Pressable, StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsDiscoveryBannerProps } from './PerpsDiscoveryBanner.types';
 

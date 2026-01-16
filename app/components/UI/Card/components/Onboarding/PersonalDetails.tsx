@@ -46,7 +46,7 @@ import {
   Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();

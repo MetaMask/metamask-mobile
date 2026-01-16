@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
+import { Alert, TextInput, Switch, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {

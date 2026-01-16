@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { ScrollView, View, StatusBar, ActivityIndicator } from 'react-native';
+import { View, StatusBar, ActivityIndicator } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import {
   Text,
   ButtonIcon,

@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useStyles } from '../../../../../component-library/hooks';
 import BottomSheet, {
   BottomSheetRef,

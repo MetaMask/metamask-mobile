@@ -1,10 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  type ViewStyle,
-} from 'react-native';
+import { View, ActivityIndicator, type ViewStyle } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,

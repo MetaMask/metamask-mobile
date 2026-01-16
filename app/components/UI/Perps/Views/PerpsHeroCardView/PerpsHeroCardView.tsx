@@ -1,10 +1,6 @@
 import React, { useRef, useMemo, useState, useCallback } from 'react';
-import {
-  View,
-  Image,
-  TouchableOpacity,
-  ImageSourcePropType,
-} from 'react-native';
+import { View, Image, ImageSourcePropType } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { captureRef } from 'react-native-view-shot';

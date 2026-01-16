@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { lightTheme } from '@metamask/design-tokens';
 
 // External dependencies.

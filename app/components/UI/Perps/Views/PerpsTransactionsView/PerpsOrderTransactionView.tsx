@@ -4,7 +4,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,

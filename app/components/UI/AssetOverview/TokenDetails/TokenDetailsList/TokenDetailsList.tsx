@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Icon,

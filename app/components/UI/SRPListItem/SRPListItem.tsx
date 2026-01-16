@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { TouchableWithoutFeedback, View } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { View } from 'react-native';
+import { FlatList, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPListItem.styles';
 import { SRPListItemProps } from './SRPListItem.type';

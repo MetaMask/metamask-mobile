@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Avatar, {

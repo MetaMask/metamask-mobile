@@ -7,7 +7,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -447,6 +448,9 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         }
         removeClippedSubviews
         keyboardShouldPersistTaps="handled"
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
       />
     </View>
   );

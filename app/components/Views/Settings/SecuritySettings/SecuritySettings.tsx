@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
+import { Switch, View, Keyboard, Linking } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';

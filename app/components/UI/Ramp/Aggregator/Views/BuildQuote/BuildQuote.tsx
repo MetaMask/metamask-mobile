@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler, LayoutChangeEvent } from 'react-native';
+import { View, BackHandler, LayoutChangeEvent } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import { fontStyles } from '../../../../../../../styles/common';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';

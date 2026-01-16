@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableOpacityProps,
-  GestureResponderEvent,
-} from 'react-native';
+import { View, StyleSheet, GestureResponderEvent } from 'react-native';
+import TouchableOpacity, { TouchableOpacityProps } from './TouchableOpacity';
 import Icon, {
   IconName,
   IconSize,

@@ -2,7 +2,8 @@ import React, { useCallback, useState } from 'react';
 import { useStyles } from '../../../../../component-library/hooks';
 import { createStyles } from './styles';
 import { Box } from '../../../Box/Box';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';

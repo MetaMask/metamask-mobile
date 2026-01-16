@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FlatList, ListRenderItem, ActivityIndicator } from 'react-native';
+import { ListRenderItem, ActivityIndicator } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
   Text,

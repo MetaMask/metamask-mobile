@@ -7,13 +7,8 @@ import React, {
   useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Alert,
-  View,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import { Alert, View, Animated, Dimensions } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import {

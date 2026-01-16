@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import BottomSheet, {
   BottomSheetRef,
@@ -174,6 +176,9 @@ const AddressSelector = () => {
         }
         renderItem={renderAddressItem}
         extraData={selectedCaipChainId}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
       />
     </BottomSheet>
   );

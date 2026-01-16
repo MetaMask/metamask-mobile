@@ -3,9 +3,9 @@ import {
   NativeSyntheticEvent,
   SafeAreaView,
   TextLayoutEventData,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useNavigation } from '@react-navigation/native';

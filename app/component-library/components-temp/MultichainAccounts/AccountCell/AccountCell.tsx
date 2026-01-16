@@ -1,7 +1,8 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import React, { useCallback, useMemo } from 'react';
-import { type ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { type ImageSourcePropType, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import TouchableOpacity from '../../../../components/Base/TouchableOpacity';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';

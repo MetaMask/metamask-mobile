@@ -5,10 +5,10 @@ import {
   Text,
   StyleSheet,
   View,
-  TouchableOpacity,
   KeyboardAvoidingView,
   InteractionManager,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { connect } from 'react-redux';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';

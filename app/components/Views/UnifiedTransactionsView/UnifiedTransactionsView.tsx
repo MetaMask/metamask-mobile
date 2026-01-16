@@ -5,7 +5,8 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { RefreshControl, View } from 'react-native';
+import { RefreshControl, View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -633,6 +634,9 @@ const UnifiedTransactionsView = ({
                 />
               }
               scrollEnabled={!isChartBeingTouched}
+              renderScrollComponent={
+                ScrollView as React.ComponentType<ScrollViewProps>
+              }
             />
           )}
         </PriceChartContext.Consumer>

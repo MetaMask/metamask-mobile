@@ -5,6 +5,8 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { RefreshTestId } from './constants';
@@ -204,6 +206,9 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
         scrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
         numColumns={3}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
       />
     ),
     [

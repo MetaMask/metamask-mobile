@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import { fireEvent, render } from '@testing-library/react-native';
 import CopyIcon from './copy-icon';
 import {

@@ -1,7 +1,8 @@
 /* eslint-disable react/display-name */
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';

@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
+import { ActivityIndicator, FlatListProps, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

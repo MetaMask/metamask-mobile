@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Image, Pressable } from 'react-native';
+import { View, Image } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import stylesheet from './MusdConversionAssetOverviewCta.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Text, {

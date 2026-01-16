@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacityProps } from 'react-native';
+import { TouchableOpacityProps } from '../../../components/Base/TouchableOpacity';
 
 /**
  * RadioButton component props.

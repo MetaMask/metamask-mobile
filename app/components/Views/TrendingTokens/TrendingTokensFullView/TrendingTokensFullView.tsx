@@ -5,12 +5,8 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import { StyleSheet, View, RefreshControl } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { Theme } from '../../../../util/theme/models';

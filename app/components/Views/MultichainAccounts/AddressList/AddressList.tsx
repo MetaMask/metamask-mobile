@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -107,6 +108,9 @@ export const AddressList = () => {
         keyExtractor={(item) => item.scope}
         renderItem={renderAddressItem}
         onLoad={onLoad}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
       />
     </View>
   );

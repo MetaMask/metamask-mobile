@@ -1,5 +1,6 @@
 import React, { useContext, useMemo } from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {

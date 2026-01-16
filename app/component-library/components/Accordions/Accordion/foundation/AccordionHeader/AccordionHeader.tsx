@@ -2,7 +2,6 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -11,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // External dependencies.
+import TouchableOpacity from '../../../../../../components/Base/TouchableOpacity';
 import { useStyles } from '../../../../../hooks';
 import Icon, { IconSize, IconName } from '../../../../Icons/Icon';
 import Text, { TextVariant } from '../../../../Texts/Text';

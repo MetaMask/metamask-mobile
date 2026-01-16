@@ -5,14 +5,8 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
-import {
-  Alert,
-  View,
-  TouchableOpacity,
-  Platform,
-  Keyboard,
-  TextInput,
-} from 'react-native';
+import { Alert, View, Platform, Keyboard, TextInput } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';

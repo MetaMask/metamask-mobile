@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
-import { Pressable } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import {
   Box,
   Text,

@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, FlatList, Pressable } from 'react-native';
+import { View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
   TextColor,

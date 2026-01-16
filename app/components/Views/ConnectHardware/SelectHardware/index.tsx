@@ -3,13 +3,8 @@
 
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import {
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, SafeAreaView, StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,

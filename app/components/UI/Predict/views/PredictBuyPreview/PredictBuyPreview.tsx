@@ -26,13 +26,11 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import {
-  ActivityIndicator,
+import { ActivityIndicator,
   Image,
   Linking,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+  ScrollView } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Button, {
   ButtonSize,
   ButtonVariants,

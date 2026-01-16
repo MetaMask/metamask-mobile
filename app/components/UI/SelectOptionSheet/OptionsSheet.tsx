@@ -2,7 +2,9 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import React, { useRef } from 'react';
 import {

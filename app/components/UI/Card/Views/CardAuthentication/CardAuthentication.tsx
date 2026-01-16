@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
+import { Platform, TextInputProps } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import {
   Box,
   FontWeight,

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
+import { View, StyleSheet, Linking } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import Summary from '../../../../../../Base/Summary';
 import Text from '../../../../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';

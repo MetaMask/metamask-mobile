@@ -2,7 +2,8 @@ import React from 'react';
 import styleSheet from './EarnWithdrawalTokenListItem.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';

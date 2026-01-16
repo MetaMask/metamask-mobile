@@ -1,12 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { getSystemVersion } from 'react-native-device-info';
 import { strings } from '../../../../../locales/i18n';
 import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';

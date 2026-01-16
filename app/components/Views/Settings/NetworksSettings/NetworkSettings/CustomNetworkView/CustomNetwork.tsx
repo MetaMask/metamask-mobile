@@ -1,6 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import NetworkModals from '../../../../../UI/NetworkModal';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import WarningIcon from 'react-native-vector-icons/FontAwesome';
 import { toHex } from '@metamask/controller-utils';

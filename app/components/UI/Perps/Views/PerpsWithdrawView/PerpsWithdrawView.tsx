@@ -7,7 +7,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, Pressable } from 'react-native';
+import { Animated } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {

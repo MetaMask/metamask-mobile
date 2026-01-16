@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
-import { ActivityIndicator, SectionList } from 'react-native';
+import { ActivityIndicator } from 'react-native';
+import { SectionList } from 'react-native-gesture-handler';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import UpcomingRewards from './LevelsTab/UpcomingRewards';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import UnlockedRewards from './LevelsTab/UnlockedRewards';
 

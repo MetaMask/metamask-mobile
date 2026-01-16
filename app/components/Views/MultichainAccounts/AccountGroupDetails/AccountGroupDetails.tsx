@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import {
-  BackHandler,
+import { BackHandler,
   SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+  ScrollView } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
 import Text, {

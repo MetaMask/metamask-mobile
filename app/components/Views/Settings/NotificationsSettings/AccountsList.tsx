@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, View } from 'react-native';
+import { View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   useAccountProps,
   useNotificationAccountListProps,

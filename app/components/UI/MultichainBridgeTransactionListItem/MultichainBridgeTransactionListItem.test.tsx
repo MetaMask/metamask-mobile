@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableHighlight } from 'react-native';
+import { TouchableHighlight } from 'react-native-gesture-handler';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';

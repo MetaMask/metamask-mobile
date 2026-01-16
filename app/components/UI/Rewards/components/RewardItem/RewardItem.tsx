@@ -23,7 +23,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { selectRewardsActiveAccountAddress } from '../../../../../selectors/rewards';
 

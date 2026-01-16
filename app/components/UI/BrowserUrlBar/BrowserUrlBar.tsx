@@ -9,10 +9,10 @@ import {
   NativeSyntheticEvent,
   TextInput,
   TextInputSubmitEditingEventData,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { useStyles } from '../../../component-library/hooks';
 import Icon, {
   IconName,

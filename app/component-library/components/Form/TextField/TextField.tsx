@@ -7,7 +7,8 @@ import React, {
   useRef,
   useImperativeHandle,
 } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';

@@ -12,7 +12,9 @@ import {
   TextInput,
   Platform,
   LayoutChangeEvent,
+  ScrollViewProps,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -631,6 +633,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
               keyExtractor={keyExtractor}
               contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
               showsVerticalScrollIndicator={false}
+              renderScrollComponent={ScrollView}
             />
           )}
         </Box>

@@ -11,9 +11,9 @@ import {
   Alert,
   RefreshControl,
   ScrollView,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 
 import Icon, {
   IconName,

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {

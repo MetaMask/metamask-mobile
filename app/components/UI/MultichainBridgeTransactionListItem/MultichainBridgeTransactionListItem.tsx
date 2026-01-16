@@ -2,10 +2,10 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
-  TouchableHighlight,
   TextStyle,
   useColorScheme,
 } from 'react-native';
+import { TouchableHighlight } from 'react-native-gesture-handler';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';

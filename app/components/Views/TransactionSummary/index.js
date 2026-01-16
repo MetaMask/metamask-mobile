@@ -1,11 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
+import { StyleSheet,
   View,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+  ActivityIndicator } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { strings } from '../../../../locales/i18n';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import Summary from '../../Base/Summary';

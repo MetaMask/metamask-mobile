@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useStyles } from '../../../../../component-library/hooks';

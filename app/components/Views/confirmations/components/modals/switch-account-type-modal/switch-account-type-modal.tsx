@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 

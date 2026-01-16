@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useRef, useCallback } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

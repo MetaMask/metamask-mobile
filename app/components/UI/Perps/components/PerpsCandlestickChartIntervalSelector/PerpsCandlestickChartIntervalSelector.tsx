@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, ScrollView } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,

@@ -3,7 +3,8 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../../../Base/TouchableOpacity';
 import { useSelector } from 'react-redux';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';

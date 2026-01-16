@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   AlignItems,

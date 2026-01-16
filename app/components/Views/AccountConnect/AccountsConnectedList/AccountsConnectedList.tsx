@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector, shallowEqual } from 'react-redux';
 import {

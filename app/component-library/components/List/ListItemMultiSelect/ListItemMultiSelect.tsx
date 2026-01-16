@@ -2,9 +2,10 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
+import TouchableOpacity from '../../../../components/Base/TouchableOpacity';
 import Checkbox from '../../Checkbox';
 import { useStyles } from '../../../hooks';
 import ListItem from '../../List/ListItem/ListItem';

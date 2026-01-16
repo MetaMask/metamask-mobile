@@ -10,11 +10,11 @@ import {
   SafeAreaView,
   Image,
   BackHandler,
-  TouchableOpacity,
   TextInput,
   Platform,
   Alert,
 } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import Text, {
   TextVariant,
   TextColor,

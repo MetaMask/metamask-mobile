@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';

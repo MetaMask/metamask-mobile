@@ -30,7 +30,7 @@ import Badge, {
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../../../../util/Logger';
 import { openActivityDetailsSheet } from './EventDetails/ActivityDetailsSheet';
-import { TouchableOpacity } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';

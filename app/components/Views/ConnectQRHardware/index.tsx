@@ -5,7 +5,8 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import {
   type EdgeInsets,
   useSafeAreaInsets,

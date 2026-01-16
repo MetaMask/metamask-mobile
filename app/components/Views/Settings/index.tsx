@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Alert } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsDrawer from '../../UI/SettingsDrawer';

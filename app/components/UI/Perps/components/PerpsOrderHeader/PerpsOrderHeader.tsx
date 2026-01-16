@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
 import ButtonIcon, {
   ButtonIconSizes,

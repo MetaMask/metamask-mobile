@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { View, ScrollView, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
   TextColor,

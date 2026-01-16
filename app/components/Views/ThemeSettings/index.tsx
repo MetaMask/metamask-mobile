@@ -1,11 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Appearance,
-} from 'react-native';
+import { StyleSheet, View, Text, Appearance } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useTheme } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';

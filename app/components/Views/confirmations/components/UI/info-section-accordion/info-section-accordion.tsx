@@ -3,11 +3,11 @@ import {
   LayoutAnimation,
   Platform,
   StyleProp,
-  TouchableOpacity,
   UIManager,
   View,
   ViewStyle,
 } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Animated, {
   interpolate,
   useAnimatedStyle,

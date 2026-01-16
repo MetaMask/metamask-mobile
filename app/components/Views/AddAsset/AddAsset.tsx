@@ -34,7 +34,7 @@ import { BottomSheetRef } from '../../../component-library/components/BottomShee
 import { Hex } from '@metamask/utils';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet';
 import Engine from '../../../core/Engine';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import Avatar, {
   AvatarSize,
   AvatarVariant,

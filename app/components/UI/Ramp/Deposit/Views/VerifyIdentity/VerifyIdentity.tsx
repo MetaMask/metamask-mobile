@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image, Linking, ScrollView } from 'react-native';
+import { Image, Linking } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
   TextColor,

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, InteractionManager } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { BuyQuote } from '@consensys/native-ramps-sdk';

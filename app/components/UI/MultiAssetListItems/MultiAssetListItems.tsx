@@ -5,7 +5,8 @@ import { useStyles } from '../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -124,6 +125,9 @@ const MultiAssetListItems = ({
             {strings('token.no_tokens_found')}
           </Text>
         ) : null
+      }
+      renderScrollComponent={
+        ScrollView as React.ComponentType<ScrollViewProps>
       }
     />
   );

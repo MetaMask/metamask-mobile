@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconColor,

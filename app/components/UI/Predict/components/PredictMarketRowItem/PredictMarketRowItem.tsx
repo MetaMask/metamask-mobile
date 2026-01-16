@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View, Image } from 'react-native';
+import { View, Image } from 'react-native';
+import TouchableOpacity from '../../../../Base/TouchableOpacity';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PredictMarketRowItem.styles';

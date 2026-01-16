@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,

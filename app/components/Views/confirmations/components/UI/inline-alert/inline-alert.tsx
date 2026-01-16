@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
+import TouchableOpacity from '../../../../../Base/TouchableOpacity';
 import Icon, {
   IconName,
   IconSize,

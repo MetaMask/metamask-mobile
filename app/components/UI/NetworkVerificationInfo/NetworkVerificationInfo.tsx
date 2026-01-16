@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { View, Linking, TouchableOpacity } from 'react-native';
+import { View, Linking } from 'react-native';
+import TouchableOpacity from '../../Base/TouchableOpacity';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import Text, {

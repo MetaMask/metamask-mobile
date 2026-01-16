@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
+import { View, ActivityIndicator, ScrollView } from 'react-native';
+import TouchableOpacity from '../../../Base/TouchableOpacity';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Text, {
   TextVariant,
