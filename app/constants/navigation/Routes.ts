@@ -160,9 +160,6 @@ const Routes = {
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
     REGION_SELECTOR: 'SettingsRegionSelector',
-    MODALS: {
-      REGION_SELECTOR: 'SettingsRegionSelectorModal',
-    },
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',

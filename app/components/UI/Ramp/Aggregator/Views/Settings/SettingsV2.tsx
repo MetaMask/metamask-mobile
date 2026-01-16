@@ -48,7 +48,7 @@ function SettingsV2({ isInternalBuild }: SettingsV2Props) {
       return { regionDisplayName: null, regionFlag: '🏳️' };
     }
 
-    const flag = userRegion.country.flag || userRegion.country.emoji || '🏳️';
+    const flag = userRegion.country.flag || '🏳️';
 
     if (userRegion.state?.name) {
       return {
