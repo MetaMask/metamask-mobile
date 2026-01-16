@@ -13,6 +13,9 @@ import reducer, {
   selectIsDestTokenManuallySet,
   selectBip44DefaultPair,
   selectGasIncludedQuoteParams,
+  selectIsBridgeEnabledSource,
+  selectIsBridgeEnabledDest,
+  selectIsSwapsLive,
 } from '.';
 import {
   BridgeToken,
@@ -510,6 +513,126 @@ describe('bridge slice', () => {
       const result = selectGasIncludedQuoteParams(mockState);
 
       expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+  });
+
+  describe('selectIsBridgeEnabledSource', () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Mock state structure causes TypeScript warnings but tests are valid
+    it('returns true when bridge is enabled as source for the chain', () => {
+      const result = selectIsBridgeEnabledSource(mockRootState, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when bridge is not enabled as source for the chain', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ].isActiveSrc = false;
+
+      const result = selectIsBridgeEnabledSource(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns undefined when chain is not in bridge config', () => {
+      const result = selectIsBridgeEnabledSource(mockRootState, '0x999' as Hex);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectIsBridgeEnabledDest', () => {
+    it('returns true when bridge is enabled as destination for the chain', () => {
+      const result = selectIsBridgeEnabledDest(mockRootState, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when bridge is not enabled as destination for the chain', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ].isActiveDest = false;
+
+      const result = selectIsBridgeEnabledDest(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when support flag is false', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.support = false;
+
+      const result = selectIsBridgeEnabledDest(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns undefined when chain is not in bridge config', () => {
+      const result = selectIsBridgeEnabledDest(mockRootState, '0x999' as Hex);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectIsSwapsLive', () => {
+    it('returns true when bridge is enabled as both source and destination', () => {
+      const result = selectIsSwapsLive(mockRootState, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when bridge is enabled only as source', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ].isActiveDest = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when bridge is enabled only as destination', () => {
+      const mockState = cloneDeep(mockRootState) as RootState;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ].isActiveSrc = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when bridge is disabled for both source and destination', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ].isActiveSrc = false;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ].isActiveDest = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns undefined when chain is not in bridge config', () => {
+      const result = selectIsSwapsLive(mockRootState, '0x999' as Hex);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns false when support flag is disabled', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.support = false;
+
+      const result = selectIsSwapsLive(mockState, '0x1');
+
+      expect(result).toBe(false);
     });
   });
 });
