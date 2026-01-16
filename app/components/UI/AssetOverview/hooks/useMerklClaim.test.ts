@@ -157,9 +157,10 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toBe(null);
 
-    // Verify API was called with correct chainId
+    // Verify API was called with correct chainId (decimal format, not hex)
+    const expectedDecimalChainId = Number(CHAIN_IDS.MAINNET);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`chainId=${CHAIN_IDS.MAINNET}`),
+      expect.stringContaining(`chainId=${expectedDecimalChainId}`),
     );
 
     const transactionCall = mockAddTransaction.mock.calls[0][0];

@@ -233,8 +233,10 @@ describe('useMerklRewards', () => {
       expect(global.fetch).toHaveBeenCalled();
     });
 
+    // API expects decimal chainId (e.g., 1) not hex (e.g., 0x1)
+    const expectedDecimalChainId = Number(CHAIN_IDS.MAINNET);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`chainId=${CHAIN_IDS.MAINNET}`),
+      expect.stringContaining(`chainId=${expectedDecimalChainId}`),
     );
   });
 });

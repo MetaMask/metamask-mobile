@@ -60,8 +60,10 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
 
     try {
       // Fetch claim data from Merkl API using asset's chainId
+      // Convert hex chainId to decimal for API (e.g., '0x1' -> 1)
+      const decimalChainId = Number(asset.chainId);
       const response = await fetch(
-        `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${asset.chainId}&test=true`,
+        `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${decimalChainId}&test=true`,
       );
 
       if (!response.ok) {
