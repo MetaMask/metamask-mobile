@@ -1,22 +1,17 @@
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { PredictMarket as PredictMarketType } from '../../types';
+import {
+  PredictMarket as PredictMarketType,
+  PredictOutcomeToken,
+} from '../../types';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
@@ -26,7 +21,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportTeamGradient from '../PredictSportTeamGradient/PredictSportTeamGradient';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
-import { formatCents, formatGameStartTime } from '../../utils/format';
+import { PredictActionButtons } from '../PredictActionButtons';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { formatGameStartTime } from '../../utils/format';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -48,6 +45,33 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
 
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId: market.providerId,
+    navigation,
+  });
+
+  const outcome = market.outcomes?.[0];
+
+  const handleBetPress = useCallback(
+    (token: PredictOutcomeToken) => {
+      executeGuardedAction(
+        () => {
+          navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+            market,
+            outcome,
+            outcomeToken: token,
+            entryPoint: resolvedEntryPoint,
+          });
+        },
+        {
+          checkBalance: true,
+          attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+        },
+      );
+    },
+    [executeGuardedAction, navigation, market, outcome, resolvedEntryPoint],
+  );
+
   const { date: gameDate, time: gameTime } = formatGameStartTime(
     market.game?.startTime,
   );
@@ -58,19 +82,9 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   const gameStatus = market.game?.status ?? 'scheduled';
   const isScheduled = gameStatus === 'scheduled';
   const isOngoing = gameStatus === 'ongoing';
+  const isEnded = gameStatus === 'ended';
   const isHalftime = isOngoing && market.game?.period?.toUpperCase() === 'HT';
   const isInProgress = isOngoing && !isHalftime;
-
-  // Find outcome for each team and get the "Yes" token price
-  const awayOutcome = market.outcomes?.find(
-    (o) => o.groupItemTitle === market.game?.awayTeam.abbreviation,
-  );
-  const homeOutcome = market.outcomes?.find(
-    (o) => o.groupItemTitle === market.game?.homeTeam.abbreviation,
-  );
-
-  const awayPrice = awayOutcome?.tokens?.find((t) => t.title === 'Yes')?.price;
-  const homePrice = homeOutcome?.tokens?.find((t) => t.title === 'Yes')?.price;
 
   return (
     <TouchableOpacity
@@ -131,53 +145,14 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             testID={testID ? `${testID}-scoreboard` : undefined}
           />
 
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="w-full"
-          >
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={
-                <Text
-                  variant={TextVariant.BodyLg}
-                  style={tw.style('font-medium text-white')}
-                >
-                  {`${market.game?.awayTeam.abbreviation ?? 'TBD'} ${formatCents(awayPrice ?? 0)}`}
-                </Text>
-              }
-              onPress={() => {
-                // TODO: Implement team selection handler
-              }}
-              style={tw.style(
-                'w-[48.5%] py-0',
-                `bg-[${market.game?.awayTeam.color ?? '#1D4E9B'}]`,
-              )}
+          {outcome && !isEnded && (
+            <PredictActionButtons
+              market={market}
+              outcome={outcome}
+              onBetPress={handleBetPress}
+              testID={testID ? `${testID}-action-buttons` : undefined}
             />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={
-                <Text
-                  variant={TextVariant.BodyLg}
-                  style={tw.style('font-medium text-white')}
-                >
-                  {`${market.game?.homeTeam.abbreviation ?? 'TBD'} ${formatCents(homePrice ?? 0)}`}
-                </Text>
-              }
-              onPress={() => {
-                // TODO: Implement team selection handler
-              }}
-              style={tw.style(
-                'w-[48.5%] py-0',
-                `bg-[${market.game?.homeTeam.color ?? '#FC4C02'}]`,
-              )}
-            />
-          </Box>
+          )}
         </Box>
       </PredictSportTeamGradient>
     </TouchableOpacity>

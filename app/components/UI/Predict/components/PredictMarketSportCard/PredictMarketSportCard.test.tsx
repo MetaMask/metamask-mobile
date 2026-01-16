@@ -41,6 +41,16 @@ jest.mock('../../utils/format', () => ({
   }),
 }));
 
+// Mock usePredictActionGuard
+const mockExecuteGuardedAction = jest.fn((action: () => void) => action());
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+    isEligible: true,
+    hasNoBalance: false,
+  }),
+}));
+
 const mockMarket: PredictMarketType = {
   id: 'test-market-sport-1',
   providerId: 'test-provider',
@@ -54,34 +64,19 @@ const mockMarket: PredictMarketType = {
   tags: ['NFL', 'Super Bowl'],
   outcomes: [
     {
-      id: 'outcome-sea',
+      id: 'outcome-game-winner',
       providerId: 'test-provider',
       marketId: 'test-market-sport-1',
-      title: 'Seattle Seahawks',
-      description: 'Seattle Seahawks win',
+      title: 'Game Winner',
+      description: 'Who will win the game',
       image: '',
       status: 'open',
       tokens: [
-        { id: 'token-sea-yes', title: 'Yes', price: 0.77 },
-        { id: 'token-sea-no', title: 'No', price: 0.23 },
+        { id: 'token-away', title: 'SEA', price: 0.77 },
+        { id: 'token-home', title: 'DEN', price: 0.23 },
       ],
-      volume: 500000,
-      groupItemTitle: 'SEA',
-    },
-    {
-      id: 'outcome-den',
-      providerId: 'test-provider',
-      marketId: 'test-market-sport-1',
-      title: 'Denver Broncos',
-      description: 'Denver Broncos win',
-      image: '',
-      status: 'open',
-      tokens: [
-        { id: 'token-den-yes', title: 'Yes', price: 0.23 },
-        { id: 'token-den-no', title: 'No', price: 0.77 },
-      ],
-      volume: 500000,
-      groupItemTitle: 'DEN',
+      volume: 1000000,
+      groupItemTitle: '',
     },
   ],
   liquidity: 1000000,
@@ -123,11 +118,13 @@ describe('PredictMarketSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFromTrending.mockReturnValue(false);
+    mockExecuteGuardedAction.mockImplementation((action: () => void) =>
+      action(),
+    );
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockClear();
   });
 
   it('renders market information correctly', () => {
@@ -149,8 +146,53 @@ describe('PredictMarketSportCard', () => {
       { state: initialState },
     );
 
-    expect(getByText('SEA 77¢')).toBeOnTheScreen();
-    expect(getByText('DEN 23¢')).toBeOnTheScreen();
+    expect(getByText('SEA · 77¢')).toBeOnTheScreen();
+    expect(getByText('DEN · 23¢')).toBeOnTheScreen();
+  });
+
+  it('calls executeGuardedAction and navigates to buy preview when team button is pressed', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('SEA · 77¢'));
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.MODALS.BUY_PREVIEW,
+      {
+        market: mockMarket,
+        outcome: mockMarket.outcomes[0],
+        outcomeToken: expect.objectContaining({
+          id: 'token-away',
+          title: 'SEA',
+        }),
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      },
+    );
+  });
+
+  it('hides action buttons when game has ended', () => {
+    const endedMarket: PredictMarketType = {
+      ...mockMarket,
+      game: mockMarket.game
+        ? { ...mockMarket.game, status: 'ended' }
+        : undefined,
+    };
+
+    const { queryByTestId } = renderWithProvider(
+      <PredictMarketSportCard market={endedMarket} testID="sport-card" />,
+      { state: initialState },
+    );
+
+    expect(queryByTestId('sport-card-action-buttons')).toBeNull();
   });
 
   it('navigates to market details when pressed', () => {
