@@ -1,4 +1,4 @@
-import { formatCompactUSD, formatMarketStats } from './utils';
+import { formatCompactUSD, formatMarketStats, isValidMarketValue } from './utils';
 
 describe('formatCompactUSD', () => {
   describe('Billions formatting', () => {
@@ -207,6 +207,44 @@ describe('formatCompactUSD', () => {
   });
 });
 
+describe('isValidMarketValue', () => {
+  describe('Valid values', () => {
+    it('returns true for positive number', () => {
+      expect(isValidMarketValue(1000)).toBe(true);
+    });
+
+    it('returns true for small positive number', () => {
+      expect(isValidMarketValue(0.01)).toBe(true);
+    });
+
+    it('returns true for large positive number', () => {
+      expect(isValidMarketValue(1000000000)).toBe(true);
+    });
+  });
+
+  describe('Invalid values', () => {
+    it('returns false for null', () => {
+      expect(isValidMarketValue(null)).toBe(false);
+    });
+
+    it('returns false for undefined', () => {
+      expect(isValidMarketValue(undefined)).toBe(false);
+    });
+
+    it('returns false for zero', () => {
+      expect(isValidMarketValue(0)).toBe(false);
+    });
+
+    it('returns false for NaN', () => {
+      expect(isValidMarketValue(NaN)).toBe(false);
+    });
+
+    it('returns false for negative number', () => {
+      expect(isValidMarketValue(-100)).toBe(false);
+    });
+  });
+});
+
 describe('formatMarketStats', () => {
   describe('Combined formatting', () => {
     it('formats market cap and volume with correct format', () => {
@@ -284,61 +322,91 @@ describe('formatMarketStats', () => {
     });
   });
 
-  describe('Zero values', () => {
-    it('formats zero market cap and volume', () => {
-      const marketCap = 0;
-      const volume = 0;
+  describe('Missing or zero values - hide market stats', () => {
+    it('returns null when both values are zero', () => {
+      const result = formatMarketStats(0, 0);
 
-      const result = formatMarketStats(marketCap, volume);
-
-      expect(result).toBe('$0.00 cap • $0.00 vol');
+      expect(result).toBeNull();
     });
 
-    it('formats zero market cap with non-zero volume', () => {
-      const marketCap = 0;
-      const volume = 1000000;
+    it('returns null when both values are null', () => {
+      const result = formatMarketStats(null, null);
 
-      const result = formatMarketStats(marketCap, volume);
-
-      expect(result).toBe('$0.00 cap • $1.0M vol');
+      expect(result).toBeNull();
     });
 
-    it('formats non-zero market cap with zero volume', () => {
-      const marketCap = 1000000;
-      const volume = 0;
+    it('returns null when both values are undefined', () => {
+      const result = formatMarketStats(undefined, undefined);
 
-      const result = formatMarketStats(marketCap, volume);
+      expect(result).toBeNull();
+    });
 
-      expect(result).toBe('$1.0M cap • $0.00 vol');
+    it('returns null when marketCap is null and volume is zero', () => {
+      const result = formatMarketStats(null, 0);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when marketCap is zero and volume is undefined', () => {
+      const result = formatMarketStats(0, undefined);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when both values are NaN', () => {
+      const result = formatMarketStats(NaN, NaN);
+
+      expect(result).toBeNull();
     });
   });
 
-  describe('Invalid inputs', () => {
-    it('handles NaN market cap', () => {
-      const marketCap = NaN;
-      const volume = 1000000;
+  describe('Partial values - show available data only', () => {
+    it('shows only volume when market cap is zero', () => {
+      const result = formatMarketStats(0, 1000000);
 
-      const result = formatMarketStats(marketCap, volume);
-
-      expect(result).toBe('Invalid number cap • $1.0M vol');
+      expect(result).toBe('$1.0M vol');
     });
 
-    it('handles NaN volume', () => {
-      const marketCap = 1000000;
-      const volume = NaN;
+    it('shows only volume when market cap is null', () => {
+      const result = formatMarketStats(null, 1000000);
 
-      const result = formatMarketStats(marketCap, volume);
-
-      expect(result).toBe('$1.0M cap • Invalid number vol');
+      expect(result).toBe('$1.0M vol');
     });
 
-    it('handles both NaN values', () => {
-      const marketCap = NaN;
-      const volume = NaN;
+    it('shows only volume when market cap is undefined', () => {
+      const result = formatMarketStats(undefined, 1000000);
 
-      const result = formatMarketStats(marketCap, volume);
+      expect(result).toBe('$1.0M vol');
+    });
 
-      expect(result).toBe('Invalid number cap • Invalid number vol');
+    it('shows only market cap when volume is zero', () => {
+      const result = formatMarketStats(1000000, 0);
+
+      expect(result).toBe('$1.0M cap');
+    });
+
+    it('shows only market cap when volume is null', () => {
+      const result = formatMarketStats(1000000, null);
+
+      expect(result).toBe('$1.0M cap');
+    });
+
+    it('shows only market cap when volume is undefined', () => {
+      const result = formatMarketStats(1000000, undefined);
+
+      expect(result).toBe('$1.0M cap');
+    });
+
+    it('shows only volume when market cap is NaN', () => {
+      const result = formatMarketStats(NaN, 1000000);
+
+      expect(result).toBe('$1.0M vol');
+    });
+
+    it('shows only market cap when volume is NaN', () => {
+      const result = formatMarketStats(1000000, NaN);
+
+      expect(result).toBe('$1.0M cap');
     });
   });
 

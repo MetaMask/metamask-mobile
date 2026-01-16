@@ -24,11 +24,46 @@ export function formatCompactUSD(value: number): string {
 }
 
 /**
- * Formats market cap and volume as a combined string
- * @param marketCap - Market capitalization value
- * @param volume - Trading volume value
- * @returns Formatted string (e.g., "$13B cap • $34.2M vol")
+ * Checks if a market value is valid (not null, undefined, NaN, or zero)
+ * @param value - The value to check
+ * @returns true if the value is valid and greater than 0
  */
-export function formatMarketStats(marketCap: number, volume: number): string {
-  return `${formatCompactUSD(marketCap)} cap • ${formatCompactUSD(volume)} vol`;
+export function isValidMarketValue(
+  value: number | null | undefined,
+): value is number {
+  return value !== null && value !== undefined && !isNaN(value) && value > 0;
+}
+
+/**
+ * Formats market cap and volume as a combined string
+ * Returns null if both values are missing or zero (to indicate stats should be hidden)
+ * @param marketCap - Market capitalization value (can be null/undefined)
+ * @param volume - Trading volume value (can be null/undefined)
+ * @returns Formatted string (e.g., "$13B cap • $34.2M vol") or null if both values are invalid
+ */
+export function formatMarketStats(
+  marketCap: number | null | undefined,
+  volume: number | null | undefined,
+): string | null {
+  const hasMarketCap = isValidMarketValue(marketCap);
+  const hasVolume = isValidMarketValue(volume);
+
+  // Hide market stats entirely if both values are missing or zero
+  if (!hasMarketCap && !hasVolume) {
+    return null;
+  }
+
+  // Show both stats if both are valid
+  if (hasMarketCap && hasVolume) {
+    return `${formatCompactUSD(marketCap)} cap • ${formatCompactUSD(volume)} vol`;
+  }
+
+  // Show only market cap if volume is missing
+  if (hasMarketCap) {
+    return `${formatCompactUSD(marketCap)} cap`;
+  }
+
+  // Show only volume if market cap is missing
+  // At this point, hasVolume must be true since we've already checked !hasMarketCap && !hasVolume
+  return `${formatCompactUSD(volume as number)} vol`;
 }

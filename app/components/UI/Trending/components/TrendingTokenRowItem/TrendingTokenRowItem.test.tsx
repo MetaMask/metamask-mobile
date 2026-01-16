@@ -465,19 +465,72 @@ describe('TrendingTokenRowItem', () => {
     ).toBeTruthy();
   });
 
-  it('renders with zero market cap and volume', () => {
+  it('hides market stats when both market cap and volume are zero', () => {
     const token = createMockToken({
       marketCap: 0,
       aggregatedUsdVolume: 0,
     });
 
-    const { getByText } = renderWithProvider(
+    const { queryByText } = renderWithProvider(
       <TrendingTokenRowItem token={token} />,
       { state: mockState },
       false,
     );
 
-    expect(getByText(/\$0\.00 cap • \$0\.00 vol/)).toBeTruthy();
+    // Market stats should not be displayed when both values are zero
+    expect(queryByText(/cap/)).toBeNull();
+    expect(queryByText(/vol/)).toBeNull();
+  });
+
+  it('hides market stats when both market cap and volume are undefined', () => {
+    const token = createMockToken({
+      marketCap: undefined,
+      aggregatedUsdVolume: undefined,
+    });
+
+    const { queryByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
+    );
+
+    // Market stats should not be displayed when both values are undefined
+    expect(queryByText(/cap/)).toBeNull();
+    expect(queryByText(/vol/)).toBeNull();
+  });
+
+  it('shows only volume when market cap is zero but volume is valid', () => {
+    const token = createMockToken({
+      marketCap: 0,
+      aggregatedUsdVolume: 974248822.2,
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
+    );
+
+    // Should show volume only
+    expect(getByText(/\$974\.2M vol/)).toBeTruthy();
+    expect(queryByText(/cap/)).toBeNull();
+  });
+
+  it('shows only market cap when volume is zero but market cap is valid', () => {
+    const token = createMockToken({
+      marketCap: 75641301011.76,
+      aggregatedUsdVolume: 0,
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
+    );
+
+    // Should show market cap only
+    expect(getByText(/\$76B cap/)).toBeTruthy();
+    expect(queryByText(/vol/)).toBeNull();
   });
 
   it('renders with very large market cap and volume', () => {

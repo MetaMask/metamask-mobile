@@ -35,7 +35,7 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { formatMarketStats } from './utils';
+import { formatMarketStats, isValidMarketValue } from './utils';
 import { formatPrice } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import NetworkModals from '../../../NetworkModal';
@@ -206,6 +206,17 @@ const TrendingTokenRowItem = ({
     pricePercentChange !== undefined && !isNaN(pricePercentChange);
   const isPositiveChange = hasPercentageChange && pricePercentChange > 0;
 
+  // Memoize market stats formatting - returns null if both values are missing/zero
+  const marketStats = useMemo(
+    () => formatMarketStats(token.marketCap, token.aggregatedUsdVolume),
+    [token.marketCap, token.aggregatedUsdVolume],
+  );
+
+  // Check if we have any valid market data to display
+  const hasMarketData =
+    isValidMarketValue(token.marketCap) ||
+    isValidMarketValue(token.aggregatedUsdVolume);
+
   const handlePress = useCallback(() => {
     if (!assetParams) return;
 
@@ -299,12 +310,11 @@ const TrendingTokenRowItem = ({
               {token.name}
             </Text>
           </View>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {formatMarketStats(
-              token.marketCap ?? 0,
-              token.aggregatedUsdVolume ?? 0,
-            )}
-          </Text>
+          {hasMarketData && marketStats && (
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {marketStats}
+            </Text>
+          )}
         </View>
         <View style={styles.rightContainer}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
