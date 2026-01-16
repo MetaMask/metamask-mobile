@@ -25,7 +25,9 @@ const mockUseLiveMarketPrices = useLiveMarketPrices as jest.MockedFunction<
   typeof useLiveMarketPrices
 >;
 
-const createMockGetPrice = (priceMap: Map<string, PriceUpdate>) => (tokenId: string) => priceMap.get(tokenId);
+const createMockGetPrice =
+  (priceMap: Map<string, PriceUpdate>) => (tokenId: string) =>
+    priceMap.get(tokenId);
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',

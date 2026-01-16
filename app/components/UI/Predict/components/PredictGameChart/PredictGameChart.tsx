@@ -99,6 +99,11 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       return;
     }
 
+    // Only initialize live chart data once - don't reset on subsequent historical data refetches
+    if (initialDataLoadedRef.current) {
+      return;
+    }
+
     if (
       historicalChartData.length === 2 &&
       historicalChartData[0].data.length > 0
