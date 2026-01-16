@@ -618,6 +618,7 @@
     "available": "available",
     "invalid_value": "Invalid value",
     "insufficient_funds": "Insufficient funds",
+    "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
     "continue": "Continue",
     "unit": "unit",
     "units": "units",
