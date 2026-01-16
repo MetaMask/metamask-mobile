@@ -25,6 +25,12 @@ const NON_EMPTY = 'NON_EMPTY';
 export const ADDITIONAL_DEFAULT_NETWORKS = [
   ChainId['megaeth-testnet-v2'],
   ChainId['monad-testnet'],
+  // Environment 3: Power User test networks
+  ChainId['fantom-mainnet'],
+  ChainId['gnosis-mainnet'],
+  ChainId['cronos-mainnet'],
+  ChainId['moonbeam-mainnet'],
+  ChainId['moonriver-mainnet'],
 ];
 
 export function getInitialNetworkControllerState(persistedState: {
@@ -96,13 +102,6 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState.networkConfigurationsByChainId[
       ChainId['polygon-mainnet']
     ].name = 'Polygon';
-
-    delete initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['polygon-mainnet']
-    ];
-    delete initialNetworkControllerState.networkConfigurationsByChainId[
-      ChainId['zksync-era-mainnet']
-    ];
 
     // Remove Sei from initial state so it appears in Additional Networks section
     // Users can add it manually, and it will be available in FEATURED_RPCS

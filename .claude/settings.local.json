@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx jest:*)",
+      "Bash(git log:*)",
+      "Bash(yarn patch:*)",
+      "Bash(yarn why:*)"
+    ]
+  }
+}
