@@ -10,16 +10,31 @@ import { strings } from '../../../../../../locales/i18n';
 import PredictSportTeamHelmet from '../PredictSportTeamHelmet/PredictSportTeamHelmet';
 import PredictSportFootballIcon from '../PredictSportFootballIcon/PredictSportFootballIcon';
 import PredictSportWinner from '../PredictSportWinner/PredictSportWinner';
-import {
-  PredictSportScoreboardProps,
-  GameState,
-  Possession,
-  Winner,
-} from './PredictSportScoreboard.types';
+import { PredictGameStatus, PredictSportTeam } from '../../types';
+
+export interface PredictSportScoreboardProps {
+  awayTeam: Pick<PredictSportTeam, 'abbreviation' | 'color'>;
+  homeTeam: Pick<PredictSportTeam, 'abbreviation' | 'color'>;
+  awayScore?: number | undefined;
+  homeScore?: number | undefined;
+  gameStatus: PredictGameStatus;
+  period?: string | null;
+  eventTitle?: string;
+  date?: string;
+  time?: string;
+  quarter?: string;
+  /** Team abbreviation (lowercase) indicating which team has possession */
+  turn?: string;
+  testID?: string;
+}
 
 /**
  * NFL scoreboard component that displays team helmets, scores, and game status.
- * Supports 4 game states: Pre-game, In-progress, Halftime, Final.
+ * Supports 4 UI states: Pre-game, In-progress, Halftime, Final.
+ * - 'scheduled' → Pre-game UI
+ * - 'ongoing' + period (case-insensitive) === 'HT' → Halftime UI
+ * - 'ongoing' → In-progress UI
+ * - 'ended' → Final UI
  * Shows possession indicator (football icon) during in-progress games.
  * Shows winner trophy during final games.
  */
@@ -28,85 +43,112 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   homeTeam,
   awayScore,
   homeScore,
-  gameState,
+  gameStatus,
+  period,
   eventTitle,
   date,
   time,
   quarter,
-  possession = Possession.None,
-  winner = Winner.None,
+  turn,
   testID,
 }) => {
   const helmetSize = 42;
   const footballSize = 14;
 
+  // Derive UI state from gameStatus + period
+  const isPreGame = gameStatus === 'scheduled';
+  // Use case-insensitive comparison for halftime since API may return 'ht', 'HT', or 'Ht'
+  const isHalftime = gameStatus === 'ongoing' && period?.toUpperCase() === 'HT';
+  const isInProgress =
+    gameStatus === 'ongoing' && period?.toUpperCase() !== 'HT';
+  const isFinal = gameStatus === 'ended';
+
+  // Derive possession from turn (team abbreviation, lowercase)
+  const awayHasPossession =
+    turn?.toLowerCase() === awayTeam.abbreviation.toLowerCase();
+  const homeHasPossession =
+    turn?.toLowerCase() === homeTeam.abbreviation.toLowerCase();
+
+  // Derive winner from scores (only meaningful when game is final)
+  const awayWon =
+    isFinal &&
+    awayScore !== undefined &&
+    homeScore !== undefined &&
+    awayScore > homeScore;
+  const homeWon =
+    isFinal &&
+    awayScore !== undefined &&
+    homeScore !== undefined &&
+    homeScore > awayScore;
+
   const renderStatusSection = () => {
-    switch (gameState) {
-      case GameState.PreGame:
-        return (
-          <Box twClassName="items-center">
-            {eventTitle && (
-              <Text variant={TextVariant.BodyMd} twClassName="text-default">
-                {eventTitle}
-              </Text>
-            )}
-            {date && (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {date}
-              </Text>
-            )}
-            {time && (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {time}
-              </Text>
-            )}
-          </Box>
-        );
-
-      case GameState.InProgress:
-        return (
-          <Box twClassName="items-center">
-            {(quarter || time) && (
-              <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-                {quarter && time ? `${quarter} • ${time}` : quarter || time}
-              </Text>
-            )}
-          </Box>
-        );
-
-      case GameState.Halftime:
-        return (
-          <Box twClassName="items-center">
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('predict.sports.halftime')}
+    if (isPreGame) {
+      return (
+        <Box twClassName="items-center">
+          {eventTitle && (
+            <Text variant={TextVariant.BodyMd} twClassName="text-default">
+              {eventTitle}
             </Text>
-          </Box>
-        );
-
-      case GameState.Final:
-        return (
-          <Box twClassName="items-center">
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('predict.sports.final')}
+          )}
+          {date && (
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              {date}
             </Text>
-          </Box>
-        );
-
-      default:
-        return null;
+          )}
+          {time && (
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              {time}
+            </Text>
+          )}
+        </Box>
+      );
     }
+
+    if (isInProgress) {
+      return (
+        <Box twClassName="items-center">
+          {(quarter || time) && (
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+              {quarter && time ? `${quarter} • ${time}` : quarter || time}
+            </Text>
+          )}
+        </Box>
+      );
+    }
+
+    if (isHalftime) {
+      return (
+        <Box twClassName="items-center">
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('predict.sports.halftime')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (isFinal) {
+      return (
+        <Box twClassName="items-center">
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('predict.sports.final')}
+          </Text>
+        </Box>
+      );
+    }
+
+    return null;
   };
 
   const renderTeamSection = (
-    team: typeof awayTeam | typeof homeTeam,
+    team: Pick<PredictSportTeam, 'abbreviation' | 'color'>,
     score: number | undefined,
     side: 'away' | 'home',
     hasPossession: boolean,
     hasWon: boolean,
   ) => {
-    const showScore = gameState !== GameState.PreGame;
-    const showPossession = gameState === GameState.InProgress && hasPossession;
-    const showWinner = gameState === GameState.Final && hasWon;
+    const showScore = !isPreGame;
+    const showPossession = isInProgress && hasPossession;
+    const showWinner = isFinal && hasWon;
 
     return (
       <Box
@@ -195,8 +237,8 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           awayTeam,
           awayScore,
           'away',
-          possession === Possession.Away,
-          winner === Winner.Away,
+          awayHasPossession,
+          awayWon,
         )}
       </Box>
 
@@ -207,8 +249,8 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           homeTeam,
           homeScore,
           'home',
-          possession === Possession.Home,
-          winner === Winner.Home,
+          homeHasPossession,
+          homeWon,
         )}
       </Box>
     </Box>

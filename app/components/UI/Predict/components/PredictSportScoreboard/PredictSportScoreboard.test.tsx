@@ -1,12 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import PredictSportScoreboard from './PredictSportScoreboard';
-import {
-  GameState,
-  Possession,
-  TeamData,
-  Winner,
-} from './PredictSportScoreboard.types';
+import { PredictSportTeam } from '../../types';
+
+type TeamData = Pick<PredictSportTeam, 'abbreviation' | 'color'>;
 
 // Mock child components
 jest.mock('../PredictSportTeamHelmet/PredictSportTeamHelmet', () => {
@@ -66,7 +63,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
           testID="scoreboard"
         />,
       );
@@ -82,7 +79,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
         />,
       );
 
@@ -97,7 +94,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
         />,
       );
 
@@ -105,7 +102,7 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
-  describe('GameState.PreGame', () => {
+  describe('gameStatus="scheduled" (PreGame)', () => {
     it('displays event title when provided', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
@@ -115,7 +112,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
           eventTitle={eventTitle}
         />,
       );
@@ -132,7 +129,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
           date={date}
         />,
       );
@@ -149,7 +146,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
           time={time}
         />,
       );
@@ -165,7 +162,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
           awayScore={109}
           homeScore={99}
         />,
@@ -183,8 +180,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
-          possession={Possession.Away}
+          gameStatus="scheduled"
+          turn="sea"
           testID="scoreboard"
         />,
       );
@@ -193,7 +190,7 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
-  describe('GameState.InProgress', () => {
+  describe('gameStatus="ongoing" (InProgress)', () => {
     it('displays quarter and time in correct format', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
@@ -202,7 +199,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           quarter="Q3"
           time="12:02"
         />,
@@ -219,7 +216,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           awayScore={109}
           homeScore={99}
         />,
@@ -237,8 +234,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          possession={Possession.Away}
+          gameStatus="ongoing"
+          turn="sea"
           testID="scoreboard"
         />,
       );
@@ -254,8 +251,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          possession={Possession.Home}
+          gameStatus="ongoing"
+          turn="den"
           testID="scoreboard"
         />,
       );
@@ -271,8 +268,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          possession={Possession.None}
+          gameStatus="ongoing"
+          turn={undefined}
           testID="scoreboard"
         />,
       );
@@ -289,8 +286,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          possession={Possession.Away}
+          gameStatus="ongoing"
+          turn="sea"
           testID="scoreboard"
         />,
       );
@@ -300,7 +297,7 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
-  describe('GameState.Halftime', () => {
+  describe('gameStatus="ongoing" period="HT" (Halftime)', () => {
     it('displays Halftime text', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
@@ -309,7 +306,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Halftime}
+          gameStatus="ongoing"
+          period="HT"
         />,
       );
 
@@ -324,7 +322,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Halftime}
+          gameStatus="ongoing"
+          period="HT"
           awayScore={109}
           homeScore={99}
         />,
@@ -342,8 +341,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Halftime}
-          possession={Possession.Away}
+          gameStatus="ongoing"
+          period="HT"
+          turn="sea"
           testID="scoreboard"
         />,
       );
@@ -352,7 +352,7 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
-  describe('GameState.Final', () => {
+  describe('gameStatus="ended" (Final)', () => {
     it('displays Final text', () => {
       const awayTeam = createAwayTeam();
       const homeTeam = createHomeTeam();
@@ -361,7 +361,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
         />,
       );
 
@@ -376,7 +376,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={109}
           homeScore={99}
         />,
@@ -394,8 +394,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
-          possession={Possession.Away}
+          gameStatus="ended"
+          turn="sea"
           testID="scoreboard"
         />,
       );
@@ -413,7 +413,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           testID="scoreboard"
         />,
       );
@@ -429,7 +429,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           testID="scoreboard"
         />,
       );
@@ -445,7 +445,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           testID="scoreboard"
         />,
       );
@@ -464,7 +464,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           homeScore={99}
         />,
       );
@@ -480,7 +480,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           awayScore={109}
         />,
       );
@@ -496,7 +496,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
         />,
       );
 
@@ -512,7 +512,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={999}
           homeScore={888}
         />,
@@ -532,7 +532,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
         />,
       );
 
@@ -548,7 +548,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           testID="scoreboard"
         />,
       );
@@ -564,7 +564,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           testID="scoreboard"
         />,
       );
@@ -580,7 +580,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           quarter="Q4"
         />,
       );
@@ -596,7 +596,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           time="12:02"
         />,
       );
@@ -612,7 +612,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
         />,
       );
 
@@ -628,7 +628,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
         />,
       );
 
@@ -646,7 +646,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
+          gameStatus="scheduled"
           awayScore={10}
           homeScore={7}
         />,
@@ -664,7 +664,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           awayScore={14}
           homeScore={21}
         />,
@@ -682,7 +682,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Halftime}
+          gameStatus="ongoing"
+          period="HT"
         />,
       );
 
@@ -697,7 +698,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
         />,
       );
 
@@ -714,8 +715,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          possession={Possession.Away}
+          gameStatus="ongoing"
+          turn="sea"
           testID="scoreboard"
         />,
       );
@@ -732,8 +733,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          possession={Possession.Home}
+          gameStatus="ongoing"
+          turn="den"
           testID="scoreboard"
         />,
       );
@@ -750,8 +751,8 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
-          possession={Possession.None}
+          gameStatus="ongoing"
+          turn={undefined}
           testID="scoreboard"
         />,
       );
@@ -770,10 +771,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={109}
           homeScore={99}
-          winner={Winner.Away}
           testID="scoreboard"
         />,
       );
@@ -789,10 +789,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={99}
           homeScore={109}
-          winner={Winner.Home}
           testID="scoreboard"
         />,
       );
@@ -808,10 +807,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={109}
           homeScore={109}
-          winner={Winner.None}
           testID="scoreboard"
         />,
       );
@@ -828,10 +826,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={109}
           homeScore={99}
-          winner={Winner.Away}
           testID="scoreboard"
         />,
       );
@@ -848,8 +845,7 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.PreGame}
-          winner={Winner.Away}
+          gameStatus="scheduled"
           testID="scoreboard"
         />,
       );
@@ -866,10 +862,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.InProgress}
+          gameStatus="ongoing"
           awayScore={109}
           homeScore={99}
-          winner={Winner.Away}
           testID="scoreboard"
         />,
       );
@@ -886,10 +881,10 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Halftime}
+          gameStatus="ongoing"
+          period="HT"
           awayScore={109}
           homeScore={99}
-          winner={Winner.Away}
           testID="scoreboard"
         />,
       );
@@ -908,10 +903,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={109}
           homeScore={99}
-          winner={Winner.Away}
           testID="scoreboard"
         />,
       );
@@ -928,10 +922,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={99}
           homeScore={109}
-          winner={Winner.Home}
           testID="scoreboard"
         />,
       );
@@ -948,10 +941,9 @@ describe('PredictSportScoreboard', () => {
         <PredictSportScoreboard
           awayTeam={awayTeam}
           homeTeam={homeTeam}
-          gameState={GameState.Final}
+          gameStatus="ended"
           awayScore={109}
           homeScore={109}
-          winner={Winner.None}
           testID="scoreboard"
         />,
       );

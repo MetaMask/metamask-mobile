@@ -101,7 +101,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
           </Box>
           <Button
             variant={ButtonVariant.Secondary}
-            twClassName="py-3 px-4 bg-muted/5"
+            twClassName="py-3 px-4 light:bg-muted/5"
             onPress={() => onCashOut(position)}
             testID={`predict-picks-cash-out-button-${position.id}`}
           >
