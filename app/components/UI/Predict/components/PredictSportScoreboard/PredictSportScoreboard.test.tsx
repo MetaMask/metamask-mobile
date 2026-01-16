@@ -209,7 +209,7 @@ describe('PredictSportScoreboard', () => {
       expect(getByText('Q4')).toBeOnTheScreen();
     });
 
-    it('displays only elapsed when period is null but status is ongoing with Q1', () => {
+    it('displays period and elapsed time for Q1', () => {
       const game = createGame({
         status: 'ongoing',
         period: 'Q1',

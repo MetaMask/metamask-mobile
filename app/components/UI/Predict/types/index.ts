@@ -167,7 +167,7 @@ export interface GameUpdate {
   gameId: string;
   score: string;
   elapsed: string;
-  period: string;
+  period: PredictGamePeriod;
   status: PredictGameStatus;
   turn?: string;
 }

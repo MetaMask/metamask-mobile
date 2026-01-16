@@ -115,17 +115,18 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     !isHalftime &&
     !isEndOfQuarter &&
     !isFinal &&
-    (period === 'Q1' ||
+    (mergedData.status === 'ongoing' ||
+      period === 'Q1' ||
       period === 'Q2' ||
       period === 'Q3' ||
       period === 'Q4' ||
       isOvertime);
 
   const awayHasPossession =
-    (isInProgress || isOvertime) &&
+    isInProgress &&
     mergedData.turn?.toLowerCase() === game.awayTeam.abbreviation.toLowerCase();
   const homeHasPossession =
-    (isInProgress || isOvertime) &&
+    isInProgress &&
     mergedData.turn?.toLowerCase() === game.homeTeam.abbreviation.toLowerCase();
 
   const awayWon =
