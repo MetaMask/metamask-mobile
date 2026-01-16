@@ -25,11 +25,22 @@ export const eligibleTokens: Record<Hex, Hex[]> = {
 
 /**
  * Check if a token is eligible for Merkl rewards
+ * Compares addresses case-insensitively since Ethereum addresses are case-insensitive
  */
 export const isEligibleForMerklRewards = (
   chainId: Hex,
   address: Hex,
-): boolean => eligibleTokens[chainId]?.includes(address) ?? false;
+): boolean => {
+  const eligibleAddresses = eligibleTokens[chainId];
+  if (!eligibleAddresses) {
+    return false;
+  }
+  // Convert to lowercase for case-insensitive comparison
+  const addressLower = address.toLowerCase();
+  return eligibleAddresses.some(
+    (eligibleAddress) => eligibleAddress.toLowerCase() === addressLower,
+  );
+};
 
 interface MerklRewardData {
   rewards: {

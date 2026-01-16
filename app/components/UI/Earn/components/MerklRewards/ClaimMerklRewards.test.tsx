@@ -6,7 +6,7 @@ import { useMerklClaim } from '../../../AssetOverview/hooks/useMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-jest.mock('../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const mockStrings: Record<string, string> = {
       'asset_overview.merkl_rewards.claim': 'Claim',
@@ -15,7 +15,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../hooks/useMerklClaim');
+jest.mock('../../../AssetOverview/hooks/useMerklClaim');
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -65,7 +65,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../../component-library/hooks', () => ({
+jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {
       claimButtonContainer: {

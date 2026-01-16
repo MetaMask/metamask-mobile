@@ -68,6 +68,29 @@ describe('isEligibleForMerklRewards', () => {
     );
     expect(result).toBe(false);
   });
+
+  it('returns true for eligible token with different casing (case-insensitive)', () => {
+    // Test with all lowercase address
+    const resultLower = isEligibleForMerklRewards(
+      CHAIN_IDS.MAINNET,
+      '0x8d652c6d4a8f3db96cd866c1a9220b1447f29898' as const,
+    );
+    expect(resultLower).toBe(true);
+
+    // Test with all uppercase address
+    const resultUpper = isEligibleForMerklRewards(
+      CHAIN_IDS.MAINNET,
+      '0x8D652C6D4A8F3DB96CD866C1A9220B1447F29898' as const,
+    );
+    expect(resultUpper).toBe(true);
+
+    // Test with mixed case (different from hardcoded constant)
+    const resultMixed = isEligibleForMerklRewards(
+      CHAIN_IDS.MAINNET,
+      '0x8D652c6d4A8F3Db96Cd866C1a9220B1447F29898' as const,
+    );
+    expect(resultMixed).toBe(true);
+  });
 });
 
 describe('useMerklRewards', () => {
