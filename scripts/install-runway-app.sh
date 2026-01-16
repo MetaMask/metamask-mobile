@@ -82,7 +82,7 @@ download_latest_app() {
   mkdir -p "$RUNWAY_DIR"
   
   echo -e "${BLUE}Fetching builds from Runway API...${NC}"
-  BUILDS_JSON=$(curl -s --connect-timeout 10 "$RUNWAY_API_URL")
+  BUILDS_JSON=$(curl -s --connect-timeout 10 --max-time 30 "$RUNWAY_API_URL")
   
   if [ -z "$BUILDS_JSON" ]; then
     echo -e "${RED}❌ Failed to fetch builds from API${NC}"
@@ -146,7 +146,7 @@ download_latest_app() {
   ZIP_PATH="$RUNWAY_DIR/$ARTIFACT_NAME"
   
   echo -e "${BLUE}Downloading $ARTIFACT_NAME...${NC}"
-  HTTP_CODE=$(curl -L --connect-timeout 10 --max-time 300 -w "%{http_code}" -o "$ZIP_PATH" "$DOWNLOAD_URL")
+  HTTP_CODE=$(curl -L --connect-timeout 10 --max-time 600 -w "%{http_code}" -o "$ZIP_PATH" "$DOWNLOAD_URL")
   
   if [ "$HTTP_CODE" -ne 200 ]; then
     echo -e "${RED}❌ Download failed with HTTP code: $HTTP_CODE${NC}"
@@ -214,11 +214,19 @@ fi
 echo -e "${GREEN}✓ Simulator is running:${NC}"
 echo "  $BOOTED_DEVICE"
 
-# Find the .app file with the highest version number in runway-artifacts
-APP_PATH=$(find "$RUNWAY_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null | sort -V | tail -1)
+# Check if runway-artifacts directory exists
+if [[ ! -d "$RUNWAY_DIR" ]]; then
+  echo -e "${RED}❌ Directory $RUNWAY_DIR does not exist${NC}"
+  echo -e "${YELLOW}Run without --skip-download to download an app first${NC}"
+  exit 1
+fi
 
-if [ -z "$APP_PATH" ]; then
+# Find the .app file with the highest version number in runway-artifacts
+APP_PATH=$(find "$RUNWAY_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null | sort -V | tail -1 || true)
+
+if [[ -z "$APP_PATH" ]]; then
   echo -e "${RED}❌ No .app file found in $RUNWAY_DIR${NC}"
+  echo -e "${YELLOW}Run without --skip-download to download an app first${NC}"
   exit 1
 fi
 
