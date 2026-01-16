@@ -47,7 +47,7 @@ export function useAddressTrustSignalAlerts(): Alert[] {
       }
 
       const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
-      const isZeroValueRevoke = value === '0';
+      const isZeroValueRevoke = value === '0' || value === 0;
 
       return isDaiRevoke || isZeroValueRevoke;
     } catch {
