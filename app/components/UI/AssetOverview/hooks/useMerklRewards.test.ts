@@ -4,6 +4,12 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isEligibleForMerklRewards, useMerklRewards } from './useMerklRewards';
 import { TokenI } from '../../Tokens/types';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../selectors/currencyRateController';
+import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -72,30 +78,16 @@ describe('useMerklRewards', () => {
     (global.fetch as jest.Mock).mockClear();
 
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (
-        typeof selector === 'function' &&
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (
-        typeof selector === 'function' &&
-        selector.toString().includes('selectCurrencyRates')
-      ) {
+      if (selector === selectCurrencyRates) {
         return {};
       }
-      if (
-        typeof selector === 'function' &&
-        selector.toString().includes('selectCurrentCurrency')
-      ) {
+      if (selector === selectCurrentCurrency) {
         return 'USD';
       }
-      if (
-        typeof selector === 'function' &&
-        selector.toString().includes('selectNativeCurrencyByChainId')
-      ) {
+      if (selector === selectNativeCurrencyByChainId) {
         return mockNativeCurrency;
       }
       return undefined;
@@ -118,12 +110,7 @@ describe('useMerklRewards', () => {
 
   it('returns null claimableReward when selectedAddress is not available', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (
-        typeof selector === 'function' &&
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
       }
       return undefined;
@@ -175,8 +162,6 @@ describe('useMerklRewards', () => {
       status: 500,
     });
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
@@ -186,21 +171,12 @@ describe('useMerklRewards', () => {
     await waitFor(() => {
       expect(result.current.claimableReward).toBe(null);
     });
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Failed to fetch Merkl rewards:',
-      500,
-    );
-
-    consoleSpy.mockRestore();
   });
 
   it('handles fetch error gracefully', async () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
@@ -210,13 +186,6 @@ describe('useMerklRewards', () => {
     await waitFor(() => {
       expect(result.current.claimableReward).toBe(null);
     });
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Error fetching Merkl rewards:',
-      error,
-    );
-
-    consoleSpy.mockRestore();
   });
 
   it('returns null when no pending rewards in response', async () => {

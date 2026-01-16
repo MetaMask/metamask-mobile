@@ -2,6 +2,8 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useMerklClaim } from './useMerklClaim';
 import { addTransaction } from '../../../../util/transaction-controller';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedNetworkClientId } from '../../../../selectors/networkController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -28,18 +30,10 @@ describe('useMerklClaim', () => {
     (global.fetch as jest.Mock).mockClear();
 
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (
-        typeof selector === 'function' &&
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (
-        typeof selector === 'function' &&
-        selector.toString().includes('selectSelectedNetworkClientId')
-      ) {
+      if (selector === selectSelectedNetworkClientId) {
         return mockNetworkClientId;
       }
       return undefined;
@@ -56,12 +50,7 @@ describe('useMerklClaim', () => {
 
   it('sets error when no account is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (
-        typeof selector === 'function' &&
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
       }
       return undefined;
@@ -79,18 +68,10 @@ describe('useMerklClaim', () => {
 
   it('sets error when no network is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (
-        typeof selector === 'function' &&
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (
-        typeof selector === 'function' &&
-        selector.toString().includes('selectSelectedNetworkClientId')
-      ) {
+      if (selector === selectSelectedNetworkClientId) {
         return null;
       }
       return undefined;
@@ -121,7 +102,10 @@ describe('useMerklClaim', () => {
             accumulated: '0',
             unclaimed: '0',
             pending: '1000000000000000000',
-            proofs: ['0x123', '0x456'],
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+              '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+            ],
             amount: '1000000000000000000',
             claimed: '0',
             recipient: mockSelectedAddress,
@@ -222,8 +206,6 @@ describe('useMerklClaim', () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
     const { result } = renderHook(() => useMerklClaim());
 
     await act(async () => {
@@ -239,10 +221,8 @@ describe('useMerklClaim', () => {
       expect(result.current.error).toBeTruthy();
     });
 
-    expect(consoleSpy).toHaveBeenCalled();
+    expect(result.current.error).toBe('Network error');
     expect(result.current.isClaiming).toBe(false);
-
-    consoleSpy.mockRestore();
   });
 
   it('sets isClaiming to true during claim process', async () => {
@@ -260,7 +240,9 @@ describe('useMerklClaim', () => {
             accumulated: '0',
             unclaimed: '0',
             pending: '1000000000000000000',
-            proofs: ['0x123'],
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            ],
             amount: '1000000000000000000',
             claimed: '0',
             recipient: mockSelectedAddress,
