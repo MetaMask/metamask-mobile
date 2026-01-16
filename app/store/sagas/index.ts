@@ -297,8 +297,8 @@ export function* startAppServices() {
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
 
-  // Start listening to the auth state machine first
-  yield fork(authStateMachine);
+  // Wait for the next frame to ensure that navigation stack is rendered.
+  yield call(() => new Promise((resolve) => requestAnimationFrame(resolve)));
 
   // Request authentication on app start after the auth state machine is started
   yield call(requestAuthOnAppStart);
@@ -307,6 +307,7 @@ export function* startAppServices() {
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(startAppServices);
+  yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
