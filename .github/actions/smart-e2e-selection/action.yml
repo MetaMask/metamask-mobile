@@ -109,7 +109,7 @@ runs:
       env:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         E2E_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
-        E2E_GOOGLE_API_KEY: ${{ inputs.google-api-key }}
+        E2E_GEMINI_API_KEY: ${{ inputs.google-api-key }}
         EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
         GH_TOKEN: ${{ inputs.github-token }}
