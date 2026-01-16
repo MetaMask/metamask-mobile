@@ -455,7 +455,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         </KeyboardAvoidingView>
 
         {/* Add Wallet bottom sheet overlay */}
-        {(screen === AccountSelectorScreens.AddAccountActions || screen === AccountSelectorScreens.MultichainAddWalletActions) && (
+        {(screen === AccountSelectorScreens.AddAccountActions ||
+          screen === AccountSelectorScreens.MultichainAddWalletActions) && (
           <BottomSheet
             onClose={handleBackToSelector}
             shouldNavigateBack={false}
