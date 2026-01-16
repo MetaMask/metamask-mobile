@@ -8685,14 +8685,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@metamask/ramps-controller@npm:2.1.0"
+"@metamask/ramps-controller@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/ramps-controller@npm:3.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.17.0"
+    "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/6aabf6da5ffa4c6c8e6545b8bc1bcf7e2ceb52e4f8d72f2f67e793b24a1ad5bae4acfd3e947c0fa6839d3e99e840c7a48fef65fc7e922e6660925b3009c1b4e2
+  checksum: 10/00e3a8532d19a50e719b95f13b9404abf24e79651d2410845d041d55887473cbdcd306ad5e294ce43e4b740465d7bcf96ceff8389026b06e9ba63cf4a67f8fff
   languageName: node
   linkType: hard
 
@@ -8922,7 +8922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:^21.0.0":
+"@metamask/smart-transactions-controller@npm:21.0.0":
   version: 21.0.0
   resolution: "@metamask/smart-transactions-controller@npm:21.0.0"
   dependencies:
@@ -8956,6 +8956,43 @@ __metadata:
     "@metamask/remote-feature-flag-controller":
       optional: true
   checksum: 10/a0d5c58f3671368a9f6649eef5c0ffe9b82c562662adf0641c898c32299577ead9f40514b2f44e805b8a0641335eaa36f14a3bf33eae037b6f063c338138f360
+  languageName: node
+  linkType: hard
+
+"@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.0.0-a475dcb52a.patch":
+  version: 21.0.0
+  resolution: "@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.0.0-a475dcb52a.patch::version=21.0.0&hash=6e1e96"
+  dependencies:
+    "@babel/runtime": "npm:^7.24.1"
+    "@ethereumjs/tx": "npm:^5.2.1"
+    "@ethereumjs/util": "npm:^9.0.2"
+    "@ethersproject/bytes": "npm:^5.7.0"
+    "@ethersproject/keccak256": "npm:^5.8.0"
+    "@ethersproject/transactions": "npm:^5.7.0"
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.0.0"
+    "@metamask/eth-json-rpc-provider": "npm:^4.1.6"
+    "@metamask/eth-query": "npm:^4.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/polling-controller": "npm:^15.0.0"
+    bignumber.js: "npm:^9.0.1"
+    fast-json-patch: "npm:^3.1.0"
+    lodash: "npm:^4.17.21"
+  peerDependencies:
+    "@metamask/network-controller": ^25.0.0
+    "@metamask/transaction-controller": ^61.0.0
+  peerDependenciesMeta:
+    "@metamask/accounts-controller":
+      optional: true
+    "@metamask/approval-controller":
+      optional: true
+    "@metamask/eth-block-tracker":
+      optional: true
+    "@metamask/gas-fee-controller":
+      optional: true
+    "@metamask/remote-feature-flag-controller":
+      optional: true
+  checksum: 10/d23a80f946a30ae1bb433acfc87f3a6a59fbd105a4e9c758535e64c47732790786d0ad40280b80f7ec311ade34bd20c99429b4a728d4f11b16faf0fd76197abb
   languageName: node
   linkType: hard
 
@@ -9410,10 +9447,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.19.0":
-  version: 1.19.0
-  resolution: "@metamask/tron-wallet-snap@npm:1.19.0"
-  checksum: 10/1557a55b5730658b9d7db934867eb6f42bab944072714bccfc58023622dca63ccd736f345e941e4d710b839039b24f03e8940c85fc4458ebdb6275c659211e18
+"@metamask/tron-wallet-snap@npm:^1.19.1":
+  version: 1.19.1
+  resolution: "@metamask/tron-wallet-snap@npm:1.19.1"
+  checksum: 10/3a157e1f5e8b367025b445e4cc74249be199758541df7dfbc2bc01d8b2488a9fe1a2e9b8a96dddddeac767ceed30fe406e5ef58db95e12fe8be85159e670fea3
   languageName: node
   linkType: hard
 
@@ -34041,7 +34078,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^2.1.0"
+    "@metamask/ramps-controller": "npm:^3.0.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -34058,7 +34095,7 @@ __metadata:
     "@metamask/selected-network-controller": "npm:^25.0.0"
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
-    "@metamask/smart-transactions-controller": "npm:^21.0.0"
+    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A21.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.0.0-a475dcb52a.patch"
     "@metamask/snaps-controllers": "npm:^17.2.0"
     "@metamask/snaps-execution-environments": "npm:^10.3.0"
     "@metamask/snaps-rpc-methods": "npm:^14.1.1"
@@ -34076,7 +34113,7 @@ __metadata:
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.9.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
     "@metamask/transaction-pay-controller": "npm:^11.0.0"
-    "@metamask/tron-wallet-snap": "npm:^1.19.0"
+    "@metamask/tron-wallet-snap": "npm:^1.19.1"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.30.2"

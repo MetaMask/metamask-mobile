@@ -6,8 +6,8 @@ import {
 } from '../constants/hyperLiquidConfig';
 import type { GetSupportedPathsParams } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { strings } from '../../../../../locales/i18n';
 import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 
 /**
  * Validation utilities for HyperLiquid operations
@@ -23,9 +23,7 @@ export function createErrorResult<
     ...defaultResponse,
     success: false,
     error:
-      error instanceof Error
-        ? error.message
-        : strings('perps.errors.unknownError'),
+      error instanceof Error ? error.message : PERPS_ERROR_CODES.UNKNOWN_ERROR,
   };
 }
 
@@ -46,61 +44,52 @@ export function validateWithdrawalParams(params: {
 
   // Validate required parameters
   if (!params.assetId) {
-    const error = strings('perps.errors.withdrawValidation.assetIdRequired');
     DevLogger.log('validateWithdrawalParams: Missing assetId', {
-      error,
+      error: PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)`,
+      error: PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED,
     };
   }
 
   // Validate amount
   if (!params.amount) {
-    const error = strings('perps.errors.withdrawValidation.amountRequired');
     DevLogger.log('validateWithdrawalParams: Missing amount', {
-      error,
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please specify the amount to withdraw`,
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED,
     };
   }
 
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
-    const error = strings('perps.errors.withdrawValidation.amountPositive');
     DevLogger.log('validateWithdrawalParams: Invalid amount', {
-      error,
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_POSITIVE,
       amount: params.amount,
       parsedAmount: amount,
       isNaN: isNaN(amount),
     });
     return {
       isValid: false,
-      error: `${error}. Amount must be a positive number (received: ${params.amount})`,
+      error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_POSITIVE,
     };
   }
 
   // Validate destination address if provided
   if (params.destination && !isValidHexAddress(params.destination)) {
-    const error = strings(
-      'perps.errors.withdrawValidation.invalidDestination',
-      {
-        address: params.destination,
-      },
-    );
     DevLogger.log('validateWithdrawalParams: Invalid destination address', {
-      error,
+      error: PERPS_ERROR_CODES.WITHDRAW_INVALID_DESTINATION,
       destination: params.destination,
       isValidHex: isValidHexAddress(params.destination),
     });
     return {
       isValid: false,
-      error: `${error}. Address must be a valid Ethereum address starting with 0x`,
+      error: PERPS_ERROR_CODES.WITHDRAW_INVALID_DESTINATION,
     };
   }
 
@@ -130,42 +119,39 @@ export function validateDepositParams(params: {
 
   // Validate required parameters
   if (!params.assetId) {
-    const error = strings('perps.errors.depositValidation.assetIdRequired');
     DevLogger.log('validateDepositParams: Missing assetId', {
-      error,
+      error: PERPS_ERROR_CODES.DEPOSIT_ASSET_ID_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)`,
+      error: PERPS_ERROR_CODES.DEPOSIT_ASSET_ID_REQUIRED,
     };
   }
 
   // Validate amount
   if (!params.amount) {
-    const error = strings('perps.errors.depositValidation.amountRequired');
     DevLogger.log('validateDepositParams: Missing amount', {
-      error,
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_REQUIRED,
       params,
     });
     return {
       isValid: false,
-      error: `${error}. Please specify the amount to deposit`,
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_REQUIRED,
     };
   }
 
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
-    const error = strings('perps.errors.depositValidation.amountPositive');
     DevLogger.log('validateDepositParams: Invalid amount', {
-      error,
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_POSITIVE,
       amount: params.amount,
       parsedAmount: amount,
       isNaN: isNaN(amount),
     });
     return {
       isValid: false,
-      error: `${error}. Amount must be a positive number (received: ${params.amount})`,
+      error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_POSITIVE,
     };
   }
 
@@ -182,18 +168,15 @@ export function validateDepositParams(params: {
   });
 
   if (amount < minimumAmount) {
-    const error = strings('perps.errors.minimumDeposit', {
-      amount: minimumAmount,
-    });
     DevLogger.log('validateDepositParams: Below minimum deposit', {
-      error,
+      error: PERPS_ERROR_CODES.DEPOSIT_MINIMUM_AMOUNT,
       amount,
       minimumAmount,
       difference: minimumAmount - amount,
     });
     return {
       isValid: false,
-      error: `${error}. Current amount: ${amount}, required minimum: ${minimumAmount}`,
+      error: PERPS_ERROR_CODES.DEPOSIT_MINIMUM_AMOUNT,
     };
   }
 
@@ -232,25 +215,8 @@ export function validateAssetSupport(
     );
 
     if (!isSupportedCaseInsensitive) {
-      const supportedAssets = supportedAssetIds
-        .map((path) => {
-          // Extract symbol from CAIP asset ID
-          const parts = path.split('/');
-          const symbol = parts[parts.length - 2] || 'Unknown';
-          return `${symbol} (${path})`;
-        })
-        .join(', ');
-
-      const error = strings(
-        'perps.errors.withdrawValidation.assetNotSupported',
-        {
-          assetId,
-          supportedAssets,
-        },
-      );
-
       DevLogger.log('validateAssetSupport: Asset not supported', {
-        error,
+        error: PERPS_ERROR_CODES.WITHDRAW_ASSET_NOT_SUPPORTED,
         assetId,
         supportedAssetIds,
         checkedCaseInsensitive: true,
@@ -258,7 +224,7 @@ export function validateAssetSupport(
 
       return {
         isValid: false,
-        error: `${error}. Supported assets: ${supportedAssets}`,
+        error: PERPS_ERROR_CODES.WITHDRAW_ASSET_NOT_SUPPORTED,
       };
     }
 
@@ -295,16 +261,9 @@ export function validateBalance(
 
   if (withdrawAmount > availableBalance) {
     const shortfall = withdrawAmount - availableBalance;
-    const error = strings(
-      'perps.errors.withdrawValidation.insufficientBalance',
-      {
-        available: availableBalance,
-        requested: withdrawAmount,
-      },
-    );
 
     DevLogger.log('validateBalance: Insufficient balance', {
-      error,
+      error: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
       withdrawAmount,
       availableBalance,
       shortfall,
@@ -314,9 +273,7 @@ export function validateBalance(
 
     return {
       isValid: false,
-      error: `${error}. You need ${shortfall.toFixed(
-        6,
-      )} more to complete this withdrawal`,
+      error: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
     };
   }
 
@@ -473,7 +430,7 @@ export function validateOrderParams(params: {
   if (!params.coin) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.coinRequired'),
+      error: PERPS_ERROR_CODES.ORDER_COIN_REQUIRED,
     };
   }
 
@@ -483,14 +440,14 @@ export function validateOrderParams(params: {
   if (params.orderType === 'limit' && !params.price) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.limitPriceRequired'),
+      error: PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED,
     };
   }
 
   if (params.price && parseFloat(params.price) <= 0) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.pricePositive'),
+      error: PERPS_ERROR_CODES.ORDER_PRICE_POSITIVE,
     };
   }
 
@@ -507,7 +464,7 @@ export function validateCoinExists(
   if (!coinToAssetId.has(coin)) {
     return {
       isValid: false,
-      error: strings('perps.errors.orderValidation.unknownCoin', { coin }),
+      error: PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN,
     };
   }
 

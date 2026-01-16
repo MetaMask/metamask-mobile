@@ -5,7 +5,7 @@ import type { OrderFill } from '../controllers/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 interface UsePerpsMarketFillsParams {

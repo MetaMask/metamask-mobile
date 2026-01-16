@@ -23,7 +23,7 @@ import { useAppThemeFromContext } from '../../../../util/theme';
 import { PerpsEventValues } from '../constants/eventNames';
 import { OrderDirection } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { handlePerpsError } from '../utils/perpsErrorHandler';
+import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
 import { Position } from '../controllers/types';
 import { getPerpsDisplaySymbol } from '../utils/marketUtils';
@@ -423,7 +423,10 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.error'),
-              error || strings('perps.withdrawal.error_generic'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings('perps.withdrawal.error_generic'),
+              }),
             ),
           }),
         },

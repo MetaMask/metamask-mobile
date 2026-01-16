@@ -14,7 +14,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
-import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';

@@ -1,58 +1,29 @@
-import React, { useContext } from 'react';
-import { Platform, TouchableOpacity, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { Platform, ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TabCountIcon from '../Tabs/TabCountIcon';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
-import FeatherIcons from 'react-native-vector-icons/Feather';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
 import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { ThemeColors } from '@metamask/design-tokens';
-
-// NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
-// TODO: test on an android device
-// const HOME_INDICATOR_HEIGHT = 0;
-// const defaultBottomBarPadding = 0;
-
-const createStyles = (colors: ThemeColors, tabBarBottomInset = 0) =>
-  StyleSheet.create({
-    bottomBar: {
-      backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      flex: 0,
-      borderTopWidth: Device.isAndroid() ? 0 : StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-      justifyContent: 'space-between',
-      paddingBottom: tabBarBottomInset,
-    },
-    iconButton: {
-      height: 60,
-      width: 24,
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      textAlign: 'center',
-      flex: 1,
-    },
-    tabIcon: {
-      marginTop: 0,
-      width: 24,
-      height: 24,
-    },
-    disabledIcon: {
-      color: colors.icon.muted,
-    },
-    icon: {
-      width: 24,
-      height: 24,
-      color: colors.icon.default,
-      textAlign: 'center',
-    },
-  });
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
+import SearchApi from '@metamask/react-native-search-api';
+import Logger from '../../../util/Logger';
+import { RootState } from '../../../reducers';
+import { SessionENSNames } from '../../Views/BrowserTab/types';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { selectBrowserTabCount } from '../../../reducers/browser/selectors';
 
 interface BrowserBottomBarProps {
   /**
@@ -72,63 +43,65 @@ interface BrowserBottomBarProps {
    */
   goForward?: () => void;
   /**
-   * Function that triggers the tabs view
+   * Function that reloads the current page
    */
-  showTabs?: () => void;
+  reload?: () => void;
   /**
-   * Function that triggers the change url modal view
+   * Function that opens a new tab
    */
-  showUrlModal?: () => void;
+  openNewTab?: () => void;
   /**
-   * Function that redirects to the home screen
+   * Current active URL
    */
-  goHome?: () => void;
+  activeUrl: string;
   /**
-   * Function that toggles the options menu
+   * Function to get masked URL with ENS names
    */
-  toggleOptions?: () => void;
+  getMaskedUrl: (url: string, sessionENSNames: SessionENSNames) => string;
   /**
-   * Function that toggles fullscreen mode
+   * Current page title
    */
-  toggleFullscreen?: (isFullscreen: boolean) => void;
+  title: string;
   /**
-   * Boolean that determines if currently in fullscreen mode
+   * Session ENS names
    */
-  isFullscreen?: boolean;
+  sessionENSNames: SessionENSNames;
+  /**
+   * Favicon for the current page
+   */
+  favicon: ImageSourcePropType;
+  /**
+   * Icon for the current page
+   */
+  icon?: ImageSourcePropType;
 }
 
 /**
- * Browser bottom bar that contains icons for navigation
- * tab management, url change and other options
+ * Browser bottom bar that contains icons for navigation,
+ * bookmark management, and tab operations
  */
 const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   canGoBack,
   canGoForward,
   goBack,
   goForward,
-  showTabs,
-  showUrlModal,
-  goHome,
-  toggleOptions,
-  toggleFullscreen,
-  isFullscreen,
+  reload,
+  openNewTab,
+  activeUrl,
+  getMaskedUrl,
+  title,
+  sessionENSNames,
+  favicon,
+  icon,
 }) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const { colors } = useContext(ThemeContext) || { colors: mockTheme.colors };
+  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  const styles = createStyles(colors, isFullscreen ? bottomInset : 0);
-
-  const trackSearchEvent = (): void => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
-        .addProperties({
-          option_chosen: 'Browser Bottom Bar Menu',
-          number_of_tabs: undefined,
-        })
-        .build(),
-    );
-  };
+  const dispatch = useDispatch();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const bookmarks = useSelector((state: RootState) => state.bookmarks);
+  const tabCount = useSelector(selectBrowserTabCount);
 
   const trackNavigationEvent = (navigationOption: string): void => {
     trackEvent(
@@ -141,119 +114,200 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
     );
   };
 
-  const onSearchPress = (): void => {
-    showUrlModal?.();
-    trackSearchEvent();
+  /**
+   * Check if current URL is bookmarked
+   */
+  const isBookmark = (): boolean => {
+    const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
+    return bookmarks.some(({ url }: { url: string }) => url === maskedUrl);
+  };
+
+  /**
+   * Navigate to AddBookmarkView modal
+   */
+  const navigateToAddBookmark = () => {
+    navigation.push('AddBookmarkView', {
+      screen: 'AddBookmark',
+      params: {
+        title: title || '',
+        url: getMaskedUrl(activeUrl, sessionENSNames),
+        onAddBookmark: async ({
+          name,
+          url: urlToAdd,
+        }: {
+          name: string;
+          url: string;
+        }) => {
+          dispatch(addBookmark({ name, url: urlToAdd }));
+          // iOS Spotlight integration
+          if (Device.isIos()) {
+            const thumbnailUri =
+              (icon as { uri?: string })?.uri ||
+              (favicon as { uri?: string })?.uri ||
+              '';
+            const item = {
+              uniqueIdentifier: activeUrl,
+              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
+              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
+              keywords: [
+                ...(name ? name.split(' ').filter(Boolean) : []),
+                urlToAdd,
+                'dapp',
+              ],
+              thumbnail: {
+                uri: thumbnailUri,
+              },
+            };
+            try {
+              SearchApi.indexSpotlightItem(item);
+            } catch (e: unknown) {
+              const searchApiError = e as Error;
+              Logger.error(searchApiError, 'Error adding to spotlight');
+            }
+          }
+        },
+      },
+    });
+
+    // Track analytics
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_ADD_FAVORITES)
+        .addProperties({
+          dapp_name: title || '',
+        })
+        .build(),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
+    );
+  };
+
+  /**
+   * Check if bookmark button should be disabled
+   */
+  const isBookmarkDisabled = !activeUrl || activeUrl.trim() === '';
+
+  /**
+   * Handle bookmark button press - add or remove bookmark
+   */
+  const handleBookmarkPress = () => {
+    // Don't allow bookmarking empty URLs
+    if (isBookmarkDisabled) return;
+
+    if (isBookmark()) {
+      const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
+      const bookmarkToRemove = bookmarks.find(
+        ({ url }: { url: string }) => url === maskedUrl,
+      );
+      if (bookmarkToRemove) {
+        dispatch(removeBookmark(bookmarkToRemove));
+      }
+    } else {
+      navigateToAddBookmark();
+    }
   };
 
   const onBackPress = (): void => {
-    goBack?.();
-    trackNavigationEvent('Go Back');
+    if (goBack) {
+      goBack();
+      trackNavigationEvent('Go Back');
+    }
   };
 
   const onForwardPress = (): void => {
-    goForward?.();
-    trackNavigationEvent('Go Forward');
+    if (goForward) {
+      goForward();
+      trackNavigationEvent('Go Forward');
+    }
   };
 
-  const onHomePress = (): void => {
-    goHome?.();
-    trackNavigationEvent('Go Home');
+  const onReloadPress = (): void => {
+    if (reload) {
+      reload();
+      trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
+    }
   };
 
-  const onToggleFullscreenPress = (): void => {
-    if (isFullscreen) {
+  const onNewTabPress = (): void => {
+    if (openNewTab) {
+      openNewTab();
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.BROWSER_CLOSED_FULLSCREEN).build(),
-      );
-    } else {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.BROWSER_OPENED_FULLSCREEN).build(),
+        createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+          .addProperties({
+            option_chosen: 'Browser Bottom Bar',
+            number_of_tabs: tabCount,
+          })
+          .build(),
       );
     }
-    toggleFullscreen?.(!isFullscreen);
   };
 
-  const homeDisabled = !goHome;
-  const optionsDisabled = !toggleOptions;
-
   return (
-    <View style={styles.bottomBar}>
-      <TouchableOpacity
-        onPress={onBackPress}
-        style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.BACK_BUTTON}
-        disabled={!canGoBack}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="bg-default border-t border-muted min-h-[60px] px-4 py-2"
+      style={tw.style(
+        Device.isAndroid() ? 'border-t-0' : '',
+        bottomInset > 0 ? `pb-[${bottomInset}px]` : '',
+      )}
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-4"
       >
-        <Icon
-          name="angle-left"
-          size={24}
-          style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]}
+        {/* Back Button */}
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Lg}
+          onPress={onBackPress}
+          isDisabled={!canGoBack}
+          testID={BrowserViewSelectorsIDs.BACK_BUTTON}
         />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onForwardPress}
-        style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.FORWARD_BUTTON}
-        disabled={!canGoForward}
-      >
-        <Icon
-          name="angle-right"
-          size={24}
-          style={[styles.icon, !canGoForward ? styles.disabledIcon : {}]}
+
+        {/* Forward Button */}
+        <ButtonIcon
+          iconName={IconName.ArrowRight}
+          size={ButtonIconSize.Lg}
+          onPress={onForwardPress}
+          isDisabled={!canGoForward}
+          testID={BrowserViewSelectorsIDs.FORWARD_BUTTON}
         />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onSearchPress}
-        style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.SEARCH_BUTTON}
-      >
-        <FeatherIcons name="search" size={24} style={styles.icon} />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={showTabs}
-        style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.TABS_BUTTON}
-      >
-        <TabCountIcon style={styles.tabIcon} />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onHomePress}
-        style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.HOME_BUTTON}
-        disabled={homeDisabled}
-      >
-        <SimpleLineIcons
-          name="home"
-          size={22}
-          style={[styles.icon, homeDisabled && styles.disabledIcon]}
+
+        {/* Reload Button */}
+        <ButtonIcon
+          iconName={IconName.Refresh}
+          size={ButtonIconSize.Lg}
+          onPress={onReloadPress}
+          testID={BrowserViewSelectorsIDs.RELOAD_BUTTON}
         />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onToggleFullscreenPress}
-        style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.TOGGLE_FULLSCREEN_BUTTON}
-        disabled={!toggleFullscreen}
+      </Box>
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-4"
       >
-        <MaterialIcon
-          name={isFullscreen ? 'fullscreen-exit' : 'fullscreen'}
-          size={22}
-          style={[styles.icon, !toggleFullscreen ? styles.disabledIcon : {}]}
+        {/* Bookmark Button */}
+        <ButtonIcon
+          iconName={isBookmark() ? IconName.StarFilled : IconName.Star}
+          size={ButtonIconSize.Lg}
+          onPress={handleBookmarkPress}
+          isDisabled={isBookmarkDisabled}
+          testID={BrowserViewSelectorsIDs.BOOKMARK_BUTTON}
         />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={toggleOptions}
-        style={styles.iconButton}
-        testID={BrowserViewSelectorsIDs.OPTIONS_BUTTON}
-        disabled={optionsDisabled}
-      >
-        <MaterialIcon
-          name="more-horiz"
-          size={22}
-          style={[styles.icon, optionsDisabled && styles.disabledIcon]}
+
+        {/* New Tab Button */}
+        <ButtonIcon
+          iconName={IconName.Add}
+          size={ButtonIconSize.Lg}
+          onPress={onNewTabPress}
+          testID={BrowserViewSelectorsIDs.NEW_TAB_BUTTON}
         />
-      </TouchableOpacity>
-    </View>
+      </Box>
+    </Box>
   );
 };
 

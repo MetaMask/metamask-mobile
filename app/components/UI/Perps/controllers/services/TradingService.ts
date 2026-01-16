@@ -1,6 +1,6 @@
 import Logger from '../../../../../util/Logger';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import { isTPSLOrder } from '../../constants/orderTypes';
 import {
   trace,
@@ -106,6 +106,10 @@ export class TradingService {
         }),
       ...(params.trackingData?.source && {
         [PerpsEventProperties.SOURCE]: params.trackingData.source,
+      }),
+      // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
+      ...(params.trackingData?.tradeAction && {
+        [PerpsEventProperties.ACTION]: params.trackingData.tradeAction,
       }),
     });
 
