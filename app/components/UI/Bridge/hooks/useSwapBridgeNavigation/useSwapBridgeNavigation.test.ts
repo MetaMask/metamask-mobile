@@ -1105,26 +1105,6 @@ describe('useSwapBridgeNavigation', () => {
       });
     });
 
-    it('tracks action button click when location is Swaps', () => {
-      const { result } = renderHookWithProvider(
-        () =>
-          useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.Swaps,
-            sourcePage: mockSourcePage,
-          }),
-        { state: initialState },
-      );
-
-      result.current.goToSwaps();
-
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_name: ActionButtonType.SWAP,
-        action_position: ActionPosition.SECOND_POSITION,
-        button_label: 'Swap',
-        location: ActionLocation.ASSET_DETAILS,
-      });
-    });
-
     it('tracks action button click when location is Rewards', () => {
       const { result } = renderHookWithProvider(
         () =>

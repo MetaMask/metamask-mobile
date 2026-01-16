@@ -52,7 +52,6 @@ export const isAssetFromTrending = (asset: unknown) =>
 export enum SwapBridgeNavigationLocation {
   MainView = 'Main View',
   TokenView = 'Token View',
-  Swaps = 'Swaps',
   Rewards = 'Rewards',
 }
 
