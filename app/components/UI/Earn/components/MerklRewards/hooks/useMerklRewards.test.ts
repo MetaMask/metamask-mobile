@@ -339,4 +339,67 @@ describe('useMerklRewards', () => {
       expect(result.current.claimableReward).toBe('2.00');
     });
   });
+
+  it('returns null when pending reward is zero', async () => {
+    const mockResponse = [
+      {
+        rewards: [
+          {
+            pending: '0', // Zero pending rewards
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      // Should remain null because pending is zero
+      expect(result.current.claimableReward).toBe(null);
+    });
+
+    // renderFromTokenMinimalUnit should not be called for zero values
+    expect(renderFromTokenMinimalUnit).not.toHaveBeenCalled();
+  });
+
+  it('returns null when rendered amount is "0" or "0.00"', async () => {
+    // Mock renderFromTokenMinimalUnit to return '0' or '0.00' for edge cases
+    (renderFromTokenMinimalUnit as jest.Mock).mockReturnValueOnce('0.00');
+
+    const mockPendingWei = '1'; // Very small amount that might round to zero
+    const mockResponse = [
+      {
+        rewards: [
+          {
+            pending: mockPendingWei,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      // Should remain null because rendered amount is '0.00'
+      expect(result.current.claimableReward).toBe(null);
+    });
+  });
 });

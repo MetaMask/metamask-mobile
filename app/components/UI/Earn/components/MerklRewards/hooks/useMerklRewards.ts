@@ -103,15 +103,23 @@ export const useMerklRewards = ({
         const data: MerklRewardData[] = await response.json();
 
         // Get pending amount from [0].rewards[0].pending
-        if (data?.[0]?.rewards?.[0]?.pending) {
-          const pendingWei = data[0].rewards[0].pending;
+        const pendingWei = data?.[0]?.rewards?.[0]?.pending;
+        if (pendingWei && BigInt(pendingWei) > 0n) {
           // Convert from wei to token amount (assuming 18 decimals)
           const pendingAmount = renderFromTokenMinimalUnit(
             pendingWei,
             asset.decimals || 18,
             2, // Show 2 decimal places
           );
-          setClaimableReward(pendingAmount);
+          // Double-check that the rendered amount is not '0' or '0.00'
+          // This handles edge cases where very small amounts round to zero
+          if (
+            pendingAmount &&
+            pendingAmount !== '0' &&
+            pendingAmount !== '0.00'
+          ) {
+            setClaimableReward(pendingAmount);
+          }
         }
       } catch (error) {
         // Silently handle errors - component will show no rewards if fetch fails
