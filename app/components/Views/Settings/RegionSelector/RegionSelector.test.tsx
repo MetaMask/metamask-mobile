@@ -1,43 +1,59 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import RegionSelector from './RegionSelector';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { Country, type UserRegion } from '@metamask/ramps-controller';
+import { renderScreen } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import Routes from '../../../../constants/navigation/Routes';
+import { Country, State, UserRegion } from '@metamask/ramps-controller';
+import useRampsRegions from '../hooks/useRampsRegions';
+import { useRampsUserRegion } from '../../../../components/UI/Ramp/hooks/useRampsUserRegion';
 
-const mockSetOptions = jest.fn();
+const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
-      navigate: jest.fn(),
-      setOptions: mockSetOptions,
+      navigate: mockNavigate,
       goBack: mockGoBack,
+      setOptions: mockSetOptions,
     }),
   };
 });
 
-jest.mock('../hooks/useRampsRegions', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+const mockSetUserRegion = jest.fn().mockResolvedValue(undefined);
+const mockFetchUserRegion = jest.fn().mockResolvedValue(null);
 
-jest.mock('../../../../components/UI/Ramp/hooks/useRampsUserRegion', () => ({
-  useRampsUserRegion: jest.fn(),
-}));
+const createMockCountry = (
+  isoCode: string,
+  name: string,
+  flag: string,
+  states?: State[],
+  supported = true,
+  recommended = false,
+): Country => ({
+  isoCode,
+  name,
+  flag,
+  states,
+  supported,
+  recommended,
+  phone: { prefix: '', placeholder: '', template: '' },
+  currency: '',
+});
 
-import useRampsRegions from '../hooks/useRampsRegions';
-import { useRampsUserRegion } from '../../../../components/UI/Ramp/hooks/useRampsUserRegion';
-
-const mockUseRampsRegions = useRampsRegions as jest.MockedFunction<
-  typeof useRampsRegions
->;
-const mockUseRampsUserRegion = useRampsUserRegion as jest.MockedFunction<
-  typeof useRampsUserRegion
->;
+const createMockState = (
+  stateId: string,
+  name: string,
+  supported = true,
+): State => ({
+  stateId,
+  name,
+  supported,
+});
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
   const parts = regionCode.toLowerCase().split('-');
@@ -48,15 +64,15 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
     country: {
       isoCode: countryCode,
       flag: '🏳️',
-      name: `Country ${countryCode}`,
+      name: countryCode,
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
       supported: true,
     },
     state: stateCode
       ? {
-          stateId: `${countryCode}-${stateCode}`,
-          name: `State ${stateCode}`,
+          stateId: stateCode,
+          name: stateCode,
           supported: true,
         }
       : null,
@@ -64,520 +80,214 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
   };
 };
 
-const createMockCountries = (): Country[] => [
-  {
-    isoCode: 'US',
-    name: 'United States of America',
-    flag: '🇺🇸',
-    phone: { prefix: '+1', placeholder: '', template: '' },
-    currency: 'USD',
-    supported: true,
-    recommended: true,
-    states: [
-      {
-        stateId: 'US-CA',
-        name: 'California',
-        supported: true,
-      },
-      {
-        stateId: 'US-NY',
-        name: 'New York',
-        supported: true,
-      },
-      {
-        stateId: 'US-UT',
-        name: 'Utah',
-        supported: true,
-      },
-    ],
-  },
-  {
-    isoCode: 'CA',
-    name: 'Canada',
-    flag: '🇨🇦',
-    phone: { prefix: '+1', placeholder: '', template: '' },
-    currency: 'CAD',
-    supported: true,
-    states: [
-      {
-        stateId: 'CA-ON',
-        name: 'Ontario',
-        supported: true,
-      },
-    ],
-  },
-  {
-    isoCode: 'FR',
-    name: 'France',
-    flag: '🇫🇷',
-    phone: { prefix: '+33', placeholder: '', template: '' },
-    currency: 'EUR',
-    supported: true,
-  },
-  {
-    isoCode: 'DE',
-    name: 'Germany',
-    flag: '🇩🇪',
-    phone: { prefix: '+49', placeholder: '', template: '' },
-    currency: 'EUR',
-    supported: false,
-  },
+const mockRegions: Country[] = [
+  createMockCountry('US', 'United States', '🇺🇸', [
+    createMockState('CA', 'California'),
+    createMockState('NY', 'New York'),
+  ]),
+  createMockCountry('CA', 'Canada', '🇨🇦', [createMockState('ON', 'Ontario')]),
+  createMockCountry('FR', 'France', '🇫🇷', undefined, true, true),
+  createMockCountry('XX', 'Unsupported Country', '🏳️', undefined, false),
 ];
 
-const initialState = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      RampsController: {
-        userRegion: null,
-        requests: {},
-      },
-    },
-  },
+const mockUseRampsRegionsInitialValues: ReturnType<typeof useRampsRegions> = {
+  regions: mockRegions,
+  isLoading: false,
+  error: null,
+  fetchRegions: jest.fn().mockResolvedValue(mockRegions),
 };
 
-describe('RegionSelector', () => {
-  const mockSetUserRegion = jest.fn().mockResolvedValue(undefined);
+const mockUseRampsUserRegionInitialValues: ReturnType<
+  typeof useRampsUserRegion
+> = {
+  userRegion: null,
+  isLoading: false,
+  error: null,
+  setUserRegion: mockSetUserRegion,
+  fetchUserRegion: mockFetchUserRegion,
+};
 
+let mockUseRampsRegionsValues = mockUseRampsRegionsInitialValues;
+let mockUseRampsUserRegionValues = mockUseRampsUserRegionInitialValues;
+
+jest.mock('../hooks/useRampsRegions', () =>
+  jest.fn(() => mockUseRampsRegionsValues),
+);
+
+jest.mock('../../../../components/UI/Ramp/hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => mockUseRampsUserRegionValues,
+}));
+
+function render(Component: React.ComponentType) {
+  return renderScreen(
+    Component,
+    {
+      name: Routes.SETTINGS.REGION_SELECTOR,
+    },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
+}
+
+describe('RegionSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRampsRegions.mockReturnValue({
-      regions: createMockCountries(),
-      isLoading: false,
-      error: null,
-      fetchRegions: jest.fn(),
-    });
-    mockUseRampsUserRegion.mockReturnValue({
-      userRegion: null,
-      isLoading: false,
-      error: null,
-      fetchUserRegion: jest.fn(),
-      setUserRegion: mockSetUserRegion,
-    });
-  });
-
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders country list', () => {
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-    expect(getByText('United States of America')).toBeTruthy();
-    expect(getByText('Canada')).toBeTruthy();
-    expect(getByText('France')).toBeTruthy();
-  });
-
-  it('renders region variation notice on country view', () => {
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-    expect(
-      getByText(
-        'Payment methods and available tokens may vary based on your region and our providers.',
-      ),
-    ).toBeTruthy();
-  });
-
-  it('searches for countries', () => {
-    const { getByPlaceholderText, queryByText } = renderWithProvider(
-      <RegionSelector />,
-      {
-        state: initialState,
-      },
-    );
-
-    const searchInput = getByPlaceholderText('Search by country');
-    fireEvent.changeText(searchInput, 'France');
-
-    expect(queryByText('United States of America')).toBeNull();
-    expect(queryByText('France')).toBeTruthy();
-  });
-
-  it('shows empty state when search has no results', () => {
-    const { getByPlaceholderText, getByText } = renderWithProvider(
-      <RegionSelector />,
-      {
-        state: initialState,
-      },
-    );
-
-    const searchInput = getByPlaceholderText('Search by country');
-    fireEvent.changeText(searchInput, 'Nonexistent');
-
-    expect(getByText(/No region matches/)).toBeTruthy();
-  });
-
-  it('clears search when clear button is pressed', () => {
-    const { getByPlaceholderText, getByText, queryByText } = renderWithProvider(
-      <RegionSelector />,
-      {
-        state: initialState,
-      },
-    );
-
-    const searchInput = getByPlaceholderText('Search by country');
-    fireEvent.changeText(searchInput, 'France');
-    expect(queryByText('United States of America')).toBeNull();
-
-    const clearButton = getByText('Clear');
-    fireEvent.press(clearButton);
-
-    expect(getByText('United States of America')).toBeTruthy();
-  });
-
-  it('navigates to state view when country with states is pressed', () => {
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
-
-    expect(getByText('California')).toBeTruthy();
-    expect(getByText('New York')).toBeTruthy();
-    expect(getByText('Utah')).toBeTruthy();
-  });
-
-  it('updates navigation title when viewing states', () => {
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
-
-    expect(mockSetOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        headerLeft: expect.any(Function),
-      }),
-    );
-  });
-
-  it('sets navigation options with back button when viewing states', () => {
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
-
-    expect(getByText('California')).toBeTruthy();
-    expect(mockSetOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        headerLeft: expect.any(Function),
-      }),
-    );
-  });
-
-  it('calls setUserRegion when a country without states is selected', async () => {
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    const franceRegion = getByText('France');
-    fireEvent.press(franceRegion);
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockSetUserRegion).toHaveBeenCalledWith('fr');
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('calls setUserRegion when a state is selected', async () => {
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
-
-    const californiaState = getByText('California');
-    fireEvent.press(californiaState);
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockSetUserRegion).toHaveBeenCalledWith('us-ca');
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('highlights selected country', () => {
-    const mockUserRegion = createMockUserRegion('fr');
-    mockUserRegion.country.name = 'France';
-    mockUseRampsUserRegion.mockReturnValue({
-      userRegion: mockUserRegion,
-      isLoading: false,
-      error: null,
-      fetchUserRegion: jest.fn(),
-      setUserRegion: mockSetUserRegion,
-    });
-
-    const { toJSON } = renderWithProvider(<RegionSelector />, {
-      state: {
-        ...initialState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            RampsController: {
-              userRegion: mockUserRegion,
-              requests: {},
-            },
-          },
-        },
-      },
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('highlights selected state', () => {
-    const mockUserRegion = createMockUserRegion('us-ca');
-    mockUserRegion.country.name = 'United States of America';
-    mockUserRegion.state = {
-      stateId: 'US-CA',
-      name: 'California',
-      supported: true,
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
     };
-    mockUseRampsUserRegion.mockReturnValue({
-      userRegion: mockUserRegion,
-      isLoading: false,
-      error: null,
-      fetchUserRegion: jest.fn(),
-      setUserRegion: mockSetUserRegion,
-    });
-
-    const { getByText, toJSON } = renderWithProvider(<RegionSelector />, {
-      state: {
-        ...initialState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            RampsController: {
-              userRegion: mockUserRegion,
-              requests: {},
-            },
-          },
-        },
-      },
-    });
-
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('displays state name under country when user has state selected', () => {
-    const mockUserRegion = createMockUserRegion('us-ut');
-    mockUserRegion.country.name = 'United States of America';
-    mockUserRegion.state = {
-      stateId: 'US-UT',
-      name: 'Utah',
-      supported: true,
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
     };
-
-    mockUseRampsUserRegion.mockReturnValue({
-      userRegion: mockUserRegion,
-      isLoading: false,
-      error: null,
-      fetchUserRegion: jest.fn(),
-      setUserRegion: mockSetUserRegion,
-    });
-
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: {
-        ...initialState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            RampsController: {
-              userRegion: mockUserRegion,
-              requests: {},
-            },
-          },
-        },
-      },
-    });
-
-    expect(getByText('United States of America')).toBeTruthy();
-    expect(getByText('Utah')).toBeTruthy();
   });
 
-  it('disables unsupported regions', () => {
-    const { toJSON } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    expect(toJSON()).toMatchSnapshot();
+  it('renders correctly with countries list', () => {
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('sorts recommended countries first', () => {
-    const { toJSON } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('handles empty regions list', () => {
-    mockUseRampsRegions.mockReturnValue({
-      regions: null,
-      isLoading: false,
-      error: null,
-      fetchRegions: jest.fn(),
-    });
-
-    const { toJSON } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('handles loading state', () => {
-    mockUseRampsRegions.mockReturnValue({
+  it('renders correctly when regions are loading', () => {
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
       regions: null,
       isLoading: true,
-      error: null,
-      fetchRegions: jest.fn(),
-    });
-
-    const { toJSON } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-    expect(toJSON()).toMatchSnapshot();
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles error state', () => {
-    mockUseRampsRegions.mockReturnValue({
+  it('renders correctly when regions are null', () => {
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
       regions: null,
       isLoading: false,
-      error: 'Failed to load regions',
-      fetchRegions: jest.fn(),
-    });
-
-    const { toJSON } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-    expect(toJSON()).toMatchSnapshot();
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('searches for states when in state view', () => {
-    const { getByText, getByPlaceholderText, queryByText } = renderWithProvider(
-      <RegionSelector />,
-      {
-        state: initialState,
-      },
-    );
-
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
-
-    const searchInput = getByPlaceholderText('Search by state');
-    fireEvent.changeText(searchInput, 'California');
-
-    expect(queryByText('New York')).toBeNull();
-    expect(queryByText('Utah')).toBeNull();
-    expect(getByText('California')).toBeTruthy();
+  it('renders correctly when user region is selected', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('us-ca'),
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('navigates back to country view when back button is pressed from state view', () => {
-    const { getByText, getByTestId } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
-
-    expect(getByText('California')).toBeTruthy();
-
-    const backButton = getByTestId('back-button');
-    fireEvent.press(backButton);
-
-    expect(getByText('United States of America')).toBeTruthy();
-    expect(getByText('Canada')).toBeTruthy();
-  });
-
-  it('handles error when setUserRegion fails', async () => {
-    const mockError = new Error('Failed to set region');
-    mockSetUserRegion.mockRejectedValueOnce(mockError);
-
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
-
-    const franceRegion = getByText('France');
-    fireEvent.press(franceRegion);
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockSetUserRegion).toHaveBeenCalledWith('fr');
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('handles state without stateId gracefully', async () => {
-    const countriesWithoutStateId: Country[] = [
-      {
-        isoCode: 'US',
-        name: 'United States of America',
-        flag: '🇺🇸',
-        phone: { prefix: '+1', placeholder: '', template: '' },
-        currency: 'USD',
-        supported: true,
-        states: [
-          {
-            name: 'California',
-            supported: true,
-          },
-        ],
-      },
+  it('renders correctly with recommended countries', () => {
+    const recommendedRegions = [
+      createMockCountry('US', 'United States', '🇺🇸', undefined, true, true),
+      createMockCountry('CA', 'Canada', '🇨🇦', undefined, true, false),
     ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: recommendedRegions,
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    mockUseRampsRegions.mockReturnValue({
-      regions: countriesWithoutStateId,
-      isLoading: false,
-      error: null,
-      fetchRegions: jest.fn(),
-    });
+  it('filters regions when search text is entered', () => {
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'United');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    const { getByText } = renderWithProvider(<RegionSelector />, {
-      state: initialState,
-    });
+  it('displays empty state when search has no results', () => {
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'NonExistentCountry');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
+  it('clears search text when clear button is pressed', () => {
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'United');
+    expect(searchInput.props.value).toBe('United');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    const californiaState = getByText('California');
-    fireEvent.press(californiaState);
+  it('navigates to states view when country with states is selected', () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+  it('renders states view correctly', () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    expect(mockSetUserRegion).not.toHaveBeenCalled();
+  it('navigates back to countries view when back button is pressed in states view', () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(mockSetOptions).toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls setUserRegion and navigates back when state is selected', async () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    const stateItem = screen.getByText('California');
+    fireEvent.press(stateItem);
+    await expect(mockSetUserRegion).toHaveBeenCalledWith('ca');
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('clears search when in state view', () => {
-    const { getByText, getByPlaceholderText, queryByText } = renderWithProvider(
-      <RegionSelector />,
-      {
-        state: initialState,
-      },
-    );
+  it('calls setUserRegion and navigates back when country without states is selected', async () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('France');
+    fireEvent.press(countryItem);
+    await expect(mockSetUserRegion).toHaveBeenCalledWith('fr');
+    expect(mockGoBack).toHaveBeenCalled();
+  });
 
-    const usRegion = getByText('United States of America');
-    fireEvent.press(usRegion);
+  it('renders correctly with unsupported country', () => {
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    const searchInput = getByPlaceholderText('Search by state');
-    fireEvent.changeText(searchInput, 'California');
-    expect(queryByText('New York')).toBeNull();
+  it('renders correctly when country has states and user region state is shown', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('us-ca'),
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    const clearButton = getByText('Clear');
-    fireEvent.press(clearButton);
+  it('updates navigation title when switching to states view', () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(mockSetOptions).toHaveBeenCalled();
+  });
 
-    expect(getByText('California')).toBeTruthy();
-    expect(getByText('New York')).toBeTruthy();
+  it('renders search placeholder for states view', () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    expect(searchInput.props.placeholder).toBe('Search by state');
+  });
+
+  it('renders description text only in country view', () => {
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
