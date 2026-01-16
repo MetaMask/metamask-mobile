@@ -26,12 +26,14 @@ tags:
 # (Same steps as add-wallet-test.yaml from this point)
 - tapOn:
     id: ${output.home.accountPicker}
+    waitToSettleTimeoutMs: 500
 - tapOn:
     id: ${output.home.addAccountBtn}
-    delay: 2000
+    waitToSettleTimeoutMs: 500
 - assertVisible: ${output.home.addWalletTitle}
 - tapOn:
     id: ${output.home.addSrpAccountBtn}
+    waitToSettleTimeoutMs: 500
 
 # Import wallet using same flow as add-wallet-test.yaml
 - runFlow: ../flows/add-wallet-flow.yaml
@@ -41,7 +43,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: ${output.home.accountPicker}
-    timeout: 20000
+    timeout: 10000
 
 # Verify the account name is visible (confirms import succeeded)
 - assertVisible: Account 1
