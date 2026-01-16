@@ -573,6 +573,10 @@ export type PerpsControllerActions =
       handler: PerpsController['resetFirstTimeUserState'];
     }
   | {
+      type: 'PerpsController:clearPendingTransactionRequests';
+      handler: PerpsController['clearPendingTransactionRequests'];
+    }
+  | {
       type: 'PerpsController:saveTradeConfiguration';
       handler: PerpsController['saveTradeConfiguration'];
     }
@@ -2326,6 +2330,36 @@ export class PerpsController extends BaseController<
       state.hasPlacedFirstOrder = {
         testnet: false,
         mainnet: false,
+      };
+    });
+  }
+
+  /**
+   * Clear pending/bridging withdrawal and deposit requests
+   * This is useful when users want to clear stuck pending indicators
+   * Called by Reset Account feature in settings
+   */
+  clearPendingTransactionRequests(): void {
+    DevLogger.log('PerpsController: Clearing pending transaction requests', {
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      // Filter out pending/bridging withdrawals, keep completed/failed for history
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Filter out pending deposits, keep completed/failed for history
+      state.depositRequests = state.depositRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Reset withdrawal progress
+      state.withdrawalProgress = {
+        progress: 0,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: null,
       };
     });
   }
