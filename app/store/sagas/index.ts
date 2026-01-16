@@ -1,10 +1,16 @@
-import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
+import {
+  fork,
+  take,
+  cancel,
+  put,
+  call,
+  all,
+  select,
+  cancelled,
+} from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
-  AuthSuccessAction,
-  AuthErrorAction,
-  InterruptBiometricsAction,
   lockApp,
   setAppServicesReady,
   UserActionType,
@@ -12,7 +18,7 @@ import {
   CheckForDeeplinkAction,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
-import { Task } from 'redux-saga';
+import { EventChannel, Task, eventChannel } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
@@ -36,22 +42,77 @@ import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 import Authentication from '../../core/Authentication';
 import { MetaMetrics } from '../../core/Analytics';
+import { AppState, AppStateStatus } from 'react-native';
+import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+
+/**
+ * Creates a channel to listen to app state changes.
+ */
+function appStateListenerChannel() {
+  return eventChannel<AppStateStatus>((emitter) => {
+    const appStateListener = AppState.addEventListener('change', emitter);
+    return () => {
+      appStateListener.remove();
+    };
+  });
+}
+
+/**
+ * Listens to app state changes and prompts authentication when the app is foregrounded.
+ */
+function* appStateListenerTask() {
+  // Create channel to listen to app state changes.
+  const channel: EventChannel<AppStateStatus> = yield call(
+    appStateListenerChannel,
+  );
+
+  try {
+    while (true) {
+      let appState: AppStateStatus = yield take(channel);
+      if (appState === 'active') {
+        yield call(async () => {
+          // This is in a try catch since errors are not propogated in event channels.
+          try {
+            // Prompt authentication.
+            await Authentication.unlockWallet();
+          } catch (error) {
+            // Lock app and navigate to login.
+            Authentication.lockApp({ reset: false });
+            trackErrorAsAnalytics(
+              'Lockscreen: Authentication failed',
+              (error as Error)?.message,
+            );
+          }
+        });
+        // Close channel once authentication is prompted.
+        channel.close();
+      }
+    }
+  } finally {
+    // Cancel channel if saga is cancelled.
+    const isCancelled: boolean = yield cancelled();
+    if (isCancelled) {
+      channel.close();
+    }
+  }
+}
 
 export function* appLockStateMachine() {
-  let biometricsListenerTask: Task<void> | undefined;
+  let appStateListener: Task<void> | undefined;
+
   while (true) {
     yield take(UserActionType.LOCKED_APP);
-    if (biometricsListenerTask) {
-      yield cancel(biometricsListenerTask);
+
+    // Navigate to lock screen.
+    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
+
+    // Cancel existing app state listener.
+    if (appStateListener) {
+      yield cancel(appStateListener);
     }
-    const bioStateMachineId = Date.now().toString();
-    biometricsListenerTask = yield fork(
-      biometricsStateMachine,
-      bioStateMachineId,
-    );
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
-      bioStateMachineId,
-    });
+
+    // Start new app state listener for prompting authentication when the app is foregrounded.
+    appStateListener = yield call(appStateListenerTask);
   }
 }
 
@@ -79,7 +140,9 @@ export function* authStateMachine() {
   // Start when the user is logged in.
   while (true) {
     yield take(UserActionType.LOGIN);
+    // Listen to the app once it enters the locked state.
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
+    // Handles locking the app when the app is backgrounded.
     LockManagerService.startListening();
     // Listen to app lock behavior.
     yield take(UserActionType.LOGOUT);
@@ -100,46 +163,6 @@ export function* lockKeyringAndApp() {
     Logger.log('Failed to lock KeyringController', e);
   }
   yield put(lockApp());
-}
-
-/**
- * The state machine, which is responsible for handling the state
- * changes related to biometrics authentication.
- */
-export function* biometricsStateMachine(originalBioStateMachineId: string) {
-  // This state machine is only good for a one time use. After it's finished, it relies on LOCKED_APP to restart it.
-  // Handle next three possible states.
-  let shouldHandleAction = false;
-  let action:
-    | AuthSuccessAction
-    | AuthErrorAction
-    | InterruptBiometricsAction
-    | undefined;
-
-  // Only continue on INTERRUPT_BIOMETRICS action or when actions originated from corresponding state machine.
-  while (!shouldHandleAction) {
-    action = yield take([
-      UserActionType.AUTH_SUCCESS,
-      UserActionType.AUTH_ERROR,
-      UserActionType.INTERRUPT_BIOMETRICS,
-    ]);
-    if (
-      action?.type === UserActionType.INTERRUPT_BIOMETRICS ||
-      action?.payload?.bioStateMachineId === originalBioStateMachineId
-    ) {
-      shouldHandleAction = true;
-    }
-  }
-
-  if (action?.type === UserActionType.INTERRUPT_BIOMETRICS) {
-    // Biometrics was most likely interrupted during authentication with a non-zero lock timer.
-    yield fork(lockKeyringAndApp);
-  } else if (action?.type === UserActionType.AUTH_ERROR) {
-    // Authentication service will automatically log out.
-  } else if (action?.type === UserActionType.AUTH_SUCCESS) {
-    // Authentication successful. Navigate to wallet.
-    NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
-  }
 }
 
 export function* basicFunctionalityToggle() {
@@ -297,8 +320,8 @@ export function* startAppServices() {
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
 
-  // Start listening to the auth state machine first
-  yield fork(authStateMachine);
+  // At this point, the Navigation stack is rendered. We need to skip to the next frame to ensure that the Navigation stack is fully rendered.
+  yield call(() => new Promise((resolve) => requestAnimationFrame(resolve)));
 
   // Request authentication on app start after the auth state machine is started
   yield call(requestAuthOnAppStart);
@@ -307,6 +330,7 @@ export function* startAppServices() {
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(startAppServices);
+  yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
