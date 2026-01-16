@@ -1,5 +1,4 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import ClaimMerklRewards from './ClaimMerklRewards';
 import { useMerklClaim } from './hooks/useMerklClaim';
@@ -128,6 +127,9 @@ describe('ClaimMerklRewards', () => {
   });
 
   it('disables button when isClaiming is true', () => {
+    const { TouchableOpacity: RNTouchableOpacity } =
+      jest.requireActual('react-native');
+
     mockUseMerklClaim.mockReturnValue({
       claimRewards: mockClaimRewards,
       isClaiming: true,
@@ -135,7 +137,7 @@ describe('ClaimMerklRewards', () => {
     });
 
     const { UNSAFE_root } = render(<ClaimMerklRewards asset={mockAsset} />);
-    const buttonElement = UNSAFE_root.findByType(TouchableOpacity);
+    const buttonElement = UNSAFE_root.findByType(RNTouchableOpacity);
 
     expect(buttonElement.props.disabled).toBe(true);
   });

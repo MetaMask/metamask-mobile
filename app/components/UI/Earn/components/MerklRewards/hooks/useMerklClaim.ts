@@ -82,7 +82,7 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
       // Prepare claim parameters
       const users = [selectedAddress];
       const tokens = [rewardData.token.address]; // Use token.address not token object
-      const amounts = [rewardData.pending];
+      const amounts = [rewardData.amount];
       const proofs = [rewardData.proofs]; // Note: proofs is plural!
 
       // Encode the claim transaction data using ethers Interface
