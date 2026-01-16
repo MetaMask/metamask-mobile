@@ -54,10 +54,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   // Derive game state for conditional props
   // Use resolved gameStatus to ensure consistency when market.game is undefined
+  // Use case-insensitive comparison for halftime since API may return 'ht', 'HT', or 'Ht'
   const gameStatus = market.game?.status ?? 'scheduled';
   const isScheduled = gameStatus === 'scheduled';
   const isOngoing = gameStatus === 'ongoing';
-  const isHalftime = isOngoing && market.game?.period === 'HT';
+  const isHalftime = isOngoing && market.game?.period?.toUpperCase() === 'HT';
   const isInProgress = isOngoing && !isHalftime;
 
   // Find outcome for each team and get the "Yes" token price

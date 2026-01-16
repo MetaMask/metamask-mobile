@@ -32,7 +32,7 @@ export interface PredictSportScoreboardProps {
  * NFL scoreboard component that displays team helmets, scores, and game status.
  * Supports 4 UI states: Pre-game, In-progress, Halftime, Final.
  * - 'scheduled' → Pre-game UI
- * - 'ongoing' + period === 'HT' → Halftime UI
+ * - 'ongoing' + period (case-insensitive) === 'HT' → Halftime UI
  * - 'ongoing' → In-progress UI
  * - 'ended' → Final UI
  * Shows possession indicator (football icon) during in-progress games.
@@ -57,8 +57,10 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
 
   // Derive UI state from gameStatus + period
   const isPreGame = gameStatus === 'scheduled';
-  const isHalftime = gameStatus === 'ongoing' && period === 'HT';
-  const isInProgress = gameStatus === 'ongoing' && period !== 'HT';
+  // Use case-insensitive comparison for halftime since API may return 'ht', 'HT', or 'Ht'
+  const isHalftime = gameStatus === 'ongoing' && period?.toUpperCase() === 'HT';
+  const isInProgress =
+    gameStatus === 'ongoing' && period?.toUpperCase() !== 'HT';
   const isFinal = gameStatus === 'ended';
 
   // Derive possession from turn (team abbreviation, lowercase)
