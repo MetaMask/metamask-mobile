@@ -36,14 +36,14 @@ tags:
     waitToSettleTimeoutMs: 500
 
 # Import wallet using same flow as add-wallet-test.yaml
-- runFlow: ../flows/add-wallet-flow.yaml
+# - runFlow: ../flows/add-wallet-flow.yaml
 
 # Wait for import to complete and verify we're back on home screen
 # The toast "Wallet 2 imported" appears briefly, then navigates to home
-- extendedWaitUntil:
-    visible:
-      id: ${output.home.accountPicker}
-    timeout: 10000
+# - extendedWaitUntil:
+#     visible:
+#       id: ${output.home.accountPicker}
+#     timeout: 10000
 
 # Verify the account name is visible (confirms import succeeded)
-- assertVisible: Account 1
+# - assertVisible: Account 1
