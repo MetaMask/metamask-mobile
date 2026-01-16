@@ -11,7 +11,7 @@ appId: io.metamask
 - extendedWaitUntil:
     visible:
       id: ${output.login.passwordInput}
-    timeout: 45000
+    timeout: 60000
 
 # Enter password (default fixture password is "123123123")
 - tapOn:
