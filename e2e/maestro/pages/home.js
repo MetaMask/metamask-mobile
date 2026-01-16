@@ -13,5 +13,6 @@ output.home = {
 
   // Add Account Modal
   addWalletTitle: 'Add wallet',
+  importWalletLabel: 'Import a wallet',
   addSrpAccountBtn: 'add-account-srp-account',
 };

@@ -26,11 +26,11 @@ tags:
 # (Same steps as add-wallet-test.yaml from this point)
 - tapOn:
     id: ${output.home.accountPicker}
-    waitToSettleTimeoutMs: 500
+    waitToSettleTimeoutMs: 2000
 - tapOn:
     id: ${output.home.addAccountBtn}
     waitToSettleTimeoutMs: 500
-- assertVisible: ${output.home.addWalletTitle}
+- assertVisible: ${output.home.importWalletLabel}
 - tapOn:
     id: ${output.home.addSrpAccountBtn}
     waitToSettleTimeoutMs: 500
