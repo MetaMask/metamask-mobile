@@ -23,7 +23,6 @@ import PredictSportTeamGradient from '../PredictSportTeamGradient/PredictSportTe
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { formatGameStartTime } from '../../utils/format';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -51,6 +50,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   });
 
   const outcome = market.outcomes?.[0];
+  const game = market.game;
+  const isEnded = game?.status === 'ended';
 
   const handleBetPress = useCallback(
     (token: PredictOutcomeToken) => {
@@ -72,20 +73,6 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     [executeGuardedAction, navigation, market, outcome, resolvedEntryPoint],
   );
 
-  const { date: gameDate, time: gameTime } = formatGameStartTime(
-    market.game?.startTime,
-  );
-
-  // Derive game state for conditional props
-  // Use resolved gameStatus to ensure consistency when market.game is undefined
-  // Use case-insensitive comparison for halftime since API may return 'ht', 'HT', or 'Ht'
-  const gameStatus = market.game?.status ?? 'scheduled';
-  const isScheduled = gameStatus === 'scheduled';
-  const isOngoing = gameStatus === 'ongoing';
-  const isEnded = gameStatus === 'ended';
-  const isHalftime = isOngoing && market.game?.period?.toUpperCase() === 'HT';
-  const isInProgress = isOngoing && !isHalftime;
-
   return (
     <TouchableOpacity
       testID={testID}
@@ -102,8 +89,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       }}
     >
       <PredictSportTeamGradient
-        awayColor={market.game?.awayTeam.color ?? '#1a2942'}
-        homeColor={market.game?.homeTeam.color ?? '#3d2621'}
+        awayColor={game?.awayTeam.color ?? '#1a2942'}
+        homeColor={game?.homeTeam.color ?? '#3d2621'}
         borderRadius={16}
         style={tw.style('w-full')}
       >
@@ -116,34 +103,12 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             {market.title}
           </Text>
 
-          <PredictSportScoreboard
-            awayTeam={{
-              abbreviation: market.game?.awayTeam.abbreviation ?? 'TBD',
-              color: market.game?.awayTeam.color ?? '#1D4E9B',
-            }}
-            homeTeam={{
-              abbreviation: market.game?.homeTeam.abbreviation ?? 'TBD',
-              color: market.game?.homeTeam.color ?? '#FC4C02',
-            }}
-            gameStatus={gameStatus}
-            period={market.game?.period}
-            homeScore={market.game?.score?.home}
-            awayScore={market.game?.score?.away}
-            // Pre-game: show scheduled date/time; In-progress: show quarter/elapsed
-            date={isScheduled ? gameDate : undefined}
-            time={
-              isScheduled
-                ? gameTime
-                : isInProgress
-                  ? (market.game?.elapsed ?? undefined)
-                  : undefined
-            }
-            quarter={
-              isInProgress ? (market.game?.period ?? undefined) : undefined
-            }
-            turn={market.game?.turn}
-            testID={testID ? `${testID}-scoreboard` : undefined}
-          />
+          {game && (
+            <PredictSportScoreboard
+              game={game}
+              testID={testID ? `${testID}-scoreboard` : undefined}
+            />
+          )}
 
           {outcome && !isEnded && (
             <PredictActionButtons
