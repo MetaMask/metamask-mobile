@@ -176,10 +176,14 @@ export const selectMusdConversionCTATokens = createSelector(
  * enabled to show the Quick Convert feature. Use selectIsMusdQuickConvertFullyEnabled
  * for convenience.
  */
-// TODO: Reminder: create LaunchDarkly flag for quick convert feature.
 export const selectMusdQuickConvertEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
     const localFlag = process.env.MM_MUSD_QUICK_CONVERT_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMusdQuickConvertEnabled as unknown as VersionGatedFeatureFlag;
