@@ -430,7 +430,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   spellCheck={false}
                   importantForAutofill="no"
                   autoFocus={
-                    autoFocusProp && index === nextSeedPhraseInputFocusedIndex
+                    index === nextSeedPhraseInputFocusedIndex &&
+                    (autoFocusProp || index > 0)
                   }
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   isDisabled={disabled}
