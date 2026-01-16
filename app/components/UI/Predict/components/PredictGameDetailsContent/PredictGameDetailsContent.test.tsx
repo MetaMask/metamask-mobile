@@ -37,6 +37,49 @@ jest.mock('../PredictShareButton/PredictShareButton', () => {
   };
 });
 
+jest.mock('../PredictGameDetailsFooter', () => ({
+  PredictGameDetailsFooter: function MockPredictGameDetailsFooter({
+    testID,
+    onInfoPress,
+  }: {
+    testID?: string;
+    onInfoPress?: () => void;
+  }) {
+    const { View, Pressable, Text } = jest.requireActual('react-native');
+    return (
+      <View testID={testID ?? 'predict-game-details-footer'}>
+        <Pressable testID="mock-info-button" onPress={onInfoPress}>
+          <Text>Info</Text>
+        </Pressable>
+      </View>
+    );
+  },
+}));
+
+jest.mock('../PredictGameDetailsFooter/PredictGameAboutSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(() => (
+      <View testID="predict-game-about-sheet">About Sheet</View>
+    )),
+  };
+});
+
+const mockGetRefHandlers = jest.fn(() => ({
+  onOpenBottomSheet: jest.fn(),
+  onCloseBottomSheet: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictBottomSheet', () => ({
+  usePredictBottomSheet: () => ({
+    sheetRef: { current: null },
+    isVisible: false,
+    handleSheetClosed: jest.fn(),
+    getRefHandlers: mockGetRefHandlers,
+  }),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -67,6 +110,11 @@ const createMockMarket = (
             title: 'Team A',
             price: 0.65,
           },
+          {
+            id: 'token-2',
+            title: 'Team B',
+            price: 0.35,
+          },
         ],
       },
     ],
@@ -89,6 +137,7 @@ const createMockMarket = (
 describe('PredictGameDetailsContent', () => {
   const mockOnBack = jest.fn();
   const mockOnRefresh = jest.fn().mockResolvedValue(undefined);
+  const mockOnBetPress = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -103,6 +152,7 @@ describe('PredictGameDetailsContent', () => {
           market={market}
           onBack={mockOnBack}
           onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
           refreshing={false}
         />,
       );
@@ -118,6 +168,7 @@ describe('PredictGameDetailsContent', () => {
           market={market}
           onBack={mockOnBack}
           onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
           refreshing={false}
         />,
       );
@@ -133,6 +184,7 @@ describe('PredictGameDetailsContent', () => {
           market={market}
           onBack={mockOnBack}
           onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
           refreshing={false}
         />,
       );
@@ -155,6 +207,7 @@ describe('PredictGameDetailsContent', () => {
           market={market}
           onBack={mockOnBack}
           onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
           refreshing={false}
         />,
       );
@@ -175,6 +228,7 @@ describe('PredictGameDetailsContent', () => {
           market={market}
           onBack={mockOnBack}
           onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
           refreshing
         />,
       );
@@ -193,6 +247,7 @@ describe('PredictGameDetailsContent', () => {
           market={market}
           onBack={mockOnBack}
           onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
           refreshing={false}
         />,
       );
@@ -206,6 +261,60 @@ describe('PredictGameDetailsContent', () => {
     });
   });
 
+  describe('Footer', () => {
+    it('renders the footer component', () => {
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(getByTestId('predict-game-details-footer')).toBeOnTheScreen();
+    });
+
+    it('passes onInfoPress handler to footer', () => {
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      const infoButton = getByTestId('mock-info-button');
+
+      expect(infoButton).toBeOnTheScreen();
+    });
+  });
+
+  describe('About Sheet', () => {
+    it('does not render about sheet when isVisible is false', () => {
+      const market = createMockMarket();
+
+      const { queryByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(queryByTestId('predict-game-about-sheet')).toBeNull();
+    });
+  });
+
   it('matches snapshot', () => {
     const market = createMockMarket();
 
@@ -214,6 +323,7 @@ describe('PredictGameDetailsContent', () => {
         market={market}
         onBack={mockOnBack}
         onRefresh={mockOnRefresh}
+        onBetPress={mockOnBetPress}
         refreshing={false}
       />,
     ).toJSON();
