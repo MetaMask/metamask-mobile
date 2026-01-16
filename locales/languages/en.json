@@ -5806,6 +5806,13 @@
       "learn_more": "Learn more.",
       "earn_button": "Earn"
     },
+    "trx_learn_more": {
+      "title": "Stake TRX and earn",
+      "stake_any_amount": "Stake any amount of TRX.",
+      "earn_trx_rewards": "Earn TRX rewards.",
+      "earn_trx_rewards_description": "Start earning as soon as you stake. Rewards accrue automatically.",
+      "flexible_unstaking_description": "Unstake anytime. Unstaking takes 14 days to process."
+    },
     "day": {
       "zero": "",
       "one": "day",
