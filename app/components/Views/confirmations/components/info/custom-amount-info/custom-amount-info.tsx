@@ -80,6 +80,10 @@ export interface CustomAmountInfoProps {
    * Useful when the confirmation screen is used as a modal and should stay on the current screen.
    */
   skipNavigation?: boolean;
+  /**
+   * Optional token name to display in the confirm button.
+   */
+  tokenName?: string;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -93,6 +97,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     defaultValue,
     minimalView = true,
     skipNavigation = false,
+    tokenName,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -106,8 +111,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
-
-    const buttonLabel = useButtonLabel();
 
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
@@ -217,6 +220,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <ConfirmButton
               alertTitle={alertTitle}
               skipNavigation={skipNavigation}
+              tokenName={tokenName}
             />
           )}
         </Box>
@@ -300,9 +304,11 @@ function BuySection() {
 function ConfirmButton({
   alertTitle,
   skipNavigation,
+  tokenName,
 }: Readonly<{
   alertTitle: string | undefined;
   skipNavigation?: boolean;
+  tokenName?: string;
 }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
@@ -310,10 +316,14 @@ function ConfirmButton({
   const { onConfirm } = useTransactionConfirm({ skipNavigation });
   const disabled = hasBlockingAlerts || isLoading;
   const buttonLabel = useButtonLabel();
+  const { payToken } = useTransactionPayToken();
 
   let label = alertTitle ?? buttonLabel;
 
-  label = label === 'Add funds' ? 'Execute trade with any token' : label;
+  label =
+    label === 'Add funds' && payToken
+      ? 'Execute trade ' + payToken.symbol
+      : label;
 
   return (
     <Button

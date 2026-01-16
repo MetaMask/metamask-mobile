@@ -1006,6 +1006,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     buttonColorVariant,
   ]);
 
+  const handlePlaceOrderRef = useRef<() => void>(handlePlaceOrder);
+  handlePlaceOrderRef.current = handlePlaceOrder;
+
   // Listen for deposit transaction confirmation and show alert
   useEffect(() => {
     if (!activeTransactionMeta?.id) {
@@ -1021,12 +1024,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       (transactionMeta) => {
         // Check if this is a perps deposit transaction
         if (transactionMeta.type === TransactionType.perpsDeposit) {
-          handlePlaceOrder();
-          // Alert.alert(
-          //   'Funds Added',
-          //   'Your deposit has been successfully completed.',
-          //   [{ text: 'OK' }],
-          // );
+          Alert.alert('Funds received', 'Going to execute trade...', [
+            { text: 'OK' },
+          ]);
+          handlePlaceOrderRef?.current();
         }
       },
       (transactionMeta) =>
@@ -1052,17 +1053,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         transactionMeta.type === TransactionType.perpsDeposit,
     );
 
-    return () => {
-      Engine.controllerMessenger.tryUnsubscribe(
-        'TransactionController:transactionConfirmed',
-        handler1,
-      );
-      Engine.controllerMessenger.tryUnsubscribe(
-        'TransactionController:transactionFailed',
-        handler2,
-      );
-    };
-  }, [activeTransactionMeta?.id, handlePlaceOrder]);
+    // return () => {
+    //   Engine.controllerMessenger.tryUnsubscribe(
+    //     'TransactionController:transactionConfirmed',
+    //     handler1,
+    //   );
+    //   Engine.controllerMessenger.tryUnsubscribe(
+    //     'TransactionController:transactionFailed',
+    //     handler2,
+    //   );
+    // };
+  }, [activeTransactionMeta?.id]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
   const handleTooltipPress = useCallback(
