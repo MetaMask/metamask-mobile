@@ -263,13 +263,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         if (hasCredentials) setBiometryIconType(authData.availableBiometryType);
         return;
       }
-        // there are no biometric available, set all states to false
-        // hide both Icon and Switch
-        setBiometrySwitchType(null);
-        setBiometryIconType(null);
-        setBiometryChoice(false);
-        return;
-
+      // there are no biometric available, set all states to false
+      // hide both Icon and Switch
+      setBiometrySwitchType(null);
+      setBiometryIconType(null);
+      setBiometryChoice(false);
+      return;
     };
 
     getUserAuthPreferences();
