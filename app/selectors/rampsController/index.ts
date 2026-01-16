@@ -35,13 +35,3 @@ export const selectGetCountriesRequest = createRequestSelector<
   RootState,
   import('@metamask/ramps-controller').Country[]
 >(selectRampsControllerState, 'getCountries', ['buy']);
-
-/**
- * Selects the user's geolocation (alias for userRegion).
- */
-export const selectGeolocation = selectUserRegion;
-
-/**
- * Selects the geolocation request state (alias for userRegionRequest).
- */
-export const selectGeolocationRequest = selectUserRegionRequest;
