@@ -6,10 +6,117 @@ import {
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 
-// Default filter constants for trending tokens
-export const TRENDING_MIN_LIQUIDITY = 200000;
-export const TRENDING_MIN_VOLUME_24H = 1000000;
+/**
+ * Baseline thresholds for multi-chain requests
+ * When users select multiple networks, use these conservative values to ensure quality across all chains
+ */
+export const MULTI_CHAIN_BASELINE_THRESHOLDS = {
+  minLiquidity: 200000, // $200k
+  minVolume24h: 1000000, // $1M
+};
+
+/**
+ * Per-network minimum thresholds for trending tokens
+ * Based on analysis of real Phantom trending data (Jan 2026) to filter out low-liquidity tokens and shitcoins
+ */
+export const TRENDING_NETWORK_THRESHOLDS: Record<
+  string,
+  {
+    minLiquidity: number;
+    minVolume24h: number;
+  }
+> = {
+  // Tier 1: High-volume mature networks
+  [NetworkToCaipChainId.ETHEREUM]: {
+    minLiquidity: 100000, // $100k - Captures all major DeFi tokens
+    minVolume24h: 500000, // $500k - Matches Phantom: includes Pepe, UNI, Render, Ondo
+  },
+  [NetworkToCaipChainId.SOLANA]: {
+    minLiquidity: 500000, // $500k - Active memecoin ecosystem
+    minVolume24h: 2000000, // $2M - Includes Bonk ($2.9M), filters pump-and-dumps
+  },
+
+  // Tier 2: Established L2s and major chains
+  [NetworkToCaipChainId.BASE]: {
+    minLiquidity: 250000, // $250k - Growing L2 ecosystem
+    minVolume24h: 700000, // $700k - Captures Brett ($695K), KAITO ($738K), Ribbita ($700K)
+  },
+  [NetworkToCaipChainId.ARBITRUM]: {
+    minLiquidity: 0, // No filter - Show all trending tokens
+    minVolume24h: 0, // No filter - Maximize visibility for this network
+  },
+  [NetworkToCaipChainId.OPTIMISM]: {
+    minLiquidity: 0, // No filter - Show all trending tokens
+    minVolume24h: 0, // No filter - Maximize visibility for this network
+  },
+  [NetworkToCaipChainId.AVALANCHE]: {
+    minLiquidity: 0, // No filter - Show all trending tokens
+    minVolume24h: 0, // No filter - Maximize visibility for this network
+  },
+  [NetworkToCaipChainId.BNB]: {
+    minLiquidity: 300000, // $300k - High activity network
+    minVolume24h: 1000000, // $1M - Large trading volumes
+  },
+  [NetworkToCaipChainId.POLYGON]: {
+    minLiquidity: 100000,
+    minVolume24h: 300000,
+  },
+
+  // Tier 3: Growing networks
+  [NetworkToCaipChainId.SEI]: {
+    minLiquidity: 0, // No filter - Show all trending tokens
+    minVolume24h: 0, // No filter - Maximize visibility for this network
+  },
+
+  // Tier 4: Emerging networks and L2s
+  [NetworkToCaipChainId.LINEA]: {
+    minLiquidity: 0, // No filter - Show all trending tokens
+    minVolume24h: 0, // No filter - Maximize visibility for emerging network
+  },
+  [NetworkToCaipChainId.ZKSYNC_ERA]: {
+    minLiquidity: 0, // No filter - Show all trending tokens
+    minVolume24h: 0, // No filter - Maximize visibility for this network
+  },
+
+  'tron:728126428': {
+    minLiquidity: 0,
+    minVolume24h: 0,
+  },
+};
+
+/**
+ * Determines minimum liquidity threshold based on selected chains
+ * - Single chain: Uses network-specific threshold
+ * - Multiple chains: Uses multi-chain baseline threshold (conservative cross-chain filter)
+ * - Unknown chain: Falls back to multi-chain baseline
+ */
+export const getMinLiquidityForChains = (chainIds: CaipChainId[]): number => {
+  if (chainIds.length === 1) {
+    return (
+      TRENDING_NETWORK_THRESHOLDS[chainIds[0]]?.minLiquidity ??
+      MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity
+    );
+  }
+  return MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity;
+};
+
+/**
+ * Determines minimum 24h volume threshold based on selected chains
+ * - Single chain: Uses network-specific threshold
+ * - Multiple chains: Uses multi-chain baseline threshold (conservative cross-chain filter)
+ * - Unknown chain: Falls back to multi-chain baseline
+ */
+export const getMinVolume24hForChains = (chainIds: CaipChainId[]): number => {
+  if (chainIds.length === 1) {
+    return (
+      TRENDING_NETWORK_THRESHOLDS[chainIds[0]]?.minVolume24h ??
+      MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h
+    );
+  }
+  return MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h;
+};
 
 /**
  * Polling interval in milliseconds (5 minutes)
@@ -44,8 +151,8 @@ export const useTrendingRequest = (options: {
   const {
     chainIds: providedChainIds = [],
     sortBy = 'h24_trending',
-    minLiquidity = TRENDING_MIN_LIQUIDITY,
-    minVolume24hUsd = TRENDING_MIN_VOLUME_24H,
+    minLiquidity: providedMinLiquidity,
+    minVolume24hUsd: providedMinVolume24hUsd,
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,
@@ -58,6 +165,17 @@ export const useTrendingRequest = (options: {
     }
     return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
   }, [providedChainIds]);
+
+  // Calculate thresholds based on selected chains
+  const minLiquidity = useMemo(
+    () => providedMinLiquidity ?? getMinLiquidityForChains(chainIds),
+    [providedMinLiquidity, chainIds],
+  );
+
+  const minVolume24hUsd = useMemo(
+    () => providedMinVolume24hUsd ?? getMinVolume24hForChains(chainIds),
+    [providedMinVolume24hUsd, chainIds],
+  );
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);

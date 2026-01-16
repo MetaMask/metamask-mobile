@@ -79,7 +79,6 @@ import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
-import Logger from '../../../../../util/Logger';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
@@ -456,10 +455,14 @@ const CardHome = () => {
         changeAssetAction();
       }
     } catch (error) {
-      Logger.log('enableCardAction error', error);
+      const errorMessage =
+        error instanceof Error && error.message
+          ? error.message
+          : strings('card.card_home.enable_card_error');
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings('card.card_home.enable_card_error') }],
+        labelOptions: [{ label: errorMessage }],
         iconName: IconName.Danger,
         iconColor: theme.colors.error.default,
         backgroundColor: theme.colors.error.muted,

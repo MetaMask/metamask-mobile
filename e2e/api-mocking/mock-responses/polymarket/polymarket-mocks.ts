@@ -52,6 +52,7 @@ import {
   EIP7702_CODE_FORMAT,
 } from './polymarket-constants';
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response';
+import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -146,13 +147,14 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 /**
  * Mock for Polymarket geoblock endpoint
  * This simulates the user being in a geo-restricted region
+ * Uses a country from GEO_BLOCKED_COUNTRIES for consistency with app logic
  */
 export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: 'https://polymarket.com/api/geoblock',
     responseCode: 200,
-    response: { blocked: true },
+    response: { blocked: true, country: GEO_BLOCKED_COUNTRIES[0].country },
   });
 };
 
