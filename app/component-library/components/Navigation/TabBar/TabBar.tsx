@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // External dependencies.
@@ -138,13 +138,17 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     [state, renderTabBarItem],
   );
 
+  // Ensure minimum padding on Android for edge-to-edge navigation bar
+  const bottomPadding =
+    Platform.OS === 'android' ? Math.max(bottomInset, 0) : bottomInset;
+
   return (
     <View ref={tabBarRef}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.End}
         twClassName="w-full pt-3 mb-1 px-2 bg-default border-t border-muted"
-        style={[tw.style(`pb-[${bottomInset}px]`)]}
+        style={[tw.style(`pb-[${bottomPadding}px]`)]}
       >
         {renderTabBarItems()}
       </Box>

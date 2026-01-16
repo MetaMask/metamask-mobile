@@ -3,6 +3,7 @@ package io.metamask
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import androidx.core.view.WindowCompat
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.ReactRootView
@@ -22,6 +23,12 @@ class MainActivity : ReactActivity() {
         // This is required for expo-splash-screen.
         setTheme(R.style.AppTheme)
         super.onCreate(null)
+        
+        // Enable edge-to-edge display for Android
+        // This allows the app to draw behind system bars and receive proper insets
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        }
     }
 
     /**
