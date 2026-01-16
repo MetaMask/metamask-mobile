@@ -515,6 +515,8 @@ interface PredictSearchOverlayProps {
   onClose: () => void;
 }
 
+const SEARCH_DEBOUNCE_DELAY_MS = 200;
+
 const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   isVisible,
   onClose,
@@ -523,12 +525,24 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  // Debounce the search query to reduce API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, SEARCH_DEBOUNCE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
-    q: searchQuery,
+    q: debouncedSearchQuery,
     pageSize: 20,
   });
+
+  // Show loading state while debouncing (query entered but not yet sent to API)
+  const isDebouncing = searchQuery !== debouncedSearchQuery;
 
   const handleSearch = useCallback((text: string) => {
     setSearchQuery(text);
@@ -536,6 +550,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 
   const handleCancel = useCallback(() => {
     setSearchQuery('');
+    setDebouncedSearchQuery('');
     onClose();
   }, [onClose]);
 
@@ -607,7 +622,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 
       {searchQuery.length > 0 && (
         <Box twClassName="flex-1">
-          {isFetching ? (
+          {isDebouncing || isFetching ? (
             <Box twClassName="px-4 pt-4">
               <PredictMarketSkeleton testID="search-skeleton-1" />
               <PredictMarketSkeleton testID="search-skeleton-2" />

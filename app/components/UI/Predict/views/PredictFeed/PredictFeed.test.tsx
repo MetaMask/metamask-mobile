@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { PredictMarketListSelectorsIDs } from '../../Predict.testIds';
 import PredictFeed from './PredictFeed';
@@ -402,12 +402,29 @@ describe('PredictFeed', () => {
   });
 
   describe('search overlay interactions', () => {
-    it('displays search results when query is entered', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('displays search results when query is entered', async () => {
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
+
+      // Type the query
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'bitcoin');
+      });
+
+      // Advance timer and let state updates flush
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(200);
+      });
 
       expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
       expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
@@ -433,17 +450,164 @@ describe('PredictFeed', () => {
       expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
     });
 
-    it('clears search query when clear button is pressed', () => {
+    it('clears search query when clear button is pressed', async () => {
       const { getByTestId, getByPlaceholderText, queryByTestId } = render(
         <PredictFeed />,
       );
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'test query');
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'test query');
+        await jest.advanceTimersByTimeAsync(200);
+      });
       fireEvent.press(getByTestId('clear-button'));
 
       expect(queryByTestId('predict-search-result-0')).toBeNull();
+    });
+  });
+
+  describe('search debouncing', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('debounces search query by 200ms', async () => {
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+
+      // Clear previous mock calls
+      mockUsePredictMarketData.mockClear();
+
+      // Type the search query
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      // Verify skeleton is shown immediately (while debouncing)
+      expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
+
+      // Advance timers by less than debounce delay
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(100);
+      });
+
+      // The last call should still have empty query (debounced query hasn't updated yet)
+      const callsBeforeDebounce = mockUsePredictMarketData.mock.calls;
+      const lastCallBeforeDebounce =
+        callsBeforeDebounce[callsBeforeDebounce.length - 1];
+      expect(lastCallBeforeDebounce[0].q).toBe('');
+
+      // Advance timers to complete debounce
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(100);
+      });
+
+      // After debounce, the query should be passed to the hook
+      const callsAfterDebounce = mockUsePredictMarketData.mock.calls;
+      const lastCallAfterDebounce =
+        callsAfterDebounce[callsAfterDebounce.length - 1];
+      expect(lastCallAfterDebounce[0].q).toBe('bitcoin');
+    });
+
+    it('shows skeleton loaders while debouncing', async () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [
+          { id: '1', title: 'Test Market 1' },
+          { id: '2', title: 'Test Market 2' },
+        ],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+
+      fireEvent.changeText(searchInput, 'test');
+
+      // Even though API is not fetching, skeleton should show while debouncing
+      expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
+
+      // After debounce completes, results should show
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(200);
+      });
+
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
+    });
+
+    it('cancels previous debounce timer on new input', async () => {
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+
+      mockUsePredictMarketData.mockClear();
+
+      // Type first query
+      fireEvent.changeText(searchInput, 'bit');
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(100);
+      });
+
+      // Type second query before debounce completes
+      fireEvent.changeText(searchInput, 'bitcoin');
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(100);
+      });
+
+      // The debounced query should still be empty (timer was reset)
+      const callsMidway = mockUsePredictMarketData.mock.calls;
+      const lastCallMidway = callsMidway[callsMidway.length - 1];
+      expect(lastCallMidway[0].q).toBe('');
+
+      // Complete the debounce for second query
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(100);
+      });
+
+      // Now it should have the full query
+      const callsAfter = mockUsePredictMarketData.mock.calls;
+      const lastCallAfter = callsAfter[callsAfter.length - 1];
+      expect(lastCallAfter[0].q).toBe('bitcoin');
+    });
+
+    it('clears debounced query when cancel is pressed', async () => {
+      const { getByTestId, getByPlaceholderText, getByText, queryByTestId } =
+        render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'bitcoin');
+        await jest.advanceTimersByTimeAsync(200);
+      });
+
+      // Press cancel
+      fireEvent.press(getByText('Cancel'));
+
+      // Search overlay should be closed
+      expect(queryByTestId('search-icon')).toBeNull();
+
+      // Re-open search - the component should have been unmounted and remounted,
+      // so the debounced query should be cleared
+      fireEvent.press(getByTestId('predict-search-button'));
+
+      // Verify the search input is empty
+      const newSearchInput = getByPlaceholderText('Search prediction markets');
+      expect(newSearchInput.props.value).toBe('');
     });
   });
 
@@ -504,7 +668,15 @@ describe('PredictFeed', () => {
   });
 
   describe('search empty states', () => {
-    it('displays no results message when search returns empty', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('displays no results message when search returns empty', async () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
@@ -521,12 +693,21 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'nonexistent');
+
+      // Type the query and wait for debounce
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'nonexistent');
+      });
+
+      // Advance timer and let state updates flush
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(200);
+      });
 
       expect(getByText(/No results found/i)).toBeOnTheScreen();
     });
 
-    it('displays error state in search when fetch fails', () => {
+    it('displays error state in search when fetch fails', async () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
@@ -543,7 +724,16 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'test');
+
+      // Type the query and wait for debounce
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'test');
+      });
+
+      // Advance timer and let state updates flush
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(200);
+      });
 
       const offlineElements = getAllByTestId('predict-offline-mock');
       expect(offlineElements.length).toBeGreaterThan(0);
