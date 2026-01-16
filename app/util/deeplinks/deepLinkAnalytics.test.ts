@@ -264,14 +264,37 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(InterstitialState.NOT_SHOWN);
     });
 
-    it('return SKIPPED when user disabled interstitials', () => {
+    it('return SKIPPED when user disabled interstitials and no action was taken', () => {
       const context = createMockContext({
         interstitialShown: true,
         interstitialDisabled: true,
+        interstitialAction: undefined,
       });
 
       const result = determineInterstitialState(context);
       expect(result).toBe(InterstitialState.SKIPPED);
+    });
+
+    it('return ACCEPTED when user accepted the interstitial even if disabled', () => {
+      const context = createMockContext({
+        interstitialShown: true,
+        interstitialDisabled: true,
+        interstitialAction: InterstitialState.ACCEPTED,
+      });
+
+      const result = determineInterstitialState(context);
+      expect(result).toBe(InterstitialState.ACCEPTED);
+    });
+
+    it('return REJECTED when user rejected the interstitial even if disabled', () => {
+      const context = createMockContext({
+        interstitialShown: true,
+        interstitialDisabled: true,
+        interstitialAction: InterstitialState.REJECTED,
+      });
+
+      const result = determineInterstitialState(context);
+      expect(result).toBe(InterstitialState.REJECTED);
     });
 
     it('return ACCEPTED when user accepted the interstitial', () => {

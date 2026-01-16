@@ -370,16 +370,18 @@ export const determineInterstitialState = (
     return InterstitialState.NOT_SHOWN;
   }
 
-  if (interstitialDisabled) {
-    // User has disabled interstitials ("Don't remind me again")
-    return InterstitialState.SKIPPED;
-  }
-
+  // Check user action first - if user took action, report it regardless of disabled state
   if (interstitialAction === InterstitialState.ACCEPTED) {
     return InterstitialState.ACCEPTED;
   }
   if (interstitialAction === InterstitialState.REJECTED) {
     return InterstitialState.REJECTED;
+  }
+
+  // Only return SKIPPED if no action was taken and interstitials are disabled
+  if (interstitialDisabled) {
+    // User has disabled interstitials ("Don't remind me again")
+    return InterstitialState.SKIPPED;
   }
 
   // Default case
