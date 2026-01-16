@@ -8,7 +8,7 @@ import {
   useMerklRewards,
 } from './hooks/useMerklRewards';
 
-jest.mock('../../../AssetOverview/hooks/useMerklRewards');
+jest.mock('./hooks/useMerklRewards');
 jest.mock('./PendingMerklRewards', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

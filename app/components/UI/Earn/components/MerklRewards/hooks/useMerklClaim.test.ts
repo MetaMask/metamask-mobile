@@ -3,15 +3,15 @@ import { useSelector } from 'react-redux';
 import { useMerklClaim } from './useMerklClaim';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectSelectedNetworkClientId } from '../../../../../../selectors/networkController';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { RootState } from '../../../../../../reducers';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../util/transaction-controller', () => ({
+jest.mock('../../../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
 }));
 
@@ -25,6 +25,10 @@ const mockAddTransaction = addTransaction as jest.MockedFunction<
 
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 const mockNetworkClientId = 'mainnet';
+const mockEndpoint = {
+  networkClientId: mockNetworkClientId,
+  rpcUrl: 'https://mainnet.infura.io',
+};
 
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
@@ -50,8 +54,28 @@ describe('useMerklClaim', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (selector === selectSelectedNetworkClientId) {
-        return mockNetworkClientId;
+      // Handle selectDefaultEndpointByChainId - when used with useSelector as:
+      // (state) => selectDefaultEndpointByChainId(state, asset.chainId)
+      if (typeof selector === 'function') {
+        // Try calling it with a mock state to see if it's the selector function
+        try {
+          const result = selector({} as RootState);
+          // If it returns an endpoint-like object, return it
+          if (
+            result &&
+            typeof result === 'object' &&
+            'networkClientId' in result
+          ) {
+            return result;
+          }
+        } catch {
+          // Not a selector function, continue
+        }
+        // Check if this is the selector function pattern
+        const selectorStr = selector.toString();
+        if (selectorStr.includes('selectDefaultEndpointByChainId')) {
+          return mockEndpoint;
+        }
       }
       return undefined;
     });
@@ -88,8 +112,12 @@ describe('useMerklClaim', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (selector === selectSelectedNetworkClientId) {
-        return null;
+      // Handle selectDefaultEndpointByChainId returning null/undefined
+      if (typeof selector === 'function') {
+        const selectorStr = selector.toString();
+        if (selectorStr.includes('selectDefaultEndpointByChainId')) {
+          return null;
+        }
       }
       return undefined;
     });
@@ -326,7 +354,9 @@ describe('useMerklClaim', () => {
             accumulated: '0',
             unclaimed: '0',
             pending: '1000000000000000000',
-            proofs: ['0x1234'],
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            ],
             amount: '1000000000000000000',
             claimed: '0',
             recipient: mockSelectedAddress,

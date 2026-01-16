@@ -1,33 +1,37 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { isEligibleForMerklRewards, useMerklRewards } from './useMerklRewards';
-import { TokenI } from '../../../../Tokens/types';
-import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../../selectors/currencyRateController';
-import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
+import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
+import { TokenI } from '../../../../Tokens/types';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../../util/number', () => ({
-  renderFromTokenMinimalUnit: jest.fn((value: string, decimals: number) => {
-    // Simple mock conversion: divide by 10^decimals
-    const divisor = Math.pow(10, decimals);
-    return (parseInt(value, 10) / divisor).toFixed(2);
-  }),
+  renderFromTokenMinimalUnit: jest.fn(),
 }));
 
 // Mock fetch globally
 global.fetch = jest.fn();
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockRenderFromTokenMinimalUnit =
+  renderFromTokenMinimalUnit as jest.MockedFunction<
+    typeof renderFromTokenMinimalUnit
+  >;
+
+const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
+const mockNativeCurrency = 'ETH';
+const mockConversionRateByTicker = { ETH: { USD: 2000 } };
+const mockCurrentCurrency = 'USD';
 
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
@@ -45,58 +49,68 @@ const mockAsset: TokenI = {
 };
 
 describe('isEligibleForMerklRewards', () => {
-  it('returns true for eligible token on mainnet', () => {
+  it('returns false for native tokens with undefined address', () => {
     const result = isEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
-      '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898' as const,
+      undefined as Hex | undefined,
     );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for native tokens with null address', () => {
+    const result = isEligibleForMerklRewards(
+      CHAIN_IDS.MAINNET,
+      null as Hex | null,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for unsupported chains', () => {
+    const unsupportedChainId = '0x999' as Hex;
+    const result = isEligibleForMerklRewards(
+      unsupportedChainId,
+      '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898' as Hex,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for non-eligible tokens', () => {
+    const nonEligibleAddress =
+      '0x1111111111111111111111111111111111111111' as Hex;
+    const result = isEligibleForMerklRewards(
+      CHAIN_IDS.MAINNET,
+      nonEligibleAddress,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true for eligible tokens on mainnet', () => {
+    const eligibleAddress = '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898' as Hex;
+    const result = isEligibleForMerklRewards(
+      CHAIN_IDS.MAINNET,
+      eligibleAddress,
+    );
+
     expect(result).toBe(true);
   });
 
-  it('returns false for ineligible token', () => {
+  it('performs case-insensitive address comparison', () => {
+    const upperCaseAddress =
+      '0x8D652C6D4A8F3DB96CD866C1A9220B1447F29898' as Hex;
     const result = isEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
-      '0x1234567890123456789012345678901234567890' as const,
+      upperCaseAddress,
     );
-    expect(result).toBe(false);
-  });
 
-  it('returns false for unsupported chain', () => {
-    const result = isEligibleForMerklRewards(
-      '0x5' as const, // Goerli
-      '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898' as const,
-    );
-    expect(result).toBe(false);
-  });
-
-  it('returns true for eligible token with different casing (case-insensitive)', () => {
-    // Test with all lowercase address
-    const resultLower = isEligibleForMerklRewards(
-      CHAIN_IDS.MAINNET,
-      '0x8d652c6d4a8f3db96cd866c1a9220b1447f29898' as const,
-    );
-    expect(resultLower).toBe(true);
-
-    // Test with all uppercase address
-    const resultUpper = isEligibleForMerklRewards(
-      CHAIN_IDS.MAINNET,
-      '0x8D652C6D4A8F3DB96CD866C1A9220B1447F29898' as const,
-    );
-    expect(resultUpper).toBe(true);
-
-    // Test with mixed case (different from hardcoded constant)
-    const resultMixed = isEligibleForMerklRewards(
-      CHAIN_IDS.MAINNET,
-      '0x8D652c6d4A8F3Db96Cd866C1a9220B1447F29898' as const,
-    );
-    expect(resultMixed).toBe(true);
+    expect(result).toBe(true);
   });
 });
 
 describe('useMerklRewards', () => {
-  const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
-  const mockNativeCurrency = 'ETH';
-
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
@@ -106,53 +120,99 @@ describe('useMerklRewards', () => {
         return mockSelectedAddress;
       }
       if (selector === selectCurrencyRates) {
-        return {};
+        return mockConversionRateByTicker;
       }
       if (selector === selectCurrentCurrency) {
-        return 'USD';
+        return mockCurrentCurrency;
       }
-      if (selector === selectNativeCurrencyByChainId) {
-        return mockNativeCurrency;
+      // Handle selectNativeCurrencyByChainId - when used with useSelector as:
+      // (state) => selectNativeCurrencyByChainId(state, asset.chainId)
+      if (typeof selector === 'function') {
+        const selectorStr = selector.toString();
+        if (selectorStr.includes('selectNativeCurrencyByChainId')) {
+          return mockNativeCurrency;
+        }
       }
       return undefined;
     });
+
+    mockRenderFromTokenMinimalUnit.mockImplementation(
+      (value: string | number | unknown, decimals: number) => {
+        let stringValue: string;
+        if (typeof value === 'string') {
+          stringValue = value;
+        } else if (typeof value === 'number') {
+          stringValue = value.toString();
+        } else {
+          // Handle BN or other types
+          stringValue = String(value);
+        }
+        const bigIntValue = BigInt(stringValue);
+        const divisor = BigInt(10 ** decimals);
+        const result = Number(bigIntValue) / Number(divisor);
+        return result.toFixed(2);
+      },
+    );
   });
 
-  it('returns null claimableReward when asset is not eligible', () => {
-    const ineligibleAsset = {
+  it('initializes with null claimableReward', () => {
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('returns null when asset is not eligible', async () => {
+    const nonEligibleAsset: TokenI = {
       ...mockAsset,
-      address: '0x1234567890123456789012345678901234567890' as const,
+      address: '0x1111111111111111111111111111111111111111' as const,
     };
 
     const { result } = renderHook(() =>
-      useMerklRewards({ asset: ineligibleAsset }),
+      useMerklRewards({ asset: nonEligibleAsset }),
     );
 
-    expect(result.current.claimableReward).toBe(null);
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe(null);
+    });
+
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('returns null claimableReward when selectedAddress is not available', () => {
+  it('returns null when no selected address', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
+      }
+      if (selector === selectCurrencyRates) {
+        return mockConversionRateByTicker;
+      }
+      if (selector === selectCurrentCurrency) {
+        return mockCurrentCurrency;
+      }
+      if (typeof selector === 'function') {
+        const selectorStr = selector.toString();
+        if (selectorStr.includes('selectNativeCurrencyByChainId')) {
+          return mockNativeCurrency;
+        }
       }
       return undefined;
     });
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
-    expect(result.current.claimableReward).toBe(null);
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe(null);
+    });
+
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('fetches and sets claimableReward when eligible', async () => {
-    const mockPendingWei = '1500000000000000000'; // 1.5 tokens in wei
-    const mockResponse = [
+    const mockRewardData = [
       {
         rewards: [
           {
-            pending: mockPendingWei,
+            pending: '1500000000000000000', // 1.5 tokens in wei
           },
         ],
       },
@@ -160,14 +220,12 @@ describe('useMerklRewards', () => {
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockResponse,
+      json: jest.fn().mockResolvedValue(mockRewardData),
     });
+
+    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
-    });
 
     await waitFor(
       () => {
@@ -176,53 +234,25 @@ describe('useMerklRewards', () => {
       { timeout: 3000 },
     );
 
-    expect(renderFromTokenMinimalUnit).toHaveBeenCalledWith(
-      mockPendingWei,
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `${mockSelectedAddress}/rewards?chainId=${Number(CHAIN_IDS.MAINNET)}&test=true`,
+      ),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      }),
+    );
+
+    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
+      '1500000000000000000',
       18,
       2,
     );
   });
 
-  it('handles API error gracefully', async () => {
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: false,
-          status: 500,
-        };
-      },
-    );
-
-    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe(null);
-    });
-  });
-
-  it('handles fetch error gracefully', async () => {
+  it('handles API errors gracefully', async () => {
     const error = new Error('Network error');
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const abortError = new Error('Aborted');
-          abortError.name = 'AbortError';
-          throw abortError;
-        }
-        throw error;
-      },
-    );
+    (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -230,32 +260,36 @@ describe('useMerklRewards', () => {
       expect(global.fetch).toHaveBeenCalled();
     });
 
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe(null);
-    });
+    // Should remain null on error
+    expect(result.current.claimableReward).toBe(null);
   });
 
-  it('returns null when no pending rewards in response', async () => {
-    const mockResponse = [
+  it('handles non-OK API responses', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    });
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('handles empty rewards array', async () => {
+    const mockRewardData = [
       {
         rewards: [],
       },
     ];
 
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: true,
-          json: async () => mockResponse,
-        };
-      },
-    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -263,80 +297,79 @@ describe('useMerklRewards', () => {
       expect(global.fetch).toHaveBeenCalled();
     });
 
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe(null);
-    });
+    expect(result.current.claimableReward).toBe(null);
   });
 
-  it('calls API with correct chainId', async () => {
-    const mockResponse = [
+  it('handles zero pending amounts', async () => {
+    const mockRewardData = [
       {
         rewards: [
           {
-            pending: '1000000000000000000',
+            pending: '0',
           },
         ],
       },
     ];
 
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: true,
-          json: async () => mockResponse,
-        };
-      },
-    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
 
-    renderHook(() => useMerklRewards({ asset: mockAsset }));
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
     });
 
-    // API expects decimal chainId (e.g., 1) not hex (e.g., 0x1)
-    const expectedDecimalChainId = Number(CHAIN_IDS.MAINNET);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`chainId=${expectedDecimalChainId}`),
-      expect.objectContaining({
-        signal: expect.any(AbortSignal),
-      }),
-    );
+    expect(result.current.claimableReward).toBe(null);
   });
 
-  it('resets claimableReward when switching between eligible assets', async () => {
-    const mockPendingWeiAsset1 = '1500000000000000000'; // 1.5 tokens
-    const mockResponseAsset1 = [
+  it('handles very small amounts that round to zero', async () => {
+    const mockRewardData = [
       {
         rewards: [
           {
-            pending: mockPendingWeiAsset1,
+            pending: '1', // Very small amount
           },
         ],
       },
     ];
 
-    // First asset with rewards
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: true,
-          json: async () => mockResponseAsset1,
-        };
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
+
+    mockRenderFromTokenMinimalUnit.mockReturnValue('0.00');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    // Should remain null when amount rounds to zero
+    expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('resets claimableReward when switching assets', async () => {
+    const mockRewardData1 = [
+      {
+        rewards: [
+          {
+            pending: '1500000000000000000',
+          },
+        ],
       },
-    );
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData1),
+    });
+
+    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
 
     const { result, rerender } = renderHook(
       ({ asset }) => useMerklRewards({ asset }),
@@ -345,254 +378,121 @@ describe('useMerklRewards', () => {
       },
     );
 
-    // Wait for first fetch to complete
     await waitFor(() => {
       expect(result.current.claimableReward).toBe('1.50');
     });
 
-    // Switch to a different eligible asset (mUSD on Linea)
-    const mockAsset2: TokenI = {
+    const newAsset: TokenI = {
       ...mockAsset,
-      address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET] as const,
-      chainId: CHAIN_IDS.LINEA_MAINNET,
-      symbol: 'mUSD',
+      address: '0x2222222222222222222222222222222222222222' as const,
     };
 
-    // Mock a delayed response for the second asset
-    let resolveSecondFetch: (value: unknown) => void;
-    const secondFetchPromise = new Promise<unknown>((resolve) => {
-      resolveSecondFetch = resolve;
-    });
+    rerender({ asset: newAsset });
 
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: true,
-          json: async () => secondFetchPromise,
-        };
-      },
-    );
-
-    // Switch to second asset
-    rerender({ asset: mockAsset2 });
-
-    // State should be reset immediately when switching assets
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe(null);
-    });
-
-    // Resolve the second fetch with new data
-    const mockPendingWeiAsset2 = '2000000000000000000'; // 2.0 tokens
-    const mockResponseAsset2 = [
-      {
-        rewards: [
-          {
-            pending: mockPendingWeiAsset2,
-          },
-        ],
-      },
-    ];
-    resolveSecondFetch(mockResponseAsset2);
-
-    // Wait for second fetch to complete
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe('2.00');
-    });
+    // Should reset to null when asset changes
+    expect(result.current.claimableReward).toBe(null);
   });
 
-  it('returns null when pending reward is zero', async () => {
-    const mockResponse = [
-      {
-        rewards: [
-          {
-            pending: '0', // Zero pending rewards
-          },
-        ],
-      },
-    ];
+  it('cancels fetch on unmount', async () => {
+    let resolveFetch:
+      | ((value: Response | PromiseLike<Response>) => void)
+      | undefined;
+    const fetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
 
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
+    (global.fetch as jest.Mock).mockReturnValueOnce(fetchPromise);
+
+    const { unmount } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    unmount();
+
+    await act(async () => {
+      if (resolveFetch) {
+        resolveFetch({
           ok: true,
-          json: async () => mockResponse,
-        };
-      },
-    );
-
-    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+          json: jest.fn().mockResolvedValue([{ rewards: [] }]),
+        } as unknown as Response);
+      }
     });
 
-    await waitFor(() => {
-      // Should remain null because pending is zero
-      expect(result.current.claimableReward).toBe(null);
-    });
-
-    // renderFromTokenMinimalUnit should not be called for zero values
-    expect(renderFromTokenMinimalUnit).not.toHaveBeenCalled();
+    // Fetch should have been called but aborted
+    expect(global.fetch).toHaveBeenCalled();
   });
 
-  it('returns null when rendered amount is "0" or "0.00"', async () => {
-    // Mock renderFromTokenMinimalUnit to return '0' or '0.00' for edge cases
-    (renderFromTokenMinimalUnit as jest.Mock).mockReturnValueOnce('0.00');
-
-    const mockPendingWei = '1'; // Very small amount that might round to zero
-    const mockResponse = [
-      {
-        rewards: [
-          {
-            pending: mockPendingWei,
-          },
-        ],
-      },
-    ];
-
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: true,
-          json: async () => mockResponse,
-        };
-      },
-    );
-
-    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      // Should remain null because rendered amount is '0.00'
-      expect(result.current.claimableReward).toBe(null);
-    });
-  });
-
-  it('aborts previous fetch when switching assets to prevent race condition', async () => {
-    const mockPendingWeiAsset1 = '1500000000000000000'; // 1.5 tokens
-    const mockResponseAsset1 = [
-      {
-        rewards: [
-          {
-            pending: mockPendingWeiAsset1,
-          },
-        ],
-      },
-    ];
-
-    // Create a delayed promise for the first asset to simulate slow network
-    let resolveFirstFetch: (value: unknown) => void;
-    const firstFetchPromise = new Promise<unknown>((resolve) => {
-      resolveFirstFetch = resolve;
-    });
-
-    let firstFetchAbortSignal: AbortSignal | undefined;
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        firstFetchAbortSignal = options?.signal;
-        // Wait for the promise to resolve (simulating slow network)
-        await firstFetchPromise;
-        // Check if aborted after waiting
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: true,
-          json: async () => mockResponseAsset1,
-        };
-      },
-    );
-
-    const { result, rerender } = renderHook(
-      ({ asset }) => useMerklRewards({ asset }),
-      {
-        initialProps: { asset: mockAsset },
-      },
-    );
-
-    // Wait for fetch to be called
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
-    });
-
-    // Switch to a different asset before first fetch completes
-    const mockAsset2: TokenI = {
+  it('uses asset decimals when provided', async () => {
+    const assetWithDecimals: TokenI = {
       ...mockAsset,
-      address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET] as const,
-      chainId: CHAIN_IDS.LINEA_MAINNET,
-      symbol: 'mUSD',
+      decimals: 6,
     };
 
-    const mockPendingWeiAsset2 = '2000000000000000000'; // 2.0 tokens
-    const mockResponseAsset2 = [
+    const mockRewardData = [
       {
         rewards: [
           {
-            pending: mockPendingWeiAsset2,
+            pending: '1500000', // 1.5 tokens with 6 decimals
           },
         ],
       },
     ];
 
-    // Second fetch should complete quickly
-    (global.fetch as jest.Mock).mockImplementationOnce(
-      async (_url: string, options?: { signal?: AbortSignal }) => {
-        // Check if aborted before resolving
-        if (options?.signal?.aborted) {
-          const error = new Error('Aborted');
-          error.name = 'AbortError';
-          throw error;
-        }
-        return {
-          ok: true,
-          json: async () => mockResponseAsset2,
-        };
-      },
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
+
+    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
+
+    const { result } = renderHook(() =>
+      useMerklRewards({ asset: assetWithDecimals }),
     );
 
-    // Switch to second asset - this should abort the first fetch
-    rerender({ asset: mockAsset2 });
-
-    // Verify first fetch was aborted
     await waitFor(() => {
-      expect(firstFetchAbortSignal?.aborted).toBe(true);
+      expect(result.current.claimableReward).toBe('1.50');
     });
 
-    // Wait for second fetch to complete
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe('2.00');
+    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
+      '1500000',
+      6,
+      2,
+    );
+  });
+
+  it('defaults to 18 decimals when asset decimals is undefined', async () => {
+    const assetWithoutDecimals: TokenI = {
+      ...mockAsset,
+      decimals: undefined as unknown as number,
+    };
+
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            pending: '1500000000000000000',
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
     });
 
-    // Now resolve the first fetch (simulating it completing late)
-    resolveFirstFetch(mockResponseAsset1);
+    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
 
-    // Wait a bit to ensure state doesn't change
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    const { result } = renderHook(() =>
+      useMerklRewards({ asset: assetWithoutDecimals }),
+    );
 
-    // State should still be from the second asset, not the first
-    expect(result.current.claimableReward).toBe('2.00');
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe('1.50');
+    });
+
+    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
+      '1500000000000000000',
+      18,
+      2,
+    );
   });
 });

@@ -26,11 +26,16 @@ export const eligibleTokens: Record<Hex, Hex[]> = {
 /**
  * Check if a token is eligible for Merkl rewards
  * Compares addresses case-insensitively since Ethereum addresses are case-insensitive
+ * Returns false for native tokens (undefined/null address)
  */
 export const isEligibleForMerklRewards = (
   chainId: Hex,
-  address: Hex,
+  address: Hex | undefined | null,
 ): boolean => {
+  // Native tokens (ETH, etc.) have undefined/null addresses and are not eligible
+  if (!address) {
+    return false;
+  }
   const eligibleAddresses = eligibleTokens[chainId];
   if (!eligibleAddresses) {
     return false;
@@ -77,7 +82,7 @@ export const useMerklRewards = ({
   useEffect(() => {
     const isEligible = isEligibleForMerklRewards(
       asset.chainId as Hex,
-      asset.address as Hex,
+      asset.address as Hex | undefined,
     );
 
     if (!isEligible || !selectedAddress) {

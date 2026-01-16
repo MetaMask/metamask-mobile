@@ -23,7 +23,7 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({
 }) => {
   const isEligible = isEligibleForMerklRewards(
     asset.chainId as Hex,
-    asset.address as Hex,
+    asset.address as Hex | undefined,
   );
 
   // Fetch claimable rewards data

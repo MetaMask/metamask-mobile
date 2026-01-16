@@ -5,9 +5,10 @@ import { toHex } from '@metamask/controller-utils';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { Interface } from '@ethersproject/abi';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectSelectedNetworkClientId } from '../../../../../../selectors/networkController';
+import { selectDefaultEndpointByChainId } from '../../../../../../selectors/networkController';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
+import { RootState } from '../../../../../../reducers';
 
 const MERKL_DISTRIBUTOR_ADDRESS =
   '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
@@ -47,7 +48,10 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const networkClientId = useSelector(selectSelectedNetworkClientId);
+  const endpoint = useSelector((state: RootState) =>
+    selectDefaultEndpointByChainId(state, asset.chainId as Hex),
+  );
+  const networkClientId = endpoint?.networkClientId;
 
   const claimRewards = useCallback(async () => {
     if (!selectedAddress || !networkClientId) {
