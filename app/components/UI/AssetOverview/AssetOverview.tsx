@@ -111,7 +111,7 @@ import DSText, {
 } from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import MerklRewards from './MerklRewards';
+import MerklRewards from '../Earn/components/MerklRewards';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,

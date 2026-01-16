@@ -11,8 +11,8 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import { TokenI } from '../../Tokens/types';
+import { strings } from '../../../../../../locales/i18n';
+import { TokenI } from '../../../Tokens/types';
 
 interface PendingMerklRewardsProps {
   asset: TokenI;

@@ -7,10 +7,10 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import { useMerklClaim } from '../hooks/useMerklClaim';
+import { strings } from '../../../../../../locales/i18n';
+import { useMerklClaim } from '../../../AssetOverview/hooks/useMerklClaim';
 import styleSheet from './MerklRewards.styles';
-import { useStyles } from '../../../../component-library/hooks';
+import { useStyles } from '../../../../../component-library/hooks';
 
 /**
  * Component to display the claim button for Merkl rewards

@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import ClaimMerklRewards from './ClaimMerklRewards';
-import { useMerklClaim } from '../hooks/useMerklClaim';
+import { useMerklClaim } from '../../../AssetOverview/hooks/useMerklClaim';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {

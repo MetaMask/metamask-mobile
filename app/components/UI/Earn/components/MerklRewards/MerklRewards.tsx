@@ -1,10 +1,10 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
-import { TokenI } from '../../Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 import {
   isEligibleForMerklRewards,
   useMerklRewards,
-} from '../hooks/useMerklRewards';
+} from '../../../AssetOverview/hooks/useMerklRewards';
 import PendingMerklRewards from './PendingMerklRewards';
 import ClaimMerklRewards from './ClaimMerklRewards';
 

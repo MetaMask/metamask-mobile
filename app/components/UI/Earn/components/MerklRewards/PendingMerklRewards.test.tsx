@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import PendingMerklRewards from './PendingMerklRewards';
-import { TokenI } from '../../Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../../../../locales/i18n', () => ({
