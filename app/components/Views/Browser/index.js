@@ -96,11 +96,25 @@ export const Browser = (props) => {
     [buildPortfolioUrlWithMetrics],
   );
 
+  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
+
   const newTab = useCallback(
-    (url, linkType) => {
-      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    (url, linkType, { replaceActiveIfMax = false } = {}) => {
+      // if tabs.length > MAX_BROWSER_TABS, do not open a new tab
       if (tabs.length >= MAX_BROWSER_TABS) {
-        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+        const activeTab = tabs.find((tab) => tab.id === activeTabId);
+        if (url && replaceActiveIfMax && activeTab) {
+          // If replaceActiveIfMax is true and a URL was provided, open it in the active tab
+          updateTab(activeTab.id, {
+            url,
+            isArchived: false,
+          });
+          setCurrentUrl(url);
+          setShouldShowTabs(false);
+        } else {
+          // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
+          navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+        }
       } else {
         const newTabUrl = isTokenDiscoveryBrowserEnabled()
           ? undefined
@@ -109,10 +123,17 @@ export const Browser = (props) => {
         createNewTab(newTabUrl, linkType);
       }
     },
-    [tabs, navigation, createNewTab, homePageUrl],
+    [
+      tabs,
+      navigation,
+      createNewTab,
+      homePageUrl,
+      activeTabId,
+      updateTab,
+      setCurrentUrl,
+      setShouldShowTabs,
+    ],
   );
-
-  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
   const updateTabInfo = useCallback(
     (tabID, info) => {
       updateTab(tabID, info);
@@ -294,9 +315,13 @@ export const Browser = (props) => {
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
       const shouldShowTabsView = route.params?.showTabsView;
+      const fromTrending = route.params?.fromTrending;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from link.
-        newTab(newTabUrl, linkType);
+        // If coming from Explore (trending), replace active tab when at max capacity
+        newTab(newTabUrl, linkType, {
+          replaceActiveIfMax: fromTrending,
+        });
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
@@ -384,8 +409,10 @@ export const Browser = (props) => {
   };
 
   const closeTabsView = () => {
-    if (tabs.length) {
-      setShouldShowTabs(false);
+    setShouldShowTabs(false);
+    // If no tabs left, navigate away from browser
+    if (tabs.length === 0) {
+      navigation.goBack();
     }
   };
 

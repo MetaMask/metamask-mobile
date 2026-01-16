@@ -364,9 +364,14 @@ const PerpsTPSLView: React.FC = () => {
     setIsUpdating(true);
     try {
       // Pass tracking data to avoid duplicate position fetch in controller
+      // Use appropriate source based on context:
+      // - POSITION_SCREEN when editing TP/SL on an existing position
+      // - TRADE_SCREEN when setting TP/SL for a new order
       const trackingData = {
         direction: actualDirection,
-        source: 'tp_sl_view',
+        source: isEditingExistingPosition
+          ? PerpsEventValues.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+          : PerpsEventValues.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
         takeProfitPercentage: formattedTakeProfitPercentage
           ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))

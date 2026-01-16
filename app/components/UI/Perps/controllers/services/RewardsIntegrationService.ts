@@ -2,7 +2,7 @@ import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils'
 import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
 import Logger from '../../../../../util/Logger';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import type { RewardsController } from '../../../../../core/Engine/controllers/rewards-controller/RewardsController';
 import type { NetworkController } from '@metamask/network-controller';
 import type { PerpsControllerMessenger } from '../PerpsController';
