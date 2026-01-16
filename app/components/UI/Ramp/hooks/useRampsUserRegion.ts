@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -16,9 +16,9 @@ import {
  */
 export interface UseRampsUserRegionResult {
   /**
-   * The user's region code (e.g., "US-CA"), or null if not loaded.
+   * The user's region object with country, state, and regionCode, or null if not loaded.
    */
-  userRegion: string | null;
+  userRegion: UserRegion | null;
   /**
    * Whether the user region request is currently loading.
    */
@@ -30,7 +30,9 @@ export interface UseRampsUserRegionResult {
   /**
    * Manually fetch the user region from geolocation.
    */
-  fetchUserRegion: (options?: ExecuteRequestOptions) => Promise<string | null>;
+  fetchUserRegion: (
+    options?: ExecuteRequestOptions,
+  ) => Promise<UserRegion | null>;
   /**
    * Set the user region manually (without fetching geolocation).
    */
@@ -47,22 +49,14 @@ export interface UseRampsUserRegionResult {
  * @returns User region state and fetch/set functions.
  */
 export function useRampsUserRegion(): UseRampsUserRegionResult {
-  const userRegionObj = useSelector(selectUserRegion) as UserRegion | null;
+  const userRegion = useSelector(selectUserRegion);
   const { isFetching, error } = useSelector(
     selectUserRegionRequest,
   ) as RequestSelectorResult<string>;
 
-  const userRegion = useMemo(
-    () => userRegionObj?.regionCode ?? null,
-    [userRegionObj],
-  );
-
   const fetchUserRegion = useCallback(
-    async (options?: ExecuteRequestOptions) => {
-      const result =
-        await Engine.context.RampsController.updateUserRegion(options);
-      return result?.regionCode ?? null;
-    },
+    async (options?: ExecuteRequestOptions) =>
+      await Engine.context.RampsController.updateUserRegion(options),
     [],
   );
 

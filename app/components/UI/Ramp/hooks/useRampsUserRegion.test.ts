@@ -91,13 +91,14 @@ describe('useRampsUserRegion', () => {
 
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
+      const mockUserRegion = createMockUserRegion('us-ca');
       const store = createMockStore({
-        userRegion: createMockUserRegion('us-ca'),
+        userRegion: mockUserRegion,
       });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.userRegion).toBe('us-ca');
+      expect(result.current.userRegion).toStrictEqual(mockUserRegion);
     });
   });
 

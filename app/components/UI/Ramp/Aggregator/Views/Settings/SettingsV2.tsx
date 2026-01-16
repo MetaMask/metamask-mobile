@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -16,7 +15,7 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
-import { selectUserRegion } from '../../../../../../selectors/rampsController';
+import useRampsUserRegion from '../../../hooks/useRampsUserRegion';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
@@ -30,7 +29,7 @@ interface SettingsV2Props {
 function SettingsV2({ isInternalBuild }: SettingsV2Props) {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
-  const userRegion = useSelector(selectUserRegion);
+  const { userRegion } = useRampsUserRegion();
 
   useEffect(() => {
     navigation.setOptions(
