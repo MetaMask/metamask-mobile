@@ -79,6 +79,11 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minLiquidity: 0, // No filter - Show all trending tokens
     minVolume24h: 0, // No filter - Maximize visibility for this network
   },
+
+  'tron:728126428': {
+    minLiquidity: 0,
+    minVolume24h: 0,
+  },
 };
 
 /**
