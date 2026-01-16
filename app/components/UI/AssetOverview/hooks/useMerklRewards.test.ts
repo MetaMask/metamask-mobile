@@ -10,6 +10,7 @@ import {
   selectCurrencyRates,
 } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -238,5 +239,81 @@ describe('useMerklRewards', () => {
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining(`chainId=${expectedDecimalChainId}`),
     );
+  });
+
+  it('resets claimableReward when switching between eligible assets', async () => {
+    const mockPendingWeiAsset1 = '1500000000000000000'; // 1.5 tokens
+    const mockResponseAsset1 = [
+      {
+        rewards: [
+          {
+            pending: mockPendingWeiAsset1,
+          },
+        ],
+      },
+    ];
+
+    // First asset with rewards
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponseAsset1,
+    });
+
+    const { result, rerender } = renderHook(
+      ({ asset }) => useMerklRewards({ asset }),
+      {
+        initialProps: { asset: mockAsset },
+      },
+    );
+
+    // Wait for first fetch to complete
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe('1.50');
+    });
+
+    // Switch to a different eligible asset (mUSD on Linea)
+    const mockAsset2: TokenI = {
+      ...mockAsset,
+      address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET] as const,
+      chainId: CHAIN_IDS.LINEA_MAINNET,
+      symbol: 'mUSD',
+    };
+
+    // Mock a delayed response for the second asset
+    let resolveSecondFetch: (value: unknown) => void;
+    const secondFetchPromise = new Promise<unknown>((resolve) => {
+      resolveSecondFetch = resolve;
+    });
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => secondFetchPromise,
+    });
+
+    // Switch to second asset
+    rerender({ asset: mockAsset2 });
+
+    // State should be reset immediately when switching assets
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe(null);
+    });
+
+    // Resolve the second fetch with new data
+    const mockPendingWeiAsset2 = '2000000000000000000'; // 2.0 tokens
+    const mockResponseAsset2 = [
+      {
+        rewards: [
+          {
+            pending: mockPendingWeiAsset2,
+          },
+        ],
+      },
+    ];
+    resolveSecondFetch(mockResponseAsset2);
+
+    // Wait for second fetch to complete
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe('2.00');
+    });
   });
 });

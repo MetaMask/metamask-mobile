@@ -74,6 +74,9 @@ export const useMerklRewards = ({
       return;
     }
 
+    // Reset claimableReward when switching assets to prevent stale data
+    setClaimableReward(null);
+
     const fetchClaimableRewards = async () => {
       try {
         // Convert hex chainId to decimal for API (e.g., '0x1' -> 1)
