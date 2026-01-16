@@ -1,4 +1,10 @@
-import React, { ReactNode, memo, useCallback, useState } from 'react';
+import React, {
+  ReactNode,
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
@@ -67,6 +73,8 @@ export interface CustomAmountInfoProps {
    * When set, automatically hides PayTokenAmount, PayWithRow, and children.
    */
   overrideContent?: (amountHuman: string) => ReactNode;
+  defaultValue?: string;
+  minimalView?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -77,6 +85,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     hasMax,
     overrideContent,
     preferredToken,
+    defaultValue,
+    minimalView = true,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -106,6 +116,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
+    useEffect(() => {
+      if (defaultValue) {
+        updatePendingAmount(defaultValue);
+      }
+    }, [defaultValue, updatePendingAmount]);
+
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
       isKeyboardVisible,
@@ -123,20 +139,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, []);
 
     return (
-      <Box style={styles.container}>
-        <Box style={styles.inputContainer}>
-          <CustomAmount
-            amountFiat={amountFiat}
-            currency={currency}
-            hasAlert={Boolean(alertMessage)}
-            onPress={handleAmountPress}
-            disabled={!hasTokens}
-          />
-          {overrideContent ? (
+      <Box style={[!minimalView && styles.container]}>
+        <Box style={[!minimalView && styles.inputContainer]}>
+          {!minimalView && (
+            <CustomAmount
+              amountFiat={amountFiat}
+              currency={currency}
+              hasAlert={Boolean(alertMessage)}
+              onPress={handleAmountPress}
+              disabled={!hasTokens}
+            />
+          )}
+          {!minimalView && overrideContent ? (
             overrideContent(amountHuman)
           ) : (
             <>
-              {disablePay !== true && (
+              {!minimalView && disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}
@@ -157,7 +175,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PercentageRow />
             </Box>
           )}
-          {isKeyboardVisible && hasTokens && (
+          {isKeyboardVisible && hasTokens && !minimalView && (
             <DepositKeyboard
               alertMessage={alertTitle}
               value={amountFiat}
@@ -167,6 +185,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasInput={hasInput}
               hasMax={hasMax && !isNativePayToken}
             />
+          )}
+          {minimalView && (
+            <Box>
+              <Button
+                label="Confirm"
+                onPress={handleDone}
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+              />
+            </Box>
+          )}
+          {!minimalView && (
+            <Box>
+              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                {amountFiat}
+              </Text>
+            </Box>
           )}
           {!hasTokens && <BuySection />}
           {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
