@@ -1,7 +1,7 @@
 import { formatPerpsFiat } from '../utils/formatUtils';
 import BN from 'bnjs4';
 import Logger from '../../../../util/Logger';
-import { ensureError } from './perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**

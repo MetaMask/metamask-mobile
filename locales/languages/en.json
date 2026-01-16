@@ -1988,7 +1988,8 @@
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
       "resolved_early": "Resolved early",
-      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket."
+      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket.",
+      "your_picks": "Your picks"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2008,6 +2009,8 @@
     "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} on {{outcomeGroupTitle}} • {{outcome}} at {{initialPrice}}",
     "position_info": "{{initialValue}} on {{outcome}} to win {{shares}}",
+    "position_pick_info": "{{initialValue}} on {{outcome}}",
+    "position_pick_info_to_win": "{{initialValue}} on {{outcome}} to win",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -2042,6 +2045,7 @@
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
+    "claim_winnings_text": "Claim winnings",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Unable to load",
@@ -2180,6 +2184,15 @@
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
       "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
+    },
+    "game_details_footer": {
+      "pick_a_winner": "Pick a winner",
+      "volume_display": "${{volume}} Vol",
+      "read_terms": "Read the full contract terms and conditions"
+    },
+    "sports": {
+      "halftime": "Halftime",
+      "final": "Final"
     }
   },
   "receive": {
@@ -6893,10 +6906,7 @@
     },
     "linea_tokens": {
       "default_title": "$LINEA",
-      "loading_subtitle": "Loading reward amount...",
-      "title_earned": "You earned {{amount}} $LINEA",
-      "error_fetching_title": "Couldn't load $LINEA reward amount",
-      "error_fetching_description": "Please try again later."
+      "title_earned": "You earned {{amount}} $LINEA"
     },
     "upcoming_rewards_error": {
       "error_fetching_title": "Rewards couldn’t be loaded",
@@ -7235,12 +7245,14 @@
       "confirm_label_default": "Confirm",
       "confirm_label_access": "Access",
       "redeem_success_title": "Reward redeemed",
+      "metal_card_claim_success": "Contact info confirmed",
+      "linea_tokens_claim_success": "Address confirmed",
       "arriving_soon": "Arriving soon",
       "check_back_soon": "Check back soon to claim",
       "redeem_failure_title": "Redeem failed",
       "redeem_failure_description": "Please try again later.",
-      "redeem_your_reward": "Redeem your reward",
-      "select_account_description": "Select the wallet where you'd like this reward sent. Tokens will be distributed within two weeks."
+      "reward_details": "Reward Details",
+      "select_account_description": "Select the account where you'd like this reward sent. Tokens will be distributed within two weeks."
     },
     "animation": {
       "could_not_load": "Couldn't load"
@@ -7346,6 +7358,10 @@
       "title": "Trending tokens is not available",
       "description": "We can't fetch this page right now",
       "try_again": "Try again"
+    },
+    "empty_search_result_state": {
+      "title": "No tokens found",
+      "description": "We were not able to find this token"
     }
   },
   "ota_update_modal": {

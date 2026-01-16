@@ -963,6 +963,20 @@ export class RewardsDataService {
       }
     }
 
+    // Coerce: if current season exists but end date has passed, set it as previous
+    if (data.current?.endDate) {
+      const now = new Date();
+      const endDate =
+        data.current.endDate instanceof Date
+          ? data.current.endDate
+          : new Date(data.current.endDate);
+
+      if (endDate <= now) {
+        data.previous = data.current;
+        data.current = null;
+      }
+    }
+
     return data as DiscoverSeasonsDto;
   }
 
