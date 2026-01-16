@@ -11,16 +11,20 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import { isHardwareAccount } from '../../../util/address';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import {
   createLedgerTransactionModalNavDetails,
+  LedgerReplacementTxTypes,
   type ReplacementTxParams,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
 
@@ -61,6 +65,9 @@ export function useUnifiedTxActions() {
 
   const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const accounts = useSelector(selectAccounts);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   const [retryIsOpen, setRetryIsOpen] = useState(false);
   const [retryErrorMsg, setRetryErrorMsg] = useState<string | undefined>(
@@ -80,6 +87,42 @@ export function useUnifiedTxActions() {
   const toggleRetry = (msg?: string) => {
     setRetryIsOpen((prev) => !prev);
     setRetryErrorMsg(msg);
+  };
+
+  const onSpeedUpCompleted = () => {
+    setSpeedUp1559IsOpen(false);
+    setSpeedUpIsOpen(false);
+    setExistingGas(null);
+    setSpeedUpTxId(null);
+    setExistingTx(null);
+  };
+
+  const onCancelCompleted = () => {
+    setCancel1559IsOpen(false);
+    setCancelIsOpen(false);
+    setExistingGas(null);
+    setCancelTxId(null);
+    setExistingTx(null);
+  };
+
+  const signLedgerTransaction = async (transaction: LedgerSignRequest) => {
+    const deviceId = await getDeviceId();
+    const onConfirmation = (isComplete: boolean) => {
+      if (isComplete) {
+        transaction.speedUpParams &&
+        transaction.speedUpParams?.type === 'SpeedUp'
+          ? onSpeedUpCompleted()
+          : onCancelCompleted();
+      }
+    };
+    navigation.navigate(
+      ...createLedgerTransactionModalNavDetails({
+        transactionId: transaction.id,
+        deviceId,
+        onConfirmationComplete: onConfirmation,
+        replacementParams: transaction?.replacementParams,
+      }),
+    );
   };
 
   const getGasPriceEstimate = () => {
@@ -238,23 +281,6 @@ export function useUnifiedTxActions() {
       setCancelIsOpen(true);
     }
   };
-
-  const onSpeedUpCompleted = () => {
-    setSpeedUp1559IsOpen(false);
-    setSpeedUpIsOpen(false);
-    setExistingGas(null);
-    setSpeedUpTxId(null);
-    setExistingTx(null);
-  };
-
-  const onCancelCompleted = () => {
-    setCancel1559IsOpen(false);
-    setCancelIsOpen(false);
-    setExistingGas(null);
-    setCancelTxId(null);
-    setExistingTx(null);
-  };
-
   const speedUpTransaction = async (
     transactionObject?: ReplacementGasParams,
   ) => {
@@ -265,6 +291,26 @@ export function useUnifiedTxActions() {
       if (!speedUpTxId) {
         throw new Error('Missing transaction id for speed up');
       }
+
+      const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await signLedgerTransaction({
+          id: speedUpTxId,
+          speedUpParams: { type: 'SpeedUp' },
+          replacementParams: {
+            type: LedgerReplacementTxTypes.SPEED_UP,
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex ?? ''}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex ?? ''}`,
+            },
+          },
+        });
+        return;
+      }
+
       await speedUpTx(speedUpTxId, getCancelOrSpeedupValues(transactionObject));
       onSpeedUpCompleted();
     } catch (error: unknown) {
@@ -284,6 +330,25 @@ export function useUnifiedTxActions() {
       if (!cancelTxId) {
         throw new Error('Missing transaction id for cancel');
       }
+
+      const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await signLedgerTransaction({
+          id: cancelTxId,
+          replacementParams: {
+            type: LedgerReplacementTxTypes.CANCEL,
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex ?? ''}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex ?? ''}`,
+            },
+          },
+        });
+        return;
+      }
+
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
         getCancelOrSpeedupValues(transactionObject),
@@ -299,26 +364,6 @@ export function useUnifiedTxActions() {
   const signQRTransaction = async (tx: TransactionMeta) => {
     const { ApprovalController } = Engine.context;
     await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
-  };
-
-  const signLedgerTransaction = async (transaction: LedgerSignRequest) => {
-    const deviceId = await getDeviceId();
-    const onConfirmation = (isComplete: boolean) => {
-      if (isComplete) {
-        transaction.speedUpParams &&
-        transaction.speedUpParams?.type === 'SpeedUp'
-          ? onSpeedUpCompleted()
-          : onCancelCompleted();
-      }
-    };
-    navigation.navigate(
-      ...createLedgerTransactionModalNavDetails({
-        transactionId: transaction.id,
-        deviceId,
-        onConfirmationComplete: onConfirmation,
-        replacementParams: transaction?.replacementParams,
-      }),
-    );
   };
 
   const cancelUnsignedQRTransaction = async (tx: TransactionMeta) => {
