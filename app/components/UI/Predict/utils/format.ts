@@ -127,14 +127,15 @@ export const formatPrice = (
 
 /**
  * Formats a price value for trending tokens with subscript notation for very small values
- * - Uses subscript notation for values with 4+ leading zeros (e.g., 0.00000614 → $0.0₆14)
+ * - Uses subscript notation for values with 4+ leading zeros (e.g., 0.00000614 → $0.0₅614)
+ * - The subscript indicates the number of leading zeros after the decimal point
  * - Returns "—" for zero values
  * - Uses min 2, max 4 decimal places for regular values
  * @param price - The price value to format (string or number)
  * @returns Formatted price string with $ prefix or "—" for zero
  * @example formatPriceWithSubscriptNotation(1.99) => "$1.99"
  * @example formatPriceWithSubscriptNotation(0.144566) => "$0.1446"
- * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₆14"
+ * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₅614"
  * @example formatPriceWithSubscriptNotation(0) => "—"
  */
 export const formatPriceWithSubscriptNotation = (
@@ -150,7 +151,7 @@ export const formatPriceWithSubscriptNotation = (
     return '—';
   }
 
-  // Handle very small values with subscript notation (e.g., 0.00000614 → $0.0₆14)
+  // Handle very small values with subscript notation (e.g., 0.00000614 → $0.0₅614)
   if (num > 0 && num < 0.0001) {
     const priceStr = num.toFixed(20);
     const match = priceStr.match(/^0\.0*([1-9]\d*)/);
