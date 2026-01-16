@@ -32,7 +32,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../constants/eventNames';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';

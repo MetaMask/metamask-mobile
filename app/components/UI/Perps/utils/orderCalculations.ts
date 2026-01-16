@@ -1,6 +1,6 @@
 import type { Hex } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
 import type { SDKOrderParams } from '../types/hyperliquid-types';
 import {
@@ -314,9 +314,7 @@ export function calculateOrderPriceAndSize(
   } else {
     // Limit orders: use provided price (no slippage applied)
     if (!limitPrice) {
-      throw new Error(
-        strings('perps.errors.orderValidation.limitPriceRequired'),
-      );
+      throw new Error(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
     }
     orderPrice = parseFloat(limitPrice);
     formattedSize = formatHyperLiquidSize({
