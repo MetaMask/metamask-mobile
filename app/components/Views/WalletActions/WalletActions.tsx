@@ -114,24 +114,7 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       goToSwapsBase();
     });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Swap',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [
-    closeBottomSheetAndNavigate,
-    goToSwapsBase,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-  ]);
+  }, [closeBottomSheetAndNavigate, goToSwapsBase]);
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
