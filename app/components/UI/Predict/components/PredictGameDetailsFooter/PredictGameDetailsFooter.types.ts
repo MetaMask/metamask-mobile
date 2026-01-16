@@ -13,6 +13,8 @@ export interface PredictGameDetailsFooterProps {
   claimableAmount?: number;
   isLoading?: boolean;
   testID?: string;
+  awayColor?: string;
+  homeColor?: string;
 }
 
 export interface PredictGameAboutSheetProps {
