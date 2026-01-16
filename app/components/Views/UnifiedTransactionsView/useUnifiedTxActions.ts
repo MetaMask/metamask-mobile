@@ -281,6 +281,7 @@ export function useUnifiedTxActions() {
       setCancelIsOpen(true);
     }
   };
+
   const speedUpTransaction = async (
     transactionObject?: ReplacementGasParams,
   ) => {
