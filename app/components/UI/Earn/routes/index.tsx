@@ -47,7 +47,6 @@ const EarnScreenStack = () => {
       <Stack.Screen
         name={Routes.EARN.MUSD.QUICK_CONVERT}
         component={MusdQuickConvertView}
-        // TODO: Circle back to ensure header is rendered on first paint (e.g. above in getMusdConversionNavbarOptions call)
       />
     </Stack.Navigator>
   );

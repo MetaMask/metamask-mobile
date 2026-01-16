@@ -5888,6 +5888,9 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
+      "no_boost": "No boost",
+      "your_musd": "Your mUSD",
+      "convert_to_musd": "Convert to mUSD",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "fetching_quote": "Fetching quote...",
@@ -5922,7 +5925,9 @@
       "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
       "learn_more": "Learn more",
       "tooltip_title": "Earn yield with mUSD",
-      "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold."
+      "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
+      "convert_and_get_boost": "Convert and get {{apy}}% boost",
+      "convert_and_hold_your_stablecoins_as_musd_and_receive_boost_on_your_money": "Convert and hold your stablecoins as mUSD and receive {{apy}}% boost on your money."
     },
     "bonus_claim": {
       "toasts": {
