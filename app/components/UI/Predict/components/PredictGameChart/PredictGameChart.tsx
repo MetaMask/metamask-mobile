@@ -99,8 +99,11 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       return;
     }
 
-    // Only initialize live chart data once - don't reset on subsequent historical data refetches
     if (initialDataLoadedRef.current) {
+      return;
+    }
+
+    if (isFetching) {
       return;
     }
 
@@ -111,7 +114,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       setLiveChartData(historicalChartData);
       initialDataLoadedRef.current = true;
     }
-  }, [isLive, historicalChartData]);
+  }, [isLive, historicalChartData, isFetching]);
 
   const updateLiveData = useCallback(() => {
     if (!isLive || !initialDataLoadedRef.current || prices.size === 0) return;

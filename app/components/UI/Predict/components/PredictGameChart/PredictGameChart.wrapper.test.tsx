@@ -68,7 +68,6 @@ describe('PredictGameChart Wrapper', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-15T12:00:00.000Z'));
 
-    // Default mock implementations
     mockUsePredictPriceHistory.mockReturnValue({
       priceHistories: [],
       isFetching: false,
@@ -192,7 +191,6 @@ describe('PredictGameChart Wrapper', () => {
         expect(data[0].label).toBe('Team A');
         expect(data[0].color).toBe('#FF0000');
         expect(data[0].data).toHaveLength(3);
-        // Price 0.6 -> 60%
         expect(data[0].data[0].value).toBe(60);
       });
     });
@@ -591,6 +589,83 @@ describe('PredictGameChart Wrapper', () => {
 
         expect(data[0].data[0].value).toBe(65);
         expect(data[1].data[0].value).toBe(40);
+      });
+    });
+
+    it('preserves accumulated live data when historical data refetches', async () => {
+      const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
+      jest.setSystemTime(new Date(baseTimestamp + 30000));
+
+      const initialHistories = [
+        [{ timestamp: baseTimestamp, price: 0.5 }],
+        [{ timestamp: baseTimestamp, price: 0.5 }],
+      ];
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: initialHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      const pricesMap = new Map([
+        [
+          'token-a',
+          { tokenId: 'token-a', price: 0.7, timestamp: baseTimestamp + 30000 },
+        ],
+        [
+          'token-b',
+          { tokenId: 'token-b', price: 0.3, timestamp: baseTimestamp + 30000 },
+        ],
+      ]);
+
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: pricesMap,
+        getPrice: (id: string) => pricesMap.get(id),
+        isConnected: true,
+        lastUpdateTime: baseTimestamp + 30000,
+      });
+
+      const { getByTestId, rerender } = render(
+        <PredictGameChart
+          tokenIds={defaultTokenIds}
+          seriesConfig={defaultSeriesConfig}
+          testID="chart"
+        />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+        expect(data[0].data[0].value).toBe(70);
+      });
+
+      const refetchedHistories = [
+        [{ timestamp: baseTimestamp, price: 0.45 }],
+        [{ timestamp: baseTimestamp, price: 0.55 }],
+      ];
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: refetchedHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      rerender(
+        <PredictGameChart
+          tokenIds={defaultTokenIds}
+          seriesConfig={defaultSeriesConfig}
+          testID="chart"
+        />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+
+        expect(data[0].data[0].value).toBe(70);
+        expect(data[1].data[0].value).toBe(30);
       });
     });
   });
