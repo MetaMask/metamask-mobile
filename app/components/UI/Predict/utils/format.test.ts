@@ -1586,12 +1586,12 @@ describe('format utils', () => {
         expect(result).toBe('$1,234.56');
       });
 
-      it('formats whole number without decimals', () => {
+      it('formats whole number with 2 decimals', () => {
         // Arrange & Act
         const result = formatPriceWithSubscriptNotation(100);
 
         // Assert
-        expect(result).toBe('$100');
+        expect(result).toBe('$100.00');
       });
 
       it('formats price with minimum 2 decimals', () => {
@@ -1686,12 +1686,12 @@ describe('format utils', () => {
         expect(result).toBe('$0.0₆1234');
       });
 
-      it('formats 0.00000999 with subscript notation (4 leading zeros)', () => {
+      it('formats 0.00000999 with subscript notation (5 leading zeros)', () => {
         // Arrange & Act
         const result = formatPriceWithSubscriptNotation(0.00000999);
 
         // Assert
-        expect(result).toBe('$0.0₄999');
+        expect(result).toBe('$0.0₅999');
       });
 
       it('formats 0.000000001 with subscript notation (8 leading zeros)', () => {
@@ -1715,7 +1715,7 @@ describe('format utils', () => {
         const result = formatPriceWithSubscriptNotation(0.00000005);
 
         // Assert
-        expect(result).toBe('$0.0₆5');
+        expect(result).toBe('$0.0₇5');
       });
 
       it('formats 0.000000123456 with subscript notation showing 4 significant digits', () => {
@@ -1736,20 +1736,20 @@ describe('format utils', () => {
         expect(result).toBe('$0.0001');
       });
 
-      it('formats 0.00009 without subscript (rounds up)', () => {
+      it('formats 0.00009 with subscript (4 leading zeros)', () => {
         // Arrange & Act
         const result = formatPriceWithSubscriptNotation(0.00009);
 
         // Assert
-        expect(result).toBe('$0.0001');
+        expect(result).toBe('$0.0₄9');
       });
 
-      it('formats 0.0000999 without subscript (below threshold)', () => {
+      it('formats 0.0000999 with subscript (4 leading zeros)', () => {
         // Arrange & Act
         const result = formatPriceWithSubscriptNotation(0.0000999);
 
         // Assert
-        expect(result).toBe('$0.0001');
+        expect(result).toBe('$0.0₄999');
       });
 
       it('formats 0.00001 with subscript (4 leading zeros - at threshold)', () => {
@@ -1784,12 +1784,12 @@ describe('format utils', () => {
         expect(result).toBe('$0.10');
       });
 
-      it('formats 1 without subscript', () => {
+      it('formats 1 with 2 decimals', () => {
         // Arrange & Act
         const result = formatPriceWithSubscriptNotation(1);
 
         // Assert
-        expect(result).toBe('$1');
+        expect(result).toBe('$1.00');
       });
     });
 
@@ -1831,7 +1831,7 @@ describe('format utils', () => {
         const result = formatPriceWithSubscriptNotation('100');
 
         // Assert
-        expect(result).toBe('$100');
+        expect(result).toBe('$100.00');
       });
     });
 
@@ -2001,11 +2001,11 @@ describe('format utils', () => {
       [0, '—'],
       [0.01, '$0.01'],
       [0.1, '$0.10'],
-      [1, '$1'],
+      [1, '$1.00'],
       [1.99, '$1.99'],
       [5.5, '$5.50'],
-      [10, '$10'],
-      [100, '$100'],
+      [10, '$10.00'],
+      [100, '$100.00'],
       [1234.56, '$1,234.56'],
       [0.144566, '$0.1446'],
       [0.5678, '$0.5678'],
