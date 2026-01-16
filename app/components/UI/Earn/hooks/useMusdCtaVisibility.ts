@@ -214,7 +214,7 @@ export const useMusdCtaVisibility = () => {
         return false;
       }
 
-      // mUSD is only available on EVM chains - skip non-EVM chains like Tron
+      // mUSD needs to be available only on EVM chains
       if (isNonEvmChainId(asset.chainId)) {
         return false;
       }
