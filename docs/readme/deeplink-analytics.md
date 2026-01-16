@@ -193,6 +193,7 @@ Routes are extracted from the deep link action and mapped to standardized route 
 | `DEPOSIT`     | "deposit"     | `ACTIONS.DEPOSIT`                                               |
 | `TRANSACTION` | "transaction" | `ACTIONS.SEND`                                                  |
 | `BUY`         | "buy"         | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                             |
+| `SELL`        | "sell"        | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                           |
 | `INVALID`     | "invalid"     | All other actions or invalid URLs                               |
 
 ### Route Extraction

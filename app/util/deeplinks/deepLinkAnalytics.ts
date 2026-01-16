@@ -269,6 +269,28 @@ const extractBuyProperties = (
 };
 
 /**
+ * Extract properties specific to SELL route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractSellProperties = (
+  urlParams: UrlParamValues,
+  sensitiveProps: Record<string, string>,
+): void => {
+  extractCommonProperties(urlParams, sensitiveProps);
+  addPropertyIfExists(
+    sensitiveProps,
+    'crypto_currency',
+    getStringValue(urlParams, 'crypto_currency'),
+  );
+  addPropertyIfExists(
+    sensitiveProps,
+    'crypto_amount',
+    getStringValue(urlParams, 'crypto_amount'),
+  );
+};
+
+/**
  * Extract properties specific to HOME route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -311,6 +333,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.DEPOSIT]: extractDepositProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
+  [DeepLinkRoute.SELL]: extractSellProperties,
   [DeepLinkRoute.HOME]: extractHomeProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
@@ -425,6 +448,9 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.BUY:
     case ACTIONS.BUY_CRYPTO:
       return DeepLinkRoute.BUY;
+    case ACTIONS.SELL:
+    case ACTIONS.SELL_CRYPTO:
+      return DeepLinkRoute.SELL;
     case ACTIONS.HOME:
       return DeepLinkRoute.HOME;
     default:
@@ -453,6 +479,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.TRANSACTION;
       case 'buy':
         return DeepLinkRoute.BUY;
+      case 'sell':
+        return DeepLinkRoute.SELL;
       case 'home':
         return DeepLinkRoute.HOME;
       case undefined: // Empty path (no segments after filtering)

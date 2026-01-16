@@ -195,6 +195,16 @@ describe('deepLinkAnalytics', () => {
       expect(result.crypto_amount).toBe('0.1');
     });
 
+    it('extracts sell-specific properties', () => {
+      const result = extractSensitiveProperties(
+        DeepLinkRoute.SELL,
+        mockUrlParams,
+      );
+
+      expect(result.crypto_currency).toBe('ETH');
+      expect(result.crypto_amount).toBe('0.1');
+    });
+
     it('extracts previewToken for home route', () => {
       const urlParamsWithPreviewToken = {
         ...mockUrlParams,
@@ -427,6 +437,18 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(expectedRoute);
     });
 
+    it.each([
+      [ACTIONS.SELL, DeepLinkRoute.SELL],
+      [ACTIONS.SELL_CRYPTO, DeepLinkRoute.SELL],
+    ] as const)(
+      'maps sell action %s to SELL route',
+      (action, expectedRoute) => {
+        // Arrange & Act
+        const result = mapSupportedActionToRoute(action);
+        expect(result).toBe(expectedRoute);
+      },
+    );
+
     it('maps home action to HOME route', () => {
       const homeAction = ACTIONS.HOME;
       const result = mapSupportedActionToRoute(homeAction);
@@ -480,6 +502,13 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/buy?crypto=ETH',
       );
       expect(result).toBe(DeepLinkRoute.BUY);
+    });
+
+    it('extract sell route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/sell?crypto=ETH',
+      );
+      expect(result).toBe(DeepLinkRoute.SELL);
     });
 
     it('extract home route for empty path', () => {

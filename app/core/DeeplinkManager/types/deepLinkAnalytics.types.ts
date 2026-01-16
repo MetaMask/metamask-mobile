@@ -42,6 +42,7 @@ export enum DeepLinkRoute {
   DEPOSIT = 'deposit',
   TRANSACTION = 'transaction',
   BUY = 'buy',
+  SELL = 'sell',
   INVALID = 'invalid',
 }
 
