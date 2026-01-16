@@ -34,8 +34,11 @@ jest.mock('./ClaimMerklRewards', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, { testID: 'claim-merkl-rewards' }),
+    default: ({ asset }: { asset: TokenI }) =>
+      ReactActual.createElement(View, {
+        testID: 'claim-merkl-rewards',
+        'data-asset': asset.symbol,
+      }),
   };
 });
 
@@ -145,5 +148,19 @@ describe('MerklRewards', () => {
 
     const pendingRewards = getByTestId('pending-merkl-rewards');
     expect(pendingRewards.props['data-claimable']).toBe('2.5');
+  });
+
+  it('passes asset to ClaimMerklRewards', () => {
+    mockIsEligibleForMerklRewards.mockReturnValue(true);
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward: '1.5',
+    });
+
+    const { getByTestId } = render(
+      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
+    );
+
+    const claimRewards = getByTestId('claim-merkl-rewards');
+    expect(claimRewards.props['data-asset']).toBe(mockAsset.symbol);
   });
 });

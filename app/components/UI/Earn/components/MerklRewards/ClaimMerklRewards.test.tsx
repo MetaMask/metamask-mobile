@@ -3,6 +3,8 @@ import { TouchableOpacity } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import ClaimMerklRewards from './ClaimMerklRewards';
 import { useMerklClaim } from '../../../AssetOverview/hooks/useMerklClaim';
+import { TokenI } from '../../../Tokens/types';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -78,6 +80,21 @@ const mockUseMerklClaim = useMerklClaim as jest.MockedFunction<
   typeof useMerklClaim
 >;
 
+const mockAsset: TokenI = {
+  name: 'Angle Merkl',
+  symbol: 'aglaMerkl',
+  address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898' as const,
+  chainId: CHAIN_IDS.MAINNET,
+  decimals: 18,
+  aggregators: [],
+  image: '',
+  balance: '1000',
+  balanceFiat: '$100',
+  logo: '',
+  isETH: false,
+  isNative: false,
+};
+
 describe('ClaimMerklRewards', () => {
   const mockClaimRewards = jest.fn();
 
@@ -91,7 +108,7 @@ describe('ClaimMerklRewards', () => {
   });
 
   it('renders claim button', () => {
-    const { getByText } = render(<ClaimMerklRewards />);
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 
     expect(getByText('Claim')).toBeTruthy();
   });
@@ -99,7 +116,7 @@ describe('ClaimMerklRewards', () => {
   it('calls claimRewards when button is pressed', async () => {
     mockClaimRewards.mockResolvedValue(undefined);
 
-    const { getByText } = render(<ClaimMerklRewards />);
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
     const claimButton = getByText('Claim');
 
     fireEvent.press(claimButton);
@@ -116,7 +133,7 @@ describe('ClaimMerklRewards', () => {
       error: null,
     });
 
-    const { UNSAFE_root } = render(<ClaimMerklRewards />);
+    const { UNSAFE_root } = render(<ClaimMerklRewards asset={mockAsset} />);
     const buttonElement = UNSAFE_root.findByType(TouchableOpacity);
 
     expect(buttonElement.props.disabled).toBe(true);
@@ -130,7 +147,7 @@ describe('ClaimMerklRewards', () => {
       error: errorMessage,
     });
 
-    const { getByText } = render(<ClaimMerklRewards />);
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 
     expect(getByText(errorMessage)).toBeTruthy();
   });
@@ -142,7 +159,7 @@ describe('ClaimMerklRewards', () => {
       error: null,
     });
 
-    const { queryByText } = render(<ClaimMerklRewards />);
+    const { queryByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 
     expect(queryByText('Failed')).toBeNull();
   });
@@ -151,7 +168,7 @@ describe('ClaimMerklRewards', () => {
     const error = new Error('Claim failed');
     mockClaimRewards.mockRejectedValue(error);
 
-    const { getByText } = render(<ClaimMerklRewards />);
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
     const claimButton = getByText('Claim');
 
     fireEvent.press(claimButton);

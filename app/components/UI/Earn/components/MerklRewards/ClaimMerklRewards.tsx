@@ -9,15 +9,26 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useMerklClaim } from '../../../AssetOverview/hooks/useMerklClaim';
+import { TokenI } from '../../../Tokens/types';
 import styleSheet from './MerklRewards.styles';
 import { useStyles } from '../../../../../component-library/hooks';
+
+interface ClaimMerklRewardsProps {
+  asset: TokenI;
+}
 
 /**
  * Component to display the claim button for Merkl rewards
  */
-const ClaimMerklRewards: React.FC = () => {
+const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { claimRewards, isClaiming, error: claimError } = useMerklClaim();
+  const {
+    claimRewards,
+    isClaiming,
+    error: claimError,
+  } = useMerklClaim({
+    asset,
+  });
 
   const handleClaim = async () => {
     try {

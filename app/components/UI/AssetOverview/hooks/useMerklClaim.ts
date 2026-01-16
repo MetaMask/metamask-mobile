@@ -7,6 +7,7 @@ import { Interface } from '@ethersproject/abi';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSelectedNetworkClientId } from '../../../../selectors/networkController';
 import { addTransaction } from '../../../../util/transaction-controller';
+import { TokenI } from '../../Tokens/types';
 
 const MERKL_DISTRIBUTOR_ADDRESS =
   '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
@@ -36,7 +37,11 @@ interface MerklRewardData {
   }[];
 }
 
-export const useMerklClaim = () => {
+interface UseMerklClaimOptions {
+  asset: TokenI;
+}
+
+export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selectedAddress = useSelector(
@@ -54,9 +59,9 @@ export const useMerklClaim = () => {
     setError(null);
 
     try {
-      // Fetch claim data from Merkl API
+      // Fetch claim data from Merkl API using asset's chainId
       const response = await fetch(
-        `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=1&test=true`,
+        `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${asset.chainId}&test=true`,
       );
 
       if (!response.ok) {
@@ -89,12 +94,16 @@ export const useMerklClaim = () => {
       );
 
       // Create transaction params
+      // Use chainId from reward data (from API) or fall back to asset chainId
+      const transactionChainId =
+        rewardData.token.chainId ?? Number(asset.chainId);
+
       const txParams = {
         from: selectedAddress as Hex,
         to: MERKL_DISTRIBUTOR_ADDRESS as Hex,
         value: '0x0',
         data: encodedData as Hex,
-        chainId: toHex(1), // Ethereum mainnet
+        chainId: toHex(transactionChainId),
       };
 
       // Submit transaction
@@ -112,7 +121,7 @@ export const useMerklClaim = () => {
     } finally {
       setIsClaiming(false);
     }
-  }, [selectedAddress, networkClientId]);
+  }, [selectedAddress, networkClientId, asset.chainId]);
 
   return {
     claimRewards,
