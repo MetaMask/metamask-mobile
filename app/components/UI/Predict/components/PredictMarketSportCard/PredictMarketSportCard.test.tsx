@@ -60,6 +60,9 @@ const mockMarket: PredictMarketType = {
     startTime: '2026-02-08T20:30:00Z',
     status: 'scheduled',
     league: 'nfl',
+    elapsed: null,
+    period: null,
+    score: null,
     awayTeam: {
       id: 'sea',
       name: 'Seattle Seahawks',
