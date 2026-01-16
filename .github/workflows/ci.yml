@@ -15,8 +15,23 @@ concurrency:
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
+  check-skip-merge-queue:
+    name: Check if pull request can skip merge queue
+    runs-on: ubuntu-latest
+    outputs:
+      skip-merge-queue: ${{ steps.check-skip-merge-queue.outputs.up-to-date }}
+    steps:
+      - name: Check pull request merge queue status
+        id: check-skip-merge-queue
+        if: github.event_name == 'merge_group'
+        uses: MetaMask/github-tools/.github/actions/check-skip-merge-queue@v1
+
   check-diff:
+    name: Check diff
     runs-on: macos-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -51,8 +66,13 @@ jobs:
           else
             echo "No changes detected"
           fi
+
   dedupe:
+    name: Dedupe
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -106,8 +126,13 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn git-safe-dependencies
+
   scripts:
+    name: Run `${{ matrix.scripts }}`
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     strategy:
       matrix:
         scripts:
@@ -144,8 +169,13 @@ jobs:
           else
             echo "No changes detected"
           fi
+
   unit-tests:
+    name: 'Unit Test (${{ matrix.shard }})'
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -187,10 +217,14 @@ jobs:
           else
             echo "No changes detected"
           fi
+
   merge-unit-tests:
+    name: Merge unit test coverage
     runs-on: ubuntu-latest
-    needs: unit-tests
-    if: ${{ !cancelled() }}
+    needs:
+      - unit-tests
+      - check-skip-merge-queue
+    if: ${{ !cancelled() && (github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true') }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -251,9 +285,13 @@ jobs:
       - run: yarn test:view --coverage=false --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     continue-on-error: true
     permissions:
       contents: read
@@ -383,7 +421,11 @@ jobs:
     secrets: inherit
 
   js-bundle-size-check:
+    name: JS bundle size check
     runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -415,6 +457,7 @@ jobs:
           path: ios/main.jsbundle
 
   ship-js-bundle-size-check:
+    name: Ship JS bundle size check
     runs-on: ubuntu-latest
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -434,6 +477,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
   sonar-cloud:
+    name: SonarCloud analysis
     runs-on: ubuntu-latest
     needs: merge-unit-tests
     if: ${{ !cancelled() }}
@@ -476,7 +520,9 @@ jobs:
             echo "$path"
             git update-index --no-assume-unchanged "$path"
           done
+
   sonar-cloud-quality-gate-status:
+    name: SonarCloud quality gate status
     runs-on: ubuntu-latest
     needs: sonar-cloud
     if: ${{ !cancelled() }}
@@ -531,6 +577,7 @@ jobs:
               exit 1
             fi
           fi
+
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
@@ -562,18 +609,28 @@ jobs:
       - name: Set jobs passed status
         id: jobs-passed-status
         run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs:
+      - check-skip-merge-queue
       - all-jobs-pass
       - needs_e2e_build
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
       - e2e-smoke-tests-android-flask
+    env:
+      SKIPPED: ${{ needs.check-skip-merge-queue.outputs.skip-merge-queue == 'true' }}
     steps:
       - run: |
+          # If the merge queue was skipped, consider all jobs as passed
+          if [[ "$SKIPPED" == "true" ]]; then
+            echo "Merge queue skipped, considering all jobs as passed"
+            exit 0
+          fi
+
           # Check if all non-E2E jobs passed
           if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
             echo "Non-E2E jobs failed"
