@@ -30,23 +30,6 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
 
-const formatGameDateTime = (
-  startTime: string,
-): { date: string; time: string } => {
-  const dateObj = new Date(startTime);
-  const date = dateObj.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-  const time = dateObj.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  });
-  return { date, time };
-};
-
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
   onBack,
@@ -75,11 +58,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   const tokenIds = useMemo(
     () => (outcome?.tokens ?? []).map((t) => t.id),
     [outcome?.tokens],
-  );
-
-  const gameDateTime = useMemo(
-    () => (game ? formatGameDateTime(game.startTime) : null),
-    [game],
   );
 
   if (!outcome || !game) {
@@ -140,26 +118,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             />
           }
         >
-          <PredictSportScoreboard
-            awayTeam={{
-              abbreviation: game.awayTeam.abbreviation,
-              color: game.awayTeam.color,
-            }}
-            homeTeam={{
-              abbreviation: game.homeTeam.abbreviation,
-              color: game.homeTeam.color,
-            }}
-            awayScore={game.score?.away}
-            homeScore={game.score?.home}
-            gameStatus={game.status}
-            period={game.period}
-            eventTitle={market.title}
-            date={gameDateTime?.date}
-            time={gameDateTime?.time}
-            quarter={game.period ?? undefined}
-            turn={game.turn}
-            testID="game-scoreboard"
-          />
+          <PredictSportScoreboard game={game} testID="game-scoreboard" />
 
           {tokenIds.length === 2 && (
             <Box twClassName="mt-4">
