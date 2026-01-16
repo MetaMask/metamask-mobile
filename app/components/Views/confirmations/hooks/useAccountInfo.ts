@@ -43,6 +43,8 @@ const useAccountInfo = (address: string, chainId: Hex) => {
     },
   )}`;
 
+  // This refers to the internal account name, not the account group name
+  // TODO: Deprecate this value to not be used in the app, use the accountGroupName instead
   const accountName = useMemo(
     () =>
       activeAddress ? renderAccountName(activeAddress, internalAccounts) : '',
