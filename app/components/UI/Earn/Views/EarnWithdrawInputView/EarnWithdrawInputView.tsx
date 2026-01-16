@@ -4,8 +4,8 @@ import {
   useNavigation,
   useRoute,
   NavigationProp,
-  ParamListBase,
 } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   useCallback,
@@ -583,7 +583,7 @@ const EarnWithdrawInputView = () => {
     if (isTronEnabled) {
       const result = await tronConfirmUnstake?.(amountToken);
       handleTronStakingNavigationResult(
-        navigation as NavigationProp<ParamListBase>,
+        navigation as NavigationProp<RootParamList>,
         result,
         'unstake',
         tronAccountId,

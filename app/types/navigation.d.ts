@@ -78,6 +78,11 @@ import type { MandatoryModalParams } from '../component-library/components/Modal
 import type { BridgeTransactionDetailsParams } from '../components/UI/Bridge/components/TransactionDetails/TransactionDetails.types';
 import type { AccountPermissionsParams } from '../components/Views/AccountPermissions/AccountPermissions.types';
 import type { AccountPermissionsConfirmRevokeAllParams } from '../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll/AccountPermissionsConfirmRevokeAll.types';
+import type {
+  CardTokenAllowance,
+  DelegationSettingsResponse,
+  CardExternalWalletDetailsResponse,
+} from '../components/UI/Card/types';
 import type { ConnectionDetailsParams } from '../components/Views/AccountPermissions/ConnectionDetails/ConnectionDetails.types';
 import type { AddNewAccountBottomSheetParams } from '../components/Views/AddNewAccount/AddNewAccountBottomSheet.types';
 import type { AssetDetailsParams } from '../components/Views/AssetDetails/AssetDetails.types';
@@ -128,13 +133,26 @@ export type RootParamList = {
   HomeNav: undefined;
   Login: LoginParams | undefined;
   OnboardingRootNav: undefined;
-  ImportFromSecretRecoveryPhrase: undefined;
+  ImportFromSecretRecoveryPhrase:
+    | {
+        previous_screen?: string;
+        onboardingTraceCtx?: unknown;
+      }
+    | undefined;
   OptinMetrics: {
     onContinue: () => void;
   };
   OnboardingCarousel: undefined;
   Onboarding: undefined;
-  ChoosePassword: undefined;
+  ChoosePassword:
+    | {
+        previous_screen?: string;
+        oauthLoginSuccess?: boolean;
+        onboardingTraceCtx?: unknown;
+        accountName?: string;
+        provider?: string;
+      }
+    | undefined;
   AccountBackupStep1: undefined;
   AccountBackupStep1B: undefined;
   ManualBackupStep1: {
@@ -149,8 +167,9 @@ export type RootParamList = {
 
   // =========================================================================
   // Webview
+  // Note: Using Record type to avoid circular reference with NavigatorScreenParams<RootParamList>
   // =========================================================================
-  Webview: NavigatorScreenParams<RootParamList> | undefined;
+  Webview: Record<string, unknown> | undefined;
   SimpleWebview: { url?: string; title?: string };
 
   // =========================================================================
@@ -290,11 +309,17 @@ export type RootParamList = {
   ShareAddress: {
     account: InternalAccount;
   };
+  RevealSRP: {
+    account: InternalAccount;
+  };
+  RevealPrivateKey: {
+    account: InternalAccount;
+  };
   ShareAddressQR: {
     address: string;
     networkName: string;
     chainId: string;
-    accountName: string;
+    groupId: AccountGroupId;
   };
   DeleteAccount: {
     account: InternalAccount;
@@ -419,8 +444,9 @@ export type RootParamList = {
 
   // =========================================================================
   // Perps Routes
+  // Note: Using Record type to avoid circular reference with NavigatorScreenParams<RootParamList>
   // =========================================================================
-  Perps: NavigatorScreenParams<RootParamList> | undefined;
+  Perps: Record<string, unknown> | undefined;
   PerpsTradingView: undefined;
   PerpsMarketListView: { source?: string } | undefined;
   PerpsWithdraw: undefined;
@@ -693,7 +719,18 @@ export type RootParamList = {
   // =========================================================================
   WalletTabHome: undefined;
   WalletHome: undefined;
-  BrowserHome: undefined;
+  BrowserHome:
+    | {
+        screen?: string;
+        params?: {
+          url?: string;
+          linkType?: string;
+          newTabUrl?: string;
+          existingTabId?: string;
+          timestamp?: number;
+        };
+      }
+    | undefined;
   SettingsFlow: undefined;
   SettingsView: undefined;
   RewardsView: undefined;
@@ -745,6 +782,12 @@ export type RootParamList = {
   BackupAndSyncSettings: BackupAndSyncSettingsParams | undefined;
   DeveloperOptions: DeveloperOptionsParams | undefined;
   RevealPrivateCredentialView: RevealPrivateCredentialParams;
+  RevealPrivateCredential: {
+    credentialName: string;
+    shouldUpdateNav?: boolean;
+    selectedAccount?: InternalAccount;
+    keyringId?: string;
+  };
 
   // =========================================================================
   // Notification Flow Screens
@@ -818,7 +861,27 @@ export type RootParamList = {
   CardWelcome: undefined;
   CardAuthentication: undefined;
   CardNotification: undefined;
-  CardSpendingLimit: undefined;
+  CardSpendingLimit:
+    | {
+        flow?: 'manage' | 'enable';
+        selectedToken?: CardTokenAllowance;
+        priorityToken?: CardTokenAllowance | null;
+        allTokens?: CardTokenAllowance[];
+        delegationSettings?: DelegationSettingsResponse | null;
+        externalWalletDetailsData?:
+          | {
+              walletDetails: never[];
+              mappedWalletDetails: never[];
+              priorityWalletDetail: null;
+            }
+          | {
+              walletDetails: CardExternalWalletDetailsResponse;
+              mappedWalletDetails: CardTokenAllowance[];
+              priorityWalletDetail: CardTokenAllowance | undefined;
+            }
+          | null;
+      }
+    | undefined;
   CardChangeAsset: undefined;
   VerifyingRegistration: undefined;
   CardOnboarding: undefined;
@@ -851,16 +914,18 @@ export type RootParamList = {
 
   // =========================================================================
   // Modal Flow Routes (Navigator containers)
+  // Note: Using Record<string, unknown> instead of NavigatorScreenParams<RootParamList>
+  // to avoid circular reference errors in TypeScript mapped types.
   // =========================================================================
-  RootModalFlow: NavigatorScreenParams<RootParamList> | undefined;
-  BridgeModals: NavigatorScreenParams<RootParamList> | undefined;
-  PerpsModals: NavigatorScreenParams<RootParamList> | undefined;
-  PerpsClosePositionModals: NavigatorScreenParams<RootParamList> | undefined;
-  PredictModals: NavigatorScreenParams<RootParamList> | undefined;
-  EarnModals: NavigatorScreenParams<RootParamList> | undefined;
-  StakeModals: NavigatorScreenParams<RootParamList> | undefined;
-  RampModals: NavigatorScreenParams<RootParamList> | undefined;
-  DepositModals: NavigatorScreenParams<RootParamList> | undefined;
+  RootModalFlow: Record<string, unknown> | undefined;
+  BridgeModals: Record<string, unknown> | undefined;
+  PerpsModals: Record<string, unknown> | undefined;
+  PerpsClosePositionModals: Record<string, unknown> | undefined;
+  PredictModals: Record<string, unknown> | undefined;
+  EarnModals: Record<string, unknown> | undefined;
+  StakeModals: Record<string, unknown> | undefined;
+  RampModals: Record<string, unknown> | undefined;
+  DepositModals: Record<string, unknown> | undefined;
 
   // =========================================================================
   // Predict Routes (Root Navigator)
@@ -961,14 +1026,13 @@ export type RootParamList = {
     image?: string;
     headerShown?: boolean;
   };
-  PredictModals: NavigatorScreenParams<RootParamList> | undefined;
   EarnMusdConversionEducation: undefined;
   DetectedTokensConfirmation: undefined;
 
   // =========================================================================
   // Additional Screen Routes
   // =========================================================================
-  WalletTabStackFlow: NavigatorScreenParams<RootParamList> | undefined;
+  WalletTabStackFlow: Record<string, unknown> | undefined;
   ExploreSearch: undefined;
   RewardsDashboard: undefined;
   RewardsSettingsView: undefined;
@@ -986,9 +1050,14 @@ export type RootParamList = {
   LegacyEditMultichainAccountName: {
     account: InternalAccount;
   };
+  EditMultichainAccountName: {
+    accountGroup: AccountGroupObject;
+  };
   EditWalletName: undefined;
   RevealSRPCredential: undefined;
-  SmartAccount: undefined;
+  SmartAccount: {
+    account: InternalAccount;
+  };
   AssetView: undefined;
   QRScanner: undefined;
   ImportSrpView: undefined;
@@ -1005,8 +1074,21 @@ export type RootParamList = {
   RampTokenSelectorModal: undefined;
   DepositErrorDetailsModal: undefined;
   NftFullView: undefined;
-  SocialLoginSuccessNewUser: undefined;
-  SocialLoginSuccessExistingUser: undefined;
+  SocialLoginSuccessNewUser:
+    | {
+        accountName?: string;
+        oauthLoginSuccess?: boolean;
+        onboardingTraceCtx?: unknown;
+        provider?: string;
+      }
+    | undefined;
+  SocialLoginSuccessExistingUser:
+    | {
+        previous_screen?: string;
+        oauthLoginSuccess?: boolean;
+        onboardingTraceCtx?: unknown;
+      }
+    | undefined;
 
   // =========================================================================
   // Feature Flow Routes
@@ -1021,9 +1103,7 @@ export type RootParamList = {
 // Allows nested navigation with NavigatorScreenParams
 
 export type NavigatableRootParamList = {
-  [K in keyof RootParamList]:
-    | RootParamList[K]
-    | NavigatorScreenParams<RootParamList>;
+  [K in keyof RootParamList]: RootParamList[K] | Record<string, unknown>;
 };
 
 // =============================================================================

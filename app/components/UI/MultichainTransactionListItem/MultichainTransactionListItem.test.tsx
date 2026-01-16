@@ -2,7 +2,8 @@ import React from 'react';
 import { TouchableHighlight } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SolScope, Transaction, TransactionType } from '@metamask/keyring-api';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
@@ -102,7 +103,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -122,7 +123,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={receiveTransaction}
         chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -152,7 +153,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={swapTransaction}
         chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -171,7 +172,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={swapTransaction}
         chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -189,7 +190,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={interactionTransaction}
         chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -202,7 +203,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -218,7 +219,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 

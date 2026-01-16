@@ -16,11 +16,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { SectionId, SECTIONS_CONFIG } from '../../sections.config';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 
 export interface SectionHeaderProps {
   sectionId: SectionId;
@@ -49,7 +46,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
       <TouchableOpacity
         onPress={() =>
           sectionConfig.viewAllAction(
-            navigation as NavigationProp<ParamListBase>,
+            navigation as NavigationProp<RootParamList>,
           )
         }
         style={tw.style('flex-row items-center justify-center gap-1')}

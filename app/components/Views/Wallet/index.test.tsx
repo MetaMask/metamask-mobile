@@ -104,7 +104,8 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import {
   IconColor,
   IconName,
@@ -879,7 +880,7 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
-      } as unknown as NavigationProp<ParamListBase>;
+      } as unknown as NavigationProp<RootParamList>;
 
       // Clear previous calls
       mockNavigate.mockClear();
@@ -949,7 +950,7 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
-      } as unknown as NavigationProp<ParamListBase>;
+      } as unknown as NavigationProp<RootParamList>;
 
       // Clear previous calls
       mockNavigate.mockClear();
@@ -1057,7 +1058,7 @@ describe('Wallet', () => {
 
   describe('Perps Tab Visibility', () => {
     let mockPerpsTabView: jest.Mock;
-    let mockNavigation: NavigationProp<ParamListBase>;
+    let mockNavigation: NavigationProp<RootParamList>;
 
     beforeEach(() => {
       // Get the actual mock that was created at the top
@@ -1070,7 +1071,7 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
-      } as unknown as NavigationProp<ParamListBase>;
+      } as unknown as NavigationProp<RootParamList>;
 
       // Default to enabled
       mockPerpsEnabled = true;
@@ -1233,7 +1234,7 @@ describe('Wallet', () => {
 
   describe('Predict Tab Visibility', () => {
     let mockPredictTabView: jest.Mock;
-    let mockNavigation: NavigationProp<ParamListBase>;
+    let mockNavigation: NavigationProp<RootParamList>;
 
     beforeEach(() => {
       // Get the actual mock that was created at the top
@@ -1246,7 +1247,7 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
-      } as unknown as NavigationProp<ParamListBase>;
+      } as unknown as NavigationProp<RootParamList>;
 
       // Default to enabled
       mockPerpsEnabled = true;
@@ -1460,7 +1461,7 @@ describe('Wallet', () => {
   });
 
   describe('Perps GTM Modal Navigation', () => {
-    let mockNavigation: NavigationProp<ParamListBase>;
+    let mockNavigation: NavigationProp<RootParamList>;
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1471,7 +1472,7 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
-      } as unknown as NavigationProp<ParamListBase>;
+      } as unknown as NavigationProp<RootParamList>;
 
       // Reset flags to default state
       mockPerpsEnabled = true;

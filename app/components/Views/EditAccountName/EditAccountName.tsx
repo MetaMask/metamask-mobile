@@ -1,16 +1,11 @@
 // Third party dependencies
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  useRoute,
-  useNavigation,
-  RouteProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { useSelector } from 'react-redux';
 import { InteractionManager, SafeAreaView } from 'react-native';
 
 // External dependencies
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { View } from 'react-native-animatable';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
@@ -42,16 +37,7 @@ import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
-interface RootNavigationParamList extends ParamListBase {
-  EditAccountName: {
-    selectedAccount: InternalAccount;
-  };
-}
-
-type EditAccountNameRouteProp = RouteProp<
-  RootNavigationParamList,
-  'EditAccountName'
->;
+type EditAccountNameRouteProp = RouteProp<RootParamList, 'EditAccountName'>;
 
 const EditAccountName = () => {
   const route = useRoute<EditAccountNameRouteProp>();

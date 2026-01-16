@@ -1,10 +1,7 @@
 import React from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import {
   Box,
   Icon,
@@ -43,7 +40,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
               key={section.id}
               onPress={() =>
                 section.viewAllAction(
-                  navigation as NavigationProp<ParamListBase>,
+                  navigation as NavigationProp<RootParamList>,
                 )
               }
               testID={`quick-action-${section.id}`}

@@ -1,10 +1,7 @@
 import React, { Fragment } from 'react';
 import { Image, View, Linking, ScrollView } from 'react-native';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import Button, {
@@ -35,13 +32,13 @@ const OptIn = () => {
   });
 
   const handleOptInCancel = useHandleOptInCancel({
-    navigation: navigation as NavigationProp<ParamListBase>,
+    navigation: navigation as NavigationProp<RootParamList>,
     metrics,
     isCreatingNotifications: loading,
   });
 
   const handleOptInClick = useHandleOptInClick({
-    navigation: navigation as NavigationProp<ParamListBase>,
+    navigation: navigation as NavigationProp<RootParamList>,
     metrics,
     enableNotifications,
   });

@@ -1,5 +1,6 @@
 /* eslint-disable react/display-name */
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import React, { useEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -133,7 +134,7 @@ NotificationsSettings.navigationOptions = ({
   navigation,
   isNotificationEnabled,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   isNotificationEnabled: boolean;
 }) => ({
   headerLeft: () => (

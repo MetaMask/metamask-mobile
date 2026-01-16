@@ -1,4 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import React from 'react';
 import { View, TouchableOpacity, TextStyle } from 'react-native';
 import Modal from 'react-native-modal';
@@ -23,7 +24,7 @@ interface TransactionDetailsProps {
   onClose: () => void;
   displayData: MultichainTransactionDisplayData;
   transaction: Transaction;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }
 
 const TransactionDetailRow = {

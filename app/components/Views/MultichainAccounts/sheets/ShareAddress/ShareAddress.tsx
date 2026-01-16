@@ -4,13 +4,8 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import {
   Box,
   BoxFlexDirection,
@@ -27,13 +22,7 @@ import { getMultichainBlockExplorer } from '../../../../../core/Multichain/netwo
 import { ShareAddressIds } from '../../../../../../e2e/selectors/MultichainAccounts/ShareAddress.selectors';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
 
-interface RootNavigationParamList extends ParamListBase {
-  ShareAddress: {
-    account: InternalAccount;
-  };
-}
-
-type ShareAddressRouteProp = RouteProp<RootNavigationParamList, 'ShareAddress'>;
+type ShareAddressRouteProp = RouteProp<RootParamList, 'ShareAddress'>;
 
 export const ShareAddress = () => {
   const sheetRef = useRef<BottomSheetRef>(null);

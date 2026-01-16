@@ -7,8 +7,8 @@ import {
   useNavigation,
   useRoute,
   NavigationProp,
-  ParamListBase,
 } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import { debounce } from 'lodash';
@@ -629,7 +629,7 @@ const EarnInputView = () => {
     if (isTronEnabled) {
       const result = await tronConfirmStake?.(amountToken);
       handleTronStakingNavigationResult(
-        navigation as NavigationProp<ParamListBase>,
+        navigation as NavigationProp<RootParamList>,
         result,
         'stake',
         tronAccountId,

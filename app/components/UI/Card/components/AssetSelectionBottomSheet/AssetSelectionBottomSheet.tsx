@@ -1,10 +1,7 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import { useTheme } from '../../../../../util/theme';
 import { useCardSDK } from '../../sdk';
 import {
@@ -100,7 +97,7 @@ export const createAssetSelectionModalNavigationDetails =
 
 const AssetSelectionBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<NavigationProp<RootParamList>>();
   const {
     tokensWithAllowances,
     delegationSettings,
@@ -119,7 +116,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigateToCardPage } = useNavigateToCardPage(
-    navigation as NavigationProp<ParamListBase>,
+    navigation as NavigationProp<RootParamList>,
   );
   const userCardLocation = useSelector(selectUserCardLocation);
 
@@ -601,11 +598,14 @@ const AssetSelectionBottomSheet: React.FC = () => {
         closeBottomSheetAndNavigate(() => {
           if (callerRoute) {
             // Navigate back to the caller route with the selected token
-            const nav = navigation as NavigationProp<ParamListBase>;
-            nav.navigate(callerRoute, {
-              ...callerParams,
-              returnedSelectedToken: token,
-            });
+            // Use function cast for dynamic route name
+            (navigation.navigate as (route: string, params: object) => void)(
+              callerRoute,
+              {
+                ...callerParams,
+                returnedSelectedToken: token,
+              },
+            );
           } else {
             // Fallback: just go back
             navigation.goBack();

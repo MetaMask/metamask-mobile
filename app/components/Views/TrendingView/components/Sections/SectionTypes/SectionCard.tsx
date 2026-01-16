@@ -5,11 +5,8 @@ import { useAppThemeFromContext } from '../../../../../../util/theme';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import { SectionId, SECTIONS_CONFIG } from '../../../sections.config';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../../types/navigation';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -43,7 +40,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
     ({ item }) => (
       <section.RowItem
         item={item}
-        navigation={navigation as NavigationProp<ParamListBase>}
+        navigation={navigation as NavigationProp<RootParamList>}
       />
     ),
     [navigation, section],

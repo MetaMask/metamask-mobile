@@ -4,11 +4,8 @@ import React, { useRef } from 'react';
 import { Dimensions } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { SectionId, SECTIONS_CONFIG } from '../../../sections.config';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../../types/navigation';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CONTENT_WIDTH = SCREEN_WIDTH;
@@ -55,7 +52,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
                 ) : (
                   <section.RowItem
                     item={item}
-                    navigation={navigation as NavigationProp<ParamListBase>}
+                    navigation={navigation as NavigationProp<RootParamList>}
                   />
                 )}
               </Box>

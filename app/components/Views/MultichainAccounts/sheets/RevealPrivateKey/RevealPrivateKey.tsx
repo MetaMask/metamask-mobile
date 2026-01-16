@@ -1,12 +1,7 @@
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import { RevealPrivateCredential } from '../../../RevealPrivateCredential';
 import { PRIVATE_KEY } from '../../../RevealPrivateCredential/RevealPrivateCredential';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
@@ -14,16 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import styleSheet from './RevealPrivateKey.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 
-interface RootNavigationParamList extends ParamListBase {
-  RevealPrivateKey: {
-    account: InternalAccount;
-  };
-}
-
-type RevealPrivateKeyProp = RouteProp<
-  RootNavigationParamList,
-  'RevealPrivateKey'
->;
+type RevealPrivateKeyProp = RouteProp<RootParamList, 'RevealPrivateKey'>;
 
 export const RevealPrivateKey = () => {
   const { styles } = useStyles(styleSheet, {});

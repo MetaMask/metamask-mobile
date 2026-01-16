@@ -74,7 +74,7 @@ const SearchingForDeviceStep = () => {
   );
 
   const handleOpenInstallEthAppInstructions = () => {
-    //@ts-expect-error - Property 'push' does not exist on type 'NavigationProp<ParamListBase>'
+    //@ts-expect-error - Property 'push' does not exist on type 'NavigationProp<RootParamList>'
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {

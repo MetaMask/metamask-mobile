@@ -80,14 +80,17 @@ export const useMusdConversion = () => {
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
     }: MusdConversionConfig) => {
-      navigation.navigate(navigationStack, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: {
-          loader: ConfirmationLoader.CustomAmount,
-          preferredPaymentToken,
-          outputChainId,
+      (navigation.navigate as (route: string, params: object) => void)(
+        navigationStack,
+        {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: {
+            loader: ConfirmationLoader.CustomAmount,
+            preferredPaymentToken,
+            outputChainId,
+          },
         },
-      });
+      );
     },
     [navigation],
   );
@@ -108,13 +111,16 @@ export const useMusdConversion = () => {
         navigationStack = Routes.EARN.ROOT,
       } = config;
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          preferredPaymentToken,
-          outputChainId,
+      (navigation.navigate as (route: string, params: object) => void)(
+        navigationStack,
+        {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken,
+            outputChainId,
+          },
         },
-      });
+      );
 
       return true;
     },

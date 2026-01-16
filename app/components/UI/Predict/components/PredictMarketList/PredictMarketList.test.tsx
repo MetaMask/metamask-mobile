@@ -1,10 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import PredictMarketList from './PredictMarketList';
 
 jest.mock('@react-navigation/native', () => ({
@@ -135,7 +132,7 @@ describe('PredictMarketList', () => {
     jest.clearAllMocks();
     mockOnChangeTab = undefined;
     mockUseNavigation.mockReturnValue(
-      mockNavigation as unknown as NavigationProp<ParamListBase>,
+      mockNavigation as unknown as NavigationProp<RootParamList>,
     );
   });
 

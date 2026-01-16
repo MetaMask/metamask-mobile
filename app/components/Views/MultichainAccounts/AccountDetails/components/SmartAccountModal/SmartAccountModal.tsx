@@ -7,18 +7,13 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import SmartAccountNetworkList from '../SmartAccountNetworkList/SmartAccountNetworkList';
 import styleSheet from './SmartAccountModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../../types/navigation';
 import AppConstants from '../../../../../../core/AppConstants';
 import HeaderBase from '../../../../../../component-library/components/HeaderBase';
 import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
@@ -27,13 +22,7 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 
-interface RootNavigationParamList extends ParamListBase {
-  SmartAccount: {
-    account: InternalAccount;
-  };
-}
-
-type SmartAccountModalProp = RouteProp<RootNavigationParamList, 'SmartAccount'>;
+type SmartAccountModalProp = RouteProp<RootParamList, 'SmartAccount'>;
 
 const SmartAccountModal = () => {
   const route = useRoute<SmartAccountModalProp>();

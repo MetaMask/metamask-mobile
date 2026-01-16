@@ -4,7 +4,8 @@ import { RootState } from '../../../../reducers';
 import { BrowserTab } from '../../Tokens/types';
 import { isCardUrl, isCardTravelUrl, isCardTosUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { CardActions } from '../util/metrics';
@@ -42,11 +43,11 @@ const PAGE_CONFIG: Record<
 };
 
 export const useNavigateToInternalBrowserPage = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: NavigationProp<RootParamList>,
 ) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const browserNavigation = navigation as NavigationProp<ParamListBase>;
+  const browserNavigation = navigation as NavigationProp<RootParamList>;
 
   const navigateToInternalBrowserPage = useCallback(
     (page: CardInternalBrowserPage) => {
@@ -83,10 +84,14 @@ export const useNavigateToInternalBrowserPage = (
         timestamp: Date.now(),
       };
 
-      browserNavigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
+      // Use function cast for nested navigation with dynamic params
+      (browserNavigation.navigate as (route: string, params: object) => void)(
+        Routes.BROWSER.HOME,
+        {
+          screen: Routes.BROWSER.VIEW,
+          params,
+        },
+      );
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
@@ -108,7 +113,7 @@ export const useNavigateToInternalBrowserPage = (
  * Returns convenience methods for navigating to Card, Travel, and TOS pages.
  */
 export const useNavigateToCardPage = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: NavigationProp<RootParamList>,
 ) => {
   const { navigateToInternalBrowserPage } =
     useNavigateToInternalBrowserPage(navigation);

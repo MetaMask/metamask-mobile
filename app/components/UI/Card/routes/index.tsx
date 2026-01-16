@@ -6,7 +6,6 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
@@ -50,7 +49,7 @@ export const headerStyle = StyleSheet.create({
 export const cardDefaultNavigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: { goBack: () => void };
 }): StackNavigationOptions => ({
   headerLeft: () => (
     <ButtonIcon
@@ -68,7 +67,7 @@ export const cardSpendingLimitNavigationOptions = ({
   navigation,
   route,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: { goBack: () => void };
   route: { params?: { flow?: 'manage' | 'enable' } };
 }): StackNavigationOptions => {
   const flow = route.params?.flow || 'manage';

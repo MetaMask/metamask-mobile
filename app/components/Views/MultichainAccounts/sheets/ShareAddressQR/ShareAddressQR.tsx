@@ -1,17 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { AccountGroupId } from '@metamask/account-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import {
   Box,
   BoxFlexDirection,
@@ -33,19 +28,7 @@ import { ShareAddressQRIds } from '../../../../../../e2e/selectors/MultichainAcc
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
 
-interface RootNavigationParamList extends ParamListBase {
-  ShareAddressQR: {
-    address: string;
-    networkName: string;
-    chainId: string;
-    groupId: AccountGroupId;
-  };
-}
-
-type ShareAddressQRRouteProp = RouteProp<
-  RootNavigationParamList,
-  'ShareAddressQR'
->;
+type ShareAddressQRRouteProp = RouteProp<RootParamList, 'ShareAddressQR'>;
 
 export const ShareAddressQR = () => {
   const sheetRef = useRef<BottomSheetRef>(null);

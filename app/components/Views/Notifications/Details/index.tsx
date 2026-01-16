@@ -8,7 +8,8 @@ import {
 } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
 
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import Icon, {
   IconName,
   IconSize,
@@ -29,7 +30,7 @@ import { NotificationDetailsViewSelectorsIDs } from '../../../../../e2e/selector
 import { NotificationModalDetails } from '../../../../util/notifications/notification-states/types/NotificationModalDetails';
 
 interface NotificationDetailsContainerProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   route: {
     params: {
       notification?: INotification;
@@ -38,7 +39,7 @@ interface NotificationDetailsContainerProps {
 }
 
 interface NotificationDetailsProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   notification: INotification;
   state: NotificationModalDetails;
 }

@@ -1,17 +1,12 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, View, Text } from 'react-native';
-import {
-  useNavigation,
-  RouteProp,
-  ParamListBase,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation, RouteProp, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
 // External dependencies
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -53,13 +48,9 @@ import {
 } from '../../../core/QrKeyring/QrKeyring';
 import useLedgerDeviceForAccount from '../../hooks/Ledger/useLedgerDeviceForAccount';
 
-interface AccountActionsParams {
-  selectedAccount: InternalAccount;
-}
-
 const AccountActions = () => {
-  const route = useRoute<RouteProp<ParamListBase, string>>();
-  const { selectedAccount } = route.params as AccountActionsParams;
+  const route = useRoute<RouteProp<RootParamList, 'AccountActions'>>();
+  const { selectedAccount } = route.params;
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import { ParamListBase, NavigationProp } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionDetailsModal from './MultichainTransactionDetailsModal';
 import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
@@ -98,7 +99,7 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -118,7 +119,7 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -134,7 +135,7 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -151,7 +152,7 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -184,7 +185,7 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -217,7 +218,7 @@ describe('MultichainTransactionDetailsModal', () => {
         onClose={mockOnClose}
         transaction={mockTransaction}
         displayData={mockDisplayData}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 

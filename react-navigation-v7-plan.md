@@ -180,7 +180,7 @@ Bottom sheet modal stacks within features now use transparent modals:
 - [x] Created `DepositParamList` with proper route definitions
 - [x] Fixed Send flow screen navigation typing (`useSendScreenNavigation.ts`)
 - [x] Fixed Perps navigation parameter types (`usePerpsNavigation.ts`, `PerpsTabView.tsx`)
-- [x] Fixed `NavigationProp<ParamListBase>` casts for utility functions:
+- [x] Fixed `NavigationProp<RootParamList>` casts for utility functions:
   - `EarnInputView.tsx`, `EarnWithdrawInputView.tsx` (handleTronStakingNavigationResult)
   - `ActivityEventRow.tsx`, `ActivityDetailsSheet.test.tsx` (openActivityDetailsSheet)
   - `OptIn/index.tsx` (useHandleOptInCancel, useHandleOptInClick)

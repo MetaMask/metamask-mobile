@@ -9,11 +9,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
 export interface SitesSearchFooterProps {
@@ -31,18 +28,22 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   searchQuery,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<NavigationProp<RootParamList>>();
 
   const onPressLink = useCallback(
     (url: string) => {
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-          fromTrending: true,
+      // Use function cast for nested navigation with dynamic params
+      (navigation.navigate as (route: string, params: object) => void)(
+        Routes.BROWSER.HOME,
+        {
+          screen: Routes.BROWSER.VIEW,
+          params: {
+            newTabUrl: url,
+            timestamp: Date.now(),
+            fromTrending: true,
+          },
         },
-      });
+      );
     },
     [navigation],
   );

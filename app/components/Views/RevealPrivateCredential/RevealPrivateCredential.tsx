@@ -11,7 +11,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
-import { RouteProp, ParamListBase } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,17 +72,8 @@ import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
 
 export const PRIVATE_KEY = 'private_key';
 
-interface RootStackParamList extends ParamListBase {
-  RevealPrivateCredential: {
-    credentialName: string;
-    shouldUpdateNav?: boolean;
-    selectedAccount?: InternalAccount;
-    keyringId?: string;
-  };
-}
-
 type RevealPrivateCredentialRouteProp = RouteProp<
-  RootStackParamList,
+  RootParamList,
   'RevealPrivateCredential'
 >;
 

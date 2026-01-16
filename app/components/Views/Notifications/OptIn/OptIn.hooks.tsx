@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
@@ -13,7 +14,7 @@ import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
  */
 export function useOptimisticNavigationEffect(props: {
   isCreatingNotifications: boolean;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }) {
   const { isCreatingNotifications, navigation } = props;
   const [optimisticLoading, setOptimisticLoading] = useState(false);
@@ -46,7 +47,7 @@ export function useOptimisticNavigationEffect(props: {
 }
 
 export function useHandleOptInClick(props: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   metrics: IUseMetricsHook;
   enableNotifications: () => Promise<void>;
 }) {
@@ -96,7 +97,7 @@ export function useHandleOptInClick(props: {
 }
 
 export function useHandleOptInCancel(props: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   metrics: IUseMetricsHook;
   isCreatingNotifications: boolean;
 }) {

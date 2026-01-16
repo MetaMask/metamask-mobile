@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
@@ -29,17 +30,17 @@ export const TEST_IDS = {
 };
 
 interface NotificationsListProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   allNotifications: INotification[];
   loading: boolean;
 }
 
 interface NotificationsListItemProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   notification: INotification;
 }
 interface NotificationsListItemProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   notification: INotification;
 }
 
@@ -154,7 +155,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
 }
 
 function useNotificationListProps(props: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }) {
   const { styles } = useStyles();
   const { listNotifications, isLoading } = useListNotifications();

@@ -1,10 +1,7 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -139,7 +136,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return (
           <section.OverrideRowItemSearch
             item={item.data}
-            navigation={navigation as NavigationProp<ParamListBase>}
+            navigation={navigation as NavigationProp<RootParamList>}
           />
         );
       }
@@ -148,7 +145,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       return (
         <section.RowItem
           item={item.data}
-          navigation={navigation as NavigationProp<ParamListBase>}
+          navigation={navigation as NavigationProp<RootParamList>}
         />
       );
     },

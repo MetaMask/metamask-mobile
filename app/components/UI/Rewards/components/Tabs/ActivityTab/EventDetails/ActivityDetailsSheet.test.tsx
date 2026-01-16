@@ -1,10 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../../../types/navigation';
 import { useSelector } from 'react-redux';
 import {
   ActivityDetailsSheet,
@@ -324,7 +321,7 @@ describe('ActivityDetailsSheet', () => {
       };
 
       openActivityDetailsSheet(
-        mockNavigation as NavigationProp<ParamListBase>,
+        mockNavigation as NavigationProp<RootParamList>,
         {
           event: testEvent,
           activityTypes: mockActivityTypes,
@@ -371,7 +368,7 @@ describe('ActivityDetailsSheet', () => {
       };
 
       openActivityDetailsSheet(
-        mockNavigation as NavigationProp<ParamListBase>,
+        mockNavigation as NavigationProp<RootParamList>,
         {
           event: testEvent,
           accountName: 'Test Account',
@@ -411,7 +408,7 @@ describe('ActivityDetailsSheet', () => {
       };
 
       openActivityDetailsSheet(
-        mockNavigation as NavigationProp<ParamListBase>,
+        mockNavigation as NavigationProp<RootParamList>,
         {
           event: testEvent,
           accountName: 'My Custom Account',
@@ -453,7 +450,7 @@ describe('ActivityDetailsSheet', () => {
       // Should not throw when accountName is undefined
       expect(() => {
         openActivityDetailsSheet(
-          mockNavigation as NavigationProp<ParamListBase>,
+          mockNavigation as NavigationProp<RootParamList>,
           {
             event: testEvent,
             activityTypes: mockActivityTypes,

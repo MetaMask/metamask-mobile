@@ -2,7 +2,8 @@ import React from 'react';
 import { TouchableHighlight } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import MultichainBridgeTransactionListItem from '.';
@@ -123,7 +124,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={mockBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -155,7 +156,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={pendingBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -170,7 +171,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={mockBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -202,7 +203,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={verySmallAmountBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 
@@ -226,7 +227,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={largerAmountBridgeHistoryItem}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+        navigation={mockNavigation as unknown as NavigationProp<RootParamList>}
       />,
     );
 

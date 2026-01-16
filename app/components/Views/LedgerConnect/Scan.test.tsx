@@ -7,11 +7,8 @@ import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import { BluetoothPermissionErrors } from '../../../core/Ledger/ledgerErrors';
 import { fireEvent } from '@testing-library/react-native';
 import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 
 jest.mock('../../hooks/Ledger/useBluetooth');
 jest.mock('../../hooks/Ledger/useBluetoothDevices');
@@ -207,7 +204,7 @@ describe('Scan', () => {
       navigate: jest.fn().mockImplementation(() => {
         onDeviceSelected(device2);
       }),
-    } as unknown as NavigationProp<ParamListBase>;
+    } as unknown as NavigationProp<RootParamList>;
     jest.mocked(useNavigation).mockReturnValue(navigateMock);
 
     jest.mocked(useBluetoothDevices).mockReturnValue({

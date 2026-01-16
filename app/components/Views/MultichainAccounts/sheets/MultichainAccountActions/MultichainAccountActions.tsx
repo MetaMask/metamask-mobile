@@ -1,11 +1,7 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import {
-  useNavigation,
-  RouteProp,
-  ParamListBase,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation, RouteProp, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import { useSelector } from 'react-redux';
 
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -51,14 +47,10 @@ export const createMultichainAccountDetailActionsModalNavigationDetails =
     params: { accountGroup: AccountGroupObject };
   }>(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS);
 
-interface MultichainAccountActionsParams {
-  accountGroup: AccountGroupObject;
-}
-
 const MultichainAccountActions = () => {
-  const route = useRoute<RouteProp<ParamListBase, string>>();
-  const { accountGroup: initialAccountGroup } =
-    route.params as MultichainAccountActionsParams;
+  const route =
+    useRoute<RouteProp<RootParamList, 'MultichainAccountActions'>>();
+  const { accountGroup: initialAccountGroup } = route.params;
   const { id } = initialAccountGroup;
 
   const accountGroup =

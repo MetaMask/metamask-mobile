@@ -10,11 +10,8 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useStakingChain from '../../../hooks/useStakingChain';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../../types/navigation';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
 import {
   selectPooledStakingEnabledFlag,
@@ -139,7 +136,7 @@ describe('StakingButtons', () => {
       navigate,
       setOptions: jest.fn(),
       dispatch: jest.fn(),
-    } as unknown as NavigationProp<ParamListBase>);
+    } as unknown as NavigationProp<RootParamList>);
 
     (
       selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector

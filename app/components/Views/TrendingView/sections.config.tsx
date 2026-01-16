@@ -1,5 +1,6 @@
 import React, { PropsWithChildren } from 'react';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
+import type { RootParamList } from '../../../types/navigation';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -37,14 +38,14 @@ interface SectionConfig {
   id: SectionId;
   title: string;
   icon: IconName;
-  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  viewAllAction: (navigation: NavigationProp<RootParamList>) => void;
   RowItem: React.ComponentType<{
     item: unknown;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: NavigationProp<RootParamList>;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: NavigationProp<RootParamList>;
   }>;
   Skeleton: React.ComponentType;
   Section: React.ComponentType<{

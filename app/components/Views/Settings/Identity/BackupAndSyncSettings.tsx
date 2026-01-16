@@ -1,9 +1,6 @@
 /* eslint-disable react/display-name */
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
 
@@ -59,7 +56,7 @@ export default BackupAndSyncSettings;
 BackupAndSyncSettings.navigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }) => ({
   headerLeft: () => (
     <ButtonIcon

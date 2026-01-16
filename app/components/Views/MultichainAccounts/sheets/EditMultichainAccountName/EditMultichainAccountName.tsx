@@ -6,12 +6,8 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
@@ -29,19 +25,12 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
 import { Platform, TextInput } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useKeyboardHeight } from '../../../../hooks/useKeyboardHeight';
 
-interface RootNavigationParamList extends ParamListBase {
-  EditMultichainAccountName: {
-    accountGroup: AccountGroupObject;
-  };
-}
-
 type EditMultichainAccountNameRouteProp = RouteProp<
-  RootNavigationParamList,
+  RootParamList,
   'EditMultichainAccountName'
 >;
 

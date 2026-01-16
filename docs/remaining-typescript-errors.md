@@ -158,7 +158,7 @@ expect(navigate).toHaveBeenCalledWith('NetworkManager', {
 | Step 2  | 100    | Fixed `createNavigationDetails` return type       |
 | Step 3  | 81     | Fixed Ramp navigation helpers (Option F)          |
 | Step 4  | 78     | Fixed duplicate mocks, unused directives          |
-| Step 5  | 56     | Fixed NavigationProp<ParamListBase> in Category 1 |
+| Step 5  | 56     | Fixed NavigationProp<RootParamList> in Category 1 |
 | Step 6  | 40     | Fixed Stake Screen component types (Category 6)   |
 | Step 7  | 25     | Fixed misc issues                                 |
 | Current | 12     | Fixed WrappedNavigation type mismatches           |
