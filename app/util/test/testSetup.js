@@ -806,7 +806,3 @@ jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
     },
   };
 });
-
-// Mock @metamask/analytics-controller
-// Note: Manual mock file exists at app/__mocks__/@metamask/analytics-controller.js
-jest.mock('@metamask/analytics-controller');
