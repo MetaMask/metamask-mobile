@@ -26,43 +26,9 @@ import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutS
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import PredictSportTeamGradient from '../PredictSportTeamGradient';
-import PredictSportScoreboard, {
-  GameState,
-  Possession,
-  Winner,
-} from '../PredictSportScoreboard';
+import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
-import { PredictGameScore, PredictGameStatus } from '../../types';
-
-const getGameState = (
-  status: PredictGameStatus,
-  period: string | null,
-): GameState => {
-  if (status === 'scheduled') return GameState.PreGame;
-  if (status === 'ended') return GameState.Final;
-  if (period?.toUpperCase() === 'HT') return GameState.Halftime;
-  return GameState.InProgress;
-};
-
-const getPossession = (
-  turn: string | undefined,
-  awayAbbr: string,
-  homeAbbr: string,
-): Possession => {
-  if (!turn) return Possession.None;
-  const lowerTurn = turn.toLowerCase();
-  if (lowerTurn === awayAbbr.toLowerCase()) return Possession.Away;
-  if (lowerTurn === homeAbbr.toLowerCase()) return Possession.Home;
-  return Possession.None;
-};
-
-const getWinner = (score: PredictGameScore | null): Winner => {
-  if (!score) return Winner.None;
-  if (score.away > score.home) return Winner.Away;
-  if (score.home > score.away) return Winner.Home;
-  return Winner.None;
-};
 
 const formatGameDateTime = (
   startTime: string,
@@ -119,15 +85,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   if (!outcome || !game) {
     return null;
   }
-
-  const gameState = getGameState(game.status, game.period);
-  const possession = getPossession(
-    game.turn,
-    game.awayTeam.abbreviation,
-    game.homeTeam.abbreviation,
-  );
-  const winner =
-    gameState === GameState.Final ? getWinner(game.score) : Winner.None;
 
   return (
     <PredictSportTeamGradient
@@ -194,13 +151,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             }}
             awayScore={game.score?.away}
             homeScore={game.score?.home}
-            gameState={gameState}
+            gameStatus={game.status}
+            period={game.period}
             eventTitle={market.title}
             date={gameDateTime?.date}
             time={gameDateTime?.time}
             quarter={game.period ?? undefined}
-            possession={possession}
-            winner={winner}
+            turn={game.turn}
             testID="game-scoreboard"
           />
 
