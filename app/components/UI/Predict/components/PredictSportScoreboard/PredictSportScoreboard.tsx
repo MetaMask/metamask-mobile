@@ -102,20 +102,30 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     [game.startTime],
   );
 
-  const isPreGame = mergedData.status === 'scheduled';
-  const isHalftime =
-    mergedData.status === 'ongoing' &&
-    mergedData.period?.toUpperCase() === 'HT';
+  const period = mergedData.period;
+
+  const isPreGame = mergedData.status === 'scheduled' || period === 'NS';
+  const isHalftime = period === 'HT';
+  const isEndOfQuarter = period === 'End Q1' || period === 'End Q3';
+  const isOvertime = period === 'OT';
+  const isFinal =
+    mergedData.status === 'ended' || period === 'FT' || period === 'VFT';
   const isInProgress =
-    mergedData.status === 'ongoing' &&
-    mergedData.period?.toUpperCase() !== 'HT';
-  const isFinal = mergedData.status === 'ended';
+    !isPreGame &&
+    !isHalftime &&
+    !isEndOfQuarter &&
+    !isFinal &&
+    (period === 'Q1' ||
+      period === 'Q2' ||
+      period === 'Q3' ||
+      period === 'Q4' ||
+      isOvertime);
 
   const awayHasPossession =
-    isInProgress &&
+    (isInProgress || isOvertime) &&
     mergedData.turn?.toLowerCase() === game.awayTeam.abbreviation.toLowerCase();
   const homeHasPossession =
-    isInProgress &&
+    (isInProgress || isOvertime) &&
     mergedData.turn?.toLowerCase() === game.homeTeam.abbreviation.toLowerCase();
 
   const awayWon =
@@ -151,14 +161,21 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       );
     }
 
-    if (isInProgress || isHalftime || isFinal) {
-      const statusText = isHalftime
-        ? strings('predict.sports.halftime')
-        : isFinal
-          ? strings('predict.sports.final')
-          : mergedData.period && mergedData.elapsed
-            ? `${mergedData.period} • ${mergedData.elapsed}`
-            : mergedData.period || mergedData.elapsed || '';
+    if (isInProgress || isOvertime || isEndOfQuarter || isHalftime || isFinal) {
+      let statusText = '';
+      if (isHalftime) {
+        statusText = strings('predict.sports.halftime');
+      } else if (isFinal) {
+        statusText = strings('predict.sports.final');
+      } else if (isEndOfQuarter) {
+        statusText = period ?? '';
+      } else if (isOvertime) {
+        statusText = mergedData.elapsed ? `OT • ${mergedData.elapsed}` : 'OT';
+      } else if (isInProgress && period && mergedData.elapsed) {
+        statusText = `${period} • ${mergedData.elapsed}`;
+      } else {
+        statusText = period || mergedData.elapsed || '';
+      }
 
       return (
         <Box
@@ -232,55 +249,63 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="w-[40px] gap-1"
         >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-alternative text-center"
-          >
-            {game.awayTeam.abbreviation.toUpperCase()}
-          </Text>
+          <Box twClassName="w-[40px]">
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              twClassName="text-alternative text-center"
+            >
+              {game.awayTeam.abbreviation.toUpperCase()}
+            </Text>
+          </Box>
           {awayHasPossession && (
-            <PredictSportFootballIcon
-              size={FOOTBALL_SIZE}
-              testID={`${testID}-away-possession`}
-            />
+            <Box twClassName="ml-1">
+              <PredictSportFootballIcon
+                size={FOOTBALL_SIZE}
+                testID={`${testID}-away-possession`}
+              />
+            </Box>
           )}
           {awayWon && (
-            <PredictSportWinner
-              size={FOOTBALL_SIZE}
-              testID={`${testID}-away-winner`}
-            />
+            <Box twClassName="ml-1">
+              <PredictSportWinner
+                size={FOOTBALL_SIZE}
+                testID={`${testID}-away-winner`}
+              />
+            </Box>
           )}
         </Box>
 
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="w-[40px] gap-1"
         >
           {homeHasPossession && (
-            <PredictSportFootballIcon
-              size={FOOTBALL_SIZE}
-              testID={`${testID}-home-possession`}
-            />
+            <Box twClassName="mr-1">
+              <PredictSportFootballIcon
+                size={FOOTBALL_SIZE}
+                testID={`${testID}-home-possession`}
+              />
+            </Box>
           )}
           {homeWon && (
-            <PredictSportWinner
-              size={FOOTBALL_SIZE}
-              testID={`${testID}-home-winner`}
-            />
+            <Box twClassName="mr-1">
+              <PredictSportWinner
+                size={FOOTBALL_SIZE}
+                testID={`${testID}-home-winner`}
+              />
+            </Box>
           )}
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-alternative text-center"
-          >
-            {game.homeTeam.abbreviation.toUpperCase()}
-          </Text>
+          <Box twClassName="w-[40px]">
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              twClassName="text-alternative text-center"
+            >
+              {game.homeTeam.abbreviation.toUpperCase()}
+            </Text>
+          </Box>
         </Box>
       </Box>
     </Box>

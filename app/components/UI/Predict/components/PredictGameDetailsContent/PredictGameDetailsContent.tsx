@@ -118,7 +118,9 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             />
           }
         >
-          <PredictSportScoreboard game={game} testID="game-scoreboard" />
+          <Box twClassName="px-4 py-2">
+            <PredictSportScoreboard game={game} testID="game-scoreboard" />
+          </Box>
 
           {tokenIds.length === 2 && (
             <Box twClassName="mt-4">

@@ -135,6 +135,19 @@ export interface PredictGameScore {
   raw: string; // Original "away-home" format (e.g., "21-14")
 }
 
+export type PredictGamePeriod =
+  | 'NS' // Not Started
+  | 'Q1' // First Quarter
+  | 'End Q1' // End of First Quarter
+  | 'Q2' // Second Quarter
+  | 'HT' // Halftime
+  | 'Q3' // Third Quarter
+  | 'End Q3' // End of Third Quarter
+  | 'Q4' // Fourth Quarter
+  | 'OT' // Overtime
+  | 'FT' // Final
+  | 'VFT'; // Verified fulltime (when closed=true)
+
 // Game data attached to market
 export interface PredictMarketGame {
   id: string;
@@ -142,7 +155,7 @@ export interface PredictMarketGame {
   status: PredictGameStatus;
   league: PredictSportsLeague;
   elapsed: string | null; // Game clock, null if not available
-  period: string | null; // Current period (Q1, Q2, HT, Q3, Q4, OT, FT), null if not available
+  period: PredictGamePeriod | null; // Current period, null if not available
   score: PredictGameScore | null; // Parsed score with away/home values, null if not available
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;

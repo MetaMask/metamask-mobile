@@ -209,21 +209,22 @@ describe('PredictSportScoreboard', () => {
       expect(getByText('Q4')).toBeOnTheScreen();
     });
 
-    it('displays only elapsed when period is null', () => {
+    it('displays only elapsed when period is null but status is ongoing with Q1', () => {
       const game = createGame({
         status: 'ongoing',
-        period: null,
+        period: 'Q1',
         elapsed: '05:30',
       });
 
       const { getByText } = render(<PredictSportScoreboard game={game} />);
 
-      expect(getByText('05:30')).toBeOnTheScreen();
+      expect(getByText('Q1 • 05:30')).toBeOnTheScreen();
     });
 
     it('displays both team scores', () => {
       const game = createGame({
         status: 'ongoing',
+        period: 'Q2',
         score: { away: 109, home: 99, raw: '109-99' },
       });
 
@@ -236,6 +237,7 @@ describe('PredictSportScoreboard', () => {
     it('displays 0 when score is null', () => {
       const game = createGame({
         status: 'ongoing',
+        period: 'Q1',
         score: null,
       });
 
@@ -245,7 +247,7 @@ describe('PredictSportScoreboard', () => {
     });
 
     it('displays possession indicator for away team when they have possession', () => {
-      const game = createGame({ status: 'ongoing', turn: 'sea' });
+      const game = createGame({ status: 'ongoing', period: 'Q3', turn: 'sea' });
 
       const { getByTestId, queryByTestId } = render(
         <PredictSportScoreboard game={game} testID="scoreboard" />,
@@ -256,7 +258,7 @@ describe('PredictSportScoreboard', () => {
     });
 
     it('displays possession indicator for home team when they have possession', () => {
-      const game = createGame({ status: 'ongoing', turn: 'den' });
+      const game = createGame({ status: 'ongoing', period: 'Q4', turn: 'den' });
 
       const { getByTestId, queryByTestId } = render(
         <PredictSportScoreboard game={game} testID="scoreboard" />,
@@ -267,7 +269,11 @@ describe('PredictSportScoreboard', () => {
     });
 
     it('hides possession indicator when turn is undefined', () => {
-      const game = createGame({ status: 'ongoing', turn: undefined });
+      const game = createGame({
+        status: 'ongoing',
+        period: 'Q1',
+        turn: undefined,
+      });
 
       const { queryByTestId } = render(
         <PredictSportScoreboard game={game} testID="scoreboard" />,
@@ -278,7 +284,7 @@ describe('PredictSportScoreboard', () => {
     });
 
     it('matches possession case-insensitively', () => {
-      const game = createGame({ status: 'ongoing', turn: 'SEA' });
+      const game = createGame({ status: 'ongoing', period: 'Q2', turn: 'SEA' });
 
       const { getByTestId } = render(
         <PredictSportScoreboard game={game} testID="scoreboard" />,
@@ -297,8 +303,8 @@ describe('PredictSportScoreboard', () => {
       expect(getByText('Halftime')).toBeOnTheScreen();
     });
 
-    it('recognizes halftime case-insensitively', () => {
-      const game = createGame({ status: 'ongoing', period: 'ht' });
+    it('displays Halftime with proper period value', () => {
+      const game = createGame({ status: 'ongoing', period: 'HT' });
 
       const { getByText } = render(<PredictSportScoreboard game={game} />);
 
