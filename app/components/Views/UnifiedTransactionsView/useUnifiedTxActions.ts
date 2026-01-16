@@ -84,6 +84,10 @@ export function useUnifiedTxActions() {
   const [speedUpTxId, setSpeedUpTxId] = useState<Maybe<string>>(null);
   const [cancelTxId, setCancelTxId] = useState<Maybe<string>>(null);
 
+  const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
+    ExtendedKeyringTypes.ledger,
+  ]);
+
   const toggleRetry = (msg?: string) => {
     setRetryIsOpen((prev) => !prev);
     setRetryErrorMsg(msg);
@@ -293,10 +297,6 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for speed up');
       }
 
-      const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
-        ExtendedKeyringTypes.ledger,
-      ]);
-
       if (isLedgerAccount) {
         await signLedgerTransaction({
           id: speedUpTxId,
@@ -331,10 +331,6 @@ export function useUnifiedTxActions() {
       if (!cancelTxId) {
         throw new Error('Missing transaction id for cancel');
       }
-
-      const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
-        ExtendedKeyringTypes.ledger,
-      ]);
 
       if (isLedgerAccount) {
         await signLedgerTransaction({
