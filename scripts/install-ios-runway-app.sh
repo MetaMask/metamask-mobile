@@ -29,6 +29,7 @@ SKIP_DOWNLOAD=false
 
 # Track files for cleanup
 ZIP_PATH=""
+DOWNLOAD_SUCCESS=false
 
 # Safe delete: only removes files inside RUNWAY_DIR
 safe_rm() {
@@ -51,7 +52,10 @@ safe_rm_dir() {
 # Cleanup on exit (error or interrupt)
 cleanup() {
   safe_rm "$ZIP_PATH"
-  safe_rm "$RUNWAY_DIR/runway-builds-debug.json"
+  # Only delete debug JSON on success (keep it for debugging on failure)
+  if [[ "$DOWNLOAD_SUCCESS" == true ]]; then
+    safe_rm "$RUNWAY_DIR/runway-builds-debug.json"
+  fi
 }
 trap cleanup EXIT
 
@@ -189,10 +193,11 @@ download_latest_app() {
   
   echo -e "${GREEN}✓ Successfully downloaded and extracted app!${NC}"
   
-  # Cleanup zip file (debug json cleaned by trap)
+  # Cleanup zip file (debug json cleaned by trap on success)
   echo -e "${BLUE}Cleaning up...${NC}"
   safe_rm "$ZIP_PATH"
   ZIP_PATH=""  # Clear so trap doesn't try to delete again
+  DOWNLOAD_SUCCESS=true
 }
 
 # Run download unless explicitly skipped
