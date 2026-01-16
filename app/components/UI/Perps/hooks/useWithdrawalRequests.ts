@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
+import { useStableArray } from './useStableArray';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
@@ -53,52 +54,68 @@ export const useWithdrawalRequests = (
     'eip155:1',
   )?.address;
 
-  // Get pending withdrawals from controller state and filter by current account
-  const pendingWithdrawals = usePerpsSelector((state) => {
-    const allWithdrawals = state?.withdrawalRequests || [];
-
-    // If no selected address, return empty array (don't show potentially wrong account's data)
-    if (!selectedAddress) {
-      DevLogger.log(
-        'useWithdrawalRequests: No selected address, returning empty array',
-        {
-          totalCount: allWithdrawals.length,
-        },
+  // Get pending withdrawals from controller state, filtered by current account
+  // useStableArray ensures we only get a new reference when the actual data changes
+  const pendingWithdrawals = useStableArray(
+    usePerpsSelector((state) => {
+      const allWithdrawals = state?.withdrawalRequests || [];
+      if (!selectedAddress) return [];
+      return allWithdrawals.filter(
+        (req) =>
+          req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
       );
-      return [];
+    }),
+  );
+
+  // Track previous withdrawal states to detect meaningful changes
+  const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
+
+  // Log only meaningful withdrawal state changes (not on every render)
+  useEffect(() => {
+    const currentStates = new Map<string, string>();
+    pendingWithdrawals.forEach((w) => currentStates.set(w.id, w.status));
+
+    const prevStates = prevWithdrawalStatesRef.current;
+
+    // Check for new withdrawals (initialized)
+    for (const withdrawal of pendingWithdrawals) {
+      if (!prevStates.has(withdrawal.id)) {
+        DevLogger.log('Withdrawal initialized:', {
+          id: withdrawal.id,
+          amount: withdrawal.amount,
+          asset: withdrawal.asset,
+          status: withdrawal.status,
+          timestamp: new Date(withdrawal.timestamp).toISOString(),
+        });
+      }
     }
 
-    // Filter by current account, normalizing addresses for comparison
-    const filtered = allWithdrawals.filter((req) => {
-      const match =
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase();
-      return match;
-    });
+    // Check for status changes (progress) and completions
+    for (const withdrawal of pendingWithdrawals) {
+      const prevStatus = prevStates.get(withdrawal.id);
+      if (prevStatus && prevStatus !== withdrawal.status) {
+        if (withdrawal.status === 'completed') {
+          DevLogger.log('Withdrawal completed:', {
+            id: withdrawal.id,
+            amount: withdrawal.amount,
+            asset: withdrawal.asset,
+            txHash: withdrawal.txHash,
+          });
+        } else {
+          DevLogger.log('Withdrawal status changed:', {
+            id: withdrawal.id,
+            previousStatus: prevStatus,
+            newStatus: withdrawal.status,
+            amount: withdrawal.amount,
+          });
+        }
+      }
+    }
 
-    DevLogger.log('useWithdrawalRequests: Filtered withdrawals by account', {
-      selectedAddress,
-      totalCount: allWithdrawals.length,
-      filteredCount: filtered.length,
-      withdrawals: filtered.map((w) => ({
-        id: w.id,
-        accountAddress: w.accountAddress,
-        status: w.status,
-      })),
-    });
+    // Update ref with current states
+    prevWithdrawalStatesRef.current = currentStates;
+  }, [pendingWithdrawals]);
 
-    return filtered;
-  });
-
-  DevLogger.log('Pending withdrawals from controller state:', {
-    count: pendingWithdrawals.length,
-    withdrawals: pendingWithdrawals.map((w) => ({
-      id: w.id,
-      timestamp: new Date(w.timestamp).toISOString(),
-      amount: w.amount,
-      asset: w.asset,
-      status: w.status,
-    })),
-  });
   const [completedWithdrawals, setCompletedWithdrawals] = useState<
     WithdrawalRequest[]
   >([]);
@@ -203,6 +220,20 @@ export const useWithdrawalRequests = (
   // Track which withdrawals have already been updated in the controller
   // to prevent duplicate updateWithdrawalStatus calls
   const updatedWithdrawalIdsRef = useRef<Set<string>>(new Set());
+
+  // Clear the updated withdrawal IDs ref when account changes to prevent stale data
+  // This handles the edge case where withdrawal IDs might not be globally unique
+  // across accounts (e.g., sequential IDs), ensuring the new account's withdrawals
+  // are properly processed
+  useEffect(() => {
+    if (selectedAddress) {
+      updatedWithdrawalIdsRef.current.clear();
+      DevLogger.log(
+        'useWithdrawalRequests: Cleared updatedWithdrawalIdsRef on account change',
+        { selectedAddress },
+      );
+    }
+  }, [selectedAddress]);
 
   // Combine pending and completed withdrawals (pure data transformation, no side effects)
   const allWithdrawals = useMemo(() => {

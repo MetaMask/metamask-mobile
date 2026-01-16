@@ -9,3 +9,9 @@ export {
   type UseLiveMarketPricesOptions,
   type UseLiveMarketPricesResult,
 } from './useLiveMarketPrices';
+
+export {
+  useLivePositions,
+  type UseLivePositionsOptions,
+  type UseLivePositionsResult,
+} from './useLivePositions';
