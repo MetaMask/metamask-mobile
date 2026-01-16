@@ -27,7 +27,8 @@ export const GO_BACK_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-export function useTransactionConfirm() {
+export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
+  const { skipNavigation = false } = options ?? {};
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -129,6 +130,14 @@ export function useTransactionConfirm() {
       log('Error confirming transaction', error);
     }
 
+    // Skip navigation if skipNavigation option is provided
+    if (skipNavigation) {
+      // Replace/remove this once we have redesigned send flow
+      dispatch(resetTransaction());
+      tryEnableEvmNetwork(chainId);
+      return;
+    }
+
     if (type === TransactionType.perpsDeposit) {
       // If we can go back (e.g., from PerpsOrderView), go back to previous screen
       // Otherwise, navigate to Perps home (e.g., when initiated from home screen)
@@ -174,6 +183,7 @@ export function useTransactionConfirm() {
     navigationState,
     onRequestConfirm,
     selectedGasFeeToken,
+    skipNavigation,
     transactionMetadata,
     tryEnableEvmNetwork,
     type,

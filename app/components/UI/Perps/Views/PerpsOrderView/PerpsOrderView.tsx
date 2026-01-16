@@ -1423,102 +1423,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* Amount Input - Only show when token is selected */}
-            {selectedToken && (
-              <View style={[styles.detailItem, styles.detailItemMiddle]}>
-                <View style={styles.amountInputContainer}>
-                  {/* Balance Display */}
-                  <View style={styles.balanceRow}>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      Balance:
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Default}
-                    >
-                      {selectedToken.balance || '0'} {selectedToken.symbol}
-                    </Text>
-                  </View>
-                  {/* Amount Input */}
-                  <View style={styles.inputWrapper}>
-                    <TextInput
-                      style={styles.amountInput}
-                      value={swapAmount}
-                      onChangeText={setSwapAmount}
-                      placeholder="Enter amount"
-                      placeholderTextColor={colors.text.alternative}
-                      keyboardType="decimal-pad"
-                      testID="perps-order-swap-amount-input"
-                    />
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                      style={styles.tokenSymbolLabel}
-                    >
-                      {selectedToken.symbol}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            {/* SWAP Button */}
-            <View
-              style={[
-                styles.detailItem,
-                // Position based on what's below
-                styles.detailItemMiddle,
-              ]}
-            >
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Md}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.order.swap')}
-                onPress={handleSwapPress}
-                disabled={!selectedToken}
-                testID="perps-order-swap-button"
-              />
-            </View>
-
             {/* Deposit Amount Input */}
             <View style={[styles.detailItem, styles.detailItemMiddle]}>
               <View style={styles.amountInputContainer}>
-                {/* USDC Balance Display */}
-                <View style={styles.balanceRow}>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    USDC Balance:
-                  </Text>
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                    {(() => {
-                      const arbitrumBalances =
-                        contractBalancesPerChainId[
-                          ARBITRUM_MAINNET_CHAIN_ID_HEX
-                        ] || {};
-                      const usdcBalance =
-                        arbitrumBalances[USDC_ARBITRUM_MAINNET_ADDRESS] ||
-                        '0x0';
-                      return renderFromTokenMinimalUnit(
-                        usdcBalance,
-                        USDC_DECIMALS,
-                      );
-                    })()}{' '}
-                    USDC
-                  </Text>
-                </View>
                 {/* Deposit Amount Input */}
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.amountInput}
                     value={depositAmount}
                     onChangeText={setDepositAmount}
-                    placeholder="Enter deposit amount"
+                    placeholder="Amount to trade with any token"
                     placeholderTextColor={colors.text.alternative}
                     keyboardType="decimal-pad"
                     testID="perps-order-deposit-amount-input"
@@ -1528,7 +1442,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     color={TextColor.Alternative}
                     style={styles.tokenSymbolLabel}
                   >
-                    USDC
+                    USD
                   </Text>
                 </View>
               </View>
@@ -1543,135 +1457,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     currency={PERPS_CURRENCY}
                     hasMax
                     defaultValue={depositAmount}
+                    skipNavigation
                   />
                 </View>
               )}
-            {/* DEPOSIT Button */}
-            <View
-              style={[
-                styles.detailItem,
-                // Position based on what's below
-                hideTPSL ? styles.detailItemLast : styles.detailItemMiddle,
-              ]}
-            >
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Md}
-                width={ButtonWidthTypes.Full}
-                label="DEPOSIT"
-                onPress={async () => {
-                  try {
-                    // Get USDC balance on Arbitrum
-                    const arbitrumBalances =
-                      contractBalancesPerChainId[
-                        ARBITRUM_MAINNET_CHAIN_ID_HEX
-                      ] || {};
-                    const usdcBalance =
-                      arbitrumBalances[USDC_ARBITRUM_MAINNET_ADDRESS] || '0x0';
-
-                    // Convert from minimal units to readable format
-                    const balanceString = renderFromTokenMinimalUnit(
-                      usdcBalance,
-                      USDC_DECIMALS,
-                    );
-
-                    // Check if there's any balance to deposit
-                    if (balanceString === '0' || balanceString === '0.0') {
-                      Alert.alert(
-                        'No Balance',
-                        'You have no USDC on Arbitrum to deposit.',
-                        [{ text: 'OK' }],
-                      );
-                      return;
-                    }
-
-                    // Use depositAmount if provided, otherwise use full balance
-                    const depositAmountToUse =
-                      depositAmount && depositAmount.trim() !== ''
-                        ? depositAmount.trim()
-                        : balanceString;
-
-                    // Validate deposit amount
-                    const depositAmountNum =
-                      Number.parseFloat(depositAmountToUse);
-                    const balanceNum = Number.parseFloat(balanceString);
-                    if (
-                      Number.isNaN(depositAmountNum) ||
-                      depositAmountNum <= 0
-                    ) {
-                      Alert.alert(
-                        'Invalid Amount',
-                        'Please enter a valid deposit amount.',
-                        [{ text: 'OK' }],
-                      );
-                      return;
-                    }
-                    if (depositAmountNum > balanceNum) {
-                      Alert.alert(
-                        'Insufficient Balance',
-                        `You only have ${balanceString} USDC available.`,
-                        [{ text: 'OK' }],
-                      );
-                      return;
-                    }
-
-                    // Show confirmation alert with deposit amount
-                    Alert.alert(
-                      'Confirm Deposit',
-                      `Deposit ${depositAmountToUse} USDC to Perps?`,
-                      [
-                        {
-                          text: 'Cancel',
-                          style: 'cancel',
-                        },
-                        {
-                          text: 'Deposit',
-                          onPress: async () => {
-                            try {
-                              // Format amount to 2 decimal places for confirmation screen
-                              const amountFiat = new BigNumber(
-                                depositAmountToUse,
-                              )
-                                .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-                                .toString(10);
-
-                              // Navigate to confirmation screen first (same pattern as normal deposit flow)
-                              // Pass amount to prefill the confirmation screen
-                              navigateToConfirmation({
-                                stack: Routes.PERPS.ROOT,
-                                amount: amountFiat,
-                              });
-
-                              // Use depositWithConfirmation to handle the deposit flow
-                              // This will create the transaction and show the confirmation screen
-                              // The confirmation screen will prefill with the amount from route params
-                              // and update the transaction amount when the user confirms
-                              await depositWithConfirmation(amountFiat);
-                            } catch (error) {
-                              Alert.alert(
-                                'Deposit Failed',
-                                error instanceof Error
-                                  ? error.message
-                                  : String(error),
-                                [{ text: 'OK' }],
-                              );
-                            }
-                          },
-                        },
-                      ],
-                    );
-                  } catch (error) {
-                    Alert.alert(
-                      'Deposit Failed',
-                      error instanceof Error ? error.message : String(error),
-                      [{ text: 'OK' }],
-                    );
-                  }
-                }}
-                disabled={!selectedToken}
-                testID="perps-order-deposit-button"
-              />
-            </View>
 
             {/* Combined TP/SL row - Hidden when modifying existing position */}
             {!hideTPSL && (

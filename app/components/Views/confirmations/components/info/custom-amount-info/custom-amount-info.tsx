@@ -75,6 +75,11 @@ export interface CustomAmountInfoProps {
   overrideContent?: (amountHuman: string) => ReactNode;
   defaultValue?: string;
   minimalView?: boolean;
+  /**
+   * If true, skips navigation after transaction confirmation.
+   * Useful when the confirmation screen is used as a modal and should stay on the current screen.
+   */
+  skipNavigation?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -87,6 +92,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     preferredToken,
     defaultValue,
     minimalView = true,
+    skipNavigation = false,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -100,6 +106,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
+
+    const buttonLabel = useButtonLabel();
 
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
@@ -186,7 +194,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && !isNativePayToken}
             />
           )}
-          {minimalView && (
+          {minimalView && buttonLabel !== 'Add funds' && (
             <Box>
               <Button
                 label="Confirm"
@@ -205,7 +213,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             </Box>
           )}
           {!hasTokens && <BuySection />}
-          {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
+          {!isKeyboardVisible && (
+            <ConfirmButton
+              alertTitle={alertTitle}
+              skipNavigation={skipNavigation}
+            />
+          )}
         </Box>
       </Box>
     );
@@ -286,11 +299,15 @@ function BuySection() {
 
 function ConfirmButton({
   alertTitle,
-}: Readonly<{ alertTitle: string | undefined }>) {
+  skipNavigation,
+}: Readonly<{
+  alertTitle: string | undefined;
+  skipNavigation?: boolean;
+}>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useTransactionConfirm();
+  const { onConfirm } = useTransactionConfirm({ skipNavigation });
   const disabled = hasBlockingAlerts || isLoading;
   const buttonLabel = useButtonLabel();
 
