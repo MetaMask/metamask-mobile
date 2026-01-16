@@ -1,13 +1,33 @@
-# Environment Configuration Management
+# Environment Configuration Management (MVP)
 
-This directory contains YAML configuration files for different build environments (prod, rc, exp).
+This directory contains YAML configuration files for different build environments.
+
+## MVP Scope
+
+This is a **minimal viable product** to start the migration to the new configuration structure. It includes:
+
+- ✅ Base configuration (`base.yml`) with shared values
+- ✅ Two example environments: `prod` and `rc`
+- ✅ Simple merge script (`scripts/merge-config.js`)
+- ✅ Basic structure that can be extended
+
+**Not included in MVP** (will be added during migration):
+- ❌ Other environments (exp, beta, test, dev, e2e)
+- ❌ Build type separation (main vs flask)
+- ❌ Code fencing configuration
+- ❌ GitHub Actions workflow integration
+- ❌ Secret management helpers
 
 ## Structure
 
-- `base.yml` - Common configuration shared across all environments
-- `prod/config.yml` - Production-specific overrides
-- `rc/config.yml` - Release Candidate-specific overrides  
-- `exp/config.yml` - Experimental-specific overrides
+```
+build/environments/
+├── base.yml              # Common config shared by all environments
+├── prod/
+│   └── config.yml       # Production-specific overrides
+└── rc/
+    └── config.yml       # Release Candidate-specific overrides
+```
 
 ## How It Works
 
@@ -30,31 +50,29 @@ node scripts/merge-config.js prod
 
 This outputs the merged JSON configuration.
 
-### In GitHub Actions
+### Testing locally
 
-The `.github/workflows/build.yml` workflow automatically:
-1. Loads and merges the configuration for the specified environment
-2. Sets non-secret environment variables (servers, features)
-3. Maps secrets to GitHub secrets (requires secrets to be configured in GitHub environment settings)
+You can test the merge script to see how configurations combine:
 
-## Secret Management
+```bash
+# Test production config
+node scripts/merge-config.js prod | jq
 
-**Important**: GitHub Actions doesn't allow dynamic secret access for security reasons. Secrets must be:
+# Test RC config
+node scripts/merge-config.js rc | jq
+```
 
-1. Configured in GitHub repository/environment settings
-2. Explicitly referenced in the workflow using `${{ secrets.SECRET_NAME }}`
+## Next Steps (Migration)
 
-The configuration files map environment variable names to GitHub secret names. For example:
-- `MM_SENTRY_DSN: "MM_SENTRY_DSN"` means the env var `MM_SENTRY_DSN` should use the GitHub secret `MM_SENTRY_DSN`
-
-To use secrets in the workflow, you'll need to either:
-- Explicitly list each secret in the workflow file
-- Use a composite action that handles the mapping
-- Configure secrets in the GitHub environment and access them directly
+1. **Add more environments**: Create `exp`, `beta`, `test`, `dev`, `e2e` configs
+2. **Separate build types**: Add `build-types/` directory for main vs flask
+3. **Add combinations**: Create `combinations/` for build-type + environment specific configs
+4. **Integrate with workflows**: Update GitHub Actions to use merged configs
+5. **Add code fencing**: Move code fencing config from `metro.transform.js` to YAML
 
 ## Benefits
 
 - **DRY**: Shared configuration defined once in `base.yml`
 - **Maintainable**: Update base.yml to change all environments
 - **Clear**: Each env config only shows what's different
-- **Scalable**: Easy to add new environments
+- **Scalable**: Easy to add new environments during migration

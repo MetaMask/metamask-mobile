@@ -1,5 +1,7 @@
 # Base configuration shared across all environments
 # Environment-specific configs will inherit and override as needed
+#
+# MVP: This is the minimal starting point. More configs will be added during migration.
 
 # Server URLs (same for all environments)
 servers:

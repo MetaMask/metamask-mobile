@@ -1,4 +1,5 @@
-# Extends base.yml - only define what's different
+# Release Candidate environment configuration
+# Extends base.yml - only defines what's different from base
 
 environment:
   name: rc
