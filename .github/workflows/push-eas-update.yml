@@ -229,7 +229,7 @@ jobs:
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
-      - name: Checkout target commit
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
           ref: main
