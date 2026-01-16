@@ -39,6 +39,15 @@ safe_rm() {
   fi
 }
 
+# Safe delete directory: only removes directories inside RUNWAY_DIR
+safe_rm_dir() {
+  local dir="$1"
+  # Only delete if directory exists and path starts with RUNWAY_DIR
+  if [[ -n "$dir" && -d "$dir" && "$dir" == "$RUNWAY_DIR"/* ]]; then
+    rm -rf "$dir"
+  fi
+}
+
 # Cleanup on exit (error or interrupt)
 cleanup() {
   safe_rm "$ZIP_PATH"
@@ -99,8 +108,10 @@ download_latest_app() {
     .data[] | 
     select(.ciBuild.buildStatus == "success") | 
     select(.additionalArtifacts | length > 0) |
-    select(.additionalArtifacts[0].fileName | endswith(".zip")) |
-    "\(.id)|\(.additionalArtifacts[0].fileName)|\(.ciBuild.buildIdentifier)"
+    select(.additionalArtifacts | map(.fileName) | any(endswith(".zip"))) |
+    . as $build |
+    ($build.additionalArtifacts | map(select(.fileName | endswith(".zip"))) | first | .fileName) as $zipFile |
+    "\($build.id)|\($zipFile)|\($build.ciBuild.buildIdentifier)"
   ' | head -1 || true)
   
   if [[ -z "$BUILD_INFO" ]]; then
@@ -156,6 +167,21 @@ download_latest_app() {
   fi
   
   EXTRACTED_APP_PATH="$RUNWAY_DIR/$APP_NAME"
+  
+  # Remove old .app bundles (keep only the new one)
+  echo -e "${BLUE}Removing old app bundles...${NC}"
+  while IFS= read -r old_app; do
+    if [[ -n "$old_app" && "$old_app" != "$EXTRACTED_APP_PATH" ]]; then
+      echo -e "${YELLOW}  Removing: $(basename "$old_app")${NC}"
+      safe_rm_dir "$old_app"
+    fi
+  done < <(find "$RUNWAY_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null)
+  
+  # Remove existing app with same name (will be overwritten)
+  if [[ -d "$EXTRACTED_APP_PATH" ]]; then
+    echo -e "${YELLOW}  Overwriting: $APP_NAME${NC}"
+    safe_rm_dir "$EXTRACTED_APP_PATH"
+  fi
   
   echo -e "${BLUE}Extracting to $APP_NAME...${NC}"
   mkdir -p "$EXTRACTED_APP_PATH"
