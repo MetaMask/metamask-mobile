@@ -32,8 +32,12 @@ jest.mock('react-native-svg', () => {
       children?: React.ReactNode;
       x?: number;
       y?: number;
+      textAnchor?: string;
     }) => (
-      <Text testID="svg-text" accessibilityLabel={`text-at-${props.x}`}>
+      <Text
+        testID="svg-text"
+        accessibilityLabel={`text-at-${props.x}-anchor-${props.textAnchor}`}
+      >
         {children}
       </Text>
     ),
@@ -317,6 +321,111 @@ describe('ChartTooltip', () => {
 
       const circleElements = getAllByTestId('svg-circle');
       expect(circleElements.length).toBe(2);
+    });
+  });
+
+  describe('Timestamp Edge Positioning', () => {
+    // chartWidth=300, contentInset.left=10, contentInset.right=80
+    // chartDataRight = 300 - 80 = 220
+    // TIMESTAMP_TEXT_HALF_WIDTH = 75
+    // Near left edge: xPos < 10 + 75 = 85
+    // Near right edge: xPos > 220 - 75 = 145
+    // Middle: 85 <= xPos <= 145
+
+    it('positions timestamp at left edge with start anchor when near left boundary', () => {
+      const leftEdgeXFunction = () => 50; // xPos < 85 (near left edge)
+
+      const { getAllByTestId } = render(
+        <ChartTooltip
+          {...defaultProps}
+          x={leftEdgeXFunction}
+          activeIndex={0}
+        />,
+      );
+
+      const textElements = getAllByTestId('svg-text');
+      const timestampElement = textElements[0];
+
+      // contentInset.left = 10, anchor should be 'start'
+      expect(timestampElement.props.accessibilityLabel).toBe(
+        'text-at-10-anchor-start',
+      );
+    });
+
+    it('positions timestamp at right edge with end anchor when near right boundary', () => {
+      const rightEdgeXFunction = () => 180; // xPos > 145 (near right edge)
+
+      const { getAllByTestId } = render(
+        <ChartTooltip
+          {...defaultProps}
+          x={rightEdgeXFunction}
+          activeIndex={0}
+        />,
+      );
+
+      const textElements = getAllByTestId('svg-text');
+      const timestampElement = textElements[0];
+
+      // chartDataRight = 220, anchor should be 'end'
+      expect(timestampElement.props.accessibilityLabel).toBe(
+        'text-at-220-anchor-end',
+      );
+    });
+
+    it('positions timestamp at xPos with middle anchor when in center of chart', () => {
+      const middleXFunction = () => 120; // 85 <= xPos <= 145 (middle)
+
+      const { getAllByTestId } = render(
+        <ChartTooltip {...defaultProps} x={middleXFunction} activeIndex={0} />,
+      );
+
+      const textElements = getAllByTestId('svg-text');
+      const timestampElement = textElements[0];
+
+      // xPos = 120, anchor should be 'middle'
+      expect(timestampElement.props.accessibilityLabel).toBe(
+        'text-at-120-anchor-middle',
+      );
+    });
+
+    it('positions timestamp at exact left boundary threshold', () => {
+      // xPos = 85 is exactly at the threshold (not < 85), so should be middle
+      const boundaryXFunction = () => 85;
+
+      const { getAllByTestId } = render(
+        <ChartTooltip
+          {...defaultProps}
+          x={boundaryXFunction}
+          activeIndex={0}
+        />,
+      );
+
+      const textElements = getAllByTestId('svg-text');
+      const timestampElement = textElements[0];
+
+      expect(timestampElement.props.accessibilityLabel).toBe(
+        'text-at-85-anchor-middle',
+      );
+    });
+
+    it('positions timestamp at exact right boundary threshold', () => {
+      // xPos = 145 is exactly at the threshold (not > 145), so should be middle
+      const boundaryXFunction = () => 145;
+
+      const { getAllByTestId } = render(
+        <ChartTooltip
+          {...defaultProps}
+          x={boundaryXFunction}
+          activeIndex={0}
+        />,
+      );
+
+      const textElements = getAllByTestId('svg-text');
+      const timestampElement = textElements[0];
+
+      expect(timestampElement.props.accessibilityLabel).toBe(
+        'text-at-145-anchor-middle',
+      );
     });
   });
 });
