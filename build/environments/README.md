@@ -1,78 +1,108 @@
-# Environment Configuration Management (MVP)
+# Environment Configuration Management
 
-This directory contains YAML configuration files for different build environments.
-
-## MVP Scope
-
-This is a **minimal viable product** to start the migration to the new configuration structure. It includes:
-
-- ✅ Base configuration (`base.yml`) with shared values
-- ✅ Two example environments: `prod` and `rc`
-- ✅ Simple merge script (`scripts/merge-config.js`)
-- ✅ Basic structure that can be extended
-
-**Not included in MVP** (will be added during migration):
-- ❌ Other environments (exp, beta, test, dev, e2e)
-- ❌ Build type separation (main vs flask)
-- ❌ Code fencing configuration
-- ❌ GitHub Actions workflow integration
-- ❌ Secret management helpers
+This directory contains YAML configuration files for different build environments and build types using a hierarchical inheritance system.
 
 ## Structure
 
 ```
 build/environments/
-├── base.yml              # Common config shared by all environments
-├── prod/
-│   └── config.yml       # Production-specific overrides
-└── rc/
-    └── config.yml       # Release Candidate-specific overrides
+├── base.yml                    # Universal defaults (servers, common features)
+├── build-types/
+│   ├── main.yml               # Common for all main builds (code fencing, OAuth)
+│   └── flask.yml              # Common for all flask builds (code fencing, OAuth)
+├── environments/
+│   ├── prod.yml               # Production environment config
+│   ├── beta.yml               # Beta environment config
+│   ├── rc.yml                 # Release Candidate config
+│   ├── test.yml               # Test environment config
+│   ├── exp.yml                # Experimental config
+│   ├── dev.yml                # Development config
+│   └── e2e.yml                # E2E config
+└── combinations/
+    ├── main-prod.yml          # Main + Production specific
+    ├── main-beta.yml
+    ├── main-rc.yml
+    ├── main-test.yml
+    ├── main-exp.yml
+    ├── main-dev.yml
+    ├── main-e2e.yml
+    ├── flask-prod.yml
+    ├── flask-rc.yml
+    ├── flask-test.yml
+    ├── flask-dev.yml
+    └── flask-e2e.yml
 ```
 
 ## How It Works
 
-1. **Base Configuration**: `base.yml` contains all shared configuration (servers, features, common secrets)
-2. **Environment Overrides**: Each environment directory contains a `config.yml` that only defines what's different
-3. **Merging**: The `scripts/merge-config.js` script merges base.yml with the environment-specific config.yml
+The configuration system uses hierarchical inheritance:
+
+1. **Base Configuration** (`base.yml`) - Universal defaults shared by ALL builds
+2. **Build Type** (`build-types/{buildType}.yml`) - Common config for all builds of a type (main/flask)
+3. **Environment** (`environments/{environment}.yml`) - Common config for all builds in an environment
+4. **Combination** (`combinations/{buildType}-{environment}.yml`) - Specific overrides for the exact combination
+
+Configs are merged in order, with later configs overriding earlier ones.
 
 ## Usage
 
 ### Merge configurations
 
 ```bash
-node scripts/merge-config.js <environment>
+node scripts/merge-config.js <buildType> <environment>
 ```
 
-Example:
+Examples:
 ```bash
-node scripts/merge-config.js prod
+# Main production build
+node scripts/merge-config.js main prod
+
+# Flask RC build
+node scripts/merge-config.js flask rc
+
+# Main experimental build
+node scripts/merge-config.js main exp
 ```
 
-This outputs the merged JSON configuration.
+This outputs the merged JSON configuration with all layers combined.
 
-### Testing locally
+### In GitHub Actions
 
-You can test the merge script to see how configurations combine:
+The `.github/workflows/build.yml` workflow automatically:
+1. Loads and merges the configuration for the specified build type + environment
+2. Sets non-secret environment variables (servers, features)
+3. Maps secrets to GitHub secrets (requires secrets to be configured in GitHub environment settings)
+4. Sets code fencing features for metro.transform.js
 
-```bash
-# Test production config
-node scripts/merge-config.js prod | jq
+## Code Fencing
 
-# Test RC config
-node scripts/merge-config.js rc | jq
-```
+Code fencing configuration is defined in build-type configs (`build-types/main.yml`, `build-types/flask.yml`). Each combination file specifies which feature set to use via `active_features`.
 
-## Next Steps (Migration)
+The `metro.transform.js` file loads features from the merged config, falling back to hardcoded logic if config loading fails.
 
-1. **Add more environments**: Create `exp`, `beta`, `test`, `dev`, `e2e` configs
-2. **Separate build types**: Add `build-types/` directory for main vs flask
-3. **Add combinations**: Create `combinations/` for build-type + environment specific configs
-4. **Integrate with workflows**: Update GitHub Actions to use merged configs
-5. **Add code fencing**: Move code fencing config from `metro.transform.js` to YAML
+## Secret Management
+
+**Important**: GitHub Actions doesn't allow dynamic secret access for security reasons. Secrets must be:
+
+1. Configured in GitHub repository/environment settings
+2. Explicitly referenced in the workflow using `${{ secrets.SECRET_NAME }}`
+
+The configuration files map environment variable names to GitHub secret names. For example:
+- `MM_SENTRY_DSN: "MM_SENTRY_DSN"` means the env var `MM_SENTRY_DSN` should use the GitHub secret `MM_SENTRY_DSN`
 
 ## Benefits
 
-- **DRY**: Shared configuration defined once in `base.yml`
+- **Hierarchical inheritance**: base → build-type → environment → combination
+- **DRY**: Shared configuration defined once
 - **Maintainable**: Update base.yml to change all environments
-- **Clear**: Each env config only shows what's different
-- **Scalable**: Easy to add new environments during migration
+- **Clear**: Each config only shows what's different
+- **Scalable**: Easy to add new environments or build types
+- **Code fencing centralized**: All feature sets defined in build-type configs
+- **Single source of truth**: All environment/build combinations in one place
+
+## Migration Benefits
+
+- Removes remapping logic from `build.sh`
+- Centralizes code fencing configuration
+- Single source of truth for all environment/build combinations
+- Easy to add new combinations (e.g., `main-staging.yml`)

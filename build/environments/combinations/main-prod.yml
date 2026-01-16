@@ -1,0 +1,24 @@
+# Specific configuration for main-prod combination
+# Only defines what's unique to this combination
+
+build:
+  android:
+    keystore: "mainProd"
+    signing_config: "mainProd"
+
+  ios:
+    scheme: "MetaMask"
+    bundle_id: "io.metamask"
+
+# OAuth - Production (Main)
+secrets:
+  IOS_GOOGLE_CLIENT_ID: "IOS_GOOGLE_CLIENT_ID"
+  IOS_GOOGLE_REDIRECT_URI: "IOS_GOOGLE_REDIRECT_URI"
+  ANDROID_APPLE_CLIENT_ID: "ANDROID_APPLE_CLIENT_ID"
+  ANDROID_GOOGLE_CLIENT_ID: "ANDROID_GOOGLE_CLIENT_ID"
+  ANDROID_GOOGLE_SERVER_CLIENT_ID: "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"
+
+# Code fencing - use base features for main-prod
+code_fencing:
+  active_features: "base_features"  # References main.yml base_features

@@ -1,0 +1,16 @@
+build:
+  android:
+    keystore: "mainExp"
+    signing_config: "mainExp"
+
+secrets:
+  IOS_GOOGLE_CLIENT_ID: "MAIN_IOS_GOOGLE_CLIENT_ID_UAT"
+  IOS_GOOGLE_REDIRECT_URI: "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT"
+  ANDROID_APPLE_CLIENT_ID: "MAIN_ANDROID_APPLE_CLIENT_ID_UAT"
+  ANDROID_GOOGLE_CLIENT_ID: "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT"
+  ANDROID_GOOGLE_SERVER_CLIENT_ID: "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
+  MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_UAT"
+
+# Exp uses experimental features (includes 'experimental' feature)
+code_fencing:
+  active_features: "experimental_features"

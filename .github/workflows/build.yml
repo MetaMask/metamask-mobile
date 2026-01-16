@@ -1,0 +1,158 @@
+name: Build Mobile App
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        required: true
+        type: choice
+        options: [main, flask]
+        default: main
+      environment:
+        required: true
+        type: string
+        description: 'Environment (prod, beta, rc, test, exp, dev, e2e)'
+      platform:
+        required: true
+        type: choice
+        options: [android, ios, both]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        required: true
+        type: choice
+        options: [main, flask]
+        default: main
+      environment:
+        required: true
+        type: choice
+        options: [prod, beta, rc, test, exp, dev, e2e]
+      platform:
+        required: true
+        type: choice
+        options: [android, ios, both]
+
+jobs:
+  load-environment-config:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load-config.outputs.config }}
+      requires_approval: ${{ steps.load-config.outputs.requires_approval }}
+      github_environment: ${{ steps.load-config.outputs.github_environment }}
+      secrets_mapping: ${{ steps.load-config.outputs.secrets_mapping }}
+      code_fencing_features: ${{ steps.load-config.outputs.code_fencing_features }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Merge and load environment configuration
+        id: load-config
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { mergeConfigs } = require('./scripts/merge-config.js');
+            const buildType = '${{ inputs.build_type }}';
+            const environment = '${{ inputs.environment }}';
+            const config = mergeConfigs(buildType, environment);
+
+            // Extract secrets mapping
+            const secretsMapping = JSON.stringify(config.secrets || {});
+
+            // Extract code fencing features
+            const codeFencingFeatures = JSON.stringify(
+              config.code_fencing?.active_features || []
+            );
+
+            return {
+              config: JSON.stringify(config),
+              requires_approval: config.environment.requires_approval,
+              github_environment: config.environment.github_environment,
+              secrets_mapping: secretsMapping,
+              code_fencing_features: codeFencingFeatures
+            };
+
+  approval:
+    if: needs.load-environment-config.outputs.requires_approval == 'true'
+    needs: load-environment-config
+    runs-on: ubuntu-latest
+    environment: ${{ needs.load-environment-config.outputs.github_environment }}
+    steps:
+      - name: Wait for approval
+        run: echo "Approval required for ${{ inputs.build_type }}-${{ inputs.environment }} builds"
+
+  build:
+    needs:
+      - load-environment-config
+      - approval
+    if: always() && (needs.approval.result == 'success' || needs.approval.result == 'skipped')
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    environment: ${{ needs.load-environment-config.outputs.github_environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Setup project
+        run: yarn setup:github-ci
+
+      - name: Apply environment configuration
+        id: apply-config
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { mergeConfigs } = require('./scripts/merge-config.js');
+            const buildType = '${{ inputs.build_type }}';
+            const environment = '${{ inputs.environment }}';
+            const config = mergeConfigs(buildType, environment);
+
+            // Set non-secret environment variables from merged config
+            // Server URLs
+            Object.entries(config.servers || {}).forEach(([key, value]) => {
+              const envVar = key.toUpperCase();
+              core.exportVariable(envVar, value);
+            });
+
+            // Feature flags
+            Object.entries(config.features || {}).forEach(([key, value]) => {
+              const envVar = key.toUpperCase();
+              core.exportVariable(envVar, value.toString());
+            });
+
+            // Build configuration
+            core.exportVariable('METAMASK_ENVIRONMENT', config.environment.name);
+            core.exportVariable('METAMASK_BUILD_TYPE', buildType);
+
+            // Code fencing features (for metro.transform.js)
+            if (config.code_fencing?.active_features) {
+              core.exportVariable(
+                'CODE_FENCING_FEATURES',
+                JSON.stringify(config.code_fencing.active_features)
+              );
+            }
+
+      - name: Set secrets as environment variables
+        env:
+          CONFIG_SECRETS: ${{ needs.load-environment-config.outputs.secrets_mapping }}
+        run: |
+          node scripts/set-secrets-from-config.js "$CONFIG_SECRETS"
+
+      - name: Build ${{ matrix.platform }}
+        run: |
+          ./scripts/build.sh ${{ matrix.platform }} ${{ inputs.build_type }} ${{ inputs.environment }}

@@ -1,7 +1,5 @@
-# Base configuration shared across all environments
-# Environment-specific configs will inherit and override as needed
-#
-# MVP: This is the minimal starting point. More configs will be added during migration.
+# Universal configuration shared by ALL builds
+# This is the foundation - everything inherits from here
 
 # Server URLs (same for all environments)
 servers:
@@ -13,25 +11,13 @@ servers:
   rewards_api: "https://rewards.api.cx.metamask.io"
   decoding_api: "https://signature-insights.api.cx.metamask.io"
 
-# Build configuration (same for all)
-build:
-  android:
-    package_name: "io.metamask"
-  ios:
-    scheme: "MetaMask"
-    bundle_id: "io.metamask"
-    export_method: "enterprise"
-
-# Feature flags (same for all)
+# Common feature flags (can be overridden per environment)
 features:
-  bridge_use_dev_apis: false
-  ramp_internal_build: false
   seedless_onboarding_enabled: true
   mm_notifications_ui_enabled: true
   mm_security_alerts_api_enabled: true
 
-# Common secrets that are the same across environments
-# These map to the same GitHub Secret names
+# Common secrets that are identical across all builds
 common_secrets:
   MM_SENTRY_AUTH_TOKEN: "MM_SENTRY_AUTH_TOKEN"
   GOOGLE_SERVICES_B64_IOS: "GOOGLE_SERVICES_B64_IOS"
@@ -56,3 +42,12 @@ common_secrets:
   QUICKNODE_MONAD_URL: "QUICKNODE_MONAD_URL"
   QUICKNODE_OPTIMISM_URL: "QUICKNODE_OPTIMISM_URL"
   QUICKNODE_POLYGON_URL: "QUICKNODE_POLYGON_URL"
+
+# Common build settings
+build:
+  android:
+    package_name: "io.metamask"
+  ios:
+    scheme: "MetaMask"
+    bundle_id: "io.metamask"
+    export_method: "enterprise"

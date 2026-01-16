@@ -1,0 +1,28 @@
+# Configuration common to ALL production builds (main-prod, flask-prod)
+
+environment:
+  name: production
+  display_name: Production
+  requires_approval: true
+  approval_team: mobile-platform
+  github_environment: build-production
+
+# Production-specific feature flags
+features:
+  bridge_use_dev_apis: false
+  ramp_internal_build: false
+
+# Production-specific secrets (extends common_secrets from base)
+# These map GitHub Secret names to environment variable names
+secrets:
+  # Segment/Analytics - Production
+  SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY"
+  SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL"
+  SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID"
+  SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT"
+
+  # Sentry
+  MM_SENTRY_DSN: "MM_SENTRY_DSN"
+
+  # Other production-specific
+  MM_BRANCH_KEY_LIVE: "MM_BRANCH_KEY_LIVE"
