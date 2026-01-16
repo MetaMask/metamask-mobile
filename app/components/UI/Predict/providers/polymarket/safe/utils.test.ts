@@ -479,20 +479,15 @@ describe('safe utils', () => {
       expect(mockSignTypedMessage).toHaveBeenCalled();
     });
 
-    it('handles error gracefully', async () => {
+    it('throws error when signing fails', async () => {
       const signer = buildSigner();
       mockSignTypedMessage.mockRejectedValue(new Error('Signature rejected'));
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {
-          // Mock implementation to suppress console output
-        });
 
-      const result = await getDeployProxyWalletTransaction({ signer });
-
-      expect(result).toBeUndefined();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-      consoleErrorSpy.mockRestore();
+      await expect(
+        getDeployProxyWalletTransaction({ signer }),
+      ).rejects.toThrow(
+        'Failed to generate deploy proxy wallet transaction: Signature rejected',
+      );
     });
   });
 
@@ -984,6 +979,30 @@ describe('safe utils', () => {
 
       // Then signer's signPersonalMessage is called
       expect(mockSignPersonalMessage).toHaveBeenCalled();
+    });
+
+    it('throws error when signing fails', async () => {
+      // Given a signer and signing failure
+      const signer = buildSigner();
+
+      mockNetworkController();
+      mockQuery
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+        )
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockRejectedValue(
+        new Error('Signature rejected'),
+      );
+
+      // When generating allowances transaction, Then it should throw
+      await expect(
+        getProxyWalletAllowancesTransaction({ signer }),
+      ).rejects.toThrow(
+        'Failed to generate proxy wallet allowances transaction: Signature rejected',
+      );
     });
   });
 

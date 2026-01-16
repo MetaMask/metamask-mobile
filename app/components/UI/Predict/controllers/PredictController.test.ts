@@ -2590,13 +2590,13 @@ describe('PredictController', () => {
         {
           params: {
             to: '0xToken' as `0x${string}`,
-            data: '0xapprove' as `0x${string}`,
+            data: '0xapprove1234' as `0x${string}`,
           },
         },
         {
           params: {
             to: '0xSafe' as `0x${string}`,
-            data: '0xdeposit' as `0x${string}`,
+            data: '0xdeposit1234' as `0x${string}`,
           },
         },
       ];
@@ -2718,7 +2718,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -2751,7 +2751,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -2793,7 +2793,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -2827,7 +2827,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -2857,7 +2857,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -2931,7 +2931,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -2949,6 +2949,137 @@ describe('PredictController', () => {
       });
     });
 
+    it('throw error when transaction data is too short', async () => {
+      // Given prepareDeposit returns transaction with data shorter than minimum (10 chars)
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              data: '0x1234' as `0x${string}`, // Only 6 chars, less than minimum 10
+            },
+            type: 'contractInteraction',
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error about invalid transaction data
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction data: transaction at index 0 has malformed or insufficient data (length: 6)',
+        );
+
+        // And addTransactionBatch should not be called
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('throw error when transaction data is missing', async () => {
+      // Given prepareDeposit returns transaction with missing data
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken' as `0x${string}`,
+              // data is missing
+            },
+            type: 'contractInteraction',
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error about invalid transaction data
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction data: transaction at index 0 has malformed or insufficient data (length: 0)',
+        );
+
+        // And addTransactionBatch should not be called
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('throw error when transaction to address is missing', async () => {
+      // Given prepareDeposit returns transaction with missing to address
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              data: '0xapprove1234' as `0x${string}`,
+              // to is missing
+            },
+            type: 'contractInteraction',
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error about missing to address
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          "Invalid transaction: transaction at index 0 is missing 'to' address",
+        );
+
+        // And addTransactionBatch should not be called
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('validates all transactions in batch and fails on second invalid transaction', async () => {
+      // Given prepareDeposit returns batch with second transaction having invalid data
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xToken1' as `0x${string}`,
+              data: '0xvaliddata1234' as `0x${string}`, // Valid (14 chars)
+            },
+            type: 'contractInteraction',
+          },
+          {
+            params: {
+              to: '0xToken2' as `0x${string}`,
+              data: '0x12' as `0x${string}`, // Invalid (4 chars)
+            },
+            type: 'contractInteraction',
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        // When calling depositWithConfirmation
+        // Then it should throw an error about the second invalid transaction
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction data: transaction at index 1 has malformed or insufficient data (length: 4)',
+        );
+
+        // And addTransactionBatch should not be called
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
     // Note: Tests for NetworkController validation errors require mocking
     // at the module level, which is complex with the current test setup.
     // These error paths are indirectly tested through integration tests.
@@ -2960,7 +3091,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -2987,7 +3118,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -3118,7 +3249,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],
@@ -3155,7 +3286,7 @@ describe('PredictController', () => {
           {
             params: {
               to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              data: '0xapprove1234' as `0x${string}`,
             },
           },
         ],

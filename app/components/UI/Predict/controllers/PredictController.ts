@@ -1827,6 +1827,35 @@ export class PredictController extends BaseController<
         throw new Error('No transactions returned from deposit preparation');
       }
 
+      // Validate all transactions have proper data before submission
+      // Minimum valid hex data is 10 characters (0x + 4 byte function selector)
+      const MIN_VALID_DATA_LENGTH = 10;
+      for (let i = 0; i < transactions.length; i++) {
+        const tx = transactions[i];
+        if (!tx.params?.data || tx.params.data.length < MIN_VALID_DATA_LENGTH) {
+          const dataLength = tx.params?.data?.length ?? 0;
+          Logger.error(
+            new Error(
+              `Invalid transaction data at index ${i}: data length ${dataLength} is less than minimum ${MIN_VALID_DATA_LENGTH}`,
+            ),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+              transactionType: tx.type,
+              dataLength,
+            }),
+          );
+          throw new Error(
+            `Invalid transaction data: transaction at index ${i} has malformed or insufficient data (length: ${dataLength})`,
+          );
+        }
+        if (!tx.params?.to) {
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} is missing 'to' address`,
+          );
+        }
+      }
+
       if (!chainId) {
         throw new Error('Chain ID not provided by deposit preparation');
       }

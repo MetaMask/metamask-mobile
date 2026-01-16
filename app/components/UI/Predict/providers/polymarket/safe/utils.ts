@@ -363,7 +363,23 @@ export const getDeployProxyWalletTransaction = async ({
   signer,
 }: {
   signer: Signer;
-}) => {
+}): Promise<{
+  params: { to: Hex; data: Hex };
+  type: TransactionType;
+}> => {
+  const errorContext: LoggerErrorOptions = {
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: 'polymarket',
+    },
+    context: {
+      name: 'safeUtils',
+      data: {
+        method: 'getDeployProxyWalletTransaction',
+      },
+    },
+  };
+
   try {
     const data = getDeployProxyWalletTypedData();
     const signature = await signer.signTypedMessage(
@@ -384,6 +400,13 @@ export const getDeployProxyWalletTransaction = async ({
       createSig,
     });
 
+    // Validate calldata before returning
+    if (!calldata || calldata.length < 10) {
+      throw new Error(
+        'Generated deploy proxy calldata is invalid or too short',
+      );
+    }
+
     return {
       params: {
         to: SAFE_FACTORY_ADDRESS as Hex,
@@ -392,22 +415,12 @@ export const getDeployProxyWalletTransaction = async ({
       type: TransactionType.contractInteraction,
     };
   } catch (error) {
-    console.error('Error creating proxy wallet', error);
-
     // Log to Sentry with proxy wallet deployment context (no user address)
-    const errorContext: LoggerErrorOptions = {
-      tags: {
-        feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        provider: 'polymarket',
-      },
-      context: {
-        name: 'safeUtils',
-        data: {
-          method: 'getDeployProxyWalletTransaction',
-        },
-      },
-    };
     Logger.error(error as Error, errorContext);
+
+    throw new Error(
+      `Failed to generate deploy proxy wallet transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
 };
 
@@ -568,21 +581,54 @@ export const getProxyWalletAllowancesTransaction = async ({
   signer,
 }: {
   signer: Signer;
-}) => {
-  const safeAddress = computeProxyAddress(signer.address);
-  const safeTxn = createAllowancesSafeTransaction();
-  const callData = await getSafeTransactionCallData({
-    signer,
-    safeAddress,
-    txn: safeTxn,
-  });
-  return {
-    params: {
-      to: safeAddress as Hex,
-      data: callData as Hex,
+}): Promise<{
+  params: { to: Hex; data: Hex };
+  type: TransactionType;
+}> => {
+  const errorContext: LoggerErrorOptions = {
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: 'polymarket',
     },
-    type: TransactionType.contractInteraction,
+    context: {
+      name: 'safeUtils',
+      data: {
+        method: 'getProxyWalletAllowancesTransaction',
+      },
+    },
   };
+
+  try {
+    const safeAddress = computeProxyAddress(signer.address);
+    const safeTxn = createAllowancesSafeTransaction();
+    const callData = await getSafeTransactionCallData({
+      signer,
+      safeAddress,
+      txn: safeTxn,
+    });
+
+    // Validate callData before returning
+    if (!callData || callData.length < 10) {
+      throw new Error(
+        'Generated allowances calldata is invalid or too short',
+      );
+    }
+
+    return {
+      params: {
+        to: safeAddress as Hex,
+        data: callData as Hex,
+      },
+      type: TransactionType.contractInteraction,
+    };
+  } catch (error) {
+    // Log to Sentry with allowances transaction context (no user address)
+    Logger.error(error as Error, errorContext);
+
+    throw new Error(
+      `Failed to generate proxy wallet allowances transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
+  }
 };
 
 export const hasAllowances = async ({ address }: { address: string }) => {
