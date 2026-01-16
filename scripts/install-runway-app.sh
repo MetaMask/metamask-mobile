@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -10,10 +10,41 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 BUNDLE_ID="io.metamask.MetaMask"
-RUNWAY_DIR="./runway-downloads"
+# Get the repo root directory (script is in scripts/, so go up one level)
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+readonly RUNWAY_DIR="$REPO_ROOT/runway-artifacts"
 RUNWAY_API_URL="https://app.runway.team/api/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=/builds"
+
+# Ensure script is run from the repo root
+if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
+  echo -e "${RED}❌ This script must be run from the repository root${NC}"
+  echo -e "${YELLOW}Current directory: $(pwd)${NC}"
+  echo -e "${YELLOW}Expected directory: $REPO_ROOT${NC}"
+  echo -e "${YELLOW}Run: cd $REPO_ROOT && ./scripts/install-runway-app.sh${NC}"
+  exit 1
+fi
 UNINSTALL=false
 SKIP_DOWNLOAD=false
+
+# Track files for cleanup
+ZIP_PATH=""
+
+# Safe delete: only removes files inside RUNWAY_DIR
+safe_rm() {
+  local file="$1"
+  # Only delete if file exists and path starts with RUNWAY_DIR
+  if [[ -n "$file" && -f "$file" && "$file" == "$RUNWAY_DIR"/* ]]; then
+    rm -f "$file"
+  fi
+}
+
+# Cleanup on exit (error or interrupt)
+cleanup() {
+  safe_rm "$ZIP_PATH"
+  safe_rm "$RUNWAY_DIR/runway-builds-debug.json"
+}
+trap cleanup EXIT
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -42,7 +73,7 @@ download_latest_app() {
   mkdir -p "$RUNWAY_DIR"
   
   echo -e "${BLUE}Fetching builds from Runway API...${NC}"
-  BUILDS_JSON=$(curl -s "$RUNWAY_API_URL")
+  BUILDS_JSON=$(curl -s --connect-timeout 10 "$RUNWAY_API_URL")
   
   if [ -z "$BUILDS_JSON" ]; then
     echo -e "${RED}❌ Failed to fetch builds from API${NC}"
@@ -70,9 +101,9 @@ download_latest_app() {
     select(.additionalArtifacts | length > 0) |
     select(.additionalArtifacts[0].fileName | endswith(".zip")) |
     "\(.id)|\(.additionalArtifacts[0].fileName)|\(.ciBuild.buildIdentifier)"
-  ' | head -1)
+  ' | head -1 || true)
   
-  if [ -z "$BUILD_INFO" ]; then
+  if [[ -z "$BUILD_INFO" ]]; then
     echo -e "${RED}❌ No successful builds with zip artifacts found${NC}"
     echo -e "${YELLOW}Check $RUNWAY_DIR/runway-builds-debug.json for details${NC}"
     exit 1
@@ -88,6 +119,12 @@ download_latest_app() {
     exit 1
   fi
   
+  # Validate BUILD_ID (should only contain alphanumeric, -, _, =)
+  if [[ -z "$BUILD_ID" || ! "$BUILD_ID" =~ ^[a-zA-Z0-9_=-]+$ ]]; then
+    echo -e "${RED}❌ Invalid build ID${NC}"
+    exit 1
+  fi
+  
   echo -e "${GREEN}✓ Found Build #$BUILD_IDENTIFIER${NC}"
   echo -e "${GREEN}  Artifact: $ARTIFACT_NAME${NC}"
   
@@ -98,11 +135,11 @@ download_latest_app() {
   ZIP_PATH="$RUNWAY_DIR/$ARTIFACT_NAME"
   
   echo -e "${BLUE}Downloading $ARTIFACT_NAME...${NC}"
-  HTTP_CODE=$(curl -L -w "%{http_code}" -o "$ZIP_PATH" "$DOWNLOAD_URL")
+  HTTP_CODE=$(curl -L --connect-timeout 10 --max-time 300 -w "%{http_code}" -o "$ZIP_PATH" "$DOWNLOAD_URL")
   
   if [ "$HTTP_CODE" -ne 200 ]; then
     echo -e "${RED}❌ Download failed with HTTP code: $HTTP_CODE${NC}"
-    rm -f "$ZIP_PATH"
+    safe_rm "$ZIP_PATH"
     exit 1
   fi
   
@@ -111,18 +148,25 @@ download_latest_app() {
   # Extract the .app bundle
   # The zip contains the contents of the .app, so we create the .app directory first
   APP_NAME="${ARTIFACT_NAME%.zip}"
-  APP_PATH="$RUNWAY_DIR/$APP_NAME"
+  
+  # Validate APP_NAME ends with .app
+  if [[ ! "$APP_NAME" =~ \.app$ ]]; then
+    echo -e "${RED}❌ Invalid app name (must end with .app): $APP_NAME${NC}"
+    exit 1
+  fi
+  
+  EXTRACTED_APP_PATH="$RUNWAY_DIR/$APP_NAME"
   
   echo -e "${BLUE}Extracting to $APP_NAME...${NC}"
-  mkdir -p "$APP_PATH"
-  ditto -x -k "$ZIP_PATH" "$APP_PATH"
+  mkdir -p "$EXTRACTED_APP_PATH"
+  ditto -x -k "$ZIP_PATH" "$EXTRACTED_APP_PATH"
   
   echo -e "${GREEN}✓ Successfully downloaded and extracted app!${NC}"
   
-  # Cleanup downloaded files
+  # Cleanup zip file (debug json cleaned by trap)
   echo -e "${BLUE}Cleaning up...${NC}"
-  rm -f "$ZIP_PATH"
-  rm -f "$RUNWAY_DIR/runway-builds-debug.json"
+  safe_rm "$ZIP_PATH"
+  ZIP_PATH=""  # Clear so trap doesn't try to delete again
 }
 
 # Run download unless explicitly skipped
@@ -144,7 +188,7 @@ fi
 echo -e "${GREEN}✓ Simulator is running:${NC}"
 echo "  $BOOTED_DEVICE"
 
-# Find the .app file with the highest version number in runway-downloads
+# Find the .app file with the highest version number in runway-artifacts
 APP_PATH=$(find "$RUNWAY_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null | sort -V | tail -1)
 
 if [ -z "$APP_PATH" ]; then
