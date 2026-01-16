@@ -126,7 +126,7 @@ jest.mock('../../utils/tokenUtils', () => ({
 
 describe('useSwapBridgeNavigation', () => {
   const mockChainId = '0x1' as Hex;
-  const mockLocation = SwapBridgeNavigationLocation.TabBar;
+  const mockLocation = SwapBridgeNavigationLocation.MainView;
   const mockSourcePage = 'test-source-page';
   const mockNativeAsset = {
     address: '0x0000000000000000000000000000000000000000',
@@ -1062,7 +1062,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TabBar,
+            location: SwapBridgeNavigationLocation.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1089,7 +1089,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenDetails,
+            location: SwapBridgeNavigationLocation.TokenView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1149,7 +1149,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TabBar,
+            location: SwapBridgeNavigationLocation.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1176,7 +1176,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenDetails,
+            location: SwapBridgeNavigationLocation.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockToken,
           }),

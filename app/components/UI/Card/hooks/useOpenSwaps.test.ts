@@ -273,7 +273,7 @@ describe('useOpenSwaps', () => {
 
   it('uses custom location and sourcePage when provided', () => {
     const customOptions = {
-      location: SwapBridgeNavigationLocation.TabBar,
+      location: SwapBridgeNavigationLocation.MainView,
       sourcePage: '/custom-page',
     };
 
