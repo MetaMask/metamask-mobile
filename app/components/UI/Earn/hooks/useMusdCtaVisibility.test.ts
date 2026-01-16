@@ -4,6 +4,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdCtaVisibility } from './useMusdCtaVisibility';
 import { useMusdBalance } from './useMusdBalance';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
+import { useMusdConversionEligibility } from './useMusdConversionEligibility';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
@@ -15,12 +16,15 @@ import {
   selectIsMusdGetBuyCtaEnabledFlag,
   selectMusdConversionCTATokens,
 } from '../selectors/featureFlags';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
+import { selectMusdConversionAssetDetailCtasSeen } from '../../../../reducers/user/selectors';
 import type { WildcardTokenList } from '../utils/wildcardTokenList';
 import type { TokenI } from '../../Tokens/types';
 import type { AssetType } from '../../../Views/confirmations/types/token';
 
 jest.mock('./useMusdBalance');
 jest.mock('./useMusdConversionTokens');
+jest.mock('./useMusdConversionEligibility');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
 jest.mock('../../Ramp/hooks/useRampTokens');
@@ -29,6 +33,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../selectors/featureFlags');
+jest.mock('../../../../selectors/assets/balances');
 
 import { useSelector } from 'react-redux';
 
@@ -49,8 +54,11 @@ const mockUseMusdConversionTokens =
   useMusdConversionTokens as jest.MockedFunction<
     typeof useMusdConversionTokens
   >;
+const mockUseMusdConversionEligibility =
+  useMusdConversionEligibility as jest.MockedFunction<
+    typeof useMusdConversionEligibility
+  >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
 describe('useMusdCtaVisibility', () => {
   const defaultNetworkInfo = {
     enabledNetworks: [],
@@ -102,6 +110,18 @@ describe('useMusdCtaVisibility', () => {
   let mockIsMusdConversionTokenListItemCtaEnabled = false;
   let mockIsMusdConversionAssetOverviewEnabled = false;
   let mockMusdConversionCtaTokens: WildcardTokenList = {};
+  let mockAccountBalance: {
+    walletId: string;
+    groupId: string;
+    totalBalanceInUserCurrency: number;
+    userCurrency: string;
+  } | null = {
+    walletId: 'test-wallet',
+    groupId: 'test-group',
+    totalBalanceInUserCurrency: 100,
+    userCurrency: 'USD',
+  };
+  let mockMusdConversionAssetDetailCtasSeen: Record<string, boolean> = {};
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -109,6 +129,14 @@ describe('useMusdCtaVisibility', () => {
     mockIsMusdConversionTokenListItemCtaEnabled = false;
     mockIsMusdConversionAssetOverviewEnabled = false;
     mockMusdConversionCtaTokens = {};
+    // Default to non-empty wallet
+    mockAccountBalance = {
+      walletId: 'test-wallet',
+      groupId: 'test-group',
+      totalBalanceInUserCurrency: 100,
+      userCurrency: 'USD',
+    };
+    mockMusdConversionAssetDetailCtasSeen = {};
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsMusdGetBuyCtaEnabledFlag) {
         return mockIsMusdCtaEnabled;
@@ -121,6 +149,12 @@ describe('useMusdCtaVisibility', () => {
       }
       if (selector === selectMusdConversionCTATokens) {
         return mockMusdConversionCtaTokens;
+      }
+      if (selector === selectAccountGroupBalanceForEmptyState) {
+        return mockAccountBalance;
+      }
+      if (selector === selectMusdConversionAssetDetailCtasSeen) {
+        return mockMusdConversionAssetDetailCtasSeen;
       }
       return undefined;
     });
@@ -140,6 +174,11 @@ describe('useMusdCtaVisibility', () => {
       isConversionToken: jest.fn(),
       isMusdSupportedOnChain: jest.fn(),
       getMusdOutputChainId: jest.fn(),
+    });
+    mockUseMusdConversionEligibility.mockReturnValue({
+      isEligible: true,
+      geolocation: 'US',
+      blockedCountries: [],
     });
   });
 
@@ -189,6 +228,13 @@ describe('useMusdCtaVisibility', () => {
 
       it('returns shouldShowCta true when feature flag is enabled and conditions are met', () => {
         mockIsMusdCtaEnabled = true;
+        // Set empty wallet to satisfy visibility condition
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
         mockUseNetworksByCustomNamespace.mockReturnValue({
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
@@ -255,6 +301,13 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta true when user has no MUSD balance and MUSD is buyable', () => {
+        // Set empty wallet to satisfy visibility condition
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
         mockUseMusdBalance.mockReturnValue({
           hasMusdBalanceOnAnyChain: false,
           balancesByChain: {},
@@ -320,6 +373,13 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta true when user has no MUSD on mainnet', () => {
+          // Set empty wallet to satisfy visibility condition
+          mockAccountBalance = {
+            walletId: 'test-wallet',
+            groupId: 'test-group',
+            totalBalanceInUserCurrency: 0,
+            userCurrency: 'USD',
+          };
           mockUseMusdBalance.mockReturnValue({
             hasMusdBalanceOnAnyChain: false,
             balancesByChain: {},
@@ -353,6 +413,13 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta true when user has MUSD on different chain but not mainnet', () => {
+          // Set empty wallet to satisfy visibility condition
+          mockAccountBalance = {
+            walletId: 'test-wallet',
+            groupId: 'test-group',
+            totalBalanceInUserCurrency: 0,
+            userCurrency: 'USD',
+          };
           mockUseMusdBalance.mockReturnValue({
             hasMusdBalanceOnAnyChain: true,
             balancesByChain: { [CHAIN_IDS.LINEA_MAINNET]: '0x1234' },
@@ -420,6 +487,13 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta true with network icon when no MUSD on Linea', () => {
+          // Set empty wallet to satisfy visibility condition
+          mockAccountBalance = {
+            walletId: 'test-wallet',
+            groupId: 'test-group',
+            totalBalanceInUserCurrency: 0,
+            userCurrency: 'USD',
+          };
           mockUseMusdBalance.mockReturnValue({
             hasMusdBalanceOnAnyChain: false,
             balancesByChain: {},
@@ -581,6 +655,13 @@ describe('useMusdCtaVisibility', () => {
 
     describe('multiple networks selected (not all)', () => {
       it('returns shouldShowCta true without network icon when multiple networks selected and no MUSD balance', () => {
+        // Set empty wallet to satisfy visibility condition
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
         mockUseNetworksByCustomNamespace.mockReturnValue({
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: false,
@@ -645,6 +726,13 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta true when MUSD buyable on at least one chain in all networks view', () => {
+        // Set empty wallet to satisfy visibility condition
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
         mockUseNetworksByCustomNamespace.mockReturnValue({
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
@@ -655,6 +743,104 @@ describe('useMusdCtaVisibility', () => {
             createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable
             createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable
           ],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(true);
+      });
+    });
+
+    describe('geo blocking', () => {
+      it('returns shouldShowCta false when user is geo-blocked in all networks view', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('returns shouldShowCta false when user is geo-blocked on single supported chain', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('returns shouldShowCta true when user is not geo-blocked', () => {
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: true,
+          geolocation: 'US',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
@@ -695,6 +881,117 @@ describe('useMusdCtaVisibility', () => {
         });
 
         expect(() => renderHook(() => useMusdCtaVisibility())).not.toThrow();
+      });
+    });
+
+    describe('empty wallet and canConvert logic', () => {
+      const mockConversionToken: AssetType = {
+        chainId: CHAIN_IDS.MAINNET,
+        name: 'USD Coin',
+        symbol: 'USDC',
+        decimals: 6,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        balance: '1000000',
+        balanceFiat: '1.00',
+        aggregators: [],
+        image: '',
+        logo: '',
+        isETH: false,
+      };
+
+      beforeEach(() => {
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
+        });
+      });
+
+      it('returns shouldShowCta true and isEmptyWallet true when wallet is empty', () => {
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, isEmptyWallet } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(true);
+        expect(isEmptyWallet).toBe(true);
+      });
+
+      it('returns shouldShowCta true and isEmptyWallet false when wallet has convertible tokens', () => {
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 100,
+          userCurrency: 'USD',
+        };
+        mockUseMusdConversionTokens.mockReturnValue({
+          tokens: [mockConversionToken],
+          filterAllowedTokens: jest.fn(),
+          isConversionToken: jest.fn(),
+          isMusdSupportedOnChain: jest.fn(),
+          getMusdOutputChainId: jest.fn(),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, isEmptyWallet } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(true);
+        expect(isEmptyWallet).toBe(false);
+      });
+
+      it('returns shouldShowCta false when wallet has tokens but none are convertible', () => {
+        mockAccountBalance = {
+          walletId: 'test-wallet',
+          groupId: 'test-group',
+          totalBalanceInUserCurrency: 100,
+          userCurrency: 'USD',
+        };
+        mockUseMusdConversionTokens.mockReturnValue({
+          tokens: [],
+          filterAllowedTokens: jest.fn(),
+          isConversionToken: jest.fn(),
+          isMusdSupportedOnChain: jest.fn(),
+          getMusdOutputChainId: jest.fn(),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, isEmptyWallet } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(isEmptyWallet).toBe(false);
+      });
+
+      it('returns isEmptyWallet true when accountBalance is null', () => {
+        mockAccountBalance = null;
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { isEmptyWallet } = result.current.shouldShowBuyGetMusdCta();
+
+        // totalBalanceInUserCurrency === 0 is false when accountBalance is null
+        // so isEmptyWallet should be false
+        expect(isEmptyWallet).toBe(false);
+      });
+
+      it('returns isEmptyWallet in the result object', () => {
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const ctaResult = result.current.shouldShowBuyGetMusdCta();
+
+        expect(ctaResult).toHaveProperty('isEmptyWallet');
+        expect(typeof ctaResult.isEmptyWallet).toBe('boolean');
       });
     });
   });
@@ -836,77 +1133,229 @@ describe('useMusdCtaVisibility', () => {
 
       expect(isVisible).toBe(false);
     });
-  });
 
-  describe('shouldShowAssetOverviewCta', () => {
-    const conversionToken: AssetType = createMockToken({
-      chainId: CHAIN_IDS.MAINNET,
-      name: 'USD Coin',
-      symbol: 'USDC',
-      decimals: 6,
-      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      balance: '0',
-      balanceFiat: '0',
-    });
-
-    const assetOverviewToken: TokenI = {
-      ...conversionToken,
-      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    };
-
-    beforeEach(() => {
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [conversionToken],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        getMusdOutputChainId: jest.fn(),
+    it('returns true even when asset detail CTA was dismissed (dismissal only affects asset overview)', () => {
+      mockMusdConversionAssetDetailCtasSeen = {
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      };
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
       });
-      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
-    });
-
-    it('returns false when asset overview CTA flag is disabled', () => {
-      mockIsMusdConversionAssetOverviewEnabled = false;
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      const isVisible =
-        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
-
-      expect(isVisible).toBe(false);
-    });
-
-    it('returns false when asset is undefined', () => {
-      mockIsMusdConversionAssetOverviewEnabled = true;
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      const isVisible = result.current.shouldShowAssetOverviewCta(undefined);
-
-      expect(isVisible).toBe(false);
-    });
-
-    it('returns true when flag is enabled and token is configured for CTA', () => {
-      mockIsMusdConversionAssetOverviewEnabled = true;
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
       const isVisible =
-        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+        result.current.shouldShowTokenListItemCta(listItemToken);
 
       expect(isVisible).toBe(true);
     });
 
-    it('returns false when token is not configured for CTA', () => {
-      mockIsMusdConversionAssetOverviewEnabled = true;
-      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['DAI'] };
+    describe('geo blocking', () => {
+      it('returns false when user is geo-blocked', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
 
-      const { result } = renderHook(() => useMusdCtaVisibility());
+        const { result } = renderHook(() => useMusdCtaVisibility());
 
-      const isVisible =
-        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+        const isVisible =
+          result.current.shouldShowTokenListItemCta(listItemToken);
 
-      expect(isVisible).toBe(false);
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns false when user is geo-blocked even with mUSD balance on single chain', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest
+            .fn()
+            .mockImplementation(
+              (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
+            ),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowTokenListItemCta(listItemToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns true when user is not geo-blocked and conditions are met', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: true,
+          geolocation: 'US',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowTokenListItemCta(listItemToken);
+
+        expect(isVisible).toBe(true);
+      });
+    });
+
+    describe('shouldShowAssetOverviewCta', () => {
+      const conversionToken: AssetType = createMockToken({
+        chainId: CHAIN_IDS.MAINNET,
+        name: 'USD Coin',
+        symbol: 'USDC',
+        decimals: 6,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        balance: '0',
+        balanceFiat: '0',
+      });
+
+      const assetOverviewToken: TokenI = {
+        ...conversionToken,
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      };
+
+      beforeEach(() => {
+        mockUseMusdConversionTokens.mockReturnValue({
+          tokens: [conversionToken],
+          filterAllowedTokens: jest.fn(),
+          isConversionToken: jest.fn(),
+          isMusdSupportedOnChain: jest.fn(),
+          getMusdOutputChainId: jest.fn(),
+        });
+        mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
+      });
+
+      it('returns false when asset overview CTA flag is disabled', () => {
+        mockIsMusdConversionAssetOverviewEnabled = false;
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns false when asset is undefined', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible = result.current.shouldShowAssetOverviewCta(undefined);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns true when flag is enabled and token is configured for CTA', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(true);
+      });
+
+      it('returns false when token is not configured for CTA', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+        mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['DAI'] };
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns false when token is dismissed', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+        mockMusdConversionAssetDetailCtasSeen = {
+          '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        };
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      describe('geo blocking', () => {
+        it('returns false when user is geo-blocked', () => {
+          mockIsMusdConversionAssetOverviewEnabled = true;
+          mockUseMusdConversionEligibility.mockReturnValue({
+            isEligible: false,
+            geolocation: 'GB',
+            blockedCountries: ['GB'],
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+
+          const isVisible =
+            result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+          expect(isVisible).toBe(false);
+        });
+
+        it('returns true when user is not geo-blocked and token is configured for CTA', () => {
+          mockIsMusdConversionAssetOverviewEnabled = true;
+          mockUseMusdConversionEligibility.mockReturnValue({
+            isEligible: true,
+            geolocation: 'US',
+            blockedCountries: ['GB'],
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+
+          const isVisible =
+            result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+          expect(isVisible).toBe(true);
+        });
+      });
     });
   });
 });
