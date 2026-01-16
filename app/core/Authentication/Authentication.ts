@@ -577,7 +577,8 @@ class AuthenticationService {
       passcodeDisabled === TRUE
     ) {
       // this case is where user disable both passcode and biometric
-      // we should not show the login switch for this case, hence will not reach this condition
+      // by right we should not show the login switch for this case, hence we should return PASSWORD type
+      // however for the current behaviour, we are showing the login switch with BIOMETRIC type
       // return biometric type for now to prevent unexpected behaviour
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,

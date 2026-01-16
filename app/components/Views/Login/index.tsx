@@ -127,7 +127,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const [password, setPassword] = useState('');
   const [biometryIconType, setBiometryIconType] = useState<
-    BIOMETRY_TYPE | AUTHENTICATION_TYPE.PASSCODE | string | null
+    BIOMETRY_TYPE | ReturnType<typeof passcodeType> | null
   >(null);
   const [biometrySwitchType, setBiometrySwitchType] =
     useState<AUTHENTICATION_TYPE | null>(null);
@@ -219,30 +219,30 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const authData = await Authentication.getType();
 
       //Setup UI to handle Biometric
-      const biometricDisabled =
+      const isBiometricDisabled =
         (await StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED)) === TRUE;
-      const passcodeDisabled =
+      const isPasscodeDisabled =
         (await StorageWrapper.getItem(PASSCODE_DISABLED)) === TRUE;
 
-      // priotize remember me
+      // prioritize remember me
       if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
         setRememberMe(true);
         setAllowLoginWithRememberMe(true);
         return;
       } else if (
         authData.availableBiometryType &&
-        biometricDisabled &&
-        passcodeDisabled
+        isBiometricDisabled &&
+        isPasscodeDisabled
       ) {
         // this case is where user disable both passcode and biometric
-        // we should not show the login switch for this case ?, but for backward compabilty
+        // we should not show the login switch for this case ?, but for backward compatibilty
         // set biometric type for biometric switch
         setBiometrySwitchType(AUTHENTICATION_TYPE.BIOMETRIC);
         setBiometryChoice(false);
         // set accessory icon to null as both biometric and passcode is disabled
         setBiometryIconType(null);
         return;
-      } else if (authData.availableBiometryType && biometricDisabled) {
+      } else if (authData.availableBiometryType && isBiometricDisabled) {
         // set passcode for biometric switch since biometric is disabled
         setBiometrySwitchType(AUTHENTICATION_TYPE.PASSCODE);
         const hasCredentials =
@@ -261,13 +261,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
         // check if biometric credentials are available, if so set the icon type to biometric
         if (hasCredentials) setBiometryIconType(authData.availableBiometryType);
-      } else {
+        return;
+      }
         // there are no biometric available, set all states to false
         // hide both Icon and Switch
         setBiometrySwitchType(null);
         setBiometryIconType(null);
         setBiometryChoice(false);
-      }
+        return;
+
     };
 
     getUserAuthPreferences();
