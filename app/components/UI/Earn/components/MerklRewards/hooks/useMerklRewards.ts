@@ -6,9 +6,8 @@ import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
+import { AGLAMERKL_ADDRESS, MERKL_API_BASE_URL } from '../constants';
 
-const MERKL_API_BASE_URL = 'https://api.merkl.xyz/v4';
-const AGLAMERKL_ADDRESS = '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898'; // Used for test campaigns
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 
 // Map of chains and eligible tokens
@@ -98,16 +97,17 @@ export const useMerklRewards = ({
     // Create AbortController to cancel fetch if effect is cleaned up
     const abortController = new AbortController();
 
+    let url = `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${Number(asset.chainId)}`;
+
+    if (asset.address === AGLAMERKL_ADDRESS) {
+      url += '&test=true';
+    }
+
     const fetchClaimableRewards = async () => {
       try {
-        // Convert hex chainId to decimal for API (e.g., '0x1' -> 1)
-        const decimalChainId = Number(asset.chainId);
-        const response = await fetch(
-          `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${decimalChainId}&test=true`,
-          {
-            signal: abortController.signal,
-          },
-        );
+        const response = await fetch(url, {
+          signal: abortController.signal,
+        });
 
         if (!response.ok) {
           return;

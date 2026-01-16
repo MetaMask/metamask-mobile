@@ -9,10 +9,10 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
+import { MERKL_API_BASE_URL } from '../constants';
 
 const MERKL_DISTRIBUTOR_ADDRESS =
   '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
-const MERKL_API_BASE_URL = 'https://api.merkl.xyz/v4';
 
 // ABI for the claim method
 const DISTRIBUTOR_ABI = [
