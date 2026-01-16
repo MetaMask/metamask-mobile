@@ -13,6 +13,16 @@ const styleSheet = (params: { theme: Theme }) => {
     listContainer: {
       flex: 1,
     },
+    headerTextContainer: {
+      gap: 8,
+    },
+    balanceCardHeader: {
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
+    balanceCardContainer: {
+      paddingVertical: 12,
+    },
     headerContainer: {
       paddingVertical: 16,
     },

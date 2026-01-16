@@ -79,7 +79,7 @@ const MusdConversionAssetListCta = () => {
       return strings('earn.musd_conversion.buy_musd');
     }
 
-    return strings('earn.musd_conversion.convert');
+    return strings('earn.musd_conversion.get_musd');
   }, [canConvert]);
 
   const submitCtaPressedEvent = () => {
