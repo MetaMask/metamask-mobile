@@ -2909,6 +2909,131 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('clearPendingTransactionRequests', () => {
+    it('removes pending and bridging withdrawal requests', () => {
+      // Arrange: Add withdrawal requests with different statuses
+      controller.testUpdate((state) => {
+        state.withdrawalRequests = [
+          {
+            id: 'withdrawal-1',
+            amount: '100',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'pending',
+          },
+          {
+            id: 'withdrawal-2',
+            amount: '200',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'bridging',
+          },
+          {
+            id: 'withdrawal-3',
+            amount: '300',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: true,
+            status: 'completed',
+            txHash: '0xabc',
+          },
+          {
+            id: 'withdrawal-4',
+            amount: '50',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'failed',
+          },
+        ];
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.withdrawalRequests).toHaveLength(2);
+      expect(controller.state.withdrawalRequests.map((w) => w.id)).toEqual([
+        'withdrawal-3',
+        'withdrawal-4',
+      ]);
+    });
+
+    it('removes pending and bridging deposit requests', () => {
+      // Arrange: Add deposit requests with different statuses
+      controller.testUpdate((state) => {
+        state.depositRequests = [
+          {
+            id: 'deposit-1',
+            amount: '100',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'pending',
+          },
+          {
+            id: 'deposit-2',
+            amount: '200',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'bridging',
+          },
+          {
+            id: 'deposit-3',
+            amount: '300',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: true,
+            status: 'completed',
+            txHash: '0xdef',
+          },
+        ];
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.depositRequests).toHaveLength(1);
+      expect(controller.state.depositRequests[0].id).toBe('deposit-3');
+    });
+
+    it('resets withdrawal progress', () => {
+      // Arrange: Set some withdrawal progress
+      controller.testUpdate((state) => {
+        state.withdrawalProgress = {
+          progress: 50,
+          lastUpdated: Date.now() - 10000,
+          activeWithdrawalId: 'withdrawal-1',
+        };
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.withdrawalProgress.progress).toBe(0);
+      expect(controller.state.withdrawalProgress.activeWithdrawalId).toBeNull();
+    });
+
+    it('handles empty arrays gracefully', () => {
+      // Arrange: Ensure arrays are empty
+      controller.testUpdate((state) => {
+        state.withdrawalRequests = [];
+        state.depositRequests = [];
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.withdrawalRequests).toHaveLength(0);
+      expect(controller.state.depositRequests).toHaveLength(0);
+    });
+  });
+
   describe('trade configuration', () => {
     it('returns undefined for unsaved configuration', () => {
       const result = controller.getTradeConfiguration('ETH');
