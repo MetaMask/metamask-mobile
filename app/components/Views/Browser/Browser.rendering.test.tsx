@@ -1,3 +1,5 @@
+// Browser component rendering and initialization tests
+// Split from index.test.tsx to prevent React Testing Library state pollution
 // write unit test so that browser/index.js->newTab()
 // 1. if tabs.length > 4, show the max browser tabs modal
 // 2. if tabs.length <= 4, create a new tab
@@ -13,7 +15,7 @@ import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { act } from '@testing-library/react';
+import { act } from '@testing-library/react-native';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { useAccounts } from '../../hooks/useAccounts';
@@ -49,6 +51,19 @@ jest.mock('../BrowserTab/BrowserTab', () => ({
 jest.mock('../../UI/Tabs/TabThumbnail/TabThumbnail', () => ({
   __esModule: true,
   default: jest.fn(() => 'TabThumbnail'),
+}));
+
+jest.mock('../../UI/Tabs', () => ({
+  __esModule: true,
+  default: jest.fn((props) => {
+    // Store props for testing
+    if (props?.closeTabsView) {
+      // Allow testing closeTabsView by exposing it
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (jest as any).__tabsCloseTabsView = props.closeTabsView;
+    }
+    return 'Tabs';
+  }),
 }));
 
 const mockTabs = [
@@ -118,6 +133,38 @@ jest.mock('../../../util/browser', () => ({
   isTokenDiscoveryBrowserEnabled: jest.fn().mockReturnValue(false),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('react-native-view-shot', () => ({
+  captureScreen: jest.fn(),
+}));
+
+jest.mock('../DiscoveryTab/DiscoveryTab', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'DiscoveryTab'),
+}));
+
+jest.mock('../../hooks/useBuildPortfolioUrl', () => ({
+  useBuildPortfolioUrl: jest.fn(() => () => ({
+    href: 'https://home.metamask.io',
+  })),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 const Stack = createStackNavigator();
 const mockStore = configureMockStore();
 
@@ -137,8 +184,8 @@ const mockGetPermittedCaipAccountIdsByHostname =
 const mockSortMultichainAccountsByLastSelected =
   sortMultichainAccountsByLastSelected as jest.Mock;
 
-describe('Browser', () => {
-  it('should render correctly', () => {
+describe('Browser - Rendering and Initialization', () => {
+  it('renders Browser component', () => {
     const { toJSON } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
         <ThemeContext.Provider value={mockTheme}>
@@ -168,7 +215,7 @@ describe('Browser', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should create a new homepage tab when rendered with no tabs', () => {
+  it('creates a new homepage tab when rendered with no tabs', () => {
     let passedUrl = '';
     const mockCreateNewTab = jest.fn((url) => {
       passedUrl = url;
@@ -202,7 +249,7 @@ describe('Browser', () => {
     expect(passedUrl).toMatch(/^https:\/\//);
   });
 
-  it('should create a new token discovery tab when rendered with no tabs and token discovery browser is enabled', () => {
+  it('creates a new token discovery tab when rendered with no tabs and token discovery browser is enabled', () => {
     jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(true);
     const mockCreateNewTab = jest.fn();
     renderWithProvider(
@@ -234,7 +281,7 @@ describe('Browser', () => {
     jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
   });
 
-  it('should call navigate when route param `newTabUrl` and `timestamp` are added', () => {
+  it('calls navigate when route param `newTabUrl` and `timestamp` are added', () => {
     // Render the component with an initial prop value
     const { rerender } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
@@ -289,7 +336,7 @@ describe('Browser', () => {
         </NavigationContainer>
       </Provider>,
     );
-    // Check if myFunction was called
+    // Check if navigate was called to show the modal
     expect(navigationSpy).toHaveBeenCalledWith(
       Routes.MODAL.MAX_BROWSER_TABS_MODAL,
     );
@@ -298,7 +345,85 @@ describe('Browser', () => {
     navigationSpy.mockRestore();
   });
 
-  it('should mark a tab as archived if it has been idle for too long', async () => {
+  it('opens URL in active tab when max tabs reached and fromTrending is true', () => {
+    const mockUpdateTab = jest.fn();
+    const mockCreateNewTab = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <Provider store={mockStore(mockInitialState)}>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={routeMock}
+                  tabs={mockTabs}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={mockCreateNewTab}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={mockUpdateTab}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>,
+      { state: { ...mockInitialState } },
+    );
+
+    const newSiteUrl = 'https://example.com';
+    const navigationSpy = jest.spyOn(mockNavigation, 'navigate');
+
+    // rerender with a new URL when max tabs are reached, coming from Explore (fromTrending)
+    rerender(
+      <Provider store={mockStore(mockInitialState)}>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={{
+                    params: {
+                      newTabUrl: newSiteUrl,
+                      timestamp: Date.now(),
+                      fromTrending: true,
+                    },
+                  }}
+                  tabs={mockTabs}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={mockCreateNewTab}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={mockUpdateTab}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>,
+    );
+
+    // Does not navigate to the max browser tabs modal
+    expect(navigationSpy).not.toHaveBeenCalled();
+
+    // Dpes not create a new tab
+    expect(mockCreateNewTab).not.toHaveBeenCalled();
+
+    // Updates the active tab with the new URL
+    expect(mockUpdateTab).toHaveBeenCalledWith(1, {
+      url: newSiteUrl,
+      isArchived: false,
+    });
+
+    navigationSpy.mockRestore();
+  });
+
+  it('marks a tab as archived if it has been idle for too long', async () => {
     const mockTabsForIdling = [
       { id: 1, url: 'about:blank', image: '', isArchived: false },
       { id: 2, url: 'about:blank', image: '', isArchived: false },
@@ -339,7 +464,7 @@ describe('Browser', () => {
     expect(mockUpdateTab).toHaveBeenCalledWith(2, { isArchived: true });
   });
 
-  it('should show active account toast when visiting a site with permitted accounts', () => {
+  it('shows active account toast when visiting a site with permitted accounts', () => {
     // 1. Mock dependencies
     const mockShowToast = jest.fn();
     const mockCloseToast = jest.fn();
@@ -540,7 +665,7 @@ describe('Browser', () => {
       });
     });
 
-    it('should show toast when url changes to a new host with a permitted account', () => {
+    it('shows toast when url changes to a new host with a permitted account', () => {
       mockGetPermittedCaipAccountIdsByHostname.mockImplementation(
         (_, hostname) =>
           hostname === 'newsite.com' ? [testAccountAddress1] : [],
@@ -593,7 +718,7 @@ describe('Browser', () => {
       );
     });
 
-    it('should show toast when accounts become available for the current host', () => {
+    it('shows toast when accounts become available for the current host', () => {
       mockGetPermittedCaipAccountIdsByHostname.mockReturnValue([
         testAccountAddress1,
       ]);
@@ -655,7 +780,7 @@ describe('Browser', () => {
       );
     });
 
-    it('should NOT show toast if host changes but no permitted accounts for new host', () => {
+    it('does not show toast when host changes but no permitted accounts for new host', () => {
       mockGetPermittedCaipAccountIdsByHostname.mockImplementation(
         (_, hostname) =>
           hostname === 'initial.com' ? [testAccountAddress1] : [],
@@ -701,7 +826,7 @@ describe('Browser', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('should NOT show toast if already on the same host with permitted accounts', () => {
+    it('does not show toast when already on the same host with permitted accounts', () => {
       mockGetPermittedCaipAccountIdsByHostname.mockReturnValue([
         testAccountAddress1,
       ]);
@@ -740,7 +865,7 @@ describe('Browser', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('should NOT show toast if there are no accounts at all', () => {
+    it('does not show toast when there are no accounts', () => {
       (useAccounts as jest.Mock).mockReturnValue({
         evmAccounts: [],
         accounts: [],
@@ -761,7 +886,7 @@ describe('Browser', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('should NOT show toast if effectiveUrl is null/undefined', () => {
+    it('does not show toast when effectiveUrl is null or undefined', () => {
       // Ensure getPermittedCaipAccountIdsByHostname only returns accounts for a specific, non-null hostname
       mockGetPermittedCaipAccountIdsByHostname.mockImplementation(
         (_, hostname) =>
@@ -781,7 +906,7 @@ describe('Browser', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('should use browserUrl from props if currentUrl is not set initially', () => {
+    it('uses browserUrl from props when currentUrl is not set initially', () => {
       mockGetPermittedCaipAccountIdsByHostname.mockImplementation(
         (_, hostname) =>
           hostname === 'propurl.com' ? [testAccountAddress1] : [],
@@ -814,5 +939,3 @@ describe('Browser', () => {
     });
   });
 });
-
-jest.useRealTimers();

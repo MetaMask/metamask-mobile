@@ -2,7 +2,7 @@ import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
 import Logger from '../../../../../util/Logger';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 
 // Geo-blocking API URLs
 const ON_RAMP_GEO_BLOCKING_URLS = {

@@ -150,3 +150,7 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
     minimumVersion: '7.60.0',
   },
 });
+
+export const remoteFeatureFlagExtensionUxPna25 = (enabled = true) => ({
+  extensionUxPna25: enabled,
+});

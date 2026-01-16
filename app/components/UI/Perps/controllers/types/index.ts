@@ -358,7 +358,8 @@ export interface AssetRoute {
   constraints?: {
     minAmount?: string; // Minimum deposit/withdrawal amount
     maxAmount?: string; // Maximum deposit/withdrawal amount
-    estimatedTime?: string; // Estimated processing time
+    estimatedTime?: string; // Estimated processing time (formatted string - deprecated, use estimatedMinutes)
+    estimatedMinutes?: number; // Estimated processing time in minutes (raw value for UI formatting)
     fees?: {
       fixed?: number; // Fixed fee amount (e.g., 1 for 1 token)
       percentage?: number; // Percentage fee (e.g., 0.05 for 0.05%)

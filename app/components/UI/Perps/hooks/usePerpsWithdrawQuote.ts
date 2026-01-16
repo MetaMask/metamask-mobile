@@ -80,11 +80,24 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
         ? `$${totalFees.toFixed(2)}`
         : `${totalFees} ${feeToken}`;
 
+    // Format estimated time from minutes (new) or use legacy string
+    const estimatedMinutes = withdrawalRoute?.constraints?.estimatedMinutes;
+    let estimatedTime = '';
+    if (estimatedMinutes !== undefined) {
+      estimatedTime =
+        estimatedMinutes > 1
+          ? strings('time.minutes_format_plural', { count: estimatedMinutes })
+          : strings('time.minutes_format', { count: estimatedMinutes });
+    } else if (withdrawalRoute?.constraints?.estimatedTime) {
+      // Fallback for backward compatibility
+      estimatedTime = withdrawalRoute.constraints.estimatedTime;
+    }
+
     return {
       networkFee: networkFeeDisplay,
       metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER, // "$0.00"
       totalFees: totalFeesDisplay,
-      estimatedTime: withdrawalRoute?.constraints?.estimatedTime || '',
+      estimatedTime,
       receivingAmount: `${receivingAmount.toFixed(2)} USDC`,
     };
   }, [parsedAmount, isValid, withdrawalRoute]);
