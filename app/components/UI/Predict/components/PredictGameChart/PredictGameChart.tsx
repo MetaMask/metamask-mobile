@@ -109,7 +109,8 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
 
     if (
       historicalChartData.length === 2 &&
-      historicalChartData[0].data.length > 0
+      historicalChartData[0].data.length > 0 &&
+      historicalChartData[1].data.length > 0
     ) {
       setLiveChartData(historicalChartData);
       initialDataLoadedRef.current = true;

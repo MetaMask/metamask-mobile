@@ -320,6 +320,51 @@ describe('PredictGameChart Wrapper', () => {
         expect(getByTestId('content-loading').children[0]).toBe('false');
       });
     });
+
+    it('remains loading when first series has data but second series is empty', async () => {
+      const incompleteHistories = [createMockPriceHistory(0, 3, 0.6), []];
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: incompleteHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      const { getByTestId, rerender } = render(
+        <PredictGameChart
+          tokenIds={defaultTokenIds}
+          seriesConfig={defaultSeriesConfig}
+          testID="chart"
+        />,
+      );
+
+      expect(getByTestId('content-loading').children[0]).toBe('true');
+
+      const completeHistories = [
+        createMockPriceHistory(0, 3, 0.6),
+        createMockPriceHistory(1, 3, 0.4),
+      ];
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: completeHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      rerender(
+        <PredictGameChart
+          tokenIds={defaultTokenIds}
+          seriesConfig={defaultSeriesConfig}
+          testID="chart"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('content-loading').children[0]).toBe('false');
+      });
+    });
   });
 
   describe('Live Update Logic', () => {
