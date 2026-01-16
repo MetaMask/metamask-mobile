@@ -34,7 +34,6 @@ tags:
 - tapOn:
     id: ${output.home.addSrpAccountBtn}
     waitToSettleTimeoutMs: 500
-
 # Import wallet using same flow as add-wallet-test.yaml
 # - runFlow: ../flows/add-wallet-flow.yaml
 
