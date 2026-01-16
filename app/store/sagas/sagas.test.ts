@@ -364,7 +364,7 @@ describe('startAppServices', () => {
     expect(MetaMetrics.getInstance().configure).not.toHaveBeenCalled();
   });
 
-  it('forks authStateMachine and requests authentication on app start', async () => {
+  it('requests authentication on app start', async () => {
     MetaMetrics.getInstance().configure = jest.fn().mockResolvedValueOnce(true);
 
     await expectSaga(startAppServices)
