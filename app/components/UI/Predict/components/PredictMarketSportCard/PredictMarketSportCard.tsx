@@ -26,7 +26,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportTeamGradient from '../PredictSportTeamGradient/PredictSportTeamGradient';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
-import { formatGameStartTime } from '../../utils/format';
+import { formatCents, formatGameStartTime } from '../../utils/format';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -53,10 +53,23 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   );
 
   // Derive game state for conditional props
-  const isScheduled = market.game?.status === 'scheduled';
-  const isOngoing = market.game?.status === 'ongoing';
+  // Use resolved gameStatus to ensure consistency when market.game is undefined
+  const gameStatus = market.game?.status ?? 'scheduled';
+  const isScheduled = gameStatus === 'scheduled';
+  const isOngoing = gameStatus === 'ongoing';
   const isHalftime = isOngoing && market.game?.period === 'HT';
   const isInProgress = isOngoing && !isHalftime;
+
+  // Find outcome for each team and get the "Yes" token price
+  const awayOutcome = market.outcomes?.find(
+    (o) => o.groupItemTitle === market.game?.awayTeam.abbreviation,
+  );
+  const homeOutcome = market.outcomes?.find(
+    (o) => o.groupItemTitle === market.game?.homeTeam.abbreviation,
+  );
+
+  const awayPrice = awayOutcome?.tokens?.find((t) => t.title === 'Yes')?.price;
+  const homePrice = homeOutcome?.tokens?.find((t) => t.title === 'Yes')?.price;
 
   return (
     <TouchableOpacity
@@ -97,7 +110,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
               abbreviation: market.game?.homeTeam.abbreviation ?? 'TBD',
               color: market.game?.homeTeam.color ?? '#FC4C02',
             }}
-            gameStatus={market.game?.status ?? 'scheduled'}
+            gameStatus={gameStatus}
             period={market.game?.period}
             homeScore={market.game?.score?.home}
             awayScore={market.game?.score?.away}
@@ -132,7 +145,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   variant={TextVariant.BodyLg}
                   style={tw.style('font-medium text-white')}
                 >
-                  {`${market.game?.awayTeam.abbreviation ?? 'TBD'} 77¢`}
+                  {`${market.game?.awayTeam.abbreviation ?? 'TBD'} ${formatCents(awayPrice ?? 0)}`}
                 </Text>
               }
               onPress={() => {
@@ -152,7 +165,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   variant={TextVariant.BodyLg}
                   style={tw.style('font-medium text-white')}
                 >
-                  {`${market.game?.homeTeam.abbreviation ?? 'TBD'} 23¢`}
+                  {`${market.game?.homeTeam.abbreviation ?? 'TBD'} ${formatCents(homePrice ?? 0)}`}
                 </Text>
               }
               onPress={() => {
