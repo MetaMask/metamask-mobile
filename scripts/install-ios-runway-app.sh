@@ -21,7 +21,7 @@ if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
   echo -e "${RED}❌ This script must be run from the repository root${NC}"
   echo -e "${YELLOW}Current directory: $(pwd)${NC}"
   echo -e "${YELLOW}Expected directory: $REPO_ROOT${NC}"
-  echo -e "${YELLOW}Run: cd $REPO_ROOT && ./scripts/install-ios-runway-app.sh${NC}"
+  echo -e "${YELLOW}Run: cd $REPO_ROOT && yarn install:ios:runway${NC}"
   exit 1
 fi
 UNINSTALL=false
