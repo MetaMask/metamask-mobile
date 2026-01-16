@@ -6836,6 +6836,7 @@
       "signup_button": "Sign up",
       "errors": {
         "invalid_credentials": "Invalid login details",
+        "invalid_otp_code": "Incorrect code, please try again",
         "unknown_error": "Unknown error, please try again later",
         "email_required": "Email is required",
         "password_required": "Password is required",
