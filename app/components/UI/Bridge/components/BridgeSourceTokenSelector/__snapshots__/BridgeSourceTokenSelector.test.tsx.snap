@@ -956,7 +956,6 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",

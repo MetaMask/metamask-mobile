@@ -15,9 +15,6 @@ export const oldConfirmationsRemoteFeatureFlags = [
       transfer: false,
       approve: false,
     },
-    sendRedesign: {
-      enabled: false,
-    },
   },
 ];
 
@@ -37,9 +34,6 @@ export const confirmationsRedesignedFeatureFlags = [
       contract_interaction: true,
       transfer: true,
       approve: true,
-    },
-    sendRedesign: {
-      enabled: false,
     },
   },
   {
@@ -157,15 +151,6 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   },
 });
 
-export const remoteFeatureFlagSendRedesignDisabled = {
-  urlEndpoint:
-    'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-  response: [
-    {
-      sendRedesign: {
-        enabled: false,
-      },
-    },
-  ],
-  responseCode: 200,
-};
+export const remoteFeatureFlagExtensionUxPna25 = (enabled = true) => ({
+  extensionUxPna25: enabled,
+});

@@ -25,7 +25,7 @@ import {
   shouldShowBlockExplorer,
   toChecksumAddress,
 } from '../../../../../../../util/address';
-import ErrorMessage from '../../../SendFlow/ErrorMessage';
+import ErrorMessage from '../../ErrorMessage';
 import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,

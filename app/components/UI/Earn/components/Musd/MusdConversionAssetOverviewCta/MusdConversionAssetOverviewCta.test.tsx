@@ -14,6 +14,13 @@ import { TokenI } from '../../../../Tokens/types';
 jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../../../../util/Logger');
 jest.mock('../../../hooks/useMusdConversionTokens');
+jest.mock('../../../../../hooks/useMetrics');
+jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
+
+import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { strings } from '../../../../../../../locales/i18n';
 
 const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -30,11 +37,34 @@ const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
 });
 
 describe('MusdConversionAssetOverviewCta', () => {
+  const FIXED_NOW_MS = 1730000000000;
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
+  const mockAddProperties = jest.fn();
+  const mockBuild = jest.fn();
+
   const mockInitiateConversion = jest.fn();
   const mockLoggerError = jest.mocked(Logger.error);
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
+
+    (useMetrics as jest.MockedFunction<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
+
+    (
+      useNetworkName as jest.MockedFunction<typeof useNetworkName>
+    ).mockReturnValue('Ethereum Mainnet');
 
     jest.mocked(useMusdConversion).mockReturnValue({
       initiateConversion: mockInitiateConversion,
@@ -54,6 +84,7 @@ describe('MusdConversionAssetOverviewCta', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
@@ -335,6 +366,96 @@ describe('MusdConversionAssetOverviewCta', () => {
           '[mUSD Conversion] Failed to initiate conversion from asset overview CTA',
         );
       });
+    });
+  });
+
+  describe('MetaMetrics', () => {
+    const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
+
+    it('tracks mUSD conversion CTA clicked event when user has not seen education screen', async () => {
+      // Arrange
+      jest.mocked(useMusdConversion).mockReturnValue({
+        initiateConversion: mockInitiateConversion,
+        error: null,
+        hasSeenConversionEducationScreen: false,
+      });
+
+      const asset = createMockToken();
+
+      const { getByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={asset} />,
+        { state: initialRootState },
+      );
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByText('mUSD'));
+      });
+
+      // Assert
+      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+        redirects_to: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+        cta_type: MUSD_CTA_TYPES.TERTIARY,
+        cta_text: expectedCtaText,
+        network_chain_id: asset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: asset.symbol,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks mUSD conversion CTA clicked event when user has seen education screen', async () => {
+      // Arrange
+      jest.mocked(useMusdConversion).mockReturnValue({
+        initiateConversion: mockInitiateConversion,
+        error: null,
+        hasSeenConversionEducationScreen: true,
+      });
+
+      const asset = createMockToken();
+
+      const { getByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={asset} />,
+        { state: initialRootState },
+      );
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByText('mUSD'));
+      });
+
+      // Assert
+      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: EVENT_LOCATIONS.ASSET_OVERVIEW,
+        redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+        cta_type: MUSD_CTA_TYPES.TERTIARY,
+        cta_text: expectedCtaText,
+        network_chain_id: asset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: asset.symbol,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
   });
 });

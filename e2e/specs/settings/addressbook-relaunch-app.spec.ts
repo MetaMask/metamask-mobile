@@ -9,7 +9,6 @@ import TestHelpers from '../../helpers';
 import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const MEMO = 'Address for testing 123123123';
 
@@ -25,19 +24,6 @@ describe.skip(
         {
           fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
           restartDevice: true,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              Object.assign(
-                {},
-                {
-                  sendRedesign: {
-                    enabled: false,
-                  },
-                },
-              ),
-            );
-          },
         },
         async () => {
           await loginToApp();
