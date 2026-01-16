@@ -316,6 +316,7 @@ describe('DeepLinkModal', () => {
     (useParams as jest.Mock).mockReturnValue({
       ...baseParams,
       linkType: 'invalid',
+      onContinue: mockOnContinue, // onContinue is now provided for invalid links
     });
     const { getByText } = renderScreen(
       DeepLinkModal,
@@ -334,7 +335,7 @@ describe('DeepLinkModal', () => {
         screen: 'WalletView',
       },
     });
-    expect(mockOnBack).toHaveBeenCalled();
+    expect(mockOnContinue).toHaveBeenCalled();
   });
 
   it('toggles checkbox and dispatches action', async () => {

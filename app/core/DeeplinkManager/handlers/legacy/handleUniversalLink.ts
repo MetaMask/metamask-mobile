@@ -387,13 +387,21 @@ async function handleUniversalLink({
       }
 
       // Show modal and track analytics based on user action
-      // For invalid/unsupported links, only pass onBack (no pageTitle or onContinue)
+      // For invalid/unsupported links, pass onBack and onContinue callbacks
       if (
         linkInstanceType === DeepLinkModalLinkType.INVALID ||
         linkInstanceType === DeepLinkModalLinkType.UNSUPPORTED
       ) {
         const modalParams: DeepLinkModalParams = {
           linkType: linkInstanceType,
+          onContinue: () => {
+            // Update context for analytics - modal was shown
+            analyticsContext.interstitialShown = willShowInterstitial;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+            // Track analytics before early return
+            trackDeepLinkAnalytics(analyticsContext);
+            resolve(false); // Still resolve false since we're not proceeding with the link
+          },
           onBack: () => {
             // Update context for analytics - modal was shown
             analyticsContext.interstitialShown = willShowInterstitial;

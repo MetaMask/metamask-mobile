@@ -186,7 +186,7 @@ const DeepLinkModal = () => {
             screen: Routes.WALLET_VIEW,
           },
         });
-        params.onBack();
+        params.onContinue?.();
       } else {
         params.onContinue();
       }

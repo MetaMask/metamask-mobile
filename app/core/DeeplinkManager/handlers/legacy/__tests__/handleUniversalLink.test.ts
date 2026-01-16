@@ -118,7 +118,7 @@ describe('handleUniversalLink', () => {
       callbackParams.linkType === 'invalid' ||
       callbackParams.linkType === 'unsupported'
     ) {
-      callbackParams.onBack();
+      callbackParams.onContinue?.(); // Primary button action (navigate to home)
     } else {
       callbackParams.onContinue();
     }
@@ -959,6 +959,7 @@ describe('handleUniversalLink', () => {
 
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
           linkType: DeepLinkModalLinkType.INVALID,
+          onContinue: expect.any(Function),
           onBack: expect.any(Function),
         });
       });
@@ -989,6 +990,7 @@ describe('handleUniversalLink', () => {
 
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
           linkType: DeepLinkModalLinkType.UNSUPPORTED,
+          onContinue: expect.any(Function),
           onBack: expect.any(Function),
         });
       });
@@ -1013,6 +1015,7 @@ describe('handleUniversalLink', () => {
 
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
           linkType: DeepLinkModalLinkType.INVALID,
+          onContinue: expect.any(Function),
           onBack: expect.any(Function),
         });
       });
@@ -1039,6 +1042,7 @@ describe('handleUniversalLink', () => {
 
         expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
           linkType: DeepLinkModalLinkType.INVALID,
+          onContinue: expect.any(Function),
           onBack: expect.any(Function),
         });
       });
@@ -1978,6 +1982,178 @@ describe('handleUniversalLink', () => {
       // Analytics should be tracked exactly once
       expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks analytics with ACCEPTED for invalid link primary button action', async () => {
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      });
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'invalid') {
+            callbackParams.onContinue?.(); // Primary button (navigate to home)
+          }
+        },
+      );
+
+      url = 'https://invalid-domain.com/some-action';
+      urlObj = {
+        hostname: 'invalid-domain.com',
+        pathname: '/some-action',
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: true,
+          interstitialAction: 'accepted',
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics with REJECTED for invalid link close button action', async () => {
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      });
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'invalid') {
+            callbackParams.onBack(); // Close button (dismiss)
+          }
+        },
+      );
+
+      url = 'https://invalid-domain.com/some-action';
+      urlObj = {
+        hostname: 'invalid-domain.com',
+        pathname: '/some-action',
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: true,
+          interstitialAction: 'rejected',
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics with ACCEPTED for unsupported link primary button action', async () => {
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      });
+
+      mockSubtle.verify.mockResolvedValue(true);
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const unsupportedAction = 'unsupported-action';
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'unsupported') {
+            callbackParams.onContinue?.(); // Primary button (navigate to home)
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${unsupportedAction}?param1=value1&sig=${validSignature}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${unsupportedAction}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: true,
+          interstitialAction: 'accepted',
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics with REJECTED for unsupported link close button action', async () => {
+      ReduxService.default.store.getState.mockReturnValue({
+        settings: {
+          deepLinkModalDisabled: false,
+        },
+      });
+
+      mockSubtle.verify.mockResolvedValue(true);
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const unsupportedAction = 'unsupported-action';
+
+      mockHandleDeepLinkModalDisplay.mockImplementation(
+        async (callbackParams) => {
+          if (callbackParams.linkType === 'unsupported') {
+            callbackParams.onBack(); // Close button (dismiss)
+          }
+        },
+      );
+
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${unsupportedAction}?param1=value1&sig=${validSignature}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${unsupportedAction}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interstitialShown: true,
+          interstitialAction: 'rejected',
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
     });
 
     describe('Branch.io params integration', () => {
