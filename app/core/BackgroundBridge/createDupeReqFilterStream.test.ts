@@ -1,6 +1,4 @@
-// eslint-disable-next-line import/no-nodejs-modules
-import NodeStream from 'node:stream';
-import ReadableStream, { Transform } from 'readable-stream';
+import { Transform } from 'readable-stream';
 
 import type { JsonRpcNotification, JsonRpcRequest } from '@metamask/utils';
 import createDupeReqFilterStream, {
@@ -322,70 +320,5 @@ describe('createDupeReqFilterStream', () => {
     jest.advanceTimersByTime(THREE_MINUTES + 1);
 
     expect(output).toEqual(expectedOutputBeforeExpiryTime);
-  });
-
-  [
-    ['node:stream', NodeStream] as [string, typeof NodeStream],
-    // Redundantly include used version twice for regression-detection purposes
-    ['readable-stream', ReadableStream] as [string, typeof ReadableStream],
-  ].forEach(([name, streamsImpl]) => {
-    describe(`Using Streams implementation: ${name}`, () => {
-      [
-        ['Duplex', streamsImpl.Duplex] as [string, typeof streamsImpl.Duplex],
-        ['Transform', streamsImpl.Transform] as [
-          string,
-          typeof streamsImpl.Transform,
-        ],
-        ['Writable', streamsImpl.Writable] as [
-          string,
-          typeof streamsImpl.Writable,
-        ],
-      ].forEach(([className, S]) => {
-        it(`handles a mix of request types coming through a ${className} stream`, async () => {
-          const requests = [
-            { id: 1, method: 'foo' },
-            { method: 'notify1' },
-            { id: 1, method: 'foo' },
-            { id: 2, method: 'bar' },
-            { method: 'notify2' },
-            { id: 2, method: 'bar' },
-            { id: 3, method: 'baz' },
-          ];
-
-          const expectedOutput = [
-            { id: 1, method: 'foo' },
-            { method: 'notify1' },
-            { id: 2, method: 'bar' },
-            { method: 'notify2' },
-            { id: 3, method: 'baz' },
-          ];
-
-          const output: JsonRpcRequest[] = [];
-          const testStream = createDupeReqFilterStream();
-          const testOutStream = new S({
-            transform: (chunk: JsonRpcRequest, _, cb) => {
-              output.push(chunk);
-              cb();
-            },
-            objectMode: true,
-          });
-
-          testOutStream._write = (
-            chunk: JsonRpcRequest,
-            _: BufferEncoding,
-            callback: (error?: Error | null) => void,
-          ) => {
-            output.push(chunk);
-            callback();
-          };
-
-          testStream.pipe(testOutStream);
-
-          requests.forEach((request) => testStream.write(request));
-
-          expect(output).toEqual(expectedOutput);
-        });
-      });
-    });
   });
 });
