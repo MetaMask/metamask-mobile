@@ -229,12 +229,11 @@ jobs:
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
-      - name: Checkout repository
+      - name: Checkout target commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.TARGET_COMMIT_HASH }}
-          fetch-depth: 0
-
+          ref: main
+          fetch-depth: 1
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -285,6 +284,12 @@ jobs:
             echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
             echo "✅ Set secret for key: $key"
           done
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_COMMIT_HASH }}
+          fetch-depth: 0
 
       - name: Install dependencies
         run: |
