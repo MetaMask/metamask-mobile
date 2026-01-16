@@ -1,5 +1,5 @@
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import type { ServiceContext } from './ServiceContext';
 import type { IPerpsProvider, WithdrawParams, WithdrawResult } from '../types';
 import type { TransactionStatus } from '../../types/transactionTypes';

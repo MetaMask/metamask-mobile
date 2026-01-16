@@ -16,6 +16,7 @@ jest.mock('../../../../core/Engine', () => ({
     PerpsController: {
       markTutorialCompleted: jest.fn(),
       resetFirstTimeUserState: jest.fn(),
+      clearPendingTransactionRequests: jest.fn(),
     },
   },
 }));
@@ -47,6 +48,7 @@ describe('usePerpsFirstTimeUser', () => {
       isFirstTimeUser: true,
       markTutorialCompleted: expect.any(Function),
       resetFirstTimeUserState: expect.any(Function),
+      clearPendingTransactionRequests: expect.any(Function),
     });
   });
 
@@ -68,6 +70,7 @@ describe('usePerpsFirstTimeUser', () => {
       isFirstTimeUser: false,
       markTutorialCompleted: expect.any(Function),
       resetFirstTimeUserState: expect.any(Function),
+      clearPendingTransactionRequests: expect.any(Function),
     });
   });
 
@@ -90,6 +93,7 @@ describe('usePerpsFirstTimeUser', () => {
       isFirstTimeUser: true,
       markTutorialCompleted: expect.any(Function),
       resetFirstTimeUserState: expect.any(Function),
+      clearPendingTransactionRequests: expect.any(Function),
     });
   });
 
@@ -165,5 +169,51 @@ describe('usePerpsFirstTimeUser', () => {
 
     // Should not throw when resetFirstTimeUserState is called
     expect(() => result.current.resetFirstTimeUserState()).not.toThrow();
+  });
+
+  it('calls PerpsController.clearPendingTransactionRequests when invoked', () => {
+    // Arrange
+    mockUsePerpsSelector.mockImplementation(
+      <T>(selector: (state: PerpsControllerState) => T) => {
+        expect(selector).toBe(selectIsFirstTimeUser);
+        return true as T;
+      },
+    );
+    // Restore mock for this test
+    // @ts-expect-error - Partial mock for testing
+    Engine.context.PerpsController = {
+      markTutorialCompleted: jest.fn(),
+      resetFirstTimeUserState: jest.fn(),
+      clearPendingTransactionRequests: jest.fn(),
+    };
+    const mockClearPendingTransactionRequests = Engine.context.PerpsController
+      .clearPendingTransactionRequests as jest.Mock;
+
+    // Act
+    const { result } = renderHook(() => usePerpsFirstTimeUser());
+    result.current.clearPendingTransactionRequests();
+
+    // Assert
+    expect(mockClearPendingTransactionRequests).toHaveBeenCalledWith();
+  });
+
+  it('handles PerpsController being undefined gracefully for clearPendingTransactionRequests', () => {
+    // Arrange
+    mockUsePerpsSelector.mockImplementation(
+      <T>(selector: (state: PerpsControllerState) => T) => {
+        expect(selector).toBe(selectIsFirstTimeUser);
+        return true as T;
+      },
+    );
+    // @ts-expect-error - Testing undefined case
+    Engine.context.PerpsController = undefined;
+
+    // Act
+    const { result } = renderHook(() => usePerpsFirstTimeUser());
+
+    // Should not throw when clearPendingTransactionRequests is called
+    expect(() =>
+      result.current.clearPendingTransactionRequests(),
+    ).not.toThrow();
   });
 });
