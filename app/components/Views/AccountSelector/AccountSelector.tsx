@@ -455,26 +455,19 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         </KeyboardAvoidingView>
 
         {/* Add Wallet bottom sheet overlay */}
-        {screen === AccountSelectorScreens.AddAccountActions && (
+        {(screen === AccountSelectorScreens.AddAccountActions || screen === AccountSelectorScreens.MultichainAddWalletActions) && (
           <BottomSheet
             onClose={handleBackToSelector}
             shouldNavigateBack={false}
           >
             <BottomSheetHeader onBack={handleBackToSelector}>
-              {strings('account_actions.add_account')}
+              {screen === AccountSelectorScreens.AddAccountActions
+                ? strings('account_actions.add_account')
+                : strings('multichain_accounts.add_wallet')}
             </BottomSheetHeader>
-            {renderAddAccountActions()}
-          </BottomSheet>
-        )}
-        {screen === AccountSelectorScreens.MultichainAddWalletActions && (
-          <BottomSheet
-            onClose={handleBackToSelector}
-            shouldNavigateBack={false}
-          >
-            <BottomSheetHeader onBack={handleBackToSelector}>
-              {strings('multichain_accounts.add_wallet')}
-            </BottomSheetHeader>
-            {renderMultichainAddWalletActions()}
+            {screen === AccountSelectorScreens.AddAccountActions
+              ? renderAddAccountActions()
+              : renderMultichainAddWalletActions()}
           </BottomSheet>
         )}
       </>
