@@ -60,8 +60,8 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minVolume24h: 1000000, // $1M - Large trading volumes
   },
   [NetworkToCaipChainId.POLYGON]: {
-    minLiquidity: 200000, // $200k - High tx count, lower per-token liquidity
-    minVolume24h: 1000000, // $1M - Verified: filters Ghost ($872), keeps major DeFi
+    minLiquidity: 100000,
+    minVolume24h: 300000,
   },
 
   // Tier 3: Growing networks
