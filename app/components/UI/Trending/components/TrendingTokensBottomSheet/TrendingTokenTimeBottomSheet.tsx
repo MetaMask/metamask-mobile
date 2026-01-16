@@ -4,10 +4,10 @@ import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Icon, {
   IconName,
   IconSize,
@@ -67,15 +67,6 @@ export const mapSortByToTimeOption = (
   }
 };
 
-const closeButtonStyle = StyleSheet.create({
-  closeButton: {
-    width: 24,
-    height: 24,
-    flexShrink: 0,
-    marginTop: -12,
-  },
-});
-
 const TrendingTokenTimeBottomSheet: React.FC<
   TrendingTokenTimeBottomSheetProps
 > = ({
@@ -107,7 +98,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
 
   const optionStyles = StyleSheet.create({
     optionsList: {
-      paddingBottom: 32,
+      paddingBottom: 16,
     },
     optionRow: {
       flexDirection: 'row',
@@ -154,12 +145,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
     >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{ style: closeButtonStyle.closeButton }}
-      >
-        <Text variant={TextVariant.HeadingMD}>{strings('trending.time')}</Text>
-      </BottomSheetHeader>
+      <HeaderCenter title={strings('trending.time')} onClose={handleClose} />
       <View style={optionStyles.optionsList}>
         <TouchableOpacity
           style={[

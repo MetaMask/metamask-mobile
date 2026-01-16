@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -9,6 +9,29 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
+    },
+    searchHeaderContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: colors.background.default,
+    },
+    searchBarContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: Platform.OS === 'ios' ? 12 : 4,
+      marginRight: 8,
+    },
+    searchBarInput: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text.default,
+      marginLeft: 8,
     },
     header: {
       flexDirection: 'row',
