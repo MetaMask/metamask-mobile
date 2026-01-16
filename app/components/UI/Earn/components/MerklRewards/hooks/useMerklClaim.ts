@@ -9,7 +9,7 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { MERKL_API_BASE_URL } from '../constants';
+import { fetchMerklRewardsForAsset } from '../merkl-client';
 
 const MERKL_DISTRIBUTOR_ADDRESS =
   '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
@@ -18,25 +18,6 @@ const MERKL_DISTRIBUTOR_ADDRESS =
 const DISTRIBUTOR_ABI = [
   'function claim(address[] calldata users, address[] calldata tokens, uint256[] calldata amounts, bytes32[][] calldata proofs)',
 ];
-
-interface MerklRewardData {
-  rewards: {
-    token: {
-      address: string;
-      chainId: number;
-      symbol: string;
-      decimals: number;
-      price: number | null;
-    };
-    accumulated: string;
-    unclaimed: string;
-    pending: string;
-    proofs: string[];
-    amount: string;
-    claimed: string;
-    recipient: string;
-  }[];
-}
 
 interface UseMerklClaimOptions {
   asset: TokenI;
@@ -63,37 +44,15 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
     setError(null);
 
     try {
-      // Fetch claim data from Merkl API using asset's chainId
-      // Convert hex chainId to decimal for API (e.g., '0x1' -> 1)
-      const decimalChainId = Number(asset.chainId);
-      const response = await fetch(
-        `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${decimalChainId}&test=true`,
+      // Fetch claim data from Merkl API
+      const rewardData = await fetchMerklRewardsForAsset(
+        asset,
+        selectedAddress,
       );
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch Merkl rewards: ${response.status}`);
-      }
-
-      const data: MerklRewardData[] = await response.json();
-
-      // Filter rewards to match the asset's token address (case-insensitive)
-      // Search through all data array elements, not just data[0]
-      const assetAddressLower = (asset.address as string).toLowerCase();
-      let matchingReward = null;
-      for (const dataEntry of data) {
-        matchingReward = dataEntry?.rewards?.find(
-          (reward) => reward.token.address.toLowerCase() === assetAddressLower,
-        );
-        if (matchingReward) {
-          break;
-        }
-      }
-
-      if (!matchingReward) {
+      if (!rewardData) {
         throw new Error('No claimable rewards found');
       }
-
-      const rewardData = matchingReward;
 
       // Prepare claim parameters
       const users = [selectedAddress];
@@ -139,7 +98,7 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
     } finally {
       setIsClaiming(false);
     }
-  }, [selectedAddress, networkClientId, asset.chainId, asset.address]);
+  }, [selectedAddress, networkClientId, asset]);
 
   return {
     claimRewards,

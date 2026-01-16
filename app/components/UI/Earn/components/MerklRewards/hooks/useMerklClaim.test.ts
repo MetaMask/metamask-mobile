@@ -187,9 +187,9 @@ describe('useMerklClaim', () => {
 
     // Verify API was called with correct chainId (decimal format, not hex)
     const expectedDecimalChainId = Number(CHAIN_IDS.MAINNET);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`chainId=${expectedDecimalChainId}`),
-    );
+    expect(global.fetch).toHaveBeenCalled();
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+    expect(fetchCall[0]).toContain(`chainId=${expectedDecimalChainId}`);
 
     const transactionCall = mockAddTransaction.mock.calls[0][0];
     expect(transactionCall.from).toBe(mockSelectedAddress);
@@ -510,9 +510,8 @@ describe('useMerklClaim', () => {
 
     // Verify API was called with correct chainId (decimal format, not hex)
     const expectedDecimalChainId = Number(CHAIN_IDS.LINEA_MAINNET);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`chainId=${expectedDecimalChainId}`),
-    );
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+    expect(fetchCall[0]).toContain(`chainId=${expectedDecimalChainId}`);
 
     await waitFor(() => {
       expect(mockAddTransaction).toHaveBeenCalled();

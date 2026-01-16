@@ -6,7 +6,8 @@ import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
-import { AGLAMERKL_ADDRESS, MERKL_API_BASE_URL } from '../constants';
+import { AGLAMERKL_ADDRESS } from '../constants';
+import { fetchMerklRewardsForAsset } from '../merkl-client';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 
@@ -39,25 +40,6 @@ export const isEligibleForMerklRewards = (
     (eligibleAddress) => eligibleAddress.toLowerCase() === addressLower,
   );
 };
-
-interface MerklRewardData {
-  rewards: {
-    token: {
-      address: string;
-      chainId: number;
-      symbol: string;
-      decimals: number;
-      price: number | null;
-    };
-    accumulated: string;
-    unclaimed: string;
-    pending: string;
-    proofs: string[];
-    amount: string;
-    claimed: string;
-    recipient: string;
-  }[];
-}
 
 interface UseMerklRewardsOptions {
   asset: TokenI;
@@ -97,41 +79,19 @@ export const useMerklRewards = ({
     // Create AbortController to cancel fetch if effect is cleaned up
     const abortController = new AbortController();
 
-    let url = `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${Number(asset.chainId)}`;
-
-    if (asset.address === AGLAMERKL_ADDRESS) {
-      url += '&test=true';
-    }
-
     const fetchClaimableRewards = async () => {
       try {
-        const response = await fetch(url, {
-          signal: abortController.signal,
-        });
+        // Use throwOnError=false to silently handle API errors
+        const matchingReward = await fetchMerklRewardsForAsset(
+          asset,
+          selectedAddress,
+          abortController.signal,
+          false, // Don't throw on error, return null instead
+        );
 
-        if (!response.ok) {
-          return;
-        }
-
-        const data: MerklRewardData[] = await response.json();
-
-        // Check if aborted after JSON parsing (defensive check)
+        // Check if aborted after fetch (defensive check)
         if (abortController.signal.aborted) {
           return;
-        }
-
-        // Filter rewards to match the asset's token address (case-insensitive)
-        // Search through all data array elements, not just data[0]
-        const assetAddressLower = (asset.address as string).toLowerCase();
-        let matchingReward = null;
-        for (const dataEntry of data) {
-          matchingReward = dataEntry?.rewards?.find(
-            (reward) =>
-              reward.token.address.toLowerCase() === assetAddressLower,
-          );
-          if (matchingReward) {
-            break;
-          }
         }
 
         if (!matchingReward) {
@@ -140,14 +100,16 @@ export const useMerklRewards = ({
 
         // Use unclaimed amount as it represents claimable rewards in the Merkle tree
         // Use token decimals from API response, fallback to asset decimals
-        const unclaimedWei = matchingReward.unclaimed;
+        // Convert string amounts to BigInt for subtraction, then back to string
+        const unclaimedBaseUnits =
+          BigInt(matchingReward.amount) - BigInt(matchingReward.claimed);
         const tokenDecimals =
           matchingReward.token.decimals ?? asset.decimals ?? 18;
 
-        if (unclaimedWei && BigInt(unclaimedWei) > 0n) {
+        if (unclaimedBaseUnits > 0n) {
           // Convert from wei to token amount
           const unclaimedAmount = renderFromTokenMinimalUnit(
-            unclaimedWei,
+            unclaimedBaseUnits.toString(),
             tokenDecimals,
             2, // Show 2 decimal places
           );
@@ -179,7 +141,7 @@ export const useMerklRewards = ({
     return () => {
       abortController.abort();
     };
-  }, [asset.address, asset.decimals, selectedAddress, asset.chainId]);
+  }, [asset, selectedAddress]);
 
   return {
     claimableReward,
