@@ -16,7 +16,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../util/number', () => ({
+jest.mock('../../../../../../util/number', () => ({
   renderFromTokenMinimalUnit: jest.fn((value: string, decimals: number) => {
     // Simple mock conversion: divide by 10^decimals
     const divisor = Math.pow(10, decimals);
@@ -169,9 +169,12 @@ describe('useMerklRewards', () => {
       expect(global.fetch).toHaveBeenCalled();
     });
 
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe('1.50');
-    });
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('1.50');
+      },
+      { timeout: 3000 },
+    );
 
     expect(renderFromTokenMinimalUnit).toHaveBeenCalledWith(
       mockPendingWei,
@@ -181,10 +184,20 @@ describe('useMerklRewards', () => {
   });
 
   it('handles API error gracefully', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    });
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: false,
+          status: 500,
+        };
+      },
+    );
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -199,7 +212,17 @@ describe('useMerklRewards', () => {
 
   it('handles fetch error gracefully', async () => {
     const error = new Error('Network error');
-    (global.fetch as jest.Mock).mockRejectedValueOnce(error);
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const abortError = new Error('Aborted');
+          abortError.name = 'AbortError';
+          throw abortError;
+        }
+        throw error;
+      },
+    );
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -219,10 +242,20 @@ describe('useMerklRewards', () => {
       },
     ];
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => mockResponse,
+        };
+      },
+    );
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -246,10 +279,20 @@ describe('useMerklRewards', () => {
       },
     ];
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => mockResponse,
+        };
+      },
+    );
 
     renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -261,6 +304,9 @@ describe('useMerklRewards', () => {
     const expectedDecimalChainId = Number(CHAIN_IDS.MAINNET);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining(`chainId=${expectedDecimalChainId}`),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -277,10 +323,20 @@ describe('useMerklRewards', () => {
     ];
 
     // First asset with rewards
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponseAsset1,
-    });
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => mockResponseAsset1,
+        };
+      },
+    );
 
     const { result, rerender } = renderHook(
       ({ asset }) => useMerklRewards({ asset }),
@@ -308,10 +364,20 @@ describe('useMerklRewards', () => {
       resolveSecondFetch = resolve;
     });
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => secondFetchPromise,
-    });
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => secondFetchPromise,
+        };
+      },
+    );
 
     // Switch to second asset
     rerender({ asset: mockAsset2 });
@@ -351,10 +417,20 @@ describe('useMerklRewards', () => {
       },
     ];
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => mockResponse,
+        };
+      },
+    );
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -386,10 +462,20 @@ describe('useMerklRewards', () => {
       },
     ];
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => mockResponse,
+        };
+      },
+    );
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -401,5 +487,112 @@ describe('useMerklRewards', () => {
       // Should remain null because rendered amount is '0.00'
       expect(result.current.claimableReward).toBe(null);
     });
+  });
+
+  it('aborts previous fetch when switching assets to prevent race condition', async () => {
+    const mockPendingWeiAsset1 = '1500000000000000000'; // 1.5 tokens
+    const mockResponseAsset1 = [
+      {
+        rewards: [
+          {
+            pending: mockPendingWeiAsset1,
+          },
+        ],
+      },
+    ];
+
+    // Create a delayed promise for the first asset to simulate slow network
+    let resolveFirstFetch: (value: unknown) => void;
+    const firstFetchPromise = new Promise<unknown>((resolve) => {
+      resolveFirstFetch = resolve;
+    });
+
+    let firstFetchAbortSignal: AbortSignal | undefined;
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        firstFetchAbortSignal = options?.signal;
+        // Wait for the promise to resolve (simulating slow network)
+        await firstFetchPromise;
+        // Check if aborted after waiting
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => mockResponseAsset1,
+        };
+      },
+    );
+
+    const { result, rerender } = renderHook(
+      ({ asset }) => useMerklRewards({ asset }),
+      {
+        initialProps: { asset: mockAsset },
+      },
+    );
+
+    // Wait for fetch to be called
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    // Switch to a different asset before first fetch completes
+    const mockAsset2: TokenI = {
+      ...mockAsset,
+      address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET] as const,
+      chainId: CHAIN_IDS.LINEA_MAINNET,
+      symbol: 'mUSD',
+    };
+
+    const mockPendingWeiAsset2 = '2000000000000000000'; // 2.0 tokens
+    const mockResponseAsset2 = [
+      {
+        rewards: [
+          {
+            pending: mockPendingWeiAsset2,
+          },
+        ],
+      },
+    ];
+
+    // Second fetch should complete quickly
+    (global.fetch as jest.Mock).mockImplementationOnce(
+      async (_url: string, options?: { signal?: AbortSignal }) => {
+        // Check if aborted before resolving
+        if (options?.signal?.aborted) {
+          const error = new Error('Aborted');
+          error.name = 'AbortError';
+          throw error;
+        }
+        return {
+          ok: true,
+          json: async () => mockResponseAsset2,
+        };
+      },
+    );
+
+    // Switch to second asset - this should abort the first fetch
+    rerender({ asset: mockAsset2 });
+
+    // Verify first fetch was aborted
+    await waitFor(() => {
+      expect(firstFetchAbortSignal?.aborted).toBe(true);
+    });
+
+    // Wait for second fetch to complete
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe('2.00');
+    });
+
+    // Now resolve the first fetch (simulating it completing late)
+    resolveFirstFetch(mockResponseAsset1);
+
+    // Wait a bit to ensure state doesn't change
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // State should still be from the second asset, not the first
+    expect(result.current.claimableReward).toBe('2.00');
   });
 });

@@ -88,12 +88,18 @@ export const useMerklRewards = ({
     // Reset claimableReward when switching assets to prevent stale data
     setClaimableReward(null);
 
+    // Create AbortController to cancel fetch if effect is cleaned up
+    const abortController = new AbortController();
+
     const fetchClaimableRewards = async () => {
       try {
         // Convert hex chainId to decimal for API (e.g., '0x1' -> 1)
         const decimalChainId = Number(asset.chainId);
         const response = await fetch(
           `${MERKL_API_BASE_URL}/users/${selectedAddress}/rewards?chainId=${decimalChainId}&test=true`,
+          {
+            signal: abortController.signal,
+          },
         );
 
         if (!response.ok) {
@@ -101,6 +107,11 @@ export const useMerklRewards = ({
         }
 
         const data: MerklRewardData[] = await response.json();
+
+        // Check if aborted after JSON parsing (defensive check)
+        if (abortController.signal.aborted) {
+          return;
+        }
 
         // Get pending amount from [0].rewards[0].pending
         const pendingWei = data?.[0]?.rewards?.[0]?.pending;
@@ -118,15 +129,27 @@ export const useMerklRewards = ({
             pendingAmount !== '0' &&
             pendingAmount !== '0.00'
           ) {
-            setClaimableReward(pendingAmount);
+            // Final check before setting state to ensure effect is still active
+            if (!abortController.signal.aborted) {
+              setClaimableReward(pendingAmount);
+            }
           }
         }
       } catch (error) {
-        // Silently handle errors - component will show no rewards if fetch fails
+        // Ignore AbortError - this is expected when effect is cleaned up
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        // Silently handle other errors - component will show no rewards if fetch fails
       }
     };
 
     fetchClaimableRewards();
+
+    // Cleanup function to abort fetch
+    return () => {
+      abortController.abort();
+    };
   }, [
     asset.address,
     asset.decimals,
