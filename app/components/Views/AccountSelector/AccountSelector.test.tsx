@@ -200,29 +200,6 @@ jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
     mockUseAccountsOperationsLoadingStates(),
 }));
 
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    const MockBottomSheetHeader = (props: {
-      children: React.ReactNode;
-      onBack?: () => void;
-    }) => (
-      <View testID="bottom-sheet-header">
-        {typeof props.children === 'string' ? (
-          <Text>{props.children}</Text>
-        ) : (
-          props.children
-        )}
-      </View>
-    );
-    return {
-      __esModule: true,
-      default: MockBottomSheetHeader,
-    };
-  },
-);
-
 const mockRoute: AccountSelectorProps['route'] = {
   params: {
     onSelectAccount: jest.fn((address: string) => address),
