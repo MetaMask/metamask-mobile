@@ -1988,7 +1988,8 @@
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
       "resolved_early": "Resolved early",
-      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket."
+      "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket.",
+      "your_picks": "Your picks"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2008,6 +2009,8 @@
     "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}",
     "cashout_info_multiple": "{{amount}} on {{outcomeGroupTitle}} • {{outcome}} at {{initialPrice}}",
     "position_info": "{{initialValue}} on {{outcome}} to win {{shares}}",
+    "position_pick_info": "{{initialValue}} on {{outcome}}",
+    "position_pick_info_to_win": "{{initialValue}} on {{outcome}} to win",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -2042,6 +2045,7 @@
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
+    "claim_winnings_text": "Claim winnings",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Unable to load",
@@ -2180,6 +2184,11 @@
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
       "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
+    },
+    "game_details_footer": {
+      "pick_a_winner": "Pick a winner",
+      "volume_display": "${{volume}} Vol",
+      "read_terms": "Read the full contract terms and conditions"
     },
     "sports": {
       "halftime": "Halftime",
@@ -5797,6 +5806,13 @@
       "learn_more": "Learn more.",
       "earn_button": "Earn"
     },
+    "trx_learn_more": {
+      "title": "Stake TRX and earn",
+      "stake_any_amount": "Stake any amount of TRX.",
+      "earn_trx_rewards": "Earn TRX rewards.",
+      "earn_trx_rewards_description": "Start earning as soon as you stake. Rewards accrue automatically.",
+      "flexible_unstaking_description": "Unstake anytime. Unstaking takes 14 days to process."
+    },
     "day": {
       "zero": "",
       "one": "day",
@@ -6522,8 +6538,9 @@
     },
     "card_onboarding": {
       "title": "Spend\nand\nEarn",
-      "description": "The MetaMask Card is the fast and easy way to spend your crypto like cash and earn rewards.",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% cashback.",
       "apply_now_button": "Apply now",
+      "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
         "description": "Create your MetaMask Card account, provided by Crypto Life. This will be separate from your MetaMask account.",
@@ -6587,9 +6604,9 @@
         "terms": "Approvals usually take around 12 hours. We'll notify you when a decision is made."
       },
       "verifying_veriff_kyc": {
-        "title": "Verifying your identity",
-        "description": "Please wait while we verify your identity.",
-        "helper_text": "This usually takes a few seconds. Please don't close the app."
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app."
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -6625,7 +6642,7 @@
       },
       "physical_address": {
         "title": "Add your address",
-        "description":"Enter your home address. If approved, we'll send your physical card here.",
+        "description":"Enter your current home address. We’ll use this for verification purposes.",
         "address_line_1_label": "Address line 1",
         "address_line_2_label": "Address line 2",
         "city_label": "City",
@@ -6633,7 +6650,7 @@
         "zip_code_label": "Zip code",
         "country_label": "Country",
         "electronic_consent_1": "I agree to the E-Sign Act Consent and Disclosure and to receive all communications electronically. ",
-        "electronic_consent_2": "View document(PDF)"
+        "electronic_consent_2": "View document (PDF)"
       },
       "mailing_address": {
         "title": "Mailing address",
@@ -7348,6 +7365,10 @@
       "title": "Trending tokens is not available",
       "description": "We can't fetch this page right now",
       "try_again": "Try again"
+    },
+    "empty_search_result_state": {
+      "title": "No tokens found",
+      "description": "We were not able to find this token"
     }
   },
   "ota_update_modal": {
