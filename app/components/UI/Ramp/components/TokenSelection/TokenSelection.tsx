@@ -93,7 +93,6 @@ function TokenSelection() {
           ramp_routing: rampRoutingDecision ?? undefined,
         });
       }
-      navigation.dangerouslyGetParent()?.goBack();
       goToBuy({ assetId });
     },
     [
@@ -103,7 +102,6 @@ function TokenSelection() {
       detectedGeolocation,
       rampRoutingDecision,
       goToBuy,
-      navigation,
     ],
   );
 

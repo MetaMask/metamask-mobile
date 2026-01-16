@@ -152,7 +152,6 @@ describe('TokenSelection Component', () => {
     expect(mockGoToBuy).toHaveBeenCalledWith({
       assetId: mockTokens[0].assetId,
     });
-    expect(mockParentGoBack).toHaveBeenCalled();
   });
 
   it('navigates to unsupported token modal when info button is pressed', () => {

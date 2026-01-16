@@ -8,7 +8,9 @@ import {
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
+import { createAmountInputNavDetails } from '../components/AmountInput';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
+import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -33,6 +35,7 @@ enum RampMode {
 export const useRampNavigation = () => {
   const navigation = useNavigation();
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const goToBuy = useCallback(
@@ -45,6 +48,18 @@ export const useRampNavigation = () => {
     ) => {
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
+
+      // V2: If assetId is provided and V2 is enabled, route to AmountInput
+      if (
+        isRampsUnifiedV2Enabled &&
+        intent?.assetId &&
+        !overrideUnifiedRouting
+      ) {
+        navigation.navigate(
+          ...createAmountInputNavDetails({ assetId: intent.assetId }),
+        );
+        return;
+      }
 
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
         if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
@@ -91,7 +106,12 @@ export const useRampNavigation = () => {
         );
       }
     },
-    [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
+    [
+      navigation,
+      isRampsUnifiedV1Enabled,
+      isRampsUnifiedV2Enabled,
+      rampRoutingDecision,
+    ],
   );
 
   /**
