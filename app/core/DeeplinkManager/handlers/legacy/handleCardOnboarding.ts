@@ -51,8 +51,7 @@ export const handleCardOnboarding = () => {
 
   let isAuthenticated = false;
   let hasCardLinkedAccount = false;
-  let destination: CardDeeplinkDestination =
-    CardDeeplinkDestination.CARD_WELCOME;
+  let destination: CardDeeplinkDestination;
 
   try {
     const state = ReduxService.store.getState();
