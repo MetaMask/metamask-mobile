@@ -241,7 +241,7 @@ export class GoogleProvider implements ILLMProvider {
     if (!this.client) {
       if (!this.apiKey) {
         throw new Error(
-          `Google API key not found. Set ${LLM_CONFIG.providers.google.envKey} environment variable.`,
+          `Gemini API key not found. Set ${LLM_CONFIG.providers.google.envKey} environment variable.`,
         );
       }
       this.client = new GoogleGenerativeAI(this.apiKey);

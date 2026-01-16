@@ -15,10 +15,8 @@ import {
 import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
 import {
-  getAvailableProviders,
   createProvider,
   getSupportedProviders,
-  ILLMProvider,
   ProviderType,
 } from './providers';
 
@@ -88,6 +86,10 @@ function parseArgs(args: string[]): ParsedArgs {
         options.prNumber = validPR;
         break;
       }
+      case '--provider':
+      case '-p':
+        options.provider = args[++i];
+        break;
     }
   }
 
@@ -133,6 +135,7 @@ Options:
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
+  -p, --provider <provider>     Force specific provider (anthropic, openai, google)
   -h, --help                    Show this help message
 
 Output:
@@ -146,37 +149,45 @@ Examples:
   E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
 
   # Using Google Gemini
-  E2E_GOOGLE_API_KEY=... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+  E2E_GEMINI_API_KEY=... node -r esbuild-register e2e/tools/e2e-ai-analyzer
 
   # With multiple keys (uses first available in priority order)
   E2E_CLAUDE_API_KEY=sk-... E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
+
+  # Force a specific provider
+  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --provider openai --pr 12345
 `);
 }
 
 /**
- * Get ordered list of available providers
- *
- * Returns providers in priority order that have API keys configured.
+ * Validate provider option
  */
-async function getOrderedProviders(): Promise<ILLMProvider[]> {
-  const available = await getAvailableProviders();
+function validateProvider(providerInput?: string): ProviderType | undefined {
+  if (!providerInput) return undefined;
 
-  if (available.length === 0) {
-    const envKeys = Object.values(LLM_CONFIG.providers)
-      .map((p) => p.envKey)
-      .join(', ');
-    throw new Error(`No LLM provider available. Set one of: ${envKeys}`);
+  const supported = getSupportedProviders();
+  if (!supported.includes(providerInput as ProviderType)) {
+    console.error(
+      `❌ Invalid provider: ${providerInput}. Valid providers: ${supported.join(', ')}`,
+    );
+    process.exit(1);
   }
 
-  // Sort by priority order
-  const priorityOrder = LLM_CONFIG.providerPriority;
-  const sorted = available.sort((a, b) => {
-    const aIndex = priorityOrder.indexOf(a);
-    const bIndex = priorityOrder.indexOf(b);
-    return aIndex - bIndex;
-  });
+  return providerInput as ProviderType;
+}
 
-  return sorted.map((type) => createProvider(type));
+/**
+ * Get provider order to try
+ *
+ * If forcedProvider is specified, only that provider will be tried.
+ * Otherwise, returns providers in priority order from config.
+ * Availability is checked at runtime - missing API keys trigger fallback.
+ */
+function getProviderOrder(forcedProvider?: ProviderType): ProviderType[] {
+  if (forcedProvider) {
+    return [forcedProvider];
+  }
+  return LLM_CONFIG.providerPriority;
 }
 
 async function main() {
@@ -190,11 +201,15 @@ async function main() {
 
   const options = parseArgs(args);
   const mode = validateMode(options.mode);
+  const forcedProvider = validateProvider(options.provider);
   const baseBranch = options.baseBranch;
   const baseDir = process.cwd();
   const githubRepo = APP_CONFIG.githubRepo;
 
   console.log(`🎯 Mode: ${mode}`);
+  if (forcedProvider) {
+    console.log(`🔒 Provider: ${forcedProvider} (forced)`);
+  }
 
   // Get changed files
   let allChangedFiles: string[];
@@ -223,19 +238,20 @@ async function main() {
     console.log(`⚠️  ${criticalFiles.length} critical files detected`);
   }
 
-  // Get available providers in priority order
-  const providers = await getOrderedProviders();
-  console.log(
-    `✅ Available providers: ${providers.map((p) => p.displayName).join(', ')}`,
-  );
+  // Get provider order (forced provider or priority from config)
+  const providerOrder = getProviderOrder(forcedProvider);
+  console.log(`📋 Provider failover order: ${providerOrder.join(' → ')}`);
 
-  // Try each provider for the entire analysis
-  // If a provider fails mid-analysis, restart with the next provider
+  // Try each provider in order
+  // Missing API keys or API errors trigger fallback to next provider
   let lastError: Error | null = null;
 
-  for (const provider of providers) {
+  for (let i = 0; i < providerOrder.length; i++) {
+    const providerType = providerOrder[i];
+
     try {
-      console.log(`\n🚀 Starting analysis with ${provider.displayName}...`);
+      const provider = createProvider(providerType);
+      console.log(`\n🚀 Trying ${provider.displayName}...`);
 
       const analysis = await analyzeWithAgent(
         provider,
@@ -251,12 +267,10 @@ async function main() {
       return;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.warn(
-        `\n⚠️  ${provider.displayName} failed: ${lastError.message}`,
-      );
+      console.warn(`\n⚠️  ${providerType} failed: ${lastError.message}`);
 
-      if (providers.indexOf(provider) < providers.length - 1) {
-        console.log('🔄 Retrying with next available provider...');
+      if (i < providerOrder.length - 1) {
+        console.log('🔄 Falling back to next provider...');
       }
     }
   }

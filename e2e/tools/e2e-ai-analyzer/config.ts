@@ -16,7 +16,7 @@ export const LLM_CONFIG = {
    * Provider priority order for automatic fallback
    * The first available provider in this list will be used
    */
-  providerPriority: ['anthropic', 'openai', 'google'] as ProviderType[],
+  providerPriority: ['google', 'anthropic', 'openai'] as ProviderType[],
 
   /**
    * Per-provider configuration
@@ -32,7 +32,7 @@ export const LLM_CONFIG = {
     } as ProviderConfig,
     google: {
       model: 'gemini-1.5-pro',
-      envKey: 'E2E_GOOGLE_API_KEY',
+      envKey: 'E2E_GEMINI_API_KEY',
     } as ProviderConfig,
   },
 
