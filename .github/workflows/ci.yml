@@ -364,7 +364,7 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       branch: ${{ github.head_ref || github.ref_name }}
-      enable-recording: false
+      enable-recording: true
       use-fixtures: true
       fixture-name: 'import-srp'
       mock-preset: 'feature-flags'

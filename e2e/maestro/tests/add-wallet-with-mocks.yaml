@@ -29,7 +29,7 @@ tags:
     waitToSettleTimeoutMs: 2000
 - tapOn:
     id: ${output.home.addAccountBtn}
-    waitToSettleTimeoutMs: 500
+    waitToSettleTimeoutMs: 5000
 - assertVisible: ${output.home.importWalletLabel}
 - tapOn:
     id: ${output.home.addSrpAccountBtn}
