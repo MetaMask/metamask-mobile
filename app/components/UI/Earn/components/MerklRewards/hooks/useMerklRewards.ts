@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
-} from '../../../../selectors/currencyRateController';
-import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
-import { renderFromTokenMinimalUnit } from '../../../../util/number';
-import { RootState } from '../../../../reducers';
-import { TokenI } from '../../Tokens/types';
+} from '../../../../../../selectors/currencyRateController';
+import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
+import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
+import { RootState } from '../../../../../../reducers';
+import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
 
 const MERKL_API_BASE_URL = 'https://api.merkl.xyz/v4';
 const AGLAMERKL_ADDRESS = '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898'; // Used for test campaigns

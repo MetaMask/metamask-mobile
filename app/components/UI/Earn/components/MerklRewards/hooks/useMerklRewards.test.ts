@@ -2,15 +2,15 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isEligibleForMerklRewards, useMerklRewards } from './useMerklRewards';
-import { TokenI } from '../../Tokens/types';
-import { renderFromTokenMinimalUnit } from '../../../../util/number';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { TokenI } from '../../../../Tokens/types';
+import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
-} from '../../../../selectors/currencyRateController';
-import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+} from '../../../../../../selectors/currencyRateController';
+import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),

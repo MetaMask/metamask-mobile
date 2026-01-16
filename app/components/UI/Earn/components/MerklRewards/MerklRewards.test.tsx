@@ -6,7 +6,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   isEligibleForMerklRewards,
   useMerklRewards,
-} from '../../../AssetOverview/hooks/useMerklRewards';
+} from './hooks/useMerklRewards';
 
 jest.mock('../../../AssetOverview/hooks/useMerklRewards');
 jest.mock('./PendingMerklRewards', () => {

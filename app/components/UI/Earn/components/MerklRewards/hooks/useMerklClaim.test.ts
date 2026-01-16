@@ -1,10 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useMerklClaim } from './useMerklClaim';
-import { addTransaction } from '../../../../util/transaction-controller';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectSelectedNetworkClientId } from '../../../../selectors/networkController';
-import { TokenI } from '../../Tokens/types';
+import { addTransaction } from '../../../../../../util/transaction-controller';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSelectedNetworkClientId } from '../../../../../../selectors/networkController';
+import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('react-redux', () => ({
@@ -354,9 +354,10 @@ describe('useMerklClaim', () => {
       expect(global.fetch).toHaveBeenCalled();
     });
 
-    // Verify API was called with Linea chainId
+    // Verify API was called with correct chainId (decimal format, not hex)
+    const expectedDecimalChainId = Number(CHAIN_IDS.LINEA_MAINNET);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`chainId=${CHAIN_IDS.LINEA_MAINNET}`),
+      expect.stringContaining(`chainId=${expectedDecimalChainId}`),
     );
 
     await waitFor(() => {

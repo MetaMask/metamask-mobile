@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import ClaimMerklRewards from './ClaimMerklRewards';
-import { useMerklClaim } from '../../../AssetOverview/hooks/useMerklClaim';
+import { useMerklClaim } from './hooks/useMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
@@ -15,11 +15,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../AssetOverview/hooks/useMerklClaim');
+jest.mock('./hooks/useMerklClaim');
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
+  const { Text, TouchableOpacity: RNTouchableOpacity } =
+    jest.requireActual('react-native');
   return {
     Button: ({
       children,
@@ -37,7 +38,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       [key: string]: unknown;
     }) =>
       ReactActual.createElement(
-        TouchableOpacity,
+        RNTouchableOpacity,
         {
           onPress,
           disabled: isDisabled || isLoading,

@@ -4,7 +4,7 @@ import { TokenI } from '../../../Tokens/types';
 import {
   isEligibleForMerklRewards,
   useMerklRewards,
-} from '../../../AssetOverview/hooks/useMerklRewards';
+} from './hooks/useMerklRewards';
 import PendingMerklRewards from './PendingMerklRewards';
 import ClaimMerklRewards from './ClaimMerklRewards';
 

@@ -8,7 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useMerklClaim } from '../../../AssetOverview/hooks/useMerklClaim';
+import { useMerklClaim } from './hooks/useMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import styleSheet from './MerklRewards.styles';
 import { useStyles } from '../../../../../component-library/hooks';
