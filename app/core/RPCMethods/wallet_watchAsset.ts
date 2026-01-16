@@ -12,7 +12,12 @@ import {
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
-import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import {
+  getSafeJson,
+  Json,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
 export const wallet_watchAsset = async ({
@@ -105,6 +110,11 @@ export const wallet_watchAsset = async ({
   const finalTokenSymbol = fetchedSymbol ?? symbol;
   const finalTokenDecimals = fetchedDecimals ?? decimals;
 
+  const safePageMeta =
+    _pageMeta !== undefined
+      ? getSafeJson<Record<string, Json>>(_pageMeta)
+      : undefined;
+
   await TokensController.watchAsset({
     asset: {
       address,
@@ -117,10 +127,10 @@ export const wallet_watchAsset = async ({
     interactingAddress,
     networkClientId,
     origin: requestOrigin,
-    pageMeta: _pageMeta,
+    pageMeta: safePageMeta,
     requestMetadata: {
       origin: requestOrigin,
-      pageMeta: _pageMeta,
+      pageMeta: safePageMeta,
     },
   });
 
