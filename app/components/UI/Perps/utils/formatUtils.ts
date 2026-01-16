@@ -2,6 +2,7 @@
  * Shared formatting utilities for Perps components
  */
 import { BigNumber } from 'bignumber.js';
+import { strings } from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import {
   FUNDING_RATE_CONFIG,
@@ -12,7 +13,6 @@ import {
   getIntlNumberFormatter,
   getIntlDateTimeFormatter,
 } from '../../../../util/intl';
-import { strings } from '../../../../../locales/i18n';
 
 /**
  * Price threshold constants for PRICE_RANGES_UNIVERSAL
