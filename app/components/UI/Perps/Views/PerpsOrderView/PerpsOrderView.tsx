@@ -722,6 +722,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     positionSize,
   ]);
 
+  // Prefill deposit amount with margin value when available
+  useEffect(() => {
+    if (marginRequired !== undefined && marginRequired !== null) {
+      // Format margin to 2 decimal places for the input field
+      const formattedMargin = new BigNumber(marginRequired)
+        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+        .toString(10);
+      setDepositAmount(formattedMargin);
+    }
+    // Only depend on marginRequired and orderForm.amount
+    // depositAmount is intentionally excluded to avoid infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marginRequired, orderForm.amount]);
+
   const { updatePositionTPSL } = usePerpsTrading();
   const contractBalancesPerChainId = useSelector(
     selectContractBalancesPerChainId,
@@ -1448,20 +1462,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             </View>
 
-            {/* CustomAmountInfo - Render when deposit amount is entered and transaction is available */}
-            {depositAmount &&
-              depositAmount.trim() !== '' &&
-              activeTransactionMeta && (
-                <View>
-                  <CustomAmountInfo
-                    currency={PERPS_CURRENCY}
-                    hasMax
-                    defaultValue={depositAmount}
-                    skipNavigation
-                  />
-                </View>
-              )}
-
             {/* Combined TP/SL row - Hidden when modifying existing position */}
             {!hideTPSL && (
               <View style={[styles.detailItem, styles.detailItemLast]}>
@@ -1517,6 +1517,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             )}
           </View>
         )}
+
         {/* Info Section */}
         <View
           style={[
@@ -1623,6 +1624,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   })}
             </Text>
           </View>
+
+          {depositAmount &&
+            depositAmount.trim() !== '' &&
+            activeTransactionMeta && (
+              <View>
+                <CustomAmountInfo
+                  currency={PERPS_CURRENCY}
+                  hasMax
+                  defaultValue={depositAmount}
+                  skipNavigation
+                />
+              </View>
+            )}
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&

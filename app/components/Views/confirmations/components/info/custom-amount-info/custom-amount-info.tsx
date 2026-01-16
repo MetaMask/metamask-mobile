@@ -194,7 +194,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && !isNativePayToken}
             />
           )}
-          {minimalView && buttonLabel !== 'Add funds' && (
+          {minimalView && !isResultReady && (
             <Box>
               <Button
                 label="Confirm"
