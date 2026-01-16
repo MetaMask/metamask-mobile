@@ -130,7 +130,9 @@ export const useSwapBridgeNavigation = ({
       const bridgeNativeSourceTokenFormatted: BridgeToken | undefined =
         bridgeSourceNativeAsset
           ? {
-              address: bridgeSourceNativeAsset.address,
+              address: isNonEvmChainId(effectiveSourceChainId)
+                ? bridgeSourceNativeAsset.assetId
+                : bridgeSourceNativeAsset.address,
               name: bridgeSourceNativeAsset.name ?? '',
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',
