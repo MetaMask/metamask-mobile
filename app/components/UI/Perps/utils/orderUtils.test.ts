@@ -20,8 +20,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-import { strings } from '../../../../../locales/i18n';
-
 describe('orderUtils', () => {
   describe('formatOrderLabel', () => {
     it('should format opening long market order', () => {
@@ -290,50 +288,24 @@ describe('orderUtils', () => {
   });
 
   describe('getOrderDirection', () => {
-    const mockStrings = strings as jest.MockedFunction<typeof strings>;
-
     it('should return long for buy with no position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('buy', undefined);
-      expect(result).toBe('Long');
+      expect(result).toBe('perps.market.long');
     });
 
     it('should return short for sell with no position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('sell', undefined);
-      expect(result).toBe('Short');
+      expect(result).toBe('perps.market.short');
     });
 
     it('should return long for positive position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('sell', '1.5');
-      expect(result).toBe('Long');
+      expect(result).toBe('perps.market.long');
     });
 
     it('should return short for negative position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('buy', '-1.5');
-      expect(result).toBe('Short');
+      expect(result).toBe('perps.market.short');
     });
   });
 
