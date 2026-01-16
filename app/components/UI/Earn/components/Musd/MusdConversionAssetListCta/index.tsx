@@ -41,13 +41,9 @@ import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import Badge, {
-    BadgeVariant,
+  BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
 
-/**
- * TODO: Create a feature flag wrapper util (if one doesn't exist) to easily block rendering of components when feature is disabled.
- * We don't want to exclusively rely on the caller to check.
- */
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 

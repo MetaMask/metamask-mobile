@@ -88,7 +88,9 @@ export const useMusdConversion = () => {
     EVM_SCOPE,
   );
   const selectedAddress = selectedAccount?.address;
-  const hasSeenEducation = useSelector(selectMusdConversionEducationSeen);
+  const hasSeenConversionEducationScreen = useSelector(
+    selectMusdConversionEducationSeen,
+  );
 
   /**
    * Initiates a max-amount mUSD conversion.
@@ -245,7 +247,7 @@ export const useMusdConversion = () => {
    */
   const handleEducationRedirectIfNeeded = useCallback(
     (config: CustomConversionConfig): boolean => {
-      if (config.skipEducationCheck || hasSeenEducation) {
+      if (config.skipEducationCheck || hasSeenConversionEducationScreen) {
         return false;
       }
 
@@ -265,7 +267,7 @@ export const useMusdConversion = () => {
 
       return true;
     },
-    [hasSeenEducation, navigation],
+    [hasSeenConversionEducationScreen, navigation],
   );
 
   /**
@@ -395,6 +397,6 @@ export const useMusdConversion = () => {
     clearError,
     isMaxConversionLoading,
     error,
-    hasSeenEducation,
+    hasSeenConversionEducationScreen,
   };
 };
