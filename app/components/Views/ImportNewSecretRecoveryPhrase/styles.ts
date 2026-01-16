@@ -35,10 +35,6 @@ const createStyles = (colors: Colors) =>
       paddingVertical: 16,
       backgroundColor: colors.background.default,
     },
-    fixedErrorText: {
-      marginBottom: 8,
-      textAlign: 'left' as const,
-    },
   });
 
 export { createStyles };

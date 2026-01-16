@@ -786,22 +786,13 @@ const ImportFromSecretRecoveryPhrase = ({
       </KeyboardAwareScrollView>
       {currentStep === 0 && (
         <View style={styles.fixedBottomContainer}>
-          {Boolean(error) && (
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Error}
-              style={styles.fixedErrorText}
-            >
-              {error}
-            </Text>
-          )}
           <Button
             variant={ButtonVariants.Primary}
             label={strings('import_from_seed.continue')}
             onPress={handleContinueImportFlow}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
+            isDisabled={isSRPContinueButtonDisabled}
             testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
           />
         </View>

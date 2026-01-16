@@ -311,22 +311,13 @@ const ImportNewSecretRecoveryPhrase = () => {
         </View>
       </KeyboardAwareScrollView>
       <View style={styles.fixedBottomContainer}>
-        {Boolean(error) && (
-          <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Error}
-            style={styles.fixedErrorText}
-          >
-            {error}
-          </Text>
-        )}
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           label={strings('import_new_secret_recovery_phrase.cta_text')}
           onPress={onSubmit}
-          isDisabled={isSRPContinueButtonDisabled || Boolean(error) || loading}
+          isDisabled={isSRPContinueButtonDisabled || loading}
           loading={loading}
           testID={ImportSRPIDs.IMPORT_BUTTON}
         />
