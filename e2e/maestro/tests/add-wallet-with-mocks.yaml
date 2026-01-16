@@ -26,7 +26,7 @@ tags:
 # (Same steps as add-wallet-test.yaml from this point)
 - tapOn:
     id: ${output.home.accountPicker}
-    waitToSettleTimeoutMs: 2000
+    waitToSettleTimeoutMs: 5000
 - tapOn:
     id: ${output.home.addAccountBtn}
     waitToSettleTimeoutMs: 5000
