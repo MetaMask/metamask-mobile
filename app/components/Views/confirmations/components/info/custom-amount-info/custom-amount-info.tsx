@@ -311,11 +311,15 @@ function ConfirmButton({
   const disabled = hasBlockingAlerts || isLoading;
   const buttonLabel = useButtonLabel();
 
+  let label = alertTitle ?? buttonLabel;
+
+  label = label === 'Add funds' ? 'Execute trade with any token' : label;
+
   return (
     <Button
       style={[disabled && styles.disabledButton]}
       size={ButtonSize.Lg}
-      label={alertTitle ?? buttonLabel}
+      label={label}
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
       disabled={disabled}

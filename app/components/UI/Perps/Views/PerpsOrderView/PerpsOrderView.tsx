@@ -30,7 +30,7 @@ import {
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -251,8 +251,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { track } = usePerpsEventTracking();
   const { openTooltipModal } = useTooltipModal();
-  const { navigateToConfirmation } = useConfirmNavigation();
-  const { depositWithConfirmation } = usePerpsTrading();
 
   // Check if there's an active transaction (required for CustomAmountInfo)
   const activeTransactionMeta = useTransactionMetadataRequest();
@@ -339,7 +337,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { markets } = usePerpsMarkets();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { toastRef } = useContext(ToastContext);
 
   // Find formatted market data for navigation
   const navigationMarketData = useMemo(
@@ -378,205 +375,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { submitBridgeTx } = useSubmitBridgeTx();
   const context = useUnifiedSwapBridgeContext();
   const quotes = useSelector(selectBridgeQuotes);
-
-  // Handle swap button press - submit transaction directly
-  const handleSwapPress = useCallback(async () => {
-    Alert.alert('Handling swap press');
-    if (!selectedToken) {
-      // TODO: Show error toast - no token selected
-      Alert.alert('Error', 'No token selected', [{ text: 'OK' }]);
-      return;
-    }
-
-    if (!walletAddress) {
-      // TODO: Show error toast - wallet address not available
-      Alert.alert('Error', 'Wallet address not available', [{ text: 'OK' }]);
-      return;
-    }
-
-    // Get USDC on Arbitrum as destination token
-    const destToken = DefaultSwapDestTokens[CHAIN_IDS.ARBITRUM];
-
-    if (!destToken) {
-      Alert.alert('Error', 'USDC on Arbitrum not available', [{ text: 'OK' }]);
-      // TODO: Show error toast - USDC on Arbitrum not available
-      return;
-    }
-
-    // Show loading toast - use inProgress config as base
-    const inProgressConfig =
-      PerpsToastOptions.accountManagement.deposit.inProgress(undefined, '');
-    showToast({
-      ...inProgressConfig,
-      hasNoTimeout: true,
-      labelOptions: [
-        {
-          label: 'Converting balance to USDC on ARBITRUM',
-          isBold: true,
-        },
-      ],
-    });
-
-    try {
-      // Convert PerpsToken to BridgeToken format
-      const sourceToken: BridgeToken = {
-        address: selectedToken.address,
-        name: selectedToken.name,
-        symbol: selectedToken.symbol,
-        image: selectedToken.image,
-        decimals: selectedToken.decimals,
-        chainId: selectedToken.chainId,
-        balance: selectedToken.balance,
-        balanceFiat: selectedToken.balanceFiat,
-      };
-
-      // Set source and destination tokens in bridge Redux state
-      // This is required for selectSourceWalletAddress to work correctly
-      dispatch(setSourceToken(sourceToken));
-      dispatch(setDestToken(destToken));
-      dispatch(setSelectedDestChainId(CHAIN_IDS.ARBITRUM));
-
-      const fullBalance = selectedToken.balance || '0';
-      const balanceNumber = Number.parseFloat(
-        fullBalance === '.' ? '0' : fullBalance || '0',
-      );
-      const partialBalance = (balanceNumber / 5).toString();
-
-      // Normalize source amount to minimal units (half of balance)
-      const normalizedSourceAmount = selectedToken.decimals
-        ? calcTokenValue(partialBalance, selectedToken.decimals).toFixed(0)
-        : '0';
-
-      // Request quote from BridgeController
-      const quoteParams: GenericQuoteRequest = {
-        srcChainId: getDecimalChainId(selectedToken.chainId),
-        srcTokenAddress: formatAddressToCaipReference(selectedToken.address),
-        destChainId: getDecimalChainId(CHAIN_IDS.ARBITRUM),
-        destTokenAddress: formatAddressToCaipReference(destToken.address),
-        srcTokenAmount: normalizedSourceAmount,
-        walletAddress,
-        destWalletAddress: walletAddress,
-        insufficientBal: false,
-        gasIncluded: false,
-        gasIncluded7702: false,
-      };
-
-      // Update quote request params and wait for quote
-      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-        quoteParams,
-        context,
-      );
-
-      // Poll for quote with retries (max 15 seconds)
-      // Wait a bit initially for quote to start fetching
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      let bestQuote = quotes?.recommendedQuote;
-      const maxRetries = 28; // 28 retries * 500ms = 14 seconds + 1s initial = 15 seconds max
-      let retries = 0;
-
-      // Keep checking quotes from Redux state by re-reading from store
-      const getQuotesFromStore = () => {
-        try {
-          // Access the store through Engine if available
-          const state = (Engine as any).store?.getState?.();
-          if (state) {
-            return selectBridgeQuotes(state);
-          }
-        } catch {
-          // Fallback to quotes from useSelector
-        }
-        return quotes;
-      };
-
-      while (!bestQuote && retries < maxRetries) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const currentQuotes = getQuotesFromStore();
-        bestQuote = currentQuotes?.recommendedQuote;
-        retries++;
-      }
-
-      // Final check - quotes should be available by now
-      // If still not available, try one more time after a longer wait
-      if (!bestQuote) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        const finalQuotes = getQuotesFromStore();
-        bestQuote = finalQuotes?.recommendedQuote;
-      }
-
-      if (!bestQuote) {
-        Alert.alert('Error', 'No quote available after waiting', [
-          { text: 'OK' },
-        ]);
-        toastRef?.current?.closeToast();
-        return;
-      }
-
-      // Submit the transaction directly
-      const txResult = await submitBridgeTx({
-        quoteResponse: bestQuote,
-      });
-
-      // Show alert with transaction ID
-      if (txResult?.id) {
-        Alert.alert('Swap Submitted', `Transaction ID: ${txResult.id}`, [
-          { text: 'OK' },
-        ]);
-
-        // Wait for transaction confirmation before closing toast
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionConfirmed',
-          () => {
-            // Close the loading toast when transaction is confirmed
-            toastRef?.current?.closeToast();
-          },
-          (transactionMeta) => transactionMeta.id === txResult.id,
-        );
-
-        // Also handle failed/rejected transactions
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionFailed',
-          () => {
-            toastRef?.current?.closeToast();
-          },
-          ({ transactionMeta }) => transactionMeta.id === txResult.id,
-        );
-
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionRejected',
-          () => {
-            toastRef?.current?.closeToast();
-          },
-          ({ transactionMeta }) => transactionMeta.id === txResult.id,
-        );
-      } else {
-        // If no transaction ID, close toast immediately
-        toastRef?.current?.closeToast();
-      }
-    } catch (error) {
-      // Close the loading toast on error
-      toastRef?.current?.closeToast();
-      // Show error alert
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      Alert.alert(
-        'Swap Failed',
-        `Failed to submit swap transaction: ${errorMessage}`,
-        [{ text: 'OK' }],
-      );
-      console.error('Swap transaction failed:', error);
-    }
-  }, [
-    selectedToken,
-    walletAddress,
-    submitBridgeTx,
-    context,
-    quotes,
-    dispatch,
-    showToast,
-    PerpsToastOptions,
-    toastRef,
-  ]);
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -1208,6 +1006,64 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     buttonColorVariant,
   ]);
 
+  // Listen for deposit transaction confirmation and show alert
+  useEffect(() => {
+    if (!activeTransactionMeta?.id) {
+      return;
+    }
+
+    const transactionId = activeTransactionMeta.id;
+
+    // Listen for transaction confirmation
+    // transactionConfirmed event passes transactionMeta directly
+    const handler1 = Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionConfirmed',
+      (transactionMeta) => {
+        // Check if this is a perps deposit transaction
+        if (transactionMeta.type === TransactionType.perpsDeposit) {
+          handlePlaceOrder();
+          // Alert.alert(
+          //   'Funds Added',
+          //   'Your deposit has been successfully completed.',
+          //   [{ text: 'OK' }],
+          // );
+        }
+      },
+      (transactionMeta) =>
+        transactionMeta.id === transactionId &&
+        transactionMeta.type === TransactionType.perpsDeposit,
+    );
+
+    // Also handle failed transactions
+    // transactionFailed event passes { transactionMeta }
+    const handler2 = Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionFailed',
+      ({ transactionMeta }) => {
+        if (transactionMeta?.type === TransactionType.perpsDeposit) {
+          Alert.alert(
+            'Deposit Failed',
+            'Your deposit transaction has failed. Please try again.',
+            [{ text: 'OK' }],
+          );
+        }
+      },
+      ({ transactionMeta }) =>
+        transactionMeta?.id === transactionId &&
+        transactionMeta.type === TransactionType.perpsDeposit,
+    );
+
+    return () => {
+      Engine.controllerMessenger.tryUnsubscribe(
+        'TransactionController:transactionConfirmed',
+        handler1,
+      );
+      Engine.controllerMessenger.tryUnsubscribe(
+        'TransactionController:transactionFailed',
+        handler2,
+      );
+    };
+  }, [activeTransactionMeta?.id, handlePlaceOrder]);
+
   // Memoize the tooltip handlers to prevent recreating them on every render
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey) => {
@@ -1386,56 +1242,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 </TouchableOpacity>
               </View>
             )}
-
-            {/* Payment Token Selector */}
-            <View
-              style={[
-                styles.detailItem,
-                // Position based on what's above/below
-                // This is the last item if TP/SL is hidden, otherwise it's middle
-                hideTPSL ? styles.detailItemLast : styles.detailItemMiddle,
-              ]}
-            >
-              <TouchableOpacity
-                onPress={() => setIsTokenSelectorVisible(true)}
-                testID="perps-order-payment-token-selector"
-              >
-                <ListItem style={styles.detailItemWrapper}>
-                  <ListItemColumn widthType={WidthType.Fill}>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('perps.order.payment_token')}
-                    </Text>
-                  </ListItemColumn>
-                  <ListItemColumn widthType={WidthType.Auto}>
-                    {selectedToken ? (
-                      <View style={styles.tokenSelectorContent}>
-                        <PerpsTokenLogo
-                          symbol={selectedToken.symbol}
-                          size={20}
-                          style={styles.tokenSelectorLogo}
-                        />
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Default}
-                        >
-                          {selectedToken.symbol}
-                        </Text>
-                      </View>
-                    ) : (
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('perps.order.select_token')}
-                      </Text>
-                    )}
-                  </ListItemColumn>
-                </ListItem>
-              </TouchableOpacity>
-            </View>
 
             {/* Deposit Amount Input */}
             <View style={[styles.detailItem, styles.detailItemMiddle]}>
