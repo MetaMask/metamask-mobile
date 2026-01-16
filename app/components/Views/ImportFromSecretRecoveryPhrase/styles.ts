@@ -235,6 +235,15 @@ const createStyles = (colors: any) =>
       left: 0,
       right: 0,
     },
+    fixedBottomContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: colors.background.default,
+    },
+    fixedErrorText: {
+      marginBottom: 8,
+      textAlign: 'left',
+    },
   });
 
 export default createStyles;
