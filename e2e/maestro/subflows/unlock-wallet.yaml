@@ -5,13 +5,13 @@ appId: io.metamask
 # This subflow unlocks the wallet using the default fixture password.
 # Used after fixtures load to unlock the pre-existing wallet.
 
-- runFlow: ../pages/loadElements.yaml
+# - runFlow: ../pages/loadElements.yaml
 
 # Wait for unlock screen to load (fixtures take time to load)
 - extendedWaitUntil:
     visible:
       id: ${output.login.passwordInput}
-    timeout: 30000
+    timeout: 45000
 
 # Enter password (default fixture password is "123123123")
 - tapOn:
