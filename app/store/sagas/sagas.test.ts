@@ -375,7 +375,6 @@ describe('startAppServices', () => {
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .fork(authStateMachine)
       .run();
 
     // Verify authentication is requested
