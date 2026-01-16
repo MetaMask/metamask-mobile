@@ -22,14 +22,14 @@ import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
 import { CardTokenAllowance } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
-import { isSwapsAllowed } from '../../../Swaps/utils';
+import { isBridgeAllowed } from '../../../Bridge/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
-import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
@@ -140,8 +140,8 @@ const AddFundsBottomSheet: React.FC = () => {
       onPress: handleOpenSwaps,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
       enabled:
-        AppConstants.SWAPS.ACTIVE &&
-        isSwapsAllowed(
+        AppConstants.BRIDGE.ACTIVE &&
+        isBridgeAllowed(
           safeFormatChainIdToHex(priorityToken?.caipChainId ?? ''),
         ),
     },

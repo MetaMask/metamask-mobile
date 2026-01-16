@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import Button, {
   ButtonVariants,
@@ -12,11 +12,11 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './CardWarningBox.styles';
-import { CardWarning as CardWarningType } from '../../types';
+import { CardWarningBoxType } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 
 interface CardWarningBoxProps {
-  warning: CardWarningType;
+  warning: CardWarningBoxType;
   onConfirm?: () => void;
   onConfirmLoading?: boolean;
   onDismiss?: () => void;
@@ -32,10 +32,10 @@ const CardWarningBox = ({
   const styles = createStyles(theme);
 
   const warningTexts: Record<
-    CardWarningType,
+    CardWarningBoxType,
     { title: string; description: string; confirmButtonLabel?: string }
   > = {
-    [CardWarningType.CloseSpendingLimit]: {
+    [CardWarningBoxType.CloseSpendingLimit]: {
       title: strings('card.card_home.warnings.close_spending_limit.title'),
       description: strings(
         'card.card_home.warnings.close_spending_limit.description',
@@ -44,40 +44,13 @@ const CardWarningBox = ({
         'card.card_home.warnings.close_spending_limit.confirm_button_label',
       ),
     },
-    [CardWarningType.NeedDelegation]: {
-      title: strings('card.card_home.warnings.need_delegation.title'),
-      description: strings(
-        'card.card_home.warnings.need_delegation.description',
-      ),
-      confirmButtonLabel: strings(
-        'card.card_home.warnings.need_delegation.confirm_button_label',
-      ),
-    },
-    [CardWarningType.Frozen]: {
-      title: strings('card.card_home.warnings.frozen.title'),
-      description: strings('card.card_home.warnings.frozen.description'),
-    },
-    [CardWarningType.Blocked]: {
-      title: strings('card.card_home.warnings.blocked.title'),
-      description: strings('card.card_home.warnings.blocked.description'),
-    },
-    [CardWarningType.NoCard]: {
-      title: strings('card.card_home.warnings.no_card.title'),
-      description: strings('card.card_home.warnings.no_card.description'),
+    [CardWarningBoxType.KYCPending]: {
+      title: strings('card.card_home.warnings.kyc_pending.title'),
+      description: strings('card.card_home.warnings.kyc_pending.description'),
     },
   };
 
-  const isWarningWithoutBox = useMemo(
-    () =>
-      [CardWarningType.NoCard, CardWarningType.NeedDelegation].includes(
-        warning,
-      ),
-    [warning],
-  );
-
-  if (isWarningWithoutBox) {
-    return null;
-  }
+  const warningConfig = warningTexts[warning];
 
   return (
     <View style={styles.container}>
@@ -89,12 +62,8 @@ const CardWarningBox = ({
       />
       <View style={styles.contentContainer}>
         <View style={styles.textsContainer}>
-          <Text variant={TextVariant.BodyMDBold}>
-            {warningTexts[warning].title}
-          </Text>
-          <Text variant={TextVariant.BodyMD}>
-            {warningTexts[warning].description}
-          </Text>
+          <Text variant={TextVariant.BodyMDBold}>{warningConfig.title}</Text>
+          <Text variant={TextVariant.BodyMD}>{warningConfig.description}</Text>
         </View>
 
         <View
@@ -111,12 +80,12 @@ const CardWarningBox = ({
               testID="dismiss-button"
             />
           )}
-          {warningTexts[warning].confirmButtonLabel && onConfirm ? (
+          {warningConfig.confirmButtonLabel && onConfirm ? (
             <Button
               variant={ButtonVariants.Primary}
               onPress={onConfirm}
               loading={onConfirmLoading}
-              label={warningTexts[warning].confirmButtonLabel}
+              label={warningConfig.confirmButtonLabel}
               testID="confirm-button"
             />
           ) : null}

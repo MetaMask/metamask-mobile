@@ -9,7 +9,7 @@ import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import type { PerpsNavigationParamList } from '../controllers/types';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import {
   PerpsEventValues,
@@ -92,6 +92,12 @@ export const usePerpsHomeActions = (
 
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
+      // Track geo-block screen viewed
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON,
+      });
       setIsEligibilityModalVisible(true);
       return;
     }
@@ -154,6 +160,12 @@ export const usePerpsHomeActions = (
 
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for withdraw');
+      // Track geo-block screen viewed
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.WITHDRAW_BUTTON,
+      });
       setIsEligibilityModalVisible(true);
       return;
     }

@@ -85,6 +85,20 @@ jest.mock('../../../hooks/useValidateReferralCode', () => ({
   useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
+// Mock useMetrics hook
+const mockBuilder = {
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+};
+
+jest.mock('../../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => mockBuilder),
+  }),
+  MetaMetricsEvents: {},
+}));
+
 // Mock Linking and PanResponder
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');

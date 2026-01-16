@@ -1,5 +1,5 @@
 import { SmokeNetworkAbstractions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../pages/wallet/NetworkManager';
@@ -255,7 +255,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         );
 
         // Step 2: Navigate to dapp and request network addition
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.tapOpenNetworkPicker();
         await TestDApp.tapNetworkByName(POLYGON);
@@ -276,7 +276,13 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         // Step 3: Approve the network addition
         await ConnectBottomSheet.tapConnectButton();
 
-        // Step 4: Return to wallet and verify network preservation
+        // Wait for browser screen to be visible after connection modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description: 'Browser screen should be visible after connecting',
+        });
+
+        // Step 4: Close browser to reveal app tab bar, then return to wallet
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapWallet();
 
         // Verify Ethereum is still the active network (preservation)

@@ -14,7 +14,7 @@ import Avatar, {
 
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
@@ -37,15 +37,14 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   );
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  const openAccountSelector = useCallback(
-    () =>
-      navigation.navigate(
-        ...createAccountSelectorNavDetails({
-          isEvmOnly,
-        }),
-      ),
-    [isEvmOnly, navigation],
-  );
+  const openAccountSelector = useCallback(() => {
+    navigation.navigate(
+      ...createAccountSelectorNavDetails({
+        isEvmOnly,
+        disableAddAccountButton: true,
+      }),
+    );
+  }, [isEvmOnly, navigation]);
 
   return (
     <SelectorButton

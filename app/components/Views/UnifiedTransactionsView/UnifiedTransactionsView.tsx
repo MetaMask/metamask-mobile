@@ -229,7 +229,9 @@ const UnifiedTransactionsView = ({
     const seenSubmittedNonces = new Set<string>();
     const submittedTxsFiltered = submittedTxs.filter(
       ({ chainId: _chainId, txParams }) => {
-        const { from, nonce } = txParams || {};
+        const { from, nonce, actionId } = txParams || {};
+        // Some txs don't have nonce, like intent based swaps
+        const hasNonce = nonce !== undefined && nonce !== null;
         if (
           !selectedAccountGroupInternalAccountsAddresses.some((addr) =>
             areAddressesEqual(from, addr),
@@ -237,19 +239,22 @@ const UnifiedTransactionsView = ({
         ) {
           return false;
         }
-
-        const dedupeKey = `${_chainId}-${String(from).toLowerCase()}-${nonce}`;
+        const dedupeKeyPrefix = `${_chainId}-${String(from).toLowerCase()}`;
+        const dedupeKey = hasNonce
+          ? `${dedupeKeyPrefix}-${nonce}`
+          : `${dedupeKeyPrefix}-${actionId}`;
         if (seenSubmittedNonces.has(dedupeKey)) {
           return false;
         }
 
         const alreadyConfirmed = allConfirmedFiltered.find(
           (confirmedTx) =>
+            hasNonce &&
+            confirmedTx.txParams?.nonce === nonce &&
             selectedAccountGroupInternalAccountsAddresses.some((addr) =>
               areAddressesEqual(confirmedTx.txParams?.from, addr),
             ) &&
-            confirmedTx.chainId === _chainId &&
-            confirmedTx.txParams?.nonce === nonce,
+            confirmedTx.chainId === _chainId,
         );
 
         if (alreadyConfirmed) {
