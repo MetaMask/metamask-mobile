@@ -41,7 +41,7 @@ describe('NetInfoConnectivityAdapter', () => {
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
 
-      // Simulate NetInfo state update
+      // Simulate NetInfo state update (listener is set up in constructor)
       const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
         .mock.calls[0]?.[0];
       addEventListenerCallback({
@@ -57,7 +57,7 @@ describe('NetInfoConnectivityAdapter', () => {
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
 
-      // Simulate NetInfo state update
+      // Simulate NetInfo state update (listener is set up in constructor)
       const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
         .mock.calls[0]?.[0];
       addEventListenerCallback({
@@ -73,7 +73,7 @@ describe('NetInfoConnectivityAdapter', () => {
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
 
-      // Simulate NetInfo state update with null isInternetReachable
+      // Simulate NetInfo state update with null isInternetReachable (listener is set up in constructor)
       const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
         .mock.calls[0]?.[0];
       addEventListenerCallback({
@@ -89,7 +89,7 @@ describe('NetInfoConnectivityAdapter', () => {
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
 
-      // Simulate NetInfo state update
+      // Simulate NetInfo state update (listener is set up in constructor)
       const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
         .mock.calls[0]?.[0];
       addEventListenerCallback({
@@ -112,7 +112,8 @@ describe('NetInfoConnectivityAdapter', () => {
       await Promise.resolve();
 
       expect(netInfoFetch).toHaveBeenCalled();
-      expect(netInfoAddEventListener).toHaveBeenCalled();
+      // Event listener is set up in constructor
+      expect(netInfoAddEventListener).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(CONNECTIVITY_STATUSES.Online);
     });
 
@@ -126,7 +127,7 @@ describe('NetInfoConnectivityAdapter', () => {
       await Promise.resolve();
       callback.mockClear();
 
-      // Simulate NetInfo state change
+      // Simulate NetInfo state change (listener is set up in constructor)
       const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
         .mock.calls[0]?.[0];
       addEventListenerCallback({
@@ -152,7 +153,7 @@ describe('NetInfoConnectivityAdapter', () => {
       await Promise.resolve();
       callback.mockClear();
 
-      // Simulate NetInfo state change
+      // Simulate NetInfo state change (listener is set up in constructor)
       const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
         .mock.calls[0]?.[0];
       addEventListenerCallback({
@@ -173,7 +174,7 @@ describe('NetInfoConnectivityAdapter', () => {
       await Promise.resolve();
       callback.mockClear();
 
-      // Simulate NetInfo state with null isInternetReachable
+      // Simulate NetInfo state with null isInternetReachable (listener is set up in constructor)
       const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
         .mock.calls[0]?.[0];
       addEventListenerCallback({
@@ -183,10 +184,41 @@ describe('NetInfoConnectivityAdapter', () => {
 
       expect(callback).toHaveBeenCalledWith(CONNECTIVITY_STATUSES.Online);
     });
+
+    it('supports multiple callbacks', async () => {
+      adapter = new NetInfoConnectivityAdapter();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      adapter.onConnectivityChange(callback1);
+      adapter.onConnectivityChange(callback2);
+
+      // Wait for initial fetch
+      await Promise.resolve();
+
+      // Both callbacks should be called with initial state
+      expect(callback1).toHaveBeenCalledWith(CONNECTIVITY_STATUSES.Online);
+      expect(callback2).toHaveBeenCalledWith(CONNECTIVITY_STATUSES.Online);
+
+      callback1.mockClear();
+      callback2.mockClear();
+
+      // Simulate NetInfo state change (listener is set up in constructor)
+      const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
+        .mock.calls[0]?.[0];
+      addEventListenerCallback({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+
+      // Both callbacks should be notified of the change
+      expect(callback1).toHaveBeenCalledWith(CONNECTIVITY_STATUSES.Offline);
+      expect(callback2).toHaveBeenCalledWith(CONNECTIVITY_STATUSES.Offline);
+    });
   });
 
   describe('destroy', () => {
-    it('unsubscribes from NetInfo and clears callback', async () => {
+    it('unsubscribes from NetInfo and clears callbacks', async () => {
       adapter = new NetInfoConnectivityAdapter();
       const callback = jest.fn();
 
@@ -209,7 +241,7 @@ describe('NetInfoConnectivityAdapter', () => {
       }).not.toThrow();
     });
 
-    it('stops calling callback after destroy', async () => {
+    it('stops calling callbacks after destroy', async () => {
       adapter = new NetInfoConnectivityAdapter();
       const callback = jest.fn();
 

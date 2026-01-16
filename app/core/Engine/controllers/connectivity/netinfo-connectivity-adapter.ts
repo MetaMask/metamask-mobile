@@ -26,9 +26,18 @@ import {
  * `isConnected` in this case.
  */
 export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
-  #unsubscribe: NetInfoSubscription | null = null;
+  #removeNetInfoEventListener: NetInfoSubscription | null = null;
   #onConnectivityChangeCallbacks: ((status: ConnectivityStatus) => void)[] = [];
   #currentState: NetInfoState | null = null;
+
+  constructor() {
+    // Set up NetInfo event listener once in constructor
+    this.#removeNetInfoEventListener = netInfoAddEventListener(
+      (state: NetInfoState) => {
+        this.#update(state);
+      },
+    );
+  }
 
   /**
    * Returns the current connectivity status.
@@ -67,41 +76,28 @@ export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
 
     // Fetch initial state first
     netInfoFetch().then((state: NetInfoState) => {
-      this.#currentState = state;
-      const isOnline = state.isInternetReachable ?? state.isConnected ?? false;
-      this.#onConnectivityChangeCallbacks.forEach((cb) =>
-        cb(
-          isOnline
-            ? CONNECTIVITY_STATUSES.Online
-            : CONNECTIVITY_STATUSES.Offline,
-        ),
-      );
+      this.#update(state);
     });
+  }
 
-    // Subscribe to NetInfo state changes
-    this.#unsubscribe = netInfoAddEventListener((state: NetInfoState) => {
-      this.#currentState = state;
+  /**
+   * Updates the current state and notifies all registered callbacks.
+   *
+   * @param state - The new NetInfo state.
+   */
+  #update(state: NetInfoState): void {
+    this.#currentState = state;
+    const status = this.getStatus();
 
-      // Use isInternetReachable for actual internet connectivity
-      // Falls back to isConnected if isInternetReachable is null (still determining)
-      const isOnline = state.isInternetReachable ?? state.isConnected ?? false;
-
-      this.#onConnectivityChangeCallbacks.forEach((cb) =>
-        cb(
-          isOnline
-            ? CONNECTIVITY_STATUSES.Online
-            : CONNECTIVITY_STATUSES.Offline,
-        ),
-      );
-    });
+    this.#onConnectivityChangeCallbacks.forEach((callback) => callback(status));
   }
 
   /**
    * Cleans up the NetInfo subscription.
    */
   destroy(): void {
-    this.#unsubscribe?.();
-    this.#unsubscribe = null;
+    this.#removeNetInfoEventListener?.();
+    this.#removeNetInfoEventListener = null;
     this.#onConnectivityChangeCallbacks = [];
     this.#currentState = null;
   }
