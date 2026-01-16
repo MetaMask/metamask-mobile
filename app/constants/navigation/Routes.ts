@@ -250,7 +250,6 @@ const Routes = {
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
-      MARKET_CLOSED_MODAL: 'MarketClosedModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
