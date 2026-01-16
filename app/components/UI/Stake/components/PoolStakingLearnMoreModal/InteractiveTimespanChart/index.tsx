@@ -47,7 +47,11 @@ export interface InteractiveTimespanChartProps<T extends DataPoint> {
   subtitleAccessor?: Accessor<T, string>;
   defaultSubtitle?: string;
   onTimespanPressed?: (numDataPointsToDisplay: number) => void;
-  graphOptions?: Partial<GraphOptions>;
+  graphOptions?: Partial<Omit<GraphOptions, 'color'>>;
+  /**
+   * The color used for the chart line, gradient, cursor, and tooltip title.
+   */
+  color: string;
   testID?: string;
   isLoading?: boolean;
 }
@@ -89,19 +93,13 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   titleAccessor,
   subtitleAccessor,
   onTimespanPressed,
+  color,
   testID = INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
   isLoading = false,
 }: InteractiveTimespanChartProps<T>) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const {
-    insetTop,
-    insetRight,
-    insetBottom,
-    insetLeft,
-    timespanButtons,
-    color,
-  } = {
+  const { insetTop, insetRight, insetBottom, insetLeft, timespanButtons } = {
     ...DEFAULT_GRAPH_OPTIONS,
     ...graphOptions,
   };

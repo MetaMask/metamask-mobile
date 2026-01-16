@@ -38,7 +38,8 @@ import { addTransactionBatch } from '../../../../../util/transaction-controller'
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getStakingNavbar } from '../../../Navbar';
+import getHeaderCenterNavbarOptions from '../../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import { IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
@@ -118,7 +119,7 @@ const EarnInputView = () => {
     : (contractExchangeRates?.[token.address as Hex]?.price ?? 0);
 
   // other hooks
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
@@ -135,7 +136,7 @@ const EarnInputView = () => {
     confirmStake: tronConfirmStake,
     tronAccountId,
   } = useTronStake({ token });
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
+  useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
@@ -234,7 +235,7 @@ const EarnInputView = () => {
 
   useEndTraceOnMount(TraceName.EarnDepositScreen);
 
-  const navigateToLearnMoreModal = () => {
+  const navigateToLearnMoreModal = useCallback(() => {
     const tokenExperience = earnToken?.experience?.type;
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
@@ -252,7 +253,7 @@ const EarnInputView = () => {
         params: { asset: earnToken },
       });
     }
-  };
+  }, [earnToken, navigation]);
 
   const handleQuickAmountPressWithTracking = useCallback(
     ({ value }: { value: number }) => {
@@ -818,56 +819,50 @@ const EarnInputView = () => {
     }, []),
   );
 
-  const stakingNavBarOptions = {
-    hasCancelButton: true,
-    hasBackButton: false,
-  };
-  const stakingNavBarEventOptions = {
-    cancelButtonEvent: {
-      event: MetaMetricsEvents.STAKE_CANCEL_CLICKED,
-      properties: {
-        selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-        experience: EARN_EXPERIENCES.POOLED_STAKING,
-        token: token.symbol,
-      },
-    },
-  };
-  const earnNavBarOptions = {
-    hasCancelButton: false,
-    hasBackButton: true,
-    hasIconButton: true,
-    handleIconPress: navigateToLearnMoreModal,
-  };
-  const earnNavBarEventOptions = {
-    backButtonEvent: {
-      event: MetaMetricsEvents.EARN_INPUT_BACK_BUTTON_CLICKED,
-      properties: {
-        selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        token: token.symbol,
-      },
-    },
-    iconButtonEvent: {
-      event: MetaMetricsEvents.TOOLTIP_OPENED,
-      properties: {
-        selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        text: 'Tooltip Opened',
-        location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-        tooltip_name: 'Lending Historic Market APY Graph',
-        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        token: token.symbol,
-        apr: `${earnToken?.experience.apr}%`,
-      },
-    },
-  };
-  const navBarOptions = isStablecoinLendingEnabled
-    ? earnNavBarOptions
-    : stakingNavBarOptions;
-  const navBarEventOptions = isStablecoinLendingEnabled
-    ? earnNavBarEventOptions
-    : stakingNavBarEventOptions;
+  const handleBackPress = useCallback(() => {
+    if (isStablecoinLendingEnabled) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_BACK_BUTTON_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: token.symbol,
+          })
+          .build(),
+      );
+    }
+    navigation.goBack();
+  }, [
+    isStablecoinLendingEnabled,
+    trackEvent,
+    createEventBuilder,
+    token.symbol,
+    navigation,
+  ]);
+
+  const handleInfoPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOOLTIP_OPENED)
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          text: 'Tooltip Opened',
+          location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+          tooltip_name: 'Lending Historic Market APY Graph',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          token: token.symbol,
+          apr: `${earnToken?.experience.apr}%`,
+        })
+        .build(),
+    );
+    navigateToLearnMoreModal();
+  }, [
+    trackEvent,
+    createEventBuilder,
+    token.symbol,
+    earnToken?.experience.apr,
+    navigateToLearnMoreModal,
+  ]);
 
   useEffect(() => {
     const isLending =
@@ -880,33 +875,24 @@ const EarnInputView = () => {
       : `${strings('stake.stake')} ${tokenLabel}`;
 
     navigation.setOptions(
-      getStakingNavbar(
+      getHeaderCenterNavbarOptions({
         title,
-        navigation,
-        theme.colors,
-        navBarOptions,
-        navBarEventOptions,
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        earnToken,
-        isTronEnabled ? tronApyPercent : null,
-        ///: END:ONLY_INCLUDE_IF
-      ),
+        onBack: handleBackPress,
+        endButtonIconProps: isStablecoinLendingEnabled
+          ? [{ iconName: IconName.Info, onPress: handleInfoPress }]
+          : undefined,
+        includesTopInset: true,
+      }),
     );
   }, [
     navigation,
-    token,
-    theme.colors,
-    navBarEventOptions,
-    navBarOptions,
     earnToken?.experience?.type,
     earnToken?.ticker,
     earnToken?.symbol,
     earnToken?.name,
-    earnToken,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTronEnabled,
-    tronApyPercent,
-    ///: END:ONLY_INCLUDE_IF
+    handleBackPress,
+    handleInfoPress,
+    isStablecoinLendingEnabled,
   ]);
 
   useEffect(() => {

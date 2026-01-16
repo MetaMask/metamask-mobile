@@ -6,6 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import { strings } from '../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
@@ -106,19 +108,14 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   useEffect(() => {
     if (approvalRequest) {
-      const options = {
+      navigation.setOptions({
+        // HeaderCenter is used for full screen confirmations, so we don't need React Navigation's header
         headerShown: false,
         // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
         gestureEnabled: true,
-      };
-
-      if (isFullScreenConfirmation) {
-        // If the confirmation is full screen, we need to show the header
-        options.headerShown = true;
-      }
-      navigation.setOptions(options);
+      });
     }
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {
@@ -147,6 +144,11 @@ export const Confirm = ({ route }: ConfirmProps) => {
         style={styles.flatContainer}
         testID={ConfirmationUIType.FLAT}
       >
+        <HeaderCenter
+          title={strings('stake.review')}
+          onBack={onReject}
+          includesTopInset
+        />
         <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
     );

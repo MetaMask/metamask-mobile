@@ -31,7 +31,7 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import { getStakingNavbar } from '../../../Navbar';
+import getHeaderCenterNavbarOptions from '../../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
@@ -119,9 +119,10 @@ jest.mock('../../hooks/useEarnTokens', () => ({
 
 jest.mock('../../../../hooks/useMetrics/useMetrics');
 
-jest.mock('../../../Navbar', () => ({
-  getStakingNavbar: jest.fn().mockReturnValue({}),
-}));
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions',
+  () => jest.fn((config) => config),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -368,7 +369,9 @@ describe('EarnInputView', () => {
   };
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
-  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
+  const mockGetHeaderCenterNavbarOptions = jest.mocked(
+    getHeaderCenterNavbarOptions,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -537,14 +540,10 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Supply USDC',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
+      expect(mockGetHeaderCenterNavbarOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Supply USDC',
+        }),
       );
 
       // "0" in the input display and on the keypad
@@ -1259,14 +1258,10 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Stake ETH',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
+      expect(mockGetHeaderCenterNavbarOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Stake ETH',
+        }),
       );
     });
   });
