@@ -7357,6 +7357,10 @@
       "title": "Trending tokens is not available",
       "description": "We can't fetch this page right now",
       "try_again": "Try again"
+    },
+    "empty_search_result_state": {
+      "title": "No tokens found",
+      "description": "We were not able to find this token"
     }
   },
   "ota_update_modal": {
