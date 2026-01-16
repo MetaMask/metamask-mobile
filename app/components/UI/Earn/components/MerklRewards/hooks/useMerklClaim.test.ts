@@ -302,6 +302,80 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(false);
   });
 
+  it('finds matching reward in second data array element', async () => {
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x1111111111111111111111111111111111111111', // Different token
+              chainId: 1,
+              symbol: 'OTHER',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1000000000000000000',
+            pending: '0',
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            ],
+            amount: '1000000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898', // Matching token in second element
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '2500000000000000000',
+            pending: '0',
+            proofs: [
+              '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+            ],
+            amount: '2500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockRewardData,
+    });
+
+    mockAddTransaction.mockResolvedValueOnce({
+      id: 'tx-123',
+    } as never);
+
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
+
+    await act(async () => {
+      await result.current.claimRewards();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isClaiming).toBe(false);
+    });
+
+    // Verify it found the reward in the second data array element and created transaction
+    expect(mockAddTransaction).toHaveBeenCalled();
+    const txParams = mockAddTransaction.mock.calls[0][0];
+    expect(txParams.to).toBe('0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae');
+    expect(txParams.data).toBeTruthy();
+  });
+
   it('handles network error', async () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);

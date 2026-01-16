@@ -86,21 +86,15 @@ const mockAsset: TokenI = {
 };
 
 describe('PendingMerklRewards', () => {
-  it('renders component with divider when claimableReward is null', () => {
-    const { UNSAFE_root } = render(
-      <PendingMerklRewards asset={mockAsset} claimableReward={null} />,
-    );
-
-    // Component should render successfully (divider is always present)
-    expect(UNSAFE_root).toBeTruthy();
-  });
-
-  it('does not render claimable bonus section when claimableReward is null', () => {
+  it('returns null when claimableReward is null', () => {
     const { queryByText } = render(
       <PendingMerklRewards asset={mockAsset} claimableReward={null} />,
     );
 
+    // Component should not render anything when claimableReward is null
+    // Verify no text content is rendered
     expect(queryByText('Claimable bonus')).toBeNull();
+    expect(queryByText('Annual bonus')).toBeNull();
   });
 
   it('renders claimable bonus section when claimableReward is provided', () => {

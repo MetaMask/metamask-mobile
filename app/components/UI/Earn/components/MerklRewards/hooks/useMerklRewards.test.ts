@@ -319,6 +319,74 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
+  it('finds matching reward in second data array element', async () => {
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x1111111111111111111111111111111111111111', // Different token
+              chainId: 1,
+              symbol: 'OTHER',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1000000000000000000',
+            pending: '0',
+            proofs: [],
+            amount: '1000000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898', // Matching token in second element
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '2500000000000000000',
+            pending: '0',
+            proofs: [],
+            amount: '2500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
+
+    mockRenderFromTokenMinimalUnit.mockReturnValue('2.50');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('2.50');
+      },
+      { timeout: 3000 },
+    );
+
+    // Verify it found the reward in the second data array element
+    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
+      '2500000000000000000',
+      18,
+      2,
+    );
+  });
+
   it('handles zero unclaimed amounts', async () => {
     const mockRewardData = [
       {

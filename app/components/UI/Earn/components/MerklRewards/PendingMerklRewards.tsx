@@ -25,72 +25,79 @@ interface PendingMerklRewardsProps {
 const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
   asset,
   claimableReward,
-}) => (
-  <Box twClassName="px-4">
-    <Box twClassName="h-px bg-border-muted my-4 mt-6" />
+}) => {
+  // Don't render anything if there's no claimable reward
+  if (!claimableReward) {
+    return null;
+  }
 
-    {/* Annual Bonus Section */}
+  return (
+    <Box twClassName="px-4">
+      <Box twClassName="h-px bg-border-muted my-4 mt-6" />
 
-    {/* Claimable Bonus Section */}
-    {claimableReward && (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-4"
-      >
+      {/* Annual Bonus Section */}
+
+      {/* Claimable Bonus Section */}
+      {claimableReward && (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="flex-1"
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-4"
         >
-          {/* Money Bag Icon */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-1"
+          >
+            {/* Money Bag Icon */}
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="h-10 w-10 rounded-full bg-muted mr-3"
+            >
+              <Icon name={IconName.MoneyBag} size={IconSize.Md} />
+            </Box>
+
+            {/* Claimable Bonus Text and Amount */}
+            <Box twClassName="flex-1">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-text-default mb-1"
+              >
+                {strings('asset_overview.merkl_rewards.claimable_bonus')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-primary-default"
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('asset_overview.merkl_rewards.annual_bonus')}
+              </Text>
+            </Box>
+          </Box>
+
+          {/* Claimable Bonus Amount Display */}
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            twClassName="h-10 w-10 rounded-full bg-muted mr-3"
+            twClassName="px-4 py-2 rounded-xl border border-default bg-default"
           >
-            <Icon name={IconName.MoneyBag} size={IconSize.Md} />
-          </Box>
-
-          {/* Claimable Bonus Text and Amount */}
-          <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              twClassName="text-text-default mb-1"
+              twClassName="text-text-default"
             >
-              {strings('asset_overview.merkl_rewards.claimable_bonus')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-primary-default"
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('asset_overview.merkl_rewards.annual_bonus')}
+              {claimableReward} {asset.symbol}
             </Text>
           </Box>
         </Box>
+      )}
 
-        {/* Claimable Bonus Amount Display */}
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="px-4 py-2 rounded-xl border border-default bg-default"
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-text-default"
-          >
-            {claimableReward} {asset.symbol}
-          </Text>
-        </Box>
-      </Box>
-    )}
-
-    {/* Horizontal divider line */}
-  </Box>
-);
+      {/* Horizontal divider line */}
+    </Box>
+  );
+};
 
 export default PendingMerklRewards;

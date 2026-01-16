@@ -77,10 +77,17 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
       const data: MerklRewardData[] = await response.json();
 
       // Filter rewards to match the asset's token address (case-insensitive)
+      // Search through all data array elements, not just data[0]
       const assetAddressLower = (asset.address as string).toLowerCase();
-      const matchingReward = data?.[0]?.rewards?.find(
-        (reward) => reward.token.address.toLowerCase() === assetAddressLower,
-      );
+      let matchingReward = null;
+      for (const dataEntry of data) {
+        matchingReward = dataEntry?.rewards?.find(
+          (reward) => reward.token.address.toLowerCase() === assetAddressLower,
+        );
+        if (matchingReward) {
+          break;
+        }
+      }
 
       if (!matchingReward) {
         throw new Error('No claimable rewards found');
