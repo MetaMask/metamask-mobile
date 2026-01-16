@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -12,81 +12,243 @@ import {
   Text,
   TextVariant,
   TextColor,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconColor,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
+import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
+import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
+import PredictSportTeamGradient from '../PredictSportTeamGradient';
+import PredictSportScoreboard, {
+  GameState,
+  Possession,
+  Winner,
+} from '../PredictSportScoreboard';
+import PredictGameChart from '../PredictGameChart';
+import PredictPicks from '../PredictPicks/PredictPicks';
+import { PredictGameScore, PredictGameStatus } from '../../types';
+
+const getGameState = (
+  status: PredictGameStatus,
+  period: string | null,
+): GameState => {
+  if (status === 'scheduled') return GameState.PreGame;
+  if (status === 'ended') return GameState.Final;
+  if (period?.toUpperCase() === 'HT') return GameState.Halftime;
+  return GameState.InProgress;
+};
+
+const getPossession = (
+  turn: string | undefined,
+  awayAbbr: string,
+  homeAbbr: string,
+): Possession => {
+  if (!turn) return Possession.None;
+  const lowerTurn = turn.toLowerCase();
+  if (lowerTurn === awayAbbr.toLowerCase()) return Possession.Away;
+  if (lowerTurn === homeAbbr.toLowerCase()) return Possession.Home;
+  return Possession.None;
+};
+
+const getWinner = (score: PredictGameScore | null): Winner => {
+  if (!score) return Winner.None;
+  if (score.away > score.home) return Winner.Away;
+  if (score.home > score.away) return Winner.Home;
+  return Winner.None;
+};
+
+const formatGameDateTime = (
+  startTime: string,
+): { date: string; time: string } => {
+  const dateObj = new Date(startTime);
+  const date = dateObj.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+  const time = dateObj.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
+  return { date, time };
+};
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
   onBack,
   onRefresh,
   refreshing,
+  onBetPress,
+  onClaimPress,
+  claimableAmount = 0,
+  isLoading = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
-  return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
-      edges={['left', 'right', 'bottom']}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-3"
-        style={{ paddingTop: insets.top + 12 }}
-      >
-        <Pressable
-          onPress={onBack}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityRole="button"
-          accessibilityLabel={strings('predict.buttons.back')}
-        >
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Lg}
-            color={colors.icon.default}
-          />
-        </Pressable>
+  const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
+    usePredictBottomSheet();
 
-        <Box twClassName="flex-1 mx-4">
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={TextColor.TextDefault}
-            style={tw.style('text-center')}
-            numberOfLines={1}
+  const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+
+  const handleInfoPress = useCallback(() => {
+    sheetHandlers.onOpenBottomSheet();
+  }, [sheetHandlers]);
+
+  const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
+  const game = market.game;
+  const tokenIds = useMemo(
+    () => (outcome?.tokens ?? []).map((t) => t.id),
+    [outcome?.tokens],
+  );
+
+  const gameDateTime = useMemo(
+    () => (game ? formatGameDateTime(game.startTime) : null),
+    [game],
+  );
+
+  if (!outcome || !game) {
+    return null;
+  }
+
+  const gameState = getGameState(game.status, game.period);
+  const possession = getPossession(
+    game.turn,
+    game.awayTeam.abbreviation,
+    game.homeTeam.abbreviation,
+  );
+  const winner =
+    gameState === GameState.Final ? getWinner(game.score) : Winner.None;
+
+  return (
+    <PredictSportTeamGradient
+      awayColor={game.awayTeam.color}
+      homeColor={game.homeTeam.color}
+      style={tw.style('flex-1 bg-default')}
+      testID="game-details-gradient"
+    >
+      <SafeAreaView style={tw.style('flex-1')} edges={['left', 'right']}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 py-3"
+          style={{ paddingTop: insets.top + 12 }}
+        >
+          <Pressable
+            onPress={onBack}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={strings('predict.buttons.back')}
           >
-            {market.title}
-          </Text>
+            <Icon
+              name={IconName.ArrowLeft}
+              size={IconSize.Lg}
+              color={IconColor.IconDefault}
+            />
+          </Pressable>
+
+          <Box twClassName="flex-1 mx-4">
+            <Text
+              variant={TextVariant.HeadingMd}
+              color={TextColor.TextDefault}
+              style={tw.style('text-center')}
+              numberOfLines={1}
+            >
+              {market.title}
+            </Text>
+          </Box>
+
+          <PredictShareButton marketId={market.id} />
         </Box>
 
-        <PredictShareButton marketId={market.id} />
-      </Box>
-
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('flex-1')}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary.default}
-            colors={[colors.primary.default]}
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('pb-4')}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary.default}
+              colors={[colors.primary.default]}
+            />
+          }
+        >
+          <PredictSportScoreboard
+            awayTeam={{
+              abbreviation: game.awayTeam.abbreviation,
+              color: game.awayTeam.color,
+            }}
+            homeTeam={{
+              abbreviation: game.homeTeam.abbreviation,
+              color: game.homeTeam.color,
+            }}
+            awayScore={game.score?.away}
+            homeScore={game.score?.home}
+            gameState={gameState}
+            eventTitle={market.title}
+            date={gameDateTime?.date}
+            time={gameDateTime?.time}
+            quarter={game.period ?? undefined}
+            possession={possession}
+            winner={winner}
+            testID="game-scoreboard"
           />
-        }
-      >
-        <Box twClassName="flex-1" />
-      </ScrollView>
-    </SafeAreaView>
+
+          {tokenIds.length === 2 && (
+            <Box twClassName="mt-4">
+              <PredictGameChart
+                tokenIds={tokenIds as [string, string]}
+                seriesConfig={[
+                  {
+                    label: game.awayTeam.abbreviation,
+                    color: game.awayTeam.color,
+                  },
+                  {
+                    label: game.homeTeam.abbreviation,
+                    color: game.homeTeam.color,
+                  },
+                ]}
+                testID="game-chart"
+              />
+            </Box>
+          )}
+
+          <Box twClassName="px-4 py-2">
+            <PredictPicks market={market} testID="game-picks" />
+          </Box>
+        </ScrollView>
+
+        <PredictGameDetailsFooter
+          market={market}
+          outcome={outcome}
+          onBetPress={onBetPress}
+          onClaimPress={onClaimPress}
+          onInfoPress={handleInfoPress}
+          claimableAmount={claimableAmount}
+          isLoading={isLoading}
+          awayColor={game.awayTeam.color}
+          homeColor={game.homeTeam.color}
+        />
+
+        {isVisible && (
+          <PredictGameAboutSheet
+            ref={sheetRef}
+            description={market.description ?? ''}
+            onClose={handleSheetClosed}
+          />
+        )}
+      </SafeAreaView>
+    </PredictSportTeamGradient>
   );
 };
 

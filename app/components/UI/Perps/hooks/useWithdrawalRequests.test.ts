@@ -1097,24 +1097,19 @@ describe('useWithdrawalRequests', () => {
   });
 
   describe('logging', () => {
-    it('logs pending withdrawals from controller state', () => {
+    it('logs when a new withdrawal is initialized', () => {
       renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
       });
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Pending withdrawals from controller state:',
+        'Withdrawal initialized:',
         expect.objectContaining({
-          count: 2,
-          withdrawals: expect.arrayContaining([
-            expect.objectContaining({
-              id: 'withdrawal-1',
-              timestamp: expect.any(String),
-              amount: '100',
-              asset: 'USDC',
-              status: 'pending',
-            }),
-          ]),
+          id: 'withdrawal-1',
+          timestamp: expect.any(String),
+          amount: '100',
+          asset: 'USDC',
+          status: 'pending',
         }),
       );
     });
