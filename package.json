@@ -338,6 +338,7 @@
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
     "@types/react-test-renderer": "^18.0.0",
+    "@types/readable-stream": "^2.3.9",
     "@viem/anvil": "^0.0.10",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "^2.19.2",
