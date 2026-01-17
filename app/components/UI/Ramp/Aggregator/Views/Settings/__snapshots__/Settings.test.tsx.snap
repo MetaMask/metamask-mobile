@@ -234,7 +234,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                     }
                   }
                 >
-                  Buy & sell crypto
+                  Buy & Sell crypto
                 </Text>
               </Text>
             </View>
@@ -511,7 +511,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       }
                                     }
                                   >
-                                    Current region
+                                    Current Region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -1453,7 +1453,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                     }
                   }
                 >
-                  Buy & sell crypto
+                  Buy & Sell crypto
                 </Text>
               </Text>
             </View>
@@ -1730,7 +1730,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       }
                                     }
                                   >
-                                    Current region
+                                    Current Region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -2230,7 +2230,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                     }
                   }
                 >
-                  Buy & sell crypto
+                  Buy & Sell crypto
                 </Text>
               </Text>
             </View>
@@ -2507,7 +2507,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                       }
                                     }
                                   >
-                                    Current region
+                                    Current Region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -2836,7 +2836,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                     }
                   }
                 >
-                  Buy & sell crypto
+                  Buy & Sell crypto
                 </Text>
               </Text>
             </View>
@@ -3113,7 +3113,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       }
                                     }
                                   >
-                                    Current region
+                                    Current Region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -3480,7 +3480,7 @@ exports[`Settings renders correctly 1`] = `
                     }
                   }
                 >
-                  Buy & sell crypto
+                  Buy & Sell crypto
                 </Text>
               </Text>
             </View>
@@ -3757,7 +3757,7 @@ exports[`Settings renders correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Current region
+                                    Current Region
                                   </Text>
                                   <View
                                     accessibilityRole="none"
@@ -4124,7 +4124,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                     }
                   }
                 >
-                  Buy & sell crypto
+                  Buy & Sell crypto
                 </Text>
               </Text>
             </View>
@@ -4401,7 +4401,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       }
                                     }
                                   >
-                                    Current region
+                                    Current Region
                                   </Text>
                                   <View
                                     accessibilityRole="none"

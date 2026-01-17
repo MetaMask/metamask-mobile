@@ -20,6 +20,7 @@ export const selectRampsControllerState = createSelector(
 
 /**
  * Selects the user's region from state.
+ * Returns UserRegion | null (UserRegion contains country, state, and regionCode).
  */
 export const selectUserRegion = createSelector(
   selectRampsControllerState,
@@ -70,6 +71,12 @@ export const selectCountriesRequest = (action: 'buy' | 'sell' = 'buy') =>
     'getCountries',
     [action],
   );
+
+/**
+ * Selects the getCountries request state (backward compatibility alias).
+ * @deprecated Use selectCountriesRequest('buy') instead.
+ */
+export const selectGetCountriesRequest = selectCountriesRequest('buy');
 
 /**
  * Selects the tokens request state for a given region and action.
