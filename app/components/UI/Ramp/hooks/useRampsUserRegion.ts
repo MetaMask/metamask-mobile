@@ -52,7 +52,7 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
   const userRegion = useSelector(selectUserRegion);
   const { isFetching, error } = useSelector(
     selectUserRegionRequest,
-  ) as RequestSelectorResult<string>;
+  ) as RequestSelectorResult<UserRegion | null>;
 
   const fetchUserRegion = useCallback(
     async (options?: ExecuteRequestOptions) =>
@@ -61,7 +61,8 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
   );
 
   const setUserRegion = useCallback(
-     (region: string, options?: ExecuteRequestOptions) =>  Engine.context.RampsController.setUserRegion(region, options),
+    (region: string, options?: ExecuteRequestOptions) =>
+      Engine.context.RampsController.setUserRegion(region, options),
     [],
   );
 
@@ -69,7 +70,7 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
     fetchUserRegion().catch(() => {
       // Error is stored in state
     });
-  }, [fetchUserRegion]);
+  }, [fetchUserRegion, userRegion]);
 
   return {
     userRegion,

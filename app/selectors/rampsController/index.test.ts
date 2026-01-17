@@ -2,34 +2,9 @@ import { RootState } from '../../reducers';
 import {
   RampsControllerState,
   RequestStatus,
-  type UserRegion,
+  UserRegion,
 } from '@metamask/ramps-controller';
 import { selectUserRegion, selectUserRegionRequest } from './index';
-
-const createMockUserRegion = (regionCode: string): UserRegion => {
-  const parts = regionCode.toLowerCase().split('-');
-  const countryCode = parts[0].toUpperCase();
-  const stateCode = parts[1]?.toUpperCase();
-
-  return {
-    country: {
-      isoCode: countryCode,
-      flag: '🏳️',
-      name: countryCode,
-      phone: { prefix: '', placeholder: '', template: '' },
-      currency: '',
-      supported: true,
-    },
-    state: stateCode
-      ? {
-          stateId: stateCode,
-          name: stateCode,
-          supported: true,
-        }
-      : null,
-    regionCode: regionCode.toLowerCase(),
-  };
-};
 
 const createMockState = (
   rampsController: Partial<RampsControllerState> = {},
@@ -39,7 +14,6 @@ const createMockState = (
       backgroundState: {
         RampsController: {
           userRegion: null,
-          eligibility: null,
           requests: {},
           ...rampsController,
         },
@@ -47,13 +21,29 @@ const createMockState = (
     },
   }) as unknown as RootState;
 
+const mockUserRegion: UserRegion = {
+  country: {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    phone: { prefix: '+1', placeholder: '(XXX) XXX-XXXX', template: 'XXX-XXX-XXXX' },
+    currency: 'USD',
+    supported: true,
+  },
+  state: {
+    stateId: 'CA',
+    name: 'California',
+    supported: true,
+  },
+  regionCode: 'us-ca',
+};
+
 describe('RampsController Selectors', () => {
   describe('selectUserRegion', () => {
     it('returns user region from state', () => {
-      const userRegion = createMockUserRegion('us-ca');
-      const state = createMockState({ userRegion });
+      const state = createMockState({ userRegion: mockUserRegion });
 
-      expect(selectUserRegion(state)).toEqual(userRegion);
+      expect(selectUserRegion(state)).toEqual(mockUserRegion);
     });
 
     it('returns null when user region is null', () => {
@@ -65,12 +55,11 @@ describe('RampsController Selectors', () => {
 
   describe('selectUserRegionRequest', () => {
     it('returns request state with data, isFetching, and error', () => {
-      const userRegion = createMockUserRegion('us-ca');
       const state = createMockState({
         requests: {
           'updateUserRegion:[]': {
             status: RequestStatus.SUCCESS,
-            data: userRegion,
+            data: mockUserRegion,
             error: null,
             timestamp: Date.now(),
             lastFetchedAt: Date.now(),
@@ -81,7 +70,7 @@ describe('RampsController Selectors', () => {
       const result = selectUserRegionRequest(state);
 
       expect(result).toEqual({
-        data: userRegion,
+        data: mockUserRegion,
         isFetching: false,
         error: null,
       });

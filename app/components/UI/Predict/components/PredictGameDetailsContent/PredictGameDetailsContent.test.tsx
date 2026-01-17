@@ -92,32 +92,38 @@ jest.mock('../PredictSportTeamGradient', () => {
 
 jest.mock('../PredictSportScoreboard', () => {
   const { View } = jest.requireActual('react-native');
-  const actualModule = jest.requireActual(
-    '../PredictSportScoreboard/PredictSportScoreboard.types',
-  );
   return {
     __esModule: true,
     default: function MockPredictSportScoreboard({
       testID,
-      gameState,
-      awayTeam,
-      homeTeam,
+      game,
     }: {
       testID?: string;
-      gameState?: string;
-      awayTeam?: { abbreviation: string };
-      homeTeam?: { abbreviation: string };
+      game?: {
+        status: string;
+        period: string | null;
+        awayTeam: { abbreviation: string };
+        homeTeam: { abbreviation: string };
+      };
     }) {
+      // Derive UI state label from game.status + game.period (same logic as real component)
+      let stateLabel = 'undefined';
+      if (game?.status === 'scheduled') {
+        stateLabel = 'PreGame';
+      } else if (game?.status === 'ended') {
+        stateLabel = 'Final';
+      } else if (game?.status === 'ongoing' && game?.period === 'HT') {
+        stateLabel = 'Halftime';
+      } else if (game?.status === 'ongoing') {
+        stateLabel = 'InProgress';
+      }
       return (
         <View
           testID={testID}
-          accessibilityHint={`state:${gameState ?? 'undefined'},away:${awayTeam?.abbreviation ?? 'undefined'},home:${homeTeam?.abbreviation ?? 'undefined'}`}
+          accessibilityHint={`state:${stateLabel},away:${game?.awayTeam?.abbreviation ?? 'undefined'},home:${game?.homeTeam?.abbreviation ?? 'undefined'}`}
         />
       );
     },
-    GameState: actualModule.GameState,
-    Possession: actualModule.Possession,
-    Winner: actualModule.Winner,
   };
 });
 

@@ -3,50 +3,34 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsUserRegion } from './useRampsUserRegion';
-import { RequestStatus, type UserRegion } from '@metamask/ramps-controller';
+import { RequestStatus, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+
+const mockUserRegion: UserRegion = {
+  country: {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    phone: { prefix: '+1', placeholder: '(XXX) XXX-XXXX', template: 'XXX-XXX-XXXX' },
+    currency: 'USD',
+    supported: true,
+  },
+  state: {
+    stateId: 'CA',
+    name: 'California',
+    supported: true,
+  },
+  regionCode: 'us-ca',
+};
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      updateUserRegion: jest.fn().mockResolvedValue({
-        country: { isoCode: 'FR', flag: '🇫🇷', name: 'France' },
-        state: null,
-        regionCode: 'fr',
-      }),
-      setUserRegion: jest.fn().mockResolvedValue({
-        aggregator: true,
-        deposit: true,
-        global: true,
-      }),
+      updateUserRegion: jest.fn().mockResolvedValue(mockUserRegion),
+      setUserRegion: jest.fn().mockResolvedValue(mockUserRegion),
     },
   },
 }));
-
-const createMockUserRegion = (regionCode: string): UserRegion => {
-  const parts = regionCode.toLowerCase().split('-');
-  const countryCode = parts[0].toUpperCase();
-  const stateCode = parts[1]?.toUpperCase();
-
-  return {
-    country: {
-      isoCode: countryCode,
-      flag: '🏳️',
-      name: countryCode,
-      phone: { prefix: '', placeholder: '', template: '' },
-      currency: '',
-      supported: true,
-    },
-    state: stateCode
-      ? {
-          stateId: stateCode,
-          name: stateCode,
-          supported: true,
-        }
-      : null,
-    regionCode: regionCode.toLowerCase(),
-  };
-};
 
 const createMockStore = (rampsControllerState = {}) =>
   configureStore({
@@ -91,14 +75,11 @@ describe('useRampsUserRegion', () => {
 
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
-      const mockUserRegion = createMockUserRegion('us-ca');
-      const store = createMockStore({
-        userRegion: mockUserRegion,
-      });
+      const store = createMockStore({ userRegion: mockUserRegion });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.userRegion).toStrictEqual(mockUserRegion);
+      expect(result.current.userRegion).toEqual(mockUserRegion);
     });
   });
 

@@ -658,6 +658,9 @@
   "BridgeStatusController": {
     "txHistory": {}
   },
+  "ConnectivityController": {
+    "connectivityStatus": "online"
+  },
   "MultichainAssetsRatesController": {
     "conversionRates": {},
     "historicalPrices": {}
@@ -743,7 +746,6 @@
   },
   "RampsController": {
     "userRegion": null,
-    "eligibility": null,
     "tokens": null,
     "requests": {}
   }

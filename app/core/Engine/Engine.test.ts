@@ -30,6 +30,15 @@ jest.mock('react-native-device-info', () => ({
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
 }));
+
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  fetch: jest.fn().mockResolvedValue({
+    isConnected: true,
+    isInternetReachable: true,
+  }),
+  addEventListener: jest.fn().mockReturnValue(jest.fn()),
+}));
 jest.unmock('./Engine');
 jest.mock('../../store', () => ({
   store: {
@@ -147,6 +156,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
+    expect(engine.context).toHaveProperty('ConnectivityController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -277,7 +287,6 @@ describe('Engine', () => {
       },
       RampsController: {
         ...backgroundState.RampsController,
-        eligibility: null,
         tokens: null,
       },
     };
