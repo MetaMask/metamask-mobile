@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   PredictMarket as PredictMarketType,
   PredictMarketStatus,
@@ -12,6 +14,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -29,6 +32,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
+  const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
@@ -37,7 +41,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     ? PredictEventValues.ENTRY_POINT.TRENDING
     : entryPoint;
 
-  const { positions } = usePredictPositions({
+  const { positions, isLoading } = usePredictPositions({
     marketId: market.id,
     autoRefreshTimeout: 10000,
   });
@@ -98,6 +102,33 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
   const showBetButtons = isMarketOpen && !hasPositions && outcome;
   const showClaimButton = hasClaimablePositions && outcome;
+
+  if (isLoading) {
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="w-full gap-3"
+        testID={testID ? `${testID}-skeleton` : 'footer-skeleton'}
+      >
+        <Box twClassName="flex-1">
+          <Skeleton
+            width="100%"
+            height={48}
+            style={tw.style('rounded-md')}
+            testID={testID ? `${testID}-skeleton-1` : 'footer-skeleton-1'}
+          />
+        </Box>
+        <Box twClassName="flex-1">
+          <Skeleton
+            width="100%"
+            height={48}
+            style={tw.style('rounded-md')}
+            testID={testID ? `${testID}-skeleton-2` : 'footer-skeleton-2'}
+          />
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <>

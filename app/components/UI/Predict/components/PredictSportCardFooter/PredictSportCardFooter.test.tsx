@@ -226,6 +226,72 @@ describe('PredictSportCardFooter', () => {
     mockExecuteGuardedAction.mockImplementation((callback) => callback());
   });
 
+  describe('loading state', () => {
+    it('renders skeleton when positions are loading', () => {
+      const market = createMockMarket();
+      mockUsePredictPositions.mockReturnValue({
+        positions: [],
+        isLoading: true,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictSportCardFooter market={market} testID="footer" />);
+
+      expect(screen.getByTestId('footer-skeleton')).toBeOnTheScreen();
+      expect(screen.getByTestId('footer-skeleton-1')).toBeOnTheScreen();
+      expect(screen.getByTestId('footer-skeleton-2')).toBeOnTheScreen();
+    });
+
+    it('does not render bet buttons when loading', () => {
+      const market = createMockMarket({ status: PredictMarketStatus.OPEN });
+      mockUsePredictPositions.mockReturnValue({
+        positions: [],
+        isLoading: true,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictSportCardFooter market={market} testID="footer" />);
+
+      expect(screen.queryByText('Bet Yes')).toBeNull();
+      expect(screen.queryByText('Bet No')).toBeNull();
+    });
+
+    it('does not render picks when loading', () => {
+      const market = createMockMarket();
+      const positions = [createMockPosition()];
+      mockUsePredictPositions.mockReturnValue({
+        positions,
+        isLoading: true,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictSportCardFooter market={market} testID="footer" />);
+
+      expect(screen.queryByTestId('footer-picks')).toBeNull();
+    });
+
+    it('renders with default testID when no testID provided', () => {
+      const market = createMockMarket();
+      mockUsePredictPositions.mockReturnValue({
+        positions: [],
+        isLoading: true,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictSportCardFooter market={market} />);
+
+      expect(screen.getByTestId('footer-skeleton')).toBeOnTheScreen();
+    });
+  });
+
   describe('hook configuration', () => {
     it('calls usePredictPositions with correct marketId', () => {
       const market = createMockMarket({ id: 'specific-market-123' });
