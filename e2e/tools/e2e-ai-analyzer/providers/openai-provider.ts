@@ -89,17 +89,18 @@ function toOpenAIMessages(
           });
         }
       } else {
-        // User message - could be text or tool results
-        if (toolResultBlocks.length > 0) {
-          // Tool results are sent as separate 'tool' role messages in OpenAI
-          for (const block of toolResultBlocks) {
-            openAIMessages.push({
-              role: 'tool',
-              tool_call_id: block.tool_use_id,
-              content: block.content,
-            });
-          }
-        } else {
+        // User message - could be text, tool results, or both
+        // Tool results must be sent as separate 'tool' role messages in OpenAI
+        for (const block of toolResultBlocks) {
+          openAIMessages.push({
+            role: 'tool',
+            tool_call_id: block.tool_use_id,
+            content: block.content,
+          });
+        }
+
+        // Add text content as user message if present
+        if (textBlocks.length > 0) {
           const textContent = textBlocks.map((b) => b.text).join('\n');
           openAIMessages.push({
             role: 'user',
@@ -200,9 +201,11 @@ export class OpenAIProvider implements ILLMProvider {
     const openAIRequest: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming =
       {
         model: request.model,
-        max_tokens: request.maxTokens,
-        temperature: request.temperature,
+        max_completion_tokens: request.maxTokens,
         messages: toOpenAIMessages(request.messages, request.system),
+        // Gpt-5 only supports temperature at 1 for now so will hardcode
+        // can be update back to request.temperature when supported
+        temperature: 1,
       };
 
     if (request.tools && request.tools.length > 0) {

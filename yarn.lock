@@ -5441,10 +5441,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@google/generative-ai@npm:^0.21.0":
-  version: 0.21.0
-  resolution: "@google/generative-ai@npm:0.21.0"
-  checksum: 10/68c4163b7ac0c449cdbdf83b85dd77b8d96ee2b883b0190bcb1c7e76d98b56968d3e554ff62c555c3a3814855bac3bfc1cf2035f2b7ddf71f313b5c846b60f31
+"@google/generative-ai@npm:^0.24.1":
+  version: 0.24.1
+  resolution: "@google/generative-ai@npm:0.24.1"
+  checksum: 10/992a82e2d4a58d6eb0545254fe05e2da074c08560a9d51fb29c6f2a44db8c66ba44d87bc04e61b3676f5adc9ab94e527f171ee1395edf4ccbead3472fd8efff8
   languageName: node
   linkType: hard
 
@@ -34045,7 +34045,7 @@ __metadata:
     "@ethersproject/providers": "npm:^5.7.2"
     "@expo/fingerprint": "npm:^0.15.0"
     "@expo/repack-app": "npm:^0.2.9"
-    "@google/generative-ai": "npm:^0.21.0"
+    "@google/generative-ai": "npm:^0.24.1"
     "@img/sharp-darwin-arm64": "npm:^0.34.3"
     "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
     "@img/sharp-libvips-linux-x64": "npm:^1.2.1"

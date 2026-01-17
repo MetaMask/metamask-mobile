@@ -9,9 +9,10 @@ import {
   Content,
   Part,
   Tool,
-  FunctionDeclarationSchemaType,
   GenerateContentResult,
   FunctionCallingMode,
+  SchemaType,
+  FunctionDeclaration,
 } from '@google/generative-ai';
 import { ILLMProvider } from './llm-provider';
 import {
@@ -35,49 +36,58 @@ function generateFunctionCallId(): string {
 }
 
 /**
- * Convert JSON Schema type to Gemini FunctionDeclarationSchemaType
+ * Convert JSON Schema type to Gemini SchemaType
  */
-function toGeminiSchemaType(
-  type: string,
-): FunctionDeclarationSchemaType | undefined {
+function toGeminiSchemaType(type: string): SchemaType | undefined {
   switch (type) {
     case 'string':
-      return FunctionDeclarationSchemaType.STRING;
+      return SchemaType.STRING;
     case 'number':
-      return FunctionDeclarationSchemaType.NUMBER;
+      return SchemaType.NUMBER;
     case 'integer':
-      return FunctionDeclarationSchemaType.INTEGER;
+      return SchemaType.INTEGER;
     case 'boolean':
-      return FunctionDeclarationSchemaType.BOOLEAN;
+      return SchemaType.BOOLEAN;
     case 'array':
-      return FunctionDeclarationSchemaType.ARRAY;
+      return SchemaType.ARRAY;
     case 'object':
-      return FunctionDeclarationSchemaType.OBJECT;
+      return SchemaType.OBJECT;
     default:
       return undefined;
   }
 }
 
 /**
+ * Gemini schema property interface (flexible to handle all schema variants)
+ */
+interface GeminiSchemaProperty {
+  type?: SchemaType;
+  description?: string;
+  enum?: string[];
+  items?: GeminiSchemaProperty;
+  properties?: { [k: string]: GeminiSchemaProperty };
+}
+
+/**
  * Convert JSON Schema properties to Gemini format
  */
-function convertSchemaProperties(
-  properties: Record<string, unknown>,
-): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
+function convertSchemaProperties(properties: Record<string, unknown>): {
+  [k: string]: GeminiSchemaProperty;
+} {
+  const result: { [k: string]: GeminiSchemaProperty } = {};
 
   for (const [key, value] of Object.entries(properties)) {
     const prop = value as Record<string, unknown>;
-    const converted: Record<string, unknown> = {};
+    const converted: GeminiSchemaProperty = {};
 
     if (prop.type) {
       converted.type = toGeminiSchemaType(prop.type as string);
     }
     if (prop.description) {
-      converted.description = prop.description;
+      converted.description = prop.description as string;
     }
     if (prop.enum) {
-      converted.enum = prop.enum;
+      converted.enum = prop.enum as string[];
     }
     if (prop.items) {
       converted.items = convertSchemaProperties({
@@ -100,19 +110,19 @@ function convertSchemaProperties(
  * Convert provider-agnostic tools to Google format
  */
 function toGoogleTools(tools: LLMTool[]): Tool[] {
-  return [
-    {
-      functionDeclarations: tools.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
-          properties: convertSchemaProperties(tool.input_schema.properties),
-          required: tool.input_schema.required,
-        },
-      })),
+  const functionDeclarations = tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: tool.input_schema.properties
+        ? convertSchemaProperties(tool.input_schema.properties)
+        : {},
+      required: tool.input_schema.required || [],
     },
-  ];
+  })) as FunctionDeclaration[];
+
+  return [{ functionDeclarations }];
 }
 
 /**
