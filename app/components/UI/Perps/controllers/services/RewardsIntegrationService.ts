@@ -46,7 +46,7 @@ export class RewardsIntegrationService {
     }
 
     try {
-      const evmAccount = this.deps.controllers.accounts.getSelectedEvmAccount();
+      const evmAccount = controllers.accounts.getSelectedEvmAccount();
 
       if (!evmAccount) {
         this.deps.debugLogger.log(
@@ -84,11 +84,10 @@ export class RewardsIntegrationService {
         return undefined;
       }
 
-      const caipAccountId =
-        this.deps.controllers.accounts.formatAccountToCaipId(
-          evmAccount.address,
-          chainId,
-        );
+      const caipAccountId = controllers.accounts.formatAccountToCaipId(
+        evmAccount.address,
+        chainId,
+      );
 
       if (!caipAccountId) {
         this.deps.logger.error(
