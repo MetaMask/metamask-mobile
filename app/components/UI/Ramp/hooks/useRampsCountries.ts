@@ -54,11 +54,11 @@ export function useRampsCountries(
 
   const fetchCountries = useCallback(
     async (
-      fetchAction: 'buy' | 'sell' = 'buy',
+      fetchAction: 'buy' | 'sell' = action,
       options?: ExecuteRequestOptions,
     ) =>
       await Engine.context.RampsController.getCountries(fetchAction, options),
-    [],
+    [action],
   );
 
   return {

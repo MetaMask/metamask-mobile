@@ -74,15 +74,15 @@ export function useRampsTokens(
   const fetchTokens = useCallback(
     async (
       fetchRegion?: string,
-      fetchAction: 'buy' | 'sell' = 'buy',
+      fetchAction: 'buy' | 'sell' = action,
       options?: ExecuteRequestOptions,
     ) =>
       await Engine.context.RampsController.getTokens(
-        fetchRegion,
+        fetchRegion ?? regionToUse,
         fetchAction,
         options,
       ),
-    [],
+    [action, regionToUse],
   );
 
   return {
