@@ -210,6 +210,7 @@ export class OpenAIProvider implements ILLMProvider {
 
     if (request.tools && request.tools.length > 0) {
       openAIRequest.tools = toOpenAITools(request.tools);
+      openAIRequest.parallel_tool_calls = true;
     }
 
     const response = await client.chat.completions.create(openAIRequest);

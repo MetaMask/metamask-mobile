@@ -72,18 +72,6 @@ export const LLM_CONFIG = {
 };
 
 /**
- * @deprecated Use LLM_CONFIG instead. Kept for backward compatibility.
- *
- * Anthropic Claude API Configuration
- */
-export const CLAUDE_CONFIG = {
-  model: LLM_CONFIG.providers.anthropic.model,
-  temperature: LLM_CONFIG.temperature,
-  maxTokens: LLM_CONFIG.maxTokens,
-  maxIterations: LLM_CONFIG.maxIterations,
-};
-
-/**
  * AI Tool-specific limits
  * Tool Use: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
  */
