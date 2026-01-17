@@ -1587,6 +1587,8 @@ enum DESCRIPTION {
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
+  BROWSER_SWIPE_BACK = 'Browser Swipe Back',
+  BROWSER_SWIPE_FORWARD = 'Browser Swipe Forward',
   // Wallet
   WALLET_TOKENS = 'Tokens',
   WALLET_COLLECTIBLES = 'Collectibles',
@@ -1723,6 +1725,16 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
+  ),
+  BROWSER_SWIPE_BACK: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_BACK,
+  ),
+  BROWSER_SWIPE_FORWARD: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_FORWARD,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(

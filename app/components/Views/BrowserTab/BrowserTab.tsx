@@ -5,9 +5,18 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
+import {
+  View,
+  Alert,
+  BackHandler,
+  ImageSourcePropType,
+  Dimensions,
+} from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
@@ -71,6 +80,7 @@ import { regex } from '../../../../app/util/regex';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
@@ -170,6 +180,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     >({});
     // Track if webview is loaded for the first time
     const isWebViewReadyToLoad = useRef(false);
+
+    // Gesture navigation constants and state
+    const EDGE_THRESHOLD = 20; // pixels from edge to trigger (reduced to avoid blocking UI)
+    const SWIPE_THRESHOLD = 0.3; // 30% of screen width
+    const screenWidth = Dimensions.get('window').width;
+    const swipeStartTime = useRef<number>(0);
+    const swipeProgress = useSharedValue(0);
+    const swipeDirection = useSharedValue<'back' | 'forward' | null>(null);
     const urlBarRef = useRef<BrowserUrlBarRef>(null);
     const autocompleteRef = useRef<UrlAutocompleteRef>(null);
     const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
@@ -230,7 +248,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const { faviconURI: favicon } = useFavicon(resolvedUrlRef.current);
-    const { isEnabled, getMetaMetricsId } = useMetrics();
+    const { isEnabled, getMetaMetricsId, trackEvent, createEventBuilder } =
+      useMetrics();
     /**
      * Is the current tab the active tab
      */
@@ -293,12 +312,178 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     /**
      * Go forward to the next website in history
      */
-    const goForward = async () => {
+    const goForward = useCallback(async () => {
       if (!forwardEnabled) return;
 
       const { current } = webviewRef;
       current?.goForward?.();
-    };
+    }, [forwardEnabled]);
+
+    /**
+     * Trigger haptic feedback
+     */
+    const triggerHapticFeedback = useCallback((style: ImpactFeedbackStyle) => {
+      impactAsync(style);
+    }, []);
+
+    /**
+     * Handle swipe navigation gesture completion
+     */
+    const handleSwipeNavigation = useCallback(
+      (direction: 'back' | 'forward', distance: number, duration: number) => {
+        if (direction === 'back' && backEnabled) {
+          goBack();
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.BROWSER_SWIPE_BACK)
+              .addProperties({
+                swipe_distance: distance,
+                swipe_duration: duration,
+              })
+              .build(),
+          );
+          triggerHapticFeedback(ImpactFeedbackStyle.Medium);
+        } else if (direction === 'forward' && forwardEnabled) {
+          goForward();
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.BROWSER_SWIPE_FORWARD)
+              .addProperties({
+                swipe_distance: distance,
+                swipe_duration: duration,
+              })
+              .build(),
+          );
+          triggerHapticFeedback(ImpactFeedbackStyle.Medium);
+        }
+      },
+      [
+        backEnabled,
+        forwardEnabled,
+        goBack,
+        goForward,
+        trackEvent,
+        createEventBuilder,
+        triggerHapticFeedback,
+      ],
+    );
+
+    /**
+     * Reset swipe animation state
+     */
+    const resetSwipeAnimation = useCallback(() => {
+      swipeProgress.value = withTiming(0, { duration: 200 });
+      swipeDirection.value = null;
+    }, [swipeProgress, swipeDirection]);
+
+    /**
+     * Check if gestures should be enabled
+     */
+    const areGesturesEnabled = useMemo(
+      () => isTabActive && !isUrlBarFocused && firstUrlLoaded,
+      [isTabActive, isUrlBarFocused, firstUrlLoaded],
+    );
+
+    /**
+     * Pan gesture handler for left edge (back navigation)
+     */
+    const leftEdgeGesture = useMemo(
+      () =>
+        Gesture.Pan()
+          .activeOffsetX([10, 1000]) // Only trigger on right swipe
+          .failOffsetY([-50, 50])
+          .onStart(() => {
+            swipeDirection.value = 'back';
+            swipeProgress.value = 0;
+            swipeStartTime.current = Date.now();
+            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          })
+          .onUpdate((event) => {
+            const translationX = event.translationX;
+            // Only track positive (rightward) movement for back
+            if (translationX < 0) return;
+
+            const maxSwipeDistance = screenWidth * SWIPE_THRESHOLD;
+            const swipeProgressValue = Math.min(
+              translationX / maxSwipeDistance,
+              1,
+            );
+            swipeProgress.value = swipeProgressValue;
+          })
+          .onEnd((event) => {
+            const translationX = event.translationX;
+            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
+            const duration = Date.now() - swipeStartTime.current;
+
+            if (translationX >= swipeDistance) {
+              runOnJS(handleSwipeNavigation)('back', translationX, duration);
+            }
+
+            runOnJS(resetSwipeAnimation)();
+          })
+          .onFinalize(() => {
+            runOnJS(resetSwipeAnimation)();
+          }),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [
+        screenWidth,
+        triggerHapticFeedback,
+        resetSwipeAnimation,
+        handleSwipeNavigation,
+      ],
+    );
+
+    /**
+     * Pan gesture handler for right edge (forward navigation)
+     */
+    const rightEdgeGesture = useMemo(
+      () =>
+        Gesture.Pan()
+          .activeOffsetX([-1000, -10]) // Only trigger on left swipe
+          .failOffsetY([-50, 50])
+          .onStart(() => {
+            swipeDirection.value = 'forward';
+            swipeProgress.value = 0;
+            swipeStartTime.current = Date.now();
+            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          })
+          .onUpdate((event) => {
+            const translationX = event.translationX;
+            // Only track negative (leftward) movement for forward
+            if (translationX > 0) return;
+
+            const maxSwipeDistance = screenWidth * SWIPE_THRESHOLD;
+            const swipeProgressValue = Math.min(
+              Math.abs(translationX) / maxSwipeDistance,
+              1,
+            );
+            swipeProgress.value = swipeProgressValue;
+          })
+          .onEnd((event) => {
+            const translationX = event.translationX;
+            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
+            const duration = Date.now() - swipeStartTime.current;
+
+            if (translationX <= -swipeDistance) {
+              runOnJS(handleSwipeNavigation)(
+                'forward',
+                Math.abs(translationX),
+                duration,
+              );
+            }
+
+            runOnJS(resetSwipeAnimation)();
+          })
+          .onFinalize(() => {
+            runOnJS(resetSwipeAnimation)();
+          }),
+      [
+        screenWidth,
+        triggerHapticFeedback,
+        resetSwipeAnimation,
+        handleSwipeNavigation,
+        swipeDirection,
+        swipeProgress,
+      ],
+    );
 
     /**
      * Check if an origin is allowed
@@ -1465,6 +1650,33 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                     />
                     {ipfsBannerVisible && (
                       <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
+                    )}
+                  </>
+                )}
+                {/* Edge gesture overlay zones */}
+                {areGesturesEnabled && (
+                  <>
+                    {/* Left edge for back gesture */}
+                    {backEnabled && (
+                      <GestureDetector gesture={leftEdgeGesture}>
+                        <View
+                          style={[
+                            styles.gestureOverlayLeft,
+                            { width: EDGE_THRESHOLD },
+                          ]}
+                        />
+                      </GestureDetector>
+                    )}
+                    {/* Right edge for forward gesture */}
+                    {forwardEnabled && (
+                      <GestureDetector gesture={rightEdgeGesture}>
+                        <View
+                          style={[
+                            styles.gestureOverlayRight,
+                            { width: EDGE_THRESHOLD },
+                          ]}
+                        />
+                      </GestureDetector>
                     )}
                   </>
                 )}

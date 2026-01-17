@@ -3,6 +3,8 @@ import { Theme } from '@metamask/design-tokens';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
+const TRANSPARENT = 'transparent';
+
 const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
   const getUrlModalContentPaddingTop = () => {
     if (Device.isAndroid()) {
@@ -86,6 +88,22 @@ const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
       left: 16,
       right: 16,
       borderRadius: 4,
+    },
+    gestureOverlayLeft: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      zIndex: 9999,
+      backgroundColor: TRANSPARENT,
+    },
+    gestureOverlayRight: {
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      bottom: 0,
+      zIndex: 9999,
+      backgroundColor: TRANSPARENT,
     },
   });
 };
