@@ -7,8 +7,19 @@ import { RequestStatus, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
 const mockUserRegion: UserRegion = {
-  country: { code: 'US', name: 'United States' },
-  state: { code: 'CA', name: 'California' },
+  country: {
+    isoCode: 'US',
+    name: 'United States',
+    flag: '🇺🇸',
+    phone: {
+      prefix: '+1',
+      placeholder: '(XXX) XXX-XXXX',
+      template: 'XXX-XXX-XXXX',
+    },
+    currency: 'USD',
+    supported: true,
+  },
+  state: { stateId: 'CA', name: 'California' },
   regionCode: 'us-ca',
 };
 

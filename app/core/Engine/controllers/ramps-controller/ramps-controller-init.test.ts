@@ -65,6 +65,8 @@ describe('ramps controller init', () => {
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
       userRegion: null,
+      preferredProvider: null,
+      providers: [],
       tokens: null,
       requests: {},
     };
