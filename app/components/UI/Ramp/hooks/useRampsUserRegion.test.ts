@@ -3,18 +3,20 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsUserRegion } from './useRampsUserRegion';
-import { RequestStatus } from '@metamask/ramps-controller';
+import { RequestStatus, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+
+const mockUserRegion: UserRegion = {
+  country: { code: 'US', name: 'United States' },
+  state: { code: 'CA', name: 'California' },
+  regionCode: 'us-ca',
+};
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      updateUserRegion: jest.fn().mockResolvedValue('US'),
-      setUserRegion: jest.fn().mockResolvedValue({
-        aggregator: true,
-        deposit: true,
-        global: true,
-      }),
+      updateUserRegion: jest.fn().mockResolvedValue(mockUserRegion),
+      setUserRegion: jest.fn().mockResolvedValue(mockUserRegion),
     },
   },
 }));
@@ -62,11 +64,11 @@ describe('useRampsUserRegion', () => {
 
   describe('userRegion state', () => {
     it('returns userRegion from state', () => {
-      const store = createMockStore({ userRegion: 'US-CA' });
+      const store = createMockStore({ userRegion: mockUserRegion });
       const { result } = renderHook(() => useRampsUserRegion(), {
         wrapper: wrapper(store),
       });
-      expect(result.current.userRegion).toBe('US-CA');
+      expect(result.current.userRegion).toEqual(mockUserRegion);
     });
   });
 

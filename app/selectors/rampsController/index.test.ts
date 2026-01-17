@@ -2,6 +2,7 @@ import { RootState } from '../../reducers';
 import {
   RampsControllerState,
   RequestStatus,
+  UserRegion,
 } from '@metamask/ramps-controller';
 import { selectUserRegion, selectUserRegionRequest } from './index';
 
@@ -13,7 +14,6 @@ const createMockState = (
       backgroundState: {
         RampsController: {
           userRegion: null,
-          eligibility: null,
           requests: {},
           ...rampsController,
         },
@@ -21,12 +21,18 @@ const createMockState = (
     },
   }) as unknown as RootState;
 
+const mockUserRegion: UserRegion = {
+  country: { code: 'US', name: 'United States' },
+  state: { code: 'CA', name: 'California' },
+  regionCode: 'us-ca',
+};
+
 describe('RampsController Selectors', () => {
   describe('selectUserRegion', () => {
     it('returns user region from state', () => {
-      const state = createMockState({ userRegion: 'US-CA' });
+      const state = createMockState({ userRegion: mockUserRegion });
 
-      expect(selectUserRegion(state)).toBe('US-CA');
+      expect(selectUserRegion(state)).toEqual(mockUserRegion);
     });
 
     it('returns null when user region is null', () => {
@@ -42,7 +48,7 @@ describe('RampsController Selectors', () => {
         requests: {
           'updateUserRegion:[]': {
             status: RequestStatus.SUCCESS,
-            data: 'US-CA',
+            data: mockUserRegion,
             error: null,
             timestamp: Date.now(),
             lastFetchedAt: Date.now(),
@@ -53,7 +59,7 @@ describe('RampsController Selectors', () => {
       const result = selectUserRegionRequest(state);
 
       expect(result).toEqual({
-        data: 'US-CA',
+        data: mockUserRegion,
         isFetching: false,
         error: null,
       });

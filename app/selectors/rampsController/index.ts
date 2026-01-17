@@ -21,18 +21,7 @@ export const selectUserRegion = createSelector(
 /**
  * Selects the user region request state
  */
-export const selectUserRegionRequest = createRequestSelector<RootState, string>(
-  selectRampsControllerState,
-  'updateUserRegion',
-  [],
-);
-
-/**
- * Selects the user's geolocation (alias for userRegion).
- */
-export const selectGeolocation = selectUserRegion;
-
-/**
- * Selects the geolocation request state (alias for userRegionRequest).
- */
-export const selectGeolocationRequest = selectUserRegionRequest;
+export const selectUserRegionRequest = createRequestSelector<
+  RootState,
+  import('@metamask/ramps-controller').UserRegion | null
+>(selectRampsControllerState, 'updateUserRegion', []);
