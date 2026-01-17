@@ -12,7 +12,7 @@ env:
     waitToSettleTimeoutMs: 500
 - tapOn:
     text: 'Paste'
-    waitToSettleTimeoutMs: 500
+    waitToSettleTimeoutMs: 3000
 - doubleTapOn:
     text: ${output.addWallet.continueBtn}
     waitToSettleTimeoutMs: 500
