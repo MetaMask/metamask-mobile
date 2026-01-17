@@ -746,6 +746,8 @@
   },
   "RampsController": {
     "userRegion": null,
+    "preferredProvider": null,
+    "providers": [],
     "tokens": null,
     "requests": {}
   }
