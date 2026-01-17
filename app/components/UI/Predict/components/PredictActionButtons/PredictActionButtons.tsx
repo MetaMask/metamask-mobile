@@ -5,6 +5,7 @@ import PredictClaimButton from './PredictClaimButton';
 import PredictDetailsButtonsSkeleton from '../PredictDetailsButtonsSkeleton';
 import { PredictActionButtonsProps } from './PredictActionButtons.types';
 import { PredictMarketStatus } from '../../types';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 
 const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   market,
@@ -16,6 +17,16 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   testID = 'predict-action-buttons',
 }) => {
   const isGameMarket = Boolean(market.game);
+  const isMarketOpen = market.status === PredictMarketStatus.OPEN;
+
+  const tokenIds = useMemo(
+    () => outcome.tokens.map((token) => token.id),
+    [outcome.tokens],
+  );
+
+  const { getPrice } = useLiveMarketPrices(tokenIds, {
+    enabled: isMarketOpen && !isLoading,
+  });
 
   const buttonConfig = useMemo(() => {
     const tokens = outcome.tokens;
@@ -26,27 +37,33 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
     const yesToken = tokens[0];
     const noToken = tokens[1];
 
+    const yesLivePrice = getPrice(yesToken.id);
+    const noLivePrice = getPrice(noToken.id);
+
+    const yesPrice = yesLivePrice?.price ?? yesToken.price;
+    const noPrice = noLivePrice?.price ?? noToken.price;
+
     if (isGameMarket && market.game) {
       const { awayTeam, homeTeam } = market.game;
       return {
         yesLabel: awayTeam.abbreviation,
-        yesPrice: Math.round(yesToken.price * 100),
+        yesPrice: Math.round(yesPrice * 100),
         yesTeamColor: awayTeam.color,
         noLabel: homeTeam.abbreviation,
-        noPrice: Math.round(noToken.price * 100),
+        noPrice: Math.round(noPrice * 100),
         noTeamColor: homeTeam.color,
       };
     }
 
     return {
       yesLabel: yesToken.title,
-      yesPrice: Math.round(yesToken.price * 100),
+      yesPrice: Math.round(yesPrice * 100),
       yesTeamColor: undefined,
       noLabel: noToken.title,
-      noPrice: Math.round(noToken.price * 100),
+      noPrice: Math.round(noPrice * 100),
       noTeamColor: undefined,
     };
-  }, [outcome.tokens, isGameMarket, market.game]);
+  }, [outcome.tokens, isGameMarket, market.game, getPrice]);
 
   if (isLoading) {
     return <PredictDetailsButtonsSkeleton testID={`${testID}-skeleton`} />;

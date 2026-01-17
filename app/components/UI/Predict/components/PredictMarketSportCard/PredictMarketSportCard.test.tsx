@@ -51,6 +51,16 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   }),
 }));
 
+// Mock useLiveMarketPrices
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: () => ({
+    prices: new Map(),
+    getPrice: jest.fn(),
+    isConnected: false,
+    lastUpdateTime: null,
+  }),
+}));
+
 jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
