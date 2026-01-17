@@ -590,4 +590,121 @@ describe('RegionSelector', () => {
     render(RegionSelector);
     expect(screen.toJSON()).not.toEqual(initialSnapshot);
   });
+
+  it('highlights country when regionCode exactly matches country code', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('fr'),
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('highlights country when regionCode starts with country code and state is selected', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('us-ca'),
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('highlights state when selected in state view', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('us-ca'),
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('highlights state in grouped search results when parent country matches', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('us-ca'),
+    };
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'California');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('does not highlight state when country does not match', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('ca-on'),
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('does not highlight state when state ID does not match', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('us-ny'),
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('does not highlight state when userRegion has no state', () => {
+    const userRegionWithoutState: UserRegion = {
+      country: {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        phone: { prefix: '', placeholder: '', template: '' },
+        currency: '',
+        supported: true,
+      },
+      state: null,
+      regionCode: 'us',
+    };
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: userRegionWithoutState,
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('does not highlight country when regionCode does not match', () => {
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('de'),
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles state selection when regionInTransit is null and falls back to userCountryCode', () => {
+    const standaloneState: State = {
+      stateId: 'CA',
+      name: 'California',
+      supported: true,
+    };
+    const regionsWithStandaloneState = [
+      createMockCountry('US', 'United States', '🇺🇸', [standaloneState]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithStandaloneState,
+    };
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: createMockUserRegion('us-ca'),
+    };
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'California');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 });

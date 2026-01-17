@@ -237,12 +237,36 @@ function RegionSelector() {
   }, []);
 
   const isRegionSelected = useCallback(
-    (region: RegionItem): boolean => {
+    (region: RegionItem, parentCountry?: Country): boolean => {
       if (!userRegion) return false;
-      const regionId = getRegionId(region);
-      return userRegion.regionCode === regionId;
+
+      if (isCountry(region)) {
+        const countryCode = region.isoCode.toLowerCase();
+        return (
+          userRegion.regionCode === countryCode ||
+          userRegion.regionCode.startsWith(`${countryCode}-`)
+        );
+      }
+
+      if (isState(region) && region.stateId) {
+        const stateId = region.stateId.toLowerCase();
+        const userCountryCode = userRegion.country.isoCode.toLowerCase();
+        const parentCountryCode = parentCountry
+          ? parentCountry.isoCode.toLowerCase()
+          : regionInTransit?.isoCode.toLowerCase();
+
+        const expectedCountryCode = parentCountryCode || userCountryCode;
+
+        return (
+          userRegion.state?.stateId?.toLowerCase() === stateId &&
+          userRegion.country.isoCode.toLowerCase() === expectedCountryCode &&
+          userRegion.regionCode === `${expectedCountryCode}-${stateId}`
+        );
+      }
+
+      return false;
     },
-    [userRegion, getRegionId],
+    [userRegion, regionInTransit],
   );
 
   const handleOnRegionPressCallback = useCallback(
@@ -334,7 +358,7 @@ function RegionSelector() {
               )}
             </ListItemSelect>
             {item.matchingStates.map((state) => {
-              const stateIsSelected = isRegionSelected(state);
+              const stateIsSelected = isRegionSelected(state, item.country);
               return (
                 <ListItemSelect
                   key={state.stateId || state.name}
@@ -369,7 +393,10 @@ function RegionSelector() {
       }
 
       const region = item as RegionItem;
-      const isSelected = isRegionSelected(region);
+      const isSelected = isRegionSelected(
+        region,
+        isState(region) ? regionInTransit || undefined : undefined,
+      );
 
       if (isCountry(region)) {
         const isSupported = region.supported !== false;
@@ -463,6 +490,7 @@ function RegionSelector() {
       styles.nestedStateRegion,
       userRegion,
       activeView,
+      regionInTransit,
     ],
   );
 
