@@ -10,9 +10,10 @@ env:
 - tapOn:
     id: seed-phrase-input
     waitToSettleTimeoutMs: 500
-- tapOn:
-    text: 'Paste'
-    waitToSettleTimeoutMs: 3000
+# - tapOn:
+#     text: 'Paste'
+#     waitToSettleTimeoutMs: 3000
+- inputText: 'club badge diamond staff object stamp common maze blush food wedding foil'
 - doubleTapOn:
     text: ${output.addWallet.continueBtn}
     waitToSettleTimeoutMs: 500
