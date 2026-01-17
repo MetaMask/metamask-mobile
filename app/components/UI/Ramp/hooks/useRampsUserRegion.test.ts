@@ -23,14 +23,33 @@ const mockUserRegion: UserRegion = {
   regionCode: 'us-ca',
 };
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      updateUserRegion: jest.fn().mockResolvedValue(mockUserRegion),
-      setUserRegion: jest.fn().mockResolvedValue(mockUserRegion),
+jest.mock('../../../../core/Engine', () => {
+  const mockUserRegionValue: UserRegion = {
+    country: {
+      isoCode: 'US',
+      name: 'United States',
+      flag: '🇺🇸',
+      phone: {
+        prefix: '+1',
+        placeholder: '(XXX) XXX-XXXX',
+        template: 'XXX-XXX-XXXX',
+      },
+      currency: 'USD',
+      supported: true,
     },
-  },
-}));
+    state: { stateId: 'CA', name: 'California' },
+    regionCode: 'us-ca',
+  };
+
+  return {
+    context: {
+      RampsController: {
+        updateUserRegion: jest.fn().mockResolvedValue(mockUserRegionValue),
+        setUserRegion: jest.fn().mockResolvedValue(mockUserRegionValue),
+      },
+    },
+  };
+});
 
 const createMockStore = (rampsControllerState = {}) =>
   configureStore({
