@@ -51,6 +51,32 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   }),
 }));
 
+jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockPredictSportScoreboard({
+      game,
+      testID,
+    }: {
+      game: {
+        awayTeam: { abbreviation: string };
+        homeTeam: { abbreviation: string };
+      };
+      testID?: string;
+    }) {
+      return (
+        <View testID={testID ?? 'mock-scoreboard'}>
+          <Text>Sun, Feb 8</Text>
+          <Text>3:30 PM</Text>
+          <Text>{game?.awayTeam?.abbreviation}</Text>
+          <Text>{game?.homeTeam?.abbreviation}</Text>
+        </View>
+      );
+    },
+  };
+});
+
 const mockMarket: PredictMarketType = {
   id: 'test-market-sport-1',
   providerId: 'test-provider',
