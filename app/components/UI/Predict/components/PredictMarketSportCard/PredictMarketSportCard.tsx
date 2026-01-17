@@ -22,6 +22,7 @@ import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedS
 import PredictSportTeamGradient from '../PredictSportTeamGradient/PredictSportTeamGradient';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
 import { PredictActionButtons } from '../PredictActionButtons';
+import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 
 interface PredictMarketSportCardProps {
@@ -109,6 +110,12 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
               testID={testID ? `${testID}-scoreboard` : undefined}
             />
           )}
+
+          <PredictPicksForCard
+            marketId={market.id}
+            showSeparator
+            testID={testID ? `${testID}-picks` : undefined}
+          />
 
           {outcome && !isEnded && (
             <PredictActionButtons

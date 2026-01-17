@@ -13,18 +13,34 @@ import { strings } from '../../../../../../locales/i18n';
 interface PredictPicksForCardProps {
   marketId: string;
   testID?: string;
+  /**
+   * When true, renders a separator line above the positions list
+   * Only renders if there are positions to display
+   */
+  showSeparator?: boolean;
 }
 const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
   marketId,
   testID = 'predict-picks-for-card',
+  showSeparator = false,
 }) => {
   const { positions } = usePredictPositions({
     marketId,
     autoRefreshTimeout: 10000,
   });
 
+  if (positions.length === 0) {
+    return null;
+  }
+
   return (
     <Box testID={testID} twClassName="flex-col gap-2">
+      {showSeparator && (
+        <Box
+          testID={`${testID}-separator`}
+          twClassName="h-px bg-border-muted my-2"
+        />
+      )}
       {positions.map((position) => (
         <Box
           testID={testID}
@@ -52,7 +68,7 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
               {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
             </Text>
             <Text color={TextColor.TextDefault}>
-              {formatPrice(position.amount, { maximumDecimals: 2 })}
+              {formatPrice(position.currentValue, { maximumDecimals: 2 })}
             </Text>
           </Box>
         </Box>

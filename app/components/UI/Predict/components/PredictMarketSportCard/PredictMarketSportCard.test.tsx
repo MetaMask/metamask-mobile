@@ -87,6 +87,30 @@ jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
   };
 });
 
+jest.mock('../PredictPicks', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    PredictPicksForCard: function MockPredictPicksForCard({
+      marketId,
+      showSeparator,
+      testID,
+    }: {
+      marketId: string;
+      showSeparator?: boolean;
+      testID?: string;
+    }) {
+      return (
+        <View testID={testID ?? 'mock-picks-for-card'}>
+          <Text testID="mock-picks-market-id">{marketId}</Text>
+          <Text testID="mock-picks-show-separator">
+            {showSeparator ? 'true' : 'false'}
+          </Text>
+        </View>
+      );
+    },
+  };
+});
+
 const mockMarket: PredictMarketType = {
   id: 'test-market-sport-1',
   providerId: 'test-provider',
@@ -430,5 +454,63 @@ describe('PredictMarketSportCard', () => {
 
     // Should render without crashing
     expect(getByTestId('sport-market-card')).toBeOnTheScreen();
+  });
+
+  describe('positions display', () => {
+    it('renders PredictPicksForCard with correct marketId', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('mock-picks-market-id').props.children).toBe(
+        'test-market-sport-1',
+      );
+    });
+
+    it('renders PredictPicksForCard with showSeparator enabled', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('mock-picks-show-separator').props.children).toBe(
+        'true',
+      );
+    });
+
+    it('renders PredictPicksForCard with correct testID', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('sport-card-picks')).toBeOnTheScreen();
+    });
+
+    it('renders PredictPicksForCard with default testID when no testID provided', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('mock-picks-for-card')).toBeOnTheScreen();
+    });
+
+    it('renders PredictPicksForCard when game has ended', () => {
+      const endedMarket: PredictMarketType = {
+        ...mockMarket,
+        game: mockMarket.game
+          ? { ...mockMarket.game, status: 'ended' }
+          : undefined,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={endedMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('sport-card-picks')).toBeOnTheScreen();
+    });
   });
 });
