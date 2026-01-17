@@ -6,12 +6,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import {
-  PredictMarket as PredictMarketType,
-  PredictOutcomeToken,
-} from '../../types';
+import { PredictMarket as PredictMarketType } from '../../types';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
@@ -21,9 +18,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportTeamGradient from '../PredictSportTeamGradient/PredictSportTeamGradient';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
-import { PredictActionButtons } from '../PredictActionButtons';
-import { PredictPicksForCard } from '../PredictPicks';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { PredictSportCardFooter } from '../PredictSportCardFooter';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -45,34 +40,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
 
-  const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
-    navigation,
-  });
-
-  const outcome = market.outcomes?.[0];
   const game = market.game;
-  const isEnded = game?.status === 'ended';
-
-  const handleBetPress = useCallback(
-    (token: PredictOutcomeToken) => {
-      executeGuardedAction(
-        () => {
-          navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          });
-        },
-        {
-          checkBalance: true,
-          attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-        },
-      );
-    },
-    [executeGuardedAction, navigation, market, outcome, resolvedEntryPoint],
-  );
 
   return (
     <TouchableOpacity
@@ -111,20 +79,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             />
           )}
 
-          <PredictPicksForCard
-            marketId={market.id}
-            showSeparator
-            testID={testID ? `${testID}-picks` : undefined}
+          <PredictSportCardFooter
+            market={market}
+            entryPoint={resolvedEntryPoint}
+            testID={testID ? `${testID}-footer` : undefined}
           />
-
-          {outcome && !isEnded && (
-            <PredictActionButtons
-              market={market}
-              outcome={outcome}
-              onBetPress={handleBetPress}
-              testID={testID ? `${testID}-action-buttons` : undefined}
-            />
-          )}
         </Box>
       </PredictSportTeamGradient>
     </TouchableOpacity>

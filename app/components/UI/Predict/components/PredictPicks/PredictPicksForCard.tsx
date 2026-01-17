@@ -9,6 +9,7 @@ import {
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
+import type { PredictPosition } from '../../types';
 
 interface PredictPicksForCardProps {
   marketId: string;
@@ -18,16 +19,26 @@ interface PredictPicksForCardProps {
    * Only renders if there are positions to display
    */
   showSeparator?: boolean;
+  /**
+   * Optional positions array. When provided, skips internal fetching
+   * and uses these positions directly.
+   */
+  positions?: PredictPosition[];
 }
 const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
   marketId,
   testID = 'predict-picks-for-card',
   showSeparator = false,
+  positions: positionsProp,
 }) => {
-  const { positions } = usePredictPositions({
+  const { positions: fetchedPositions } = usePredictPositions({
     marketId,
-    autoRefreshTimeout: 10000,
+    autoRefreshTimeout: positionsProp ? undefined : 10000,
+    loadOnMount: !positionsProp,
+    refreshOnFocus: !positionsProp,
   });
+
+  const positions = positionsProp ?? fetchedPositions;
 
   if (positions.length === 0) {
     return null;
