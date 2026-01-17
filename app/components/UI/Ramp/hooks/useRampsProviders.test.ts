@@ -295,6 +295,32 @@ describe('useRampsProviders', () => {
       expect(response).toEqual({ providers: mockProviders });
     });
 
+    it('uses regionToUse fallback when fetchRegion is not provided', async () => {
+      const store = createMockStore({
+        userRegion: mockUserRegion,
+      });
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchProviders();
+      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
+        'us-ca',
+        undefined,
+      );
+    });
+
+    it('uses provided region parameter as fallback when fetchRegion is not provided', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsProviders('us-ny'), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchProviders();
+      expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
+        'us-ny',
+        undefined,
+      );
+    });
+
     it('rejects with error when getProviders fails', async () => {
       const store = createMockStore();
       const mockGetProviders = Engine.context.RampsController

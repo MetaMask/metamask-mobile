@@ -472,7 +472,7 @@ describe('RampsController Selectors', () => {
     it('handles array filter options', () => {
       const state = createMockState({
         requests: {
-          'getProviders:["us-ca",["provider-1","provider-2"],["ETH","BTC"],"USD"]':
+          'getProviders:["us-ca",["provider-1","provider-2"],["ETH","BTC"],"USD",null]':
             {
               status: RequestStatus.SUCCESS,
               data: { providers: [mockProvider] },
@@ -491,6 +491,7 @@ describe('RampsController Selectors', () => {
 
       expect(result.isFetching).toBe(false);
       expect(result.error).toBeNull();
+      expect(result.data).toEqual({ providers: [mockProvider] });
     });
 
     it('returns default state when request does not exist', () => {
