@@ -68,6 +68,10 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
   };
 
 describe('useRampsController', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns all ramps controller functionality', () => {
     const store = createMockStore();
     const { result } = renderHook(() => useRampsController(), {

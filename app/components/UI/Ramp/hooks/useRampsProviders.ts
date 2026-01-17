@@ -88,8 +88,11 @@ export function useRampsProviders(
         payments?: string | string[];
       },
     ) =>
-      await Engine.context.RampsController.getProviders(fetchRegion, options),
-    [],
+      await Engine.context.RampsController.getProviders(
+        fetchRegion ?? regionToUse,
+        options,
+      ),
+    [regionToUse],
   );
 
   return {
