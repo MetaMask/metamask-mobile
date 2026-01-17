@@ -2486,6 +2486,170 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('getMarketsByIds', () => {
+    const createMockEvent = (id: string) => ({
+      id,
+      question: `Question for ${id}?`,
+      markets: [
+        { outcome: 'YES', price: 0.6 },
+        { outcome: 'NO', price: 0.4 },
+      ],
+    });
+
+    const createMockParsedMarket = (id: string) => ({
+      id,
+      question: `Question for ${id}?`,
+      outcomes: ['YES', 'NO'],
+      status: 'open',
+      providerId: 'polymarket',
+    });
+
+    beforeEach(() => {
+      mockGetMarketDetailsFromGammaApi.mockReset();
+      mockParsePolymarketEvents.mockReset();
+    });
+
+    it('returns empty array when marketIds is empty', async () => {
+      const provider = createProvider();
+
+      const result = await provider.getMarketsByIds([]);
+
+      expect(result).toEqual([]);
+      expect(mockGetMarketDetailsFromGammaApi).not.toHaveBeenCalled();
+    });
+
+    it('returns empty array when marketIds is undefined', async () => {
+      const provider = createProvider();
+
+      const result = await provider.getMarketsByIds(
+        undefined as unknown as string[],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('fetches multiple markets in parallel and preserves order', async () => {
+      const provider = createProvider();
+      const marketIds = ['market-1', 'market-2', 'market-3'];
+
+      mockGetMarketDetailsFromGammaApi.mockImplementation(({ marketId }) =>
+        Promise.resolve(createMockEvent(marketId)),
+      );
+      mockParsePolymarketEvents.mockImplementation((events) =>
+        events.map((event: { id: string }) => createMockParsedMarket(event.id)),
+      );
+
+      const result = await provider.getMarketsByIds(marketIds);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].id).toBe('market-1');
+      expect(result[1].id).toBe('market-2');
+      expect(result[2].id).toBe('market-3');
+      expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(3);
+    });
+
+    it('filters out failed market fetches gracefully', async () => {
+      const provider = createProvider();
+      const marketIds = ['market-1', 'market-fail', 'market-3'];
+
+      mockGetMarketDetailsFromGammaApi.mockImplementation(({ marketId }) => {
+        if (marketId === 'market-fail') {
+          return Promise.reject(new Error('API error'));
+        }
+        return Promise.resolve(createMockEvent(marketId));
+      });
+      mockParsePolymarketEvents.mockImplementation((events) =>
+        events.map((event: { id: string }) => createMockParsedMarket(event.id)),
+      );
+
+      const result = await provider.getMarketsByIds(marketIds);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('market-1');
+      expect(result[1].id).toBe('market-3');
+    });
+
+    it('returns empty array when all market fetches fail', async () => {
+      const provider = createProvider();
+      const marketIds = ['market-1', 'market-2'];
+
+      mockGetMarketDetailsFromGammaApi.mockRejectedValue(
+        new Error('API error'),
+      );
+
+      const result = await provider.getMarketsByIds(marketIds);
+
+      expect(result).toEqual([]);
+    });
+
+    it('fetches single market correctly', async () => {
+      const provider = createProvider();
+      const marketIds = ['market-1'];
+
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(
+        createMockEvent('market-1'),
+      );
+      mockParsePolymarketEvents.mockReturnValue([
+        createMockParsedMarket('market-1'),
+      ]);
+
+      const result = await provider.getMarketsByIds(marketIds);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('market-1');
+    });
+
+    it('passes liveSportsLeagues to getMarketDetails for each market', async () => {
+      const provider = createProvider();
+      const marketIds = ['market-1', 'market-2'];
+      const liveSportsLeagues = ['nfl'];
+
+      const getMarketDetailsSpy = jest.spyOn(provider, 'getMarketDetails');
+      mockGetMarketDetailsFromGammaApi.mockImplementation(({ marketId }) =>
+        Promise.resolve(createMockEvent(marketId)),
+      );
+      mockParsePolymarketEvents.mockImplementation((events) =>
+        events.map((event: { id: string }) => createMockParsedMarket(event.id)),
+      );
+
+      await provider.getMarketsByIds(marketIds, liveSportsLeagues);
+
+      expect(getMarketDetailsSpy).toHaveBeenCalledTimes(2);
+      expect(getMarketDetailsSpy).toHaveBeenCalledWith({
+        marketId: 'market-1',
+        liveSportsLeagues: ['nfl'],
+      });
+      expect(getMarketDetailsSpy).toHaveBeenCalledWith({
+        marketId: 'market-2',
+        liveSportsLeagues: ['nfl'],
+      });
+
+      getMarketDetailsSpy.mockRestore();
+    });
+
+    it('uses empty liveSportsLeagues by default', async () => {
+      const provider = createProvider();
+      const marketIds = ['market-1'];
+
+      const getMarketDetailsSpy = jest.spyOn(provider, 'getMarketDetails');
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(
+        createMockEvent('market-1'),
+      );
+      mockParsePolymarketEvents.mockReturnValue([
+        createMockParsedMarket('market-1'),
+      ]);
+
+      await provider.getMarketsByIds(marketIds);
+
+      expect(getMarketDetailsSpy).toHaveBeenCalledWith({
+        marketId: 'market-1',
+        liveSportsLeagues: [],
+      });
+
+      getMarketDetailsSpy.mockRestore();
+    });
+  });
+
   describe('getUnrealizedPnL', () => {
     const originalFetch = globalThis.fetch;
 
