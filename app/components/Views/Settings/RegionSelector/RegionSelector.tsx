@@ -52,6 +52,14 @@ enum RegionViewType {
 
 type RegionItem = Country | State;
 
+interface GroupedSearchResult {
+  country: Country;
+  matchingStates: State[];
+  countryMatches: boolean;
+}
+
+type ListItem = RegionItem | GroupedSearchResult;
+
 function isCountry(region: RegionItem): region is Country {
   return 'isoCode' in region;
 }
@@ -60,10 +68,31 @@ function isState(region: RegionItem): region is State {
   return !('isoCode' in region);
 }
 
+function isGroupedResult(item: ListItem): item is GroupedSearchResult {
+  return 'country' in item && 'matchingStates' in item;
+}
+
+interface HeaderBackButtonProps {
+  onPress: () => void;
+  testID?: string;
+}
+
+function HeaderBackButton({ onPress, testID }: HeaderBackButtonProps) {
+  return (
+    <ButtonIcon
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.ArrowLeft}
+      onPress={onPress}
+      style={navigationOptionsStyles.headerLeft}
+      testID={testID}
+    />
+  );
+}
+
 function RegionSelector() {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
-  const listRef = useRef<FlatList<RegionItem>>(null);
+  const listRef = useRef<FlatList<ListItem>>(null);
 
   const userRegion = useSelector(selectUserRegion);
   const { regions } = useRampsRegions();
@@ -126,7 +155,57 @@ function RegionSelector() {
           'item' in result ? result.item : result,
         ) as RegionItem[]) ?? [];
 
-      return mappedResults;
+      const countriesMap = new Map<string, GroupedSearchResult>();
+      const standaloneCountries: Country[] = [];
+      const standaloneStates: State[] = [];
+      const processedStateIds = new Set<string>();
+
+      mappedResults.forEach((item) => {
+        if (isCountry(item)) {
+          if (item.states && item.states.length > 0) {
+            countriesMap.set(item.isoCode, {
+              country: item,
+              matchingStates: [],
+              countryMatches: true,
+            });
+          } else {
+            standaloneCountries.push(item);
+          }
+        } else if (isState(item)) {
+          const country = currentData.find(
+            (c) =>
+              isCountry(c) && c.states?.some((s) => s.stateId === item.stateId),
+          ) as Country | undefined;
+
+          if (country) {
+            const existing = countriesMap.get(country.isoCode);
+            if (existing) {
+              existing.matchingStates.push(item);
+            } else {
+              countriesMap.set(country.isoCode, {
+                country,
+                matchingStates: [item],
+                countryMatches: false,
+              });
+            }
+            if (item.stateId) {
+              processedStateIds.add(item.stateId);
+            }
+          } else {
+            standaloneStates.push(item);
+          }
+        }
+      });
+
+      const groupedResults: ListItem[] = [
+        ...Array.from(countriesMap.values()),
+        ...standaloneCountries,
+        ...standaloneStates.filter(
+          (state) => !state.stateId || !processedStateIds.has(state.stateId),
+        ),
+      ];
+
+      return groupedResults;
     }
 
     if (!currentData.length) return [];
@@ -192,7 +271,104 @@ function RegionSelector() {
   );
 
   const renderRegionItem = useCallback(
-    ({ item: region }: { item: RegionItem }) => {
+    ({ item }: { item: ListItem }) => {
+      if (isGroupedResult(item)) {
+        const countryIsSelected = isRegionSelected(item.country);
+        const isSupported = item.country.supported !== false;
+        const showStateName =
+          userRegion?.state &&
+          activeView === RegionViewType.COUNTRY &&
+          userRegion.country.isoCode.toLowerCase() ===
+            item.country.isoCode.toLowerCase() &&
+          userRegion.state.name;
+
+        return (
+          <View>
+            <ListItemSelect
+              isSelected={countryIsSelected}
+              onPress={() => handleOnRegionPressCallback(item.country)}
+              accessibilityRole="button"
+              accessible
+              disabled={!isSupported}
+            >
+              <ListItemColumn widthType={WidthType.Fill}>
+                <View style={styles.region}>
+                  {item.country.flag && (
+                    <View style={styles.emoji}>
+                      <Text
+                        variant={TextVariant.BodyLGMedium}
+                        color={
+                          isSupported
+                            ? TextColor.Default
+                            : TextColor.Alternative
+                        }
+                      >
+                        {item.country.flag}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.textContainer}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={
+                        isSupported ? TextColor.Default : TextColor.Alternative
+                      }
+                    >
+                      {item.country.name}
+                    </Text>
+                    {showStateName && userRegion.state && (
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Muted}
+                      >
+                        {userRegion.state.name}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </ListItemColumn>
+              {item.country.states && item.country.states.length > 0 && (
+                <ListItemColumn>
+                  <Icon name={IconName.ArrowRight} />
+                </ListItemColumn>
+              )}
+            </ListItemSelect>
+            {item.matchingStates.map((state) => {
+              const stateIsSelected = isRegionSelected(state);
+              return (
+                <ListItemSelect
+                  key={state.stateId || state.name}
+                  isSelected={stateIsSelected}
+                  onPress={() => handleOnRegionPressCallback(state)}
+                  accessibilityRole="button"
+                  accessible
+                  disabled={!state.supported}
+                  style={styles.nestedStateItem}
+                >
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <View style={[styles.region, styles.nestedStateRegion]}>
+                      <View style={styles.textContainer}>
+                        <Text
+                          variant={TextVariant.BodyLGMedium}
+                          color={
+                            state.supported
+                              ? TextColor.Default
+                              : TextColor.Alternative
+                          }
+                        >
+                          {state.name || ''}
+                        </Text>
+                      </View>
+                    </View>
+                  </ListItemColumn>
+                </ListItemSelect>
+              );
+            })}
+          </View>
+        );
+      }
+
+      const region = item as RegionItem;
       const isSelected = isRegionSelected(region);
 
       if (isCountry(region)) {
@@ -283,6 +459,8 @@ function RegionSelector() {
       styles.region,
       styles.emoji,
       styles.textContainer,
+      styles.nestedStateItem,
+      styles.nestedStateRegion,
       userRegion,
       activeView,
     ],
@@ -322,32 +500,33 @@ function RegionSelector() {
     scrollToTop();
   }, [regions, scrollToTop]);
 
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const stateHeaderLeft = useCallback(
+    () => (
+      <HeaderBackButton onPress={handleRegionBackButton} testID="back-button" />
+    ),
+    [handleRegionBackButton],
+  );
+
+  const defaultHeaderLeft = useCallback(
+    () => <HeaderBackButton onPress={handleGoBack} />,
+    [handleGoBack],
+  );
+
   useEffect(() => {
     if (activeView === RegionViewType.STATE) {
       navigation.setOptions({
-        headerLeft: () => (
-          <ButtonIcon
-            size={ButtonIconSizes.Lg}
-            iconName={IconName.ArrowLeft}
-            onPress={handleRegionBackButton}
-            style={navigationOptionsStyles.headerLeft}
-            testID="back-button"
-          />
-        ),
+        headerLeft: stateHeaderLeft,
       });
     } else {
       navigation.setOptions({
-        headerLeft: () => (
-          <ButtonIcon
-            size={ButtonIconSizes.Lg}
-            iconName={IconName.ArrowLeft}
-            onPress={() => navigation.goBack()}
-            style={navigationOptionsStyles.headerLeft}
-          />
-        ),
+        headerLeft: defaultHeaderLeft,
       });
     }
-  }, [activeView, navigation, handleRegionBackButton]);
+  }, [activeView, navigation, stateHeaderLeft, defaultHeaderLeft]);
 
   return (
     <KeyboardAvoidingView
@@ -384,11 +563,17 @@ function RegionSelector() {
         renderItem={renderRegionItem}
         extraData={userRegion}
         keyExtractor={(item, index) => {
+          if (isGroupedResult(item)) {
+            return `grouped-${item.country.isoCode}-${index}`;
+          }
           if (isCountry(item)) {
             return item.isoCode;
           }
           if (isState(item) && item.stateId && regionInTransit) {
             return `${regionInTransit.isoCode}-${item.stateId}`;
+          }
+          if (isState(item) && item.stateId) {
+            return item.stateId;
           }
           return `region-${index}`;
         }}

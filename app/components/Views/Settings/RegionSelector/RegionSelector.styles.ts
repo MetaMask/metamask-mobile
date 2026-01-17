@@ -32,6 +32,12 @@ const createStyles = () =>
       padding: 16,
       alignItems: 'center',
     },
+    nestedStateItem: {
+      paddingLeft: 40,
+    },
+    nestedStateRegion: {
+      paddingLeft: 0,
+    },
   });
 
 export const styles = StyleSheet.create({

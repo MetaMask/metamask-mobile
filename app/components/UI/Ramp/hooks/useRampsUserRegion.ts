@@ -68,11 +68,9 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
   );
 
   useEffect(() => {
-    if (!userRegion) {
-      fetchUserRegion().catch(() => {
-        // Error is stored in state
-      });
-    }
+    fetchUserRegion().catch(() => {
+      // Error is stored in state
+    });
   }, [fetchUserRegion, userRegion]);
 
   return {
