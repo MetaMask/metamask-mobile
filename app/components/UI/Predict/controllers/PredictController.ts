@@ -505,7 +505,7 @@ export class PredictController extends BaseController<
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
-          marketHighlightsFlag.highlights.find(
+          (marketHighlightsFlag.highlights ?? []).find(
             (h) => h.category === params.category,
           )?.markets ?? [];
 
@@ -520,7 +520,7 @@ export class PredictController extends BaseController<
               liveSportsLeagues,
             )) ?? [];
 
-          const highlightedIdSet = new Set(highlightedMarketIds);
+          const highlightedIdSet = new Set(highlightedMarkets.map((m) => m.id));
           markets = markets.filter(
             (market) => !highlightedIdSet.has(market.id),
           );

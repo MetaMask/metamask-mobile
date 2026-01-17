@@ -2121,6 +2121,67 @@ describe('PredictController', () => {
         expect(result[2].id).toBe('second');
       });
     });
+
+    it('handles missing highlights array in flag gracefully', async () => {
+      (
+        Engine.context.RemoteFeatureFlagController as any
+      ).state.remoteFeatureFlags.predictMarketHighlights = { enabled: true };
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('keeps market in regular results when highlight fetch fails for that market', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [
+          { category: 'trending', markets: ['highlight-1', 'highlight-2'] },
+        ],
+      });
+
+      const regularMarketsIncludingFailedHighlight = [
+        createMockMarket('highlight-1'),
+        createMockMarket('regular-1'),
+      ];
+      const onlySuccessfullyFetchedHighlights = [
+        createMockMarket('highlight-2'),
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarketsIncludingFailedHighlight as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          onlySuccessfullyFetchedHighlights as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(3);
+        expect(result[0].id).toBe('highlight-2');
+        expect(result[1].id).toBe('highlight-1');
+        expect(result[2].id).toBe('regular-1');
+      });
+    });
   });
 
   describe('updateStateForTesting', () => {
