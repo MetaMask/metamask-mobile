@@ -39,7 +39,7 @@ export interface UseRampsUserRegionResult {
   setUserRegion: (
     region: string,
     options?: ExecuteRequestOptions,
-  ) => Promise<void>;
+  ) => Promise<UserRegion | null>;
 }
 
 /**
@@ -61,9 +61,8 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
   );
 
   const setUserRegion = useCallback(
-    async (region: string, options?: ExecuteRequestOptions) => {
-      await Engine.context.RampsController.setUserRegion(region, options);
-    },
+    (region: string, options?: ExecuteRequestOptions) =>
+      Engine.context.RampsController.setUserRegion(region, options),
     [],
   );
 
@@ -71,7 +70,7 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
     fetchUserRegion().catch(() => {
       // Error is stored in state
     });
-  }, [fetchUserRegion, userRegion]);
+  }, [fetchUserRegion]);
 
   return {
     userRegion,
