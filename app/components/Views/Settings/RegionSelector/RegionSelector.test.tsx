@@ -5,8 +5,7 @@ import { renderScreen } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { Country, State, UserRegion } from '@metamask/ramps-controller';
-import useRampsRegions from '../hooks/useRampsRegions';
-import { useRampsUserRegion } from '../../../../components/UI/Ramp/hooks/useRampsUserRegion';
+import useRampsController from '../../../../components/UI/Ramp/hooks/useRampsController';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -26,6 +25,10 @@ jest.mock('@react-navigation/native', () => {
 
 const mockSetUserRegion = jest.fn().mockResolvedValue(undefined);
 const mockFetchUserRegion = jest.fn().mockResolvedValue(null);
+const mockFetchCountries = jest.fn().mockResolvedValue([]);
+const mockFetchProviders = jest.fn().mockResolvedValue({ providers: [] });
+const mockFetchTokens = jest.fn().mockResolvedValue(null);
+const mockSetPreferredProvider = jest.fn();
 
 const createMockCountry = (
   isoCode: string,
@@ -90,33 +93,35 @@ const mockRegions: Country[] = [
   createMockCountry('XX', 'Unsupported Country', '🏳️', undefined, false),
 ];
 
-const mockUseRampsRegionsInitialValues: ReturnType<typeof useRampsRegions> = {
-  regions: mockRegions,
-  isLoading: false,
-  error: null,
-  fetchRegions: jest.fn().mockResolvedValue(mockRegions),
-};
-
-const mockUseRampsUserRegionInitialValues: ReturnType<
-  typeof useRampsUserRegion
+const mockUseRampsControllerInitialValues: ReturnType<
+  typeof useRampsController
 > = {
   userRegion: null,
-  isLoading: false,
-  error: null,
+  userRegionLoading: false,
+  userRegionError: null,
   setUserRegion: mockSetUserRegion,
   fetchUserRegion: mockFetchUserRegion,
+  preferredProvider: null,
+  setPreferredProvider: mockSetPreferredProvider,
+  providers: [],
+  providersLoading: false,
+  providersError: null,
+  fetchProviders: mockFetchProviders,
+  tokens: null,
+  tokensLoading: false,
+  tokensError: null,
+  fetchTokens: mockFetchTokens,
+  countries: mockRegions,
+  countriesLoading: false,
+  countriesError: null,
+  fetchCountries: mockFetchCountries,
 };
 
-let mockUseRampsRegionsValues = mockUseRampsRegionsInitialValues;
-let mockUseRampsUserRegionValues = mockUseRampsUserRegionInitialValues;
+let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
 
-jest.mock('../hooks/useRampsRegions', () =>
-  jest.fn(() => mockUseRampsRegionsValues),
+jest.mock('../../../../components/UI/Ramp/hooks/useRampsController', () =>
+  jest.fn(() => mockUseRampsControllerValues),
 );
-
-jest.mock('../../../../components/UI/Ramp/hooks/useRampsUserRegion', () => ({
-  useRampsUserRegion: () => mockUseRampsUserRegionValues,
-}));
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -137,11 +142,8 @@ function render(Component: React.ComponentType) {
 describe('RegionSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-    };
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
     };
   });
 
@@ -151,28 +153,28 @@ describe('RegionSelector', () => {
   });
 
   it('renders correctly when regions are loading', () => {
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: null,
-      isLoading: true,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: null,
+      countriesLoading: true,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly when regions are null', () => {
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: null,
-      isLoading: false,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: null,
+      countriesLoading: false,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly when user region is selected', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
@@ -184,9 +186,9 @@ describe('RegionSelector', () => {
       createMockCountry('US', 'United States', '🇺🇸', undefined, true, true),
       createMockCountry('CA', 'Canada', '🇨🇦', undefined, true, false),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: recommendedRegions,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: recommendedRegions,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -260,8 +262,8 @@ describe('RegionSelector', () => {
   });
 
   it('renders correctly when country has states and user region state is shown', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
@@ -292,9 +294,9 @@ describe('RegionSelector', () => {
   });
 
   it('renders correctly with empty regions array', () => {
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: [],
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: [],
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -306,9 +308,9 @@ describe('RegionSelector', () => {
         createMockState('CA', 'California'),
       ]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithoutFlag,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithoutFlag,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -322,9 +324,9 @@ describe('RegionSelector', () => {
     const regionsWithStateWithoutId = [
       createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithStateWithoutId,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithStateWithoutId,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -338,9 +340,9 @@ describe('RegionSelector', () => {
         unsupportedState,
       ]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithUnsupportedState,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithUnsupportedState,
     };
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
@@ -352,8 +354,8 @@ describe('RegionSelector', () => {
     const errorMock = jest
       .fn()
       .mockRejectedValue(new Error('Failed to set region'));
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       setUserRegion: errorMock,
     };
     render(RegionSelector);
@@ -404,8 +406,8 @@ describe('RegionSelector', () => {
       },
       regionCode: 'us-ca',
     };
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: userRegionWithState,
     };
     render(RegionSelector);
@@ -431,9 +433,9 @@ describe('RegionSelector', () => {
         standaloneState,
       ]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithStandaloneState,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithStandaloneState,
     };
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
@@ -443,9 +445,9 @@ describe('RegionSelector', () => {
 
   it('handles search with standalone countries', () => {
     const standaloneCountry = createMockCountry('DE', 'Germany', '🇩🇪');
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: [...mockRegions, standaloneCountry],
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: [...mockRegions, standaloneCountry],
     };
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
@@ -466,9 +468,9 @@ describe('RegionSelector', () => {
         unsupportedState,
       ]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithUnsupportedState,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithUnsupportedState,
     };
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
@@ -505,9 +507,9 @@ describe('RegionSelector', () => {
       undefined,
       false,
     );
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: [unsupportedCountry],
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: [unsupportedCountry],
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -518,9 +520,9 @@ describe('RegionSelector', () => {
     const regionsWithUnsupportedState = [
       createMockCountry('US', 'United States', '🇺🇸', [unsupportedState]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithUnsupportedState,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithUnsupportedState,
     };
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
@@ -536,9 +538,9 @@ describe('RegionSelector', () => {
     const regionsWithStateWithoutId = [
       createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithStateWithoutId,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithStateWithoutId,
     };
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
@@ -553,9 +555,9 @@ describe('RegionSelector', () => {
     const manyRegions = Array.from({ length: 30 }, (_, i) =>
       createMockCountry(`C${i}`, `Country ${i}`, '🏳️'),
     );
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: manyRegions,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: manyRegions,
     };
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
@@ -569,9 +571,9 @@ describe('RegionSelector', () => {
       createMockCountry('FR', 'France', '🇫🇷', undefined, true, true),
       createMockCountry('CA', 'Canada', '🇨🇦', undefined, true, false),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regions,
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -582,9 +584,9 @@ describe('RegionSelector', () => {
     const initialSnapshot = screen.toJSON();
 
     const newRegions = [createMockCountry('DE', 'Germany', '🇩🇪')];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: newRegions,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: newRegions,
     };
 
     render(RegionSelector);
@@ -592,8 +594,8 @@ describe('RegionSelector', () => {
   });
 
   it('highlights country when regionCode exactly matches country code', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('fr'),
     };
     render(RegionSelector);
@@ -601,8 +603,8 @@ describe('RegionSelector', () => {
   });
 
   it('highlights country when regionCode starts with country code and state is selected', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
@@ -610,8 +612,8 @@ describe('RegionSelector', () => {
   });
 
   it('highlights state when selected in state view', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
@@ -621,8 +623,8 @@ describe('RegionSelector', () => {
   });
 
   it('highlights state in grouped search results when parent country matches', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);
@@ -632,8 +634,8 @@ describe('RegionSelector', () => {
   });
 
   it('does not highlight state when country does not match', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('ca-on'),
     };
     render(RegionSelector);
@@ -643,8 +645,8 @@ describe('RegionSelector', () => {
   });
 
   it('does not highlight state when state ID does not match', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ny'),
     };
     render(RegionSelector);
@@ -666,8 +668,8 @@ describe('RegionSelector', () => {
       state: null,
       regionCode: 'us',
     };
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: userRegionWithoutState,
     };
     render(RegionSelector);
@@ -677,8 +679,8 @@ describe('RegionSelector', () => {
   });
 
   it('does not highlight country when regionCode does not match', () => {
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('de'),
     };
     render(RegionSelector);
@@ -694,12 +696,9 @@ describe('RegionSelector', () => {
     const regionsWithStandaloneState = [
       createMockCountry('US', 'United States', '🇺🇸', [standaloneState]),
     ];
-    mockUseRampsRegionsValues = {
-      ...mockUseRampsRegionsInitialValues,
-      regions: regionsWithStandaloneState,
-    };
-    mockUseRampsUserRegionValues = {
-      ...mockUseRampsUserRegionInitialValues,
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: regionsWithStandaloneState,
       userRegion: createMockUserRegion('us-ca'),
     };
     render(RegionSelector);

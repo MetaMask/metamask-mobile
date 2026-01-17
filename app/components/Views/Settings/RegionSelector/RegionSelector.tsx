@@ -38,10 +38,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import { useAppTheme } from '../../../../util/theme';
 import { Country, State } from '@metamask/ramps-controller';
-import { selectUserRegion } from '../../../../selectors/rampsController';
-import { useSelector } from 'react-redux';
-import useRampsRegions from '../hooks/useRampsRegions';
-import { useRampsUserRegion } from '../../../../components/UI/Ramp/hooks/useRampsUserRegion';
+import useRampsController from '../../../../components/UI/Ramp/hooks/useRampsController';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -94,14 +91,13 @@ function RegionSelector() {
   const { colors } = useAppTheme();
   const listRef = useRef<FlatList<ListItem>>(null);
 
-  const userRegion = useSelector(selectUserRegion);
-  const { regions } = useRampsRegions();
+  const { userRegion, setUserRegion, countries } = useRampsController();
+
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
-  const [currentData, setCurrentData] = useState<RegionItem[]>(regions || []);
+  const [currentData, setCurrentData] = useState<RegionItem[]>(countries || []);
   const [regionInTransit, setRegionInTransit] = useState<Country | null>(null);
   const { styles } = useStyles(styleSheet, {});
-  const { setUserRegion } = useRampsUserRegion();
 
   useEffect(() => {
     navigation.setOptions(
@@ -118,10 +114,10 @@ function RegionSelector() {
   }, [colors, navigation, activeView, regionInTransit]);
 
   useEffect(() => {
-    if (regions && activeView === RegionViewType.COUNTRY) {
-      setCurrentData(regions);
+    if (countries && activeView === RegionViewType.COUNTRY) {
+      setCurrentData(countries);
     }
-  }, [regions, activeView]);
+  }, [countries, activeView]);
 
   const fuseData = useMemo(() => {
     const flatRegions: RegionItem[] = currentData.reduce(
@@ -359,6 +355,7 @@ function RegionSelector() {
             </ListItemSelect>
             {item.matchingStates.map((state) => {
               const stateIsSelected = isRegionSelected(state, item.country);
+              const isStateSupported = state.supported !== false;
               return (
                 <ListItemSelect
                   key={state.stateId || state.name}
@@ -366,7 +363,7 @@ function RegionSelector() {
                   onPress={() => handleOnRegionPressCallback(state)}
                   accessibilityRole="button"
                   accessible
-                  disabled={!state.supported}
+                  disabled={!isStateSupported}
                   style={styles.nestedStateItem}
                 >
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -375,7 +372,7 @@ function RegionSelector() {
                         <Text
                           variant={TextVariant.BodyLGMedium}
                           color={
-                            state.supported
+                            isStateSupported
                               ? TextColor.Default
                               : TextColor.Alternative
                           }
@@ -455,13 +452,14 @@ function RegionSelector() {
         );
       }
 
+      const isStateSupported = region.supported !== false;
       return (
         <ListItemSelect
           isSelected={isSelected}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
-          disabled={!region.supported}
+          disabled={!isStateSupported}
         >
           <ListItemColumn widthType={WidthType.Fill}>
             <View style={styles.region}>
@@ -469,7 +467,7 @@ function RegionSelector() {
                 <Text
                   variant={TextVariant.BodyLGMedium}
                   color={
-                    region.supported ? TextColor.Default : TextColor.Alternative
+                    isStateSupported ? TextColor.Default : TextColor.Alternative
                   }
                 >
                   {region.name || ''}
@@ -522,11 +520,11 @@ function RegionSelector() {
 
   const handleRegionBackButton = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
-    setCurrentData(regions || []);
+    setCurrentData(countries || []);
     setRegionInTransit(null);
     setSearchString('');
     scrollToTop();
-  }, [regions, scrollToTop]);
+  }, [countries, scrollToTop]);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
