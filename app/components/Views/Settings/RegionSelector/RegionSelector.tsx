@@ -506,7 +506,10 @@ function RegionSelector() {
 
   const stateHeaderLeft = useCallback(
     () => (
-      <HeaderBackButton onPress={handleRegionBackButton} testID="back-button" />
+      <HeaderBackButton
+        onPress={handleRegionBackButton}
+        testID="back-button"
+      />
     ),
     [handleRegionBackButton],
   );

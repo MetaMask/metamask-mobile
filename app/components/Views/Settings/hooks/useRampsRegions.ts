@@ -39,20 +39,17 @@ export function useRampsRegions(): UseRampsRegionsResult {
     error,
   } = useSelector(selectGetCountriesRequest);
 
-  const fetchRegions = useCallback(async (action: 'buy' | 'sell' = 'buy') => {
-    if (!Engine.context?.RampsController) {
-      throw new Error('RampsController is not available');
-    }
-    return Engine.context.RampsController.getCountries(action);
-  }, []);
+  const fetchRegions = useCallback(
+    (action: 'buy' | 'sell' = 'buy') =>
+      Engine.context.RampsController.getCountries(action),
+    [],
+  );
 
   useEffect(() => {
-    if (!regions && !isFetching && Engine.context?.RampsController) {
-      fetchRegions().catch(() => {
-        // Error is stored in state
-      });
-    }
-  }, [regions, isFetching, fetchRegions]);
+    fetchRegions().catch(() => {
+      // Error is stored in state
+    });
+  }, [fetchRegions]);
 
   return {
     regions: regions ?? null,

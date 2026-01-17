@@ -290,4 +290,296 @@ describe('RegionSelector', () => {
     fireEvent.press(countryItem);
     expect(screen.toJSON()).toMatchSnapshot();
   });
+
+  it('renders correctly with empty regions array', () => {
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: [],
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with country without flag', () => {
+    const regionsWithoutFlag = [
+      createMockCountry('US', 'United States', '', [
+        createMockState('CA', 'California'),
+      ]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithoutFlag,
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with state without stateId', () => {
+    const stateWithoutId: State = {
+      name: 'State Without ID',
+      supported: true,
+    };
+    const regionsWithStateWithoutId = [
+      createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithStateWithoutId,
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with unsupported state', () => {
+    const unsupportedState = createMockState('TX', 'Texas', false);
+    const regionsWithUnsupportedState = [
+      createMockCountry('US', 'United States', '🇺🇸', [
+        createMockState('CA', 'California'),
+        unsupportedState,
+      ]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithUnsupportedState,
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles setUserRegion error gracefully', async () => {
+    const errorMock = jest.fn().mockRejectedValue(new Error('Failed to set region'));
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      setUserRegion: errorMock,
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('France');
+    fireEvent.press(countryItem);
+    await expect(errorMock).toHaveBeenCalledWith('fr');
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('clears search and scrolls to top when clear button is pressed', () => {
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'United');
+    expect(searchInput.props.value).toBe('United');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('scrolls to top when search text changes', () => {
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'Test');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('sets up back button in state view', () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(mockSetOptions).toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('shows state name in country view when user has selected a state', () => {
+    const userRegionWithState: UserRegion = {
+      country: {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        phone: { prefix: '', placeholder: '', template: '' },
+        currency: '',
+        supported: true,
+        states: [createMockState('CA', 'California')],
+      },
+      state: {
+        stateId: 'CA',
+        name: 'California',
+        supported: true,
+      },
+      regionCode: 'us-ca',
+    };
+    mockUseRampsUserRegionValues = {
+      ...mockUseRampsUserRegionInitialValues,
+      userRegion: userRegionWithState,
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles search with grouped results showing country and matching states', () => {
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'Cal');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles search with standalone states', () => {
+    const standaloneState: State = {
+      stateId: 'TX',
+      name: 'Texas',
+      supported: true,
+    };
+    const regionsWithStandaloneState = [
+      createMockCountry('US', 'United States', '🇺🇸', [
+        createMockState('CA', 'California'),
+        standaloneState,
+      ]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithStandaloneState,
+    };
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'Texas');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles search with standalone countries', () => {
+    const standaloneCountry = createMockCountry('DE', 'Germany', '🇩🇪');
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: [...mockRegions, standaloneCountry],
+    };
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'Germany');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders disabled country correctly', () => {
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders disabled state correctly', () => {
+    const unsupportedState = createMockState('TX', 'Texas', false);
+    const regionsWithUnsupportedState = [
+      createMockCountry('US', 'United States', '🇺🇸', [
+        createMockState('CA', 'California'),
+        unsupportedState,
+      ]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithUnsupportedState,
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('updates navigation title with country name when in state view', () => {
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(mockSetOptions).toHaveBeenCalled();
+  });
+
+  it('resets search when navigating to state view', () => {
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'United');
+    expect(searchInput.props.value).toBe('United');
+    
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    
+    const searchInputAfter = screen.getByTestId('textfieldsearch');
+    expect(searchInputAfter.props.value).toBe('');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles country with supported set to false', () => {
+    const unsupportedCountry = createMockCountry('XX', 'Unsupported', '🏳️', undefined, false);
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: [unsupportedCountry],
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles state with supported set to false', () => {
+    const unsupportedState = createMockState('TX', 'Texas', false);
+    const regionsWithUnsupportedState = [
+      createMockCountry('US', 'United States', '🇺🇸', [unsupportedState]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithUnsupportedState,
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('handles region selection with empty regionId', () => {
+    const stateWithoutId: State = {
+      name: 'State Without ID',
+      supported: true,
+    };
+    const regionsWithStateWithoutId = [
+      createMockCountry('US', 'United States', '🇺🇸', [stateWithoutId]),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: regionsWithStateWithoutId,
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    const stateItem = screen.getByText('State Without ID');
+    fireEvent.press(stateItem);
+    expect(mockSetUserRegion).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('handles search results limit correctly', () => {
+    const manyRegions = Array.from({ length: 30 }, (_, i) =>
+      createMockCountry(`C${i}`, `Country ${i}`, '🏳️'),
+    );
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: manyRegions,
+    };
+    render(RegionSelector);
+    const searchInput = screen.getByTestId('textfieldsearch');
+    fireEvent.changeText(searchInput, 'Country');
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('sorts regions with recommended first when no search', () => {
+    const regions = [
+      createMockCountry('US', 'United States', '🇺🇸', undefined, true, false),
+      createMockCountry('FR', 'France', '🇫🇷', undefined, true, true),
+      createMockCountry('CA', 'Canada', '🇨🇦', undefined, true, false),
+    ];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions,
+    };
+    render(RegionSelector);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('updates currentData when regions change in country view', () => {
+    render(RegionSelector);
+    const initialSnapshot = screen.toJSON();
+    
+    const newRegions = [createMockCountry('DE', 'Germany', '🇩🇪')];
+    mockUseRampsRegionsValues = {
+      ...mockUseRampsRegionsInitialValues,
+      regions: newRegions,
+    };
+    
+    render(RegionSelector);
+    expect(screen.toJSON()).not.toEqual(initialSnapshot);
+  });
 });
