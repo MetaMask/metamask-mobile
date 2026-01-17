@@ -10,10 +10,7 @@ import {
   useRampsProviders,
   type UseRampsProvidersResult,
 } from './useRampsProviders';
-import {
-  useRampsTokens,
-  type UseRampsTokensResult,
-} from './useRampsTokens';
+import { useRampsTokens, type UseRampsTokensResult } from './useRampsTokens';
 import {
   useRampsCountries,
   type UseRampsCountriesResult,
@@ -77,7 +74,6 @@ export interface UseRampsControllerResult {
   countriesLoading: UseRampsCountriesResult['isLoading'];
   countriesError: UseRampsCountriesResult['error'];
   fetchCountries: UseRampsCountriesResult['fetchCountries'];
-
 }
 
 /**
@@ -186,7 +182,6 @@ export function useRampsController(
     countriesLoading,
     countriesError,
     fetchCountries,
-
   };
 }
 

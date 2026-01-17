@@ -56,12 +56,8 @@ export function useRampsCountries(
     async (
       fetchAction: 'buy' | 'sell' = 'buy',
       options?: ExecuteRequestOptions,
-    ) => {
-      return await Engine.context.RampsController.getCountries(
-        fetchAction,
-        options,
-      );
-    },
+    ) =>
+      await Engine.context.RampsController.getCountries(fetchAction, options),
     [],
   );
 

@@ -87,12 +87,8 @@ export function useRampsProviders(
         fiat?: string | string[];
         payments?: string | string[];
       },
-    ) => {
-      return await Engine.context.RampsController.getProviders(
-        fetchRegion,
-        options,
-      );
-    },
+    ) =>
+      await Engine.context.RampsController.getProviders(fetchRegion, options),
     [],
   );
 

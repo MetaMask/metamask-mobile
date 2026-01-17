@@ -76,13 +76,12 @@ export function useRampsTokens(
       fetchRegion?: string,
       fetchAction: 'buy' | 'sell' = 'buy',
       options?: ExecuteRequestOptions,
-    ) => {
-      return await Engine.context.RampsController.getTokens(
+    ) =>
+      await Engine.context.RampsController.getTokens(
         fetchRegion,
         fetchAction,
         options,
-      );
-    },
+      ),
     [],
   );
 

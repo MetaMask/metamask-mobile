@@ -24,17 +24,17 @@ const createMockState = (
 const mockUserRegion: UserRegion = {
   country: {
     isoCode: 'US',
-    flag: '🇺🇸',
     name: 'United States',
-    phone: { prefix: '+1', placeholder: '(XXX) XXX-XXXX', template: 'XXX-XXX-XXXX' },
+    flag: '🇺🇸',
+    phone: {
+      prefix: '+1',
+      placeholder: '(XXX) XXX-XXXX',
+      template: 'XXX-XXX-XXXX',
+    },
     currency: 'USD',
     supported: true,
   },
-  state: {
-    stateId: 'CA',
-    name: 'California',
-    supported: true,
-  },
+  state: { stateId: 'CA', name: 'California' },
   regionCode: 'us-ca',
 };
 

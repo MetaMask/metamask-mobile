@@ -39,7 +39,7 @@ export interface UseRampsUserRegionResult {
   setUserRegion: (
     region: string,
     options?: ExecuteRequestOptions,
-  ) => Promise<UserRegion>;
+  ) => Promise<UserRegion | null>;
 }
 
 /**
@@ -70,7 +70,7 @@ export function useRampsUserRegion(): UseRampsUserRegionResult {
     fetchUserRegion().catch(() => {
       // Error is stored in state
     });
-  }, [fetchUserRegion, userRegion]);
+  }, [fetchUserRegion]);
 
   return {
     userRegion,
