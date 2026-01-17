@@ -9,8 +9,16 @@ import Engine from '../../../../core/Engine';
 const mockProvider: RampProvider = {
   id: 'test-provider',
   name: 'Test Provider',
-  logo: 'https://example.com/logo.png',
-  enabled: true,
+  environmentType: 'PRODUCTION',
+  description: 'Test Provider Description',
+  hqAddress: '123 Test St, Test City, TC 12345',
+  links: [],
+  logos: {
+    light: 'https://example.com/logo-light.png',
+    dark: 'https://example.com/logo-dark.png',
+    height: 24,
+    width: 79,
+  },
 };
 
 jest.mock('../../../../core/Engine', () => ({

@@ -53,8 +53,16 @@ const mockUserRegion: UserRegion = {
 const mockProvider: Provider = {
   id: 'test-provider',
   name: 'Test Provider',
-  logo: 'https://example.com/logo.png',
-  enabled: true,
+  environmentType: 'PRODUCTION',
+  description: 'Test Provider Description',
+  hqAddress: '123 Test St, Test City, TC 12345',
+  links: [],
+  logos: {
+    light: 'https://example.com/logo-light.png',
+    dark: 'https://example.com/logo-dark.png',
+    height: 24,
+    width: 79,
+  },
 };
 
 const mockCountries: Country[] = [
@@ -73,8 +81,28 @@ const mockCountries: Country[] = [
 ];
 
 const mockTokens = {
-  topTokens: [{ symbol: 'ETH', name: 'Ethereum' }],
-  allTokens: [{ symbol: 'ETH', name: 'Ethereum' }],
+  topTokens: [
+    {
+      assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+      chainId: 'eip155:1',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      iconUrl: 'https://example.com/eth-icon.png',
+      tokenSupported: true,
+    },
+  ],
+  allTokens: [
+    {
+      assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+      chainId: 'eip155:1',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      iconUrl: 'https://example.com/eth-icon.png',
+      tokenSupported: true,
+    },
+  ],
 };
 
 describe('RampsController Selectors', () => {
@@ -198,7 +226,7 @@ describe('RampsController Selectors', () => {
     });
 
     it('returns empty array when providers is null', () => {
-      const state = createMockState({ providers: null });
+      const state = createMockState({ providers: [] });
 
       expect(selectProviders(state)).toEqual([]);
     });
@@ -480,7 +508,7 @@ describe('RampsController Selectors', () => {
 
   describe('selectRampsControllerState', () => {
     it('returns RampsController state', () => {
-      const rampsState = {
+      const rampsState: Partial<RampsControllerState> = {
         userRegion: mockUserRegion,
         preferredProvider: mockProvider,
         providers: [mockProvider],

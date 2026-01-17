@@ -31,14 +31,30 @@ const mockProviders: RampProvider[] = [
   {
     id: 'provider-1',
     name: 'Provider 1',
-    logo: 'https://example.com/logo1.png',
-    enabled: true,
+    environmentType: 'PRODUCTION',
+    description: 'Provider 1 Description',
+    hqAddress: '123 Provider 1 St, City, ST 12345',
+    links: [],
+    logos: {
+      light: 'https://example.com/logo1-light.png',
+      dark: 'https://example.com/logo1-dark.png',
+      height: 24,
+      width: 79,
+    },
   },
   {
     id: 'provider-2',
     name: 'Provider 2',
-    logo: 'https://example.com/logo2.png',
-    enabled: true,
+    environmentType: 'PRODUCTION',
+    description: 'Provider 2 Description',
+    hqAddress: '456 Provider 2 St, City, ST 12345',
+    links: [],
+    logos: {
+      light: 'https://example.com/logo2-light.png',
+      dark: 'https://example.com/logo2-dark.png',
+      height: 24,
+      width: 79,
+    },
   },
 ];
 
