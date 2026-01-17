@@ -298,13 +298,17 @@ function createControllerAccessAdapter(): IPerpsControllerAccess {
 
     // === Rewards Operations (wraps RewardsController, optional) ===
     // Check if RewardsController exists - may not in all environments (e.g., extension)
-    rewards: Engine.context.RewardsController
-      ? {
-          getFeeDiscount: (caipAccountId) =>
-            Engine.context.RewardsController.getPerpsDiscountForAccount(
-              caipAccountId,
-            ),
-        }
-      : undefined,
+    // Uses getter to defer Engine.context access until actually needed (lazy evaluation)
+    get rewards() {
+      if (!Engine.context.RewardsController) {
+        return undefined;
+      }
+      return {
+        getFeeDiscount: (caipAccountId: string) =>
+          Engine.context.RewardsController.getPerpsDiscountForAccount(
+            caipAccountId,
+          ),
+      };
+    },
   };
 }
