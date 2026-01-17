@@ -287,6 +287,8 @@ describe('Engine', () => {
       },
       RampsController: {
         ...backgroundState.RampsController,
+        preferredProvider: null,
+        providers: [],
         tokens: null,
       },
     };

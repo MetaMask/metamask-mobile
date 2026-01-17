@@ -27,12 +27,9 @@ export interface UseRampsPreferredProviderResult {
 export function useRampsPreferredProvider(): UseRampsPreferredProviderResult {
   const preferredProvider = useSelector(selectPreferredProvider);
 
-  const setPreferredProvider = useCallback(
-    (provider: Provider | null) => {
-      Engine.context.RampsController.setPreferredProvider(provider);
-    },
-    [],
-  );
+  const setPreferredProvider = useCallback((provider: Provider | null) => {
+    Engine.context.RampsController.setPreferredProvider(provider);
+  }, []);
 
   return {
     preferredProvider,
