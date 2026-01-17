@@ -19,6 +19,7 @@ import { Hex, Json } from '@metamask/utils';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
 import { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import { CONNECTIVITY_STATUSES } from '@metamask/connectivity-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -139,9 +140,18 @@ export const networkControllerInit: ControllerInitFunction<
       // Note that the total number of attempts is 1 more than this
       // (which is why we add 1 below).
       const maxRetries = DEFAULT_MAX_RETRIES;
+      const isOffline = (): boolean => {
+        const connectivityState = controllerMessenger.call(
+          'ConnectivityController:getState',
+        );
+        return (
+          connectivityState.connectivityStatus === CONNECTIVITY_STATUSES.Offline
+        );
+      };
       const commonOptions = {
         fetch: globalThis.fetch.bind(globalThis),
         btoa: globalThis.btoa.bind(globalThis),
+        isOffline,
       };
       const commonPolicyOptions = {
         // Ensure that the "cooldown" period after breaking the circuit is short.

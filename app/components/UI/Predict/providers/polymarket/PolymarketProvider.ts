@@ -221,6 +221,46 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async getMarketsByIds(
+    marketIds: string[],
+    liveSportsLeagues: string[] = [],
+  ): Promise<PredictMarket[]> {
+    if (!marketIds || marketIds.length === 0) {
+      return [];
+    }
+
+    try {
+      const marketPromises = marketIds.map((marketId) =>
+        this.getMarketDetails({ marketId, liveSportsLeagues }).catch(
+          (error) => {
+            DevLogger.log(
+              `PolymarketProvider: Failed to fetch market ${marketId}`,
+              error,
+            );
+            return null;
+          },
+        ),
+      );
+
+      const results = await Promise.all(marketPromises);
+
+      return results.filter(
+        (market): market is PredictMarket => market !== null,
+      );
+    } catch (error) {
+      DevLogger.log('Error fetching markets by IDs:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getMarketsByIds', {
+          marketIdsCount: marketIds.length,
+        }),
+      );
+
+      return [];
+    }
+  }
+
   public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
     return this.fetchActivity(_params);
   }

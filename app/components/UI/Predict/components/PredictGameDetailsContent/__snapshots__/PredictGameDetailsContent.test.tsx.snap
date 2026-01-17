@@ -166,9 +166,24 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
       <RCTRefreshControl />
       <View>
         <View
-          accessibilityHint="state:PreGame,away:TB,home:TA"
-          testID="game-scoreboard"
-        />
+          style={
+            [
+              {
+                "display": "flex",
+                "paddingBottom": 8,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "paddingTop": 8,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            accessibilityHint="state:PreGame,away:TB,home:TA"
+            testID="game-scoreboard"
+          />
+        </View>
         <View
           style={
             [

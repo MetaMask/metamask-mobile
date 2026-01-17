@@ -1,4 +1,4 @@
-import { Side } from '../../types';
+import { PredictGamePeriod, Side } from '../../types';
 import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
@@ -183,7 +183,7 @@ export interface PolymarketApiEvent {
   startTime?: string;
   score?: string;
   elapsed?: string;
-  period?: string;
+  period?: PredictGamePeriod;
   live?: boolean;
   ended?: boolean;
 }
@@ -364,7 +364,7 @@ export interface PolymarketApiGameEvent {
   startTime?: string;
   score?: string;
   elapsed?: string;
-  period?: string;
+  period?: PredictGamePeriod;
   live?: boolean;
   ended?: boolean;
   closed?: boolean;
