@@ -92,7 +92,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         awayColor={game?.awayTeam.color ?? '#1a2942'}
         homeColor={game?.homeTeam.color ?? '#3d2621'}
         borderRadius={16}
-        style={tw.style('w-full')}
+        style={tw.style('w-full my-[8px]')}
       >
         <Box twClassName="p-4">
           <Text
