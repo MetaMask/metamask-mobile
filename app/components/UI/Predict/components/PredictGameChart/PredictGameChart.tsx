@@ -99,14 +99,23 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       return;
     }
 
+    if (initialDataLoadedRef.current) {
+      return;
+    }
+
+    if (isFetching) {
+      return;
+    }
+
     if (
       historicalChartData.length === 2 &&
-      historicalChartData[0].data.length > 0
+      historicalChartData[0].data.length > 0 &&
+      historicalChartData[1].data.length > 0
     ) {
       setLiveChartData(historicalChartData);
       initialDataLoadedRef.current = true;
     }
-  }, [isLive, historicalChartData]);
+  }, [isLive, historicalChartData, isFetching]);
 
   const updateLiveData = useCallback(() => {
     if (!isLive || !initialDataLoadedRef.current || prices.size === 0) return;

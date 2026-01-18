@@ -415,3 +415,37 @@ export const estimateLineCount = (text: string | undefined): number => {
 
   return lines;
 };
+
+/**
+ * Formats a game start time into separate date and time strings for display.
+ * Uses locale-aware formatting via Intl.DateTimeFormat.
+ * @param startTime - ISO 8601 datetime string (e.g., "2026-02-08T20:30:00Z")
+ * @returns Object with formatted date ("Sun, Feb 8") and time ("3:30 PM")
+ * @example formatGameStartTime("2026-02-08T20:30:00Z") => { date: "Sun, Feb 8", time: "3:30 PM" }
+ */
+export const formatGameStartTime = (
+  startTime: string | undefined,
+): { date: string; time: string } => {
+  if (!startTime) {
+    return { date: 'TBD', time: '' };
+  }
+
+  const dateObj = new Date(startTime);
+
+  if (isNaN(dateObj.getTime())) {
+    return { date: 'TBD', time: '' };
+  }
+
+  const date = new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(dateObj);
+
+  const time = new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(dateObj);
+
+  return { date, time };
+};
