@@ -45,7 +45,7 @@ describe('AmountInput', () => {
     jest.resetAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('displays Amount Input Screen heading', () => {
     const { getByText } = renderWithTheme(<AmountInput />);
 
     expect(getByText('Amount Input Screen')).toBeOnTheScreen();
