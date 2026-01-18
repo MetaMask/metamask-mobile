@@ -192,6 +192,38 @@ describe('useRampNavigation', () => {
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
+
+      describe('error and unsupported routing takes precedence over V2', () => {
+        it('navigates to eligibility failed modal when routing decision is ERROR', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.ERROR,
+          );
+          const intent = { assetId: 'eip155:1/erc20:0x123' };
+          const navDetails = createEligibilityFailedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateAmountInputNavDetails).not.toHaveBeenCalled();
+        });
+
+        it('navigates to unsupported modal when routing decision is UNSUPPORTED', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.UNSUPPORTED,
+          );
+          const intent = { assetId: 'eip155:1/erc20:0x123' };
+          const navDetails = createRampUnsupportedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateAmountInputNavDetails).not.toHaveBeenCalled();
+        });
+      });
     });
 
     describe('when unified V1 is disabled', () => {

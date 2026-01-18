@@ -49,6 +49,25 @@ export const useRampNavigation = () => {
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
 
+      const isUnifiedRoutingEnabled =
+        (isRampsUnifiedV1Enabled || isRampsUnifiedV2Enabled) &&
+        !overrideUnifiedRouting;
+
+      // Check error states first (applies to both V1 and V2)
+      if (isUnifiedRoutingEnabled) {
+        if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
+          navigation.navigate(
+            ...createEligibilityFailedModalNavigationDetails(),
+          );
+          return;
+        }
+
+        if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
+          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+          return;
+        }
+      }
+
       // V2: If assetId is provided and V2 is enabled, route to AmountInput
       if (
         isRampsUnifiedV2Enabled &&
@@ -61,19 +80,8 @@ export const useRampNavigation = () => {
         return;
       }
 
+      // V1 routing logic
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
-        if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
-          );
-          return;
-        }
-
-        if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
-          return;
-        }
-
         // If no assetId is provided, route to TokenSelection
         if (!intent?.assetId) {
           navigation.navigate(...createTokenSelectionNavDetails());
