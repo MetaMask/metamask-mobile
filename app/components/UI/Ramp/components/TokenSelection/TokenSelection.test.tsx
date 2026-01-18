@@ -65,6 +65,12 @@ jest.mock('../../hooks/useRampNavigation', () => ({
   }),
 }));
 
+const mockUseRampsUnifiedV2Enabled = jest.fn();
+jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV2Enabled(),
+}));
+
 jest.mock('../../hooks/useRampTokens', () => ({
   useRampTokens: jest.fn(),
 }));
@@ -94,6 +100,7 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false); // Default to V1 behavior
 
     const rampsTokens = convertToRampsTokens(mockTokens);
     mockUseRampTokens.mockReturnValue({
@@ -143,12 +150,27 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('calls goToBuy when token is pressed', () => {
+  it('calls goToBuy and closes modal when token is pressed (V1 flow)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     const { getByTestId } = renderWithProvider(TokenSelection);
 
     const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
     fireEvent.press(firstToken);
 
+    expect(mockParentGoBack).toHaveBeenCalled();
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: mockTokens[0].assetId,
+    });
+  });
+
+  it('calls goToBuy without closing modal when token is pressed (V2 flow)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
+    fireEvent.press(firstToken);
+
+    expect(mockParentGoBack).not.toHaveBeenCalled();
     expect(mockGoToBuy).toHaveBeenCalledWith({
       assetId: mockTokens[0].assetId,
     });

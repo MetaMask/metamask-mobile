@@ -34,6 +34,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
 import useAnalytics from '../../hooks/useAnalytics';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import {
   getRampRoutingDecision,
   getDetectedGeolocation,
@@ -72,6 +73,7 @@ function TokenSelection() {
   });
 
   const { goToBuy } = useRampNavigation();
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -93,6 +95,11 @@ function TokenSelection() {
           ramp_routing: rampRoutingDecision ?? undefined,
         });
       }
+      // V1 flow: close the modal before navigating to Deposit/Aggregator
+      // V2 flow: navigate within the same stack, no need to close modal
+      if (!isRampsUnifiedV2Enabled) {
+        navigation.dangerouslyGetParent()?.goBack();
+      }
       goToBuy({ assetId });
     },
     [
@@ -101,6 +108,8 @@ function TokenSelection() {
       getNetworkName,
       detectedGeolocation,
       rampRoutingDecision,
+      isRampsUnifiedV2Enabled,
+      navigation,
       goToBuy,
     ],
   );
