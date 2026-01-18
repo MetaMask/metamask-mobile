@@ -389,14 +389,20 @@ const BridgeView = () => {
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh && !isSelectingRecipient) {
+    if (isExpired && !willRefresh && !isSelectingRecipient && !isSubmittingTx) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation, isSelectingRecipient]);
+  }, [
+    isExpired,
+    willRefresh,
+    navigation,
+    isSelectingRecipient,
+    isSubmittingTx,
+  ]);
 
   const renderBottomContent = (submitDisabled: boolean) => {
     if (shouldDisplayKeypad && !isLoading) {

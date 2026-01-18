@@ -8,7 +8,7 @@ import {
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {

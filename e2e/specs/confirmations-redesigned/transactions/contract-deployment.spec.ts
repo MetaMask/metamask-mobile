@@ -96,7 +96,14 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Contract deployment');
         await Assertions.expectTextDisplayed('Confirmed');

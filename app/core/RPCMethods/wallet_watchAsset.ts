@@ -12,7 +12,12 @@ import {
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
-import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import {
+  getSafeJson,
+  Json,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
 export const wallet_watchAsset = async ({
@@ -20,6 +25,7 @@ export const wallet_watchAsset = async ({
   res,
   hostname,
   checkTabActive,
+  pageMeta: _pageMeta,
 }: {
   req: JsonRpcRequest<{
     options: {
@@ -35,6 +41,16 @@ export const wallet_watchAsset = async ({
   res: PendingJsonRpcResponse<any>;
   hostname: string;
   checkTabActive: () => true | undefined;
+  pageMeta?: {
+    url?: string;
+    title?: string;
+    icon?: unknown;
+    channelId?: string;
+    analytics?: {
+      request_source?: string;
+      request_platform?: string | boolean;
+    };
+  };
 }) => {
   const { AssetsContractController } = Engine.context;
   if (!req.params) {
@@ -53,6 +69,7 @@ export const wallet_watchAsset = async ({
   const networkClientId = selectNetworkClientId(state);
 
   checkTabActive();
+  const requestOrigin = _pageMeta?.url ?? hostname;
 
   const isValidTokenAddress = isValidAddress(address);
 
@@ -93,6 +110,11 @@ export const wallet_watchAsset = async ({
   const finalTokenSymbol = fetchedSymbol ?? symbol;
   const finalTokenDecimals = fetchedDecimals ?? decimals;
 
+  const safePageMeta =
+    _pageMeta !== undefined
+      ? getSafeJson<Record<string, Json>>(_pageMeta)
+      : undefined;
+
   await TokensController.watchAsset({
     asset: {
       address,
@@ -104,6 +126,12 @@ export const wallet_watchAsset = async ({
     type,
     interactingAddress,
     networkClientId,
+    origin: requestOrigin,
+    pageMeta: safePageMeta,
+    requestMetadata: {
+      origin: requestOrigin,
+      pageMeta: safePageMeta,
+    },
   });
 
   res.result = true;

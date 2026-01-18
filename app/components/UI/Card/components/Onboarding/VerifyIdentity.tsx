@@ -21,7 +21,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import MM_CARD_VERIFY_IDENTITY from '../../../../../images/mm-card-verify.png';
+import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const VerifyIdentity = () => {
