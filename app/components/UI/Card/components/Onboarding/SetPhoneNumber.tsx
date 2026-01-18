@@ -294,6 +294,7 @@ const SetPhoneNumber = () => {
       description={strings('card.card_onboarding.set_phone_number.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      stickyActions
     />
   );
 };
