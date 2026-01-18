@@ -278,6 +278,8 @@ export interface GetPriceHistoryParams {
   providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  startTs?: number;
+  endTs?: number;
 }
 
 /**
