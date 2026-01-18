@@ -6568,6 +6568,7 @@
         "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
+        "invalid_us_phone_number": "Please enter a valid US phone number (10 digits) to proceed.",
         "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
       },
       "confirm_phone_number": {

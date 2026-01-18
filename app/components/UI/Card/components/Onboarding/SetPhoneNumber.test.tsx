@@ -8,6 +8,12 @@ import { CardError, CardErrorType } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import SetPhoneNumber from './SetPhoneNumber';
 
+// Mock whenEngineReady to prevent async polling after test teardown
+jest.mock('../../../../../core/Analytics/whenEngineReady', () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
@@ -64,22 +70,32 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
+// Default card state
+const defaultCardState = {
+  onboarding: {
+    selectedCountry: {
+      key: 'US',
+      name: 'United States',
+      emoji: '🇺🇸',
+      areaCode: '1',
+    },
+    contactVerificationId: 'test-verification-id',
+  },
+  userCardLocation: null,
+};
+
 // Create test store with country object format
 const createTestStore = (initialState = {}) =>
   configureStore({
     reducer: {
       card: (
         state = {
-          onboarding: {
-            selectedCountry: {
-              key: 'US',
-              name: 'United States',
-              emoji: '🇺🇸',
-              areaCode: '1',
-            },
-            contactVerificationId: 'test-verification-id',
-          },
+          ...defaultCardState,
           ...initialState,
+          onboarding: {
+            ...defaultCardState.onboarding,
+            ...(initialState as typeof defaultCardState).onboarding,
+          },
         },
         action = { type: '', payload: null },
       ) => {
@@ -89,6 +105,29 @@ const createTestStore = (initialState = {}) =>
         }
       },
     },
+  });
+
+// Helper to create store with US user location
+const createUsUserStore = (overrides = {}) =>
+  createTestStore({
+    userCardLocation: 'us',
+    ...overrides,
+  });
+
+// Helper to create store with international user location
+const createInternationalUserStore = (overrides = {}) =>
+  createTestStore({
+    userCardLocation: 'international',
+    onboarding: {
+      selectedCountry: {
+        key: 'GB',
+        name: 'United Kingdom',
+        emoji: '🇬🇧',
+        areaCode: '44',
+      },
+      contactVerificationId: 'test-verification-id',
+    },
+    ...overrides,
   });
 
 describe('SetPhoneNumber Component', () => {
@@ -630,6 +669,291 @@ describe('SetPhoneNumber Component', () => {
         'set-phone-number-country-area-code-select',
       );
       expect(countrySelect).toBeTruthy();
+    });
+  });
+
+  describe('US Phone Number Validation', () => {
+    it('displays error for US users with invalid US phone format (less than 10 digits)', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '123456789');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeTruthy();
+      });
+    });
+
+    it('displays error for US users with invalid area code starting with 0', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '0123456789');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeTruthy();
+      });
+    });
+
+    it('displays error for US users with invalid area code starting with 1', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeTruthy();
+      });
+    });
+
+    it('displays error for US users with invalid exchange code starting with 0', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '2120123456');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeTruthy();
+      });
+    });
+
+    it('displays error for US users with invalid exchange code starting with 1', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '2121123456');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeTruthy();
+      });
+    });
+
+    it('does not display US phone error for valid US phone number', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '2125551234');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeNull();
+        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+      });
+    });
+
+    it('enables continue button for US users with valid US phone number', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '2125551234');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+    });
+
+    it('keeps continue button disabled for US users with invalid US phone number', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(true);
+      });
+    });
+
+    it('does not apply US phone validation for international users', async () => {
+      const internationalStore = createInternationalUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={internationalStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '7911123456');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeNull();
+        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+      });
+    });
+
+    it('enables continue button for international users with any valid phone format', async () => {
+      const internationalStore = createInternationalUserStore();
+
+      const { getByTestId } = render(
+        <Provider store={internationalStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '7911123456');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+    });
+
+    it('clears US phone error when phone number changes', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '123');
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId('set-phone-number-phone-number-error'),
+        ).toBeTruthy();
+      });
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '2125551234');
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('set-phone-number-us-phone-error')).toBeNull();
+        expect(queryByTestId('set-phone-number-phone-number-error')).toBeNull();
+      });
+    });
+
+    it('calls sendPhoneVerification for US user with valid US phone number', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '2125551234');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSendPhoneVerification).toHaveBeenCalledWith({
+        phoneCountryCode: '1',
+        phoneNumber: '2125551234',
+        contactVerificationId: 'test-verification-id',
+      });
+    });
+
+    it('does not call sendPhoneVerification for US user with invalid US phone number', async () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+      const continueButton = getByTestId('set-phone-number-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockSendPhoneVerification).not.toHaveBeenCalled();
     });
   });
 });
