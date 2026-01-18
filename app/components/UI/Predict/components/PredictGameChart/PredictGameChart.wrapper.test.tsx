@@ -3,7 +3,12 @@ import { render, act, waitFor } from '@testing-library/react-native';
 import PredictGameChart from './PredictGameChart';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { PredictPriceHistoryInterval } from '../../types';
+import {
+  PredictMarket,
+  PredictMarketStatus,
+  PredictPriceHistoryInterval,
+  PredictGameStatus,
+} from '../../types';
 
 // Mock the hooks
 jest.mock('../../hooks/usePredictPriceHistory');
@@ -17,12 +22,14 @@ jest.mock('./PredictGameChartContent', () => {
     isLoading,
     timeframe,
     onTimeframeChange,
+    disabledTimeframeSelector,
     testID,
   }: {
     data: unknown[];
     isLoading: boolean;
     timeframe: string;
-    onTimeframeChange: (tf: string) => void;
+    onTimeframeChange?: (tf: string) => void;
+    disabledTimeframeSelector?: boolean;
     testID?: string;
   }) {
     return (
@@ -30,10 +37,15 @@ jest.mock('./PredictGameChartContent', () => {
         <Text testID="content-data">{JSON.stringify(data)}</Text>
         <Text testID="content-loading">{String(isLoading)}</Text>
         <Text testID="content-timeframe">{timeframe}</Text>
-        <View
-          testID="timeframe-trigger"
-          onTouchEnd={() => onTimeframeChange('6h')}
-        />
+        <Text testID="content-disabled-selector">
+          {String(disabledTimeframeSelector)}
+        </Text>
+        {onTimeframeChange && !disabledTimeframeSelector && (
+          <View
+            testID="timeframe-trigger"
+            onTouchEnd={() => onTimeframeChange('6h')}
+          />
+        )}
       </View>
     );
   };
@@ -52,15 +64,65 @@ const createMockPriceHistory = (
     price: basePrice + (tokenIndex === 0 ? 0.01 : -0.01) * i,
   }));
 
-const defaultSeriesConfig: [
-  { label: string; color: string },
-  { label: string; color: string },
-] = [
-  { label: 'Team A', color: '#FF0000' },
-  { label: 'Team B', color: '#0000FF' },
-];
+const mockBaseGame = {
+  id: 'game-123',
+  homeTeam: {
+    id: 'team-home',
+    name: 'Team B',
+    abbreviation: 'TB',
+    color: '#0000FF',
+    alias: 'Team B',
+    logo: 'https://example.com/logo-b.png',
+  },
+  awayTeam: {
+    id: 'team-away',
+    name: 'Team A',
+    abbreviation: 'TA',
+    color: '#FF0000',
+    alias: 'Team A',
+    logo: 'https://example.com/logo-a.png',
+  },
+  startTime: '2024-01-15T10:00:00Z',
+  status: 'ongoing' as PredictGameStatus,
+  league: 'nfl' as const,
+  elapsed: null,
+  period: null,
+  score: null,
+};
+
+const createMockMarket = (
+  overrides: Partial<PredictMarket> = {},
+): PredictMarket =>
+  ({
+    id: 'test-market-id',
+    title: 'Test Game Market',
+    description: 'Test description',
+    image: 'https://example.com/image.png',
+    providerId: 'polymarket',
+    status: PredictMarketStatus.OPEN,
+    category: 'sports',
+    tags: ['NFL'],
+    outcomes: [
+      {
+        id: 'outcome-1',
+        marketId: 'test-market-id',
+        title: 'Game Outcome',
+        groupItemTitle: 'Game Outcome',
+        status: 'open',
+        volume: 1000,
+        tokens: [
+          { id: 'token-a', title: 'Team A', price: 0.65 },
+          { id: 'token-b', title: 'Team B', price: 0.35 },
+        ],
+      },
+    ],
+    endDate: '2024-12-31T23:59:59Z',
+    game: mockBaseGame,
+    ...overrides,
+  }) as PredictMarket;
 
 const defaultTokenIds: [string, string] = ['token-a', 'token-b'];
+const defaultMarket = createMockMarket();
 
 describe('PredictGameChart Wrapper', () => {
   beforeEach(() => {
@@ -90,13 +152,7 @@ describe('PredictGameChart Wrapper', () => {
 
   describe('Hook Configuration', () => {
     it('calls usePredictPriceHistory with correct interval for live timeframe', () => {
-      render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
-      );
+      render(<PredictGameChart market={defaultMarket} testID="chart" />);
 
       expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -110,12 +166,7 @@ describe('PredictGameChart Wrapper', () => {
     });
 
     it('calls useLiveMarketPrices with enabled true for live timeframe', () => {
-      render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-        />,
-      );
+      render(<PredictGameChart market={defaultMarket} />);
 
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(defaultTokenIds, {
         enabled: true,
@@ -123,10 +174,13 @@ describe('PredictGameChart Wrapper', () => {
     });
 
     it('passes custom providerId to usePredictPriceHistory', () => {
+      const marketWithCustomProvider = createMockMarket({
+        providerId: 'custom-provider',
+      });
+
       render(
         <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
+          market={marketWithCustomProvider}
           providerId="custom-provider"
         />,
       );
@@ -138,13 +192,12 @@ describe('PredictGameChart Wrapper', () => {
       );
     });
 
-    it('disables hooks when tokenIds length is not 2', () => {
-      render(
-        <PredictGameChart
-          tokenIds={['single-token'] as unknown as [string, string]}
-          seriesConfig={defaultSeriesConfig}
-        />,
-      );
+    it('disables hooks when market has no tokens', () => {
+      const marketNoTokens = createMockMarket({
+        outcomes: [],
+      });
+
+      render(<PredictGameChart market={marketNoTokens} />);
 
       expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -176,11 +229,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -188,7 +237,7 @@ describe('PredictGameChart Wrapper', () => {
         const data = JSON.parse(String(dataText));
 
         expect(data).toHaveLength(2);
-        expect(data[0].label).toBe('Team A');
+        expect(data[0].label).toBe('TA');
         expect(data[0].color).toBe('#FF0000');
         expect(data[0].data).toHaveLength(3);
         expect(data[0].data[0].value).toBe(60);
@@ -209,11 +258,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -239,11 +284,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -265,11 +306,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       expect(getByTestId('content-loading').children[0]).toBe('true');
@@ -284,11 +321,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       // No data yet, should show loading
@@ -309,11 +342,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -332,11 +361,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId, rerender } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       expect(getByTestId('content-loading').children[0]).toBe('true');
@@ -353,13 +378,7 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
-      rerender(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
-      );
+      rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
 
       await waitFor(() => {
         expect(getByTestId('content-loading').children[0]).toBe('false');
@@ -413,11 +432,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId, rerender } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       // Wait for initial data to load
@@ -428,13 +443,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       // Trigger re-render with updated prices
-      rerender(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
-      );
+      rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
 
       await waitFor(() => {
         const dataText = getByTestId('content-data').children[0];
@@ -464,11 +473,7 @@ describe('PredictGameChart Wrapper', () => {
       jest.setSystemTime(new Date(baseTimestamp));
 
       const { getByTestId, rerender } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       // Wait for initial data
@@ -510,13 +515,7 @@ describe('PredictGameChart Wrapper', () => {
         lastUpdateTime: nextMinute,
       });
 
-      rerender(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
-      );
+      rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
 
       await waitFor(() => {
         const dataText = getByTestId('content-data').children[0];
@@ -547,11 +546,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -605,11 +600,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -657,11 +648,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -718,11 +705,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId, rerender } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -743,13 +726,7 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
-      rerender(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
-      );
+      rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
 
       await waitFor(() => {
         const dataText = getByTestId('content-data').children[0];
@@ -776,11 +753,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       // Wait for initial render
@@ -817,11 +790,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       // Change to 6h timeframe
@@ -853,11 +822,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       // Wait for initial data load
@@ -889,11 +854,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       const dataText = getByTestId('content-data').children[0];
@@ -911,11 +872,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       const dataText = getByTestId('content-data').children[0];
@@ -959,11 +916,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -977,11 +930,7 @@ describe('PredictGameChart Wrapper', () => {
 
     it('passes testID to content component', () => {
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="my-chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="my-chart" />,
       );
 
       expect(getByTestId('my-chart')).toBeTruthy();
@@ -998,11 +947,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       const errorText = JSON.parse(
@@ -1022,11 +967,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       const mockContent = getByTestId('chart');
@@ -1042,11 +983,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       expect(getByTestId('chart')).toBeTruthy();
@@ -1066,11 +1003,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-          testID="chart"
-        />,
+        <PredictGameChart market={defaultMarket} testID="chart" />,
       );
 
       await waitFor(() => {
@@ -1083,12 +1016,7 @@ describe('PredictGameChart Wrapper', () => {
 
   describe('Fidelity Configuration', () => {
     it('uses fidelity 1 for live timeframe', () => {
-      render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-        />,
-      );
+      render(<PredictGameChart market={defaultMarket} />);
 
       expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1111,10 +1039,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const { getByTestId } = render(
-        <PredictGameChart
-          tokenIds={defaultTokenIds}
-          seriesConfig={defaultSeriesConfig}
-        />,
+        <PredictGameChart market={defaultMarket} />,
       );
 
       await act(async () => {
@@ -1128,6 +1053,117 @@ describe('PredictGameChart Wrapper', () => {
           ];
         expect(lastCall[0].fidelity).toBe(5);
       });
+    });
+  });
+
+  describe('Game Status Timeframe Defaults', () => {
+    it('defaults to live timeframe for ongoing games', () => {
+      const { getByTestId } = render(
+        <PredictGameChart market={defaultMarket} testID="chart" />,
+      );
+
+      expect(getByTestId('content-timeframe').children[0]).toBe('live');
+      expect(getByTestId('content-disabled-selector').children[0]).toBe(
+        'false',
+      );
+    });
+
+    it('defaults to 6h timeframe for scheduled games', () => {
+      const scheduledMarket = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          status: 'scheduled' as PredictGameStatus,
+        },
+      });
+
+      const { getByTestId } = render(
+        <PredictGameChart market={scheduledMarket} testID="chart" />,
+      );
+
+      expect(getByTestId('content-timeframe').children[0]).toBe('6h');
+      expect(getByTestId('content-disabled-selector').children[0]).toBe(
+        'false',
+      );
+    });
+
+    it('defaults to max timeframe for ended games and disables selector', () => {
+      const endedMarket = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          status: 'ended' as PredictGameStatus,
+          startTime: '2024-01-15T10:00:00Z',
+          endTime: '2024-01-15T13:00:00Z',
+        },
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PredictGameChart market={endedMarket} testID="chart" />,
+      );
+
+      expect(getByTestId('content-timeframe').children[0]).toBe('max');
+      expect(getByTestId('content-disabled-selector').children[0]).toBe('true');
+      expect(queryByTestId('timeframe-trigger')).toBeNull();
+    });
+
+    it('uses startTs/endTs for ended games instead of interval', () => {
+      const endedMarket = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          status: 'ended' as PredictGameStatus,
+          startTime: '2024-01-15T10:00:00Z',
+          endTime: '2024-01-15T13:00:00Z',
+        },
+      });
+
+      render(<PredictGameChart market={endedMarket} testID="chart" />);
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startTs: Math.floor(
+            new Date('2024-01-15T10:00:00Z').getTime() / 1000,
+          ),
+          endTs: Math.floor(new Date('2024-01-15T13:00:00Z').getTime() / 1000),
+          interval: undefined,
+          fidelity: 2,
+        }),
+      );
+    });
+
+    it('uses 2-minute fidelity for ended games', () => {
+      const endedMarket = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          status: 'ended' as PredictGameStatus,
+          startTime: '2024-01-15T10:00:00Z',
+          endTime: '2024-01-15T13:00:00Z',
+        },
+      });
+
+      render(<PredictGameChart market={endedMarket} testID="chart" />);
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fidelity: 2,
+        }),
+      );
+    });
+
+    it('disables live market prices for non-ongoing games', () => {
+      const scheduledMarket = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          status: 'scheduled' as PredictGameStatus,
+        },
+      });
+
+      render(<PredictGameChart market={scheduledMarket} testID="chart" />);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          enabled: false,
+        }),
+      );
     });
   });
 });
