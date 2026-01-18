@@ -95,6 +95,7 @@ describe('useRampsPreferredProviderAutoSet', () => {
         account: mockAccount,
         network: '1',
         orderType: 'BUY',
+        excludeFromPurchases: false,
         data: {
           provider: { id: 'test-provider' },
         } as Order,

@@ -74,6 +74,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {
             provider: { id: 'provider-1' },
           } as Order,
@@ -89,6 +90,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {
             provider: { id: 'provider-2' },
           } as Order,
@@ -115,6 +117,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {} as Order,
         },
       ];
@@ -139,6 +142,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {} as Order,
         },
       ];
@@ -163,6 +167,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {} as Order,
         },
       ];
@@ -193,6 +198,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {
             provider: { id: 'provider-1' },
           } as Order,
@@ -219,6 +225,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {
             provider: { id: 'non-existent-provider' },
           } as Order,
@@ -265,6 +272,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {
             provider: { id: 'PROVIDER-1' },
           } as Order,
@@ -291,6 +299,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {
             provider: { id: 'provider one' },
           } as Order,
@@ -317,6 +326,7 @@ describe('determinePreferredProvider', () => {
           account: '0x123',
           network: '1',
           orderType: 'BUY',
+          excludeFromPurchases: false,
           data: {} as Order,
         },
       ];

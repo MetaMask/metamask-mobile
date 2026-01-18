@@ -7,6 +7,16 @@ import { useRampsProviders } from './useRampsProviders';
 import { useRampsTokens } from './useRampsTokens';
 import { useRampsCountries } from './useRampsCountries';
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => ['0x123'],
+  }),
+);
+
 jest.mock('./useRampsUserRegion', () => ({
   useRampsUserRegion: jest.fn(() => ({
     userRegion: null,
@@ -58,6 +68,19 @@ const createMockStore = () =>
         backgroundState: {
           RampsController: {},
         },
+      }),
+      fiatOrders: () => ({
+        orders: [],
+      }),
+      multichainAccounts: () => ({
+        accountTree: {
+          selectedAccountGroup: {
+            accounts: [{ address: '0x123' }],
+          },
+        },
+      }),
+      network: () => ({
+        selectedNetworkClientId: 'mainnet',
       }),
     },
   });
