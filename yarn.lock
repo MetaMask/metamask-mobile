@@ -3425,6 +3425,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expensify/react-native-wallet@npm:^0.1.15":
+  version: 0.1.15
+  resolution: "@expensify/react-native-wallet@npm:0.1.15"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/7708a6f73112aec7ec19a9b3fc816dd757a063fe2cdf82d1c3c7be4d5ba2db72d7537596868650a82201e06a24e748fff1e07d09aa381a78dd437a49d394ac28
+  languageName: node
+  linkType: hard
+
 "@expo/apple-utils@npm:2.0.3":
   version: 2.0.3
   resolution: "@expo/apple-utils@npm:2.0.3"
@@ -34036,6 +34046,7 @@ __metadata:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
+    "@expensify/react-native-wallet": "npm:^0.1.15"
     "@expo/fingerprint": "npm:^0.15.0"
     "@expo/repack-app": "npm:^0.2.9"
     "@img/sharp-darwin-arm64": "npm:^0.34.3"

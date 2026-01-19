@@ -186,6 +186,7 @@
     "@consensys/on-ramp-sdk": "2.1.12",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@ethersproject/abi": "^5.7.0",
+    "@expensify/react-native-wallet": "^0.1.15",
     "@expo/fingerprint": "^0.15.0",
     "@expo/repack-app": "^0.2.9",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",

@@ -90,6 +90,8 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { AddToWalletButton } from '@expensify/react-native-wallet';
+import Logger from '../../../../../util/Logger';
 
 /**
  * Route params for CardHome screen
@@ -838,6 +840,12 @@ const CardHome = () => {
         isKYCPendingOrUnverified && (
           <CardWarningBox warning={CardWarningBoxType.KYCPending} />
         )}
+      <AddToWalletButton
+        onPress={() => Logger.log('Button pressed!')}
+        buttonStyle="blackOutline"
+        buttonType="badge"
+        borderRadius={4}
+      />
       <View style={styles.cardBalanceContainer}>
         <View
           style={[
