@@ -17,8 +17,17 @@ import {
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
+import {
+  useTailwind,
+  ThemeProvider,
+  Theme,
+} from '@metamask/design-system-twrnc-preset';
+import { darkTheme, brandColor } from '@metamask/design-tokens';
+import { ThemeContext } from '../../../../../util/theme';
+import {
+  AppThemeKey,
+  Theme as ThemeType,
+} from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
@@ -30,7 +39,17 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
 
-const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
+const DARK_THEME_OVERRIDE: ThemeType = {
+  colors: darkTheme.colors,
+  themeAppearance: AppThemeKey.dark,
+  typography: darkTheme.typography,
+  shadows: darkTheme.shadows,
+  brandColors: brandColor,
+};
+
+const PredictGameDetailsContentInner: React.FC<
+  PredictGameDetailsContentProps
+> = ({
   market,
   onBack,
   onRefresh,
@@ -41,7 +60,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   isLoading = false,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const colors = DARK_THEME_OVERRIDE.colors;
   const insets = useSafeAreaInsets();
 
   const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
@@ -150,5 +169,15 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     </PredictSportTeamGradient>
   );
 };
+
+const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = (
+  props,
+) => (
+  <ThemeProvider theme={Theme.Dark}>
+    <ThemeContext.Provider value={DARK_THEME_OVERRIDE}>
+      <PredictGameDetailsContentInner {...props} />
+    </ThemeContext.Provider>
+  </ThemeProvider>
+);
 
 export default PredictGameDetailsContent;
