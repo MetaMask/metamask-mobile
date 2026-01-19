@@ -580,7 +580,7 @@ describe('useUnifiedTxActions', () => {
           expect(result.current.speedUpTxId).toBe('ledger-speedup-2');
         });
 
-        it('handles empty gas fee hex values', async () => {
+        it('handles empty gas fee hex values by falling back to legacy gas price', async () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = { id: 'ledger-speedup-3' } as unknown as TransactionMeta;
           const gas = { isEIP1559Transaction: true };
@@ -596,10 +596,32 @@ describe('useUnifiedTxActions', () => {
             onConfirmationComplete: expect.any(Function),
             replacementParams: {
               type: LedgerReplacementTxTypes.SPEED_UP,
-              eip1559GasFee: {
-                maxFeePerGas: '0x',
-                maxPriorityFeePerGas: '0x',
+              legacyGasFee: {
+                gasPrice: '0xabc',
               },
+            },
+          });
+        });
+
+        it('handles legacy transaction by using gasPrice', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-speedup-legacy',
+          } as unknown as TransactionMeta;
+          const gas = { isEIP1559Transaction: false, gasPrice: '0x123' };
+
+          act(() => result.current.onSpeedUpAction(true, gas, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({});
+          });
+
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-speedup-legacy',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.SPEED_UP,
+              legacyGasFee: undefined,
             },
           });
         });
@@ -689,7 +711,7 @@ describe('useUnifiedTxActions', () => {
           expect(result.current.cancelTxId).toBe('ledger-cancel-2');
         });
 
-        it('handles empty gas fee hex values', async () => {
+        it('handles empty gas fee hex values by falling back to legacy gas price', async () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = { id: 'ledger-cancel-3' } as unknown as TransactionMeta;
           const gas = { isEIP1559Transaction: true };
@@ -705,10 +727,32 @@ describe('useUnifiedTxActions', () => {
             onConfirmationComplete: expect.any(Function),
             replacementParams: {
               type: LedgerReplacementTxTypes.CANCEL,
-              eip1559GasFee: {
-                maxFeePerGas: '0x',
-                maxPriorityFeePerGas: '0x',
+              legacyGasFee: {
+                gasPrice: '0xabc',
               },
+            },
+          });
+        });
+
+        it('handles legacy transaction by using gasPrice', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-cancel-legacy',
+          } as unknown as TransactionMeta;
+          const gas = { isEIP1559Transaction: false, gasPrice: '0x456' };
+
+          act(() => result.current.onCancelAction(true, gas, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({});
+          });
+
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-cancel-legacy',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.CANCEL,
+              legacyGasFee: undefined,
             },
           });
         });

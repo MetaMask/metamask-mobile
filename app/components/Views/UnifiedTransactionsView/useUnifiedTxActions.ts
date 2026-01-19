@@ -298,15 +298,17 @@ export function useUnifiedTxActions() {
       }
 
       if (isLedgerAccount) {
+        const gasValues = getCancelOrSpeedupValues(transactionObject);
+        const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
+
         await signLedgerTransaction({
           id: speedUpTxId,
           speedUpParams: { type: 'SpeedUp' },
           replacementParams: {
             type: LedgerReplacementTxTypes.SPEED_UP,
-            eip1559GasFee: {
-              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex ?? ''}`,
-              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex ?? ''}`,
-            },
+            ...(isEip1559
+              ? { eip1559GasFee: gasValues }
+              : { legacyGasFee: gasValues }),
           },
         });
         return;
@@ -333,14 +335,16 @@ export function useUnifiedTxActions() {
       }
 
       if (isLedgerAccount) {
+        const gasValues = getCancelOrSpeedupValues(transactionObject);
+        const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
+
         await signLedgerTransaction({
           id: cancelTxId,
           replacementParams: {
             type: LedgerReplacementTxTypes.CANCEL,
-            eip1559GasFee: {
-              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex ?? ''}`,
-              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex ?? ''}`,
-            },
+            ...(isEip1559
+              ? { eip1559GasFee: gasValues }
+              : { legacyGasFee: gasValues }),
           },
         });
         return;
