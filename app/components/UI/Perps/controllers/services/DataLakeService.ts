@@ -3,7 +3,7 @@ import type { Span } from '@sentry/core';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
 import {
   trace,
