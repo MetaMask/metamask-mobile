@@ -241,3 +241,28 @@ export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
+
+const FALLBACK_MIN_ASSET_BALANCE_REQUIRED = 0.01; // 1 cent
+
+export const selectMusdConversionMinAssetBalanceRequired = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localRaw = process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED;
+    const local =
+      localRaw === undefined ? undefined : Number.parseFloat(localRaw);
+
+    const remoteRaw =
+      remoteFeatureFlags?.earnMusdConversionMinAssetBalanceRequired;
+    const remote =
+      typeof remoteRaw === 'number'
+        ? remoteRaw
+        : typeof remoteRaw === 'string'
+          ? Number.parseFloat(remoteRaw)
+          : undefined;
+
+    const remoteValue = Number.isFinite(remote) ? remote : undefined;
+    const localValue = Number.isFinite(local) ? local : undefined;
+
+    return remoteValue ?? localValue ?? FALLBACK_MIN_ASSET_BALANCE_REQUIRED;
+  },
+);

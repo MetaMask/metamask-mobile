@@ -58,7 +58,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
   Spinner: 'Spinner',
 }));
 
-jest.mock('../utils/perpsErrorHandler', () => ({
+jest.mock('../utils/translatePerpsError', () => ({
   handlePerpsError: ({
     error,
     fallbackMessage,

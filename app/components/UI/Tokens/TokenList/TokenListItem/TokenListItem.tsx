@@ -45,6 +45,8 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
+import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
+import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -107,6 +109,8 @@ export const TokenListItem = React.memo(
 
     const chainId = asset?.chainId as Hex;
 
+    const networkName = useNetworkName(chainId);
+
     const { getEarnToken } = useEarnTokens();
 
     // Earn feature flags
@@ -116,7 +120,8 @@ export const TokenListItem = React.memo(
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { getMusdOutputChainId } = useMusdConversionTokens();
-    const { initiateConversion } = useMusdConversion();
+    const { initiateConversion, hasSeenConversionEducationScreen } =
+      useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
       () => shouldShowTokenListItemCta(asset),
@@ -126,7 +131,32 @@ export const TokenListItem = React.memo(
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
     const handleConvertToMUSD = useCallback(async () => {
+      const submitCtaPressedEvent = () => {
+        const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+        const getRedirectLocation = () =>
+          hasSeenConversionEducationScreen
+            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+            .addProperties({
+              location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+              redirects_to: getRedirectLocation(),
+              cta_type: MUSD_CTA_TYPES.SECONDARY,
+              cta_text: strings('earn.musd_conversion.convert_to_musd'),
+              network_chain_id: chainId,
+              network_name: networkName,
+              asset_symbol: asset?.symbol,
+            })
+            .build(),
+        );
+      };
+
       try {
+        submitCtaPressedEvent();
+
         if (!asset?.address || !asset?.chainId) {
           throw new Error('Asset address or chain ID is not set');
         }
@@ -150,8 +180,14 @@ export const TokenListItem = React.memo(
     }, [
       asset?.address,
       asset?.chainId,
+      asset?.symbol,
+      chainId,
+      createEventBuilder,
       getMusdOutputChainId,
+      hasSeenConversionEducationScreen,
       initiateConversion,
+      networkName,
+      trackEvent,
     ]);
 
     // Secondary balance shows percentage change (if available and not on testnet)

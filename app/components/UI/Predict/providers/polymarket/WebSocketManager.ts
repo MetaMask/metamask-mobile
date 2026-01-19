@@ -1,5 +1,10 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { GameUpdate, PriceUpdate, PredictGameStatus } from '../../types';
+import {
+  GameUpdate,
+  PredictGamePeriod,
+  PredictGameStatus,
+  PriceUpdate,
+} from '../../types';
 import { GameCache } from './GameCache';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
@@ -160,7 +165,7 @@ export class WebSocketManager {
         gameId,
         score: data.score,
         elapsed: data.elapsed,
-        period: data.period,
+        period: data.period as PredictGamePeriod,
         status: this.deriveGameStatus(data),
         turn: data.turn,
       };

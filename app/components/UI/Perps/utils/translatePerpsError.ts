@@ -2,12 +2,13 @@ import { strings } from '../../../../../locales/i18n';
 import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
-} from '../controllers/PerpsController';
+} from '../controllers/perpsErrorCodes';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Maps error codes to i18n keys
  */
-const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
+export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED]:
     'perps.errors.clientNotInitialized',
   [PERPS_ERROR_CODES.CLIENT_REINITIALIZING]:
@@ -26,6 +27,47 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderLeverageReductionFailed',
   [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.insufficientLiquidity',
   [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
+  // Withdraw validation errors
+  [PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED]:
+    'perps.errors.withdrawValidation.assetIdRequired',
+  [PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED]:
+    'perps.errors.withdrawValidation.amountRequired',
+  [PERPS_ERROR_CODES.WITHDRAW_AMOUNT_POSITIVE]:
+    'perps.errors.withdrawValidation.amountPositive',
+  [PERPS_ERROR_CODES.WITHDRAW_INVALID_DESTINATION]:
+    'perps.errors.withdrawValidation.invalidDestination',
+  [PERPS_ERROR_CODES.WITHDRAW_ASSET_NOT_SUPPORTED]:
+    'perps.errors.withdrawValidation.assetNotSupported',
+  [PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE]:
+    'perps.errors.withdrawValidation.insufficientBalance',
+  // Deposit validation errors
+  [PERPS_ERROR_CODES.DEPOSIT_ASSET_ID_REQUIRED]:
+    'perps.errors.depositValidation.assetIdRequired',
+  [PERPS_ERROR_CODES.DEPOSIT_AMOUNT_REQUIRED]:
+    'perps.errors.depositValidation.amountRequired',
+  [PERPS_ERROR_CODES.DEPOSIT_AMOUNT_POSITIVE]:
+    'perps.errors.depositValidation.amountPositive',
+  [PERPS_ERROR_CODES.DEPOSIT_MINIMUM_AMOUNT]: 'perps.errors.minimumDeposit',
+  // Order validation errors
+  [PERPS_ERROR_CODES.ORDER_COIN_REQUIRED]:
+    'perps.errors.orderValidation.coinRequired',
+  [PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED]:
+    'perps.errors.orderValidation.limitPriceRequired',
+  [PERPS_ERROR_CODES.ORDER_PRICE_POSITIVE]:
+    'perps.errors.orderValidation.pricePositive',
+  [PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN]:
+    'perps.errors.orderValidation.unknownCoin',
+  [PERPS_ERROR_CODES.ORDER_SIZE_POSITIVE]:
+    'perps.errors.orderValidation.sizePositive',
+  [PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED]:
+    'perps.order.validation.price_required',
+  [PERPS_ERROR_CODES.ORDER_SIZE_MIN]: 'perps.order.validation.minimum_amount',
+  [PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID]:
+    'perps.order.validation.invalid_leverage',
+  [PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION]:
+    'perps.order.validation.leverage_below_position',
+  [PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED]:
+    'perps.order.validation.max_order_value',
 };
 
 /**
@@ -80,4 +122,95 @@ export function isPerpsErrorCode(
   }
 
   return error === code;
+}
+
+/**
+ * Parameters for handling Perps errors
+ */
+export interface HandlePerpsErrorParams {
+  error: unknown;
+  context?: {
+    providerId?: string;
+    token?: string;
+    amount?: string;
+    symbol?: string;
+    address?: string;
+    available?: string;
+    requested?: string;
+    assetId?: string;
+    supportedAssets?: string;
+    method?: string;
+  };
+  fallbackMessage?: string;
+}
+
+/**
+ * Centralized handler for PerpsController errors with context-aware parameter mapping
+ * @param params - Object containing error, optional context, and optional fallback message
+ * @returns Localized error message with proper interpolation
+ *
+ * @example
+ * const errorMessage = handlePerpsError({
+ *   error: depositResult.error,
+ *   context: { token: 'USDT' },
+ *   fallbackMessage: 'Deposit failed'
+ * });
+ */
+export function handlePerpsError(params: HandlePerpsErrorParams): string {
+  const { error, context, fallbackMessage } = params;
+
+  // Handle null/undefined errors with fallback
+  if (!error) {
+    return fallbackMessage || strings('perps.errors.unknownError');
+  }
+
+  // Extract error string from Error objects or use as-is
+  let errorString: string | null = null;
+
+  if (error instanceof Error) {
+    errorString = error.message;
+  } else if (typeof error === 'string') {
+    errorString = error;
+  }
+
+  // Log error for debugging (without event tracking)
+  DevLogger.log('PerpsErrorHandler: Error encountered', {
+    errorMessage: errorString,
+    context,
+    stack: error instanceof Error ? error.stack : undefined,
+  });
+
+  // Check if it's a Core PerpsController or Perps Provider error code
+  if (
+    errorString &&
+    Object.values(PERPS_ERROR_CODES).includes(errorString as PerpsErrorCode)
+  ) {
+    // Map error codes to their required parameters
+    const errorParams: Record<string, unknown> = {};
+
+    switch (errorString) {
+      case PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED:
+        errorParams.token = context?.token || 'Unknown';
+        break;
+      case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
+        errorParams.providerId = context?.providerId || 'Unknown';
+        break;
+      // Add other error codes that need parameters as they arise
+      default:
+        // Pass through any provided context as-is for other errors
+        Object.assign(errorParams, context || {});
+        break;
+    }
+
+    const i18nKey = ERROR_CODE_TO_I18N_KEY[errorString as PerpsErrorCode];
+    return strings(i18nKey, errorParams);
+  }
+
+  // For any other error/error string that was not matched, use fallback if provided
+  if (errorString) {
+    return fallbackMessage || errorString;
+  }
+
+  // if we ever get here, return fallback or unknown error
+  return fallbackMessage || strings('perps.errors.unknownError');
 }
