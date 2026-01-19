@@ -87,7 +87,7 @@ describe(RegressionConfirmations('ERC20 tokens'), () => {
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
-        // Assert "Sent Tokens" transaction is displayed
+        // Assert "Sent tokens" transaction is displayed
         await Assertions.expectTextDisplayed(
           ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(
             // contractConfiguration is not typed

@@ -36,7 +36,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPrice } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import NetworkModals from '../../../NetworkModal';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
@@ -312,19 +312,22 @@ const TrendingTokenRowItem = ({
         </View>
         <View style={styles.rightContainer}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {formatPrice(token.price, {
-              minimumDecimals: 2,
-              maximumDecimals: 4,
-            })}
+            {formatPriceWithSubscriptNotation(token.price)}
           </Text>
-          {hasPercentageChange && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={getPriceChangeColor(pricePercentChange)}
-            >
-              {pricePercentChange === 0 ? '' : isPositiveChange ? '+' : '-'}
-              {Math.abs(pricePercentChange).toFixed(2)}%
+          {parseFloat(token.price) === 0 ? (
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              —
             </Text>
+          ) : (
+            hasPercentageChange && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={getPriceChangeColor(pricePercentChange)}
+              >
+                {pricePercentChange === 0 ? '' : isPositiveChange ? '+' : '-'}
+                {Math.abs(pricePercentChange).toFixed(2)}%
+              </Text>
+            )
           )}
         </View>
       </TouchableOpacity>
