@@ -222,4 +222,99 @@ describe('RegionSelectorModal', () => {
     fireEvent.press(backButton);
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('searches within state list when in state view', () => {
+    const mockRegionWithStates: DeepPartial<Region> = {
+      currencies: ['/currencies/fiat/usd'],
+      emoji: '🇺🇸',
+      id: '/regions/us',
+      name: 'United States of America',
+      states: [
+        {
+          emoji: '🇺🇸',
+          id: '/regions/us-ca',
+          name: 'California',
+          stateId: 'ca',
+          support: { buy: true, sell: true },
+          unsupported: false,
+          detected: false,
+          recommended: true,
+        },
+        {
+          emoji: '🇺🇸',
+          id: '/regions/us-ny',
+          name: 'New York',
+          stateId: 'ny',
+          support: { buy: true, sell: true },
+          unsupported: false,
+          detected: false,
+          recommended: false,
+        },
+      ],
+      support: { buy: false, sell: false },
+      unsupported: true,
+      detected: true,
+      recommended: false,
+    };
+
+    mockUseParams.mockReturnValue({ regions: [mockRegionWithStates] });
+    const { getByText, getByPlaceholderText, toJSON } =
+      render(RegionSelectorModal);
+
+    // Given the user navigates to state view
+    const usRegion = getByText('United States of America');
+    fireEvent.press(usRegion);
+
+    // When the user searches for a specific state
+    const searchInput = getByPlaceholderText('Search by state');
+    fireEvent.changeText(searchInput, 'Cali');
+
+    // Then the search should filter the state list
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('sorts states by recommended when displaying state list', () => {
+    const mockRegionWithStates: DeepPartial<Region> = {
+      currencies: ['/currencies/fiat/usd'],
+      emoji: '🇺🇸',
+      id: '/regions/us',
+      name: 'United States of America',
+      states: [
+        {
+          emoji: '🇺🇸',
+          id: '/regions/us-ny',
+          name: 'New York',
+          stateId: 'ny',
+          support: { buy: true, sell: true },
+          unsupported: false,
+          detected: false,
+          recommended: false,
+        },
+        {
+          emoji: '🇺🇸',
+          id: '/regions/us-ca',
+          name: 'California',
+          stateId: 'ca',
+          support: { buy: true, sell: true },
+          unsupported: false,
+          detected: false,
+          recommended: true,
+        },
+      ],
+      support: { buy: false, sell: false },
+      unsupported: true,
+      detected: true,
+      recommended: false,
+    };
+
+    mockUseParams.mockReturnValue({ regions: [mockRegionWithStates] });
+    const { getByText, toJSON } = render(RegionSelectorModal);
+
+    // Given the user navigates to state view
+    const usRegion = getByText('United States of America');
+    fireEvent.press(usRegion);
+
+    // Then the snapshot should show California (recommended) first
+    expect(toJSON()).toMatchSnapshot();
+  });
 });

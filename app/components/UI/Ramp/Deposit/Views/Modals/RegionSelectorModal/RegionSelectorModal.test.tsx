@@ -270,4 +270,25 @@ describe('RegionSelectorModal Component', () => {
     );
     expect(mockSetSelectedRegion).toHaveBeenCalled();
   });
+
+  it('clears search text when search field receives empty text', () => {
+    const { getByPlaceholderText, getByText, queryByText } =
+      renderWithProvider(RegionSelectorModal);
+
+    // Given the user has typed a search query
+    const searchField = getByPlaceholderText('Search by country');
+    fireEvent.changeText(searchField, 'Germany');
+
+    // Then only Germany should be visible
+    expect(getByText('Germany')).toBeTruthy();
+    expect(queryByText('Canada')).toBeNull();
+
+    // When the user clears the search text (simulating clear button behavior)
+    fireEvent.changeText(searchField, '');
+
+    // Then all regions should be visible again
+    expect(getByText('Germany')).toBeTruthy();
+    expect(getByText('Canada')).toBeTruthy();
+    expect(searchField.props.value).toBe('');
+  });
 });
