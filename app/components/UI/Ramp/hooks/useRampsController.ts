@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import {
   useRampsUserRegion,
   type UseRampsUserRegionResult,
@@ -16,6 +17,7 @@ import {
   type UseRampsCountriesResult,
 } from './useRampsCountries';
 import { useRampsPreferredProviderAutoSet } from './useRampsPreferredProviderAutoSet';
+import type { ExecuteRequestOptions } from '@metamask/ramps-controller';
 
 /**
  * Options for the useRampsController hook.
@@ -144,8 +146,25 @@ export function useRampsController(
     tokens,
     isLoading: tokensLoading,
     error: tokensError,
-    fetchTokens,
-  } = useRampsTokens(options?.region, options?.action);
+    fetchTokens: originalFetchTokens,
+  } = useRampsTokens(options?.region, options?.action, preferredProvider?.id);
+
+  const fetchTokens = useCallback(
+    async (
+      region?: string,
+      action?: 'buy' | 'sell',
+      fetchOptions?: ExecuteRequestOptions & {
+        provider?: string | string[];
+      },
+    ) => {
+      const providerToUse = fetchOptions?.provider ?? preferredProvider?.id;
+      return originalFetchTokens(region, action, {
+        ...fetchOptions,
+        provider: providerToUse,
+      });
+    },
+    [originalFetchTokens, preferredProvider?.id],
+  );
 
   const {
     countries,

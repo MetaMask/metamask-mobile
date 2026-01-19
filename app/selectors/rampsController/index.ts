@@ -76,16 +76,18 @@ export const selectCountriesRequest = (action: 'buy' | 'sell' = 'buy') =>
  *
  * @param region - The region code (e.g., "us", "fr", "us-ny").
  * @param action - The ramp action type ('buy' or 'sell').
+ * @param provider - Optional provider ID(s) to filter by.
  * @returns Request selector for tokens.
  */
 export const selectTokensRequest = (
   region: string,
   action: 'buy' | 'sell' = 'buy',
+  provider?: string | string[],
 ) =>
   createRequestSelector<RootState, TokensResponse>(
     selectRampsControllerState,
     'getTokens',
-    [region.toLowerCase().trim(), action],
+    [region.toLowerCase().trim(), action, provider],
   );
 
 /**

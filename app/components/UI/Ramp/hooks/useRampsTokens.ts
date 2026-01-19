@@ -35,7 +35,9 @@ export interface UseRampsTokensResult {
   fetchTokens: (
     region?: string,
     action?: 'buy' | 'sell',
-    options?: ExecuteRequestOptions,
+    options?: ExecuteRequestOptions & {
+      provider?: string | string[];
+    },
   ) => Promise<TokensResponse>;
 }
 
@@ -45,11 +47,13 @@ export interface UseRampsTokensResult {
  *
  * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
  * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
+ * @param provider - Optional provider ID(s) to filter by.
  * @returns Tokens state and fetch function.
  */
 export function useRampsTokens(
   region?: string,
   action: 'buy' | 'sell' = 'buy',
+  provider?: string | string[],
 ): UseRampsTokensResult {
   const tokens = useSelector(selectTokens);
   const userRegion = useSelector(
@@ -63,8 +67,8 @@ export function useRampsTokens(
   );
 
   const requestSelector = useMemo(
-    () => selectTokensRequest(regionToUse, action),
-    [regionToUse, action],
+    () => selectTokensRequest(regionToUse, action, provider),
+    [regionToUse, action, provider],
   );
 
   const { isFetching, error } = useSelector(
@@ -75,7 +79,9 @@ export function useRampsTokens(
     async (
       fetchRegion?: string,
       fetchAction: 'buy' | 'sell' = action,
-      options?: ExecuteRequestOptions,
+      options?: ExecuteRequestOptions & {
+        provider?: string | string[];
+      },
     ) =>
       await Engine.context.RampsController.getTokens(
         fetchRegion ?? regionToUse,

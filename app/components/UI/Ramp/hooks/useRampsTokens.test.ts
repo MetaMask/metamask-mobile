@@ -91,7 +91,7 @@ describe('useRampsTokens', () => {
     it('uses provided region when specified', () => {
       const store = createMockStore({
         requests: {
-          'getTokens:["us-ny","buy"]': {
+          'getTokens:["us-ny","buy",null]': {
             status: RequestStatus.SUCCESS,
             data: mockTokens,
             error: null,
@@ -110,7 +110,7 @@ describe('useRampsTokens', () => {
       const store = createMockStore({
         userRegion: mockUserRegion,
         requests: {
-          'getTokens:["us-ca","buy"]': {
+          'getTokens:["us-ca","buy",null]': {
             status: RequestStatus.SUCCESS,
             data: mockTokens,
             error: null,
@@ -128,7 +128,7 @@ describe('useRampsTokens', () => {
     it('uses empty string when region and userRegion are not available', () => {
       const store = createMockStore({
         requests: {
-          'getTokens:["","buy"]': {
+          'getTokens:["","buy",null]': {
             status: RequestStatus.SUCCESS,
             data: mockTokens,
             error: null,
@@ -156,7 +156,7 @@ describe('useRampsTokens', () => {
     it('uses buy action when provided', () => {
       const store = createMockStore({
         requests: {
-          'getTokens:["us-ca","buy"]': {
+          'getTokens:["us-ca","buy",null]': {
             status: RequestStatus.SUCCESS,
             data: mockTokens,
             error: null,
@@ -174,7 +174,7 @@ describe('useRampsTokens', () => {
     it('uses sell action when provided', () => {
       const store = createMockStore({
         requests: {
-          'getTokens:["us-ca","sell"]': {
+          'getTokens:["us-ca","sell",null]': {
             status: RequestStatus.SUCCESS,
             data: mockTokens,
             error: null,
@@ -212,7 +212,7 @@ describe('useRampsTokens', () => {
     it('returns isLoading true when request is loading', () => {
       const store = createMockStore({
         requests: {
-          'getTokens:["us-ca","buy"]': {
+          'getTokens:["us-ca","buy",null]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -232,7 +232,7 @@ describe('useRampsTokens', () => {
     it('returns error from request state', () => {
       const store = createMockStore({
         requests: {
-          'getTokens:["us-ca","buy"]': {
+          'getTokens:["us-ca","buy",null]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
@@ -303,6 +303,21 @@ describe('useRampsTokens', () => {
       );
     });
 
+    it('calls getTokens with provider when provided in options', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsTokens(), {
+        wrapper: wrapper(store),
+      });
+      await result.current.fetchTokens('us-ca', 'buy', {
+        provider: 'provider-id',
+      });
+      expect(Engine.context.RampsController.getTokens).toHaveBeenCalledWith(
+        'us-ca',
+        'buy',
+        { provider: 'provider-id' },
+      );
+    });
+
     it('returns tokens data', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsTokens(), {
@@ -326,6 +341,82 @@ describe('useRampsTokens', () => {
       await expect(result.current.fetchTokens()).rejects.toThrow(
         'Network error',
       );
+    });
+  });
+
+  describe('provider parameter', () => {
+    it('uses provider when provided', () => {
+      const store = createMockStore({
+        requests: {
+          'getTokens:["us-ca","buy","provider-id"]': {
+            status: RequestStatus.SUCCESS,
+            data: mockTokens,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+      const { result } = renderHook(
+        () => useRampsTokens('us-ca', 'buy', 'provider-id'),
+        {
+          wrapper: wrapper(store),
+        },
+      );
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('creates separate request state for different providers', () => {
+      const store = createMockStore({
+        requests: {
+          'getTokens:["us-ca","buy","provider-1"]': {
+            status: RequestStatus.SUCCESS,
+            data: mockTokens,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+          'getTokens:["us-ca","buy","provider-2"]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+      const { result: result1 } = renderHook(
+        () => useRampsTokens('us-ca', 'buy', 'provider-1'),
+        {
+          wrapper: wrapper(store),
+        },
+      );
+      const { result: result2 } = renderHook(
+        () => useRampsTokens('us-ca', 'buy', 'provider-2'),
+        {
+          wrapper: wrapper(store),
+        },
+      );
+      expect(result1.current.isLoading).toBe(false);
+      expect(result2.current.isLoading).toBe(true);
+    });
+
+    it('works without provider parameter', () => {
+      const store = createMockStore({
+        requests: {
+          'getTokens:["us-ca","buy",null]': {
+            status: RequestStatus.SUCCESS,
+            data: mockTokens,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
+          },
+        },
+      });
+      const { result } = renderHook(() => useRampsTokens('us-ca', 'buy'), {
+        wrapper: wrapper(store),
+      });
+      expect(result.current.isLoading).toBe(false);
     });
   });
 });
