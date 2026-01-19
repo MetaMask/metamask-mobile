@@ -1122,6 +1122,38 @@ describe('useDepositRouting', () => {
       });
     });
 
+    it('tracks RAMPS_KYC_STARTED event with kyc_type STANDARD when Level 2 KYC (IDPROOF) is required', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'test-kyc-url',
+              workFlowRunId: 'test-workflow-run-id',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'STANDARD',
+        region: 'US',
+      });
+    });
+
     it('does not track analytics event when no KYC forms are required', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
