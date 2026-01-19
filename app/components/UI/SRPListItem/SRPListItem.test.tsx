@@ -16,6 +16,7 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useMetrics/useMetrics', () => ({
@@ -36,12 +37,15 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
+const mockKeyringId1 = '01JKZ55Y6KPCYH08M6B9VSZWKW';
+const mockKeyringId2 = '01JKZ56KRVYEEHC601HSNW28T2';
+
 const mockKeyringName1 = 'Secret Recovery Phrase 1';
 const mockKeyring1 = {
   type: ExtendedKeyringTypes.hd,
   accounts: [internalAccount1.address],
   metadata: {
-    id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+    id: mockKeyringId1,
     name: '',
   },
 };
@@ -49,8 +53,53 @@ const mockKeyring2 = {
   type: ExtendedKeyringTypes.simple,
   accounts: [internalAccount2.address],
   metadata: {
-    id: '01JKZ56KRVYEEHC601HSNW28T2',
+    id: mockKeyringId2,
     name: '',
+  },
+};
+
+// Account groups representing multichain accounts
+const mockAccountGroup1 = {
+  id: `entropy:${mockKeyringId1}/0`,
+  type: AccountGroupType.MultichainAccount,
+  accounts: [internalAccount1.id],
+  metadata: {
+    name: 'Account 1',
+    pinned: false,
+    hidden: false,
+    entropy: { groupIndex: 0 },
+  },
+};
+
+const mockAccountGroup2 = {
+  id: `entropy:${mockKeyringId1}/1`,
+  type: AccountGroupType.MultichainAccount,
+  accounts: [internalAccount2.id],
+  metadata: {
+    name: 'Account 2',
+    pinned: false,
+    hidden: false,
+    entropy: { groupIndex: 1 },
+  },
+};
+
+const mockAccountTreeControllerState = {
+  accountTree: {
+    wallets: {
+      [`entropy:${mockKeyringId1}`]: {
+        id: `entropy:${mockKeyringId1}`,
+        type: AccountWalletType.Entropy,
+        metadata: {
+          name: 'Wallet 1',
+          entropy: { id: mockKeyringId1 },
+        },
+        groups: {
+          [mockAccountGroup1.id]: mockAccountGroup1,
+          [mockAccountGroup2.id]: mockAccountGroup2,
+        },
+      },
+    },
+    selectedAccountGroup: mockAccountGroup1.id,
   },
 };
 
@@ -63,6 +112,7 @@ const initialState = {
       KeyringController: {
         keyrings: [mockKeyring1, mockKeyring2],
       },
+      AccountTreeController: mockAccountTreeControllerState,
     },
   },
 };
@@ -167,7 +217,7 @@ describe('SRPList', () => {
     );
   });
 
-  it('displays accounts when toggle is clicked', () => {
+  it('displays account groups list when toggle is clicked', () => {
     const { getByTestId } = renderWithProvider(
       <SRPListItem
         name={mockKeyringName1}
@@ -189,10 +239,55 @@ describe('SRPList', () => {
     fireEvent.press(toggle);
 
     expect(
-      getTestId(
-        SRPListItemSelectorsIDs.SRP_LIST_ITEM_ACCOUNTS_LIST,
-        mockKeyring1.metadata.id,
+      getByTestId(
+        getTestId(
+          SRPListItemSelectorsIDs.SRP_LIST_ITEM_ACCOUNTS_LIST,
+          mockKeyring1.metadata.id,
+        ),
       ),
     ).toBeDefined();
+  });
+
+  it('displays correct account group count instead of individual accounts', () => {
+    const { getByText } = renderWithProvider(
+      <SRPListItem
+        name={mockKeyringName1}
+        keyring={mockKeyring1}
+        onActionComplete={mockOnKeyringSelect}
+      />,
+      {
+        state: initialState,
+      },
+    );
+
+    // The button label shows 2 account groups (multichain accounts)
+    // instead of showing individual chain accounts (EVM, Solana, etc.)
+    expect(getByText(/2 accounts/i)).toBeDefined();
+  });
+
+  it('displays account group names when expanded', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <SRPListItem
+        name={mockKeyringName1}
+        keyring={mockKeyring1}
+        onActionComplete={mockOnKeyringSelect}
+      />,
+      {
+        state: initialState,
+      },
+    );
+
+    const toggle = getByTestId(
+      getTestId(
+        SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW,
+        mockKeyring1.metadata.id,
+      ),
+    );
+
+    fireEvent.press(toggle);
+
+    // Account group names are displayed (multichain account names)
+    expect(getByText('Account 1')).toBeDefined();
+    expect(getByText('Account 2')).toBeDefined();
   });
 });
