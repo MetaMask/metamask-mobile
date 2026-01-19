@@ -1,11 +1,44 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import AmountInput from './AmountInput';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import type { RampsToken } from '../../hooks/useRampTokens';
+import type { CaipChainId } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
+
+const MOCK_ASSET_ID =
+  'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+const MOCK_CHAIN_ID = 'eip155:1' as CaipChainId;
+
+const createMockToken = (overrides?: Partial<RampsToken>): RampsToken => ({
+  assetId: MOCK_ASSET_ID,
+  chainId: MOCK_CHAIN_ID,
+  name: 'USD Coin',
+  symbol: 'USDC',
+  iconUrl: 'https://example.com/usdc.png',
+  tokenSupported: true,
+  decimals: 6,
+  ...overrides,
+});
+
+const mockTokenNetworkInfo = {
+  networkName: 'Ethereum Mainnet',
+  networkImageSource: { uri: 'https://example.com/eth.png' },
+};
+
+const mockGetTokenNetworkInfo = jest.fn(() => mockTokenNetworkInfo);
+const mockUseRampTokens = jest.fn(() => ({
+  allTokens: [createMockToken()],
+  topTokens: [createMockToken()],
+  isLoading: false,
+  error: null,
+}));
+const mockGetRampsAmountInputNavbarOptions = jest.fn(
+  (_navigation: unknown, _options: unknown) => ({}),
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -16,7 +49,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      assetId: MOCK_ASSET_ID,
     },
   }),
 }));
@@ -26,7 +59,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
+  getRampsAmountInputNavbarOptions: (navigation: unknown, options: unknown) =>
+    mockGetRampsAmountInputNavbarOptions(navigation, options),
+}));
+
+jest.mock('../../Deposit/utils', () => ({
+  formatCurrency: (amount: number) => `$${amount}`,
+}));
+
+jest.mock('../../hooks/useRampTokens', () => ({
+  useRampTokens: () => mockUseRampTokens(),
+}));
+
+jest.mock('../../hooks/useTokenNetworkInfo', () => ({
+  useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
 }));
 
 const renderWithTheme = (component: React.ReactElement) =>
@@ -39,32 +85,121 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('AmountInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [createMockToken()],
+      topTokens: [createMockToken()],
+      isLoading: false,
+      error: null,
+    });
+    mockGetTokenNetworkInfo.mockReturnValue(mockTokenNetworkInfo);
   });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  it('displays Amount Input Screen heading', () => {
+  it('displays initial amount as $0', () => {
     const { getByText } = renderWithTheme(<AmountInput />);
 
-    expect(getByText('Amount Input Screen')).toBeOnTheScreen();
+    expect(getByText('$0')).toBeOnTheScreen();
   });
 
-  it('displays the assetId from route params', () => {
+  it('renders the keypad', () => {
+    const { getByText, getByTestId } = renderWithTheme(<AmountInput />);
+
+    // Check keypad digits are rendered
+    expect(getByText('1')).toBeOnTheScreen();
+    expect(getByText('2')).toBeOnTheScreen();
+    expect(getByText('3')).toBeOnTheScreen();
+    expect(getByText('4')).toBeOnTheScreen();
+    expect(getByText('5')).toBeOnTheScreen();
+    expect(getByText('6')).toBeOnTheScreen();
+    expect(getByText('7')).toBeOnTheScreen();
+    expect(getByText('8')).toBeOnTheScreen();
+    expect(getByText('9')).toBeOnTheScreen();
+    expect(getByText('0')).toBeOnTheScreen();
+    expect(getByTestId('keypad-delete-button')).toBeOnTheScreen();
+  });
+
+  it('updates amount when keypad digit is pressed', () => {
     const { getByText } = renderWithTheme(<AmountInput />);
 
-    expect(
-      getByText(
-        'Asset ID: eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      ),
-    ).toBeOnTheScreen();
+    fireEvent.press(getByText('5'));
+
+    expect(getByText('$5')).toBeOnTheScreen();
   });
 
-  it('sets navigation options on mount', () => {
+  it('updates amount with multiple digit presses', () => {
+    const { getByText } = renderWithTheme(<AmountInput />);
+
+    fireEvent.press(getByText('1'));
+    fireEvent.press(getByText('2'));
+    fireEvent.press(getByText('3'));
+
+    expect(getByText('$123')).toBeOnTheScreen();
+  });
+
+  it('deletes last digit when delete button is pressed', () => {
+    const { getByText, getByTestId } = renderWithTheme(<AmountInput />);
+
+    fireEvent.press(getByText('1'));
+    fireEvent.press(getByText('2'));
+    fireEvent.press(getByTestId('keypad-delete-button'));
+
+    expect(getByText('$1')).toBeOnTheScreen();
+  });
+
+  it('sets navigation options with token and network data', () => {
     renderWithTheme(<AmountInput />);
 
-    expect(mockSetOptions).toHaveBeenCalled();
+    expect(mockGetRampsAmountInputNavbarOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        goBack: mockGoBack,
+      }),
+      expect.objectContaining({
+        tokenName: 'USD Coin',
+        tokenSymbol: 'USDC',
+        tokenIconUrl: 'https://example.com/usdc.png',
+        networkName: 'Ethereum Mainnet',
+        networkImageSource: { uri: 'https://example.com/eth.png' },
+        onSettingsPress: expect.any(Function),
+      }),
+    );
+  });
+
+  it('displays token symbol in conversion placeholder', () => {
+    const { getByText } = renderWithTheme(<AmountInput />);
+
+    expect(getByText('0 USDC')).toBeOnTheScreen();
+  });
+
+  it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [],
+      topTokens: [],
+      isLoading: false,
+      error: null,
+    });
+
+    renderWithTheme(<AmountInput />);
+
+    expect(mockGetRampsAmountInputNavbarOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        goBack: mockGoBack,
+      }),
+      expect.objectContaining({
+        tokenName: undefined,
+        tokenSymbol: undefined,
+        tokenIconUrl: undefined,
+        networkName: undefined,
+        networkImageSource: undefined,
+        onSettingsPress: expect.any(Function),
+      }),
+    );
   });
 
   it('matches snapshot', () => {

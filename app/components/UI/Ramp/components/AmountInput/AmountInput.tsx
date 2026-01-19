@@ -1,20 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { Box } from '@metamask/design-system-react-native';
+import Keypad from '../../../../Base/Keypad';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
-import { strings } from '../../../../../../locales/i18n';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import { getRampsAmountInputNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../../util/theme';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './AmountInput.styles';
+import { formatCurrency } from '../../Deposit/utils';
+import { useRampTokens } from '../../hooks/useRampTokens';
+import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 
 interface AmountInputParams {
   assetId?: string;
@@ -25,31 +30,92 @@ export const createAmountInputNavDetails =
 
 function AmountInput() {
   const navigation = useNavigation();
-  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, {});
   const { assetId } = useParams<AmountInputParams>();
 
+  const [amount, setAmount] = useState<string>('0');
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
+
+  // TODO: Get currency from RampsController when integrated
+  const currency = 'USD';
+
+  // Get token and network info for the navbar
+  const { allTokens } = useRampTokens();
+  const getTokenNetworkInfo = useTokenNetworkInfo();
+
+  // Find the selected token from assetId param
+  const selectedToken = useMemo(() => {
+    if (!assetId || !allTokens) return null;
+    return allTokens.find((token) => token.assetId === assetId) ?? null;
+  }, [assetId, allTokens]);
+
+  // Get network info for the selected token
+  const networkInfo = useMemo(() => {
+    if (!selectedToken) return null;
+    return getTokenNetworkInfo(selectedToken.chainId);
+  }, [selectedToken, getTokenNetworkInfo]);
+
+  // Update navigation options - shows skeleton when data is loading
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.build_quote.title'),
-          showBack: true,
+      getRampsAmountInputNavbarOptions(navigation, {
+        tokenName: selectedToken?.name,
+        tokenSymbol: selectedToken?.symbol,
+        tokenIconUrl: selectedToken?.iconUrl,
+        networkName: networkInfo?.networkName ?? undefined,
+        networkImageSource: networkInfo?.networkImageSource,
+        onSettingsPress: () => {
+          // TODO: Implement settings handler
         },
-        theme,
-      ),
+      }),
     );
-  }, [navigation, theme]);
+  }, [navigation, selectedToken, networkInfo]);
+
+  const handleKeypadChange = useCallback(
+    ({
+      value,
+      valueAsNumber,
+    }: {
+      value: string;
+      valueAsNumber: number;
+      pressedKey: string;
+    }) => {
+      setAmount(value || '0');
+      setAmountAsNumber(valueAsNumber || 0);
+    },
+    [],
+  );
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <Box twClassName="flex-1 items-center justify-center px-4">
-          <Text variant={TextVariant.HeadingMD}>Amount Input Screen</Text>
-          <Text variant={TextVariant.BodyMD}>
-            Asset ID: {assetId || 'None'}
-          </Text>
-        </Box>
+        <ScreenLayout.Content style={styles.content}>
+          <View style={styles.centerGroup}>
+            <View>
+              <Text
+                variant={TextVariant.HeadingLG}
+                style={styles.mainAmount}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {formatCurrency(amountAsNumber, currency, {
+                  currencyDisplay: 'narrowSymbol',
+                  maximumFractionDigits: 0,
+                })}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.convertedAmount}
+              >
+                {/* Token amount conversion placeholder */}
+                {selectedToken ? `0 ${selectedToken.symbol}` : ' '}
+              </Text>
+            </View>
+          </View>
+
+          <Keypad value={amount} onChange={handleKeypadChange} />
+        </ScreenLayout.Content>
       </ScreenLayout.Body>
     </ScreenLayout>
   );

@@ -41,48 +41,751 @@ exports[`AmountInput matches snapshot 1`] = `
         style={
           [
             {
-              "alignItems": "center",
-              "display": "flex",
-              "flexBasis": "0%",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "justifyContent": "center",
-              "paddingLeft": 16,
-              "paddingRight": 16,
+              "padding": 15,
+              "paddingHorizontal": 16,
             },
             undefined,
+            {
+              "flex": 1,
+            },
           ]
         }
       >
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
-              "fontSize": 18,
-              "letterSpacing": 0,
-              "lineHeight": 24,
+              "alignItems": "center",
+              "flex": 1,
+              "gap": 16,
+              "justifyContent": "center",
             }
           }
         >
-          Amount Input Screen
-        </Text>
-        <Text
-          accessibilityRole="text"
+          <View>
+            <Text
+              accessibilityRole="text"
+              adjustsFontSizeToFit={true}
+              numberOfLines={1}
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 64,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 72,
+                  "textAlign": "center",
+                }
+              }
+            >
+              $0
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
+                }
+              }
+            >
+              0 USDC
+            </Text>
+          </View>
+        </View>
+        <View
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "display": "flex",
+                "gap": 12,
+              },
+              undefined,
+            ]
           }
         >
-          Asset ID: 
-          eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
-        </Text>
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "gap": 12,
+                  "justifyContent": "space-between",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  1
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  2
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  3
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "gap": 12,
+                  "justifyContent": "space-between",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  4
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  5
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  6
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "gap": 12,
+                  "justifyContent": "space-between",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  7
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  8
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  9
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "gap": 12,
+                  "justifyContent": "space-between",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    {
+                      "backgroundColor": "transparent",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="none"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 32,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 40,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  0
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                delayLongPress={500}
+                onLongPress={[Function]}
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 12,
+                      "height": 48,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="keypad-delete-button"
+              >
+                <SvgMock
+                  fill="currentColor"
+                  name="Backspace"
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "height": 32,
+                        "width": 32,
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </View>
     </View>
   </View>

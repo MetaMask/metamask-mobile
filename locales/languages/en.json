@@ -4611,6 +4611,7 @@
   "fiat_on_ramp": {
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
+    "on_network": "on {{networkName}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",
