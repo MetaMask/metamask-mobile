@@ -36,7 +36,8 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   // Build complete navigation theme based on app theme
   // React Navigation v7 requires fonts in the theme
   const navigationTheme = useMemo(() => {
-    const baseTheme = appTheme === AppThemeKey.dark ? DarkTheme : DefaultTheme;
+    const baseTheme =
+      appTheme.themeAppearance === AppThemeKey.dark ? DarkTheme : DefaultTheme;
     return {
       ...baseTheme,
       colors: {
@@ -44,7 +45,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
         background: colors.background.default,
       },
     };
-  }, [appTheme, colors.background.default]);
+  }, [appTheme.themeAppearance, colors.background.default]);
 
   // Start trace when navigation provider is initialized
   if (!hasInitialized.current) {

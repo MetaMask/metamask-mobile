@@ -420,11 +420,15 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       }
 
       if (navigation.type === 'function') {
-        return navigate(...navigation.navigate());
+        const [route, params] = navigation.navigate();
+        return (navigate as (route: string, params?: object) => void)(
+          route,
+          params,
+        );
       }
 
       if (navigation.type === 'route') {
-        return navigate(navigation.route);
+        return (navigate as (route: string) => void)(navigation.route);
       }
     },
     [

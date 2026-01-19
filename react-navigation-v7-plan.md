@@ -1,8 +1,8 @@
 # React Navigation v7 Migration Plan
 
-## Migration Status: IN PROGRESS (TypeScript Fixes ~80% Complete)
+## Migration Status: TypeScript Fixes COMPLETE ✅
 
-**Last Updated:** January 15, 2026
+**Last Updated:** January 19, 2026
 
 ### Completed ✅
 
@@ -195,18 +195,27 @@ Bottom sheet modal stacks within features now use transparent modals:
 - [x] Updated `WalletConnectV2.ts` to use `typeof NavigationService.navigation` type
 - [x] Updated `SDKConnect/InitializationManagement/init.ts` and `asyncInit.ts` to use `typeof NavigationService.navigation`
 
-### In Progress 🔄
+**Final TypeScript Fixes (January 19, 2026):**
 
-- [ ] Fix remaining TypeScript errors (~25 errors)
-  - Spread argument issues in Carousel, useMusdConversion, useOptout, useConfirmNavigation
-  - `ScreenComponentType` mismatches in Bridge routes
-  - handleDeepLinkModalDisplay params type
-  - handleCustomRpcCalls params type
-  - NavigationProvider Theme comparison issue
+- [x] Fixed SDKConnect route literals - Changed route arrays to `string[]` type for `includes()` compatibility
+  - `connectToChannel.ts`, `checkPermissions.ts`, `postInit.ts`, `updateSDKLoadingState.ts`
+- [x] Fixed NavigationProp type mismatches - Changed to `NavigationProp<RootParamList>`
+  - `UnifiedTransactionsView.tsx`, `PermissionsManager.test.tsx`
+- [x] Fixed Carousel spread arguments - Destructured tuple + function cast pattern
+  - `Carousel/index.tsx`
+- [x] Fixed `createNavigationDetails` default type - Changed from `undefined` to `object | undefined`
+  - `navUtils.ts`
+- [x] Fixed DeepLinkModal params - Added `<DeepLinkModalParams>` type parameter
+  - `DeepLinkModal/constant.ts`
+- [x] Fixed test mocks - Removed `as const` from tuple, used `as any` cast for component
+  - `ActivityView/index.test.tsx`, `Bridge/routes.tsx`
+- [x] Fixed NavigationProvider theme comparison - Changed to `appTheme.themeAppearance === AppThemeKey.dark`
+  - `NavigationProvider.tsx`
 
 ### Pending Testing 🧪
 
 - [x] Initial manual testing - basic navigation works
+- [x] TypeScript compilation passes (`yarn lint:tsc` - 0 errors)
 - [ ] Comprehensive manual testing of all navigation flows
 - [ ] E2E testing for regressions
 - [ ] Deep linking verification
@@ -312,11 +321,7 @@ This approach is faster and results in cleaner code that follows v7 best practic
 
 ### 🔄 Remaining Work
 
-1. **TypeScript Errors** (~25 remaining):
-   - **Spread argument issues** - Carousel, useMusdConversion, useOptout, useConfirmNavigation, ActivityView.test
-   - **Screen component type** - Bridge routes `BlockExplorersModal`
-   - **Navigation params** - handleDeepLinkModalDisplay, handleCustomRpcCalls, useDepositRouting, BuildQuote
-   - **NavigationProvider** - Theme comparison type mismatch (unrelated to navigation)
+1. **TypeScript Errors** - ✅ **ALL FIXED** (0 errors remaining)
 
 2. **Testing** - Comprehensive testing needed:
    - Full E2E test suite run
@@ -1182,19 +1187,22 @@ app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx 
 
 ### Common Fixes
 
-| v5 Code                                     | v7 Code                                                                                      |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `mode="modal"`                              | `screenOptions={{ presentation: 'card' }}` (default) or `'transparentModal'` (bottom sheets) |
-| `headerMode="none"`                         | `screenOptions={{ headerShown: false }}`                                                     |
-| `animationEnabled: false`                   | `animation: 'none'`                                                                          |
-| `navigation.navigate('Back')`               | Use `useNavigation` from `navUtils.ts` (auto `pop: true`) or explicit `{ pop: true }`        |
-| `beforeRemove` listener                     | `usePreventRemove` hook                                                                      |
-| `dangerouslyGetState()`                     | `getState()`                                                                                 |
-| `dangerouslyGetParent()`                    | `getParent()`                                                                                |
-| `headerTitle: <Component />`                | `headerTitle: () => <Component />`                                                           |
-| `presentation: 'modal'` (for bottom sheets) | `presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' }`            |
-| `useNavigation()` in modal callbacks        | `NavigationService.navigation.navigate()` (global ref, auto `pop: true`)                     |
-| `createNavigationDetails<T>(route)`         | **DEPRECATED** - Use `navigation.navigate(route, params)` for full type safety               |
+| v5 Code                                     | v7 Code                                                                                                   |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `mode="modal"`                              | `screenOptions={{ presentation: 'card' }}` (default) or `'transparentModal'` (bottom sheets)              |
+| `headerMode="none"`                         | `screenOptions={{ headerShown: false }}`                                                                  |
+| `animationEnabled: false`                   | `animation: 'none'`                                                                                       |
+| `navigation.navigate('Back')`               | Use `useNavigation` from `navUtils.ts` (auto `pop: true`) or explicit `{ pop: true }`                     |
+| `beforeRemove` listener                     | `usePreventRemove` hook                                                                                   |
+| `dangerouslyGetState()`                     | `getState()`                                                                                              |
+| `dangerouslyGetParent()`                    | `getParent()`                                                                                             |
+| `headerTitle: <Component />`                | `headerTitle: () => <Component />`                                                                        |
+| `presentation: 'modal'` (for bottom sheets) | `presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' }`                         |
+| `useNavigation()` in modal callbacks        | `NavigationService.navigation.navigate()` (global ref, auto `pop: true`)                                  |
+| `createNavigationDetails<T>(route)`         | **DEPRECATED** - Use `navigation.navigate(route, params)` for full type safety                            |
+| Route arrays for `includes()`               | Type as `string[]` e.g., `const routes: string[] = [Routes.A, Routes.B]`                                  |
+| Spread tuple into navigate                  | Destructure: `const [route, params] = fn(); (navigate as (r: string, p?: object) => void)(route, params)` |
+| Dynamic route navigation                    | Function cast: `(navigation.navigate as (route: string, params?: object) => void)(route, params)`         |
 
 ### Screen Presentation (iOS Sheet Modal Fix)
 
@@ -1376,6 +1384,35 @@ navigation.navigate(Routes.MODAL.ROOT, {
 | React Nav v7 idiomatic | ❌ No                           | ✅ Yes                        |
 
 **Technical note:** `createNavigationDetails` now returns `[any, any]` to satisfy v7's strict `navigate()` overloads, but this bypasses type checking. Direct navigation leverages the global `RootParamList` type augmentation for full type safety.
+
+### Route Arrays with `string[]`
+
+When using `includes()` with route names, type the array as `string[]`:
+
+```typescript
+// ✅ CORRECT - Type as string[] for includes() compatibility
+const skipRoutes: string[] = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
+if (skipRoutes.includes(currentRouteName)) { ... }
+
+// ❌ WRONG - Literal types cause type errors with includes()
+const skipRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN]; // inferred as readonly tuple
+```
+
+### Dynamic Route Navigation
+
+For dynamic route names or union types, use function cast:
+
+```typescript
+// Destructure tuple from helper function
+const [route, params] = navigation.navigate();
+(navigate as (route: string, params?: object) => void)(route, params);
+
+// For dynamic route names
+(navigation.navigate as (route: string, params?: object) => void)(
+  dynamicRoute,
+  params,
+);
+```
 
 ### New Methods in v7
 

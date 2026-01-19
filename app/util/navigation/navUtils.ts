@@ -109,7 +109,7 @@ export const useNavigation = <
  * ```
  */
 export function createNavigationDetails<
-  T extends object | undefined = undefined,
+  T extends object | undefined = object | undefined,
 >(name: string, screen?: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (params?: T): [any, any] => {

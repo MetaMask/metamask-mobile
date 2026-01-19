@@ -62,7 +62,8 @@ export const BridgeModalStack = () => (
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
-      component={BlockExplorersModal}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      component={BlockExplorersModal as any}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}

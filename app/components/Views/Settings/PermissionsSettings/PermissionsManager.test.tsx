@@ -6,6 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { RootParamList } from '../../../../types/navigation';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -13,9 +14,7 @@ const mockSetOptions = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
   setOptions: mockSetOptions,
-} as unknown as NavigationProp<{
-  [key: string]: object | undefined;
-}>;
+} as unknown as NavigationProp<RootParamList>;
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };

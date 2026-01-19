@@ -310,10 +310,10 @@ describe('ActivityView', () => {
     });
 
     it('navigates to NetworkManager on filter button press', () => {
-      const mockNetworkManagerNavDetails = [
+      const mockNetworkManagerNavDetails: [string, object | undefined] = [
         'NetworkManager',
         { screen: 'NetworkSelector' },
-      ] as const;
+      ];
       const spyOnCreateNetworkManagerNavDetails = jest
         .spyOn(networkManagerUtils, 'createNetworkManagerNavDetails')
         .mockReturnValue(mockNetworkManagerNavDetails);
