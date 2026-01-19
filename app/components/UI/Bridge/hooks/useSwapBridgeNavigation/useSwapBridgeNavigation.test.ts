@@ -1074,7 +1074,7 @@ describe('useSwapBridgeNavigation', () => {
         MetaMetricsEvents.ACTION_BUTTON_CLICKED,
       );
 
-      // When location is TabBar, action_position is omitted and location is navbar
+      // When location is MainView, action_position is omitted and location is navbar
       expect(mockAddProperties).toHaveBeenCalledWith({
         action_name: ActionButtonType.SWAP,
         button_label: 'Swap',
