@@ -312,4 +312,56 @@ describe('AssetDetailsActions', () => {
   // is covered by the fund button logic in AssetDetailsActions component lines 61-66.
   // When isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported evaluates to false,
   // the fund button will not be displayed. This scenario is tested in the Asset component tests.
+
+  describe('isBuyDisabled prop', () => {
+    it('disables buy button when isBuyDisabled is true', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} isBuyDisabled />,
+        { state: createStateWithSigningCapability() },
+      );
+
+      const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+
+      expect(buyButton).toBeDisabled();
+    });
+
+    it('enables buy button when isBuyDisabled is false', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} isBuyDisabled={false} />,
+        { state: createStateWithSigningCapability() },
+      );
+
+      const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+
+      expect(buyButton).not.toBeDisabled();
+    });
+
+    it('does not navigate when buy button is disabled and pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} isBuyDisabled />,
+        { state: createStateWithSigningCapability() },
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates when buy button is enabled and pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} isBuyDisabled={false} />,
+        { state: createStateWithSigningCapability() },
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.FUND_ACTION_MENU,
+        params: {
+          onBuy: undefined,
+          asset: undefined,
+        },
+      });
+    });
+  });
 });

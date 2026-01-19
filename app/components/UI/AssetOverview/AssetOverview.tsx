@@ -122,6 +122,25 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
+import { useRampTokens, RampsToken } from '../Ramp/hooks/useRampTokens';
+
+/**
+ * Checks if an asset is in the provided token list (case-insensitive comparison).
+ *
+ * @param assetId - The CAIP-19 asset ID to check
+ * @param tokens - The list of RampsToken to search in
+ * @returns True if the asset is found in the token list
+ */
+const isAssetInTokenList = (
+  assetId: string,
+  tokens: RampsToken[] | null,
+): boolean => {
+  if (!tokens || tokens.length === 0) return false;
+  const normalizedAssetId = assetId.toLowerCase();
+  return tokens.some(
+    (token) => token.assetId?.toLowerCase() === normalizedAssetId,
+  );
+};
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -264,6 +283,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { goToBuy } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const { allTokens: depositTokens } = useRampTokens();
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
     address: currentAddress,
@@ -408,6 +428,27 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
     navigateToSendPage({ location: InitSendLocation.AssetOverview, asset });
   };
+
+  // Compute the current asset's CAIP-19 assetId for ramp support checks
+  const currentAssetId = useMemo(() => {
+    try {
+      if (isCaipAssetType(asset.address)) {
+        return asset.address;
+      }
+      return parseRampIntent({
+        chainId: getDecimalChainId(chainId),
+        address: asset.address,
+      })?.assetId;
+    } catch {
+      return undefined;
+    }
+  }, [asset.address, chainId]);
+
+  // Check if buying is supported for this specific asset
+  const isBuySupported = useMemo(() => {
+    if (!currentAssetId) return false;
+    return isAssetInTokenList(currentAssetId, depositTokens);
+  }, [currentAssetId, depositTokens]);
 
   const onBuy = () => {
     let assetId: string | undefined;
@@ -755,6 +796,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
+            isBuyDisabled={!isBuySupported}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}

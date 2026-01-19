@@ -24,6 +24,8 @@ import {
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
+  /** Disable the buy button (e.g., when asset is not supported for purchase) */
+  isBuyDisabled?: boolean;
   onBuy?: () => void;
   goToSwaps: () => void;
   onSend: () => void;
@@ -44,6 +46,7 @@ export interface AssetDetailsActionsProps {
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
+  isBuyDisabled = false,
   onBuy,
   goToSwaps,
   onSend,
@@ -145,7 +148,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconName={IconName.AttachMoney}
             label={strings('asset_overview.buy_button')}
             onPress={handleBuyPress}
-            isDisabled={!isBuyingAvailable}
+            isDisabled={!isBuyingAvailable || isBuyDisabled}
             testID={buyButtonActionID}
           />
         </View>
