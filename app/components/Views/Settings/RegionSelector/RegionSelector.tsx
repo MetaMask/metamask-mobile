@@ -298,12 +298,14 @@ function RegionSelector() {
       if (regionId) {
         try {
           await setUserRegion(regionId);
+          navigation.goBack();
         } catch (error) {
           // Error is handled by controller state
+          // Don't navigate back on error
         }
+      } else {
+        navigation.goBack();
       }
-
-      navigation.goBack();
     },
     [getRegionId, scrollToTop, navigation, setUserRegion],
   );
@@ -533,6 +535,7 @@ function RegionSelector() {
             iconName={IconName.Refresh}
             onPress={() => fetchCountries()}
             style={styles.retryButton}
+            testID="retry-countries-button"
           />
         </View>
       );

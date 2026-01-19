@@ -167,9 +167,36 @@ describe('RegionSelector', () => {
       ...mockUseRampsControllerInitialValues,
       countries: null,
       countriesLoading: false,
+      countriesError: null,
+    };
+    render(RegionSelector);
+    expect(mockFetchCountries).toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when countries error occurs', () => {
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: null,
+      countriesLoading: false,
+      countriesError: 'Failed to fetch countries',
     };
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls fetchCountries when retry button is pressed on error', () => {
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: null,
+      countriesLoading: false,
+      countriesError: 'Failed to fetch countries',
+    };
+    render(RegionSelector);
+    jest.clearAllMocks();
+    const retryButton = screen.getByTestId('retry-countries-button');
+    fireEvent.press(retryButton);
+    expect(mockFetchCountries).toHaveBeenCalled();
   });
 
   it('renders correctly when user region is selected', () => {
@@ -362,7 +389,7 @@ describe('RegionSelector', () => {
     const countryItem = screen.getByText('France');
     fireEvent.press(countryItem);
     await expect(errorMock).toHaveBeenCalledWith('fr');
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('clears search and scrolls to top when clear button is pressed', () => {
