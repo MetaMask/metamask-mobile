@@ -3,24 +3,14 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import {
-  ButtonProps,
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button/Button.types';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import styleSheet from './PoolStakingLearnMoreModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import useVaultApys from '../../hooks/useVaultApys';
 import InteractiveTimespanChart from './InteractiveTimespanChart';
 import BigNumber from 'bignumber.js';
@@ -30,7 +20,6 @@ import {
 } from './InteractiveTimespanChart/InteractiveTimespanChart.utils';
 import { strings } from '../../../../../../locales/i18n';
 import { parseVaultApyAveragesResponse } from './PoolStakingLearnMoreModal.utils';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import useVaultApyAverages from '../../hooks/useVaultApyAverages';
 import {
   CommonPercentageInputUnits,
@@ -41,6 +30,11 @@ import { Hex } from 'viem/_types/types/misc';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import {
+  LearnMoreModalFooter,
+  StakingInfoBodyText,
+  StakingInfoStrings,
+} from '../LearnMoreModal';
 
 interface PoolStakingLearnMoreModalRouteParams {
   chainId: Hex;
@@ -51,46 +45,8 @@ type PoolStakingLearnMoreModalRouteProp = RouteProp<
   'params'
 >;
 
-const BodyText = () => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View style={styles.bodyTextContainer}>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.stake_any_amount_of_eth')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.no_minimum_required')}
-        </Text>
-      </Text>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.earn_eth_rewards')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.earn_eth_rewards_description')}
-        </Text>
-      </Text>
-      <Text variant={TextVariant.BodyMDMedium}>
-        {strings('stake.flexible_unstaking')}{' '}
-        <Text color={TextColor.Alternative}>
-          {strings('stake.flexible_unstaking_description')}
-        </Text>
-      </Text>
-      <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
-        style={styles.italicText}
-      >
-        {strings('stake.disclaimer')}
-      </Text>
-    </View>
-  );
-};
-
 const PoolStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
-
-  const { trackEvent, createEventBuilder } = useMetrics();
-
-  const { navigate } = useNavigation();
 
   const route = useRoute<PoolStakingLearnMoreModalRouteProp>();
   const { chainId: routeChainId } = route.params;
@@ -145,47 +101,26 @@ const PoolStakingLearnMoreModal = () => {
     }
   }, [activeTimespanApyAverage, reversedVaultApys]);
 
-  const redirectToLearnMore = () => {
-    navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: POOLED_STAKING_FAQ_URL,
-      },
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          text: 'Learn More',
-          location: EVENT_LOCATIONS.LEARN_MORE_MODAL,
-        })
-        .build(),
-    );
-  };
-
-  const footerButtons: ButtonProps[] = [
-    {
-      variant: ButtonVariants.Secondary,
-      label: strings('stake.learn_more'),
-      size: ButtonSize.Lg,
-      labelTextVariant: TextVariant.BodyMDMedium,
-      onPress: redirectToLearnMore,
-    },
-    {
-      variant: ButtonVariants.Primary,
-      label: strings('stake.got_it'),
-      labelTextVariant: TextVariant.BodyMDMedium,
-      size: ButtonSize.Lg,
-      onPress: handleClose,
-    },
-  ];
-
   const handleTimespanPressed = (numDataPointsToDisplay: number) => {
     setActiveTimespanApyAverage(
       parsedVaultTimespanApyAverages?.[numDataPointsToDisplay],
     );
   };
+
+  const bodyTextStrings: StakingInfoStrings = useMemo(
+    () => ({
+      stakeAnyAmount: strings('stake.stake_any_amount_of_eth'),
+      noMinimumRequired: strings('stake.no_minimum_required'),
+      earnRewards: strings('stake.earn_eth_rewards'),
+      earnRewardsDescription: strings('stake.earn_eth_rewards_description'),
+      flexibleUnstaking: strings('stake.flexible_unstaking'),
+      flexibleUnstakingDescription: strings(
+        'stake.flexible_unstaking_description',
+      ),
+      disclaimer: strings('stake.disclaimer'),
+    }),
+    [],
+  );
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
@@ -225,11 +160,11 @@ const PoolStakingLearnMoreModal = () => {
             isLoading={isLoadingVaultApyAverages || isLoadingVaultApys}
           />
         )}
-        <BodyText />
+        <StakingInfoBodyText strings={bodyTextStrings} styles={styles} />
       </ScrollView>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={footerButtons}
+      <LearnMoreModalFooter
+        onClose={handleClose}
+        learnMoreUrl={POOLED_STAKING_FAQ_URL}
         style={styles.footer}
       />
     </BottomSheet>
