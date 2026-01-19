@@ -292,14 +292,6 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
-jest.mock('@metamask/bridge-controller', () => ({
-  ...jest.requireActual('@metamask/bridge-controller'),
-  isNativeAddress: jest.fn(
-    (address: string) =>
-      address === '0x0000000000000000000000000000000000000000',
-  ),
-}));
-
 const asset = {
   balance: '400',
   balanceFiat: '1500',
