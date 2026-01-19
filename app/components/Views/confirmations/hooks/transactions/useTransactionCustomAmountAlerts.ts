@@ -5,6 +5,7 @@ import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { TransactionType } from '@metamask/transaction-controller';
+import { Alert } from '../../types/alerts';
 
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
@@ -44,24 +45,15 @@ export function useTransactionCustomAmountAlerts({
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
   const transactionMeta = useTransactionMetadataRequest();
 
-  const bypassInsufficientPayTokenBalance = useMemo(
-    () =>
-      hasMax &&
-      hasTransactionType(transactionMeta, [TransactionType.musdConversion]),
-    [transactionMeta, hasMax],
-  );
+  const shouldBypassInsufficientPayTokenBalance = (a: Alert) =>
+    hasMax &&
+    hasTransactionType(transactionMeta, [TransactionType.musdConversion]) &&
+    a.key === AlertKeys.InsufficientPayTokenBalance;
 
   const filteredAlerts = useMemo(() => {
     const blockingAlerts = confirmationAlerts.filter((a) => a.isBlocking);
 
     return blockingAlerts.filter((a) => {
-      if (
-        bypassInsufficientPayTokenBalance &&
-        a.key === AlertKeys.InsufficientPayTokenBalance
-      ) {
-        return false;
-      }
-
       const isIgnoredAsNoInput =
         !isInputChanged && ON_CHANGE_ALERTS.includes(a.key as AlertKeys);
 
@@ -77,12 +69,7 @@ export function useTransactionCustomAmountAlerts({
         !isIgnoredAsPending
       );
     });
-  }, [
-    bypassInsufficientPayTokenBalance,
-    confirmationAlerts,
-    isInputChanged,
-    isKeyboardVisible,
-  ]);
+  }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
 
   const alerts = useMemo(
     () => [...pendingTokenAlerts, ...filteredAlerts],
@@ -91,7 +78,7 @@ export function useTransactionCustomAmountAlerts({
 
   const firstAlert = alerts?.[0];
 
-  if (!firstAlert) {
+  if (!firstAlert || shouldBypassInsufficientPayTokenBalance(firstAlert)) {
     return {};
   }
 
