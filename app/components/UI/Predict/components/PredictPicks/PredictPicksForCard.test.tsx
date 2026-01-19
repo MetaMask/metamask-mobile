@@ -65,9 +65,9 @@ describe('PredictPicksForCard', () => {
   });
 
   describe('rendering', () => {
-    it('renders container with default testID', () => {
+    it('renders container with default testID when positions exist', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [],
+        positions: [createMockPosition()],
         isLoading: false,
         isRefreshing: false,
         error: null,
@@ -81,9 +81,9 @@ describe('PredictPicksForCard', () => {
       ).toBeGreaterThan(0);
     });
 
-    it('renders container with custom testID', () => {
+    it('renders container with custom testID when positions exist', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [],
+        positions: [createMockPosition()],
         isLoading: false,
         isRefreshing: false,
         error: null,
@@ -97,6 +97,20 @@ describe('PredictPicksForCard', () => {
       expect(screen.getAllByTestId('custom-card-picks').length).toBeGreaterThan(
         0,
       );
+    });
+
+    it('returns null when no positions', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictPicksForCard marketId="market-1" />);
+
+      expect(screen.queryByTestId('predict-picks-for-card')).toBeNull();
     });
   });
 
@@ -238,9 +252,9 @@ describe('PredictPicksForCard', () => {
       );
     });
 
-    it('displays position amount', () => {
+    it('displays position currentValue', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ amount: 75.25 })],
+        positions: [createMockPosition({ currentValue: 75.25 })],
         isLoading: false,
         isRefreshing: false,
         error: null,
@@ -294,7 +308,7 @@ describe('PredictPicksForCard', () => {
   });
 
   describe('hook configuration', () => {
-    it('calls usePredictPositions with correct marketId', () => {
+    it('calls usePredictPositions with correct marketId when no positions prop', () => {
       mockUsePredictPositions.mockReturnValue({
         positions: [],
         isLoading: false,
@@ -308,10 +322,12 @@ describe('PredictPicksForCard', () => {
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-456',
         autoRefreshTimeout: 10000,
+        loadOnMount: true,
+        refreshOnFocus: true,
       });
     });
 
-    it('passes autoRefreshTimeout of 10000ms to hook', () => {
+    it('passes autoRefreshTimeout of 10000ms to hook when no positions prop', () => {
       mockUsePredictPositions.mockReturnValue({
         positions: [],
         isLoading: false,
@@ -328,23 +344,94 @@ describe('PredictPicksForCard', () => {
         }),
       );
     });
+
+    it('disables hook fetching when positions prop is provided', () => {
+      const providedPositions = [createMockPosition()];
+
+      render(
+        <PredictPicksForCard
+          marketId="market-1"
+          positions={providedPositions}
+        />,
+      );
+
+      expect(mockUsePredictPositions).toHaveBeenCalledWith({
+        marketId: 'market-1',
+        autoRefreshTimeout: undefined,
+        loadOnMount: false,
+        refreshOnFocus: false,
+      });
+    });
   });
 
-  describe('edge cases', () => {
-    it('renders empty when no positions', () => {
+  describe('positions prop', () => {
+    it('uses provided positions instead of fetched positions', () => {
+      const providedPositions = [
+        createMockPosition({ id: 'provided-1', outcome: 'Provided Yes' }),
+      ];
+
       mockUsePredictPositions.mockReturnValue({
-        positions: [],
+        positions: [
+          createMockPosition({ id: 'fetched-1', outcome: 'Fetched' }),
+        ],
         isLoading: false,
         isRefreshing: false,
         error: null,
         loadPositions: mockLoadPositions,
       });
 
-      render(<PredictPicksForCard marketId="market-1" />);
+      render(
+        <PredictPicksForCard
+          marketId="market-1"
+          positions={providedPositions}
+        />,
+      );
 
-      expect(screen.queryByText(/to win/)).toBeNull();
+      expect(screen.getByText(/Provided Yes to win/)).toBeOnTheScreen();
+      expect(screen.queryByText(/Fetched to win/)).toBeNull();
     });
 
+    it('renders provided positions correctly', () => {
+      const providedPositions = [
+        createMockPosition({ id: 'pos-1', outcome: 'Team A', cashPnl: 10 }),
+        createMockPosition({ id: 'pos-2', outcome: 'Team B', cashPnl: -5 }),
+      ];
+
+      render(
+        <PredictPicksForCard
+          marketId="market-1"
+          positions={providedPositions}
+        />,
+      );
+
+      expect(screen.getByText(/Team A to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/Team B to win/)).toBeOnTheScreen();
+    });
+
+    it('returns null when provided positions is empty', () => {
+      render(<PredictPicksForCard marketId="market-1" positions={[]} />);
+
+      expect(screen.queryByTestId('predict-picks-for-card')).toBeNull();
+    });
+
+    it('renders separator with provided positions when showSeparator is true', () => {
+      const providedPositions = [createMockPosition()];
+
+      render(
+        <PredictPicksForCard
+          marketId="market-1"
+          positions={providedPositions}
+          showSeparator
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-picks-for-card-separator'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('edge cases', () => {
     it('displays position with different outcome text', () => {
       mockUsePredictPositions.mockReturnValue({
         positions: [createMockPosition({ outcome: 'Maybe' })],
@@ -357,6 +444,76 @@ describe('PredictPicksForCard', () => {
       render(<PredictPicksForCard marketId="market-1" />);
 
       expect(screen.getByText(/Maybe to win/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('separator', () => {
+    it('renders separator when showSeparator is true and positions exist', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [createMockPosition()],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictPicksForCard marketId="market-1" showSeparator />);
+
+      expect(
+        screen.getByTestId('predict-picks-for-card-separator'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render separator when showSeparator is false', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [createMockPosition()],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictPicksForCard marketId="market-1" showSeparator={false} />);
+
+      expect(
+        screen.queryByTestId('predict-picks-for-card-separator'),
+      ).toBeNull();
+    });
+
+    it('does not render separator when showSeparator is true but no positions', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(<PredictPicksForCard marketId="market-1" showSeparator />);
+
+      expect(
+        screen.queryByTestId('predict-picks-for-card-separator'),
+      ).toBeNull();
+    });
+
+    it('renders separator with custom testID', () => {
+      mockUsePredictPositions.mockReturnValue({
+        positions: [createMockPosition()],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: mockLoadPositions,
+      });
+
+      render(
+        <PredictPicksForCard
+          marketId="market-1"
+          testID="custom-picks"
+          showSeparator
+        />,
+      );
+
+      expect(screen.getByTestId('custom-picks-separator')).toBeOnTheScreen();
     });
   });
 });

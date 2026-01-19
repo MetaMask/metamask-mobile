@@ -43,6 +43,7 @@ const PORTFOLIO_SITE: SiteData = {
   logoUrl:
     'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/logo.png',
   featured: true,
+  logoNeedsPadding: true,
 };
 
 /**

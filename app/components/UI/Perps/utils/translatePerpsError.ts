@@ -3,7 +3,13 @@ import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
 } from '../controllers/perpsErrorCodes';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import type { IPerpsDebugLogger } from '../controllers/types';
+
+/**
+ * Optional debug logger for error handling functions.
+ * When provided, enables detailed logging for debugging.
+ */
+export type ErrorHandlerDebugLogger = IPerpsDebugLogger | undefined;
 
 /**
  * Maps error codes to i18n keys
@@ -68,6 +74,17 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.order.validation.leverage_below_position',
   [PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED]:
     'perps.order.validation.max_order_value',
+  // HyperLiquid client/service errors
+  [PERPS_ERROR_CODES.EXCHANGE_CLIENT_NOT_AVAILABLE]:
+    'perps.errors.exchangeClientNotAvailable',
+  [PERPS_ERROR_CODES.INFO_CLIENT_NOT_AVAILABLE]:
+    'perps.errors.infoClientNotAvailable',
+  [PERPS_ERROR_CODES.SUBSCRIPTION_CLIENT_NOT_AVAILABLE]:
+    'perps.errors.subscriptionClientNotAvailable',
+  // Wallet/account errors
+  [PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED]: 'perps.errors.noAccountSelected',
+  [PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT]:
+    'perps.errors.invalidAddressFormat',
 };
 
 /**
@@ -142,11 +159,12 @@ export interface HandlePerpsErrorParams {
     method?: string;
   };
   fallbackMessage?: string;
+  debugLogger?: ErrorHandlerDebugLogger;
 }
 
 /**
  * Centralized handler for PerpsController errors with context-aware parameter mapping
- * @param params - Object containing error, optional context, and optional fallback message
+ * @param params - Object containing error, optional context, optional fallback message, and optional debug logger
  * @returns Localized error message with proper interpolation
  *
  * @example
@@ -157,7 +175,7 @@ export interface HandlePerpsErrorParams {
  * });
  */
 export function handlePerpsError(params: HandlePerpsErrorParams): string {
-  const { error, context, fallbackMessage } = params;
+  const { error, context, fallbackMessage, debugLogger } = params;
 
   // Handle null/undefined errors with fallback
   if (!error) {
@@ -174,7 +192,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   }
 
   // Log error for debugging (without event tracking)
-  DevLogger.log('PerpsErrorHandler: Error encountered', {
+  debugLogger?.log('PerpsErrorHandler: Error encountered', {
     errorMessage: errorString,
     context,
     stack: error instanceof Error ? error.stack : undefined,
