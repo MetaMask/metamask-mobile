@@ -7,7 +7,9 @@ import {
   PredictOutcome,
   PredictMarketStatus,
   Recurrence,
+  PriceUpdate,
 } from '../../types';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
@@ -17,6 +19,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
     return key;
   }),
 }));
+
+jest.mock('../../hooks/useLiveMarketPrices');
+const mockUseLiveMarketPrices = useLiveMarketPrices as jest.MockedFunction<
+  typeof useLiveMarketPrices
+>;
+
+const createMockGetPrice =
+  (priceMap: Map<string, PriceUpdate>) => (tokenId: string) =>
+    priceMap.get(tokenId);
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
@@ -92,6 +103,12 @@ const createDefaultProps = (overrides = {}) => ({
 describe('PredictActionButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseLiveMarketPrices.mockReturnValue({
+      prices: new Map(),
+      getPrice: () => undefined,
+      isConnected: false,
+      lastUpdateTime: null,
+    });
   });
 
   describe('loading state', () => {
@@ -159,6 +176,20 @@ describe('PredictActionButtons', () => {
       renderWithProvider(<PredictActionButtons {...props} />);
 
       expect(screen.queryByText(/Claim/)).not.toBeOnTheScreen();
+    });
+
+    it('renders claim button without amount for game markets', () => {
+      const mockOnClaimPress = jest.fn();
+      const props = createDefaultProps({
+        market: createMockGameMarket(),
+        claimableAmount: 50.25,
+        onClaimPress: mockOnClaimPress,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByTestId('action-buttons-claim')).toBeOnTheScreen();
+      expect(screen.queryByText('Claim $50.25')).not.toBeOnTheScreen();
     });
   });
 
@@ -305,6 +336,131 @@ describe('PredictActionButtons', () => {
 
       expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
       expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+    });
+  });
+
+  describe('live price updates', () => {
+    it('displays live prices when available', () => {
+      const priceMap = new Map<string, PriceUpdate>([
+        [
+          'token-yes',
+          { tokenId: 'token-yes', price: 0.72, bestBid: 0.71, bestAsk: 0.73 },
+        ],
+        [
+          'token-no',
+          { tokenId: 'token-no', price: 0.28, bestBid: 0.27, bestAsk: 0.29 },
+        ],
+      ]);
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: priceMap,
+        getPrice: createMockGetPrice(priceMap),
+        isConnected: true,
+        lastUpdateTime: Date.now(),
+      });
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('YES · 72¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 28¢')).toBeOnTheScreen();
+    });
+
+    it('falls back to static prices when live prices unavailable', () => {
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: new Map(),
+        getPrice: () => undefined,
+        isConnected: false,
+        lastUpdateTime: null,
+      });
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+    });
+
+    it('uses partial live prices with fallback for missing tokens', () => {
+      const priceMap = new Map<string, PriceUpdate>([
+        [
+          'token-yes',
+          { tokenId: 'token-yes', price: 0.8, bestBid: 0.79, bestAsk: 0.81 },
+        ],
+      ]);
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: priceMap,
+        getPrice: createMockGetPrice(priceMap),
+        isConnected: true,
+        lastUpdateTime: Date.now(),
+      });
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('YES · 80¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+    });
+
+    it('subscribes with correct token IDs', () => {
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-yes', 'token-no'],
+        { enabled: true },
+      );
+    });
+
+    it('disables subscription when market is closed', () => {
+      const props = createDefaultProps({
+        market: createMockMarket({ status: PredictMarketStatus.CLOSED }),
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-yes', 'token-no'],
+        { enabled: false },
+      );
+    });
+
+    it('disables subscription when loading', () => {
+      const props = createDefaultProps({ isLoading: true });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-yes', 'token-no'],
+        { enabled: false },
+      );
+    });
+
+    it('displays live prices for game markets', () => {
+      const priceMap = new Map<string, PriceUpdate>([
+        [
+          'token-yes',
+          { tokenId: 'token-yes', price: 0.55, bestBid: 0.54, bestAsk: 0.56 },
+        ],
+        [
+          'token-no',
+          { tokenId: 'token-no', price: 0.45, bestBid: 0.44, bestAsk: 0.46 },
+        ],
+      ]);
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: priceMap,
+        getPrice: createMockGetPrice(priceMap),
+        isConnected: true,
+        lastUpdateTime: Date.now(),
+      });
+      const props = createDefaultProps({
+        market: createMockGameMarket(),
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('SEA · 55¢')).toBeOnTheScreen();
+      expect(screen.getByText('DEN · 45¢')).toBeOnTheScreen();
     });
   });
 });

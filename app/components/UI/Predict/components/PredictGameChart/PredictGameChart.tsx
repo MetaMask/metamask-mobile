@@ -36,6 +36,14 @@ const FIDELITY_BY_TIMEFRAME: Record<ChartTimeframe, number> = {
 const getMinuteTimestamp = (timestamp: number): number =>
   Math.floor(timestamp / 60000) * 60000;
 
+/**
+ * Converts a timestamp to milliseconds.
+ * Detects if timestamp is in seconds (10 digits) or milliseconds (13 digits).
+ * Unix timestamps in seconds are typically < 10 billion (until year 2286).
+ */
+const toMilliseconds = (timestamp: number): number =>
+  timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
+
 const PredictGameChart: React.FC<PredictGameChartProps> = ({
   tokenIds,
   seriesConfig,
@@ -76,7 +84,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         data: history.map((point) => ({
           timestamp:
             typeof point.timestamp === 'number'
-              ? point.timestamp
+              ? toMilliseconds(point.timestamp)
               : new Date(point.timestamp).getTime(),
           value: Number((point.price * 100).toFixed(2)),
         })),
@@ -91,14 +99,23 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       return;
     }
 
+    if (initialDataLoadedRef.current) {
+      return;
+    }
+
+    if (isFetching) {
+      return;
+    }
+
     if (
       historicalChartData.length === 2 &&
-      historicalChartData[0].data.length > 0
+      historicalChartData[0].data.length > 0 &&
+      historicalChartData[1].data.length > 0
     ) {
       setLiveChartData(historicalChartData);
       initialDataLoadedRef.current = true;
     }
-  }, [isLive, historicalChartData]);
+  }, [isLive, historicalChartData, isFetching]);
 
   const updateLiveData = useCallback(() => {
     if (!isLive || !initialDataLoadedRef.current || prices.size === 0) return;
@@ -160,9 +177,12 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   }, [refetch]);
 
   const chartData = isLive ? liveChartData : historicalChartData;
+  const hasChartData =
+    chartData.length >= 2 &&
+    chartData[0]?.data?.length > 0 &&
+    chartData[1]?.data?.length > 0;
   const isLoading =
-    isFetching ||
-    (isLive && !initialDataLoadedRef.current && chartData.length === 0);
+    isFetching || !hasChartData || (isLive && !initialDataLoadedRef.current);
 
   const hasErrors = errors.some((error) => error !== null);
   const errorMessage = hasErrors
