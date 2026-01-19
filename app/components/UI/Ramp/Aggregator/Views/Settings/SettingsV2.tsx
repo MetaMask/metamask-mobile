@@ -15,12 +15,12 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
-import useRampsUserRegion from '../../../hooks/useRampsUserRegion';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
 import ActivationKeys from './ActivationKeys';
+import useRampsController from '../../../hooks/useRampsController';
 
 interface SettingsV2Props {
   isInternalBuild?: boolean;
@@ -29,7 +29,7 @@ interface SettingsV2Props {
 function SettingsV2({ isInternalBuild }: SettingsV2Props) {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
-  const { userRegion } = useRampsUserRegion();
+  const { userRegion } = useRampsController();
 
   useEffect(() => {
     navigation.setOptions(

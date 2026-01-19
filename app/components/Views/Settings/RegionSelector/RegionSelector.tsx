@@ -5,7 +5,12 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -91,7 +96,14 @@ function RegionSelector() {
   const { colors } = useAppTheme();
   const listRef = useRef<FlatList<ListItem>>(null);
 
-  const { userRegion, setUserRegion, countries } = useRampsController();
+  const {
+    userRegion,
+    setUserRegion,
+    countries,
+    countriesLoading,
+    countriesError,
+    fetchCountries,
+  } = useRampsController();
 
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
@@ -112,6 +124,12 @@ function RegionSelector() {
       ),
     );
   }, [colors, navigation, activeView, regionInTransit]);
+
+  useEffect(() => {
+    if (!countries && !countriesLoading && !countriesError) {
+      fetchCountries();
+    }
+  }, [countries, countriesLoading, countriesError, fetchCountries]);
 
   useEffect(() => {
     if (countries && activeView === RegionViewType.COUNTRY) {
@@ -492,18 +510,58 @@ function RegionSelector() {
     ],
   );
 
-  const renderEmptyList = useCallback(
-    () => (
-      <View style={styles.emptyList}>
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('fiat_on_ramp_aggregator.region.no_region_results', {
-            searchString,
-          })}
-        </Text>
-      </View>
-    ),
-    [searchString, styles.emptyList],
-  );
+  const renderEmptyList = useCallback(() => {
+    if (countriesLoading && !countries) {
+      return (
+        <View style={styles.emptyList}>
+          <ActivityIndicator size="large" color={colors.primary.default} />
+        </View>
+      );
+    }
+
+    if (countriesError && !countries) {
+      return (
+        <View style={styles.emptyList}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.errorText}>
+            {strings('fiat_on_ramp_aggregator.error')}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {countriesError}
+          </Text>
+          <ButtonIcon
+            size={ButtonIconSizes.Md}
+            iconName={IconName.Refresh}
+            onPress={() => fetchCountries()}
+            style={styles.retryButton}
+          />
+        </View>
+      );
+    }
+
+    if (searchString.length > 0) {
+      return (
+        <View style={styles.emptyList}>
+          <Text variant={TextVariant.BodyLGMedium}>
+            {strings('fiat_on_ramp_aggregator.region.no_region_results', {
+              searchString,
+            })}
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
+  }, [
+    countriesLoading,
+    countriesError,
+    countries,
+    searchString,
+    styles.emptyList,
+    styles.errorText,
+    styles.retryButton,
+    colors.primary.default,
+    fetchCountries,
+  ]);
 
   const handleSearchTextChange = useCallback(
     (text: string) => {

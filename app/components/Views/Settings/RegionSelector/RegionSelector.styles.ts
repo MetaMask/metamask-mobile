@@ -31,6 +31,15 @@ const createStyles = () =>
     emptyList: {
       padding: 16,
       alignItems: 'center',
+      justifyContent: 'center',
+      flex: 1,
+    },
+    errorText: {
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    retryButton: {
+      marginTop: 16,
     },
     nestedStateItem: {
       paddingLeft: 40,

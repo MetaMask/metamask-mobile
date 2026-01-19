@@ -10,6 +10,8 @@ import {
 } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
+import useRampsController from '../../../hooks/useRampsController';
+import { UserRegion } from '@metamask/ramps-controller';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -82,6 +84,68 @@ jest.mock('../../hooks/useActivationKeys', () =>
   jest.fn(() => mockUseActivationKeysValues),
 );
 
+const mockSetUserRegion = jest.fn();
+const mockFetchUserRegion = jest.fn();
+const mockFetchProviders = jest.fn();
+const mockFetchTokens = jest.fn();
+const mockFetchCountries = jest.fn();
+const mockSetPreferredProvider = jest.fn();
+
+const createMockUserRegion = (regionCode: string): UserRegion => {
+  const parts = regionCode.toLowerCase().split('-');
+  const countryCode = parts[0].toUpperCase();
+  const stateCode = parts[1]?.toUpperCase();
+
+  return {
+    country: {
+      isoCode: countryCode,
+      flag: '🇪🇺',
+      name: 'Europe Union',
+      phone: { prefix: '', placeholder: '', template: '' },
+      currency: '',
+      supported: true,
+    },
+    state: stateCode
+      ? {
+          stateId: stateCode,
+          name: stateCode,
+          supported: true,
+        }
+      : null,
+    regionCode: regionCode.toLowerCase(),
+  };
+};
+
+const mockUseRampsControllerInitialValues: ReturnType<
+  typeof useRampsController
+> = {
+  userRegion: createMockUserRegion('eu'),
+  userRegionLoading: false,
+  userRegionError: null,
+  setUserRegion: mockSetUserRegion,
+  fetchUserRegion: mockFetchUserRegion,
+  preferredProvider: null,
+  setPreferredProvider: mockSetPreferredProvider,
+  providers: [],
+  providersLoading: false,
+  providersError: null,
+  fetchProviders: mockFetchProviders,
+  tokens: null,
+  tokensLoading: false,
+  tokensError: null,
+  fetchTokens: mockFetchTokens,
+  countries: null,
+  countriesLoading: false,
+  countriesError: null,
+  fetchCountries: mockFetchCountries,
+};
+
+let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
+
+jest.mock('../../../hooks/useRampsController', () =>
+  jest.fn(() => mockUseRampsControllerValues),
+);
+
 const mockSetSelectedRegion = jest.fn();
 
 const mockuseRampSDKInitialValues: DeepPartial<RampSDK> = {
@@ -114,6 +178,9 @@ describe('Settings', () => {
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
     };
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+    };
   });
 
   it('renders correctly', () => {
@@ -138,21 +205,21 @@ describe('Settings', () => {
     });
 
     it('renders correctly when region is not set', () => {
-      mockUseRampSDKValues = {
-        ...mockuseRampSDKInitialValues,
-        selectedRegion: null,
+      mockUseRampsControllerValues = {
+        ...mockUseRampsControllerInitialValues,
+        userRegion: null,
       };
       render(Settings);
       expect(screen.toJSON()).toMatchSnapshot();
     });
 
-    it('calls setSelectedRegion with null when pressing reset region', () => {
+    it('renders correctly when region has state', () => {
+      mockUseRampsControllerValues = {
+        ...mockUseRampsControllerInitialValues,
+        userRegion: createMockUserRegion('eu-fr'),
+      };
       render(Settings);
-      const resetRegionButton = screen.getByRole('button', {
-        name: 'Reset region',
-      });
-      fireEvent.press(resetRegionButton);
-      expect(mockSetSelectedRegion).toHaveBeenCalledWith(null);
+      expect(screen.toJSON()).toMatchSnapshot();
     });
   });
 
