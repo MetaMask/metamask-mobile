@@ -89,6 +89,20 @@ const BASE_FUSE_OPTIONS = {
   minMatchCharLength: 1,
 };
 
+type FuseSearchOptions = ConstructorParameters<typeof Fuse>[1];
+
+const fuseSearch = <T,>(
+  data: T[],
+  searchQuery: string | undefined,
+  fuseOptions: FuseSearchOptions,
+): T[] => {
+  if (!searchQuery) {
+    return data;
+  }
+  const fuse = new Fuse(data, fuseOptions);
+  return fuse.search(searchQuery);
+};
+
 const TOKEN_FUSE_OPTIONS = {
   ...BASE_FUSE_OPTIONS,
   keys: [...TOKEN_FUSE_KEYS],
@@ -141,16 +155,9 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         undefined,
         false, // Disable debouncing here because useExploreSearch already handles it
       );
-      const tokenFuse = useMemo(
-        () => new Fuse(data, TOKEN_FUSE_OPTIONS),
-        [data],
-      );
       const filteredData = useMemo(() => {
-        if (!searchQuery) {
-          return data;
-        }
-        return tokenFuse.search(searchQuery);
-      }, [data, searchQuery, tokenFuse]);
+        return fuseSearch(data, searchQuery, TOKEN_FUSE_OPTIONS);
+      }, [data, searchQuery]);
       return { data: filteredData, isLoading, refetch };
     },
   },
@@ -191,17 +198,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
-      const perpsFuse = useMemo(
-        () => new Fuse(markets, PERPS_FUSE_OPTIONS),
-        [markets],
-      );
 
       const filteredMarkets = useMemo(() => {
-        if (!searchQuery) {
-          return markets;
-        }
-        return perpsFuse.search(searchQuery);
-      }, [markets, searchQuery, perpsFuse]);
+        return fuseSearch(markets, searchQuery, PERPS_FUSE_OPTIONS);
+      }, [markets, searchQuery]);
 
       return {
         data: filteredMarkets,
@@ -238,16 +238,9 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         q: searchQuery || undefined,
       });
 
-      const predictionsFuse = useMemo(
-        () => new Fuse(marketData, PREDICTIONS_FUSE_OPTIONS),
-        [marketData],
-      );
       const filteredData = useMemo(() => {
-        if (!searchQuery) {
-          return marketData;
-        }
-        return predictionsFuse.search(searchQuery);
-      }, [marketData, searchQuery, predictionsFuse]);
+        return fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS);
+      }, [marketData, searchQuery]);
 
       return { data: filteredData, isLoading: isFetching, refetch };
     },
