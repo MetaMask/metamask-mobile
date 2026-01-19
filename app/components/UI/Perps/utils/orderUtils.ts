@@ -1,14 +1,14 @@
+import { capitalize } from 'lodash';
 import { strings } from '../../../../../locales/i18n';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { OrderParams, Order } from '../controllers/types';
 import { Position } from '../hooks';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { capitalize } from 'lodash';
 
 /**
  * Get the order direction based on the side and position size
  * @param side - The side of the order
  * @param positionSize - The size of the position
- * @returns The order direction
+ * @returns The order direction ('long' or 'short')
  */
 export const getOrderDirection = (
   side: 'buy' | 'sell',

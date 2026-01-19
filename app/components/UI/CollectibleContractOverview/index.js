@@ -17,9 +17,8 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../AssetOverview/TokenOverview.testIds';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
-import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -86,10 +85,6 @@ class CollectibleContractOverview extends PureComponent {
      * Start transaction with asset
      */
     newAssetTransaction: PropTypes.func,
-    /**
-     * Whether the send redesign is enabled
-     */
-    isSendRedesignEnabled: PropTypes.bool,
   };
 
   onAdd = () => {
@@ -101,18 +96,15 @@ class CollectibleContractOverview extends PureComponent {
   };
 
   onSend = () => {
-    const { collectibleContract, collectibles, isSendRedesignEnabled } =
-      this.props;
+    const { collectibleContract, collectibles } = this.props;
     const collectible = collectibles.find((collectible) =>
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
-    handleSendPageNavigation(
-      this.props.navigation.navigate,
-      InitSendLocation.CollectibleContractOverview,
-      isSendRedesignEnabled,
-      collectible,
-    );
+    handleSendPageNavigation(this.props.navigation.navigate, {
+      location: InitSendLocation.CollectibleContractOverview,
+      asset: collectible,
+    });
   };
 
   onInfo = () => this.props.toggleCollectibleContractModal();
@@ -176,7 +168,6 @@ class CollectibleContractOverview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
-  isSendRedesignEnabled: selectSendRedesignFlags(state).enabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({

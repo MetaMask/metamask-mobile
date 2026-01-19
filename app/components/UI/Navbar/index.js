@@ -14,8 +14,6 @@ import {
 } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -37,8 +35,6 @@ import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { NetworksViewSelectorsIDs } from '../../Views/Settings/NetworksSettings/NetworksView.testIds';
 import { SendLinkViewSelectorsIDs } from '../ReceiveRequest/SendLinkView.testIds';
-import { SendViewSelectorsIDs } from '../../Views/confirmations/legacy/SendFlow/SendView.testIds';
-import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
   IconName,
   IconSize,
@@ -540,98 +536,6 @@ export function getApproveNavbar(title) {
     headerTitle: () => <NavbarTitle title={title} disableNetwork />,
     headerLeft: () => <View />,
     headerRight: () => <View />,
-  };
-}
-
-/**
- * Function that returns the navigation options
- * This is used by views in send flow
- *
- * @param {string} title - Title in string format
- * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
- */
-export function getSendFlowTitle({
-  title,
-  navigation,
-  route,
-  themeColors,
-  resetTransaction,
-  transaction,
-  disableNetwork = true,
-  showSelectedNetwork = false,
-  globalChainId = '',
-} = {}) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-  });
-  const rightAction = () => {
-    const providerType = route?.params?.providerType ?? '';
-    const additionalTransactionMetricsParams =
-      getBlockaidTransactionMetricsParams(transaction);
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_FLOW_CANCEL)
-        .addProperties({
-          view: title.split('.')[1],
-          network: providerType,
-          ...additionalTransactionMetricsParams,
-        })
-        .build(),
-    );
-    resetTransaction();
-    navigation.dangerouslyGetParent()?.pop();
-  };
-  const leftAction = () => navigation.pop();
-
-  const canGoBack =
-    title !== 'send.send_to' && !route?.params?.isPaymentRequest;
-
-  const titleToRender = title;
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={titleToRender}
-        disableNetwork={disableNetwork}
-        showSelectedNetwork={showSelectedNetwork}
-        networkName={globalChainId}
-      />
-    ),
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={rightAction}
-        style={styles.closeButton}
-        testID={SendViewSelectorsIDs.SEND_CANCEL_BUTTON}
-      >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('transaction.cancel')}
-        </Text>
-      </TouchableOpacity>
-    ),
-    headerLeft: () =>
-      canGoBack ? (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-          <Text
-            style={innerStyles.headerButtonText}
-            testID={SendViewSelectorsIDs.SEND_BACK_BUTTON}
-          >
-            {strings('transaction.back')}
-          </Text>
-        </TouchableOpacity>
-      ) : (
-        <View />
-      ),
-    headerStyle: innerStyles.headerStyle,
   };
 }
 

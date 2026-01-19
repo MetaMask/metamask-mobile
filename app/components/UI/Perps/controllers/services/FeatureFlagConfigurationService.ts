@@ -6,7 +6,7 @@ import {
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import { parseCommaSeparatedString } from '../../utils/stringParseUtils';
 import type { ServiceContext } from './ServiceContext';
 

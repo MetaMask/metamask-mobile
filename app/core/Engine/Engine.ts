@@ -174,6 +174,7 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
+import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -367,6 +368,7 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
+        ConnectivityController: connectivityControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
@@ -405,6 +407,7 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
+    const connectivityController = controllersByName.ConnectivityController;
     const profileMetricsController = controllersByName.ProfileMetricsController;
     const profileMetricsService = controllersByName.ProfileMetricsService;
     const rampsService = controllersByName.RampsService;
@@ -493,6 +496,7 @@ export class Engine {
       AccountTrackerController: accountTrackerController,
       AddressBookController: addressBookController,
       AppMetadataController: controllersByName.AppMetadataController,
+      ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
       NftController: nftController,
       TokensController: tokensController,
@@ -1304,6 +1308,7 @@ export default {
       ApprovalController,
       BridgeController,
       BridgeStatusController,
+      ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
       DelegationController,
@@ -1370,6 +1375,7 @@ export default {
       ApprovalController,
       BridgeController,
       BridgeStatusController,
+      ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
       DelegationController,

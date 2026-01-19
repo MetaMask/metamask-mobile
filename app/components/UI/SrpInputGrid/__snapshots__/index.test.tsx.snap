@@ -7,6 +7,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -258,6 +259,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -509,6 +511,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -760,6 +763,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
