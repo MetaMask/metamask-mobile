@@ -1,5 +1,3 @@
-import { PerpsMarketListViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
-
 export const TrendingViewSelectorsIDs = {
   SEARCH_BUTTON: 'explore-view-search-button',
   BROWSER_BUTTON: 'trending-view-browser-button',
@@ -29,7 +27,8 @@ export const TrendingViewSelectorsText = {
 export const SECTION_BACK_BUTTONS: Record<string, string> = {
   [TrendingViewSelectorsText.SECTION_TOKENS]:
     'trending-tokens-header-back-button',
-  [TrendingViewSelectorsText.SECTION_PERPS]: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+  [TrendingViewSelectorsText.SECTION_PERPS]:
+    'perps-market-list-close-button-back-button',
   [TrendingViewSelectorsText.SECTION_SITES]:
     'sites-full-view-header-back-button',
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button',
@@ -40,4 +39,12 @@ export const DETAILS_BACK_BUTTONS: Record<string, string> = {
   token: 'back-arrow-button',
   perp: 'perps-market-header-back-button',
   prediction: 'predict-market-details-back-button',
+};
+
+// Map section to its full view header Test ID
+export const SECTION_FULL_VIEW_HEADERS: Record<string, string> = {
+  [TrendingViewSelectorsText.SECTION_SITES]: 'sites-full-view-header',
+  [TrendingViewSelectorsText.SECTION_TOKENS]: 'trending-tokens-header',
+  [TrendingViewSelectorsText.SECTION_PERPS]: 'perps-market-list-close-button',
+  [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button', // PredictFeed uses back-button as main identifier
 };

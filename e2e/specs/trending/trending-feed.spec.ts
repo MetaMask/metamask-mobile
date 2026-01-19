@@ -54,7 +54,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
           await TrendingView.tapQuickAction(section);
 
           // Verify we are in full view (Header matches section title)
-          await TrendingView.verifySectionHeaderVisible(section);
+          await TrendingView.verifySectionHeaderInFullView(section);
 
           // Go back to main feed
           await TrendingView.tapBackFromFullView(section);
@@ -113,14 +113,14 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         ];
 
         for (const config of sectionsConfig) {
-          // Verify Section Header is visible
-          await TrendingView.verifySectionHeaderVisible(config.section);
+          // Verify Section Header is visible in feed
+          await TrendingView.verifySectionHeaderInFeed(config.section);
 
           // Tap View All for the section
           await TrendingView.tapViewAll(config.section);
 
           // Verify we are in full view (Header matches section title)
-          await TrendingView.verifySectionHeaderVisible(config.section);
+          await TrendingView.verifySectionHeaderInFullView(config.section);
 
           // Go back to main feed
           await TrendingView.tapBackFromFullView(config.section);

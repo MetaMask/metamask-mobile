@@ -1,12 +1,13 @@
 import { Matchers, Gestures, Assertions } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
-  TrendingViewSelectorsText,
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
+  SECTION_FULL_VIEW_HEADERS,
 } from '../../selectors/Trending/TrendingView.selectors';
 import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import TabBarComponent from '../wallet/TabBarComponent';
+import BrowserView from '../Browser/BrowserView';
 
 class TrendingView {
   get searchButton(): DetoxElement {
@@ -60,6 +61,17 @@ class TrendingView {
 
   getSectionHeader(title: string): DetoxElement {
     return Matchers.getElementByText(title);
+  }
+
+  /**
+   * Get section header by testID (for full view headers)
+   */
+  getSectionHeaderByTestID(title: string): DetoxElement | null {
+    const headerTestID = SECTION_FULL_VIEW_HEADERS[title];
+    if (!headerTestID) {
+      return null;
+    }
+    return Matchers.getElementByID(headerTestID);
   }
 
   getBackButton(testID: string): DetoxElement {
@@ -208,14 +220,6 @@ class TrendingView {
 
     const backButton = this.getBackButton(backButtonID);
 
-    // For Sites, wait for the back button to be visible (screen may need time to load)
-    if (sectionTitle === TrendingViewSelectorsText.SECTION_SITES) {
-      await Assertions.expectElementToBeVisible(backButton, {
-        description: 'Sites back button should be visible',
-        timeout: 5000,
-      });
-    }
-
     await Gestures.tap(backButton, {
       elemDescription: `Tap Back Button from ${sectionTitle} Full View`,
       checkStability: true,
@@ -252,8 +256,8 @@ class TrendingView {
   }
 
   async tapBackFromBrowser(): Promise<void> {
-    // Browser navigation uses tab switching instead of back button
-    await this.tapTrendingTab();
+    // Browser now uses close button (X) to return to feed
+    await BrowserView.tapCloseBrowserButton();
   }
 
   // --- Verification ---
@@ -344,71 +348,35 @@ class TrendingView {
     await this.tapItemRow(() => this.getSiteRow(name), name, 'site');
   }
 
-  async verifySectionHeaderVisible(title: string): Promise<void> {
-    // Sites view uses different headers in feed vs full view
-    if (title === TrendingViewSelectorsText.SECTION_SITES) {
-      const sitesFullViewHeader = Matchers.getElementByID(
-        'sites-full-view-header',
+  /**
+   * Verify section header in the feed view (uses text-based search)
+   */
+  async verifySectionHeaderInFeed(title: string): Promise<void> {
+    const header = this.getSectionHeader(title);
+    // Scroll to section header if needed
+    await this.scrollToElementInFeed(
+      header,
+      `Scroll to ${title} section header`,
+    );
+    await Assertions.expectElementToBeVisible(header, {
+      description: `${title} section header should be visible`,
+    });
+  }
+
+  /**
+   * Verify section header in full view (uses testID)
+   */
+  async verifySectionHeaderInFullView(title: string): Promise<void> {
+    const headerByTestID = this.getSectionHeaderByTestID(title);
+    if (!headerByTestID) {
+      throw new Error(
+        `No testID found for section header: ${title}. Check SECTION_FULL_VIEW_HEADERS mapping.`,
       );
-      const sitesFeedHeader = this.getSectionHeader(title);
-
-      // First try to verify if feed header is already visible (no scroll needed)
-      try {
-        await Assertions.expectElementToBeVisible(sitesFeedHeader, {
-          description: `${title} section header (feed) should be visible`,
-          timeout: 2000, // Short timeout to quickly check if visible
-        });
-      } catch {
-        // If not visible, try scrolling to it
-        try {
-          await this.scrollToElementInFeed(
-            sitesFeedHeader,
-            `Scroll to ${title} section header in feed`,
-          );
-          await Assertions.expectElementToBeVisible(sitesFeedHeader, {
-            description: `${title} section header (feed) should be visible`,
-            timeout: 5000,
-          });
-        } catch {
-          // If feed header not found (scroll failed or element not in feed),
-          // try full view header
-          await Assertions.expectElementToBeVisible(sitesFullViewHeader, {
-            description: `${title} section header (full view) should be visible`,
-            timeout: 10000, // Longer timeout for full view
-          });
-        }
-      }
-    } else {
-      // Other sections use text-based header
-      const header = this.getSectionHeader(title);
-
-      // First try to verify if element is already visible (no scroll needed)
-      try {
-        await Assertions.expectElementToBeVisible(header, {
-          description: `${title} section header should be visible`,
-          timeout: 2000, // Short timeout to quickly check if visible
-        });
-      } catch {
-        // If not visible, try scrolling to it
-        try {
-          await this.scrollToElementInFeed(
-            header,
-            `Scroll to ${title} section header`,
-          );
-          await Assertions.expectElementToBeVisible(header, {
-            description: `${title} section header should be visible`,
-            timeout: 5000,
-          });
-        } catch {
-          // If scroll fails (e.g., ScrollView not 100% visible on iOS),
-          // just verify the element is visible without scroll
-          await Assertions.expectElementToBeVisible(header, {
-            description: `${title} section header should be visible (without scroll)`,
-            timeout: 10000, // Longer timeout to wait for element to appear
-          });
-        }
-      }
     }
+    await Assertions.expectElementToBeVisible(headerByTestID, {
+      description: `${title} section header (full view) should be visible`,
+      timeout: 10000,
+    });
   }
 
   async verifyDetailsTitleVisible(title: string): Promise<void> {
