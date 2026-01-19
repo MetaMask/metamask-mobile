@@ -98,7 +98,7 @@ function AmountInput() {
       <ScreenLayout.Body>
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
-            <View>
+            <View style={styles.amountContainer}>
               <Text
                 variant={TextVariant.HeadingLG}
                 style={styles.mainAmount}

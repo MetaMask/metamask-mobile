@@ -17,6 +17,10 @@ const styleSheet = () =>
       lineHeight: 64 + 8,
       fontWeight: '400',
     },
+    amountContainer: {
+      alignItems: 'center',
+      gap: 16,
+    },
   });
 
 export default styleSheet;
