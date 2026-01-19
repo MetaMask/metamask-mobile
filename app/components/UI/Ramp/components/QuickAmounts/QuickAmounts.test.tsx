@@ -42,11 +42,11 @@ describe('QuickAmounts', () => {
     expect(queryByText('$50')).toBeNull();
   });
 
-  it('uses custom currency symbol when provided', () => {
+  it('uses custom currency when provided', () => {
     const { getByText } = renderWithTheme(
       <QuickAmounts
         amounts={[50, 100]}
-        currencySymbol="€"
+        currency="EUR"
         onAmountPress={mockOnAmountPress}
       />,
     );

@@ -63,7 +63,7 @@ jest.mock('../../../Navbar', () => ({
     mockGetRampsAmountInputNavbarOptions(navigation, options),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
+jest.mock('../../utils/formatCurrency', () => ({
   formatCurrency: (amount: number) => `$${amount}`,
 }));
 
@@ -73,6 +73,37 @@ jest.mock('../../hooks/useRampTokens', () => ({
 
 jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
+}));
+
+interface MockUserRegion {
+  country: {
+    currency: string;
+    quickAmounts: number[];
+  };
+  state: null;
+  regionCode: string;
+}
+
+const defaultUserRegion: MockUserRegion = {
+  country: {
+    currency: 'USD',
+    quickAmounts: [50, 100, 200, 400],
+  },
+  state: null,
+  regionCode: 'us',
+};
+
+let mockUserRegion: MockUserRegion | null = defaultUserRegion;
+
+jest.mock('../../../../../selectors/rampsController', () => ({
+  selectUserRegion: jest.fn(),
+}));
+
+const mockUseSelector = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
 const renderWithTheme = (component: React.ReactElement) =>
@@ -85,6 +116,8 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('AmountInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUserRegion = defaultUserRegion;
+    mockUseSelector.mockReturnValue(mockUserRegion);
     mockUseRampTokens.mockReturnValue({
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -210,6 +243,22 @@ describe('AmountInput', () => {
     expect(getByText('$100')).toBeOnTheScreen();
     expect(getByText('$200')).toBeOnTheScreen();
     expect(getByText('$400')).toBeOnTheScreen();
+  });
+
+  it('does not render quick amount buttons when no quick amounts are available', () => {
+    const emptyQuickAmountsRegion = {
+      country: {
+        currency: 'USD',
+        quickAmounts: [],
+      },
+      state: null,
+      regionCode: 'us',
+    };
+    mockUseSelector.mockReturnValue(emptyQuickAmountsRegion);
+
+    const { queryByTestId } = renderWithTheme(<AmountInput />);
+
+    expect(queryByTestId('quick-amounts')).toBeNull();
   });
 
   it('updates amount when quick amount button is pressed', () => {

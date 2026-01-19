@@ -24,9 +24,11 @@ import { getRampsAmountInputNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AmountInput.styles';
-import { formatCurrency } from '../../Deposit/utils';
+import { formatCurrency } from '../../utils/formatCurrency';
+import { useSelector } from 'react-redux';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import { selectUserRegion } from '../../../../../selectors/rampsController';
 
 interface AmountInputParams {
   assetId?: string;
@@ -43,8 +45,13 @@ function AmountInput() {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // TODO: Get currency from RampsController when integrated
-  const currency = 'USD';
+  // Get user region data from RampsController (via Redux selector)
+  const userRegion = useSelector(selectUserRegion);
+
+  // Get currency and quick amounts from user's region
+  const currency = userRegion?.country?.currency || 'USD';
+  const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+  const hasQuickAmounts = quickAmounts && quickAmounts.length > 0;
 
   // Get token and network info for the navbar
   const { allTokens } = useRampTokens();
@@ -147,7 +154,13 @@ function AmountInput() {
                 {strings('fiat_on_ramp.continue')}
               </Button>
             ) : (
-              <QuickAmounts onAmountPress={handleQuickAmountPress} />
+              hasQuickAmounts && (
+                <QuickAmounts
+                  amounts={quickAmounts}
+                  currency={currency}
+                  onAmountPress={handleQuickAmountPress}
+                />
+              )
             )}
           </View>
           <Keypad value={amount} onChange={handleKeypadChange} />
