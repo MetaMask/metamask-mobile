@@ -1,5 +1,6 @@
 import { CaipChainId } from '@metamask/utils';
 import { IconName } from '@metamask/design-system-react-native';
+import type { ToastRef } from '../../../components/Toast/Toast.types';
 
 export interface Icon {
   /**
@@ -23,13 +24,17 @@ export interface Icon {
  */
 export interface CopyParams {
   /**
-   * Success message
-   */
-  successMessage?: string;
-  /**
    * Callback function to execute when the copy action is successful
    */
   callback: () => Promise<void>;
+  /**
+   * Optional toast ref for showing toast notification
+   */
+  toastRef?: React.RefObject<ToastRef>;
+  /**
+   * Optional custom toast message (defaults to localized "Address copied to clipboard")
+   */
+  toastMessage: string;
 }
 
 export interface MultichainAddressRowProps {
