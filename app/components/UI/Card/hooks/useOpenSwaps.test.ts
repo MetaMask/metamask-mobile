@@ -18,11 +18,6 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
-  SwapBridgeNavigationLocation: {
-    TokenDetails: 'TokenDetails',
-    TabBar: 'TabBar',
-    Swaps: 'Swaps',
-  },
   useSwapBridgeNavigation: jest.fn(),
 }));
 
