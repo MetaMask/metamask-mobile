@@ -35,6 +35,32 @@ interface FormatMarketDetailsOptions {
 }
 
 /**
+ * Applies French-specific formatting to a number string with suffix.
+ * French typography requires non-breaking spaces between numbers and units/abbreviations.
+ * - Converts uppercase 'K' to lowercase 'k' (defensive, as translations should already provide 'k')
+ * - Adds non-breaking space between number and suffix
+ */
+const applyFrenchFormatting = (locale: string, formatted: string): string => {
+  const isFrench = locale.split(/[-_]/)[0]?.toLowerCase() === 'fr';
+  if (!isFrench) {
+    return formatted;
+  }
+
+  // Check if the string ends with a suffix (any non-digit, non-decimal-separator character)
+  // This handles all locale-specific suffixes (k, K, M, B, T, Tsd., Mio., etc.)
+  const suffixMatch = formatted.match(/([^\d.,\s]+)$/);
+  if (!suffixMatch) {
+    return formatted;
+  }
+
+  const suffix = suffixMatch[1];
+  const numberPart = formatted.slice(0, -suffix.length);
+  // Convert uppercase K to lowercase k (defensive, translations should already be correct)
+  const finalSuffix = suffix === 'K' ? 'k' : suffix;
+  return `${numberPart}\xa0${finalSuffix}`;
+};
+
+/**
  * Formats market details with consistent formatting options.
  * Applies conversion rate only when data is in native units (cached native asset data).
  */
@@ -66,17 +92,7 @@ export const formatMarketDetails = (
         .replace(/\d/g, '')
         .charAt(0) || '.';
     formatted = formatted.replace('.', decimalSeparator);
-
-    // Handle French: lowercase 'k' and non-breaking spaces
-    const isFrench = locale.split(/[-_]/)[0]?.toLowerCase() === 'fr';
-    const nbSp = isFrench ? '\xa0' : ' ';
-
-    if (isFrench && formatted.match(/[KMBT]$/)) {
-      let suffix = formatted.slice(-1);
-      const numberPart = formatted.slice(0, -1);
-      if (suffix === 'K') suffix = 'k';
-      formatted = `${numberPart}${nbSp}${suffix}`;
-    }
+    formatted = applyFrenchFormatting(locale, formatted);
 
     const currencyFormatter = getIntlNumberFormatter(locale, {
       style: 'currency',
@@ -90,6 +106,9 @@ export const formatMarketDetails = (
     const isCurrencyAfter = currencyFormatter
       .format(1)
       .endsWith(currencySymbol);
+
+    const isFrench = locale.split(/[-_]/)[0]?.toLowerCase() === 'fr';
+    const nbSp = isFrench ? '\xa0' : ' ';
 
     return isCurrencyAfter
       ? `${value < 0 ? '-' : ''}${formatted}${nbSp}${currencySymbol}`
@@ -152,15 +171,7 @@ export const formatMarketDetails = (
           const decimalSeparator =
             sampleFormatter.format(1.1).replace(/\d/g, '').charAt(0) || '.';
           formatted = formatted.replace('.', decimalSeparator);
-
-          // Handle French: lowercase 'k' and non-breaking space
-          const isFrench = locale.split(/[-_]/)[0]?.toLowerCase() === 'fr';
-          if (isFrench && formatted.match(/[KMBT]$/)) {
-            const suffix = formatted.slice(-1);
-            const numberPart = formatted.slice(0, -1);
-            const finalSuffix = suffix === 'K' ? 'k' : suffix;
-            return `${isNegative ? '-' : ''}${numberPart}\xa0${finalSuffix}`;
-          }
+          formatted = applyFrenchFormatting(locale, formatted);
 
           return `${isNegative ? '-' : ''}${formatted}`;
         })()
