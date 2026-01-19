@@ -66,10 +66,10 @@ describe('RewardsIntegrationService', () => {
         'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
 
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(mockEvmAccount);
       (
-        mockDeps.controllers.accounts.formatAccountToCaipId as jest.Mock
+        mockControllers.accounts.formatAccountToCaipId as jest.Mock
       ).mockReturnValue(mockCaipAccountId);
       (mockMessenger.call as jest.Mock).mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -90,6 +90,9 @@ describe('RewardsIntegrationService', () => {
       expect(
         getRewardsMock(mockControllers).getFeeDiscount,
       ).toHaveBeenCalledWith(mockCaipAccountId);
+      expect(
+        mockControllers.accounts.formatAccountToCaipId,
+      ).toHaveBeenCalledWith(mockEvmAccount.address, '0x1');
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'RewardsIntegrationService: Fee discount calculated',
         expect.objectContaining({
@@ -104,7 +107,7 @@ describe('RewardsIntegrationService', () => {
         'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
 
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(mockEvmAccount);
       (mockMessenger.call as jest.Mock).mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -113,7 +116,7 @@ describe('RewardsIntegrationService', () => {
         mockControllers.network.getChainIdForNetwork as jest.Mock
       ).mockReturnValue('0x1');
       (
-        mockDeps.controllers.accounts.formatAccountToCaipId as jest.Mock
+        mockControllers.accounts.formatAccountToCaipId as jest.Mock
       ).mockReturnValue(mockCaipAccountId);
       (
         getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
@@ -150,7 +153,7 @@ describe('RewardsIntegrationService', () => {
 
     it('returns undefined when no EVM account found', async () => {
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(null);
 
       const result = await service.calculateUserFeeDiscount({
@@ -169,7 +172,7 @@ describe('RewardsIntegrationService', () => {
 
     it('returns undefined when chain ID not found', async () => {
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(mockEvmAccount);
       (mockMessenger.call as jest.Mock).mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -201,7 +204,7 @@ describe('RewardsIntegrationService', () => {
 
     it('returns undefined when CAIP account ID formatting fails', async () => {
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(mockEvmAccount);
       (mockMessenger.call as jest.Mock).mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -210,7 +213,7 @@ describe('RewardsIntegrationService', () => {
         mockControllers.network.getChainIdForNetwork as jest.Mock
       ).mockReturnValue('0x1');
       (
-        mockDeps.controllers.accounts.formatAccountToCaipId as jest.Mock
+        mockControllers.accounts.formatAccountToCaipId as jest.Mock
       ).mockReturnValue(null);
 
       const result = await service.calculateUserFeeDiscount({
@@ -242,7 +245,7 @@ describe('RewardsIntegrationService', () => {
         'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
 
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(mockEvmAccount);
       (mockMessenger.call as jest.Mock).mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -251,7 +254,7 @@ describe('RewardsIntegrationService', () => {
         mockControllers.network.getChainIdForNetwork as jest.Mock
       ).mockReturnValue('0x1');
       (
-        mockDeps.controllers.accounts.formatAccountToCaipId as jest.Mock
+        mockControllers.accounts.formatAccountToCaipId as jest.Mock
       ).mockReturnValue(mockCaipAccountId);
       (
         getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
@@ -277,7 +280,7 @@ describe('RewardsIntegrationService', () => {
       const mockError = new Error('Network error');
 
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(mockEvmAccount);
       (mockMessenger.call as jest.Mock).mockImplementation(() => {
         throw mockError;
@@ -307,12 +310,12 @@ describe('RewardsIntegrationService', () => {
 
         const mockCaipAccountId = `eip155:${parseInt(chain.chainId, 16)}:${mockEvmAccount.address}`;
 
-        // Mock infrastructure.controllers.accounts methods
+        // Mock the passed mockControllers.accounts methods
         (
-          mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+          mockControllers.accounts.getSelectedEvmAccount as jest.Mock
         ).mockReturnValue(mockEvmAccount);
         (
-          mockDeps.controllers.accounts.formatAccountToCaipId as jest.Mock
+          mockControllers.accounts.formatAccountToCaipId as jest.Mock
         ).mockReturnValue(mockCaipAccountId);
 
         (mockMessenger.call as jest.Mock).mockReturnValue({
@@ -332,7 +335,7 @@ describe('RewardsIntegrationService', () => {
 
         expect(result).toBe(5000);
         expect(
-          mockDeps.controllers.accounts.formatAccountToCaipId,
+          mockControllers.accounts.formatAccountToCaipId,
         ).toHaveBeenCalledWith(mockEvmAccount.address, chain.chainId);
       }
     });
@@ -353,7 +356,7 @@ describe('RewardsIntegrationService', () => {
           'eip155:1:0x1234567890abcdef1234567890abcdef12345678';
 
         (
-          mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+          mockControllers.accounts.getSelectedEvmAccount as jest.Mock
         ).mockReturnValue(mockEvmAccount);
         (mockMessenger.call as jest.Mock).mockReturnValue({
           selectedNetworkClientId: 'mainnet',
@@ -362,7 +365,7 @@ describe('RewardsIntegrationService', () => {
           mockControllers.network.getChainIdForNetwork as jest.Mock
         ).mockReturnValue('0x1');
         (
-          mockDeps.controllers.accounts.formatAccountToCaipId as jest.Mock
+          mockControllers.accounts.formatAccountToCaipId as jest.Mock
         ).mockReturnValue(mockCaipAccountId);
         (
           getRewardsMock(mockControllers).getFeeDiscount as jest.Mock
@@ -389,19 +392,16 @@ describe('RewardsIntegrationService', () => {
       const mockDeps2 = createMockInfrastructure();
       const service2 = new RewardsIntegrationService(mockDeps2);
 
-      // First service
+      // First service - mock the passed controllers
       (
-        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        mockControllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockReturnValue(null);
       await service.calculateUserFeeDiscount({
         controllers: mockControllers,
         messenger: mockMessenger,
       });
 
-      // Second service
-      (
-        mockDeps2.controllers.accounts.getSelectedEvmAccount as jest.Mock
-      ).mockReturnValue(null);
+      // Second service - uses same mockControllers but different mockDeps
       await service2.calculateUserFeeDiscount({
         controllers: mockControllers,
         messenger: mockMessenger,
