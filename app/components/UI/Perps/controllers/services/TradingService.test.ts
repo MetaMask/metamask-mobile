@@ -1,45 +1,40 @@
 import { TradingService } from './TradingService';
 import type { ServiceContext } from './ServiceContext';
-import type {
-  IPerpsProvider,
-  OrderParams,
-  OrderResult,
-  EditOrderParams,
-  CancelOrderParams,
-  CancelOrdersParams,
-  ClosePositionParams,
-  ClosePositionsParams,
-  Position,
-  Order,
-  UpdatePositionTPSLParams,
+import {
+  PerpsAnalyticsEvent,
+  type IPerpsProvider,
+  type OrderParams,
+  type OrderResult,
+  type EditOrderParams,
+  type CancelOrderParams,
+  type CancelOrdersParams,
+  type ClosePositionParams,
+  type ClosePositionsParams,
+  type Position,
+  type Order,
+  type UpdatePositionTPSLParams,
+  type IPerpsPlatformDependencies,
 } from '../types';
-import { RewardsIntegrationService } from './RewardsIntegrationService';
-import Logger from '../../../../../util/Logger';
-import { trace, endTrace } from '../../../../../util/trace';
 import {
   createMockServiceContext,
   createMockPerpsControllerState,
+  createMockInfrastructure,
 } from '../../__mocks__/serviceMocks';
 import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
 
-jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../../util/trace');
-jest.mock('@sentry/react-native');
-jest.mock('./RewardsIntegrationService');
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
-jest.mock('react-native-performance', () => ({
-  now: jest.fn(() => 1000),
-}));
 
 describe('TradingService', () => {
   let mockProvider: jest.Mocked<IPerpsProvider>;
   let mockContext: ServiceContext;
+  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let tradingService: TradingService;
   let mockReportOrderToDataLake: jest.Mock;
   let mockWithStreamPause: jest.Mock;
   let mockGetPositions: jest.Mock;
   let mockGetOpenOrders: jest.Mock;
   let mockSaveTradeConfiguration: jest.Mock;
+  let mockRewardsIntegrationService: { calculateUserFeeDiscount: jest.Mock };
 
   const createContextWithRewards = (): ServiceContext =>
     createMockServiceContext({
@@ -48,12 +43,20 @@ describe('TradingService', () => {
         update: jest.fn(),
         getState: jest.fn(() => createMockPerpsControllerState()),
       },
-      rewardsController: {} as never,
-      networkController: {} as never,
-      messenger: {} as never,
     });
 
   beforeEach(() => {
+    mockDeps = createMockInfrastructure();
+    tradingService = new TradingService(mockDeps);
+    mockRewardsIntegrationService = {
+      calculateUserFeeDiscount: jest.fn().mockResolvedValue(undefined),
+    };
+    // Set controller dependencies for fee discount calculation
+    tradingService.setControllerDependencies({
+      controllers: mockDeps.controllers,
+      messenger: {} as never,
+      rewardsIntegrationService: mockRewardsIntegrationService as never,
+    });
     mockProvider =
       createMockHyperLiquidProvider() as unknown as jest.Mocked<IPerpsProvider>;
     mockSaveTradeConfiguration = jest.fn();
@@ -71,7 +74,6 @@ describe('TradingService', () => {
     mockGetOpenOrders = jest.fn().mockResolvedValue([]);
 
     jest.clearAllMocks();
-    (trace as jest.Mock).mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -94,11 +96,11 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.placeOrder({
+      const result = await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
@@ -127,11 +129,11 @@ describe('TradingService', () => {
       const contextWithRewards = createContextWithRewards();
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(6500);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        6500,
+      );
 
-      const result = await TradingService.placeOrder({
+      const result = await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: contextWithRewards,
@@ -158,12 +160,12 @@ describe('TradingService', () => {
       mockProvider.placeOrder.mockRejectedValue(
         new Error('Order placement failed'),
       );
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(6500);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        6500,
+      );
 
       await expect(
-        TradingService.placeOrder({
+        tradingService.placeOrder({
           provider: mockProvider,
           params: orderParams,
           context: contextWithRewards,
@@ -190,11 +192,11 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.placeOrder({
+      await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
@@ -218,11 +220,11 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.placeOrder({
+      await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
@@ -257,20 +259,21 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.placeOrder({
+      await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
         reportOrderToDataLake: mockReportOrderToDataLake,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TRADE_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'executed',
         }),
       );
     });
@@ -288,20 +291,21 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.placeOrder({
+      await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
         reportOrderToDataLake: mockReportOrderToDataLake,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TRADE_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'failed',
         }),
       );
     });
@@ -321,11 +325,11 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.placeOrder({
+      await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
@@ -353,13 +357,13 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
       mockReportOrderToDataLake.mockRejectedValue(new Error('Data lake error'));
 
       await expect(
-        TradingService.placeOrder({
+        tradingService.placeOrder({
           provider: mockProvider,
           params: orderParams,
           context: mockContext,
@@ -381,24 +385,24 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.placeOrder({
+      await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
         reportOrderToDataLake: mockReportOrderToDataLake,
       });
 
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: expect.any(String),
           id: 'mock-trace-id',
         }),
       );
-      expect(endTrace).toHaveBeenCalled();
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalled();
     });
 
     it('handles order placement failure', async () => {
@@ -412,11 +416,11 @@ describe('TradingService', () => {
         success: false,
         error: 'Insufficient margin',
       });
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.placeOrder({
+      const result = await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
@@ -425,7 +429,7 @@ describe('TradingService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Insufficient margin');
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
 
     it('handles provider exception during order placement', async () => {
@@ -437,12 +441,12 @@ describe('TradingService', () => {
       };
       const error = new Error('Network timeout');
       mockProvider.placeOrder.mockRejectedValue(error);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
       await expect(
-        TradingService.placeOrder({
+        tradingService.placeOrder({
           provider: mockProvider,
           params: orderParams,
           context: mockContext,
@@ -450,8 +454,11 @@ describe('TradingService', () => {
         }),
       ).rejects.toThrow('Network timeout');
 
-      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(Object));
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        error,
+        expect.any(Object),
+      );
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
 
     it('handles data lake reporting failure', async () => {
@@ -471,11 +478,11 @@ describe('TradingService', () => {
       mockReportOrderToDataLake.mockRejectedValue(
         new Error('Data lake unavailable'),
       );
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.placeOrder({
+      const result = await tradingService.placeOrder({
         provider: mockProvider,
         params: orderParams,
         context: mockContext,
@@ -484,7 +491,7 @@ describe('TradingService', () => {
 
       expect(result.success).toBe(true);
       await new Promise((resolve) => setTimeout(resolve, 10));
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'Data lake unavailable' }),
         expect.any(Object),
       );
@@ -509,11 +516,11 @@ describe('TradingService', () => {
       };
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.editOrder({
+      const result = await tradingService.editOrder({
         provider: mockProvider,
         params: editParams,
         context: mockContext,
@@ -542,11 +549,11 @@ describe('TradingService', () => {
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
       const contextWithRewards = createContextWithRewards();
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(6500);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        6500,
+      );
 
-      const result = await TradingService.editOrder({
+      const result = await tradingService.editOrder({
         provider: mockProvider,
         params: editParams,
         context: contextWithRewards,
@@ -577,19 +584,20 @@ describe('TradingService', () => {
       };
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.editOrder({
+      await tradingService.editOrder({
         provider: mockProvider,
         params: editParams,
         context: mockContext,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TRADE_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'executed',
         }),
       );
     });
@@ -611,19 +619,20 @@ describe('TradingService', () => {
       };
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.editOrder({
+      await tradingService.editOrder({
         provider: mockProvider,
         params: editParams,
         context: mockContext,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TRADE_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'failed',
         }),
       );
     });
@@ -642,12 +651,12 @@ describe('TradingService', () => {
 
       mockProvider.editOrder.mockRejectedValue(new Error('Edit failed'));
       const contextWithRewards = createContextWithRewards();
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(6500);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        6500,
+      );
 
       await expect(
-        TradingService.editOrder({
+        tradingService.editOrder({
           provider: mockProvider,
           params: editParams,
           context: contextWithRewards,
@@ -675,7 +684,7 @@ describe('TradingService', () => {
         error: 'Order not found',
       });
 
-      const result = await TradingService.editOrder({
+      const result = await tradingService.editOrder({
         provider: mockProvider,
         params: editParams,
         context: mockContext,
@@ -683,7 +692,7 @@ describe('TradingService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Order not found');
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
 
     it('handles provider exception during order edit', async () => {
@@ -700,15 +709,18 @@ describe('TradingService', () => {
       mockProvider.editOrder.mockRejectedValue(error);
 
       await expect(
-        TradingService.editOrder({
+        tradingService.editOrder({
           provider: mockProvider,
           params: editParams,
           context: mockContext,
         }),
       ).rejects.toThrow('Network timeout');
 
-      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(Object));
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        error,
+        expect.any(Object),
+      );
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
   });
 
@@ -725,7 +737,7 @@ describe('TradingService', () => {
 
       mockProvider.cancelOrder.mockResolvedValue(mockResult);
 
-      const result = await TradingService.cancelOrder({
+      const result = await tradingService.cancelOrder({
         provider: mockProvider,
         params: cancelParams,
         context: mockContext,
@@ -747,15 +759,16 @@ describe('TradingService', () => {
 
       mockProvider.cancelOrder.mockResolvedValue(mockResult);
 
-      await TradingService.cancelOrder({
+      await tradingService.cancelOrder({
         provider: mockProvider,
         params: cancelParams,
         context: mockContext,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'executed',
         }),
       );
     });
@@ -772,15 +785,16 @@ describe('TradingService', () => {
 
       mockProvider.cancelOrder.mockResolvedValue(mockResult);
 
-      await TradingService.cancelOrder({
+      await tradingService.cancelOrder({
         provider: mockProvider,
         params: cancelParams,
         context: mockContext,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'failed',
         }),
       );
     });
@@ -794,14 +808,14 @@ describe('TradingService', () => {
       mockProvider.cancelOrder.mockRejectedValue(new Error('Cancel failed'));
 
       await expect(
-        TradingService.cancelOrder({
+        tradingService.cancelOrder({
           provider: mockProvider,
           params: cancelParams,
           context: mockContext,
         }),
       ).rejects.toThrow('Cancel failed');
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
 
     it('handles order cancel failure', async () => {
@@ -814,7 +828,7 @@ describe('TradingService', () => {
         error: 'Order already filled',
       });
 
-      const result = await TradingService.cancelOrder({
+      const result = await tradingService.cancelOrder({
         provider: mockProvider,
         params: cancelParams,
         context: mockContext,
@@ -822,7 +836,7 @@ describe('TradingService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Order already filled');
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
 
     it('handles provider exception during order cancel', async () => {
@@ -834,15 +848,18 @@ describe('TradingService', () => {
       mockProvider.cancelOrder.mockRejectedValue(error);
 
       await expect(
-        TradingService.cancelOrder({
+        tradingService.cancelOrder({
           provider: mockProvider,
           params: cancelParams,
           context: mockContext,
         }),
       ).rejects.toThrow('Network error');
 
-      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(Object));
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        error,
+        expect.any(Object),
+      );
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
   });
 
@@ -906,7 +923,7 @@ describe('TradingService', () => {
         results: [{ success: true, orderId: 'order-1' }],
       });
 
-      const result = await TradingService.cancelOrders({
+      const result = await tradingService.cancelOrders({
         provider: mockProvider,
         params,
         context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -933,7 +950,7 @@ describe('TradingService', () => {
         ],
       });
 
-      const result = await TradingService.cancelOrders({
+      const result = await tradingService.cancelOrders({
         provider: mockProvider,
         params,
         context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -955,7 +972,7 @@ describe('TradingService', () => {
         results: [{ success: true, orderId: 'order-1' }],
       });
 
-      const result = await TradingService.cancelOrders({
+      const result = await tradingService.cancelOrders({
         provider: mockProvider,
         params,
         context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -976,7 +993,7 @@ describe('TradingService', () => {
 
       mockGetOpenOrders.mockResolvedValue(mockOrders);
 
-      const result = await TradingService.cancelOrders({
+      const result = await tradingService.cancelOrders({
         provider: mockProvider,
         params,
         context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -1002,7 +1019,7 @@ describe('TradingService', () => {
         ],
       });
 
-      const result = await TradingService.cancelOrders({
+      const result = await tradingService.cancelOrders({
         provider: mockProvider,
         params,
         context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -1024,7 +1041,7 @@ describe('TradingService', () => {
         results: [{ success: true, orderId: 'order-1' }],
       });
 
-      await TradingService.cancelOrders({
+      await tradingService.cancelOrders({
         provider: mockProvider,
         params,
         context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -1048,7 +1065,7 @@ describe('TradingService', () => {
       );
 
       await expect(
-        TradingService.cancelOrders({
+        tradingService.cancelOrders({
           provider: mockProvider,
           params,
           context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -1068,7 +1085,7 @@ describe('TradingService', () => {
       delete mockProvider.cancelOrders;
       mockProvider.cancelOrder.mockResolvedValue({ success: true });
 
-      const result = await TradingService.cancelOrders({
+      const result = await tradingService.cancelOrders({
         provider: mockProvider,
         params,
         context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
@@ -1110,11 +1127,11 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.closePosition({
+      const result = await tradingService.closePosition({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1138,11 +1155,11 @@ describe('TradingService', () => {
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
       const contextWithRewards = createContextWithRewards();
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(6500);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        6500,
+      );
 
-      const result = await TradingService.closePosition({
+      const result = await tradingService.closePosition({
         provider: mockProvider,
         params,
         context: { ...contextWithRewards, getPositions: mockGetPositions },
@@ -1170,20 +1187,21 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.closePosition({
+      await tradingService.closePosition({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
         reportOrderToDataLake: mockReportOrderToDataLake,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'executed',
         }),
       );
     });
@@ -1199,11 +1217,11 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.closePosition({
+      await tradingService.closePosition({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1233,22 +1251,21 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([shortPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.closePosition({
+      await tradingService.closePosition({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
         reportOrderToDataLake: mockReportOrderToDataLake,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
         expect.objectContaining({
-          properties: expect.objectContaining({
-            direction: expect.any(String),
-          }),
+          direction: expect.any(String),
         }),
       );
     });
@@ -1264,11 +1281,11 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockFailureResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.closePosition({
+      const result = await tradingService.closePosition({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1276,12 +1293,11 @@ describe('TradingService', () => {
       });
 
       expect(result).toEqual(mockFailureResult);
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
         expect.objectContaining({
-          properties: expect.objectContaining({
-            status: 'failed',
-            error_message: 'Insufficient liquidity',
-          }),
+          status: 'failed',
+          error_message: 'Insufficient liquidity',
         }),
       );
     });
@@ -1334,11 +1350,11 @@ describe('TradingService', () => {
           { success: true, orderId: 'close-2', coin: 'ETH' },
         ],
       });
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.closePositions({
+      const result = await tradingService.closePositions({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1358,11 +1374,11 @@ describe('TradingService', () => {
         success: true,
         results: [{ success: true, orderId: 'close-1', coin: 'BTC' }],
       });
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.closePositions({
+      const result = await tradingService.closePositions({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1385,7 +1401,7 @@ describe('TradingService', () => {
         results: [],
       });
 
-      const result = await TradingService.closePositions({
+      const result = await tradingService.closePositions({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1408,11 +1424,11 @@ describe('TradingService', () => {
           { success: false, coin: 'ETH', error: 'Insufficient liquidity' },
         ],
       });
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.closePositions({
+      const result = await tradingService.closePositions({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1433,11 +1449,11 @@ describe('TradingService', () => {
         success: true,
         orderId: 'close-1',
       });
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.closePositions({
+      const result = await tradingService.closePositions({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1477,11 +1493,11 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      const result = await TradingService.updatePositionTPSL({
+      const result = await tradingService.updatePositionTPSL({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
@@ -1504,11 +1520,11 @@ describe('TradingService', () => {
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
       const contextWithRewards = createContextWithRewards();
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(6500);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        6500,
+      );
 
-      const result = await TradingService.updatePositionTPSL({
+      const result = await tradingService.updatePositionTPSL({
         provider: mockProvider,
         params,
         context: { ...contextWithRewards, getPositions: mockGetPositions },
@@ -1534,19 +1550,20 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.updatePositionTPSL({
+      await tradingService.updatePositionTPSL({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.RISK_MANAGEMENT,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'executed',
         }),
       );
     });
@@ -1563,19 +1580,20 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.updatePositionTPSL({
+      await tradingService.updatePositionTPSL({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.RISK_MANAGEMENT,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'failed',
         }),
       );
     });
@@ -1596,22 +1614,21 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(undefined);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
 
-      await TradingService.updatePositionTPSL({
+      await tradingService.updatePositionTPSL({
         provider: mockProvider,
         params,
         context: { ...mockContext, getPositions: mockGetPositions },
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.RISK_MANAGEMENT,
         expect.objectContaining({
-          properties: expect.objectContaining({
-            direction: expect.any(String),
-            position_size: expect.any(Number),
-          }),
+          direction: expect.any(String),
+          position_size: expect.any(Number),
         }),
       );
     });
@@ -1627,12 +1644,12 @@ describe('TradingService', () => {
         new Error('Update failed'),
       );
       const contextWithRewards = createContextWithRewards();
-      (
-        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
-      ).mockResolvedValue(6500);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        6500,
+      );
 
       await expect(
-        TradingService.updatePositionTPSL({
+        tradingService.updatePositionTPSL({
           provider: mockProvider,
           params,
           context: { ...contextWithRewards, getPositions: mockGetPositions },
@@ -1651,7 +1668,7 @@ describe('TradingService', () => {
       const mockResult = { success: true };
       mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
 
-      const result = await TradingService.updateMargin({
+      const result = await tradingService.updateMargin({
         provider: mockProvider,
         coin: 'BTC',
         amount: '100',
@@ -1669,7 +1686,7 @@ describe('TradingService', () => {
       const mockResult = { success: true };
       mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
 
-      const result = await TradingService.updateMargin({
+      const result = await tradingService.updateMargin({
         provider: mockProvider,
         coin: 'BTC',
         amount: '-50',
@@ -1687,7 +1704,7 @@ describe('TradingService', () => {
       mockProvider.updateMargin = undefined as never;
 
       await expect(
-        TradingService.updateMargin({
+        tradingService.updateMargin({
           provider: mockProvider,
           coin: 'BTC',
           amount: '100',
@@ -1700,7 +1717,7 @@ describe('TradingService', () => {
       const mockResult = { success: false, error: 'Insufficient balance' };
       mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
 
-      const result = await TradingService.updateMargin({
+      const result = await tradingService.updateMargin({
         provider: mockProvider,
         coin: 'BTC',
         amount: '100',
@@ -1715,16 +1732,17 @@ describe('TradingService', () => {
       const mockResult = { success: true };
       mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
 
-      await TradingService.updateMargin({
+      await tradingService.updateMargin({
         provider: mockProvider,
         coin: 'BTC',
         amount: '100',
         context: mockContext,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.RISK_MANAGEMENT,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'executed',
         }),
       );
     });
@@ -1735,7 +1753,7 @@ describe('TradingService', () => {
         .mockRejectedValue(new Error('Network error'));
 
       await expect(
-        TradingService.updateMargin({
+        tradingService.updateMargin({
           provider: mockProvider,
           coin: 'BTC',
           amount: '100',
@@ -1743,9 +1761,10 @@ describe('TradingService', () => {
         }),
       ).rejects.toThrow('Network error');
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.RISK_MANAGEMENT,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'failed',
         }),
       );
     });
@@ -1754,7 +1773,7 @@ describe('TradingService', () => {
       const mockResult = { success: true };
       mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
 
-      await TradingService.updateMargin({
+      await tradingService.updateMargin({
         provider: mockProvider,
         coin: 'BTC',
         amount: '100',
@@ -1768,20 +1787,20 @@ describe('TradingService', () => {
       const mockResult = { success: true };
       mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
 
-      await TradingService.updateMargin({
+      await tradingService.updateMargin({
         provider: mockProvider,
         coin: 'BTC',
         amount: '100',
         context: mockContext,
       });
 
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'PerpsUpdateMargin',
+          name: 'Perps Update Margin',
           id: 'mock-trace-id',
         }),
       );
-      expect(endTrace).toHaveBeenCalled();
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalled();
     });
   });
 
@@ -1823,7 +1842,7 @@ describe('TradingService', () => {
       };
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
-      await TradingService.flipPosition({
+      await tradingService.flipPosition({
         provider: mockProvider,
         position: mockPosition,
         context: mockContext,
@@ -1843,7 +1862,7 @@ describe('TradingService', () => {
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
       // Long position (positive size)
-      await TradingService.flipPosition({
+      await tradingService.flipPosition({
         provider: mockProvider,
         position: { ...mockPosition, size: '0.5' },
         context: mockContext,
@@ -1861,7 +1880,7 @@ describe('TradingService', () => {
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
       // Short position (negative size)
-      await TradingService.flipPosition({
+      await tradingService.flipPosition({
         provider: mockProvider,
         position: { ...mockPosition, size: '-0.5' },
         context: mockContext,
@@ -1882,7 +1901,7 @@ describe('TradingService', () => {
       });
 
       await expect(
-        TradingService.flipPosition({
+        tradingService.flipPosition({
           provider: mockProvider,
           position: mockPosition,
           context: mockContext,
@@ -1894,7 +1913,7 @@ describe('TradingService', () => {
       mockProvider.getAccountState = jest.fn().mockResolvedValue(null);
 
       await expect(
-        TradingService.flipPosition({
+        tradingService.flipPosition({
           provider: mockProvider,
           position: mockPosition,
           context: mockContext,
@@ -1909,7 +1928,7 @@ describe('TradingService', () => {
       };
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
-      const result = await TradingService.flipPosition({
+      const result = await tradingService.flipPosition({
         provider: mockProvider,
         position: mockPosition,
         context: mockContext,
@@ -1923,15 +1942,16 @@ describe('TradingService', () => {
       const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
-      await TradingService.flipPosition({
+      await tradingService.flipPosition({
         provider: mockProvider,
         position: mockPosition,
         context: mockContext,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TRADE_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'executed',
         }),
       );
     });
@@ -1940,16 +1960,17 @@ describe('TradingService', () => {
       mockProvider.placeOrder.mockRejectedValue(new Error('Network error'));
 
       await expect(
-        TradingService.flipPosition({
+        tradingService.flipPosition({
           provider: mockProvider,
           position: mockPosition,
           context: mockContext,
         }),
       ).rejects.toThrow('Network error');
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TRADE_TRANSACTION,
         expect.objectContaining({
-          name: expect.any(String),
+          status: 'failed',
         }),
       );
     });
@@ -1958,7 +1979,7 @@ describe('TradingService', () => {
       const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
-      await TradingService.flipPosition({
+      await tradingService.flipPosition({
         provider: mockProvider,
         position: mockPosition,
         context: mockContext,
@@ -1971,26 +1992,26 @@ describe('TradingService', () => {
       const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
-      await TradingService.flipPosition({
+      await tradingService.flipPosition({
         provider: mockProvider,
         position: mockPosition,
         context: mockContext,
       });
 
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'PerpsFlipPosition',
+          name: 'Perps Flip Position',
           id: 'mock-trace-id',
         }),
       );
-      expect(endTrace).toHaveBeenCalled();
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalled();
     });
 
     it('uses correct order params including leverage', async () => {
       const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
       mockProvider.placeOrder.mockResolvedValue(mockResult);
 
-      await TradingService.flipPosition({
+      await tradingService.flipPosition({
         provider: mockProvider,
         position: mockPosition,
         context: mockContext,
