@@ -29,10 +29,26 @@ import { LLM_CONFIG } from '../config';
 let functionCallIdCounter = 0;
 
 /**
- * Generate a unique function call ID
+ * Generate a unique function call ID that includes the function name
+ * Format: {functionName}_{timestamp}_{counter}
+ * This allows extracting the function name later for Google's functionResponse API
  */
-function generateFunctionCallId(): string {
-  return `fc_${Date.now()}_${++functionCallIdCounter}`;
+function generateFunctionCallId(functionName: string): string {
+  return `${functionName}_${Date.now()}_${++functionCallIdCounter}`;
+}
+
+/**
+ * Extract function name from a generated function call ID
+ * Handles IDs in format: {functionName}_{timestamp}_{counter}
+ */
+function extractFunctionName(toolUseId: string): string {
+  // Split and take all parts except the last two (timestamp and counter)
+  const parts = toolUseId.split('_');
+  if (parts.length >= 3) {
+    // Function name may contain underscores, so join all but last 2 parts
+    return parts.slice(0, -2).join('_');
+  }
+  return toolUseId;
 }
 
 /**
@@ -150,7 +166,7 @@ function toGoogleContents(messages: LLMMessage[]): Content[] {
         } else if (block.type === 'tool_result') {
           parts.push({
             functionResponse: {
-              name: block.tool_use_id.split('_')[0] || 'unknown', // Extract name from ID
+              name: extractFunctionName(block.tool_use_id),
               response: { result: block.content },
             },
           });
@@ -191,10 +207,11 @@ function fromGoogleResponse(result: GenerateContentResult): LLMContentBlock[] {
         text: part.text,
       });
     } else if ('functionCall' in part && part.functionCall) {
+      const functionName = part.functionCall.name;
       content.push({
         type: 'tool_use',
-        id: generateFunctionCallId(),
-        name: part.functionCall.name,
+        id: generateFunctionCallId(functionName),
+        name: functionName,
         input: (part.functionCall.args as Record<string, unknown>) || {},
       });
     }
