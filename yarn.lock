@@ -17712,13 +17712,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/fast-text-encoding@npm:^1":
-  version: 1.0.3
-  resolution: "@types/fast-text-encoding@npm:1.0.3"
-  checksum: 10/34ec2bbaf3e3ee36b7b74375293becc735378f77e9cd93b810ad988b42991ee80d30fb942e6ba03adfc1f0cb0e2024a0aeee84475847563ed6782e21c4c0f5f0
-  languageName: node
-  linkType: hard
-
 "@types/find-cache-dir@npm:^3.2.1":
   version: 3.2.1
   resolution: "@types/find-cache-dir@npm:3.2.1"
@@ -34379,7 +34372,6 @@ __metadata:
     "@types/bnjs5": "npm:@types/bn.js@^5.1.6"
     "@types/enzyme": "npm:^3.10.12"
     "@types/eth-url-parser": "npm:^1.0.0"
-    "@types/fast-text-encoding": "npm:^1"
     "@types/he": "npm:^1.2.3"
     "@types/i18n-js": "npm:^3.8.4"
     "@types/is-url": "npm:^1.2.30"

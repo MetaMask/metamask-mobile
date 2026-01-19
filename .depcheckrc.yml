@@ -121,3 +121,7 @@ ignores:
   - '@types/react-test-renderer'
   # runtime for dependecies using Nitro Modules (@metamask/native-utils)
   - 'react-native-nitro-modules'
+
+  ## WalletConnect (see https://github.com/MetaMask/metamask-mobile/pull/24800)
+  - '@walletconnect/jsonrpc-types'
+  - 'fast-text-encoding'

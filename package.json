@@ -534,7 +534,6 @@
     "@types/bnjs5": "npm:@types/bn.js@^5.1.6",
     "@types/enzyme": "^3.10.12",
     "@types/eth-url-parser": "^1.0.0",
-    "@types/fast-text-encoding": "^1",
     "@types/i18n-js": "^3.8.4",
     "@types/is-url": "^1.2.30",
     "@types/jest": "^29.5.12",
