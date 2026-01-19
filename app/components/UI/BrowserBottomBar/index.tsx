@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Platform, ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -105,12 +105,10 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
   const tabCount = useSelector(selectBrowserTabCount);
 
-  // Using a ref to avoid recreating on useCallback handlers to prevent re-rendering
-  // In react 19.2+ this could be replaced with useEffectEvent hook
-  const activeUrlRef = useRef(activeUrl);
-  useEffect(() => {
-    activeUrlRef.current = activeUrl;
-  }, [activeUrl]);
+  const maskedActiveUrl = useMemo(
+    () => getMaskedUrl(activeUrl, sessionENSNames),
+    [activeUrl, getMaskedUrl, sessionENSNames],
+  );
 
   const trackNavigationEvent = useCallback(
     (navigationOption: string): void => {
@@ -129,10 +127,10 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   /**
    * Check if current URL is bookmarked
    */
-  const isBookmarked = useMemo((): boolean => {
-    const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
-    return bookmarks.some(({ url }: { url: string }) => url === maskedUrl);
-  }, [sessionENSNames, bookmarks, getMaskedUrl, activeUrl]);
+  const isBookmarked = useMemo(
+    () => bookmarks.some(({ url }: { url: string }) => url === maskedActiveUrl),
+    [bookmarks, maskedActiveUrl],
+  );
 
   /**
    * Navigate to AddBookmarkView modal
@@ -142,7 +140,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
       screen: 'AddBookmark',
       params: {
         title: title || '',
-        url: getMaskedUrl(activeUrlRef.current, sessionENSNames),
+        url: maskedActiveUrl,
         onAddBookmark: async ({
           name,
           url: urlToAdd,
@@ -158,7 +156,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
               (favicon as { uri?: string })?.uri ||
               '';
             const item = {
-              uniqueIdentifier: activeUrlRef.current,
+              uniqueIdentifier: activeUrl,
               title: name || getMaskedUrl(urlToAdd, sessionENSNames),
               contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
               keywords: [
@@ -195,8 +193,10 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   }, [
     navigation,
     title,
-    sessionENSNames,
+    activeUrl,
+    maskedActiveUrl,
     getMaskedUrl,
+    sessionENSNames,
     dispatch,
     icon,
     favicon,
@@ -220,9 +220,8 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
     if (isBookmarkDisabled) return;
 
     if (isBookmarked) {
-      const maskedUrl = getMaskedUrl(activeUrlRef.current, sessionENSNames);
       const bookmarkToRemove = bookmarks.find(
-        ({ url }: { url: string }) => url === maskedUrl,
+        ({ url }: { url: string }) => url === maskedActiveUrl,
       );
       if (bookmarkToRemove) {
         dispatch(removeBookmark(bookmarkToRemove));
@@ -233,8 +232,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   }, [
     isBookmarkDisabled,
     isBookmarked,
-    getMaskedUrl,
-    sessionENSNames,
+    maskedActiveUrl,
     bookmarks,
     dispatch,
     navigateToAddBookmark,
