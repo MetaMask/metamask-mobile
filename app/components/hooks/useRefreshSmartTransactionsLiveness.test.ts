@@ -48,34 +48,43 @@ describe('useRefreshSmartTransactionsLiveness', () => {
 
   it('does not fetch when chainId is null', () => {
     renderHook(() => useRefreshSmartTransactionsLiveness(null));
+
     expect(mockFetchLiveness).not.toHaveBeenCalled();
   });
 
   it('does not fetch when chainId is undefined', () => {
     renderHook(() => useRefreshSmartTransactionsLiveness(undefined));
+
     expect(mockFetchLiveness).not.toHaveBeenCalled();
   });
 
   it('does not fetch for non-EVM chains', () => {
     mockIsNonEvmChainId.mockReturnValue(true);
+
     renderHook(() => useRefreshSmartTransactionsLiveness('solana:mainnet'));
+
     expect(mockFetchLiveness).not.toHaveBeenCalled();
   });
 
   it('does not fetch for unsupported EVM chains', () => {
     mockGetAllowedChainIds.mockReturnValue(['0x1']);
+
     renderHook(() => useRefreshSmartTransactionsLiveness('0x999'));
+
     expect(mockFetchLiveness).not.toHaveBeenCalled();
   });
 
   it('does not fetch when user has not opted in to smart transactions', () => {
     mockSelectOptInStatus.mockReturnValue(false);
+
     renderHook(() => useRefreshSmartTransactionsLiveness('0x1'));
+
     expect(mockFetchLiveness).not.toHaveBeenCalled();
   });
 
   it('fetches liveness for supported EVM chain', () => {
     renderHook(() => useRefreshSmartTransactionsLiveness('0x1'));
+
     expect(mockFetchLiveness).toHaveBeenCalledTimes(1);
     expect(mockFetchLiveness).toHaveBeenCalledWith({
       chainId: '0x1',
@@ -87,10 +96,10 @@ describe('useRefreshSmartTransactionsLiveness', () => {
       ({ chainId }) => useRefreshSmartTransactionsLiveness(chainId),
       { initialProps: { chainId: '0x1' } },
     );
-
     expect(mockFetchLiveness).toHaveBeenCalledTimes(1);
 
     rerender({ chainId: '0x38' });
+
     expect(mockFetchLiveness).toHaveBeenCalledTimes(2);
   });
 });
