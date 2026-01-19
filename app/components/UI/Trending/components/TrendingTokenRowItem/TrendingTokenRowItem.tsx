@@ -144,9 +144,9 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
 
   const isEvmChain = caipChainId.startsWith('eip155:');
   const isNativeToken = assetIdentifier?.startsWith('slip44:');
-  const address = (
-    isNativeToken ? NATIVE_SWAPS_TOKEN_ADDRESS : assetIdentifier?.split(':')[1]
-  ) as Hex | undefined;
+  const address = isNativeToken
+    ? NATIVE_SWAPS_TOKEN_ADDRESS
+    : assetIdentifier?.split(':')[1];
 
   const hexChainId = caipChainIdToHex(caipChainId);
 
