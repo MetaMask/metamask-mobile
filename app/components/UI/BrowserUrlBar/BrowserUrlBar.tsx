@@ -226,8 +226,11 @@ const BrowserUrlBar = React.memo(
       const onFocusInput = useCallback(() => {
         setIsUrlBarFocused(true);
         onFocus();
-        inputRef?.current?.focus();
       }, [setIsUrlBarFocused, onFocus]);
+
+      const onPressUrlText = useCallback(() => {
+        inputRef?.current?.focus();
+      }, []);
 
       const onChangeTextInput = useCallback(
         (text: string) => {
@@ -288,7 +291,7 @@ const BrowserUrlBar = React.memo(
                 onBlur={onBlurInput}
                 onFocus={onFocusInput}
               />
-              <TouchableWithoutFeedback onPress={onFocusInput}>
+              <TouchableWithoutFeedback onPress={onPressUrlText}>
                 <Text
                   style={styles.urlBarText}
                   numberOfLines={1}
