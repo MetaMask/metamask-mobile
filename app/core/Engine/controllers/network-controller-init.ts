@@ -23,7 +23,7 @@ import { AnalyticsEventProperties } from '@metamask/analytics-controller';
 const NON_EMPTY = 'NON_EMPTY';
 
 export const ADDITIONAL_DEFAULT_NETWORKS = [
-  ChainId['megaeth-testnet'],
+  ChainId['megaeth-testnet-v2'],
   ChainId['monad-testnet'],
 ];
 
@@ -37,6 +37,12 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState = getDefaultNetworkControllerState(
       ADDITIONAL_DEFAULT_NETWORKS,
     );
+
+    // MegaETH Testnet v2 change back the RPC URL from timothy to carrot again
+    // TODO: Remove this once the MegaETH Testnet v2 is updated and released from the controller utils
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['megaeth-testnet-v2']
+    ].rpcEndpoints[0].url = 'https://carrot.megaeth.com/rpc';
 
     // Add failovers for default Infura RPC endpoints
     initialNetworkControllerState.networkConfigurationsByChainId[

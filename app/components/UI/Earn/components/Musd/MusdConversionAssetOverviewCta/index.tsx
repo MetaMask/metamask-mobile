@@ -1,8 +1,16 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Pressable } from 'react-native';
 import stylesheet from './MusdConversionAssetOverviewCta.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../component-library/components/Icons/Icon';
 import musdIcon from '../../../../../../images/musd-icon-no-background-2x.png';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
@@ -16,11 +24,13 @@ import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens'
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
   testId?: string;
+  onDismiss?: () => void;
 }
 
 const MusdConversionAssetOverviewCta = ({
   asset,
   testId = EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
+  onDismiss,
 }: MusdConversionAssetOverviewCtaProps) => {
   const { styles } = useStyles(stylesheet, {});
 
@@ -51,19 +61,41 @@ const MusdConversionAssetOverviewCta = ({
   };
 
   return (
-    <View style={styles.container} testID={testId}>
-      <Text>
-        <Text style={styles.text}>
-          {strings('earn.musd_conversion.earn_rewards_when')}
-          {`\n`}
-          {strings('earn.musd_conversion.you_convert_to')}{' '}
+    <Pressable style={styles.container} testID={testId} onPress={handlePress}>
+      {/* Image container on the left */}
+      <View style={styles.imageContainer}>
+        <Image source={musdIcon} style={styles.musdIcon} />
+      </View>
+
+      {/* Text content in the center */}
+      <View style={styles.textContainer}>
+        <Text variant={TextVariant.BodySMMedium} style={styles.title}>
+          {strings('earn.musd_conversion.boost_title')}
         </Text>
-        <Text style={styles.linkText} onPress={handlePress}>
-          mUSD
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+          {strings('earn.musd_conversion.boost_description')}{' '}
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
+            mUSD
+          </Text>
         </Text>
-      </Text>
-      <Image source={musdIcon} style={styles.musdIcon} />
-    </View>
+      </View>
+
+      {/* Close button on the right */}
+      {onDismiss && (
+        <Pressable
+          testID={EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON}
+          onPress={onDismiss}
+          hitSlop={16}
+          style={styles.closeButton}
+        >
+          <Icon
+            name={IconName.Close}
+            size={IconSize.Md}
+            color={IconColor.Alternative}
+          />
+        </Pressable>
+      )}
+    </Pressable>
   );
 };
 

@@ -15,7 +15,7 @@ import {
 import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

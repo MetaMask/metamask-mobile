@@ -1,7 +1,7 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers';
-import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
+import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
 import { Utilities } from '../../framework';
 
 class SendView {

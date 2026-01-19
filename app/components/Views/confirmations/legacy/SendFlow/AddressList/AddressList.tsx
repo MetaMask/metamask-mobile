@@ -11,7 +11,7 @@ import { useTheme } from '../../../../../../util/theme';
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { regex } from '../../../../../../util/regex';
-import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { SendViewSelectorsIDs } from '../SendView.testIds';
 import { selectInternalEvmAccounts } from '../../../../../../selectors/accountsController';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';

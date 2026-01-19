@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsDeveloperOptionsSection } from './PerpsDeveloperOptionsSection';
-import { PerpsTestnetToggleSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTestnetToggleSelectorsIDs } from '../../Perps.testIds';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {

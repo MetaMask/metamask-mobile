@@ -30,7 +30,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectTokenSelectors } from '../../../../../../../e2e/selectors/Ramps/SelectToken.selectors';
+import { selectTokenSelectors } from './SelectToken.testIds';
 import { useRampSDK } from '../../sdk';
 
 import styleSheet from './TokenSelectModal.styles';

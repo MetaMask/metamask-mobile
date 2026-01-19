@@ -212,7 +212,12 @@ const TrendingTokensFullView = () => {
       return [];
     }
 
-    // If no sort option selected, return filtered results as-is (already sorted by API)
+    // When searching, return results in relevance order (no sorting)
+    if (searchQuery?.trim()) {
+      return searchResults;
+    }
+
+    // When browsing (no search), apply sorting if option is selected
     if (!selectedPriceChangeOption) {
       return searchResults;
     }
@@ -228,6 +233,7 @@ const TrendingTokensFullView = () => {
     return sorted;
   }, [
     searchResults,
+    searchQuery,
     selectedPriceChangeOption,
     priceChangeSortDirection,
     selectedTimeOption,
@@ -355,8 +361,12 @@ const TrendingTokensFullView = () => {
               <TouchableOpacity
                 testID="24h-button"
                 onPress={handle24hPress}
-                style={styles.controlButtonRight}
+                style={[
+                  styles.controlButtonRight,
+                  searchQuery?.trim() && styles.controlButtonDisabled,
+                ]}
                 activeOpacity={0.2}
+                disabled={!!searchQuery?.trim()}
               >
                 <View style={styles.controlButtonContent}>
                   <Text style={styles.controlButtonText}>

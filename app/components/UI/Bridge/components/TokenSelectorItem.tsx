@@ -28,6 +28,7 @@ import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
+  TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -117,6 +118,29 @@ interface TokenSelectorItemProps {
   children?: React.ReactNode;
   isNoFeeAsset?: boolean;
 }
+
+const FiatBalanceView = ({
+  balance,
+  isSelected,
+}: {
+  balance?: string;
+  isSelected: boolean;
+}) => {
+  const { styles } = useStyles(createStyles, { isSelected });
+
+  if (!balance || balance === TOKEN_RATE_UNDEFINED) {
+    return null;
+  }
+
+  if (
+    balance === TOKEN_BALANCE_LOADING ||
+    balance === TOKEN_BALANCE_LOADING_UPPERCASE
+  ) {
+    return <View style={styles.skeleton} />;
+  }
+
+  return <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>;
+};
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   token,
@@ -243,13 +267,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
           {/* Token balance and fiat value */}
           <Box style={styles.balance} gap={4}>
-            {balance &&
-              (balance === TOKEN_BALANCE_LOADING ||
-              balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <View style={styles.skeleton} />
-              ) : (
-                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
-              ))}
+            <FiatBalanceView balance={balance} isSelected={isSelected} />
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (

@@ -228,7 +228,6 @@ jest.mock('../../../../../util/networks', () => ({
 }));
 
 jest.mock('./NetworkPills', () => ({
-  getNetworkName: jest.fn(() => 'Ethereum'),
   NetworkPills: ({
     onChainSelect,
   }: {

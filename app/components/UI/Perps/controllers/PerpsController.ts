@@ -73,6 +73,7 @@ import type {
   GetAccountStateParams,
   GetAvailableDexsParams,
   GetFundingParams,
+  GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetPositionsParams,
@@ -1749,11 +1750,27 @@ export class PerpsController extends BaseController<
   /**
    * Get available markets with optional filtering
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow market discovery
+   * without full perps initialization (e.g., for discovery banners on spot screens)
    */
-  async getMarkets(params?: {
-    symbols?: string[];
-    dex?: string;
-  }): Promise<MarketInfo[]> {
+  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if market exists) without full perps setup
+    if (params?.readOnly) {
+      // Try to get existing provider, or create a temporary one for readOnly queries
+      let provider = this.providers.get(this.state.activeProvider);
+      // Create a temporary provider instance for readOnly queries
+      // The readOnly path in provider creates a standalone InfoClient without full init
+      provider ??= new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.hip3AllowlistMarkets,
+        blocklistMarkets: this.hip3BlocklistMarkets,
+      });
+      return provider.getMarkets(params);
+    }
+
     const provider = this.getActiveProvider();
     return MarketDataService.getMarkets({
       provider,

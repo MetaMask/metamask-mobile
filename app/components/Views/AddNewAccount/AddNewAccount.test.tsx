@@ -17,7 +17,7 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { RootState } from '../../../reducers';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { AddNewAccountIds } from './AddHdAccount.testIds';
 import Logger from '../../../util/Logger';
 import { SolAccountType, TrxScope } from '@metamask/keyring-api';
 

@@ -55,7 +55,7 @@ import {
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
-import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { CardHomeSelectors } from './CardHome.testIds';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,

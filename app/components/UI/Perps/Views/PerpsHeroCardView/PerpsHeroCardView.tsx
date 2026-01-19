@@ -58,7 +58,7 @@ import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
 import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
 import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';

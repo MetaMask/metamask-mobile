@@ -6,7 +6,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
@@ -430,7 +430,7 @@ jest.mock('../../components/PerpsMarketStatisticsCard', () => {
   const { View, TouchableOpacity } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   const { PerpsMarketDetailsViewSelectorsIDs: SelectorsIDs } =
-    jest.requireActual('../../../../../../e2e/selectors/Perps/Perps.selectors');
+    jest.requireActual('../../Perps.testIds');
 
   return {
     __esModule: true,

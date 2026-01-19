@@ -15,7 +15,7 @@ import {
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
   TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { strings } from '../../../../../locales/i18n';

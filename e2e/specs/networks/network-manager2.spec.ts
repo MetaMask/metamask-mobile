@@ -1,5 +1,5 @@
 import { SmokeNetworkAbstractions } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../pages/wallet/NetworkManager';
@@ -255,7 +255,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         );
 
         // Step 2: Navigate to dapp and request network addition
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.tapOpenNetworkPicker();
         await TestDApp.tapNetworkByName(POLYGON);

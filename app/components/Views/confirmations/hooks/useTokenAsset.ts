@@ -6,8 +6,8 @@ import { strings } from '../../../../../locales/i18n';
 import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { TokenI } from '../../../UI/Tokens/types';
-import { getNativeTokenAddress } from '../utils/asset';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 const TypesForNativeToken = [
   TransactionType.simpleSend,

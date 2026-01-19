@@ -14,7 +14,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
-import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';

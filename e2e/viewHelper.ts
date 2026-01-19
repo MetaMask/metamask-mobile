@@ -24,10 +24,13 @@ import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './framework/Matchers';
-import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../app/components/Views/BrowserTab/BrowserView.testIds';
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
 import { Gestures, PortManager, ResourceType } from './framework';
+import TabBarComponent from './pages/wallet/TabBarComponent';
+import TrendingView from './pages/Trending/TrendingView';
+import BrowserView from './pages/Browser/BrowserView';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -569,4 +572,43 @@ export const waitForTestSnapsToLoad = async () => {
   }
 
   throw new Error('Test Snaps failed to become fully interactive.');
+};
+
+/**
+ * Navigates to the browser view using the appropriate flow based on what's available.
+ * This helper automatically adapts to different app configurations:
+ * - If the Explore tab button exists on the tab bar, it will tap Explore and then tap the browser button in the trending view
+ * - If the Explore tab doesn't exist, it will tap the browser button directly on the tab bar
+ *
+ * This allows tests to work seamlessly regardless of whether the trending feature is enabled or disabled.
+ *
+ * @async
+ * @function navigateToBrowserView
+ * @returns {Promise<void>} Resolves when navigation to browser view is complete and verified.
+ * @throws {Error} Throws an error if browser view fails to load.
+ *
+ * @example
+ * await navigateToBrowserView();
+ * await Browser.navigateToTestDApp();
+ */
+export const navigateToBrowserView = async (): Promise<void> => {
+  // Check if Explore button is visible on tab bar (short timeout for quick check)
+  const hasExploreButton = await Utilities.isElementVisible(
+    TabBarComponent.tabBarExploreButton,
+    500,
+  );
+
+  if (hasExploreButton) {
+    // Explore tab exists - navigate to it first
+    await TabBarComponent.tapExploreButton();
+    await TrendingView.tapBrowserButton();
+  } else {
+    // No Explore tab - use browser tab button directly
+    await TabBarComponent.tapBrowser();
+  }
+
+  // Verify we're in browser view regardless of which path we took
+  await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
+    description: 'Browser URL bar should be visible after navigation',
+  });
 };

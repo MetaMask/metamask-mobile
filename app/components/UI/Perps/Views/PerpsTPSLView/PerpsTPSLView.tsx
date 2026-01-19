@@ -39,7 +39,7 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   getPerpsTPSLViewSelector,
   PerpsTPSLViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import { createStyles } from './PerpsTPSLView.styles';

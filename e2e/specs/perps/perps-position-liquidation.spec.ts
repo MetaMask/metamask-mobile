@@ -14,7 +14,7 @@ import { createLogger, LogLevel } from '../../framework/logger';
 import PerpsE2EModifiers from './helpers/perps-modifiers';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
-import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import { PerpsPositionsViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { TestSuiteParams } from '../../framework/types';
 
 const logger = createLogger({

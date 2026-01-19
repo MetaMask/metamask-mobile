@@ -12,6 +12,23 @@ export const TRENDING_MIN_LIQUIDITY = 200000;
 export const TRENDING_MIN_VOLUME_24H = 1000000;
 
 /**
+ * Polling interval in milliseconds (5 minutes)
+ */
+const POLLING_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Options for fetching trending tokens
+ */
+interface FetchOptions {
+  /**
+   * If true, the fetch will silently update results without setting loading state or error.
+   * On success: updates results
+   * On failure: does nothing (preserves existing results and error state)
+   */
+  isSilentUpdate?: boolean;
+}
+
+/**
  * Hook for handling trending tokens request
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
@@ -56,60 +73,100 @@ export const useTrendingRequest = (options: {
 
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchTrendingTokens = useCallback(async () => {
-    if (!stableChainIds.length) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
+  const fetchTrendingTokens = useCallback(
+    async (fetchOptions: FetchOptions = {}) => {
+      const { isSilentUpdate = false } = fetchOptions;
 
-    // Increment request ID to mark this as the current request
-    const currentRequestId = ++requestIdRef.current;
-    setIsLoading(true);
-    setError(null);
+      if (!stableChainIds.length) {
+        if (!isSilentUpdate) {
+          setResults([]);
+          setIsLoading(false);
+        }
+        return;
+      }
 
-    try {
-      const resultsToStore = await getTrendingTokens({
-        chainIds: stableChainIds,
-        sortBy,
-        minLiquidity,
-        minVolume24hUsd,
-        maxVolume24hUsd,
-        minMarketCap,
-        maxMarketCap,
-        // TODO: Remove type assertion once @metamask/assets-controllers types are updated
-        excludeLabels: ['stable_coin', 'blue_chip'],
-      } as Parameters<typeof getTrendingTokens>[0]);
-      // Only update state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
-        setResults(resultsToStore);
+      // Increment request ID to mark this as the current request
+      const currentRequestId = ++requestIdRef.current;
+
+      if (!isSilentUpdate) {
+        setIsLoading(true);
+        setError(null);
       }
-    } catch (err) {
-      // Only update state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
-        setError(err as Error);
-        setResults([]);
+
+      try {
+        const resultsToStore = await getTrendingTokens({
+          chainIds: stableChainIds,
+          sortBy,
+          minLiquidity,
+          minVolume24hUsd,
+          maxVolume24hUsd,
+          minMarketCap,
+          maxMarketCap,
+          excludeLabels: ['stable_coin', 'blue_chip'],
+        });
+        // Only update state if this is still the current request
+        if (currentRequestId === requestIdRef.current) {
+          setResults(resultsToStore);
+        }
+      } catch (err) {
+        // Only update state if this is still the current request and not a silent update
+        if (currentRequestId === requestIdRef.current && !isSilentUpdate) {
+          setError(err as Error);
+          setResults([]);
+        }
+        // Silent updates silently fail - don't update error state or results
+      } finally {
+        // Only update loading state if this is still the current request
+        if (currentRequestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
-    } finally {
-      // Only update loading state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [
-    stableChainIds,
-    sortBy,
-    minLiquidity,
-    minVolume24hUsd,
-    maxVolume24hUsd,
-    minMarketCap,
-    maxMarketCap,
-  ]);
+    },
+    [
+      stableChainIds,
+      sortBy,
+      minLiquidity,
+      minVolume24hUsd,
+      maxVolume24hUsd,
+      minMarketCap,
+      maxMarketCap,
+    ],
+  );
 
   // Automatically trigger fetch when options change
   useEffect(() => {
     fetchTrendingTokens();
   }, [fetchTrendingTokens]);
+
+  // Track if initial load has completed successfully
+  const initialLoadCompleteRef = useRef(false);
+  useEffect(() => {
+    if (!isLoading && !initialLoadCompleteRef.current) {
+      if (results.length > 0 || !error) {
+        initialLoadCompleteRef.current = true;
+      }
+    }
+  }, [isLoading, results.length, error]);
+
+  // Refresh interval effect
+  useEffect(() => {
+    // Don't poll if we are loading, or initial fetch did not return data
+    if (
+      isLoading ||
+      !initialLoadCompleteRef.current ||
+      (!results.length && error)
+    ) {
+      return;
+    }
+
+    const pollingInterval = setInterval(() => {
+      fetchTrendingTokens({ isSilentUpdate: true });
+    }, POLLING_INTERVAL_MS);
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  }, [isLoading, results.length, error, fetchTrendingTokens]);
 
   return {
     results,

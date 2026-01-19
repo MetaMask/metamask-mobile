@@ -3,7 +3,7 @@ import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
+import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
 import {
   hasNotificationComponents,
   hasNotificationModal,
@@ -22,7 +22,7 @@ import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
-import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/NotificationMenuView.testIds';
 
 export const TEST_IDS = {
   loadingContainer: 'notification-list-loading',

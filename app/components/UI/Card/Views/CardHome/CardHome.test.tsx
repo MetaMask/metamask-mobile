@@ -339,7 +339,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
-import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { CardHomeSelectors } from './CardHome.testIds';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 
 // Get references to the mocked functions

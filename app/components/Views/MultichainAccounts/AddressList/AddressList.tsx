@@ -10,7 +10,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
+import { AddressListIds } from './AddressList.testIds';
 import {
   useParams,
   createNavigationDetails,

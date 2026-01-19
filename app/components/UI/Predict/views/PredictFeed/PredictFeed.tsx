@@ -46,7 +46,7 @@ import {
 import {
   PredictMarketListSelectorsIDs,
   getPredictMarketListSelector,
-} from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+} from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import {

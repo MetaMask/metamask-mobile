@@ -6,7 +6,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
 import { Animated, TouchableOpacity } from 'react-native';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
 import Text, {
   TextColor,
   TextVariant,

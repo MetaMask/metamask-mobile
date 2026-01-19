@@ -4,7 +4,7 @@ import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';

@@ -1,5 +1,5 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -20,7 +20,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectDialogSnapButton');
@@ -45,7 +45,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         await SnapSettingsView.tapBackButton();
         await SettingsView.tapCloseButton();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
 
         await TestSnaps.tapButton('sendAlertButton');
 
@@ -74,7 +74,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         await SnapSettingsView.tapBackButton();
         await SettingsView.tapCloseButton();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
 
         await TestSnaps.tapButton('sendAlertButton');
 

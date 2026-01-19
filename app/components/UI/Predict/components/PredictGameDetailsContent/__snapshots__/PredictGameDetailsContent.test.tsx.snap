@@ -1,0 +1,183 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PredictGameDetailsContent matches snapshot 1`] = `
+<View
+  edges={
+    [
+      "left",
+      "right",
+      "bottom",
+    ]
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 12,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 12,
+        },
+        {
+          "paddingTop": 12,
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityLabel="predict.buttons.back"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      hitSlop={
+        {
+          "bottom": 10,
+          "left": 10,
+          "right": 10,
+          "top": 10,
+        }
+      }
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+    >
+      <SvgMock
+        color="#121314"
+        fill="currentColor"
+        height={24}
+        name="ArrowLeft"
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "marginLeft": 16,
+            "marginRight": 16,
+          },
+          undefined,
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 18,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            {
+              "textAlign": "center",
+            },
+          ]
+        }
+      >
+        Test Game Market
+      </Text>
+    </View>
+    <View
+      accessibilityHint="marketId:test-market-id"
+      testID="predict-share-button"
+    />
+  </View>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      }
+    }
+    refreshControl={
+      <RefreshControlMock
+        colors={
+          [
+            "#4459ff",
+          ]
+        }
+        onRefresh={[MockFunction]}
+        refreshing={false}
+        tintColor="#4459ff"
+      />
+    }
+    style={
+      {
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      }
+    }
+  >
+    <RCTRefreshControl />
+    <View>
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+            },
+            undefined,
+          ]
+        }
+      />
+    </View>
+  </RCTScrollView>
+</View>
+`;

@@ -3,10 +3,10 @@ import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
   BrowserViewSelectorsXPaths,
-} from '../../selectors/Browser/BrowserView.selectors';
-import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
-import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
-import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
+} from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
+import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import {
   getTestDappLocalUrl,
   getDappUrl,

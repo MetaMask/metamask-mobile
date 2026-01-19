@@ -28,7 +28,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../Views/MultichainAccounts/AccountDetails.testIds';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 

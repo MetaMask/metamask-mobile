@@ -974,6 +974,10 @@
       "not_now": "Not now",
       "try_now": "Get started"
     },
+    "discovery_banner": {
+      "title": "Trade {{symbol}} perp",
+      "subtitle": "Multiply your P&L up to {{leverage}}"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized PnL",
@@ -1746,13 +1750,16 @@
       "markets": "Markets"
     },
     "learn_more": {
-      "title": "Learn more about Perps",
+      "title": "Learn about Perps",
       "description": "Discover how perpetual trading works and how to get started",
       "cta": "Learn more"
     },
     "support": {
       "title": "Contact support",
       "description": "Contact MetaMask Support for assistance"
+    },
+    "feedback": {
+      "title": "Give us feedback"
     },
     "close_all_modal": {
       "title": "Close all positions",
@@ -2362,6 +2369,7 @@
     "network_fee": "Network fee",
     "lists": "Token lists",
     "hide_cta": "Hide token",
+    "perps_trading": "Perps trading",
     "options": {
       "title": "Token options",
       "view_on_portfolio": "View on Portfolio",
@@ -3314,6 +3322,7 @@
       "description": "We could not fetch any data for this token"
     },
     "your_balance": "Your balance",
+    "perps_position": "Perps position",
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
     "about_content_display": {
@@ -5700,8 +5709,8 @@
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "earn_rewards_when": "Earn rewards when",
-      "you_convert_to": "you convert to"
+      "boost_title": "Boost your stablecoin balance",
+      "boost_description": "Earn a bonus every time you convert stablecoins to"
     },
     "rewards": {
       "rewards_tag_label": "Rewards",

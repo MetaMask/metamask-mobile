@@ -12,7 +12,7 @@ import { connect, useSelector } from 'react-redux';
 import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../BrowserTab/BrowserView.testIds';
 import {
   closeAllTabs,
   closeTab,
@@ -240,17 +240,26 @@ export const Browser = (props) => {
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const existingTabId = route.params?.existingTabId;
+      const shouldShowTabsView = route.params?.showTabsView;
       if (!newTabUrl && !existingTabId) {
         // Nothing from deeplink, carry on.
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (activeTab) {
           // Resume where last left off.
           switchToTab(activeTab);
+          // If showTabsView param is passed and tabs exist, show the tabs view directly
+          if (shouldShowTabsView && tabs.length) {
+            setShouldShowTabs(true);
+          }
         } else {
           /* eslint-disable-next-line */
           if (tabs.length) {
             // Tabs exists but no active set. Show first tab.
             switchToTab(tabs[0]);
+            // If showTabsView param is passed, show the tabs view directly
+            if (shouldShowTabsView) {
+              setShouldShowTabs(true);
+            }
           } else {
             // No tabs. Create a new one.
             newTab();
@@ -284,6 +293,7 @@ export const Browser = (props) => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
+      const shouldShowTabsView = route.params?.showTabsView;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from link.
         newTab(newTabUrl, linkType);
@@ -292,6 +302,9 @@ export const Browser = (props) => {
         if (existingTab) {
           switchToTab(existingTab);
         }
+      } else if (shouldShowTabsView && tabs.length) {
+        // Show tabs view directly when showTabsView param is passed
+        setShouldShowTabs(true);
       }
     },
     /* eslint-disable-next-line */
@@ -299,6 +312,7 @@ export const Browser = (props) => {
       route.params?.timestamp,
       route.params?.newTabUrl,
       route.params?.existingTabId,
+      route.params?.showTabsView,
     ],
   );
 

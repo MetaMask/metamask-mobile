@@ -32,7 +32,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';

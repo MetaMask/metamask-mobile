@@ -16,7 +16,7 @@ import { createMockAccountsControllerState } from '../../../../../../util/test/a
 import { Reason } from '../../components/BlockaidBanner/BlockaidBanner.types';
 import { RootState } from '../../../../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { ConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
+import { ConfirmViewSelectorsIDs } from '../ConfirmView.testIds';
 import { updateConfirmationMetric } from '../../../../../../core/redux/slices/confirmationMetrics';
 import Engine from '../../../../../../core/Engine';
 import { flushPromises } from '../../../../../../util/test/utils';

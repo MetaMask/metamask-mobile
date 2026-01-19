@@ -5,10 +5,6 @@ import {
 } from '../../selectors/Trending/TrendingView.selectors';
 
 class TrendingView {
-  get trendingTab(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.TAB_BAR_ITEM);
-  }
-
   get searchButton(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
@@ -45,12 +41,6 @@ class TrendingView {
 
   getSectionHeader(title: string): DetoxElement {
     return Matchers.getElementByText(title);
-  }
-
-  async tapTrendingTab(): Promise<void> {
-    await Gestures.tap(this.trendingTab, {
-      elemDescription: 'Tap Trending tab',
-    });
   }
 
   async tapSearchButton(): Promise<void> {

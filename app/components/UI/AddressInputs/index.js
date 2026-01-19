@@ -15,7 +15,7 @@ import { strings } from '../../../../locales/i18n';
 import { hasZeroWidthPoints } from '../../../util/confusables';
 import { useTheme } from '../../../util/theme';
 import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../Views/confirmations/legacy/SendFlow/SendView.testIds';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';

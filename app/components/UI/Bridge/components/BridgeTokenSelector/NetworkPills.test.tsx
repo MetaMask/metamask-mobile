@@ -3,10 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import {
-  mockNetworkConfigurations,
-  MOCK_CHAIN_IDS,
-} from '../../testUtils/fixtures';
+import { MOCK_CHAIN_IDS } from '../../testUtils/fixtures';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -14,26 +11,15 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.Mock;
 
-// Mock for selectEnabledChainRanking - returns filtered chain ranking array
+// Mock for selectEnabledChainRanking - returns filtered chain ranking array with names from feature flags
 const mockEnabledChainRanking = [
-  { chainId: MOCK_CHAIN_IDS.ethereum },
-  { chainId: MOCK_CHAIN_IDS.polygon },
-  { chainId: MOCK_CHAIN_IDS.optimism },
+  { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+  { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
+  { chainId: MOCK_CHAIN_IDS.optimism, name: 'Optimism' },
 ];
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => (key === 'bridge.all' ? 'All' : key),
-}));
-
-jest.mock('../../../../../constants/bridge', () => ({
-  NETWORK_TO_SHORT_NETWORK_NAME_MAP: {
-    'eip155:1': 'Ethereum',
-    '0x1': 'Ethereum',
-    'eip155:137': 'Polygon',
-    '0x89': 'Polygon',
-    'eip155:10': 'Optimism',
-    '0xa': 'Optimism',
-  },
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -60,9 +46,7 @@ describe('NetworkPills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector
-      .mockReturnValueOnce(mockEnabledChainRanking)
-      .mockReturnValueOnce(mockNetworkConfigurations);
+    mockUseSelector.mockReturnValue(mockEnabledChainRanking);
   });
 
   describe('rendering', () => {

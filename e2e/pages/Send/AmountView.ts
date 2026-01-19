@@ -3,7 +3,7 @@ import Gestures from '../../framework/Gestures';
 import {
   AmountViewSelectorsIDs,
   AmountViewSelectorsText,
-} from '../../selectors/SendFlow/AmountView.selectors';
+} from '../../../app/components/Views/confirmations/legacy/SendFlow/Amount/AmountView.testIds';
 
 class AmountView {
   get currencySwitch(): DetoxElement {

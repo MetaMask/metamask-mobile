@@ -3,6 +3,11 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { TokenSelectorItem } from './TokenSelectorItem';
 import { ethers } from 'ethers';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
+import {
+  TOKEN_BALANCE_LOADING,
+  TOKEN_BALANCE_LOADING_UPPERCASE,
+  TOKEN_RATE_UNDEFINED,
+} from '../../Tokens/constants';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => []),
@@ -230,6 +235,88 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText(expected)).toBeTruthy();
+    });
+  });
+
+  describe('balance display states', () => {
+    it('does not render balance text when balance is loading (lowercase)', () => {
+      const token = createMockTokenWithBalance({
+        balanceFiat: TOKEN_BALANCE_LOADING,
+      });
+
+      const { queryByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldShowBalance
+        />,
+      );
+
+      expect(queryByText(TOKEN_BALANCE_LOADING)).toBeNull();
+    });
+
+    it('does not render balance text when balance is loading (uppercase)', () => {
+      const token = createMockTokenWithBalance({
+        balanceFiat: TOKEN_BALANCE_LOADING_UPPERCASE,
+      });
+
+      const { queryByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldShowBalance
+        />,
+      );
+
+      expect(queryByText(TOKEN_BALANCE_LOADING_UPPERCASE)).toBeNull();
+    });
+
+    it('renders nothing when balance rate is undefined', () => {
+      const token = createMockTokenWithBalance({
+        balanceFiat: TOKEN_RATE_UNDEFINED,
+      });
+
+      const { queryByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldShowBalance
+        />,
+      );
+
+      expect(queryByText(TOKEN_RATE_UNDEFINED)).toBeNull();
+    });
+
+    it('renders fiat balance when balance is available', () => {
+      const token = createMockTokenWithBalance({
+        balanceFiat: '$1,234.56',
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldShowBalance
+        />,
+      );
+
+      expect(getByText('$1,234.56')).toBeTruthy();
+    });
+
+    it('does not render balance when shouldShowBalance is false', () => {
+      const token = createMockTokenWithBalance({
+        balanceFiat: '$1,234.56',
+      });
+
+      const { queryByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldShowBalance={false}
+        />,
+      );
+
+      expect(queryByText('$1,234.56')).toBeNull();
     });
   });
 

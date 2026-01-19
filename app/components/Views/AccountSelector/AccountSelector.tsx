@@ -48,7 +48,7 @@ import {
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';

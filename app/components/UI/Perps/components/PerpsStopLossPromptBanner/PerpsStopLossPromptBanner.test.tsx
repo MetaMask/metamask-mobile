@@ -4,7 +4,7 @@ import { Switch } from 'react-native';
 import PerpsStopLossPromptBanner from './PerpsStopLossPromptBanner';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsStopLossPromptSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
 
 const initialState = {
   engine: {

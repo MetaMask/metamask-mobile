@@ -12,7 +12,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';

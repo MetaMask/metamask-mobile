@@ -3,10 +3,17 @@ import {
   selectPooledStakingServiceInterruptionBannerEnabledFlag,
   selectStablecoinLendingEnabledFlag,
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+  selectIsMusdConversionFlowEnabledFlag,
+  selectIsMusdGetBuyCtaEnabledFlag,
+  selectIsMusdConversionAssetOverviewEnabledFlag,
+  selectIsMusdConversionTokenListItemCtaEnabledFlag,
+  selectMusdConversionCTATokens,
   selectMusdConversionPaymentTokensAllowlist,
   selectMusdConversionPaymentTokensBlocklist,
+  selectIsMusdConversionRewardsUiEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
+import type { Json } from '@metamask/utils';
 import {
   mockedState,
   mockedEmptyFlagsState,
@@ -36,6 +43,19 @@ jest.mock('../../../../../core/Engine', () => ({
 describe('Earn Feature Flag Selectors', () => {
   const originalEnv = process.env;
   let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+  const createStateWithRemoteFlags = (
+    remoteFeatureFlags: Record<string, Json>,
+  ) => ({
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags,
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -709,6 +729,329 @@ describe('Earn Feature Flag Selectors', () => {
           );
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('selectIsMusdConversionFlowEnabledFlag', () => {
+    it('returns remote flag when valid and enabled', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+
+      const stateWithEnabledRemoteFlag = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result = selectIsMusdConversionFlowEnabledFlag(
+        stateWithEnabledRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to local flag when remote flag is invalid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
+
+      const stateWithInvalidRemoteFlag = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: null,
+      });
+
+      const result = selectIsMusdConversionFlowEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to local flag when remote feature flags are empty', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
+
+      const result = selectIsMusdConversionFlowEnabledFlag(
+        mockedEmptyFlagsState,
+      );
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('selectIsMusdGetBuyCtaEnabledFlag', () => {
+    it('returns false when conversion flow is disabled', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CTA_ENABLED = 'true';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdCtaEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result = selectIsMusdGetBuyCtaEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns remote flag when conversion flow is enabled and remote flag is valid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CTA_ENABLED = 'false';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdCtaEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result = selectIsMusdGetBuyCtaEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
+      process.env.MM_MUSD_CTA_ENABLED = 'true';
+
+      const stateWithInvalidRemoteFlag = createStateWithRemoteFlags({
+        earnMusdCtaEnabled: null,
+      });
+
+      const result = selectIsMusdGetBuyCtaEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('selectIsMusdConversionAssetOverviewEnabledFlag', () => {
+    it('returns false when conversion flow is disabled', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA = 'true';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdConversionAssetOverviewCtaEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result =
+        selectIsMusdConversionAssetOverviewEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns remote flag when conversion flow is enabled and remote flag is valid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA = 'false';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdConversionAssetOverviewCtaEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result =
+        selectIsMusdConversionAssetOverviewEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
+      process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA = 'true';
+
+      const stateWithInvalidRemoteFlag = createStateWithRemoteFlags({
+        earnMusdConversionAssetOverviewCtaEnabled: null,
+      });
+
+      const result = selectIsMusdConversionAssetOverviewEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('selectIsMusdConversionTokenListItemCtaEnabledFlag', () => {
+    it('returns false when conversion flow is disabled', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA = 'true';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdConversionTokenListItemCtaEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result =
+        selectIsMusdConversionTokenListItemCtaEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns remote flag when conversion flow is enabled and remote flag is valid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA = 'false';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdConversionTokenListItemCtaEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result =
+        selectIsMusdConversionTokenListItemCtaEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
+      process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA = 'true';
+
+      const stateWithInvalidRemoteFlag = createStateWithRemoteFlags({
+        earnMusdConversionTokenListItemCtaEnabled: null,
+      });
+
+      const result = selectIsMusdConversionTokenListItemCtaEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('selectMusdConversionCTATokens', () => {
+    afterEach(() => {
+      delete process.env.MM_MUSD_CTA_TOKENS;
+    });
+
+    it('returns remote tokens when available', () => {
+      process.env.MM_MUSD_CTA_TOKENS = '{"0x1":["DAI"]}';
+
+      const remoteTokens = {
+        '*': ['USDC'],
+        '0xa4b1': ['USDT', 'DAI'],
+      };
+
+      const stateWithRemoteTokens = createStateWithRemoteFlags({
+        earnMusdConversionCtaTokens: remoteTokens,
+      });
+
+      const result = selectMusdConversionCTATokens(stateWithRemoteTokens);
+
+      expect(result).toEqual(remoteTokens);
+    });
+
+    it('falls back to local env tokens when remote unavailable', () => {
+      const localTokens = {
+        '0x1': ['USDC', 'DAI'],
+      };
+      process.env.MM_MUSD_CTA_TOKENS = JSON.stringify(localTokens);
+
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdConversionCTATokens(stateWithoutRemote);
+
+      expect(result).toEqual(localTokens);
+    });
+
+    it('returns empty object when both remote and local are unavailable', () => {
+      delete process.env.MM_MUSD_CTA_TOKENS;
+
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdConversionCTATokens(stateWithoutRemote);
+
+      expect(result).toEqual({});
+    });
+  });
+
+  describe('selectIsMusdConversionRewardsUiEnabledFlag', () => {
+    it('returns false when conversion flow is disabled', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED = 'true';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdConversionRewardsUiEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result =
+        selectIsMusdConversionRewardsUiEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns remote flag when conversion flow is enabled and remote flag is valid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'false';
+      process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED = 'false';
+
+      const stateWithRemoteFlags = createStateWithRemoteFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+        earnMusdConversionRewardsUiEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result =
+        selectIsMusdConversionRewardsUiEnabledFlag(stateWithRemoteFlags);
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
+      process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED = 'true';
+
+      const stateWithInvalidRemoteFlag = createStateWithRemoteFlags({
+        earnMusdConversionRewardsUiEnabled: null,
+      });
+
+      const result = selectIsMusdConversionRewardsUiEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+
+      expect(result).toBe(true);
     });
   });
 

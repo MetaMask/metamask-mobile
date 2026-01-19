@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
-import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from './SRPImport.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';

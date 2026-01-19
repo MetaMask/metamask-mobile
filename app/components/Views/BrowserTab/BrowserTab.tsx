@@ -70,7 +70,7 @@ import {
 } from './constants';
 import { regex } from '../../../../app/util/regex';
 import { selectEvmChainId } from '../../../selectors/networkController';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
