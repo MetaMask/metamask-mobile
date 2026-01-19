@@ -203,6 +203,26 @@ describe('AmountInput', () => {
     );
   });
 
+  it('renders quick amount buttons', () => {
+    const { getByText } = renderWithTheme(<AmountInput />);
+
+    expect(getByText('$50')).toBeOnTheScreen();
+    expect(getByText('$100')).toBeOnTheScreen();
+    expect(getByText('$200')).toBeOnTheScreen();
+    expect(getByText('$400')).toBeOnTheScreen();
+  });
+
+  it('updates amount when quick amount button is pressed', () => {
+    const { getByTestId, getAllByText } = renderWithTheme(<AmountInput />);
+
+    fireEvent.press(getByTestId('quick-amounts-button-100'));
+
+    // After pressing $100, there should be two "$100" texts:
+    // one in the button and one in the main amount display
+    const amountTexts = getAllByText('$100');
+    expect(amountTexts.length).toBe(2);
+  });
+
   it('matches snapshot', () => {
     const { toJSON } = renderWithTheme(<AmountInput />);
 

@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Keypad from '../../../../Base/Keypad';
 import PaymentMethodPill from '../PaymentMethodPill';
+import QuickAmounts from '../QuickAmounts';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -87,6 +88,11 @@ function AmountInput() {
     [],
   );
 
+  const handleQuickAmountPress = useCallback((quickAmount: number) => {
+    setAmount(String(quickAmount));
+    setAmountAsNumber(quickAmount);
+  }, []);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -113,6 +119,7 @@ function AmountInput() {
             </View>
           </View>
 
+          <QuickAmounts onAmountPress={handleQuickAmountPress} />
           <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
