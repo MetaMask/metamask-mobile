@@ -627,7 +627,7 @@ export class RewardsController extends BaseController<
   /**
    * Sign a message for rewards authentication
    */
-  async #signRewardsMessage(
+  async signRewardsMessage(
     account: InternalAccount,
     timestamp: number,
   ): Promise<string> {
@@ -974,7 +974,7 @@ export class RewardsController extends BaseController<
       const MAX_RETRY_ATTEMPTS = 1;
 
       try {
-        signature = await this.#signRewardsMessage(internalAccount, timestamp);
+        signature = await this.signRewardsMessage(internalAccount, timestamp);
       } catch (signError) {
         Logger.log(
           'RewardsController: Failed to generate signature:',
@@ -1023,7 +1023,7 @@ export class RewardsController extends BaseController<
             );
             // Use the timestamp from the error for retry
             timestamp = error.timestamp;
-            signature = await this.#signRewardsMessage(
+            signature = await this.signRewardsMessage(
               internalAccount,
               timestamp,
             );
@@ -2135,7 +2135,7 @@ export class RewardsController extends BaseController<
     });
     // Generate timestamp and sign the message for mobile optin
     let timestamp = Math.floor(Date.now() / 1000);
-    let signature = await this.#signRewardsMessage(account, timestamp);
+    let signature = await this.signRewardsMessage(account, timestamp);
     let retryAttempt = 0;
     const MAX_RETRY_ATTEMPTS = 1;
     const executeMobileOptin = async (
@@ -2162,7 +2162,7 @@ export class RewardsController extends BaseController<
           });
           // Use the timestamp from the error for retry
           timestamp = error.timestamp;
-          signature = await this.#signRewardsMessage(account, timestamp);
+          signature = await this.signRewardsMessage(account, timestamp);
           return await executeMobileOptin(timestamp, signature);
         }
 
@@ -2594,7 +2594,7 @@ export class RewardsController extends BaseController<
     try {
       // Generate timestamp and sign the message for mobile join
       let timestamp = Math.floor(Date.now() / 1000);
-      let signature = await this.#signRewardsMessage(account, timestamp);
+      let signature = await this.signRewardsMessage(account, timestamp);
       let retryAttempt = 0;
       const MAX_RETRY_ATTEMPTS = 1;
 
@@ -2626,7 +2626,7 @@ export class RewardsController extends BaseController<
             });
             // Use the timestamp from the error for retry
             timestamp = error.timestamp;
-            signature = await this.#signRewardsMessage(account, timestamp);
+            signature = await this.signRewardsMessage(account, timestamp);
             return await executeMobileJoin(timestamp, signature);
           }
 

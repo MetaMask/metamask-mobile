@@ -163,122 +163,6 @@ const CAIP_ACCOUNT_3: CaipAccountId = 'eip155:1:0x789' as CaipAccountId;
  * This approach is more robust than using type casting and avoids skipping tests
  */
 class TestableRewardsController extends RewardsController {
-  // Expose private methods for testing
-  public testSignRewardsMessage(
-    account: any,
-    timestamp: number,
-    isNonEvmAddress: boolean,
-    isSolanaAddress: boolean,
-    isBtcAccount: boolean = false,
-    isBtcEnabledOverride?: boolean,
-    isTronAccount: boolean = false,
-    isTronEnabledOverride?: boolean,
-  ): Promise<string> {
-    // For unsupported account types - return a rejected promise
-    if (
-      isNonEvmAddress &&
-      !isSolanaAddress &&
-      !isBtcAccount &&
-      !isTronAccount
-    ) {
-      return Promise.reject(
-        new Error('Unsupported account type for signing rewards message'),
-      );
-    }
-
-    // For Solana accounts
-    if (isSolanaAddress) {
-      // Format the message exactly as expected in the test
-      const message = `rewards,${account.address},${timestamp}`;
-      const base64Message = Buffer.from(message, 'utf8').toString('base64');
-
-      // Call the global mock function that the test is expecting
-      // This is what the test is checking with expect().toHaveBeenCalledWith()
-      (global as any).signSolanaRewardsMessage(account.address, base64Message);
-
-      // Call base58.decode with the expected signature
-      base58.decode('solana-signature');
-
-      // Return the expected format
-      return Promise.resolve('0x01020304');
-    }
-
-    // For Bitcoin accounts - only if BTC is enabled
-    if (isBtcAccount) {
-      // Check if BTC is enabled - use override if provided, otherwise try to access private method
-      const isBtcEnabled =
-        isBtcEnabledOverride !== undefined
-          ? isBtcEnabledOverride
-          : this.testIsBtcEnabled();
-
-      if (!isBtcEnabled) {
-        // If BTC is disabled, fall through to error case
-        return Promise.reject(
-          new Error('Unsupported account type for signing rewards message'),
-        );
-      }
-
-      // Format the message exactly as expected in the test
-      const message = `rewards,${account.address},${timestamp}`;
-      const base64Message = Buffer.from(message, 'utf8').toString('base64');
-
-      // Call the actual mock function
-      return mockSignBitcoinRewardsMessage(account.id, base64Message).then(
-        (result) =>
-          // Bitcoin signatures are already in hex format, just ensure 0x prefix
-          result.signature.startsWith('0x')
-            ? result.signature
-            : `0x${result.signature}`,
-      );
-    }
-
-    // For Tron accounts - only if Tron is enabled
-    if (isTronAccount) {
-      // Check if Tron is enabled - use override if provided, otherwise try to access private method
-      const isTronEnabled =
-        isTronEnabledOverride !== undefined
-          ? isTronEnabledOverride
-          : this.testIsTronEnabled();
-
-      if (!isTronEnabled) {
-        // If Tron is disabled, fall through to error case
-        return Promise.reject(
-          new Error('Unsupported account type for signing rewards message'),
-        );
-      }
-
-      // Format the message exactly as expected in the test
-      const message = `rewards,${account.address},${timestamp}`;
-      const base64Message = Buffer.from(message, 'utf8').toString('base64');
-
-      // Call the actual mock function
-      return mockSignTronRewardsMessage(account.id, base64Message).then(
-        (result) =>
-          // Tron signatures are already in hex format, just ensure 0x prefix
-          result.signature.startsWith('0x')
-            ? result.signature
-            : `0x${result.signature}`,
-      );
-    }
-
-    // For EVM accounts
-    const message = `rewards,${account.address},${timestamp}`;
-    const hexMessage = '0x' + Buffer.from(message, 'utf8').toString('hex');
-
-    // Call the messaging system with the expected parameters and properly handle errors
-    // This will use the mock that's set up in the test
-    return this.messenger
-      .call('KeyringController:signPersonalMessage', {
-        data: hexMessage,
-        from: account.address,
-      })
-      .then(
-        () =>
-          // Return the exact signature expected by the test
-          '0xsignature',
-      );
-  }
-
   // Add other private methods as needed
   public testGetSeasonStatus(
     subscriptionId: string,
@@ -14074,43 +13958,9 @@ describe('RewardsController', () => {
   describe('#signRewardsMessage', () => {
     const mockTimestamp = 1234567890;
 
-    // Mock the required imports and functions
-    const mockIsSolanaAddress = jest.fn();
-    const mockIsNonEvmAddress = jest.fn();
-    const mockSignSolanaRewardsMessage = jest.fn();
-    const mockLogger = { log: jest.fn() };
-
-    // Import the actual types needed
-    interface InternalAccount {
-      address: string;
-      type: string;
-      id: string;
-      scopes: string[];
-      options: Record<string, unknown>;
-      methods: string[];
-      metadata: {
-        name: string;
-        keyring: { type: string };
-        importTime: number;
-      };
-    }
-
     beforeEach(() => {
-      // Undo mocks set in top-level `beforeEach`
+      // Reset all mocks for test isolation
       jest.resetAllMocks();
-
-      // Setup global mocks
-      (global as any).isSolanaAddress = mockIsSolanaAddress;
-      (global as any).isNonEvmAddress = mockIsNonEvmAddress;
-      (global as any).signSolanaRewardsMessage = mockSignSolanaRewardsMessage;
-      (global as any).Logger = mockLogger;
-    });
-
-    afterEach(() => {
-      delete (global as any).isSolanaAddress;
-      delete (global as any).isNonEvmAddress;
-      delete (global as any).signSolanaRewardsMessage;
-      delete (global as any).Logger;
     });
 
     it('should sign EVM message correctly', async () => {
@@ -14136,18 +13986,16 @@ describe('RewardsController', () => {
       // Mock the KeyringController:signPersonalMessage call
       mockMessenger.call.mockResolvedValueOnce('0xsignature');
 
-      // Create a testable controller that exposes private methods
-      const testController = new TestableRewardsController({
+      // Create a controller instance
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      // Act - directly call the exposed test method
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        false,
-        false,
       );
 
       // Assert
@@ -14171,9 +14019,9 @@ describe('RewardsController', () => {
       // Arrange
       const mockInternalAccount = {
         address: 'solana-address',
-        type: 'solana:pubkey',
+        type: 'solana:data-account' as const,
         id: 'test-id',
-        scopes: ['solana:mainnet'],
+        scopes: ['solana:mainnet'] as const,
         options: {},
         methods: ['signMessage'],
         metadata: {
@@ -14190,23 +14038,22 @@ describe('RewardsController', () => {
       const mockSignatureBytes = new Uint8Array([1, 2, 3, 4]);
       mockSignSolanaRewardsMessage.mockResolvedValue({
         signature: 'solana-signature',
+        signedMessage: 'test-message',
+        signatureType: 'ed25519' as const,
       });
 
       // Mock base58 decode to return a predictable value
       jest.spyOn(base58, 'decode').mockReturnValue(mockSignatureBytes);
 
-      // Create a testable controller that exposes private methods
-      const testController = new TestableRewardsController({
+      // Create a controller instance
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
-      // Act - directly call the exposed test method
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        true,
-        true,
-        false,
       );
 
       // Assert
@@ -14218,7 +14065,7 @@ describe('RewardsController', () => {
       ).toString('base64');
 
       expect(mockSignSolanaRewardsMessage).toHaveBeenCalledWith(
-        mockInternalAccount.address,
+        mockInternalAccount.id,
         expectedBase64Message,
       );
 
@@ -14255,21 +14102,17 @@ describe('RewardsController', () => {
         signatureType: 'ecdsa',
       });
 
-      // Create TestableRewardsController with BTC enabled
-      const testController = new TestableRewardsController({
+      // Create RewardsController with BTC enabled
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isBtcEnabled: () => true,
       });
 
-      // Act - use test helper that includes BTC enabled check
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        true, // isNonEvmAddress
-        false, // isSolanaAddress
-        true, // isBtcAccount
-        true, // isBtcEnabledOverride
       );
 
       // Assert
@@ -14317,21 +14160,17 @@ describe('RewardsController', () => {
         signatureType: 'ecdsa',
       });
 
-      // Create TestableRewardsController with BTC enabled
-      const testController = new TestableRewardsController({
+      // Create RewardsController with BTC enabled
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isBtcEnabled: () => true,
       });
 
-      // Act - use test helper that includes BTC enabled check and 0x prefix logic
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        true, // isNonEvmAddress
-        false, // isSolanaAddress
-        true, // isBtcAccount
-        true, // isBtcEnabledOverride
       );
 
       // Assert
@@ -14361,23 +14200,16 @@ describe('RewardsController', () => {
       mockIsSolanaAddress.mockReturnValue(false);
       mockIsNonEvmAddress.mockReturnValue(true);
 
-      // Create TestableRewardsController with BTC disabled
-      const testController = new TestableRewardsController({
+      // Create RewardsController with BTC disabled
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isBtcEnabled: () => false,
       });
 
-      // Act & Assert - use test helper that checks BTC enabled status
+      // Act & Assert - directly call signRewardsMessage
       await expect(
-        testController.testSignRewardsMessage(
-          mockInternalAccount,
-          mockTimestamp,
-          true, // isNonEvmAddress
-          false, // isSolanaAddress
-          true, // isBtcAccount
-          false, // isBtcEnabledOverride - BTC is disabled
-        ),
+        testController.signRewardsMessage(mockInternalAccount, mockTimestamp),
       ).rejects.toThrow('Unsupported account type for signing rewards message');
 
       // Verify Bitcoin signing was not called
@@ -14408,20 +14240,17 @@ describe('RewardsController', () => {
       // Mock the KeyringController:signPersonalMessage call
       mockMessenger.call.mockResolvedValueOnce('0xsignature');
 
-      // Create TestableRewardsController with BTC enabled (should not matter for non-BTC account)
-      const testController = new TestableRewardsController({
+      // Create RewardsController with BTC enabled (should not matter for non-BTC account)
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isBtcEnabled: () => true,
       });
 
-      // Act - use test helper for non-BTC account
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        false, // isNonEvmAddress
-        false, // isSolanaAddress
-        false, // isBtcAccount
       );
 
       // Assert
@@ -14444,7 +14273,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should sign Tron message correctly when Tron account and Tron enabled', async () => {
+    it('signs Tron message correctly when Tron account and Tron enabled', async () => {
       // Arrange
       const mockInternalAccount = {
         address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
@@ -14473,23 +14302,17 @@ describe('RewardsController', () => {
         signatureType: 'ecdsa',
       });
 
-      // Create TestableRewardsController with Tron enabled
-      const testController = new TestableRewardsController({
+      // Create RewardsController with Tron enabled
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isTronEnabled: () => true,
       });
 
-      // Act - use test helper that includes Tron enabled check
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        true, // isNonEvmAddress
-        false, // isSolanaAddress
-        false, // isBtcAccount
-        undefined, // isBtcEnabledOverride
-        true, // isTronAccount
-        true, // isTronEnabledOverride
       );
 
       // Assert
@@ -14509,7 +14332,7 @@ describe('RewardsController', () => {
       expect(result).toBe('0xabcdef123456');
     });
 
-    it('should add 0x prefix to Tron signature when missing', async () => {
+    it('adds 0x prefix to Tron signature when missing', async () => {
       // Arrange
       const mockInternalAccount = {
         address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
@@ -14538,23 +14361,17 @@ describe('RewardsController', () => {
         signatureType: 'ecdsa',
       });
 
-      // Create TestableRewardsController with Tron enabled
-      const testController = new TestableRewardsController({
+      // Create RewardsController with Tron enabled
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isTronEnabled: () => true,
       });
 
-      // Act - use test helper that includes Tron enabled check and 0x prefix logic
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        true, // isNonEvmAddress
-        false, // isSolanaAddress
-        false, // isBtcAccount
-        undefined, // isBtcEnabledOverride
-        true, // isTronAccount
-        true, // isTronEnabledOverride
       );
 
       // Assert
@@ -14563,7 +14380,7 @@ describe('RewardsController', () => {
       expect(mockSignTronRewardsMessage).toHaveBeenCalled();
     });
 
-    it('should throw error for Tron account when Tron is disabled', async () => {
+    it('throws error for Tron account when Tron is disabled', async () => {
       // Arrange
       const mockInternalAccount = {
         address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
@@ -14585,32 +14402,23 @@ describe('RewardsController', () => {
       mockIsBtcAccount.mockReturnValue(false);
       mockIsNonEvmAddress.mockReturnValue(true);
 
-      // Create TestableRewardsController with Tron disabled
-      const testController = new TestableRewardsController({
+      // Create RewardsController with Tron disabled
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isTronEnabled: () => false,
       });
 
-      // Act & Assert - use test helper that checks Tron enabled status
+      // Act & Assert - directly call signRewardsMessage
       await expect(
-        testController.testSignRewardsMessage(
-          mockInternalAccount,
-          mockTimestamp,
-          true, // isNonEvmAddress
-          false, // isSolanaAddress
-          false, // isBtcAccount
-          undefined, // isBtcEnabledOverride
-          true, // isTronAccount
-          false, // isTronEnabledOverride - Tron is disabled
-        ),
+        testController.signRewardsMessage(mockInternalAccount, mockTimestamp),
       ).rejects.toThrow('Unsupported account type for signing rewards message');
 
       // Verify Tron signing was not called
       expect(mockSignTronRewardsMessage).not.toHaveBeenCalled();
     });
 
-    it('should not use Tron signing for non-Tron account', async () => {
+    it('does not use Tron signing for non-Tron account', async () => {
       // Arrange
       const mockInternalAccount = {
         address: '0x123',
@@ -14635,23 +14443,17 @@ describe('RewardsController', () => {
       // Mock the KeyringController:signPersonalMessage call
       mockMessenger.call.mockResolvedValueOnce('0xsignature');
 
-      // Create TestableRewardsController with Tron enabled (should not matter for non-Tron account)
-      const testController = new TestableRewardsController({
+      // Create RewardsController with Tron enabled (should not matter for non-Tron account)
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isTronEnabled: () => true,
       });
 
-      // Act
-      const result = await testController.testSignRewardsMessage(
+      // Act - directly call signRewardsMessage
+      const result = await testController.signRewardsMessage(
         mockInternalAccount,
         mockTimestamp,
-        false, // isNonEvmAddress
-        false, // isSolanaAddress
-        false, // isBtcAccount
-        undefined, // isBtcEnabledOverride
-        false, // isTronAccount
-        undefined, // isTronEnabledOverride
       );
 
       // Assert
@@ -14665,9 +14467,9 @@ describe('RewardsController', () => {
       // Arrange
       const mockInternalAccount = {
         address: 'unsupported-address',
-        type: 'unknown:type',
+        type: 'any:account' as const,
         id: 'test-id',
-        scopes: ['unknown:chain'],
+        scopes: ['any:chain'] as const,
         options: {},
         methods: [],
         metadata: {
@@ -14682,21 +14484,15 @@ describe('RewardsController', () => {
       mockIsBtcAccount.mockReturnValue(false);
       mockIsNonEvmAddress.mockReturnValue(true);
 
-      // Create TestableRewardsController
-      const testController = new TestableRewardsController({
+      // Create RewardsController
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      // Act & Assert - use test helper for unsupported account type
+      // Act & Assert - directly call signRewardsMessage
       await expect(
-        testController.testSignRewardsMessage(
-          mockInternalAccount,
-          mockTimestamp,
-          true, // isNonEvmAddress
-          false, // isSolanaAddress
-          false, // isBtcAccount
-        ),
+        testController.signRewardsMessage(mockInternalAccount, mockTimestamp),
       ).rejects.toThrow('Unsupported account type for signing rewards message');
     });
 
@@ -14724,20 +14520,15 @@ describe('RewardsController', () => {
       const mockError = new Error('Signing failed');
       mockMessenger.call.mockRejectedValueOnce(mockError);
 
-      // Create a TestableRewardsController to access the private method
-      const testController = new TestableRewardsController({
+      // Create a RewardsController instance
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      // Act & Assert - directly call the exposed test method
+      // Act & Assert - directly call signRewardsMessage
       await expect(
-        testController.testSignRewardsMessage(
-          mockInternalAccount,
-          mockTimestamp,
-          false,
-          false,
-        ),
+        testController.signRewardsMessage(mockInternalAccount, mockTimestamp),
       ).rejects.toThrow('Signing failed');
     });
   });
@@ -15312,7 +15103,7 @@ describe('RewardsController', () => {
       expect(mockIsBtcAccount).toHaveBeenCalledWith(nonBitcoinAccount);
     });
 
-    it('should return true for Tron accounts that are not hardware and Tron is enabled', () => {
+    it('returns true for Tron accounts that are not hardware and Tron is enabled', () => {
       // Arrange
       const tronAccount = {
         address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
@@ -15358,7 +15149,7 @@ describe('RewardsController', () => {
       expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
     });
 
-    it('should return false for Tron accounts when Tron is disabled', () => {
+    it('returns false for Tron accounts when Tron is disabled', () => {
       // Arrange
       const tronAccount = {
         address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',

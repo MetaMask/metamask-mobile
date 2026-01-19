@@ -26,7 +26,7 @@ describe('tron-snap', () => {
   });
 
   describe('signTronRewardsMessage', () => {
-    it('should successfully sign a Tron rewards message', async () => {
+    it('successfully signs a Tron rewards message', async () => {
       const mockResult = {
         signature: '0xabcdef123456',
         signedMessage: 'test',
@@ -58,7 +58,7 @@ describe('tron-snap', () => {
       expect(result).toEqual(mockResult);
     });
 
-    it('should handle errors when signing fails', async () => {
+    it('handles errors when signing fails', async () => {
       const mockError = new Error('Signing failed');
       (handleSnapRequest as jest.Mock).mockRejectedValue(mockError);
 
@@ -72,7 +72,7 @@ describe('tron-snap', () => {
       );
     });
 
-    it('should handle errors from handleSnapRequest', async () => {
+    it('handles errors from handleSnapRequest', async () => {
       const mockError = new Error('Snap request failed');
       (handleSnapRequest as jest.Mock).mockRejectedValue(mockError);
 
@@ -86,7 +86,7 @@ describe('tron-snap', () => {
       );
     });
 
-    it('should use correct snap ID', async () => {
+    it('uses correct snap ID', async () => {
       const mockResult = {
         signature: '0x123',
         signedMessage: 'test',
@@ -105,7 +105,7 @@ describe('tron-snap', () => {
       );
     });
 
-    it('should pass correct accountId and message', async () => {
+    it('passes correct accountId and message', async () => {
       const mockResult = {
         signature: '0x123',
         signedMessage: 'test',
@@ -129,7 +129,7 @@ describe('tron-snap', () => {
       );
     });
 
-    it('should handle empty accountId', async () => {
+    it('handles empty accountId', async () => {
       const mockResult = {
         signature: '0x123',
         signedMessage: 'test',
@@ -143,7 +143,7 @@ describe('tron-snap', () => {
       expect(result).toEqual(mockResult);
     });
 
-    it('should handle empty message', async () => {
+    it('handles empty message', async () => {
       const mockResult = {
         signature: '0x123',
         signedMessage: 'test',
