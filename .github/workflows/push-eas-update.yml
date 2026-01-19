@@ -41,8 +41,22 @@ env:
   TARGET_CHANNEL: ${{ inputs.channel }}
 
 jobs:
+  setup-dependencies:
+    name: Setup Dependencies
+    needs:
+      - validate-pr
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ inputs.commit_hash }}
+      fetch-depth: 0
+      upload-artifact: true
+      artifact-name: node-modules-eas-update
+      artifact-retention-days: 1
+
   fingerprint-comparison:
     name: Compare Expo Fingerprints
+    needs:
+      - setup-dependencies
     runs-on: ubuntu-latest
     outputs:
       branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
@@ -67,12 +81,17 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Download node_modules artifact (PR commit)
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+
       - name: Install dependencies (workflow branch)
         run: |
           echo "📦 Installing dependencies for current branch..."
-          yarn install --immutable
+          yarn install --immutable --mode=skip-build
 
-      - name: Generate fingerprint (workflow branch)
+      - name: Generate fingerprint (target commit)
         id: branch_fingerprint
         run: |
           echo "🧬 Generating fingerprint for current branch..."
@@ -80,11 +99,16 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
 
+      - name: Download node_modules artifact (base branch)
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+
       - name: Install dependencies (base branch)
         working-directory: main
         run: |
           echo "📦 Installing dependencies for base branch snapshot (${BASE_BRANCH_REF})..."
-          yarn install --immutable
+          yarn install --immutable --mode=skip-build
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
@@ -178,6 +202,7 @@ jobs:
       - fingerprint-comparison
       - approval
       - validate-pr
+      - setup-dependencies
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       needs.approval.result == 'success'
@@ -240,6 +265,21 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-eas-update
+
+      - name: Verify downloaded artifacts
+        run: |
+          echo "✅ Verifying downloaded artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified"
+
       - name: Determine signing secret name
         shell: bash
         env:
@@ -285,16 +325,6 @@ jobs:
             echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
             echo "✅ Set secret for key: $key"
           done
-
-      - name: Install dependencies
-        run: |
-          echo "📦 Installing dependencies..."
-          yarn install --immutable
-
-      - name: Setup project
-        run: |
-          echo "🔧 Running setup for GitHub CI..."
-          yarn setup:github-ci
 
       - name: Display configuration
         run: |
