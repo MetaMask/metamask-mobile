@@ -85,7 +85,7 @@ function createMobileMetrics(): IPerpsMetrics {
       } else {
         // Fallback: log warning and still track with legacy format
         // This shouldn't happen if PerpsAnalyticsEvent values match MetaMetricsEvents
-        console.warn(
+        DevLogger.log(
           `PerpsAnalyticsEvent "${event}" not found in MetaMetricsEvents`,
         );
         metricsInstance.trackEvent(
@@ -304,7 +304,7 @@ function createControllerAccessAdapter(): IPerpsControllerAccess {
         return undefined;
       }
       return {
-        getFeeDiscount: (caipAccountId: string) =>
+        getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
           Engine.context.RewardsController.getPerpsDiscountForAccount(
             caipAccountId,
           ),
