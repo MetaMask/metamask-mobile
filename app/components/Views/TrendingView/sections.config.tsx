@@ -102,7 +102,7 @@ const fuseSearch = <T,>(
     return data;
   }
   const fuse = new Fuse(data, fuseOptions);
-  const results = fuse.search(searchQuery) as Array<{ item: T }>;
+  const results = fuse.search(searchQuery) as { item: T }[];
   return results.map((result) => result.item);
 };
 
