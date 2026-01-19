@@ -19,6 +19,11 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: jest.fn(),
+  SwapBridgeNavigationLocation: {
+    MainView: 'Main View',
+    TokenView: 'Token View',
+    Rewards: 'Rewards',
+  },
 }));
 
 jest.mock('../util/buildTokenIconUrl', () => ({
