@@ -194,24 +194,18 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  return (
-    <Box
-      twClassName={
-        isHomepageRedesignV1Enabled && !isFullView
-          ? 'bg-default'
-          : 'flex-1 bg-default'
-      }
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-    >
-      <TokenListControlBar
-        goToAddToken={goToAddToken}
-        style={isFullView ? tw`px-4 pb-4` : undefined}
-      />
-      {!hasInitialLoad ? (
+  // Determine which content to render based on loading and token state
+  const tokenContent = useMemo(() => {
+    if (!hasInitialLoad) {
+      return (
         <Box twClassName={isFullView ? 'px-4' : undefined}>
           <TokenListSkeleton />
         </Box>
-      ) : sortedTokenKeys.length > 0 ? (
+      );
+    }
+
+    if (sortedTokenKeys.length > 0) {
+      return (
         <>
           {isMusdConversionFlowEnabled && (
             <View style={isFullView ? tw`px-4` : undefined}>
@@ -228,11 +222,41 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
             isFullView={isFullView}
           />
         </>
-      ) : (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          <TokensEmptyState />
-        </Box>
-      )}
+      );
+    }
+
+    return (
+      <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+        <TokensEmptyState />
+      </Box>
+    );
+  }, [
+    hasInitialLoad,
+    isFullView,
+    sortedTokenKeys,
+    isMusdConversionFlowEnabled,
+    tw,
+    refreshing,
+    onRefresh,
+    showRemoveMenu,
+    handleScamWarningModal,
+    maxItems,
+  ]);
+
+  return (
+    <Box
+      twClassName={
+        isHomepageRedesignV1Enabled && !isFullView
+          ? 'bg-default'
+          : 'flex-1 bg-default'
+      }
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <TokenListControlBar
+        goToAddToken={goToAddToken}
+        style={isFullView ? tw`px-4 pb-4` : undefined}
+      />
+      {tokenContent}
       <ScamWarningModal
         showScamWarningModal={showScamWarningModal}
         setShowScamWarningModal={setShowScamWarningModal}
