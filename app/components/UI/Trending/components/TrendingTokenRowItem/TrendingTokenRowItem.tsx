@@ -112,6 +112,17 @@ const getPriceChangeColor = (priceChange: number): TextColor => {
 };
 
 /**
+ * Gets the prefix symbol for price percentage change
+ */
+const getPriceChangePrefix = (
+  priceChange: number,
+  isPositive: boolean,
+): string => {
+  if (priceChange === 0) return '';
+  return isPositive ? '+' : '-';
+};
+
+/**
  * Maps TimeOption to the corresponding priceChangePct field key
  */
 export const getPriceChangeFieldKey = (
@@ -145,9 +156,9 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
 
   const isEvmChain = caipChainId.startsWith('eip155:');
   const isNativeToken = assetIdentifier?.startsWith('slip44:');
-  const address = (
-    isNativeToken ? NATIVE_SWAPS_TOKEN_ADDRESS : assetIdentifier?.split(':')[1]
-  ) as Hex | undefined;
+  const address = isNativeToken
+    ? NATIVE_SWAPS_TOKEN_ADDRESS
+    : assetIdentifier?.split(':')[1];
 
   const hexChainId = caipChainIdToHex(caipChainId);
 
@@ -296,7 +307,7 @@ const TrendingTokenRowItem = ({
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {token.name}
+              {token?.name ?? token?.symbol}
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -320,7 +331,7 @@ const TrendingTokenRowItem = ({
                 variant={TextVariant.BodySM}
                 color={getPriceChangeColor(pricePercentChange)}
               >
-                {pricePercentChange === 0 ? '' : isPositiveChange ? '+' : '-'}
+                {getPriceChangePrefix(pricePercentChange, isPositiveChange)}
                 {Math.abs(pricePercentChange).toFixed(2)}%
               </Text>
             )
