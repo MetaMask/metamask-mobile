@@ -42,8 +42,8 @@ const buildRewardsUrl = (
 ): string => {
   let url = `${MERKL_API_BASE_URL}/users/${userAddress}/rewards?chainId=${Number(chainId)}`;
 
-  // Add test parameter for test token
-  if (tokenAddress === AGLAMERKL_ADDRESS) {
+  // Add test parameter for test token (case-insensitive comparison)
+  if (tokenAddress.toLowerCase() === AGLAMERKL_ADDRESS.toLowerCase()) {
     url += '&test=true';
   }
 
