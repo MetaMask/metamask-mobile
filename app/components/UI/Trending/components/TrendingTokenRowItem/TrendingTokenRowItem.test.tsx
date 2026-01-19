@@ -913,6 +913,8 @@ describe('TrendingTokenRowItem', () => {
     });
 
     it('adds network directly when network is not added and navigates to asset', async () => {
+      jest.useFakeTimers();
+
       const token = createMockToken({
         assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
@@ -958,9 +960,9 @@ describe('TrendingTokenRowItem', () => {
       const tokenRow = getByTestId(
         'trending-token-row-item-eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       );
-      await fireEvent.press(tokenRow);
+      fireEvent.press(tokenRow);
 
-      // Wait for async operation to complete
+      // Wait for addPopularNetwork to be called
       await waitFor(() => {
         expect(mockAddPopularNetwork).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -970,8 +972,15 @@ describe('TrendingTokenRowItem', () => {
         );
       });
 
-      // Navigation should be called after network is added
-      expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.any(Object));
+      // Advance timers past the 100ms setTimeout delay and flush promises
+      jest.advanceTimersByTime(100);
+
+      // Wait for the async navigation call after timer delay
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.any(Object));
+      });
+
+      jest.useRealTimers();
     });
 
     it('does not navigate when network addition fails', async () => {
