@@ -91,7 +91,10 @@ import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { AddToWalletButton } from '@expensify/react-native-wallet';
-import Logger from '../../../../../util/Logger';
+import {
+  usePushProvisioning,
+  useWalletAvailability,
+} from '../../pushProvisioning';
 
 /**
  * Route params for CardHome screen
@@ -177,6 +180,50 @@ const CardHome = () => {
     useCardProvision();
   const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
     useNavigateToCardPage(navigation);
+
+  // Push provisioning hooks for adding card to Google Wallet
+  const { isAvailable: isWalletAvailable, eligibility: walletEligibility } =
+    useWalletAvailability({
+      lastFourDigits: cardDetails?.panLast4,
+      checkOnMount: true,
+    });
+
+  const {
+    initiateProvisioning: initiatePushProvisioning,
+    isProvisioning: isPushProvisioning,
+  } = usePushProvisioning({
+    cardId: cardDetails?.id ?? '',
+    cardProviderId: __DEV__ ? 'mock' : 'galileo',
+    onSuccess: (_result) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.push_provisioning.success_message') },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    onError: (error) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label:
+              error.message || strings('card.push_provisioning.error_unknown'),
+          },
+        ],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.error.muted,
+        hasNoTimeout: false,
+      });
+    },
+    onCancel: () => {
+      // User canceled - no toast needed
+    },
+  });
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
@@ -840,12 +887,20 @@ const CardHome = () => {
         isKYCPendingOrUnverified && (
           <CardWarningBox warning={CardWarningBoxType.KYCPending} />
         )}
-      <AddToWalletButton
-        onPress={() => Logger.log('Button pressed!')}
-        buttonStyle="blackOutline"
-        buttonType="badge"
-        borderRadius={4}
-      />
+      {isWalletAvailable &&
+        walletEligibility?.canAddCard &&
+        cardDetails?.id &&
+        !isPushProvisioning &&
+        !isLoading && (
+          <View style={styles.addToWalletContainer}>
+            <AddToWalletButton
+              onPress={initiatePushProvisioning}
+              buttonStyle="blackOutline"
+              buttonType="badge"
+              borderRadius={4}
+            />
+          </View>
+        )}
       <View style={styles.cardBalanceContainer}>
         <View
           style={[

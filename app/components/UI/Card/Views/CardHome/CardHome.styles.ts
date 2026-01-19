@@ -111,6 +111,12 @@ const createStyles = (theme: Theme) =>
       marginTop: 16,
       gap: 8,
     },
+    addToWalletContainer: {
+      width: '100%',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      marginBottom: 8,
+    },
   });
 
 export default createStyles;

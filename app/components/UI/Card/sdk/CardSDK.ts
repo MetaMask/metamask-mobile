@@ -2359,4 +2359,133 @@ export class CardSDK {
       name: token.name || null,
     };
   }
+
+  /**
+   * Create a provisioning request for push provisioning to mobile wallets.
+   *
+   * This method sends card data and wallet information to the card provider API
+   * to generate an encrypted payload that can be used for provisioning to
+   * Apple Pay or Google Wallet.
+   *
+   * For Apple Pay (iOS):
+   * - Requires nonce, nonceSignature, and certificates from PassKit SDK
+   * - Returns encryptedPassData, activationData, and ephemeralPublicKey
+   *
+   * For Google Wallet (Android):
+   * - Requires deviceId and walletAccountId from Tap and Pay SDK
+   * - Returns opaquePaymentCard
+   *
+   * @param params - The provisioning request parameters
+   * @returns Promise resolving to the provisioning response with encrypted data
+   * @see https://docs.galileo-ft.com/pro/docs/creating-a-provisioning-request
+   */
+  createProvisioningRequest = async (params: {
+    cardId: string;
+    walletType: 'apple_pay' | 'google_wallet';
+    deviceId?: string;
+    walletAccountId?: string;
+    // Apple Pay specific
+    nonce?: string;
+    nonceSignature?: string;
+    certificates?: string[];
+  }): Promise<{
+    // Common fields
+    cardNetwork: string;
+    lastFourDigits: string;
+    cardholderName: string;
+    cardDescription?: string;
+    // Apple Pay response fields
+    encryptedPassData?: string;
+    activationData?: string;
+    ephemeralPublicKey?: string;
+    // Google Wallet response fields
+    opaquePaymentCard?: string;
+  }> => {
+    if (!this.isCardEnabled) {
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Card feature is not enabled',
+      );
+    }
+
+    const endpoint = '/v1/card/provisioning';
+    let requestBody;
+
+    if (params.walletType === 'apple_pay') {
+      // Apple Pay provisioning request
+      requestBody = {
+        walletType: 'APPLE_PAY',
+        nonce: params.nonce,
+        nonceSignature: params.nonceSignature,
+        certificates: params.certificates,
+      };
+    } else {
+      // Google Wallet provisioning request
+      requestBody = {
+        walletType: 'GOOGLE_WALLET',
+        deviceId: params.deviceId,
+        walletAccountId: params.walletAccountId,
+      };
+    }
+
+    const response = await this.makeRequest(
+      endpoint,
+      {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      },
+      true, // authenticated
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.json();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        throw new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          responseBody?.message ||
+            'Authentication failed. Please try logging in again.',
+        );
+      }
+
+      if (response.status === 404) {
+        throw new CardError(
+          CardErrorType.NO_CARD,
+          responseBody?.message || 'Card not found',
+        );
+      }
+
+      Logger.log(
+        responseBody,
+        `CardSDK: Failed to create provisioning request. Status: ${response.status}`,
+      );
+
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        responseBody?.message ||
+          'Failed to create provisioning request. Please try again.',
+      );
+    }
+
+    const data = await response.json();
+    this.logDebugInfo('createProvisioningRequest', data);
+
+    return {
+      cardNetwork: data.cardNetwork || 'VISA',
+      lastFourDigits: data.lastFourDigits || data.panLast4,
+      cardholderName: data.cardholderName || data.holderName,
+      cardDescription: data.cardDescription,
+      // Apple Pay fields
+      encryptedPassData: data.encryptedPassData,
+      activationData: data.activationData,
+      ephemeralPublicKey: data.ephemeralPublicKey,
+      // Google Wallet fields
+      opaquePaymentCard: data.opaquePaymentCard,
+    };
+  };
 }

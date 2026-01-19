@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { CardSDK } from './CardSDK';
@@ -26,6 +27,14 @@ import {
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
+import {
+  CardProviderRegistry,
+  WalletProviderRegistry,
+  GalileoCardAdapter,
+  GoogleWalletAdapter,
+  MockCardAdapter,
+} from '../pushProvisioning';
+import Logger from '../../../../util/Logger';
 
 // Types
 export interface ICardSDK {
@@ -45,6 +54,49 @@ interface ProviderProps<T> {
 
 // Context
 const CardSDKContext = createContext<ICardSDK | undefined>(undefined);
+
+/**
+ * Initialize push provisioning adapters
+ *
+ * Registers the card provider and wallet provider adapters for push provisioning.
+ * Uses registerOrReplace to safely update adapters if SDK is re-initialized.
+ * In development mode, also registers a mock adapter for testing.
+ */
+function initializePushProvisioningAdapters(cardSDK: CardSDK): void {
+  if (__DEV__)
+    Logger.log('[CardSDK] Initializing push provisioning adapters...');
+
+  const cardRegistry = CardProviderRegistry.getInstance();
+  const walletRegistry = WalletProviderRegistry.getInstance();
+
+  // Register Galileo card adapter (uses registerOrReplace to handle re-initialization)
+  cardRegistry.registerOrReplace('galileo', new GalileoCardAdapter(cardSDK));
+  // eslint-disable-next-line no-console
+  if (__DEV__) Logger.log('[CardSDK] Registered Galileo card adapter');
+
+  // Register mock adapter in development for testing
+  if (__DEV__) {
+    cardRegistry.registerOrReplace('mock', new MockCardAdapter());
+    // eslint-disable-next-line no-console
+    Logger.log('[CardSDK] Registered Mock card adapter');
+  }
+
+  // Register Google Wallet adapter (Android only)
+  if (Platform.OS === 'android') {
+    walletRegistry.registerOrReplace(
+      'google_wallet',
+      new GoogleWalletAdapter(),
+    );
+    // eslint-disable-next-line no-console
+    if (__DEV__) Logger.log('[CardSDK] Registered Google Wallet adapter');
+  } else if (__DEV__) {
+    // eslint-disable-next-line no-console
+    Logger.log('[CardSDK] Skipping Google Wallet adapter - not on Android');
+  }
+
+  // eslint-disable-next-line no-console
+  if (__DEV__) Logger.log('[CardSDK] Push provisioning adapters initialized');
+}
 
 /**
  * CardSDKProvider manages the Card SDK instance.
@@ -74,6 +126,9 @@ export const CardSDKProvider = ({
         userCardLocation,
       });
       setSdk(cardSDK);
+
+      // Initialize push provisioning adapters
+      initializePushProvisioningAdapters(cardSDK);
     } else {
       setSdk(null);
       setIsLoading(false);
