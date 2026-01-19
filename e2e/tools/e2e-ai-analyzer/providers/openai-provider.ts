@@ -233,7 +233,13 @@ export class OpenAIProvider implements ILLMProvider {
     }
 
     try {
-      this.getClient();
+      const client = this.getClient();
+      // Make a minimal API call to verify the service is available
+      await client.chat.completions.create({
+        model: this.getDefaultModel(),
+        max_completion_tokens: 5,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
       return true;
     } catch {
       return false;

@@ -292,7 +292,15 @@ export class GoogleProvider implements ILLMProvider {
     }
 
     try {
-      this.getClient();
+      const client = this.getClient();
+      // Make a minimal API call to verify the service is available
+      const model = client.getGenerativeModel({
+        model: this.getDefaultModel(),
+        generationConfig: { maxOutputTokens: 1 },
+      });
+      await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
+      });
       return true;
     } catch {
       return false;

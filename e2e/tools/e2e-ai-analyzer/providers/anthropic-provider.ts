@@ -19,9 +19,7 @@ import { LLM_CONFIG } from '../config';
 /**
  * Convert provider-agnostic messages to Anthropic format
  */
-function toAnthropicMessages(
-  messages: LLMMessage[],
-): Anthropic.MessageParam[] {
+function toAnthropicMessages(messages: LLMMessage[]): Anthropic.MessageParam[] {
   return messages.map((msg) => ({
     role: msg.role,
     content:
@@ -145,9 +143,12 @@ export class AnthropicProvider implements ILLMProvider {
     }
 
     try {
-      // Quick validation - just check if we can create a client
-      // We don't make an actual API call to avoid unnecessary costs
-      this.getClient();
+      const client = this.getClient();
+      await client.messages.create({
+        model: this.getDefaultModel(),
+        max_tokens: 5,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
       return true;
     } catch {
       return false;

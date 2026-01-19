@@ -259,16 +259,47 @@ async function main() {
   const providerOrder = getProviderOrder(forcedProvider);
   console.log(`📋 Provider failover order: ${providerOrder.join(' → ')}`);
 
-  // Try each provider in order
-  // Missing API keys or API errors trigger fallback to next provider
+  // Check provider availability upfront
+  console.log('\n🔍 Checking provider availability...');
+  const availableProviders: {
+    type: ProviderType;
+    provider: ReturnType<typeof createProvider>;
+  }[] = [];
+
+  for (const providerType of providerOrder) {
+    const provider = createProvider(providerType);
+    console.log(`   Checking ${provider.displayName}...`);
+
+    if (await provider.isAvailable()) {
+      console.log(`   ✅ ${provider.displayName} is available`);
+      availableProviders.push({ type: providerType, provider });
+    } else {
+      console.log(`   ❌ ${provider.displayName} is not available`);
+    }
+  }
+
+  if (availableProviders.length === 0) {
+    console.error('\n❌ No providers available. Set one of:');
+    console.error(`   ${LLM_CONFIG.providers.anthropic.envKey}`);
+    console.error(`   ${LLM_CONFIG.providers.openai.envKey}`);
+    console.error(`   ${LLM_CONFIG.providers.google.envKey}`);
+    const fallbackAnalysis = MODES[mode].createConservativeResult();
+    MODES[mode].outputAnalysis(fallbackAnalysis);
+    return;
+  }
+
+  console.log(
+    `\n📋 Available providers: ${availableProviders.map((p) => p.type).join(' → ')}`,
+  );
+
+  // Try each available provider in order
   let lastError: Error | null = null;
 
-  for (let i = 0; i < providerOrder.length; i++) {
-    const providerType = providerOrder[i];
+  for (let i = 0; i < availableProviders.length; i++) {
+    const { type: providerType, provider } = availableProviders[i];
 
     try {
-      const provider = createProvider(providerType);
-      console.log(`\n🚀 Trying ${provider.displayName}...`);
+      console.log(`\n🚀 Using ${provider.displayName}...`);
 
       const analysis = await analyzeWithAgent(
         provider,
@@ -285,7 +316,7 @@ async function main() {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.warn(`\n⚠️  ${providerType} failed: ${lastError.message}`);
 
-      if (i < providerOrder.length - 1) {
+      if (i < availableProviders.length - 1) {
         console.log('🔄 Falling back to next provider...');
       }
     }
