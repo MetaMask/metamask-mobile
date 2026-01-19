@@ -8,11 +8,6 @@ import {
 import { Order, OrderParams } from '../controllers/types';
 import { Position } from '../hooks';
 
-// Mock i18n strings
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
-}));
-
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -290,22 +285,22 @@ describe('orderUtils', () => {
   describe('getOrderDirection', () => {
     it('should return long for buy with no position', () => {
       const result = getOrderDirection('buy', undefined);
-      expect(result).toBe('perps.market.long');
+      expect(result).toBe('long');
     });
 
     it('should return short for sell with no position', () => {
       const result = getOrderDirection('sell', undefined);
-      expect(result).toBe('perps.market.short');
+      expect(result).toBe('short');
     });
 
     it('should return long for positive position', () => {
       const result = getOrderDirection('sell', '1.5');
-      expect(result).toBe('perps.market.long');
+      expect(result).toBe('long');
     });
 
     it('should return short for negative position', () => {
       const result = getOrderDirection('buy', '-1.5');
-      expect(result).toBe('perps.market.short');
+      expect(result).toBe('short');
     });
   });
 
