@@ -19,6 +19,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { AnimationDuration } from '../../../../../../component-library/constants/animation.constants';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -84,7 +85,7 @@ function RegionSelectorModal() {
   // Animate between views
   useEffect(() => {
     const animationConfig = {
-      duration: 300,
+      duration: AnimationDuration.Regularly,
       easing: Easing.out(Easing.ease),
     };
 
