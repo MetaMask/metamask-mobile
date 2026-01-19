@@ -711,7 +711,14 @@ export class HyperLiquidClientService {
     this.connectionStateListeners.add(listener);
 
     // Immediately notify with current state
-    listener(this.connectionState, this.reconnectionAttempt);
+    // Wrap in try-catch to match notifyConnectionStateListeners behavior
+    // This ensures the unsubscribe function is always returned even if listener throws
+    try {
+      listener(this.connectionState, this.reconnectionAttempt);
+    } catch {
+      // Ignore errors in listeners to prevent breaking subscription mechanism
+      // If listener throws, it will be removed when unsubscribe is called
+    }
 
     // Return unsubscribe function
     return () => {
