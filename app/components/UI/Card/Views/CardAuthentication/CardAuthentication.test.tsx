@@ -6,6 +6,12 @@ import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { CardLocation } from '../../types';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
+// Mock whenEngineReady to prevent async polling after test teardown
+jest.mock('../../../../../core/Analytics/whenEngineReady', () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
