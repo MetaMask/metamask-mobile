@@ -45,6 +45,7 @@ jest.mock('../../../../util/address', () => ({
 jest.mock('../../../Multichain/utils', () => ({
   isNonEvmAddress: jest.fn(),
   isBtcAccount: jest.fn(),
+  isTronAccount: jest.fn(),
 }));
 jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn(),
@@ -58,6 +59,9 @@ jest.mock('./utils/solana-snap', () => ({
 }));
 jest.mock('./utils/bitcoin-snap', () => ({
   signBitcoinRewardsMessage: jest.fn(),
+}));
+jest.mock('./utils/tron-snap', () => ({
+  signTronRewardsMessage: jest.fn(),
 }));
 jest.mock('./services/rewards-data-service', () => {
   const actual = jest.requireActual('./services/rewards-data-service');
@@ -80,7 +84,11 @@ jest.mock('ethers/lib/utils', () => ({
 // Import mocked modules
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isHardwareAccount } from '../../../../util/address';
-import { isNonEvmAddress, isBtcAccount } from '../../../Multichain/utils';
+import {
+  isNonEvmAddress,
+  isBtcAccount,
+  isTronAccount,
+} from '../../../Multichain/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
@@ -92,6 +100,7 @@ import {
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
+import { signTronRewardsMessage } from './utils/tron-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
@@ -110,6 +119,9 @@ const mockIsNonEvmAddress = isNonEvmAddress as jest.MockedFunction<
 >;
 const mockIsBtcAccount = isBtcAccount as jest.MockedFunction<
   typeof isBtcAccount
+>;
+const mockIsTronAccount = isTronAccount as jest.MockedFunction<
+  typeof isTronAccount
 >;
 const mockIsSolanaAddress = isSolanaAddress as jest.MockedFunction<
   typeof isSolanaAddress
@@ -137,6 +149,8 @@ const mockSignBitcoinRewardsMessage =
   signBitcoinRewardsMessage as jest.MockedFunction<
     typeof signBitcoinRewardsMessage
   >;
+const mockSignTronRewardsMessage =
+  signTronRewardsMessage as jest.MockedFunction<typeof signTronRewardsMessage>;
 const MockRewardsDataServiceClass = jest.mocked(RewardsDataService);
 
 // Test constants - CAIP-10 format addresses
@@ -157,9 +171,16 @@ class TestableRewardsController extends RewardsController {
     isSolanaAddress: boolean,
     isBtcAccount: boolean = false,
     isBtcEnabledOverride?: boolean,
+    isTronAccount: boolean = false,
+    isTronEnabledOverride?: boolean,
   ): Promise<string> {
     // For unsupported account types - return a rejected promise
-    if (isNonEvmAddress && !isSolanaAddress && !isBtcAccount) {
+    if (
+      isNonEvmAddress &&
+      !isSolanaAddress &&
+      !isBtcAccount &&
+      !isTronAccount
+    ) {
       return Promise.reject(
         new Error('Unsupported account type for signing rewards message'),
       );
@@ -205,10 +226,38 @@ class TestableRewardsController extends RewardsController {
       return mockSignBitcoinRewardsMessage(account.id, base64Message).then(
         (result) =>
           // Bitcoin signatures are already in hex format, just ensure 0x prefix
-           result.signature.startsWith('0x')
+          result.signature.startsWith('0x')
             ? result.signature
-            : `0x${result.signature}`
-        ,
+            : `0x${result.signature}`,
+      );
+    }
+
+    // For Tron accounts - only if Tron is enabled
+    if (isTronAccount) {
+      // Check if Tron is enabled - use override if provided, otherwise try to access private method
+      const isTronEnabled =
+        isTronEnabledOverride !== undefined
+          ? isTronEnabledOverride
+          : this.testIsTronEnabled();
+
+      if (!isTronEnabled) {
+        // If Tron is disabled, fall through to error case
+        return Promise.reject(
+          new Error('Unsupported account type for signing rewards message'),
+        );
+      }
+
+      // Format the message exactly as expected in the test
+      const message = `rewards,${account.address},${timestamp}`;
+      const base64Message = Buffer.from(message, 'utf8').toString('base64');
+
+      // Call the actual mock function
+      return mockSignTronRewardsMessage(account.id, base64Message).then(
+        (result) =>
+          // Tron signatures are already in hex format, just ensure 0x prefix
+          result.signature.startsWith('0x')
+            ? result.signature
+            : `0x${result.signature}`,
       );
     }
 
@@ -247,6 +296,13 @@ class TestableRewardsController extends RewardsController {
     // Access private method via type assertion
     const isBtcEnabled = (this as any)['#isBtcEnabled'];
     return isBtcEnabled ? isBtcEnabled() : false;
+  }
+
+  // Expose Tron enabled check for testing
+  public testIsTronEnabled(): boolean {
+    // Access private method via type assertion
+    const isTronEnabled = (this as any)['#isTronEnabled'];
+    return isTronEnabled ? isTronEnabled() : false;
   }
 
   public async invalidateAccountsAndSubscriptions() {
@@ -14388,6 +14444,223 @@ describe('RewardsController', () => {
       );
     });
 
+    it('should sign Tron message correctly when Tron account and Tron enabled', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account-id',
+        scopes: ['tron:728126428' as const],
+        options: {},
+        methods: ['signMessage'],
+        metadata: {
+          name: 'Tron Account',
+          keyring: { type: 'Tron Snap Keyring' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is detected as Tron
+      mockIsTronAccount.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
+
+      // Mock the Tron signature result
+      mockSignTronRewardsMessage.mockResolvedValue({
+        signature: '0xabcdef123456',
+        signedMessage: 'test',
+        signatureType: 'ecdsa',
+      });
+
+      // Create TestableRewardsController with Tron enabled
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isTronEnabled: () => true,
+      });
+
+      // Act - use test helper that includes Tron enabled check
+      const result = await testController.testSignRewardsMessage(
+        mockInternalAccount,
+        mockTimestamp,
+        true, // isNonEvmAddress
+        false, // isSolanaAddress
+        false, // isBtcAccount
+        undefined, // isBtcEnabledOverride
+        true, // isTronAccount
+        true, // isTronEnabledOverride
+      );
+
+      // Assert
+      // Verify the message was formatted correctly
+      const expectedMessage = `rewards,${mockInternalAccount.address},${mockTimestamp}`;
+      const expectedBase64Message = Buffer.from(
+        expectedMessage,
+        'utf8',
+      ).toString('base64');
+
+      expect(mockSignTronRewardsMessage).toHaveBeenCalledWith(
+        mockInternalAccount.id,
+        expectedBase64Message,
+      );
+
+      // Verify the signature was returned correctly
+      expect(result).toBe('0xabcdef123456');
+    });
+
+    it('should add 0x prefix to Tron signature when missing', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account-id',
+        scopes: ['tron:728126428' as const],
+        options: {},
+        methods: ['signMessage'],
+        metadata: {
+          name: 'Tron Account',
+          keyring: { type: 'Tron Snap Keyring' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is detected as Tron
+      mockIsTronAccount.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
+
+      // Mock the Tron signature result without 0x prefix
+      mockSignTronRewardsMessage.mockResolvedValue({
+        signature: 'abcdef123456',
+        signedMessage: 'test',
+        signatureType: 'ecdsa',
+      });
+
+      // Create TestableRewardsController with Tron enabled
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isTronEnabled: () => true,
+      });
+
+      // Act - use test helper that includes Tron enabled check and 0x prefix logic
+      const result = await testController.testSignRewardsMessage(
+        mockInternalAccount,
+        mockTimestamp,
+        true, // isNonEvmAddress
+        false, // isSolanaAddress
+        false, // isBtcAccount
+        undefined, // isBtcEnabledOverride
+        true, // isTronAccount
+        true, // isTronEnabledOverride
+      );
+
+      // Assert
+      // Verify the signature was prefixed with 0x
+      expect(result).toBe('0xabcdef123456');
+      expect(mockSignTronRewardsMessage).toHaveBeenCalled();
+    });
+
+    it('should throw error for Tron account when Tron is disabled', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account-id',
+        scopes: ['tron:728126428' as const],
+        options: {},
+        methods: ['signMessage'],
+        metadata: {
+          name: 'Tron Account',
+          keyring: { type: 'Tron Snap Keyring' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is detected as Tron
+      mockIsTronAccount.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
+
+      // Create TestableRewardsController with Tron disabled
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isTronEnabled: () => false,
+      });
+
+      // Act & Assert - use test helper that checks Tron enabled status
+      await expect(
+        testController.testSignRewardsMessage(
+          mockInternalAccount,
+          mockTimestamp,
+          true, // isNonEvmAddress
+          false, // isSolanaAddress
+          false, // isBtcAccount
+          undefined, // isBtcEnabledOverride
+          true, // isTronAccount
+          false, // isTronEnabledOverride - Tron is disabled
+        ),
+      ).rejects.toThrow('Unsupported account type for signing rewards message');
+
+      // Verify Tron signing was not called
+      expect(mockSignTronRewardsMessage).not.toHaveBeenCalled();
+    });
+
+    it('should not use Tron signing for non-Tron account', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa',
+        id: 'test-id',
+        scopes: ['eip155:1'],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'EVM Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is not detected as Tron
+      mockIsTronAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(false);
+
+      // Mock the KeyringController:signPersonalMessage call
+      mockMessenger.call.mockResolvedValueOnce('0xsignature');
+
+      // Create TestableRewardsController with Tron enabled (should not matter for non-Tron account)
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isTronEnabled: () => true,
+      });
+
+      // Act
+      const result = await testController.testSignRewardsMessage(
+        mockInternalAccount,
+        mockTimestamp,
+        false, // isNonEvmAddress
+        false, // isSolanaAddress
+        false, // isBtcAccount
+        undefined, // isBtcEnabledOverride
+        false, // isTronAccount
+        undefined, // isTronEnabledOverride
+      );
+
+      // Assert
+      expect(result).toBe('0xsignature');
+
+      // Verify Tron signing was not called
+      expect(mockSignTronRewardsMessage).not.toHaveBeenCalled();
+    });
+
     it('should throw error for unsupported account type', async () => {
       // Arrange
       const mockInternalAccount = {
@@ -14811,6 +15084,7 @@ describe('RewardsController', () => {
       mockIsHardwareAccount.mockClear();
       mockIsNonEvmAddress.mockClear();
       mockIsBtcAccount.mockClear();
+      mockIsTronAccount.mockClear();
       mockIsSolanaAddress.mockClear();
       mockLogger.log.mockClear();
     });
@@ -15036,6 +15310,98 @@ describe('RewardsController', () => {
         'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
       );
       expect(mockIsBtcAccount).toHaveBeenCalledWith(nonBitcoinAccount);
+    });
+
+    it('should return true for Tron accounts that are not hardware and Tron is enabled', () => {
+      // Arrange
+      const tronAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account',
+        options: {},
+        metadata: {
+          name: 'Tron Account',
+          importTime: Date.now(),
+          keyring: { type: 'Tron Snap Keyring' },
+        },
+        scopes: ['tron:728126428' as const],
+        methods: [],
+      };
+
+      const tronEnabledController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isTronEnabled: () => true,
+      });
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
+      mockIsTronAccount.mockReturnValue(true); // Is Tron
+
+      // Act
+      const result = tronEnabledController.isOptInSupported(tronAccount);
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(tronAccount);
+      expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
+    });
+
+    it('should return false for Tron accounts when Tron is disabled', () => {
+      // Arrange
+      const tronAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account',
+        options: {},
+        metadata: {
+          name: 'Tron Account',
+          importTime: Date.now(),
+          keyring: { type: 'Tron Snap Keyring' },
+        },
+        scopes: ['tron:728126428' as const],
+        methods: [],
+      };
+
+      const tronDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isTronEnabled: () => false,
+      });
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
+      mockIsTronAccount.mockReturnValue(true); // Is Tron
+
+      // Act
+      const result = tronDisabledController.isOptInSupported(tronAccount);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(tronAccount);
+      expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
     });
 
     it('should return false for non-EVM accounts that are not Solana or Bitcoin', () => {

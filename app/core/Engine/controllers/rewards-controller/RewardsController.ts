@@ -47,9 +47,14 @@ import {
   toCaipAccountId,
 } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
-import { isNonEvmAddress, isBtcAccount } from '../../../Multichain/utils';
+import {
+  isNonEvmAddress,
+  isBtcAccount,
+  isTronAccount,
+} from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
+import { signTronRewardsMessage } from './utils/tron-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
@@ -255,6 +260,7 @@ export class RewardsController extends BaseController<
   #geoLocation: GeoRewardsMetadata | null = null;
   #isDisabled: () => boolean;
   #isBtcEnabled: () => boolean;
+  #isTronEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -398,11 +404,13 @@ export class RewardsController extends BaseController<
     state,
     isDisabled,
     isBtcEnabled,
+    isTronEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBtcEnabled?: () => boolean;
+    isTronEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -416,6 +424,7 @@ export class RewardsController extends BaseController<
 
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBtcEnabled = isBtcEnabled ?? (() => false);
+    this.#isTronEnabled = isTronEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -641,6 +650,15 @@ export class RewardsController extends BaseController<
       return result.signature.startsWith('0x')
         ? result.signature
         : `0x${result.signature}`;
+    } else if (isTronAccount(account) && this.#isTronEnabled()) {
+      const result = await signTronRewardsMessage(
+        account.id,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      // Tron signatures are already in hex format, just ensure 0x prefix
+      return result.signature.startsWith('0x')
+        ? result.signature
+        : `0x${result.signature}`;
     } else if (!isNonEvmAddress(account.address)) {
       const result = await this.#signEvmMessage(account, message);
       return result;
@@ -817,7 +835,12 @@ export class RewardsController extends BaseController<
         return true;
       }
 
-      // If it's neither Solana, Bitcoin, nor EVM, opt-in is not supported
+      // Check if it's a Tron account
+      if (isTronAccount(account) && this.#isTronEnabled()) {
+        return true;
+      }
+
+      // If it's neither Solana, Bitcoin, Tron, nor EVM, opt-in is not supported
       return false;
     } catch (error) {
       // If there's an exception (e.g., checking hardware wallet status fails),

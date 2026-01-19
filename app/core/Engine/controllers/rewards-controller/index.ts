@@ -45,6 +45,20 @@ export const rewardsControllerInit: ControllerInitFunction<
         );
       }
     },
+    isTronEnabled: () => {
+      try {
+        const remoteValue =
+          controllerMessenger.call('RemoteFeatureFlagController:getState')
+            ?.remoteFeatureFlags?.['rewards-tron-enabled'] ?? false;
+        return getFeatureFlagValue(
+          process.env.MM_REWARDS_TRON_ENABLED,
+          Boolean(remoteValue),
+        );
+      } catch {
+        // If RemoteFeatureFlagController is not available, fall back to env variable
+        return getFeatureFlagValue(process.env.MM_REWARDS_TRON_ENABLED, false);
+      }
+    },
   });
 
   return { controller };
