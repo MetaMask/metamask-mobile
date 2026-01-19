@@ -21,7 +21,7 @@ import Text, {
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { SDKSelectorsIDs } from '../SDK.testIds';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import SDKSessionItem from './SDKSessionItem';
 
 interface SDKSessionsManagerProps {
@@ -98,15 +98,8 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
 
   useEffect(() => {
     const { navigation } = props;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.manage_sdk_connections_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [props, colors]);
+    navigation.setOptions({ headerShown: false });
+  }, [props]);
 
   const renderSDKSessions = useCallback(
     () => (
@@ -148,12 +141,19 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   );
 
   return (
-    <View
-      style={styles.wrapper}
-      testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
-    >
-      {connectionsList.length > 0 ? renderSDKSessions() : renderEmptyResult()}
-    </View>
+    <>
+      <HeaderCenter
+        title={strings('app_settings.manage_sdk_connections_title')}
+        onBack={() => props.navigation.goBack()}
+        includesTopInset
+      />
+      <View
+        style={styles.wrapper}
+        testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
+      >
+        {connectionsList.length > 0 ? renderSDKSessions() : renderEmptyResult()}
+      </View>
+    </>
   );
 };
 export default SDKSessionsManager;

@@ -17,8 +17,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { useAppTheme } from '../../../../../../util/theme';
-import { getNavigationOptionsTitle } from '../../../../Navbar';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import useAnalytics from '../../../hooks/useAnalytics';
 
 // Internal dependencies
@@ -32,20 +31,12 @@ import ListItemColumn from '../../../../../../component-library/components/List/
 function Settings() {
   const navigation = useNavigation();
   const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
-  const { colors } = useAppTheme();
   const style = styles();
   const trackEvent = useAnalytics();
 
   useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.fiat_on_ramp.title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [colors, navigation]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const handleResetRegion = useCallback(() => {
     trackEvent('RAMP_REGION_RESET', {
@@ -55,11 +46,17 @@ function Settings() {
   }, [setSelectedRegion, trackEvent]);
 
   return (
-    <KeyboardAvoidingView
-      style={style.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScreenLayout scrollable>
+    <>
+      <HeaderCenter
+        title={strings('app_settings.fiat_on_ramp.title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <KeyboardAvoidingView
+        style={style.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScreenLayout scrollable>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <Row first>
@@ -96,8 +93,9 @@ function Settings() {
             ) : null}
           </ScreenLayout.Content>
         </ScreenLayout.Body>
-      </ScreenLayout>
-    </KeyboardAvoidingView>
+          </ScreenLayout>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 

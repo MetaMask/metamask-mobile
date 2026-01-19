@@ -28,7 +28,7 @@ import { getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
@@ -120,15 +120,7 @@ class AppInformation extends PureComponent {
 
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.info_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
+    navigation.setOptions({ headerShown: false });
   };
 
   componentDidMount = async () => {
@@ -202,11 +194,17 @@ class AppInformation extends PureComponent {
         : 'This app is running an update';
 
     return (
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={AboutMetaMaskSelectorsIDs.CONTAINER}
-      >
-        <ScrollView contentContainerStyle={styles.wrapperContent}>
+      <>
+        <HeaderCenter
+          title={strings('app_settings.info_title')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+        />
+        <SafeAreaView
+          style={styles.wrapper}
+          testID={AboutMetaMaskSelectorsIDs.CONTAINER}
+        >
+          <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <TouchableOpacity
               delayLongPress={10 * 1000} // 10 seconds
@@ -306,8 +304,9 @@ class AppInformation extends PureComponent {
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
+      </>
     );
   };
 }

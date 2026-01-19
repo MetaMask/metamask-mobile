@@ -3,7 +3,7 @@ import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsDrawer from '../../UI/SettingsDrawer';
-import { getSettingsNavigationOptions } from '../../UI/Navbar';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
@@ -49,14 +49,8 @@ const Settings = () => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getSettingsNavigationOptions(
-        strings('app_settings.title'),
-        colors,
-        navigation,
-      ),
-    );
-  }, [navigation, colors]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   useEffect(() => {
     updateNavBar();
@@ -215,8 +209,14 @@ const Settings = () => {
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <ScrollView
+    <>
+      <HeaderCenter
+        title={strings('app_settings.title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
+        <ScrollView
         style={styles.wrapper}
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
       >
@@ -354,8 +354,9 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.LOCK}
           titleColor={TextColor.Primary}
         />
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 };
 

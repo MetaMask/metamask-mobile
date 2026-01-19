@@ -7,7 +7,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
@@ -41,27 +41,13 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
   const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
 
-  const isFullScreenModal = route?.params?.isFullScreenModal;
-
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.experimental_title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
-  );
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const goToWalletConnectSessions = () => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
@@ -162,11 +148,18 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     </View>
   );
   return (
-    <ScrollView style={styles.wrapper}>
-      {renderWalletConnectSettings()}
-      {cardExperimentalSwitch && renderCardSettings()}
-      {isTest && renderPerformanceSettings()}
-    </ScrollView>
+    <>
+      <HeaderCenter
+        title={strings('app_settings.experimental_title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <ScrollView style={styles.wrapper}>
+        {renderWalletConnectSettings()}
+        {cardExperimentalSwitch && renderCardSettings()}
+        {isTest && renderPerformanceSettings()}
+      </ScrollView>
+    </>
   );
 };
 

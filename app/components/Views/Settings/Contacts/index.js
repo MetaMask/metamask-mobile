@@ -1,12 +1,16 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import { connect } from 'react-redux';
 import AddressList from '../../confirmations/legacy/components/AddressList';
-import StyledButton from '../../../UI/StyledButton';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
@@ -24,8 +28,9 @@ const createStyles = (colors) =>
       marginTop: 16,
     },
     addContact: {
-      marginHorizontal: 24,
-      marginBottom: 16,
+      paddingHorizontal: 16,
+      marginTop: 24,
+      marginBottom: Platform.OS === 'ios' ? 16 : 0,
     },
   });
 
@@ -60,15 +65,7 @@ class Contacts extends PureComponent {
 
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.contacts_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
+    navigation.setOptions({ headerShown: false });
   };
 
   componentDidMount = () => {
@@ -138,41 +135,51 @@ class Contacts extends PureComponent {
     const { chainId } = this.props;
 
     return (
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={ContactsViewSelectorIDs.CONTAINER}
-        edges={{ bottom: 'additive' }}
-      >
-        <AddressList
-          chainId={chainId}
-          onlyRenderAddressBook
-          reloadAddressList={reloadAddressList}
-          onAccountPress={this.onAddressPress}
-          onIconPress={this.onIconPress}
-          onAccountLongPress={this.onAddressLongPress}
+      <>
+        <HeaderCenter
+          title={strings('app_settings.contacts_title')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
         />
-        <StyledButton
-          type={'confirm'}
-          containerStyle={styles.addContact}
-          onPress={this.goToAddContact}
-          testID={ContactsViewSelectorIDs.ADD_BUTTON}
+        <SafeAreaView
+          style={styles.wrapper}
+          testID={ContactsViewSelectorIDs.CONTAINER}
+          edges={{ bottom: 'additive' }}
         >
-          {strings('address_book.add_contact')}
-        </StyledButton>
-        <ActionSheet
-          ref={this.createActionSheetRef}
-          title={strings('address_book.delete_contact')}
-          options={[
-            strings('address_book.delete'),
-            strings('address_book.cancel'),
-          ]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          // eslint-disable-next-line react/jsx-no-bind
-          onPress={(index) => (index === 0 ? this.deleteContact() : null)}
-          theme={themeAppearance}
-        />
-      </SafeAreaView>
+          <AddressList
+            chainId={chainId}
+            onlyRenderAddressBook
+            reloadAddressList={reloadAddressList}
+            onAccountPress={this.onAddressPress}
+            onIconPress={this.onIconPress}
+            onAccountLongPress={this.onAddressLongPress}
+          />
+          <View style={styles.addContact}>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={this.goToAddContact}
+              testID={ContactsViewSelectorIDs.ADD_BUTTON}
+            >
+              {strings('address_book.add_contact')}
+            </Button>
+          </View>
+          <ActionSheet
+            ref={this.createActionSheetRef}
+            title={strings('address_book.delete_contact')}
+            options={[
+              strings('address_book.delete'),
+              strings('address_book.cancel'),
+            ]}
+            cancelButtonIndex={1}
+            destructiveButtonIndex={0}
+            // eslint-disable-next-line react/jsx-no-bind
+            onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+            theme={themeAppearance}
+          />
+        </SafeAreaView>
+      </>
     );
   };
 }

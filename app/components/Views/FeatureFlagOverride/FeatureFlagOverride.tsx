@@ -21,7 +21,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
@@ -393,16 +393,8 @@ const FeatureFlagOverride: React.FC = () => {
 
   // Set up navigation header
   useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        'Feature Flag Override',
-        navigation,
-        false,
-        theme.colors,
-        null,
-      ),
-    );
-  }, [navigation, theme.colors]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const handleToggleFlag = useCallback(
     (key: string, newValue: unknown) => {
@@ -453,8 +445,14 @@ const FeatureFlagOverride: React.FC = () => {
   }, [clearAllOverrides]);
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
-      {/* Header with stats */}
+    <>
+      <HeaderCenter
+        title="Feature Flag Override"
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <Box twClassName="flex-1 bg-background-default">
+        {/* Header with stats */}
       <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -562,8 +560,9 @@ const FeatureFlagOverride: React.FC = () => {
             />
           ))
         )}
-      </ScrollView>
-    </Box>
+        </ScrollView>
+      </Box>
+    </>
   );
 };
 

@@ -11,7 +11,7 @@ import { typography } from '@metamask/design-tokens';
 // External dependencies.
 import Engine from '../../../../core/Engine';
 import { baseStyles } from '../../../../styles/common';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import {
   setShowFiatOnTestnets,
   setShowHexData,
@@ -89,16 +89,22 @@ const createStyles = (colors) =>
     firstSetting: {
       marginTop: 0,
     },
+    modalChildrenContainer: {
+      flexDirection: 'column',
+      width: '100%',
+    },
+    modalContentWrapper: {
+      width: '100%',
+    },
     modalView: {
       alignItems: 'center',
-      flex: 1,
       flexDirection: 'column',
       justifyContent: 'center',
-      padding: 20,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
     },
-    modalTitle: {
+    modalText: {
       textAlign: 'center',
-      marginBottom: 20,
     },
     picker: {
       borderColor: colors.border.default,
@@ -252,17 +258,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
-    const { colors } = this.getStyles();
-    const isFullScreenModal = route?.params?.isFullScreenModal || false;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.advanced_title'),
-        navigation,
-        isFullScreenModal,
-        colors,
-      ),
-    );
+    const { navigation } = this.props;
+    navigation.setOptions({ headerShown: false });
   };
 
   componentDidMount = async () => {
@@ -375,8 +372,14 @@ class AdvancedSettings extends PureComponent {
     const { styles } = this.getStyles();
 
     return (
-      <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-        <KeyboardAwareScrollView
+      <>
+        <HeaderCenter
+          title={strings('app_settings.advanced_title')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+        />
+        <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
+          <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
           testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
@@ -517,8 +520,9 @@ class AdvancedSettings extends PureComponent {
               />
             </View>
           </View>
-        </KeyboardAwareScrollView>
-      </SafeAreaView>
+          </KeyboardAwareScrollView>
+        </SafeAreaView>
+      </>
     );
   };
 }

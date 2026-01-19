@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
@@ -133,16 +133,8 @@ const Settings: React.FC = () => {
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.security_title'),
-        navigation,
-        false,
-        colors,
-        null,
-      ),
-    );
-  }, [colors, navigation]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const handleHintText = useCallback(async () => {
     const currentSeedphraseHints =
@@ -294,14 +286,18 @@ const Settings: React.FC = () => {
       onCancelPress={toggleClearBrowserHistoryModal}
       onRequestClose={toggleClearBrowserHistoryModal}
       onConfirmPress={clearBrowserHistory}
+      childrenContainerStyle={styles.modalChildrenContainer}
     >
-      <View style={styles.modalView}>
-        <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
-          {strings('app_settings.clear_browser_history_modal_title')}
-        </Text>
-        <Text style={styles.modalText}>
-          {strings('app_settings.clear_browser_history_modal_message')}
-        </Text>
+      <View style={styles.modalContentWrapper}>
+        <HeaderCenter
+          title={strings('app_settings.clear_browser_history_modal_title')}
+          onClose={toggleClearBrowserHistoryModal}
+        />
+        <View style={styles.modalView}>
+          <Text style={styles.modalText}>
+            {strings('app_settings.clear_browser_history_modal_message')}
+          </Text>
+        </View>
       </View>
     </ActionModal>
   );
@@ -391,11 +387,17 @@ const Settings: React.FC = () => {
   const modalError = disableNotificationsError;
 
   return (
-    <ScrollView
-      style={styles.wrapper}
-      testID={SECURITY_PRIVACY_VIEW_ID}
-      ref={scrollViewRef}
-    >
+    <>
+      <HeaderCenter
+        title={strings('app_settings.security_title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <ScrollView
+        style={styles.wrapper}
+        testID={SECURITY_PRIVACY_VIEW_ID}
+        ref={scrollViewRef}
+      >
       <View style={styles.inner}>
         <Heading first>{strings('app_settings.security_heading')}</Heading>
         <ProtectYourWallet
@@ -483,7 +485,8 @@ const Settings: React.FC = () => {
         loadingText=""
         error={modalError}
       />
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 };
 

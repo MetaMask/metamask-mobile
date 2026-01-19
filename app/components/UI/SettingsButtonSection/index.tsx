@@ -11,6 +11,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 
 interface ISettingsButtonSectionProps {
   sectionTitle: string;
@@ -82,12 +83,16 @@ const SettingsButtonSection = ({
           onCancelPress={updateShowModalState}
           onRequestClose={updateShowModalState}
           onConfirmPress={onModalConfirmPress}
+          childrenContainerStyle={styles.modalChildrenContainer}
         >
-          <View style={styles.modalView}>
-            <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
-              {modalTitleText}
-            </Text>
-            <Text style={styles.modalText}>{modalDescriptionText}</Text>
+          <View style={styles.modalContentWrapper}>
+            <HeaderCenter
+              title={modalTitleText}
+              onClose={updateShowModalState}
+            />
+            <View style={styles.modalView}>
+              <Text style={styles.modalText}>{modalDescriptionText}</Text>
+            </View>
           </View>
         </ActionModal>
       ) : null}

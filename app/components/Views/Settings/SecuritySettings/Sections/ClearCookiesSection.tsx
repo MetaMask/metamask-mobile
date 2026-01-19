@@ -14,6 +14,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -26,16 +27,19 @@ const createStyles = () =>
     accessory: {
       marginTop: 16,
     },
+    modalChildrenContainer: {
+      flexDirection: 'column',
+      width: '100%',
+    },
+    modalContentWrapper: {
+      width: '100%',
+    },
     modalView: {
       alignItems: 'center',
-      flex: 1,
       flexDirection: 'column',
       justifyContent: 'center',
-      padding: 20,
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
     },
     modalText: {
       textAlign: 'center',
@@ -110,14 +114,18 @@ const ClearCookiesSection = () => {
         onCancelPress={toggleClearCookiesModal}
         onRequestClose={toggleClearCookiesModal}
         onConfirmPress={clearCookies}
+        childrenContainerStyle={styles.modalChildrenContainer}
       >
-        <View style={styles.modalView}>
-          <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
-            {strings('app_settings.clear_cookies_modal_title')}
-          </Text>
-          <Text style={styles.modalText}>
-            {strings('app_settings.clear_cookies_modal_message')}
-          </Text>
+        <View style={styles.modalContentWrapper}>
+          <HeaderCenter
+            title={strings('app_settings.clear_cookies_modal_title')}
+            onClose={toggleClearCookiesModal}
+          />
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>
+              {strings('app_settings.clear_cookies_modal_message')}
+            </Text>
+          </View>
         </View>
       </ActionModal>
     </>

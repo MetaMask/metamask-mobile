@@ -10,7 +10,7 @@ import {
 } from '../../../core/Encryptor';
 import { useTheme } from '../../../util/theme';
 
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../locales/i18n';
 
 import TestForm from './Form';
@@ -55,16 +55,8 @@ const AesCryptoTestForm = () => {
   }, []);
 
   useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.aes_crypto_test_form_title'),
-        navigation,
-        false,
-        colors,
-        null,
-      ),
-    );
-  }, [colors, navigation]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const generateSalt = useCallback(
     // TODO: Replace "any" with type
@@ -146,8 +138,14 @@ const AesCryptoTestForm = () => {
   );
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
-      <ScrollView
+    <>
+      <HeaderCenter
+        title={strings('app_settings.aes_crypto_test_form_title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+        <ScrollView
         contentContainerStyle={styles.scrollContainer}
         testID={aesCryptoFormScrollIdentifier}
       >
@@ -261,8 +259,9 @@ const AesCryptoTestForm = () => {
           responseTextTestId={responseText}
           styles={{ ...styles }}
         />
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 };
 

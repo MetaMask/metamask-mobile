@@ -14,13 +14,12 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../../component-library/components/Buttons/Button';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 
-import { getNavigationOptionsTitle } from '../../../../Navbar';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { regex } from '../../../../../../util/regex';
@@ -50,21 +49,15 @@ function ActivationKeyForm() {
   } = useParams<ActivationKeyFormParams>();
   const [activationKey, setActivationKey] = useState(key ?? '');
   const [label, setLabel] = useState(initialLabel ?? '');
-  const { colors } = useTheme();
   const style = styles();
 
   useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        key
-          ? strings('app_settings.fiat_on_ramp.edit_activation_key')
-          : strings('app_settings.fiat_on_ramp.add_activation_key'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [colors, key, navigation]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
+  const title = key
+    ? strings('app_settings.fiat_on_ramp.edit_activation_key')
+    : strings('app_settings.fiat_on_ramp.add_activation_key');
 
   const handleSubmit = useCallback(() => {
     if (!regex.activationKey.test(activationKey)) {
@@ -79,14 +72,16 @@ function ActivationKeyForm() {
   }, [navigation]);
 
   return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        <ScreenLayout.Content>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {key
-              ? strings('app_settings.fiat_on_ramp.edit_activation_key')
-              : strings('app_settings.fiat_on_ramp.add_activation_key')}
-          </Text>
+    <>
+      <HeaderCenter
+        title={title}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content>
+            <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
 
           <Row>
             <Label>{strings('app_settings.fiat_on_ramp.label')}</Label>
@@ -141,9 +136,10 @@ function ActivationKeyForm() {
               isDisabled={!regex.activationKey.test(activationKey)}
             />
           </Row>
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
-    </ScreenLayout>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    </>
   );
 }
 

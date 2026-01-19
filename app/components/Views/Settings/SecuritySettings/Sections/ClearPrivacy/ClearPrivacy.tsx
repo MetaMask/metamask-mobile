@@ -19,6 +19,7 @@ import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import { ClearPrivacyModalSelectorsIDs } from './ClearPrivacyModal.testIds';
 import { isSnapId } from '@metamask/snaps-utils';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -42,17 +43,21 @@ const ClearPrivacy = () => {
       onCancelPress={() => setModalVisible(false)}
       onRequestClose={() => setModalVisible(false)}
       onConfirmPress={clearApprovals}
+      childrenContainerStyle={styles.modalChildrenContainer}
     >
-      <View
-        style={styles.modalView}
-        testID={ClearPrivacyModalSelectorsIDs.CONTAINER}
-      >
-        <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
-          {strings('app_settings.clear_approvals_modal_title')}
-        </Text>
-        <Text style={styles.modalText}>
-          {strings('app_settings.clear_approvals_modal_message')}
-        </Text>
+      <View style={styles.modalContentWrapper}>
+        <HeaderCenter
+          title={strings('app_settings.clear_approvals_modal_title')}
+          onClose={() => setModalVisible(false)}
+        />
+        <View
+          style={styles.modalView}
+          testID={ClearPrivacyModalSelectorsIDs.CONTAINER}
+        >
+          <Text style={styles.modalText}>
+            {strings('app_settings.clear_approvals_modal_message')}
+          </Text>
+        </View>
       </View>
     </ActionModal>
   );

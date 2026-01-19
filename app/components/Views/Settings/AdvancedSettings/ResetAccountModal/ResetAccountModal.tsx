@@ -1,8 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import Text from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import ActionModal from '../../../../UI/ActionModal';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
@@ -13,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { usePerpsFirstTimeUser } from '../../../../UI/Perps/hooks/usePerpsFirstTimeUser';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 
 export const ResetAccountModal = ({
   resetModalVisible,
@@ -53,14 +52,18 @@ export const ResetAccountModal = ({
       onCancelPress={cancelResetAccount}
       onRequestClose={cancelResetAccount}
       onConfirmPress={resetAccount}
+      childrenContainerStyle={styles.modalChildrenContainer}
     >
-      <View style={styles.modalView}>
-        <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
-          {strings('app_settings.reset_account_modal_title')}
-        </Text>
-        <Text style={styles.modalText}>
-          {strings('app_settings.reset_account_modal_message')}
-        </Text>
+      <View style={styles.modalContentWrapper}>
+        <HeaderCenter
+          title={strings('app_settings.reset_account_modal_title')}
+          onClose={cancelResetAccount}
+        />
+        <View style={styles.modalView}>
+          <Text style={styles.modalText}>
+            {strings('app_settings.reset_account_modal_message')}
+          </Text>
+        </View>
       </View>
     </ActionModal>
   );

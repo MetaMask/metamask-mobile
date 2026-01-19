@@ -12,12 +12,19 @@ export const styleSheet = () =>
     accessory: {
       marginTop: 16,
     },
+    modalChildrenContainer: {
+      flexDirection: 'column',
+      width: '100%',
+    },
+    modalContentWrapper: {
+      width: '100%',
+    },
     modalView: {
       alignItems: 'center',
-      flex: 1,
       flexDirection: 'column',
       justifyContent: 'center',
-      padding: 20,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
     },
     modalText: {
       textAlign: 'center',

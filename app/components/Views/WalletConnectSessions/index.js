@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -93,15 +93,7 @@ export default class WalletConnectSessions extends PureComponent {
 
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('experimental_settings.wallet_connect_dapps'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
+    navigation.setOptions({ headerShown: false });
   };
 
   componentDidMount() {
@@ -251,29 +243,36 @@ export default class WalletConnectSessions extends PureComponent {
 
     const sessionsLength = sessions.length + sessionsV2.length;
     return (
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={ExperimentalSelectorsIDs.CONTAINER}
-      >
-        <ScrollView
-          style={styles.wrapper}
-          contentContainerStyle={styles.scrollviewContent}
-        >
-          {sessionsLength > 0 ? this.renderSessions() : this.renderEmpty()}
-        </ScrollView>
-        <ActionSheet
-          ref={this.createActionSheetRef}
-          title={strings('walletconnect_sessions.end_session_title')}
-          options={[
-            strings('walletconnect_sessions.end'),
-            strings('walletconnect_sessions.cancel'),
-          ]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          onPress={this.onActionSheetPress}
-          theme={themeAppearance}
+      <>
+        <HeaderCenter
+          title={strings('experimental_settings.wallet_connect_dapps')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
         />
-      </SafeAreaView>
+        <SafeAreaView
+          style={styles.wrapper}
+          testID={ExperimentalSelectorsIDs.CONTAINER}
+        >
+          <ScrollView
+            style={styles.wrapper}
+            contentContainerStyle={styles.scrollviewContent}
+          >
+            {sessionsLength > 0 ? this.renderSessions() : this.renderEmpty()}
+          </ScrollView>
+          <ActionSheet
+            ref={this.createActionSheetRef}
+            title={strings('walletconnect_sessions.end_session_title')}
+            options={[
+              strings('walletconnect_sessions.end'),
+              strings('walletconnect_sessions.cancel'),
+            ]}
+            cancelButtonIndex={1}
+            destructiveButtonIndex={0}
+            onPress={this.onActionSheetPress}
+            theme={themeAppearance}
+          />
+        </SafeAreaView>
+      </>
     );
   };
 }

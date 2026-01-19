@@ -14,6 +14,7 @@ import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 
 const ROW_HEIGHT = 35;
 const createStyles = (colors) =>
@@ -37,21 +38,6 @@ const createStyles = (colors) =>
       paddingTop: 10,
       paddingBottom: 10,
       ...fontStyles.normal,
-    },
-    accesoryBar: {
-      width: '100%',
-      paddingTop: 5,
-      height: 50,
-      borderBottomColor: colors.border.muted,
-      borderBottomWidth: 1,
-    },
-    label: {
-      textAlign: 'center',
-      flex: 1,
-      paddingVertical: 10,
-      fontSize: 17,
-      ...fontStyles.bold,
-      color: colors.text.default,
     },
     modal: {
       margin: 0,
@@ -196,9 +182,10 @@ export default class SelectComponent extends PureComponent {
           backdropOpacity={1}
         >
           <View style={styles.modalView}>
-            <View style={styles.accesoryBar}>
-              <Text style={styles.label}>{this.props.label}</Text>
-            </View>
+            <HeaderCenter
+              title={this.props.label}
+              onClose={this.hidePicker}
+            />
             <ScrollView style={styles.list} ref={this.scrollView}>
               <View style={styles.listWrapper}>
                 {this.props.options.map((option) => (
