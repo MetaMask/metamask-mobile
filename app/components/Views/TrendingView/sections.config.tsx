@@ -98,6 +98,7 @@ const fuseSearch = <T,>(
   searchQuery: string | undefined,
   fuseOptions: FuseSearchOptions,
 ): T[] => {
+  searchQuery = searchQuery?.trim();
   if (!searchQuery) {
     return data;
   }
