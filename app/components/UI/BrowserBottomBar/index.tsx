@@ -130,9 +130,9 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
    * Check if current URL is bookmarked
    */
   const isBookmarked = useMemo((): boolean => {
-    const maskedUrl = getMaskedUrl(activeUrlRef.current, sessionENSNames);
+    const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
     return bookmarks.some(({ url }: { url: string }) => url === maskedUrl);
-  }, [sessionENSNames, bookmarks, getMaskedUrl]);
+  }, [sessionENSNames, bookmarks, getMaskedUrl, activeUrl]);
 
   /**
    * Navigate to AddBookmarkView modal

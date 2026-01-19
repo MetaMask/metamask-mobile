@@ -226,6 +226,7 @@ const BrowserUrlBar = React.memo(
       const onFocusInput = useCallback(() => {
         setIsUrlBarFocused(true);
         onFocus();
+        inputRef?.current?.focus();
       }, [setIsUrlBarFocused, onFocus]);
 
       const onChangeTextInput = useCallback(
