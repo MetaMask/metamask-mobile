@@ -292,6 +292,14 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  isNativeAddress: jest.fn(
+    (address: string) =>
+      address === '0x0000000000000000000000000000000000000000',
+  ),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -1891,7 +1899,7 @@ describe('getSwapTokens', () => {
     });
   });
 
-  it('returns native gas token as sourceToken when asset is native gas token', () => {
+  it('returns native gas token as sourceToken when asset is native gas token from home page', () => {
     const nativeGasToken = {
       ...asset,
       address: '0x0000000000000000000000000000000000000000',
@@ -1912,5 +1920,23 @@ describe('getSwapTokens', () => {
     });
     // destToken is undefined (will be determined by swap UI)
     expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns native gas token as destToken when asset is native gas token from trending', () => {
+    const trendingNativeGasToken = {
+      ...asset,
+      address: '0x0000000000000000000000000000000000000000',
+      isETH: true,
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingNativeGasToken);
+
+    // When coming from trending with native token, user wants to BUY it (dest position)
+    expect(result.destToken).toBeDefined();
+    expect(result.destToken?.address).toBe(
+      '0x0000000000000000000000000000000000000000',
+    );
+    expect(result.destToken?.symbol).toBe(trendingNativeGasToken.symbol);
   });
 });
