@@ -22,9 +22,41 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
 
-// Type assertion for Browser component props (component is JS with PropTypes)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const BrowserComponent = Browser as React.ComponentType<any>;
+// Browser component props interface (component is JS with PropTypes)
+interface BrowserProps {
+  route: {
+    params?: {
+      newTabUrl?: string;
+      timestamp?: string;
+      existingTabId?: number;
+      showTabsView?: boolean;
+      linkType?: string;
+      fromTrending?: boolean;
+      fromPerps?: boolean;
+    };
+  };
+  navigation: {
+    setOptions: jest.Mock;
+    setParams: jest.Mock;
+    navigate: jest.Mock;
+    goBack: jest.Mock;
+  };
+  tabs: {
+    id: number;
+    url?: string;
+    image: string;
+    isArchived: boolean;
+    linkType?: string;
+  }[];
+  activeTab: number | null;
+  createNewTab: jest.Mock;
+  closeAllTabs: jest.Mock;
+  closeTab: jest.Mock;
+  setActiveTab: jest.Mock;
+  updateTab: jest.Mock;
+}
+
+const BrowserComponent = Browser as React.ComponentType<BrowserProps>;
 
 jest.useFakeTimers();
 
@@ -214,7 +246,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabsWithMultiple}
                     activeTab={1}
@@ -362,7 +394,7 @@ describe('Browser - Tab Operations', () => {
       expect(closeTabsViewCallback).toBeDefined();
 
       // Call closeTabsView callback which should call navigation.goBack when tabs.length === 0
-      closeTabsViewCallback();
+      closeTabsViewCallback?.();
 
       // navigation.goBack called when tabs.length is zero
       expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -391,7 +423,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -455,7 +487,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabsAtMax}
                     activeTab={1}
@@ -505,7 +537,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabsBelowMax}
                     activeTab={1}
@@ -553,7 +585,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{
                       params: {
                         newTabUrl: 'https://test.com',
@@ -602,7 +634,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -658,7 +690,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={2}
@@ -708,7 +740,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={2}
@@ -756,7 +788,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -805,7 +837,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -856,7 +888,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -900,7 +932,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={[]}
                     activeTab={null}

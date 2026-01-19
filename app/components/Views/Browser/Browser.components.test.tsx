@@ -20,9 +20,41 @@ import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
 import BrowserTab from '../BrowserTab/BrowserTab';
 
-// Type assertion for Browser component props (component is JS with PropTypes)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const BrowserComponent = Browser as React.ComponentType<any>;
+// Browser component props interface (component is JS with PropTypes)
+interface BrowserProps {
+  route: {
+    params?: {
+      newTabUrl?: string;
+      timestamp?: string;
+      existingTabId?: number;
+      showTabsView?: boolean;
+      linkType?: string;
+      fromTrending?: boolean;
+      fromPerps?: boolean;
+    };
+  };
+  navigation: {
+    setOptions: jest.Mock;
+    setParams: jest.Mock;
+    navigate: jest.Mock;
+    goBack: jest.Mock;
+  };
+  tabs: {
+    id: number;
+    url?: string;
+    image: string;
+    isArchived: boolean;
+    linkType?: string;
+  }[];
+  activeTab: number | null;
+  createNewTab: jest.Mock;
+  closeAllTabs: jest.Mock;
+  closeTab: jest.Mock;
+  setActiveTab: jest.Mock;
+  updateTab: jest.Mock;
+}
+
+const BrowserComponent = Browser as React.ComponentType<BrowserProps>;
 
 jest.useFakeTimers();
 
