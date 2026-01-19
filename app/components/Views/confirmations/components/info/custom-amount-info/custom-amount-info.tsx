@@ -110,6 +110,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isInputChanged,
       isKeyboardVisible,
       pendingTokenAmount: amountHumanDebounced,
+      hasMax,
     });
 
     const handleDone = useCallback(() => {

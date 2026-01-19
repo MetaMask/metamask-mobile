@@ -2,6 +2,9 @@ import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { useAlerts } from '../../context/alert-system-context';
 import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
@@ -27,21 +30,38 @@ export function useTransactionCustomAmountAlerts({
   isInputChanged,
   isKeyboardVisible,
   pendingTokenAmount,
+  hasMax,
 }: {
   isInputChanged: boolean;
   isKeyboardVisible: boolean;
   pendingTokenAmount: string;
+  hasMax?: boolean;
 }): {
   alertMessage?: string;
   alertTitle?: string;
 } {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
+  const transactionMeta = useTransactionMetadataRequest();
+
+  const bypassInsufficientPayTokenBalance = useMemo(
+    () =>
+      hasMax &&
+      hasTransactionType(transactionMeta, [TransactionType.musdConversion]),
+    [transactionMeta, hasMax],
+  );
 
   const filteredAlerts = useMemo(() => {
     const blockingAlerts = confirmationAlerts.filter((a) => a.isBlocking);
 
     return blockingAlerts.filter((a) => {
+      if (
+        bypassInsufficientPayTokenBalance &&
+        a.key === AlertKeys.InsufficientPayTokenBalance
+      ) {
+        return false;
+      }
+
       const isIgnoredAsNoInput =
         !isInputChanged && ON_CHANGE_ALERTS.includes(a.key as AlertKeys);
 
@@ -57,7 +77,12 @@ export function useTransactionCustomAmountAlerts({
         !isIgnoredAsPending
       );
     });
-  }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
+  }, [
+    bypassInsufficientPayTokenBalance,
+    confirmationAlerts,
+    isInputChanged,
+    isKeyboardVisible,
+  ]);
 
   const alerts = useMemo(
     () => [...pendingTokenAlerts, ...filteredAlerts],
