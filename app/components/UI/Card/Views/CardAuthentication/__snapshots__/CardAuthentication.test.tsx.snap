@@ -349,11 +349,12 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                         enableOnAndroid={true}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={0}
+                        extraScrollHeight={20}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
                         keyboardDismissMode="interactive"
                         keyboardOpeningTime={250}
+                        keyboardShouldPersistTaps="handled"
                         keyboardSpace={0}
                         onScroll={[Function]}
                         resetKeyboardSpace={[Function]}

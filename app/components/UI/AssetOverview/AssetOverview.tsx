@@ -126,12 +126,10 @@ import { BridgeToken } from '../Bridge/types';
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
  *
- * When the asset is a native gas token (e.g., ETH), we set sourceToken to the default
- * pair token for that chain (e.g., mUSD on mainnet) and destToken to the native token,
- * allowing the user to swap INTO the native token.
- *
  * When coming from the trending tokens list, the user likely wants to BUY the token,
- * so we configure the swap with the native token as source and the asset as destination.
+ * so we configure the swap with the asset as destination:
+ * - For native tokens (ETH, BNB, etc.): use default pair token as source
+ * - For other tokens: use native token as source
  *
  * Otherwise, we assume they want to SELL, so the asset is the source.
  *
@@ -145,6 +143,7 @@ export const getSwapTokens = (
   destToken: BridgeToken | undefined;
 } => {
   const wantsToBuyToken = isAssetFromTrending(asset);
+  const isNative = isNativeAddress(asset.address);
 
   // Build bridge token from asset
   const bridgeToken: BridgeToken = {
@@ -157,22 +156,23 @@ export const getSwapTokens = (
     image: asset.image,
   };
 
-  // If the asset is a native gas token, set source to the default pair token for that chain
-  // and dest to the native token, allowing the user to swap INTO the native token
-  if (isNativeAddress(asset.address)) {
-    return {
-      sourceToken: getDefaultDestToken(bridgeToken.chainId),
-      destToken: bridgeToken,
-    };
-  }
-
+  // Trending page: user wants to BUY the token (token as destination)
   if (wantsToBuyToken) {
+    // For native tokens, use default pair token as source (e.g., mUSD for ETH)
+    if (isNative) {
+      return {
+        sourceToken: getDefaultDestToken(bridgeToken.chainId),
+        destToken: bridgeToken,
+      };
+    }
+    // For non-native tokens, use native token as source
     return {
       sourceToken: getNativeSourceToken(bridgeToken.chainId),
       destToken: bridgeToken,
     };
   }
 
+  // Home page: user wants to SELL the token (token as source)
   return {
     sourceToken: bridgeToken,
     destToken: undefined,
@@ -621,7 +621,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           I18n.locale,
           { minimumFractionDigits: 0, maximumFractionDigits: 5 },
         )
-      : 0;
+      : undefined;
   } else if (isEthOrNative) {
     balance = renderFromWei(
       // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
