@@ -1,16 +1,19 @@
 import React, { Fragment } from 'react';
 import { Image, View, Linking, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { ButtonSize, ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
 import { useTheme } from '../../../../util/theme';
 import EnableNotificationsCardPlaceholder from '../../../../images/enableNotificationsCard.png';
 import { createStyles } from './styles';
@@ -48,16 +51,13 @@ const OptIn = () => {
 
   return (
     <Fragment>
-      <View style={styles.wrapper}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.textTitle}
+      <SafeAreaView style={styles.wrapper}>
+        <HeaderCenter
+          title={strings('notifications.activation_card.title')}
+          onClose={handleOptInCancel}
           testID={EnableNotificationModalSelectorsIDs.TITLE}
-        >
-          {strings('notifications.activation_card.title')}
-        </Text>
-        <ScrollView>
+        />
+        <ScrollView style={styles.contentContainer}>
           <View style={styles.card}>
             <Image
               source={EnableNotificationsCardPlaceholder}
@@ -98,23 +98,27 @@ const OptIn = () => {
           </Text>
         </ScrollView>
 
-        <View style={styles.btnContainer}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('notifications.activation_card.cancel')}
-            onPress={handleOptInCancel}
-            style={styles.ctaBtn}
-            testID={EnableNotificationModalSelectorsIDs.BUTTON_CANCEL}
-          />
-          <Button
-            variant={ButtonVariants.Primary}
-            label={strings('notifications.activation_card.cta')}
-            onPress={handleOptInClick}
-            style={styles.ctaBtn}
-            testID={EnableNotificationModalSelectorsIDs.BUTTON_ENABLE}
-          />
-        </View>
-      </View>
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          buttonPropsArray={[
+            {
+              variant: ButtonVariants.Secondary,
+              size: ButtonSize.Lg,
+              label: strings('notifications.activation_card.cancel'),
+              onPress: handleOptInCancel,
+              testID: EnableNotificationModalSelectorsIDs.BUTTON_CANCEL,
+            },
+            {
+              variant: ButtonVariants.Primary,
+              size: ButtonSize.Lg,
+              label: strings('notifications.activation_card.cta'),
+              onPress: handleOptInClick,
+              testID: EnableNotificationModalSelectorsIDs.BUTTON_ENABLE,
+            },
+          ]}
+          style={styles.btnContainer}
+        />
+      </SafeAreaView>
       <SwitchLoadingModal
         loading={loading}
         loadingText={strings('app_settings.enabling_notifications')}

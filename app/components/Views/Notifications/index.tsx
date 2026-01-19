@@ -1,23 +1,22 @@
 import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
+import { View, SafeAreaView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { INotification } from '@metamask/notification-services-controller/notification-services';
 
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
-import styles from './styles';
+import createStyles from './styles';
 import Notifications from '../../UI/Notification/List';
+import { useTheme } from '../../../util/theme';
 import { sortNotifications } from '../../../util/notifications';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 import Button, {
   ButtonVariants,
   ButtonSize,
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -31,9 +30,6 @@ import {
 } from '../../../util/notifications/hooks/useNotifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
 
@@ -87,6 +83,8 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -105,10 +103,22 @@ const NotificationsView = ({
   );
 
   return (
-    <View
+    <SafeAreaView
       style={styles.wrapper}
       testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
     >
+      <HeaderCenter
+        title={strings('app_settings.notifications_title')}
+        onBack={() => navigation.navigate(Routes.WALLET.HOME)}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: () => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS),
+          },
+        ]}
+        testID={NotificationMenuViewSelectorsIDs.TITLE}
+        includesTopInset
+      />
       {isNotificationEnabled ? (
         <>
           <Notifications
@@ -117,14 +127,16 @@ const NotificationsView = ({
             loading={isLoading}
           />
           {!isLoading && unreadCount > 0 && (
+          <View style={styles.stickyButtonContainer}>
             <Button
               variant={ButtonVariants.Primary}
               label={strings('notifications.mark_all_as_read')}
               onPress={handleMarkAllAsRead}
               size={ButtonSize.Lg}
-              style={styles.stickyButton}
+              width={ButtonWidthTypes.Full}
               disabled={loading}
             />
+          </View>
           )}
         </>
       ) : (
@@ -132,40 +144,12 @@ const NotificationsView = ({
           testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
 export default NotificationsView;
 
-NotificationsView.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerRight: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
-      style={styles.icon}
-    />
-  ),
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Close}
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
-      style={styles.icon}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingMD}
-      style={styles.title}
-      testID={NotificationMenuViewSelectorsIDs.TITLE}
-    >
-      {strings('app_settings.notifications_title')}
-    </Text>
-  ),
-});
+NotificationsView.navigationOptions = {
+  headerShown: false,
+};

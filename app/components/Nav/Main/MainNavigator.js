@@ -392,7 +392,7 @@ const NotificationsOptInStack = () => (
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -525,7 +525,7 @@ const SettingsFlow = () => (
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.SETTINGS.BACKUP_AND_SYNC}
@@ -842,7 +842,7 @@ const NotificationsModeView = (props) => (
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       mode={'modal'}

@@ -1,16 +1,8 @@
-import {
-  NavigationProp,
-  ParamListBase,
-  RouteProp,
-} from '@react-navigation/native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 export interface Props {
   /**
-	/* navigation object required to push new views
-	*/
-  navigation: NavigationProp<ParamListBase>;
-  /**
-   * contains params that are passed in from navigation
+   * navigation object required to push new views
    */
-  route: RouteProp<{ params: { isFullScreenModal?: boolean } }, 'params'>;
+  navigation: NavigationProp<ParamListBase>;
 }
