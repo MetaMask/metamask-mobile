@@ -8,6 +8,8 @@ import {
   getScopedPermissions,
   networkModalOnboardingConfig,
   getHostname,
+  normalizeDappUrl,
+  getSafeDappHostname,
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -276,6 +278,112 @@ describe('WalletConnect Utils', () => {
     it('returns original URI when no protocol separator is found', () => {
       const noProtocolUri = 'example-with-no-protocol';
       expect(getHostname(noProtocolUri)).toBe(noProtocolUri);
+    });
+  });
+
+  describe('normalizeDappUrl', () => {
+    it('returns empty string for null or undefined URL', () => {
+      expect(normalizeDappUrl(null)).toBe('');
+      expect(normalizeDappUrl(undefined)).toBe('');
+      expect(normalizeDappUrl('')).toBe('');
+    });
+
+    it('returns empty string for whitespace-only URL', () => {
+      expect(normalizeDappUrl('   ')).toBe('');
+      expect(normalizeDappUrl('\t\n')).toBe('');
+    });
+
+    it('returns URL unchanged when it already has https protocol', () => {
+      expect(normalizeDappUrl('https://example.com')).toBe(
+        'https://example.com',
+      );
+      expect(normalizeDappUrl('https://example.com/path?query=1')).toBe(
+        'https://example.com/path?query=1',
+      );
+    });
+
+    it('returns URL unchanged when it already has http protocol', () => {
+      expect(normalizeDappUrl('http://example.com')).toBe('http://example.com');
+    });
+
+    it('adds https protocol to URL without protocol', () => {
+      expect(normalizeDappUrl('example.com')).toBe('https://example.com');
+      expect(normalizeDappUrl('example.com/path')).toBe(
+        'https://example.com/path',
+      );
+      expect(normalizeDappUrl('subdomain.example.com')).toBe(
+        'https://subdomain.example.com',
+      );
+    });
+
+    it('trims whitespace before processing', () => {
+      expect(normalizeDappUrl('  https://example.com  ')).toBe(
+        'https://example.com',
+      );
+      expect(normalizeDappUrl('  example.com  ')).toBe('https://example.com');
+    });
+
+    it('returns empty string for invalid URLs that cannot be normalized', () => {
+      // URLs that are invalid even after adding protocol
+      expect(normalizeDappUrl('not a valid url with spaces')).toBe('');
+      expect(normalizeDappUrl('://invalid')).toBe('');
+    });
+
+    it('handles URLs with ports correctly', () => {
+      expect(normalizeDappUrl('https://example.com:8080')).toBe(
+        'https://example.com:8080',
+      );
+      expect(normalizeDappUrl('example.com:3000')).toBe(
+        'https://example.com:3000',
+      );
+    });
+
+    it('uses custom default protocol when provided', () => {
+      expect(normalizeDappUrl('example.com', 'http://')).toBe(
+        'http://example.com',
+      );
+    });
+  });
+
+  describe('getSafeDappHostname', () => {
+    it('returns empty string for null or undefined URL', () => {
+      expect(getSafeDappHostname(null)).toBe('');
+      expect(getSafeDappHostname(undefined)).toBe('');
+      expect(getSafeDappHostname('')).toBe('');
+    });
+
+    it('extracts hostname from valid https URL', () => {
+      expect(getSafeDappHostname('https://example.com')).toBe('example.com');
+      expect(getSafeDappHostname('https://example.com/path')).toBe(
+        'example.com',
+      );
+      expect(getSafeDappHostname('https://subdomain.example.com:8080')).toBe(
+        'subdomain.example.com',
+      );
+    });
+
+    it('extracts hostname from URL without protocol by normalizing first', () => {
+      expect(getSafeDappHostname('example.com')).toBe('example.com');
+      expect(getSafeDappHostname('subdomain.example.com/path')).toBe(
+        'subdomain.example.com',
+      );
+    });
+
+    it('returns empty string for invalid URLs', () => {
+      expect(getSafeDappHostname('not a valid url')).toBe('');
+      expect(getSafeDappHostname('://invalid')).toBe('');
+    });
+
+    it('handles the malformed URL case that caused DoS (no protocol)', () => {
+      // This is the specific vulnerability case - "metamask.io" instead of "https://metamask.io"
+      expect(getSafeDappHostname('metamask.io')).toBe('metamask.io');
+      expect(getSafeDappHostname('dapp.example.com')).toBe('dapp.example.com');
+    });
+
+    it('returns empty string for protocol-only URIs like wc: or ethereum:', () => {
+      // These are not valid dApp URLs and should return empty
+      expect(getSafeDappHostname('wc:topic@1')).toBe('');
+      expect(getSafeDappHostname('ethereum:0x123')).toBe('');
     });
   });
 });

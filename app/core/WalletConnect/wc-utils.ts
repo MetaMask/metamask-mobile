@@ -59,6 +59,80 @@ export const getHostname = (uri: string): string => {
   }
 };
 
+/**
+ * Normalizes a dApp URL by ensuring it has a valid protocol.
+ * This prevents crashes when processing malformed URLs from WalletConnect metadata.
+ *
+ * @param url - The URL string to normalize
+ * @param defaultProtocol - The protocol to use if none is present (defaults to 'https://')
+ * @returns The normalized URL with a valid protocol, or empty string if invalid
+ */
+export const normalizeDappUrl = (
+  url: string | undefined | null,
+  defaultProtocol = 'https://',
+): string => {
+  try {
+    // Handle empty or null URLs
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+      return '';
+    }
+
+    const trimmedUrl = url.trim();
+
+    // Check if URL already has a protocol
+    if (trimmedUrl.includes('://')) {
+      // Validate that it's a proper URL
+      try {
+        new URL(trimmedUrl);
+        return trimmedUrl;
+      } catch (e) {
+        // Invalid URL format even with protocol
+        DevLogger.log('Invalid URL format:', trimmedUrl);
+        return '';
+      }
+    }
+
+    // URL doesn't have a protocol, add the default one
+    const normalizedUrl = `${defaultProtocol}${trimmedUrl}`;
+
+    // Validate the resulting URL
+    try {
+      new URL(normalizedUrl);
+      return normalizedUrl;
+    } catch (e) {
+      // Still invalid after adding protocol
+      DevLogger.log('Unable to normalize URL:', trimmedUrl);
+      return '';
+    }
+  } catch (error) {
+    DevLogger.log('Error in normalizeDappUrl:', error);
+    return '';
+  }
+};
+
+/**
+ * Safely extracts the hostname from a dApp URL.
+ * Unlike getHostname, this specifically handles dApp URLs and ensures
+ * proper normalization before extraction.
+ *
+ * @param url - The URL string to extract hostname from
+ * @returns The hostname or empty string if invalid
+ */
+export const getSafeDappHostname = (url: string | undefined | null): string => {
+  try {
+    const normalizedUrl = normalizeDappUrl(url);
+    if (!normalizedUrl) {
+      return '';
+    }
+
+    const parsedUrl = new URL(normalizedUrl);
+    return parsedUrl.hostname;
+  } catch (error) {
+    DevLogger.log('Error in getSafeDappHostname:', error);
+    return '';
+  }
+};
+
 export const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
   // Handle wc:{} and wc://{} format
   const str = uri.startsWith('wc://') ? uri.replace('wc://', 'wc:') : uri;

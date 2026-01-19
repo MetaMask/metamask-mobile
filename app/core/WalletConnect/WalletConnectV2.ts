@@ -36,6 +36,7 @@ import {
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
+  normalizeDappUrl,
 } from './wc-utils';
 
 import {
@@ -439,10 +440,24 @@ export class WC2Manager {
 
     const { proposer } = params;
     const { metadata } = proposer;
-    const url = metadata.url ?? '';
+    const rawUrl = metadata.url ?? '';
     const name = metadata.description ?? '';
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
+
+    // Normalize the URL to ensure it has a proper protocol (adds https:// if missing)
+    // This prevents crashes when processing malformed URLs
+    const url = normalizeDappUrl(rawUrl);
+    if (!url) {
+      console.warn(
+        `WC2::session_proposal rejected - invalid dApp URL: ${rawUrl}`,
+      );
+      await this.web3Wallet.rejectSession({
+        id: proposal.id,
+        reason: getSdkError('USER_REJECTED_METHODS'),
+      });
+      return;
+    }
 
     if (url === ORIGIN_METAMASK) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
