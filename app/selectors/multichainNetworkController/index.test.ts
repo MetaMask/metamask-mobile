@@ -54,7 +54,9 @@ describe('Multichain Network Controller Selectors', () => {
       const result = selectMultichainNetworkControllerState(
         stateWithUndefinedController,
       );
-      expect(result).toStrictEqual(getDefaultMultichainNetworkControllerState());
+      expect(result).toStrictEqual(
+        getDefaultMultichainNetworkControllerState(),
+      );
     });
 
     it('returns default state when backgroundState is undefined', () => {
@@ -67,7 +69,9 @@ describe('Multichain Network Controller Selectors', () => {
       const result = selectMultichainNetworkControllerState(
         stateWithUndefinedBackgroundState,
       );
-      expect(result).toStrictEqual(getDefaultMultichainNetworkControllerState());
+      expect(result).toStrictEqual(
+        getDefaultMultichainNetworkControllerState(),
+      );
     });
   });
 
