@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, useMemo } from 'react';
-import Fuse from 'fuse.js';
+import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import Routes from '../../../constants/navigation/Routes';
@@ -62,26 +62,6 @@ interface SectionConfig {
   SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
 
-type FuseKeys<T> = readonly Extract<keyof T, string>[];
-
-const TOKEN_FUSE_KEYS = [
-  'symbol',
-  'name',
-  'assetId',
-] as const satisfies FuseKeys<TrendingAsset>;
-
-const PERPS_FUSE_KEYS = [
-  'symbol',
-  'name',
-] as const satisfies FuseKeys<PerpsMarketData>;
-
-const PREDICTIONS_FUSE_KEYS = [
-  'title',
-  'description',
-  'tags',
-  'slug',
-] as const satisfies FuseKeys<PredictMarketType>;
-
 const BASE_FUSE_OPTIONS = {
   shouldSort: true,
   threshold: 0.4,
@@ -91,12 +71,10 @@ const BASE_FUSE_OPTIONS = {
   minMatchCharLength: 1,
 };
 
-type FuseSearchOptions = ConstructorParameters<typeof Fuse>[1];
-
 const fuseSearch = <T,>(
   data: T[],
   searchQuery: string | undefined,
-  fuseOptions: FuseSearchOptions,
+  fuseOptions: FuseOptions<T>,
 ): T[] => {
   searchQuery = searchQuery?.trim();
   if (!searchQuery) {
@@ -107,20 +85,19 @@ const fuseSearch = <T,>(
   return results;
 };
 
-const TOKEN_FUSE_OPTIONS = {
+const TOKEN_FUSE_OPTIONS: FuseOptions<TrendingAsset> = {
   ...BASE_FUSE_OPTIONS,
-  keys: [...TOKEN_FUSE_KEYS],
+  keys: ['symbol', 'name', 'assetId'],
 };
 
-const PERPS_FUSE_OPTIONS = {
+const PERPS_FUSE_OPTIONS: FuseOptions<PerpsMarketData> = {
   ...BASE_FUSE_OPTIONS,
-  keys: [...PERPS_FUSE_KEYS],
+  keys: ['symbol', 'name'],
 };
 
-const PREDICTIONS_FUSE_OPTIONS = {
+const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
   ...BASE_FUSE_OPTIONS,
-  threshold: 0.35,
-  keys: [...PREDICTIONS_FUSE_KEYS],
+  keys: ['title', 'description'],
 };
 
 /**
