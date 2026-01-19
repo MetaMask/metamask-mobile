@@ -300,6 +300,18 @@ describe('TrendingTokenRowItem', () => {
     expect(getByText('Ethereum')).toBeTruthy();
   });
 
+  it('renders token symbol as fallback when name is missing', () => {
+    const token = createMockToken({ name: '', symbol: 'ETH' });
+
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
+    );
+
+    expect(getByText('ETH')).toBeTruthy();
+  });
+
   it('renders market stats with formatted values', () => {
     const token = createMockToken({
       marketCap: 75641301011.76,
