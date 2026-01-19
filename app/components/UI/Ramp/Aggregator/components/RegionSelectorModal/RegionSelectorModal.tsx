@@ -8,6 +8,12 @@ import React, {
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 import Text, {
   TextColor,
@@ -64,12 +70,35 @@ function RegionSelectorModal() {
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
   const [currentData, setCurrentData] = useState<Region[]>(regions || []);
+  const [stateData, setStateData] = useState<Region[]>([]);
   const [regionInTransit, setRegionInTransit] = useState<Region | null>(null);
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
   const trackEvent = useAnalytics();
+
+  // Animation shared values
+  const countryListTranslateX = useSharedValue(0);
+  const stateListTranslateX = useSharedValue(screenWidth);
+
+  // Animate between views
+  useEffect(() => {
+    const animationConfig = {
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+    };
+
+    if (activeView === RegionViewType.STATE) {
+      // Slide to state view
+      countryListTranslateX.value = withTiming(-screenWidth, animationConfig);
+      stateListTranslateX.value = withTiming(0, animationConfig);
+    } else {
+      // Slide to country view
+      countryListTranslateX.value = withTiming(0, animationConfig);
+      stateListTranslateX.value = withTiming(screenWidth, animationConfig);
+    }
+  }, [activeView, screenWidth, countryListTranslateX, stateListTranslateX]);
 
   useEffect(() => {
     if (regions && activeView === RegionViewType.COUNTRY) {
@@ -77,7 +106,9 @@ function RegionSelectorModal() {
     }
   }, [regions, activeView]);
 
-  const fuseData = useMemo(() => {
+  // Fuse search for country list
+  const countryFuseData = useMemo(() => {
+    if (!currentData?.length) return null;
     const flatRegions: Region[] = currentData.reduce(
       (acc: Region[], region: Region) => [
         ...acc,
@@ -97,9 +128,24 @@ function RegionSelectorModal() {
     });
   }, [currentData]);
 
-  const dataSearchResults = useMemo(() => {
-    if (searchString.length > 0) {
-      const results = fuseData
+  // Fuse search for state list
+  const stateFuseData = useMemo(() => {
+    if (!stateData?.length) return null;
+    return new Fuse(stateData, {
+      shouldSort: true,
+      threshold: 0.2,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 32,
+      minMatchCharLength: 1,
+      keys: ['name'],
+    });
+  }, [stateData]);
+
+  // Search results for country list
+  const countrySearchResults = useMemo(() => {
+    if (searchString.length > 0 && countryFuseData) {
+      const results = countryFuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
 
@@ -122,7 +168,35 @@ function RegionSelectorModal() {
       if (!a.recommended && b.recommended) return 1;
       return 0;
     });
-  }, [searchString, fuseData, currentData]);
+  }, [searchString, countryFuseData, currentData]);
+
+  // Search results for state list
+  const stateSearchResults = useMemo(() => {
+    if (searchString.length > 0 && stateFuseData) {
+      const results = stateFuseData
+        .search(searchString)
+        ?.slice(0, MAX_REGION_RESULTS);
+
+      const mappedResults: Region[] =
+        results
+          ?.map((result) =>
+            typeof result === 'object' && result !== null && 'item' in result
+              ? result.item
+              : result,
+          )
+          .filter((item): item is Region => Boolean(item)) || [];
+
+      return mappedResults;
+    }
+
+    if (!stateData?.length) return [];
+
+    return [...stateData].sort((a, b) => {
+      if (a.recommended && !b.recommended) return -1;
+      if (!a.recommended && b.recommended) return 1;
+      return 0;
+    });
+  }, [searchString, stateFuseData, stateData]);
 
   const scrollToTop = useCallback(() => {
     if (listRef?.current) {
@@ -138,7 +212,7 @@ function RegionSelectorModal() {
       if (region.states && region.states.length > 0) {
         setActiveView(RegionViewType.STATE);
         setRegionInTransit(region);
-        setCurrentData(region.states as Region[]);
+        setStateData(region.states as Region[]);
         setSearchString('');
         scrollToTop();
         return;
@@ -223,6 +297,7 @@ function RegionSelectorModal() {
   const handleRegionBackButton = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
     setCurrentData(regions || []);
+    setStateData([]);
     setRegionInTransit(null);
     setSearchString('');
     scrollToTop();
@@ -240,8 +315,18 @@ function RegionSelectorModal() {
     setActiveView(RegionViewType.COUNTRY);
     setRegionInTransit(null);
     setCurrentData(regions || []);
+    setStateData([]);
     setSearchString('');
   }, [regions]);
+
+  // Animated styles for both lists
+  const countryListStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: countryListTranslateX.value }],
+  }));
+
+  const stateListStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: stateListTranslateX.value }],
+  }));
 
   return (
     <BottomSheet
@@ -293,17 +378,32 @@ function RegionSelectorModal() {
           )}
         />
       </View>
-      <FlatList
-        ref={listRef}
-        style={styles.list}
-        data={dataSearchResults}
-        renderItem={renderRegionItem}
-        extraData={selectedRegion?.id}
-        keyExtractor={(item) => item?.id}
-        ListEmptyComponent={renderEmptyList}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-      />
+      <View style={styles.listContainer}>
+        <Animated.View style={[styles.listWrapper, countryListStyle]}>
+          <FlatList
+            ref={listRef}
+            data={countrySearchResults}
+            renderItem={renderRegionItem}
+            extraData={selectedRegion?.id}
+            keyExtractor={(item) => item?.id}
+            ListEmptyComponent={renderEmptyList}
+            keyboardDismissMode="none"
+            keyboardShouldPersistTaps="always"
+          />
+        </Animated.View>
+
+        <Animated.View style={[styles.listWrapper, stateListStyle]}>
+          <FlatList
+            data={stateSearchResults}
+            renderItem={renderRegionItem}
+            extraData={selectedRegion?.id}
+            keyExtractor={(item) => item?.id}
+            ListEmptyComponent={renderEmptyList}
+            keyboardDismissMode="none"
+            keyboardShouldPersistTaps="always"
+          />
+        </Animated.View>
+      </View>
     </BottomSheet>
   );
 }
