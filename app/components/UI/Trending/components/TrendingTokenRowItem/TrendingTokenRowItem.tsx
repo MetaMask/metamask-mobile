@@ -270,7 +270,7 @@ const TrendingTokenRowItem = ({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {token.name}
+            {token?.name ?? token?.symbol}
           </Text>
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

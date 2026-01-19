@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -960,16 +960,15 @@ describe('TrendingTokenRowItem', () => {
       );
       await fireEvent.press(tokenRow);
 
-      // Wait for async operation
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Verify addPopularNetwork was called with Base network
-      expect(mockAddPopularNetwork).toHaveBeenCalledWith(
-        expect.objectContaining({
-          chainId: '0x2105',
-          nickname: 'Base',
-        }),
-      );
+      // Wait for async operation to complete
+      await waitFor(() => {
+        expect(mockAddPopularNetwork).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: '0x2105',
+            nickname: 'Base',
+          }),
+        );
+      });
 
       // Navigation should be called after network is added
       expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.any(Object));
@@ -1024,11 +1023,10 @@ describe('TrendingTokenRowItem', () => {
       );
       await fireEvent.press(tokenRow);
 
-      // Wait for async operation
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Verify addPopularNetwork was called
-      expect(mockAddPopularNetwork).toHaveBeenCalled();
+      // Wait for async operation to complete
+      await waitFor(() => {
+        expect(mockAddPopularNetwork).toHaveBeenCalled();
+      });
 
       // Navigation should NOT be called when network addition fails
       expect(mockNavigate).not.toHaveBeenCalled();
