@@ -273,7 +273,7 @@ describe('RegionSelector', () => {
     await act(async () => {
       fireEvent.press(stateItem);
     });
-    await expect(mockSetUserRegion).toHaveBeenCalledWith('ca');
+    await expect(mockSetUserRegion).toHaveBeenCalledWith('us-ca');
     expect(mockGoBack).toHaveBeenCalled();
   });
 

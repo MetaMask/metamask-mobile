@@ -284,7 +284,7 @@ function RegionSelector() {
   );
 
   const handleOnRegionPressCallback = useCallback(
-    async (region: RegionItem) => {
+    async (region: RegionItem, parentCountry?: Country) => {
       if (isCountry(region) && region.states && region.states.length > 0) {
         setActiveView(RegionViewType.STATE);
         setRegionInTransit(region);
@@ -294,7 +294,19 @@ function RegionSelector() {
         return;
       }
 
-      const regionId = getRegionId(region);
+      let regionId = getRegionId(region);
+      if (isState(region) && region.stateId) {
+        const countryForState =
+          parentCountry ||
+          regionInTransit ||
+          (countries?.find((c) =>
+            c.states?.some((s) => s.stateId === region.stateId),
+          ) as Country | undefined);
+        if (countryForState) {
+          regionId = `${countryForState.isoCode.toLowerCase()}-${region.stateId.toLowerCase()}`;
+        }
+      }
+
       if (regionId) {
         try {
           await setUserRegion(regionId);
@@ -307,7 +319,14 @@ function RegionSelector() {
         navigation.goBack();
       }
     },
-    [getRegionId, scrollToTop, navigation, setUserRegion],
+    [
+      getRegionId,
+      scrollToTop,
+      navigation,
+      setUserRegion,
+      regionInTransit,
+      countries,
+    ],
   );
 
   const renderRegionItem = useCallback(
@@ -380,7 +399,9 @@ function RegionSelector() {
                 <ListItemSelect
                   key={state.stateId || state.name}
                   isSelected={stateIsSelected}
-                  onPress={() => handleOnRegionPressCallback(state)}
+                  onPress={() =>
+                    handleOnRegionPressCallback(state, item.country)
+                  }
                   accessibilityRole="button"
                   accessible
                   disabled={!isStateSupported}
