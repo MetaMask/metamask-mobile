@@ -4612,6 +4612,7 @@
     "buy_eth": "Buy ETH",
     "buy": "Buy {{ticker}}",
     "on_network": "on {{networkName}}",
+    "debit_card": "Debit card",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
     "switch_network": "Please switch to Mainnet",

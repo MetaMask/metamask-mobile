@@ -4,10 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Keypad from '../../../../Base/Keypad';
+import PaymentMethodPill from '../PaymentMethodPill';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../locales/i18n';
 
 import {
   createNavigationDetails,
@@ -103,14 +104,12 @@ function AmountInput() {
                   maximumFractionDigits: 0,
                 })}
               </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.convertedAmount}
-              >
-                {/* Token amount conversion placeholder */}
-                {selectedToken ? `0 ${selectedToken.symbol}` : ' '}
-              </Text>
+              <PaymentMethodPill
+                label={strings('fiat_on_ramp.debit_card')}
+                onPress={() => {
+                  // TODO: Open payment method selector
+                }}
+              />
             </View>
           </View>
 

@@ -17,9 +17,6 @@ const styleSheet = () =>
       lineHeight: 64 + 8,
       fontWeight: '400',
     },
-    convertedAmount: {
-      textAlign: 'center',
-    },
   });
 
 export default styleSheet;

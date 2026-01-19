@@ -169,10 +169,11 @@ describe('AmountInput', () => {
     );
   });
 
-  it('displays token symbol in conversion placeholder', () => {
-    const { getByText } = renderWithTheme(<AmountInput />);
+  it('renders the payment method pill', () => {
+    const { getByTestId, getByText } = renderWithTheme(<AmountInput />);
 
-    expect(getByText('0 USDC')).toBeOnTheScreen();
+    expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
+    expect(getByText('fiat_on_ramp.debit_card')).toBeOnTheScreen();
   });
 
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
