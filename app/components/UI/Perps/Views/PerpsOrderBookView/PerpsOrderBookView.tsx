@@ -14,10 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
@@ -26,7 +23,7 @@ import ButtonSemantic, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -97,7 +94,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
-  const insets = useSafeAreaInsets();
 
   // A/B Testing: Button color test (TAT-1937)
   const {
@@ -247,12 +243,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     if (currentGrouping === null) return '—';
     return formatGroupingLabel(currentGrouping);
   }, [currentGrouping]);
-
-  // Dynamic footer style with safe area insets
-  const footerStyle = useMemo(
-    () => [styles.footer, { paddingBottom: 16 + insets.bottom }],
-    [styles.footer, insets.bottom],
-  );
 
   // Handle grouping dropdown press
   const handleDepthBandPress = useCallback(() => {
@@ -504,7 +494,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       </ScrollView>
 
       {/* Footer with Spread and Actions */}
-      <View style={footerStyle}>
+      <View style={styles.footer}>
         {/* Spread Row */}
         {orderBook && (
           <View style={styles.spreadContainer}>
@@ -618,11 +608,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           shouldNavigateBack={false}
           onClose={handleDepthBandSheetClose}
         >
-          <BottomSheetHeader onClose={handleDepthBandSheetClose}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.order_book.depth_band.title')}
-            </Text>
-          </BottomSheetHeader>
+          <HeaderCenter
+            title={strings('perps.order_book.depth_band.title')}
+            onClose={handleDepthBandSheetClose}
+          />
           <View style={styles.depthBandSheetContent}>
             {groupingOptions.map((value) => (
               <TouchableOpacity
@@ -634,16 +623,15 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
                 onPress={() => handleGroupingSelect(value)}
                 testID={`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-${value}`}
               >
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={
-                    currentGrouping === value
-                      ? TextColor.Primary
-                      : TextColor.Default
-                  }
-                >
+                <Text variant={TextVariant.BodyMD}>
                   {formatGroupingLabel(value)}
                 </Text>
+                {currentGrouping === value && (
+                  <Icon
+                    name={IconName.Check}
+                    size={IconSize.Md}
+                  />
+                )}
               </TouchableOpacity>
             ))}
           </View>

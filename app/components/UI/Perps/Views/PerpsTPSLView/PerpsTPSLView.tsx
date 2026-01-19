@@ -14,13 +14,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Text, {
   TextColor,
   TextVariant,
@@ -422,23 +416,13 @@ const PerpsTPSLView: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* Simple header with back button and title */}
-      <View style={styles.header}>
-        <View style={styles.headerBackButton}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Md}
-            onPress={handleBack}
-            testID={PerpsTPSLViewSelectorsIDs.BACK_BUTTON}
-          />
-        </View>
-        <View style={styles.headerTitleContainer}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {strings('perps.tpsl.title')}
-          </Text>
-        </View>
-      </View>
+      <HeaderCenter
+        title={strings('perps.tpsl.title')}
+        onBack={handleBack}
+        backButtonProps={{
+          testID: PerpsTPSLViewSelectorsIDs.BACK_BUTTON,
+        }}
+      />
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}

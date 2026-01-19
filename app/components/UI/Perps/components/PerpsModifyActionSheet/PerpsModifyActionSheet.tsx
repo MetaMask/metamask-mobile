@@ -8,7 +8,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Icon, {
   IconSize,
   IconName,
@@ -106,11 +106,10 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
       onClose={externalSheetRef ? onClose : undefined}
       testID={testID}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.modify.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('perps.modify.title')}
+        onClose={onClose}
+      />
       <Box style={styles.contentContainer}>
         {actionOptions.map((option, index) => (
           <TouchableOpacity

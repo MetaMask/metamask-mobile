@@ -1,24 +1,25 @@
-import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
-  IconColor,
+import React, { useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
+import {
   IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  ButtonIconProps,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+import HeaderWithTitleLeft from '../../../../../component-library/components-temp/HeaderWithTitleLeft';
+import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import type { PerpsMarketData } from '../../controllers/types';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+  formatPercentage,
+} from '../../utils/formatUtils';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import { styleSheet } from './PerpsMarketHeader.styles';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 
 interface PerpsMarketHeaderProps {
@@ -29,9 +30,100 @@ interface PerpsMarketHeaderProps {
   onFullscreenPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
-  /** Current price from candle stream - syncs header with chart */
   currentPrice: number;
 }
+
+interface LivePriceBottomAccessoryProps {
+  symbol: string;
+  currentPrice: number;
+  testIDPrice?: string;
+  testIDChange?: string;
+}
+
+const bottomAccessoryStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
+
+const LivePriceBottomAccessory: React.FC<LivePriceBottomAccessoryProps> = ({
+  symbol,
+  currentPrice,
+  testIDPrice,
+  testIDChange,
+}) => {
+  const prices = usePerpsLivePrices({
+    symbols: [symbol],
+    throttleMs: 1000,
+  });
+
+  const priceData = prices[symbol];
+
+  const displayChange = useMemo(() => {
+    if (!priceData) return null;
+    if (priceData.percentChange24h === undefined) return null;
+    return Number.parseFloat(priceData.percentChange24h);
+  }, [priceData]);
+
+  const isPositiveChange = displayChange !== null && displayChange >= 0;
+  const changeColor =
+    displayChange === null
+      ? TextColor.Alternative
+      : isPositiveChange
+        ? TextColor.Success
+        : TextColor.Error;
+
+  const formattedPrice = useMemo(() => {
+    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+
+    try {
+      return formatPerpsFiat(currentPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+  }, [currentPrice]);
+
+  const formattedChange = useMemo(() => {
+    if (displayChange === null) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
+    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
+    try {
+      return formatPercentage(displayChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+  }, [currentPrice, displayChange]);
+
+  return (
+    <View style={bottomAccessoryStyles.container}>
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={TextColor.Alternative}
+        testID={testIDPrice}
+      >
+        {formattedPrice}
+      </Text>
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={changeColor}
+        testID={testIDChange}
+      >
+        {formattedChange}
+      </Text>
+    </View>
+  );
+};
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   market,
@@ -43,90 +135,59 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   testID,
   currentPrice,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const displaySymbol = getPerpsDisplaySymbol(market.symbol);
+  const title = `${displaySymbol}-USD`;
+
+  const endButtonIconProps = useMemo(() => {
+    const buttons: ButtonIconProps[] = [];
+
+    if (onFullscreenPress) {
+      buttons.push({
+        iconName: IconName.Expand,
+        onPress: onFullscreenPress,
+        testID: `${testID}-fullscreen-button`,
+      });
+    }
+
+    if (onFavoritePress) {
+      buttons.push({
+        iconName: isFavorite ? IconName.StarFilled : IconName.Star,
+        onPress: onFavoritePress,
+      });
+    } else if (onMorePress) {
+      buttons.push({
+        iconName: IconName.MoreVertical,
+        onPress: onMorePress,
+      });
+    }
+
+    return buttons.length > 0 ? buttons : undefined;
+  }, [onFullscreenPress, onFavoritePress, onMorePress, isFavorite, testID]);
 
   return (
-    <View style={styles.container} testID={testID}>
-      {onBackPress && (
-        <View style={styles.backButton}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Md}
-            onPress={onBackPress}
-            testID={PerpsMarketHeaderSelectorsIDs.BACK_BUTTON}
-          />
-        </View>
-      )}
-
-      {/* Icon Section - Smaller size for better spacing */}
-      <View style={styles.perpIcon}>
-        <PerpsTokenLogo
-          symbol={market.symbol}
-          size={32}
-          style={styles.tokenIcon}
-        />
-      </View>
-
-      {/* Left Section */}
-      <View style={styles.leftSection}>
-        <View style={styles.assetRow}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            style={styles.assetName}
-          >
-            {getPerpsDisplaySymbol(market.symbol)}-USD
-          </Text>
-          {market.maxLeverage && (
-            <PerpsLeverage maxLeverage={market.maxLeverage} />
-          )}
-        </View>
-        <View style={styles.secondRow}>
-          <LivePriceHeader
+    <HeaderWithTitleLeft
+      onBack={onBackPress}
+      backButtonProps={{
+        testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
+      }}
+      endButtonIconProps={endButtonIconProps}
+      testID={testID}
+      titleLeftProps={{
+        title,
+        titleAccessory: market.maxLeverage ? (
+          <PerpsLeverage maxLeverage={market.maxLeverage} />
+        ) : undefined,
+        bottomAccessory: (
+          <LivePriceBottomAccessory
             symbol={market.symbol}
+            currentPrice={currentPrice}
             testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
             testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-            throttleMs={1000}
-            currentPrice={currentPrice}
           />
-        </View>
-      </View>
-
-      {/* Fullscreen Button */}
-      {onFullscreenPress && (
-        <View style={styles.fullscreenButton}>
-          <ButtonIcon
-            iconName={IconName.Expand}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Md}
-            onPress={onFullscreenPress}
-            testID={`${testID}-fullscreen-button`}
-          />
-        </View>
-      )}
-
-      {/* Right Action Button */}
-      {onFavoritePress ? (
-        <TouchableOpacity onPress={onFavoritePress} style={styles.moreButton}>
-          <Icon
-            name={isFavorite ? IconName.StarFilled : IconName.Star}
-            size={IconSize.Lg}
-            color={IconColor.Default}
-          />
-        </TouchableOpacity>
-      ) : (
-        onMorePress && (
-          <TouchableOpacity onPress={onMorePress} style={styles.moreButton}>
-            <Icon
-              name={IconName.MoreVertical}
-              size={IconSize.Lg}
-              color={IconColor.Default}
-            />
-          </TouchableOpacity>
-        )
-      )}
-    </View>
+        ),
+        endAccessory: <PerpsTokenLogo symbol={market.symbol} size={48} />,
+      }}
+    />
   );
 };
 

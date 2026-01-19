@@ -8,7 +8,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import {
   getCandlePeriodsForDuration,
   CandlePeriod,
@@ -128,11 +128,10 @@ const PerpsCandlePeriodBottomSheet: React.FC<
       isFullscreen={false}
       testID={testID}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.chart.candle_intervals')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('perps.chart.candle_intervals')}
+        onClose={onClose}
+      />
       <Box>
         {showAllPeriods && periodSections ? (
           periodSections.map((section, sectionIndex) => (

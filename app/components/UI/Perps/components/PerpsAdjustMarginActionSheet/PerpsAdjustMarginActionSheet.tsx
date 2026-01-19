@@ -4,7 +4,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Text, {
   TextVariant,
   TextColor,
@@ -81,11 +81,10 @@ const PerpsAdjustMarginActionSheet: React.FC<
       onClose={externalSheetRef ? onClose : undefined}
       testID={testID}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.adjust_margin.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('perps.adjust_margin.title')}
+        onClose={onClose}
+      />
       <View style={styles.container}>
         {actionOptions.map((option, index) => (
           <React.Fragment key={option.action}>

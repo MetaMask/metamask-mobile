@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -12,19 +12,15 @@ const createStyles = (colors: Colors) =>
     },
     scrollViewContent: {
       flexGrow: 1,
-      paddingBottom: 120, // Space for fixed button
       paddingTop: 32,
     },
     fixedBottomContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingHorizontal: 16,
-      paddingTop: 16,
+      paddingTop: 24,
+      paddingBottom: Platform.OS === 'ios' ? 16 : 0,
     },
     sliderSection: {
       paddingHorizontal: 32,

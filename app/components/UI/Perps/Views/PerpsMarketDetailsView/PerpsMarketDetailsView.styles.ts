@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform,StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
 /**
@@ -55,8 +55,8 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       borderTopWidth: 1,
       borderTopColor: theme.colors.border.muted,
       paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 26,
+      paddingTop: 24,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     // Action buttons container
     actionsContainer: {

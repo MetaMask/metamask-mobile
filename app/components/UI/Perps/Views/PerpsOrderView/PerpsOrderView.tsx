@@ -12,10 +12,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
@@ -169,18 +166,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     : undefined;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
 
   const styles = createStyles(colors);
-
-  // Dynamic bottom padding for fixed container: safe area inset + 16px visual padding
-  const fixedBottomContainerStyle = useMemo(
-    () => ({
-      ...styles.fixedBottomContainer,
-      paddingBottom: insets.bottom + 16,
-    }),
-    [styles.fixedBottomContainer, insets.bottom],
-  );
 
   // Deferred loading: Load non-critical data after UI renders
   const [isDataReady, setIsDataReady] = useState(false);
@@ -1344,7 +1331,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
-        <View style={fixedBottomContainerStyle}>
+        <View style={styles.fixedBottomContainer}>
           {filteredErrors.length > 0 &&
             !isLoadingMarketData &&
             currentPrice != null &&

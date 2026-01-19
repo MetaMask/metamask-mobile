@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -52,9 +52,7 @@ const styleSheet = (params: { theme: Theme }) => {
     scrollView: {
       flex: 1,
     },
-    scrollContent: {
-      paddingBottom: 140,
-    },
+    scrollContent: {},
     section: {
       paddingHorizontal: 16,
       marginBottom: 16,
@@ -66,13 +64,9 @@ const styleSheet = (params: { theme: Theme }) => {
       // No flex or minHeight - let content determine size
     },
     footer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
       paddingHorizontal: 16,
       paddingTop: 12,
-      // paddingBottom is calculated dynamically in component with safe area insets
+      paddingBottom: Platform.OS === 'ios' ? 16 : 0,
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
@@ -127,17 +121,17 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     // Bottom sheet content
     depthBandSheetContent: {
-      paddingHorizontal: 16,
-      paddingBottom: 24,
     },
     depthBandOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingVertical: 16,
       paddingHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 8,
+      minHeight: 56,
     },
     depthBandOptionSelected: {
-      backgroundColor: colors.primary.muted,
+      backgroundColor: colors.background.muted,
     },
   });
 };

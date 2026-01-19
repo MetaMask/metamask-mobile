@@ -1,4 +1,8 @@
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  ButtonSize as ButtonSizeRNDesignSystem,
+  IconName,
+  ButtonIconProps,
+} from '@metamask/design-system-react-native';
 import {
   useNavigation,
   useRoute,
@@ -12,8 +16,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, ScrollView, View } from 'react-native';
+import { Linking, RefreshControl, StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import HeaderWithTitleLeftScrollable, {
+  useHeaderWithTitleLeftScrollable,
+} from '../../../../../component-library/components-temp/HeaderWithTitleLeftScrollable';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
@@ -49,10 +57,18 @@ import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
 } from '../../Perps.testIds';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+  formatPercentage,
+} from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
@@ -135,6 +151,98 @@ interface MarketDetailsRouteParams {
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
 }
+
+interface LivePriceBottomAccessoryProps {
+  symbol: string;
+  currentPrice: number;
+  testIDPrice?: string;
+  testIDChange?: string;
+}
+
+const bottomAccessoryStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
+
+const LivePriceBottomAccessory: React.FC<LivePriceBottomAccessoryProps> = ({
+  symbol,
+  currentPrice,
+  testIDPrice,
+  testIDChange,
+}) => {
+  const prices = usePerpsLivePrices({
+    symbols: [symbol],
+    throttleMs: 1000,
+  });
+
+  const priceData = prices[symbol];
+
+  const displayChange = useMemo(() => {
+    if (!priceData) return null;
+    if (priceData.percentChange24h === undefined) return null;
+    return Number.parseFloat(priceData.percentChange24h);
+  }, [priceData]);
+
+  const isPositiveChange = displayChange !== null && displayChange >= 0;
+  const changeColor =
+    displayChange === null
+      ? TextColor.Alternative
+      : isPositiveChange
+        ? TextColor.Success
+        : TextColor.Error;
+
+  const formattedPrice = useMemo(() => {
+    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+
+    try {
+      return formatPerpsFiat(currentPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+  }, [currentPrice]);
+
+  const formattedChange = useMemo(() => {
+    if (displayChange === null) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
+    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+
+    try {
+      return formatPercentage(displayChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+    }
+  }, [currentPrice, displayChange]);
+
+  return (
+    <View style={bottomAccessoryStyles.container}>
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={TextColor.Alternative}
+        testID={testIDPrice}
+      >
+        {formattedPrice}
+      </Text>
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={changeColor}
+        testID={testIDChange}
+      >
+        {formattedChange}
+      </Text>
+    </View>
+  );
+};
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
@@ -937,6 +1045,57 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Simplified styles - no complex calculations needed
   const { styles } = useStyles(createStyles, {});
 
+  // Scrollable header hook - manages scroll-linked header animations
+  const {
+    onScroll: handleHeaderScroll,
+    scrollY,
+    expandedHeight,
+    setExpandedHeight,
+  } = useHeaderWithTitleLeftScrollable();
+
+  // Header computed values
+  const displaySymbol = market ? getPerpsDisplaySymbol(market.symbol) : '';
+  const headerTitle = `${displaySymbol}-USD`;
+
+  const headerFormattedPrice = useMemo(() => {
+    if (
+      !chartCurrentPrice ||
+      chartCurrentPrice <= 0 ||
+      !Number.isFinite(chartCurrentPrice)
+    ) {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+
+    try {
+      return formatPerpsFiat(chartCurrentPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
+    } catch {
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    }
+  }, [chartCurrentPrice]);
+
+  const headerEndButtonIconProps = useMemo(() => {
+    const buttons: ButtonIconProps[] = [];
+
+    if (handleFullscreenChartOpen) {
+      buttons.push({
+        iconName: IconName.Expand,
+        onPress: handleFullscreenChartOpen,
+        testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+      });
+    }
+
+    if (handleWatchlistPress) {
+      buttons.push({
+        iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
+        onPress: handleWatchlistPress,
+      });
+    }
+
+    return buttons.length > 0 ? buttons : undefined;
+  }, [handleFullscreenChartOpen, handleWatchlistPress, isWatchlist]);
+
   if (!market) {
     return (
       <SafeAreaView style={styles.container}>
@@ -957,26 +1116,48 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      {/* Fixed Header Section */}
-      <View>
-        <PerpsMarketHeader
-          market={market}
-          onBackPress={handleBackPress}
-          onFavoritePress={handleWatchlistPress}
-          onFullscreenPress={handleFullscreenChartOpen}
-          isFavorite={isWatchlist}
-          testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
-          currentPrice={chartCurrentPrice}
-        />
-      </View>
+      {/* Scrollable Header - positioned absolutely */}
+      <HeaderWithTitleLeftScrollable
+        title={headerTitle}
+        subtitle={headerFormattedPrice}
+        onBack={handleBackPress}
+        backButtonProps={{
+          testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
+        }}
+        endButtonIconProps={headerEndButtonIconProps}
+        scrollY={scrollY}
+        onExpandedHeightChange={setExpandedHeight}
+        testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+        isInsideSafeAreaView
+        titleLeftProps={{
+          title: headerTitle,
+          titleAccessory: market.maxLeverage ? (
+            <PerpsLeverage maxLeverage={market.maxLeverage} />
+          ) : undefined,
+          bottomAccessory: (
+            <LivePriceBottomAccessory
+              symbol={market.symbol}
+              currentPrice={chartCurrentPrice}
+              testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+              testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+            />
+          ),
+          endAccessory: <PerpsTokenLogo symbol={market.symbol} size={48} />,
+        }}
+      />
 
       {/* Scrollable Content Container */}
       <View style={styles.scrollableContentContainer}>
-        <ScrollView
+        <Animated.ScrollView
           style={styles.mainContentScrollView}
-          contentContainerStyle={styles.scrollViewContent}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            { paddingTop: expandedHeight },
+          ]}
           showsVerticalScrollIndicator={false}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
+          onScroll={handleHeaderScroll}
+          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
@@ -1145,7 +1326,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               </Text>
             </Text>
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </View>
 
       {/* Fixed Actions Footer */}

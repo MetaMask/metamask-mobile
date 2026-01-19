@@ -3,12 +3,16 @@ import { View, TouchableOpacity } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { createStyles } from './PerpsOrderTypeBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -93,13 +97,12 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       shouldNavigateBack={!externalSheetRef}
       onClose={externalSheetRef ? undefined : onClose}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.order.type.title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={strings('perps.order.type.title')}
+        onClose={onClose}
+      />
 
-      <View style={styles.container}>
+      <View>
         {orderTypes.map(({ type, title, description }) => (
           <TouchableOpacity
             key={type}
@@ -109,23 +112,27 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
             ]}
             onPress={() => handleSelect(type)}
           >
-            <View style={styles.optionHeader}>
-              <View style={styles.optionContent}>
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Default}
-                  style={styles.optionTitle}
-                >
-                  {title}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {description}
-                </Text>
-              </View>
+            <View style={styles.optionContent}>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                style={styles.optionTitle}
+              >
+                {title}
+              </Text>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+              >
+                {description}
+              </Text>
             </View>
+            {currentOrderType === type && (
+              <Icon
+                name={IconName.Check}
+                size={IconSize.Md}
+              />
+            )}
           </TouchableOpacity>
         ))}
       </View>
