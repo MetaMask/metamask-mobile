@@ -82,6 +82,7 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import Engine from '../../../core/Engine';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { useMetrics } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
@@ -865,9 +866,11 @@ const Onboarding = () => {
 
   useEffect(() => {
     // When a new user has onboarded and the PNA25 feature flag is on,
-    // set the PNA25 acknowledgement as true to prevent the toast from showing
+    // set the PNA25 acknowledgement as true to prevent the toast from showing,
+    // and disable metrics collection delay for new users.
     if (isPna25FlagEnabled) {
       storePna25Acknowledged();
+      Engine.context.ProfileMetricsController.skipInitialDelay();
     }
   }, [isPna25FlagEnabled, storePna25Acknowledged]);
 
