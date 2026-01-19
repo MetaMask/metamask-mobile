@@ -455,7 +455,7 @@ describe('PredictFeed', () => {
       // After clearing search, the clear button should no longer be visible
       // (only shows when searchQuery.length > 0)
       expect(queryByTestId('clear-button')).not.toBeOnTheScreen();
-      // Trending results should still be visible (new behavior - show trending when search is empty)
+      // Trending results visible when no search query is empty
       expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
     });
   });
