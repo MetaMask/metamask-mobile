@@ -298,7 +298,7 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('Get mUSD respects selected chain filter and uses correct payment token', async () => {
+    it('uses payment token from selected chain when available', async () => {
       (
         useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
       ).mockReturnValue({

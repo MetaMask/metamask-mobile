@@ -108,7 +108,7 @@ const MusdConversionAssetListCta = () => {
       const rampIntent: RampIntent = {
         assetId:
           MUSD_TOKEN_ASSET_ID_BY_CHAIN[
-            selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
+          selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
           ],
       };
       goToBuy(rampIntent);
@@ -126,12 +126,10 @@ const MusdConversionAssetListCta = () => {
       throw new Error('[mUSD Conversion] payment token chainID missing');
     }
 
-    const paymentTokenAddress = toChecksumAddress(paymentToken.address);
-
     try {
       await initiateConversion({
         preferredPaymentToken: {
-          address: paymentTokenAddress,
+          address: toChecksumAddress(paymentToken.address),
           chainId: toHex(paymentToken.chainId),
         },
         outputChainId: getMusdOutputChainId(paymentToken.chainId),
