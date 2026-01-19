@@ -452,7 +452,11 @@ describe('PredictFeed', () => {
       fireEvent.changeText(searchInput, 'test query');
       fireEvent.press(getByTestId('clear-button'));
 
-      expect(queryByTestId('predict-search-result-0')).toBeNull();
+      // After clearing search, the clear button should no longer be visible
+      // (only shows when searchQuery.length > 0)
+      expect(queryByTestId('clear-button')).toBeNull();
+      // Trending results should still be visible (new behavior - show trending when search is empty)
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
     });
   });
 
