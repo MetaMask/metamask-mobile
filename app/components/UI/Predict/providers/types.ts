@@ -231,6 +231,10 @@ export interface PredictProvider {
 
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
+  getMarketsByIds?(
+    marketIds: string[],
+    liveSportsLeagues?: string[],
+  ): Promise<PredictMarket[]>;
   getMarketDetails(params: {
     marketId: string;
     liveSportsLeagues?: string[];
