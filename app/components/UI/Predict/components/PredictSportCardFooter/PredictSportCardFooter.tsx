@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -46,6 +46,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     autoRefreshTimeout: 10000,
   });
 
+  const { positions: claimablePositions } = usePredictPositions({
+    marketId: market.id,
+    claimable: true,
+  });
+
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: market.providerId,
     navigation,
@@ -56,20 +61,9 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   });
 
   const outcome = market.outcomes?.[0];
-  const isMarketOpen = market.status === PredictMarketStatus.OPEN;
-
-  const { hasPositions, hasClaimablePositions, claimableAmount } =
-    useMemo(() => {
-      const claimablePositions = positions.filter((p) => p.claimable);
-      return {
-        hasPositions: positions.length > 0,
-        hasClaimablePositions: claimablePositions.length > 0,
-        claimableAmount: claimablePositions.reduce(
-          (sum, p) => sum + (p.currentValue ?? 0),
-          0,
-        ),
-      };
-    }, [positions]);
+  const isMarketOpen =
+    market.status === PredictMarketStatus.OPEN &&
+    market.game?.status !== 'ended';
 
   const handleBetPress = useCallback(
     (token: PredictOutcomeToken) => {
@@ -99,6 +93,13 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
   }, [executeGuardedAction, claim]);
+
+  const hasPositions = positions.length > 0;
+  const hasClaimablePositions = claimablePositions.length > 0;
+  const claimableAmount = claimablePositions.reduce(
+    (sum, p) => sum + (p.currentValue ?? 0),
+    0,
+  );
 
   const showBetButtons = isMarketOpen && !hasPositions && outcome;
   const showClaimButton = hasClaimablePositions && outcome;
