@@ -1,12 +1,11 @@
 import TestHelpers from '../../../../helpers';
 import { RegressionNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import Assertions from '../../../../framework/Assertions';
 import { DappVariants } from '../../../../framework/Constants';
 
@@ -33,7 +32,7 @@ describe(RegressionNetworkExpansion('Chain Permission Management'), () => {
       async () => {
         // Step 1: Navigate to browser view
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         // Step 2: Navigate to test dApp and open network settings

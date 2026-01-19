@@ -12,7 +12,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import currencySymbols from '../../../../util/currency-symbols.json';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
 import { createNavigationDetails } from '../../../../util/navigation/navUtils';

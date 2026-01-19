@@ -144,3 +144,20 @@ export const selectHip3ConfigVersion = createSelector(
   (state: RootState) => state?.engine?.backgroundState?.PerpsController,
   (perpsController) => perpsController?.hip3ConfigVersion ?? 0,
 );
+
+/**
+ * Selector for Perps Feedback feature flag
+ * Controls visibility of the "Give feedback" button on Perps home screen
+ *
+ * @returns boolean - true if feedback button should be shown, false otherwise
+ */
+export const selectPerpsFeedbackEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_FEEDBACK_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsFeedbackEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);

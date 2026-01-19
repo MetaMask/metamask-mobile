@@ -1,5 +1,5 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -145,7 +145,7 @@ describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.tapSendEIP1559Button();
 
@@ -173,7 +173,8 @@ describe.skip(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },

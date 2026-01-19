@@ -1,6 +1,12 @@
 /* eslint-disable import/no-nodejs-modules */
 import path from 'path';
 import { GanacheHardfork } from './types';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
+
+// The RPC URL for the local node
+// This should be used in fixtures where a url is needed.
+// The port is then translated to the actual allocated port
+export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
 
 // Port Constants
 // Fallback ports - used in fixture data (app's persisted state)

@@ -345,7 +345,7 @@ describe('BridgeDestTokenSelector', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('handles info button click correctly, navigates to Token Insights sheet', async () => {
+  it('handles info button click correctly, navigates to Asset details screen', async () => {
     const { getAllByTestId, getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
@@ -368,23 +368,27 @@ describe('BridgeDestTokenSelector', () => {
     // Press the info button
     fireEvent.press(infoButton);
 
-    // Verify navigation to Token Insights sheet with the correct params
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.TOKEN_INSIGHTS,
-      params: expect.objectContaining({
-        token: expect.objectContaining({
-          address: ethToken2Address,
-          balance: '2.0',
-          balanceFiat: '$200000',
-          chainId: '0x1',
-          decimals: 18,
-          name: 'Hello Token',
-          symbol: 'HELLO',
-          tokenFiatAmount: 200000,
+    // Verify navigation to Asset screen with the correct token params via dispatch
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: 'Asset',
+          key: expect.stringMatching(/^Asset-.*-\d+$/), // Should match pattern "Asset-{address}-{chainId}-{timestamp}"
+          params: expect.objectContaining({
+            address: ethToken2Address,
+            balance: '2.0',
+            balanceFiat: '$200000',
+            chainId: '0x1',
+            decimals: 18,
+            image: `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${ethToken2Address.toLowerCase()}.png`,
+            name: 'Hello Token',
+            symbol: 'HELLO',
+            tokenFiatAmount: 200000,
+          }),
         }),
-        networkName: 'Ethereum',
       }),
-    });
+    );
   });
 
   it('handles close button correctly', () => {

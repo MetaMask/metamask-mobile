@@ -3,7 +3,7 @@ import {
   RampsControllerState,
   RequestStatus,
 } from '@metamask/ramps-controller';
-import { selectGeolocation, selectGeolocationRequest } from './index';
+import { selectUserRegion, selectUserRegionRequest } from './index';
 
 const createMockState = (
   rampsController: Partial<RampsControllerState> = {},
@@ -12,7 +12,8 @@ const createMockState = (
     engine: {
       backgroundState: {
         RampsController: {
-          geolocation: null,
+          userRegion: null,
+          eligibility: null,
           requests: {},
           ...rampsController,
         },
@@ -21,25 +22,25 @@ const createMockState = (
   }) as unknown as RootState;
 
 describe('RampsController Selectors', () => {
-  describe('selectGeolocation', () => {
-    it('returns geolocation from state', () => {
-      const state = createMockState({ geolocation: 'US-CA' });
+  describe('selectUserRegion', () => {
+    it('returns user region from state', () => {
+      const state = createMockState({ userRegion: 'US-CA' });
 
-      expect(selectGeolocation(state)).toBe('US-CA');
+      expect(selectUserRegion(state)).toBe('US-CA');
     });
 
-    it('returns null when geolocation is null', () => {
-      const state = createMockState({ geolocation: null });
+    it('returns null when user region is null', () => {
+      const state = createMockState({ userRegion: null });
 
-      expect(selectGeolocation(state)).toBeNull();
+      expect(selectUserRegion(state)).toBeNull();
     });
   });
 
-  describe('selectGeolocationRequest', () => {
-    it('returns data when request is successful', () => {
+  describe('selectUserRegionRequest', () => {
+    it('returns request state with data, isFetching, and error', () => {
       const state = createMockState({
         requests: {
-          'updateGeolocation:[]': {
+          'updateUserRegion:[]': {
             status: RequestStatus.SUCCESS,
             data: 'US-CA',
             error: null,
@@ -49,51 +50,19 @@ describe('RampsController Selectors', () => {
         },
       });
 
-      const result = selectGeolocationRequest(state);
+      const result = selectUserRegionRequest(state);
 
-      expect(result.data).toBe('US-CA');
-    });
-
-    it('returns isFetching false when request is successful', () => {
-      const state = createMockState({
-        requests: {
-          'updateGeolocation:[]': {
-            status: RequestStatus.SUCCESS,
-            data: 'US-CA',
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
+      expect(result).toEqual({
+        data: 'US-CA',
+        isFetching: false,
+        error: null,
       });
-
-      const result = selectGeolocationRequest(state);
-
-      expect(result.isFetching).toBe(false);
-    });
-
-    it('returns error null when request is successful', () => {
-      const state = createMockState({
-        requests: {
-          'updateGeolocation:[]': {
-            status: RequestStatus.SUCCESS,
-            data: 'US-CA',
-            error: null,
-            timestamp: Date.now(),
-            lastFetchedAt: Date.now(),
-          },
-        },
-      });
-
-      const result = selectGeolocationRequest(state);
-
-      expect(result.error).toBe(null);
     });
 
     it('returns isFetching true when request is loading', () => {
       const state = createMockState({
         requests: {
-          'updateGeolocation:[]': {
+          'updateUserRegion:[]': {
             status: RequestStatus.LOADING,
             data: null,
             error: null,
@@ -103,7 +72,7 @@ describe('RampsController Selectors', () => {
         },
       });
 
-      const result = selectGeolocationRequest(state);
+      const result = selectUserRegionRequest(state);
 
       expect(result.isFetching).toBe(true);
     });
@@ -111,7 +80,7 @@ describe('RampsController Selectors', () => {
     it('returns error when request failed', () => {
       const state = createMockState({
         requests: {
-          'updateGeolocation:[]': {
+          'updateUserRegion:[]': {
             status: RequestStatus.ERROR,
             data: null,
             error: 'Network error',
@@ -121,7 +90,7 @@ describe('RampsController Selectors', () => {
         },
       });
 
-      const result = selectGeolocationRequest(state);
+      const result = selectUserRegionRequest(state);
 
       expect(result.error).toBe('Network error');
     });
@@ -129,7 +98,7 @@ describe('RampsController Selectors', () => {
     it('returns default state when request does not exist', () => {
       const state = createMockState();
 
-      const result = selectGeolocationRequest(state);
+      const result = selectUserRegionRequest(state);
 
       expect(result).toEqual({
         data: null,

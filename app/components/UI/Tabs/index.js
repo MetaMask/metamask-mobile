@@ -12,7 +12,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
@@ -89,9 +89,9 @@ const createStyles = (colors, shadows) =>
       paddingHorizontal: 20,
       flexDirection: 'row',
       paddingTop: 17,
+      paddingBottom: 17,
       ...shadows.size.md,
       backgroundColor: colors.background.default,
-      height: 50,
     },
     tabs: {
       flex: 1,
@@ -287,51 +287,62 @@ class Tabs extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View style={styles.tabActions}>
-        <TouchableOpacity
-          style={[styles.tabAction, styles.tabActionleft]}
-          onPress={closeAllTabs}
-          testID={BrowserViewSelectorsIDs.CLOSE_ALL_TABS}
-        >
-          <Text
+      <SafeAreaInsetsContext.Consumer>
+        {(insets) => (
+          <View
             style={[
-              styles.tabActionText,
-              tabs.length === 0 ? styles.actionDisabled : null,
+              styles.tabActions,
+              Device.isIos() && insets?.bottom
+                ? { paddingBottom: Math.max(17, insets.bottom) }
+                : {},
             ]}
           >
-            {strings('browser.tabs_close_all')}
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.tabAction}>
-          <TouchableOpacity
-            style={styles.newTabIconButton}
-            onPress={this.onNewTabPress}
-            testID={BrowserViewSelectorsIDs.ADD_NEW_TAB}
-          >
-            <MaterialCommunityIcon
-              name="plus"
-              size={15}
-              style={styles.newTabIcon}
-            />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.tabAction, styles.tabActionleft]}
+              onPress={closeAllTabs}
+              testID={BrowserViewSelectorsIDs.CLOSE_ALL_TABS}
+            >
+              <Text
+                style={[
+                  styles.tabActionText,
+                  tabs.length === 0 ? styles.actionDisabled : null,
+                ]}
+              >
+                {strings('browser.tabs_close_all')}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.tabAction}>
+              <TouchableOpacity
+                style={styles.newTabIconButton}
+                onPress={this.onNewTabPress}
+                testID={BrowserViewSelectorsIDs.ADD_NEW_TAB}
+              >
+                <MaterialCommunityIcon
+                  name="plus"
+                  size={15}
+                  style={styles.newTabIcon}
+                />
+              </TouchableOpacity>
+            </View>
 
-        <TouchableOpacity
-          style={[styles.tabAction, styles.tabActionRight]}
-          onPress={closeTabsView}
-          testID={BrowserViewSelectorsIDs.DONE_BUTTON}
-        >
-          <Text
-            style={[
-              styles.tabActionText,
-              styles.tabActionDone,
-              tabs.length === 0 ? styles.actionDisabled : null,
-            ]}
-          >
-            {strings('browser.tabs_done')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity
+              style={[styles.tabAction, styles.tabActionRight]}
+              onPress={closeTabsView}
+              testID={BrowserViewSelectorsIDs.DONE_BUTTON}
+            >
+              <Text
+                style={[
+                  styles.tabActionText,
+                  styles.tabActionDone,
+                  tabs.length === 0 ? styles.actionDisabled : null,
+                ]}
+              >
+                {strings('browser.tabs_done')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaInsetsContext.Consumer>
     );
   }
 

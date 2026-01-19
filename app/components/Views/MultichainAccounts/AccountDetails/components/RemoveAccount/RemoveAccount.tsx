@@ -9,7 +9,7 @@ import styleSheet from './RemoveAccount.styles';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 
 interface RemoveAccountProps {
   account: InternalAccount;

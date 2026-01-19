@@ -477,7 +477,7 @@ describe('TrendingTokenRowItem', () => {
       false,
     );
 
-    expect(getByText(/\$0\.00 cap • \$0\.00 vol/)).toBeTruthy();
+    expect(getByText(/- cap • - vol/)).toBeTruthy();
   });
 
   it('renders with very large market cap and volume', () => {
@@ -557,6 +557,7 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: false,
         isETH: false,
+        isFromTrending: true,
       });
     });
 
@@ -614,6 +615,7 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: true,
         isETH: true,
+        isFromTrending: true,
       });
     });
 
@@ -671,6 +673,7 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: true,
         isETH: false,
+        isFromTrending: true,
       });
     });
 

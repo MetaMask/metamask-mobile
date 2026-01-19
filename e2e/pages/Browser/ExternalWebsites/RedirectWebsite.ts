@@ -1,4 +1,4 @@
-import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors.ts';
+import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Matchers from '../../../framework/Matchers.ts';
 
 class RedirectWebsite {

@@ -1,26 +1,32 @@
 import trackOnboarding from './trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../util/analytics/analytics';
 
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-const mockEnabled = jest.fn();
+const mockIsEnabled = jest.fn();
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn().mockImplementation(() => ({
-      isEnabled: mockEnabled,
-      trackEvent: mockTrackEvent,
-    })),
+// Mock the analytics utility
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(),
+    trackEvent: jest.fn(),
   },
 }));
 
 const mockSaveOnboardingEvent = jest.fn();
 
 describe('trackOnboarding', () => {
+  beforeEach(() => {
+    (analytics.isEnabled as jest.Mock) = mockIsEnabled;
+    (analytics.trackEvent as jest.Mock) = mockTrackEvent;
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -33,7 +39,7 @@ describe('trackOnboarding', () => {
       .addProperties(mockProperties)
       .build();
 
-    mockEnabled.mockReturnValue(false);
+    mockIsEnabled.mockReturnValue(false);
 
     trackOnboarding(mockEvent, mockSaveOnboardingEvent);
 
@@ -49,12 +55,15 @@ describe('trackOnboarding', () => {
       .addProperties(mockProperties)
       .build();
 
-    mockEnabled.mockReturnValue(false);
+    mockIsEnabled.mockReturnValue(false);
 
     trackOnboarding(mockEvent);
 
     expect(mockSaveOnboardingEvent).not.toHaveBeenCalledWith();
-    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent);
+    // Convert ITrackingEvent to AnalyticsTrackingEvent format
+    const expectedEvent =
+      AnalyticsEventBuilder.createEventBuilder(mockEvent).build();
+    expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('call trackEvent when metrics is enabled', async () => {
@@ -65,11 +74,14 @@ describe('trackOnboarding', () => {
       .addProperties(mockProperties)
       .build();
 
-    mockEnabled.mockReturnValue(true);
+    mockIsEnabled.mockReturnValue(true);
 
     trackOnboarding(mockEvent);
 
     expect(mockSaveOnboardingEvent).not.toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent);
+    // Convert ITrackingEvent to AnalyticsTrackingEvent format
+    const expectedEvent =
+      AnalyticsEventBuilder.createEventBuilder(mockEvent).build();
+    expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 });

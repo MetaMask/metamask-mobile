@@ -5,10 +5,9 @@ import { SolScope } from '@metamask/keyring-api';
 import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
@@ -45,7 +44,7 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
         await AddAccountBottomSheet.tapAddSolanaAccount();
         await AddNewHdAccountComponent.tapConfirm();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         await MultichainTestDApp.navigateToMultichainTestDApp();

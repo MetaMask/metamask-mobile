@@ -2,7 +2,7 @@
 import { SolScope, TrxScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps,tron)
 import { isAssetFromSearch } from '../../../selectors/tokenSearchDiscoveryDataController';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
 
 export const getIsSwapsAssetAllowed = ({
   asset,
@@ -19,7 +19,7 @@ export const getIsSwapsAssetAllowed = ({
 }) => {
   let isSwapsAssetAllowed;
   if (asset.isETH || asset.isNative) {
-    const isChainAllowed = isSwapsAllowed(asset.chainId);
+    const isChainAllowed = isBridgeAllowed(asset.chainId);
     isSwapsAssetAllowed = isChainAllowed;
   } else if (isAssetFromSearch(asset)) {
     isSwapsAssetAllowed = searchDiscoverySwapsTokens?.includes(
