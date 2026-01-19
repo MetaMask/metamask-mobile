@@ -32,6 +32,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   onRetry,
   timeframe = 'live',
   onTimeframeChange,
+  disabledTimeframeSelector = false,
   testID,
 }) => {
   const tw = useTailwind();
@@ -147,7 +148,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
-            disabled
+            disabled={disabledTimeframeSelector || isLoading}
           />
         )}
       </Box>
@@ -185,6 +186,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -203,6 +205,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -332,7 +335,11 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
       </View>
 
       {onTimeframeChange && (
-        <TimeframeSelector selected={timeframe} onSelect={onTimeframeChange} />
+        <TimeframeSelector
+          selected={timeframe}
+          onSelect={onTimeframeChange}
+          disabled={disabledTimeframeSelector}
+        />
       )}
     </Box>
   );
