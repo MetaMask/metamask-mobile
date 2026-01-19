@@ -28,11 +28,12 @@ export interface CopyParams {
    */
   callback: () => Promise<void>;
   /**
-   * Optional toast ref for showing toast notification
+   * Technically optional to keep types simple but toast ref for showing toast notification
+   * should always be present if copyParams is used. This ensures consistent behavior
    */
   toastRef?: React.RefObject<ToastRef>;
   /**
-   * Optional custom toast message (defaults to localized "Address copied to clipboard")
+   * Required toast message. Specify what is being copied e.g. "Address copied", "Private key copied", etc
    */
   toastMessage: string;
 }
