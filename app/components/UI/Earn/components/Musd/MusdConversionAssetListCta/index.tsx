@@ -108,7 +108,7 @@ const MusdConversionAssetListCta = () => {
       const rampIntent: RampIntent = {
         assetId:
           MUSD_TOKEN_ASSET_ID_BY_CHAIN[
-          selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
+            selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
           ],
       };
       goToBuy(rampIntent);
