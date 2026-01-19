@@ -1058,7 +1058,7 @@ describe('useSwapBridgeNavigation', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks action button click with correct properties when location is TabBar', () => {
+    it('tracks action button click with correct properties when location is MainView', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
@@ -1085,7 +1085,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
     });
 
-    it('tracks action button click with correct properties when location is TokenDetails', () => {
+    it('tracks action button click with correct properties when location is TokenView', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
