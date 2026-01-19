@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { View, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { processUrlForBrowser } from '../../../util/browser';
@@ -22,150 +22,175 @@ import { TokenDiscovery } from '../TokenDiscovery';
 import { noop } from 'lodash';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
+import { SessionENSNames } from '../BrowserTab/types';
 
 /**
  * Tab component for the in-app browser
  */
-export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
-  id: tabId,
-  showTabs,
-  newTab,
-  updateTabInfo,
-}) => {
-  // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
-  const { styles } = useStyles(styleSheet, {});
-  const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
-  const urlBarRef = useRef<BrowserUrlBarRef>(null);
-  const autocompleteRef = useRef<UrlAutocompleteRef>(null);
-  /**
-   * Is the current tab the active tab
-   */
-  const isTabActive = useSelector(
-    (state: RootState) => state.browser.activeTab === tabId,
-  );
+export const DiscoveryTab: React.FC<DiscoveryTabProps> = React.memo(
+  ({ id: tabId, showTabs, newTab, updateTabInfo }) => {
+    // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const navigation = useNavigation<StackNavigationProp<any>>();
+    const { styles } = useStyles(styleSheet, {});
+    const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
+    const urlBarRef = useRef<BrowserUrlBarRef>(null);
+    const autocompleteRef = useRef<UrlAutocompleteRef>(null);
+    /**
+     * Is the current tab the active tab
+     */
+    const isTabActive = useSelector(
+      (state: RootState) => state.browser.activeTab === tabId,
+    );
 
-  /**
-   * Hide the autocomplete results
-   */
-  const hideAutocomplete = useCallback(
-    () => autocompleteRef.current?.hide(),
-    [],
-  );
+    /**
+     * Hide the autocomplete results
+     */
+    const hideAutocomplete = useCallback(
+      () => autocompleteRef.current?.hide(),
+      [],
+    );
 
-  const searchEngine = useSelector(selectSearchEngine);
+    const searchEngine = useSelector(selectSearchEngine);
 
-  const onSubmitEditing = useCallback(
-    async (text: string) => {
-      const trimmedText = text.trim();
-      if (!trimmedText) return;
-      hideAutocomplete();
-      // Format url for browser to be navigatable by webview
-      const processedUrl = processUrlForBrowser(trimmedText, searchEngine);
-      updateTabInfo(tabId, { url: processedUrl });
-    },
-    [searchEngine, updateTabInfo, tabId, hideAutocomplete],
-  );
+    const onSubmitEditing = useCallback(
+      async (text: string) => {
+        const trimmedText = text.trim();
+        if (!trimmedText) return;
+        hideAutocomplete();
+        // Format url for browser to be navigatable by webview
+        const processedUrl = processUrlForBrowser(trimmedText, searchEngine);
+        updateTabInfo(tabId, { url: processedUrl });
+      },
+      [searchEngine, updateTabInfo, tabId, hideAutocomplete],
+    );
 
-  /**
-   * Handle autocomplete selection
-   */
-  const onSelect = useCallback(
-    (item: AutocompleteSearchResult) => {
+    /**
+     * Handle autocomplete selection
+     */
+    const onSelect = useCallback(
+      (item: AutocompleteSearchResult) => {
+        if (item.category === 'tokens') {
+          navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+            chainId: item.chainId,
+            address: item.address,
+          });
+        } else {
+          // Unfocus the url bar and hide the autocomplete results
+          urlBarRef.current?.hide();
+          onSubmitEditing(item.url);
+        }
+      },
+      [onSubmitEditing, navigation],
+    );
+
+    /**
+     * Handle autocomplete dismissal
+     */
+    const onDismissAutocomplete = useCallback(() => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
-      onSubmitEditing(item.url);
-    },
-    [onSubmitEditing],
-  );
+    }, []);
 
-  /**
-   * Handle autocomplete dismissal
-   */
-  const onDismissAutocomplete = useCallback(() => {
-    // Unfocus the url bar and hide the autocomplete results
-    urlBarRef.current?.hide();
-  }, []);
+    const onCancelUrlBar = useCallback(() => {
+      hideAutocomplete();
+      urlBarRef.current?.setNativeProps({ text: '' });
+    }, [hideAutocomplete]);
 
-  const onCancelUrlBar = useCallback(() => {
-    hideAutocomplete();
-    urlBarRef.current?.setNativeProps({ text: '' });
-  }, [hideAutocomplete]);
+    const onFocusUrlBar = useCallback(() => {
+      // Show the autocomplete results
+      autocompleteRef.current?.show();
+    }, []);
 
-  const onFocusUrlBar = useCallback(() => {
-    // Show the autocomplete results
-    autocompleteRef.current?.show();
-  }, []);
+    const onChangeUrlBar = useCallback((text: string) => {
+      // Search the autocomplete results
+      autocompleteRef.current?.search(text);
+    }, []);
 
-  const onChangeUrlBar = useCallback((text: string) => {
-    // Search the autocomplete results
-    autocompleteRef.current?.search(text);
-  }, []);
+    // Memoized callbacks and values for BrowserBottomBar to prevent re-renders
+    const getMaskedUrl = useCallback(
+      (url: string, _sessionENSNames: SessionENSNames) => url,
+      [],
+    );
 
-  /**
-   * Render the bottom (navigation/options) bar
-   * Note: DiscoveryTab uses minimal browser bar functionality
-   */
-  const renderBottomBar = useCallback(
-    () =>
-      isTabActive && !isUrlBarFocused ? (
-        <BrowserBottomBar
-          canGoBack={false}
-          canGoForward={false}
-          openNewTab={() => newTab()}
-          activeUrl=""
-          getMaskedUrl={(url) => url}
-          title=""
-          sessionENSNames={{}}
-          favicon={{ uri: '' }}
-        />
-      ) : null,
-    [isTabActive, isUrlBarFocused, newTab],
-  );
+    const openNewTabCallback = useCallback(() => newTab(), [newTab]);
 
-  /**
-   * Main render
-   */
-  return (
-    <ErrorBoundary navigation={navigation} view="DiscoveryTab">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.wrapper, !isTabActive && styles.hide]}
-      >
-        <View
-          style={styles.wrapper}
-          {...(Device.isAndroid() ? { collapsable: false } : {})}
-        >
-          <BrowserUrlBar
-            ref={urlBarRef}
-            connectionType={ConnectionType.UNKNOWN}
-            onSubmitEditing={onSubmitEditing}
-            onCancel={onCancelUrlBar}
-            onFocus={onFocusUrlBar}
-            onChangeText={onChangeUrlBar}
-            setIsUrlBarFocused={setIsUrlBarFocused}
-            isUrlBarFocused={isUrlBarFocused}
-            onBlur={noop}
+    const emptySessionENSNames = useMemo<SessionENSNames>(() => ({}), []);
+    const emptyFavicon = useMemo(() => ({ uri: '' }), []);
+
+    /**
+     * Render the bottom (navigation/options) bar
+     * Note: DiscoveryTab uses minimal browser bar functionality
+     */
+    const renderBottomBar = useCallback(
+      () =>
+        isTabActive && !isUrlBarFocused ? (
+          <BrowserBottomBar
+            canGoBack={false}
+            canGoForward={false}
+            openNewTab={openNewTabCallback}
             activeUrl=""
-            connectedAccounts={[]}
-            showTabs={showTabs}
+            getMaskedUrl={getMaskedUrl}
+            title=""
+            sessionENSNames={emptySessionENSNames}
+            favicon={emptyFavicon}
           />
-          <View style={styles.wrapper}>
-            <View style={styles.webview}>
-              <TokenDiscovery />
-            </View>
-            <UrlAutocomplete
-              ref={autocompleteRef}
-              onSelect={onSelect}
-              onDismiss={onDismissAutocomplete}
+        ) : null,
+      [
+        isTabActive,
+        isUrlBarFocused,
+        openNewTabCallback,
+        getMaskedUrl,
+        emptySessionENSNames,
+        emptyFavicon,
+      ],
+    );
+
+    /**
+     * Main render
+     */
+    return (
+      <ErrorBoundary navigation={navigation} view="DiscoveryTab">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={[styles.wrapper, !isTabActive && styles.hide]}
+        >
+          <View
+            style={styles.wrapper}
+            {...(Device.isAndroid() ? { collapsable: false } : {})}
+          >
+            <BrowserUrlBar
+              ref={urlBarRef}
+              connectionType={ConnectionType.UNKNOWN}
+              onSubmitEditing={onSubmitEditing}
+              onCancel={onCancelUrlBar}
+              onFocus={onFocusUrlBar}
+              onChangeText={onChangeUrlBar}
+              setIsUrlBarFocused={setIsUrlBarFocused}
+              isUrlBarFocused={isUrlBarFocused}
+              onBlur={noop}
+              activeUrl=""
+              connectedAccounts={[]}
+              showTabs={showTabs}
             />
+            <View style={styles.wrapper}>
+              <View style={styles.webview}>
+                <TokenDiscovery />
+              </View>
+              <UrlAutocomplete
+                ref={autocompleteRef}
+                onSelect={onSelect}
+                onDismiss={onDismissAutocomplete}
+              />
+            </View>
+            {renderBottomBar()}
           </View>
-          {renderBottomBar()}
-        </View>
-      </KeyboardAvoidingView>
-    </ErrorBoundary>
-  );
-};
+        </KeyboardAvoidingView>
+      </ErrorBoundary>
+    );
+  },
+);
+
+DiscoveryTab.displayName = 'DiscoveryTab';
 
 export default DiscoveryTab;

@@ -103,14 +103,14 @@ const UrlAutocomplete = React.memo(
 
       const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
       const resultsRef = useRef<View | null>(null);
-      const { styles } = useStyles(styleSheet, {});
+      const { styles } = useStyles(styleSheet);
 
       /**
        * Show the results view
        */
-      const show = () => {
+      const show = useCallback(() => {
         resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
-      };
+      }, []);
 
       /**
        * Reset the autocomplete results

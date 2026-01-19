@@ -18,6 +18,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import Device from '../../../util/device';
 import {
   BrowserUrlBarProps,
   BrowserUrlBarRef,
@@ -41,6 +42,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { hasProperty } from '@metamask/utils';
+import TabCountIcon from '../Tabs/TabCountIcon';
 
 const BrowserUrlBar = React.memo(
   forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
@@ -57,6 +59,7 @@ const BrowserUrlBar = React.memo(
         setIsUrlBarFocused,
         isUrlBarFocused,
         showCloseButton,
+        showTabs,
       },
       ref,
     ) => {
@@ -211,42 +214,48 @@ const BrowserUrlBar = React.memo(
         return iconName;
       }, [connectionType]);
 
-      const onBlurInput = () => {
+      const onBlurInput = useCallback(() => {
         if (!shouldTriggerBlurCallbackRef.current) {
           shouldTriggerBlurCallbackRef.current = true;
           return;
         }
         unfocusInput();
         onBlur();
-      };
+      }, [unfocusInput, onBlur]);
 
-      const onFocusInput = () => {
+      const onFocusInput = useCallback(() => {
         setIsUrlBarFocused(true);
         onFocus();
-      };
+      }, [setIsUrlBarFocused, onFocus]);
 
-      const onChangeTextInput = (text: string) => {
-        inputRef?.current?.setNativeProps({ text });
-        onChangeText(text);
-      };
+      const onChangeTextInput = useCallback(
+        (text: string) => {
+          inputRef?.current?.setNativeProps({ text });
+          onChangeText(text);
+        },
+        [onChangeText],
+      );
 
-      const onSubmitEditingInput = ({
-        nativeEvent: { text },
-      }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
-        const trimmedText = text.trim();
-        inputValueRef.current = trimmedText;
-        onSubmitEditing(trimmedText);
-      };
+      const onSubmitEditingInput = useCallback(
+        ({
+          nativeEvent: { text },
+        }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+          const trimmedText = text.trim();
+          inputValueRef.current = trimmedText;
+          onSubmitEditing(trimmedText);
+        },
+        [onSubmitEditing],
+      );
 
       /**
        * Clears the input value and calls the onChangeText callback
        */
-      const onClearInput = () => {
+      const onClearInput = useCallback(() => {
         const clearedText = '';
         inputRef?.current?.clear();
         inputValueRef.current = clearedText;
         onChangeText(clearedText);
-      };
+      }, [onChangeText]);
 
       return (
         <View style={styles.browserUrlBarWrapper}>
@@ -278,9 +287,7 @@ const BrowserUrlBar = React.memo(
                 onBlur={onBlurInput}
                 onFocus={onFocusInput}
               />
-              <TouchableWithoutFeedback
-                onPress={() => inputRef?.current?.focus()}
-              >
+              <TouchableWithoutFeedback onPress={onFocusInput}>
                 <Text
                   style={styles.urlBarText}
                   numberOfLines={1}
@@ -302,6 +309,20 @@ const BrowserUrlBar = React.memo(
               />
             ) : null}
           </View>
+          {!isUrlBarFocused && showTabs && (
+            <TouchableOpacity
+              onPress={showTabs}
+              testID="browser-tabs-button"
+              style={[
+                styles.tabsButton,
+                Device.isAndroid()
+                  ? styles.tabsButtonAndroid
+                  : styles.tabsButtonIOS,
+              ]}
+            >
+              <TabCountIcon style={styles.tabIcon} />
+            </TouchableOpacity>
+          )}
           <View style={styles.rightButton}>{renderRightButton()}</View>
         </View>
       );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -76,6 +76,8 @@ interface BrowserBottomBarProps {
   icon?: ImageSourcePropType;
 }
 
+const MemoizedButtonIcon = React.memo(ButtonIcon);
+
 /**
  * Browser bottom bar that contains icons for navigation,
  * bookmark management, and tab operations
@@ -103,34 +105,44 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
   const tabCount = useSelector(selectBrowserTabCount);
 
-  const trackNavigationEvent = (navigationOption: string): void => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_NAVIGATION)
-        .addProperties({
-          option_chosen: navigationOption,
-          os: Platform.OS,
-        })
-        .build(),
-    );
-  };
+  // Using a ref to avoid recreating on useCallback handlers to prevent re-rendering
+  // In react 19.2+ this could be replaced with useEffectEvent hook
+  const activeUrlRef = useRef(activeUrl);
+  useEffect(() => {
+    activeUrlRef.current = activeUrl;
+  }, [activeUrl]);
+
+  const trackNavigationEvent = useCallback(
+    (navigationOption: string): void => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.BROWSER_NAVIGATION)
+          .addProperties({
+            option_chosen: navigationOption,
+            os: Platform.OS,
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder],
+  );
 
   /**
    * Check if current URL is bookmarked
    */
-  const isBookmark = (): boolean => {
-    const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
+  const isBookmarked = useMemo((): boolean => {
+    const maskedUrl = getMaskedUrl(activeUrlRef.current, sessionENSNames);
     return bookmarks.some(({ url }: { url: string }) => url === maskedUrl);
-  };
+  }, [sessionENSNames, bookmarks, getMaskedUrl]);
 
   /**
    * Navigate to AddBookmarkView modal
    */
-  const navigateToAddBookmark = () => {
+  const navigateToAddBookmark = useCallback(() => {
     navigation.push('AddBookmarkView', {
       screen: 'AddBookmark',
       params: {
         title: title || '',
-        url: getMaskedUrl(activeUrl, sessionENSNames),
+        url: getMaskedUrl(activeUrlRef.current, sessionENSNames),
         onAddBookmark: async ({
           name,
           url: urlToAdd,
@@ -146,7 +158,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
               (favicon as { uri?: string })?.uri ||
               '';
             const item = {
-              uniqueIdentifier: activeUrl,
+              uniqueIdentifier: activeUrlRef.current,
               title: name || getMaskedUrl(urlToAdd, sessionENSNames),
               contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
               keywords: [
@@ -180,22 +192,35 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
     );
-  };
+  }, [
+    navigation,
+    title,
+    sessionENSNames,
+    getMaskedUrl,
+    dispatch,
+    icon,
+    favicon,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   /**
    * Check if bookmark button should be disabled
    */
-  const isBookmarkDisabled = !activeUrl || activeUrl.trim() === '';
+  const isBookmarkDisabled = useMemo(
+    () => !activeUrl || activeUrl.trim() === '',
+    [activeUrl],
+  );
 
   /**
    * Handle bookmark button press - add or remove bookmark
    */
-  const handleBookmarkPress = () => {
+  const handleBookmarkPress = useCallback(() => {
     // Don't allow bookmarking empty URLs
     if (isBookmarkDisabled) return;
 
-    if (isBookmark()) {
-      const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
+    if (isBookmarked) {
+      const maskedUrl = getMaskedUrl(activeUrlRef.current, sessionENSNames);
       const bookmarkToRemove = bookmarks.find(
         ({ url }: { url: string }) => url === maskedUrl,
       );
@@ -205,30 +230,38 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
     } else {
       navigateToAddBookmark();
     }
-  };
+  }, [
+    isBookmarkDisabled,
+    isBookmarked,
+    getMaskedUrl,
+    sessionENSNames,
+    bookmarks,
+    dispatch,
+    navigateToAddBookmark,
+  ]);
 
-  const onBackPress = (): void => {
+  const onBackPress = useCallback((): void => {
     if (goBack) {
       goBack();
       trackNavigationEvent('Go Back');
     }
-  };
+  }, [goBack, trackNavigationEvent]);
 
-  const onForwardPress = (): void => {
+  const onForwardPress = useCallback((): void => {
     if (goForward) {
       goForward();
       trackNavigationEvent('Go Forward');
     }
-  };
+  }, [goForward, trackNavigationEvent]);
 
-  const onReloadPress = (): void => {
+  const onReloadPress = useCallback((): void => {
     if (reload) {
       reload();
       trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
     }
-  };
+  }, [reload, trackEvent, createEventBuilder]);
 
-  const onNewTabPress = (): void => {
+  const onNewTabPress = useCallback((): void => {
     if (openNewTab) {
       openNewTab();
       trackEvent(
@@ -240,7 +273,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
           .build(),
       );
     }
-  };
+  }, [openNewTab, trackEvent, createEventBuilder, tabCount]);
 
   return (
     <Box
@@ -259,7 +292,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         twClassName="gap-4"
       >
         {/* Back Button */}
-        <ButtonIcon
+        <MemoizedButtonIcon
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Lg}
           onPress={onBackPress}
@@ -268,7 +301,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         />
 
         {/* Forward Button */}
-        <ButtonIcon
+        <MemoizedButtonIcon
           iconName={IconName.ArrowRight}
           size={ButtonIconSize.Lg}
           onPress={onForwardPress}
@@ -277,7 +310,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         />
 
         {/* Reload Button */}
-        <ButtonIcon
+        <MemoizedButtonIcon
           iconName={IconName.Refresh}
           size={ButtonIconSize.Lg}
           onPress={onReloadPress}
@@ -291,8 +324,8 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         twClassName="gap-4"
       >
         {/* Bookmark Button */}
-        <ButtonIcon
-          iconName={isBookmark() ? IconName.StarFilled : IconName.Star}
+        <MemoizedButtonIcon
+          iconName={isBookmarked ? IconName.StarFilled : IconName.Star}
           size={ButtonIconSize.Lg}
           onPress={handleBookmarkPress}
           isDisabled={isBookmarkDisabled}
@@ -300,7 +333,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         />
 
         {/* New Tab Button */}
-        <ButtonIcon
+        <MemoizedButtonIcon
           iconName={IconName.Add}
           size={ButtonIconSize.Lg}
           onPress={onNewTabPress}
