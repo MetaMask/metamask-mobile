@@ -435,11 +435,55 @@ describe('AccountSelector', () => {
       fireEvent.press(addWalletButton);
 
       // Check for the "Add wallet" header text which indicates the component is rendered
-      expect(screen.getByText('Add wallet')).toBeDefined();
+      expect(screen.getByText('Add wallet')).toBeOnTheScreen();
 
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
+    });
+
+    it('clicks Add account button and displays AddAccountActions bottomsheet (non-multichain)', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
+      // Disable the multichain accounts state 2 feature flag for this test
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+      // Ensure full-page mode is disabled (BottomSheet version)
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addAccountButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addAccountButton).toHaveTextContent(
+        'Add account or hardware wallet',
+      );
+
+      fireEvent.press(addAccountButton);
+
+      // Check for the header text which indicates the BottomSheetHeader is rendered
+      // "Create a new account" appears both in the header and in AddAccountActions content
+      expect(screen.getAllByText('Create a new account')).toHaveLength(2);
+
+      // Add Ethereum account button should be visible
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        ),
+      ).toBeOnTheScreen();
 
       // Restore fake timers for other tests
       jest.useFakeTimers();
@@ -873,7 +917,7 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('switches between multichain screens in full-page mode', () => {
+    it('opens Add Wallet bottom sheet overlay in full-page mode (multichain)', () => {
       // Arrange
       jest.useRealTimers();
       mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
@@ -897,8 +941,58 @@ describe('AccountSelector', () => {
       // Act
       fireEvent.press(addButton);
 
-      // Assert: MultichainAddWalletActions screen is displayed
-      expect(screen.getByText('Add wallet')).toBeDefined();
+      // Assert: MultichainAddWalletActions bottom sheet is displayed on top
+      // There should be two "Add wallet" texts - button and header
+      expect(screen.getAllByText('Add wallet')).toHaveLength(2);
+      // Import SRP button should be visible in the overlay
+      expect(
+        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeOnTheScreen();
+      // Account list should still be visible in background
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeOnTheScreen();
+
+      jest.useFakeTimers();
+    });
+
+    it('opens Add Account bottom sheet overlay in full-page mode (non-multichain)', () => {
+      // Arrange
+      jest.useRealTimers();
+      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+
+      // Act
+      fireEvent.press(addButton);
+
+      // Assert: AddAccountActions bottom sheet is displayed on top
+      // There should be two "Create a new account" texts - one in the overlay header and one in the actions
+      expect(screen.getAllByText('Create a new account')).toHaveLength(2);
+      // Add Ethereum account button should be visible in the overlay
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      // Account list should still be visible in background
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
