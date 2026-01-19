@@ -31,7 +31,6 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
-import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -104,10 +103,6 @@ export const Confirm = ({ route }: ConfirmProps) => {
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
   const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
-
-  // Get transaction metadata and refresh STX liveness for the transaction's network
-  const transactionMetadata = useTransactionMetadataRequest();
-  useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
 
   useEffect(() => {
     if (approvalRequest) {
