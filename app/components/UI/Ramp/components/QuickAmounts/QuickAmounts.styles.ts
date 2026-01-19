@@ -5,7 +5,6 @@ const styleSheet = () =>
     container: {
       flexDirection: 'row',
       gap: 12,
-      paddingBottom: 16,
     },
     buttonWrapper: {
       flex: 1,

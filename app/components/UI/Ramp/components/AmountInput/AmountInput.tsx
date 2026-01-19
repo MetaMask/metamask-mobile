@@ -9,6 +9,11 @@ import QuickAmounts from '../QuickAmounts';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
 import {
@@ -93,6 +98,12 @@ function AmountInput() {
     setAmountAsNumber(quickAmount);
   }, []);
 
+  const handleContinuePress = useCallback(() => {
+    // TODO: Navigate to next screen with amount
+  }, []);
+
+  const hasAmount = amountAsNumber > 0;
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -119,7 +130,26 @@ function AmountInput() {
             </View>
           </View>
 
-          <QuickAmounts onAmountPress={handleQuickAmountPress} />
+          <View style={styles.actionSection}>
+            <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
+              {strings('fiat_on_ramp.powered_by_provider', {
+                provider: 'Transak',
+              })}
+            </Text>
+            {hasAmount ? (
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleContinuePress}
+                isFullWidth
+                testID="amount-input-continue-button"
+              >
+                {strings('fiat_on_ramp.continue')}
+              </Button>
+            ) : (
+              <QuickAmounts onAmountPress={handleQuickAmountPress} />
+            )}
+          </View>
           <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>
       </ScreenLayout.Body>

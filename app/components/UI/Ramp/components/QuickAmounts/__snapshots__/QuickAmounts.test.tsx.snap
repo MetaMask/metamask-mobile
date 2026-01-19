@@ -6,8 +6,6 @@ exports[`QuickAmounts matches snapshot 1`] = `
     {
       "flexDirection": "row",
       "gap": 12,
-      "paddingBottom": 16,
-      "paddingHorizontal": 16,
     }
   }
   testID="quick-amounts"

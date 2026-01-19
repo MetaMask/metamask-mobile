@@ -213,14 +213,36 @@ describe('AmountInput', () => {
   });
 
   it('updates amount when quick amount button is pressed', () => {
-    const { getByTestId, getAllByText } = renderWithTheme(<AmountInput />);
+    const { getByTestId, getByText } = renderWithTheme(<AmountInput />);
 
     fireEvent.press(getByTestId('quick-amounts-button-100'));
 
-    // After pressing $100, there should be two "$100" texts:
-    // one in the button and one in the main amount display
-    const amountTexts = getAllByText('$100');
-    expect(amountTexts.length).toBe(2);
+    // After pressing $100, the amount display shows $100
+    expect(getByText('$100')).toBeOnTheScreen();
+  });
+
+  it('hides quick amounts and shows continue button when amount is entered', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithTheme(
+      <AmountInput />,
+    );
+
+    // Initially, quick amounts are visible
+    expect(getByTestId('quick-amounts')).toBeOnTheScreen();
+    expect(queryByTestId('amount-input-continue-button')).toBeNull();
+
+    // Enter an amount
+    fireEvent.press(getByText('5'));
+
+    // Quick amounts should be hidden, continue button should appear
+    expect(queryByTestId('quick-amounts')).toBeNull();
+    expect(getByTestId('amount-input-continue-button')).toBeOnTheScreen();
+  });
+
+  it('displays powered by provider text always', () => {
+    const { getByText } = renderWithTheme(<AmountInput />);
+
+    // Powered by text is visible even without entering an amount
+    expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
   });
 
   it('matches snapshot', () => {
