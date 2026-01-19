@@ -6,7 +6,7 @@ import {
   LoginHandlerResult,
 } from '../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../error';
-import { fromBase64UrlSafe, toBase64UrlSafe } from './utils';
+import { fromBase64UrlSafe, retryWithDelay, toBase64UrlSafe } from './utils';
 import { bytesToString } from '@metamask/utils';
 import { toByteArray, fromByteArray } from 'react-native-quick-base64';
 import QuickCrypto from 'react-native-quick-crypto';
@@ -99,7 +99,14 @@ export abstract class BaseLoginHandler {
    */
   getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
     const requestData = this.getAuthTokenRequestData(params);
-    return getAuthTokens(requestData, this.authServerPath, authServerUrl);
+
+    return retryWithDelay(
+      () => getAuthTokens(requestData, this.authServerPath, authServerUrl),
+      {
+        retries: 3,
+        delayMs: [1000, 2000, 3000],
+      },
+    );
   }
 
   /**
