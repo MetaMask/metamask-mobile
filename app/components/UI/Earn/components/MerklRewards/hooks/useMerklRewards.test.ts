@@ -230,6 +230,65 @@ describe('useMerklRewards', () => {
     );
   });
 
+  it('adds test=true parameter with different case address (case-insensitive)', async () => {
+    // Use uppercase address to verify case-insensitive comparison works
+    const upperCaseAsset: TokenI = {
+      ...mockAsset,
+      address: '0x8D652C6D4A8F3DB96CD866C1A9220B1447F29898' as const, // All uppercase
+    };
+
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '1500000000000000000',
+            pending: '0',
+            proofs: [],
+            amount: '1500000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockRewardData),
+    });
+
+    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
+
+    const { result } = renderHook(() =>
+      useMerklRewards({ asset: upperCaseAsset }),
+    );
+
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('1.50');
+      },
+      { timeout: 3000 },
+    );
+
+    // Verify that &test=true is added even with different case address
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `${mockSelectedAddress}/rewards?chainId=${Number(CHAIN_IDS.MAINNET)}&test=true`,
+      ),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      }),
+    );
+  });
+
   it('handles API errors gracefully', async () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
