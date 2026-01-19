@@ -30,6 +30,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { toChecksumAddress } from '../../../../../../util/address';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -292,6 +293,109 @@ describe('MusdConversionAssetListCta', () => {
           preferredPaymentToken: {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             chainId: '0x1',
+          },
+        });
+      });
+    });
+
+    it('Get mUSD respects selected chain filter and uses correct payment token', async () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: CHAIN_IDS.LINEA_MAINNET,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const mainnetToken = mockToken;
+      const lineaToken = {
+        ...mockToken,
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        chainId: CHAIN_IDS.LINEA_MAINNET,
+      };
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [mainnetToken, lineaToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        // Make outputChainId deterministic: mirror payment token chain
+        getMusdOutputChainId: jest.fn((chainId) => chainId as Hex),
+      });
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          outputChainId: lineaToken.chainId,
+          preferredPaymentToken: {
+            address: toChecksumAddress(lineaToken.address),
+            chainId: lineaToken.chainId,
+          },
+        });
+      });
+    });
+
+    it('Get mUSD falls back to first token when selected chain has no token', async () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: CHAIN_IDS.LINEA_MAINNET,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const firstToken = mockToken;
+      const secondToken = {
+        ...mockToken,
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        chainId: CHAIN_IDS.MAINNET,
+      };
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [firstToken, secondToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => chainId as Hex),
+      });
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          outputChainId: firstToken.chainId,
+          preferredPaymentToken: {
+            address: toChecksumAddress(firstToken.address),
+            chainId: firstToken.chainId,
           },
         });
       });
