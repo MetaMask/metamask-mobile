@@ -64,17 +64,19 @@ interface SectionConfig {
 
 const BASE_FUSE_OPTIONS = {
   shouldSort: true,
-  threshold: 0.4,
+  // Tweak threshold search strictness (0.0 = strict, 1.0 = lenient)
+  threshold: 0.2,
   location: 0,
   distance: 100,
   maxPatternLength: 32,
   minMatchCharLength: 1,
-};
+} as const;
 
 const fuseSearch = <T,>(
   data: T[],
   searchQuery: string | undefined,
   fuseOptions: FuseOptions<T>,
+  searchSortingFn?: (a: T, b: T) => number,
 ): T[] => {
   searchQuery = searchQuery?.trim();
   if (!searchQuery) {
@@ -82,6 +84,11 @@ const fuseSearch = <T,>(
   }
   const fuse = new Fuse(data, fuseOptions);
   const results = fuse.search(searchQuery);
+
+  if (searchSortingFn) {
+    return results.sort(searchSortingFn);
+  }
+
   return results;
 };
 
@@ -137,7 +144,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         false, // Disable debouncing here because useExploreSearch already handles it
       );
       const filteredData = useMemo(
-        () => fuseSearch(data, searchQuery, TOKEN_FUSE_OPTIONS),
+        () =>
+          fuseSearch(
+            data,
+            searchQuery,
+            TOKEN_FUSE_OPTIONS,
+            // Penalize zero marketCap tokens
+            (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
+          ),
         [data, searchQuery],
       );
       return { data: filteredData, isLoading, refetch };
