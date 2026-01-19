@@ -51,7 +51,6 @@ import {
   ShowConfirmDeleteModalState,
   ShowMultiRpcSelectModalState,
 } from './index.types';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -87,14 +86,10 @@ const NetworkManager = () => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
-  const { selectedCount } = useNetworksByNamespace({
+  useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const enabledNetworks = useMemo(() => {
     function getEnabledNetworks(
@@ -331,20 +326,17 @@ const NetworkManager = () => {
   const defaultTabIndex = useMemo(() => {
     // If no popular networks are selected, default to custom tab (index 1)
     // Otherwise, show popular tab (index 0)
-    if (isMultichainAccountsState2Enabled) {
-      if (enabledNetworks.length === 1) {
-        const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(
-          enabledNetworks[0] as `0x${string}`,
-        )
-          ? 0
-          : 1;
-        return isPopularNetwork;
-      }
-
-      return enabledNetworks.length > 1 ? 0 : 1;
+    if (enabledNetworks.length === 1) {
+      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(
+        enabledNetworks[0] as `0x${string}`,
+      )
+        ? 0
+        : 1;
+      return isPopularNetwork;
     }
-    return selectedCount > 0 ? 0 : 1;
-  }, [selectedCount, isMultichainAccountsState2Enabled, enabledNetworks]);
+
+    return enabledNetworks.length > 1 ? 0 : 1;
+  }, [enabledNetworks]);
 
   // Capture the initial tab index only once on first render
   // This prevents tab switching when networks are added/deleted
