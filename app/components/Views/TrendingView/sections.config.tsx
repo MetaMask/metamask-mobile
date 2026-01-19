@@ -102,8 +102,8 @@ const fuseSearch = <T,>(
     return data;
   }
   const fuse = new Fuse(data, fuseOptions);
-  const results = fuse.search(searchQuery) as Array<{ item: T }>;
-  return results.map((result) => result.item);
+  const results = fuse.search(searchQuery);
+  return results;
 };
 
 const TOKEN_FUSE_OPTIONS = {
