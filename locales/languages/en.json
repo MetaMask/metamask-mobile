@@ -3269,7 +3269,7 @@
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
     "merkl_rewards": {
-      "annual_bonus": "3% bonus",
+      "annual_bonus": "{{apy}}% bonus",
       "claimable_bonus": "Claimable bonus",
       "claim": "Claim"
     },
