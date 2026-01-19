@@ -26,7 +26,7 @@ export interface ActionConfig {
   isVisible: boolean;
   isDisabled?: boolean;
   analyticsEvent: IMetaMetricsEvent;
-  analyticsProperties: Record<string, string | number>;
+  analyticsProperties: Record<string, string | number | boolean | undefined>;
   traceName: TraceName;
   traceProperties?: Record<
     string,

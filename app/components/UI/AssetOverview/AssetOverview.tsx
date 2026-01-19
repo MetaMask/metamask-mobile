@@ -11,7 +11,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -75,8 +75,13 @@ import { formatWithThreshold } from '../../../util/assets';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
+  isAssetFromTrending,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
+import {
+  getNativeSourceToken,
+  getDefaultDestToken,
+} from '../Bridge/utils/tokenUtils';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
@@ -84,7 +89,10 @@ import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  isNativeAddress,
+} from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
@@ -93,13 +101,83 @@ import parseRampIntent from '../Ramp/utils/parseRampIntent';
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
+// Perps Discovery Banner imports
+import { selectPerpsEnabledFlag } from '../Perps';
+import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
+import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
+import { PerpsEventValues } from '../Perps/constants/eventNames';
+import DSText, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import {
+  selectTronResourcesBySelectedAccountGroup,
+  selectAsset,
+} from '../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
+import { BridgeToken } from '../Bridge/types';
+
+/**
+ * Determines the source and destination tokens for swap/bridge navigation.
+ *
+ * When the asset is a native gas token (e.g., ETH), we set sourceToken to the default
+ * pair token for that chain (e.g., mUSD on mainnet) and destToken to the native token,
+ * allowing the user to swap INTO the native token.
+ *
+ * When coming from the trending tokens list, the user likely wants to BUY the token,
+ * so we configure the swap with the native token as source and the asset as destination.
+ *
+ * Otherwise, we assume they want to SELL, so the asset is the source.
+ *
+ * @param asset - The token asset being viewed
+ * @returns Object containing sourceToken and destToken for swap navigation
+ */
+export const getSwapTokens = (
+  asset: TokenI,
+): {
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+} => {
+  const wantsToBuyToken = isAssetFromTrending(asset);
+
+  // Build bridge token from asset
+  const bridgeToken: BridgeToken = {
+    ...asset,
+    address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+    chainId: asset.chainId as Hex | CaipChainId,
+    decimals: asset.decimals,
+    symbol: asset.symbol,
+    name: asset.name,
+    image: asset.image,
+  };
+
+  // If the asset is a native gas token, set source to the default pair token for that chain
+  // and dest to the native token, allowing the user to swap INTO the native token
+  if (isNativeAddress(asset.address)) {
+    return {
+      sourceToken: getDefaultDestToken(bridgeToken.chainId),
+      destToken: bridgeToken,
+    };
+  }
+
+  if (wantsToBuyToken) {
+    return {
+      sourceToken: getNativeSourceToken(bridgeToken.chainId),
+      destToken: bridgeToken,
+    };
+  }
+
+  return {
+    sourceToken: bridgeToken,
+    destToken: undefined,
+  };
+};
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -132,6 +210,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { navigateToSendPage } = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
@@ -167,11 +246,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const strxBandwidth = tronResources.find(
     (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
   );
+
+  // Use selector to get live Tron asset balance (not static navigation params)
+  const isTronChain = String(asset.chainId).startsWith('tron:');
+  const liveAsset = useSelector((state: RootState) =>
+    isTronChain && asset.address && asset.chainId
+      ? selectAsset(state, {
+          address: asset.address,
+          chainId: asset.chainId,
+          isStaked: false,
+        })
+      : undefined,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
-
+  const rampsButtonClickData = useRampsButtonClickData();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
     address: currentAddress,
@@ -180,22 +272,22 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
+  const { sourceToken, destToken } = getSwapTokens(asset);
+
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
-    sourceToken: {
-      ...asset,
-      address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
-      chainId: asset.chainId as Hex,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    },
+    sourceToken,
+    destToken,
   });
 
   // Hook for handling non-EVM asset sending
   const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
+
+  // Perps Discovery Banner hooks
+  const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
+    isPerpsEnabled ? asset.symbol : null,
+  );
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -340,18 +432,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    goToBuy({ assetId });
-
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
+          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
           region: rampGeodetectedRegion,
+          ramp_routing: rampsButtonClickData.ramp_routing,
+          is_authenticated: rampsButtonClickData.is_authenticated,
+          preferred_provider: rampsButtonClickData.preferred_provider,
+          order_count: rampsButtonClickData.order_count,
         })
         .build(),
     );
+
+    goToBuy({ assetId });
   };
 
   const goToBrowserUrl = (url: string) => {
@@ -362,6 +459,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     // TODO: params should not have to be cast here
     navigation.navigate(screen, params as Record<string, unknown>);
   };
+
+  // Perps Discovery Banner press handler
+  // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
+  const handlePerpsDiscoveryPress = useCallback(() => {
+    if (marketData) {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: marketData,
+          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+        },
+      });
+    }
+  }, [marketData, navigation]);
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
@@ -491,13 +602,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled && asset.balance != null) {
+  // Determine the balance source - prefer live data for Tron, otherwise use asset prop
+  let balanceSource = asset.balance;
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (isTronChain && liveAsset?.balance != null) {
+    balanceSource = liveAsset.balance;
+  }
+  ///: END:ONLY_INCLUDE_IF
+
+  if (isMultichainAccountsState2Enabled && balanceSource != null) {
     // When state2 is enabled and asset has balance, use it directly
-    balance = asset.balance;
+    balance = balanceSource;
   } else if (isMultichainAsset) {
-    balance = asset.balance
+    balance = balanceSource
       ? formatWithThreshold(
-          parseFloat(asset.balance),
+          parseFloat(balanceSource),
           minimumDisplayThreshold,
           I18n.locale,
           { minimumFractionDigits: 0, maximumFractionDigits: 5 },
@@ -562,7 +681,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   // Calculate fiat balance if not provided in asset (e.g., when coming from trending view)
-  let mainBalance = asset.balanceFiat || '';
+  let balanceFiatSource = asset.balanceFiat;
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (isTronChain && liveAsset?.balanceFiat != null) {
+    balanceFiatSource = liveAsset.balanceFiat;
+  }
+  ///: END:ONLY_INCLUDE_IF
+  let mainBalance = balanceFiatSource || '';
   if (!mainBalance && balance != null) {
     // Convert balance to number for calculations
     const balanceNumber =
@@ -665,6 +790,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {isPerpsEnabled && hasPerpsMarket && marketData && (
+            <>
+              <View style={styles.perpsPositionHeader}>
+                <DSText variant={TextVariant.HeadingMD}>
+                  {strings('asset_overview.perps_position')}
+                </DSText>
+              </View>
+              <PerpsDiscoveryBanner
+                symbol={marketData.symbol}
+                maxLeverage={marketData.maxLeverage}
+                onPress={handlePerpsDiscoveryPress}
+                testID="perps-discovery-banner"
+              />
+            </>
+          )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>

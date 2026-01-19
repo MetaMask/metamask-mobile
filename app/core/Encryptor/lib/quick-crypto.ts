@@ -45,7 +45,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     salt: string,
     opts: KeyDerivationOptions,
   ): Promise<string> => {
-    const passBuffer = Buffer.from(password, 'utf-8');
+    const passBuffer = new TextEncoder().encode(password);
 
     const baseKey = await Crypto.subtle.importKey(
       'raw',
@@ -77,7 +77,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @returns A promise that resolves to the encrypted data as a base64 string.
    */
   encrypt = async (data: string, key: string, iv: string): Promise<string> => {
-    const dataBuffer = Buffer.from(data, 'utf-8');
+    const dataBuffer = new TextEncoder().encode(data);
     const ivBuffer = Buffer.from(iv, 'hex');
     const cryptoKey = await this.importKey(key);
 

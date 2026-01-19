@@ -33,6 +33,7 @@ import {
   LINEA_MAINNET,
   LINEA_SEPOLIA,
   MEGAETH_TESTNET,
+  MEGAETH_TESTNET_V2,
   MONAD_TESTNET,
   BASE_MAINNET,
   NETWORKS_CHAIN_ID,
@@ -129,6 +130,7 @@ describe('network-utils', () => {
         SEPOLIA,
         LINEA_SEPOLIA,
         MEGAETH_TESTNET,
+        MEGAETH_TESTNET_V2,
         MONAD_TESTNET,
       ]);
     });
@@ -784,6 +786,10 @@ describe('network-utils', () => {
         expectedImage: networksWithImages?.['MEGAETH-TESTNET'],
       },
       {
+        chainId: ChainId['megaeth-testnet-v2'],
+        expectedImage: networksWithImages?.['MEGAETH-TESTNET-V2'],
+      },
+      {
         chainId: ChainId['monad-testnet'],
         expectedImage: networksWithImages?.['MONAD-TESTNET'],
       },
@@ -818,6 +824,11 @@ describe('network-utils', () => {
         chainId: ChainId['megaeth-testnet'],
         name: 'MegaETH Testnet',
         nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']],
+      },
+      {
+        chainId: ChainId['megaeth-testnet-v2'],
+        name: 'MegaETH Testnet',
+        nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet-v2']],
       },
       {
         chainId: ChainId['monad-testnet'],
@@ -979,6 +990,10 @@ describe('network-utils', () => {
         { chainId: ChainId.mainnet, networkName: 'Mainnet' },
         { chainId: ChainId['linea-mainnet'], networkName: 'Linea Mainnet' },
         { chainId: ChainId['megaeth-testnet'], networkName: 'Mega Testnet' },
+        {
+          chainId: ChainId['megaeth-testnet-v2'],
+          networkName: 'MegaETH Testnet',
+        },
         { chainId: ChainId['monad-testnet'], networkName: 'Monad Testnet' },
         { chainId: NETWORKS_CHAIN_ID.SEI, networkName: 'Sei Mainnet' },
         { chainId: NETWORKS_CHAIN_ID.HYPER_EVM, networkName: 'HyperEVM' },

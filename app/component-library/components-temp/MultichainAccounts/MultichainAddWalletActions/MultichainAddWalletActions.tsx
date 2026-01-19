@@ -11,7 +11,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
 
 // Types
 import { MultichainAddWalletActionsProps } from './MultichainAddWalletActions.types';
@@ -74,7 +74,7 @@ const MultichainAddWalletActions = ({
         iconName: IconName.Usb,
         testID: AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON,
         isVisible: true,
-        analyticsEvent: MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+        analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
         navigationAction: () => {
           navigate(Routes.HW.CONNECT);
           onBack();

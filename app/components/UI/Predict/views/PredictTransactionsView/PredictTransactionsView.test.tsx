@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { SectionList } from 'react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../types';
 
@@ -67,7 +68,12 @@ jest.mock('../../components/PredictActivity/PredictActivity', () => {
 
 // Mock usePredictActivity hook - external data dependency
 jest.mock('../../hooks/usePredictActivity', () => ({
-  usePredictActivity: jest.fn(() => ({ activity: [], isLoading: false })),
+  usePredictActivity: jest.fn(() => ({
+    activity: [],
+    isLoading: false,
+    isRefreshing: false,
+    loadActivity: jest.fn(),
+  })),
 }));
 
 const { usePredictActivity } = jest.requireMock(
@@ -83,11 +89,28 @@ describe('PredictTransactionsView', () => {
     jest.clearAllMocks();
   });
 
+  const createUsePredictActivityValue = (
+    overrides: Partial<{
+      activity: unknown[];
+      isLoading: boolean;
+      isRefreshing: boolean;
+      loadActivity: jest.Mock;
+    }> = {},
+  ) => ({
+    activity: [],
+    isLoading: false,
+    isRefreshing: false,
+    loadActivity: jest.fn(),
+    ...overrides,
+  });
+
   it('displays loading indicator when activity data loads', () => {
-    (usePredictActivity as jest.Mock).mockReturnValueOnce({
-      activity: [],
-      isLoading: true,
-    });
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        activity: [],
+        isLoading: true,
+      }),
+    );
 
     render(<PredictTransactionsView />);
 
@@ -95,10 +118,12 @@ describe('PredictTransactionsView', () => {
   });
 
   it('displays empty state message when activity list is empty', () => {
-    (usePredictActivity as jest.Mock).mockReturnValueOnce({
-      activity: [],
-      isLoading: false,
-    });
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        activity: [],
+        isLoading: false,
+      }),
+    );
 
     render(<PredictTransactionsView />);
 
@@ -107,35 +132,37 @@ describe('PredictTransactionsView', () => {
 
   it('displays all activity items from the activity list', () => {
     const mockTimestamp = Math.floor(Date.now() / 1000);
-    (usePredictActivity as jest.Mock).mockReturnValueOnce({
-      isLoading: false,
-      activity: [
-        {
-          id: 'a1',
-          title: 'Market A',
-          outcome: 'Yes',
-          icon: 'https://example.com/a.png',
-          entry: {
-            type: 'buy',
-            amount: 50,
-            price: 0.34,
-            timestamp: mockTimestamp,
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        activity: [
+          {
+            id: 'a1',
+            title: 'Market A',
+            outcome: 'Yes',
+            icon: 'https://example.com/a.png',
+            entry: {
+              type: 'buy',
+              amount: 50,
+              price: 0.34,
+              timestamp: mockTimestamp,
+            },
           },
-        },
-        {
-          id: 'b2',
-          title: 'Market B',
-          outcome: 'No',
-          icon: 'https://example.com/b.png',
-          entry: {
-            type: 'sell',
-            amount: 12.3,
-            price: 0.7,
-            timestamp: mockTimestamp - 100,
+          {
+            id: 'b2',
+            title: 'Market B',
+            outcome: 'No',
+            icon: 'https://example.com/b.png',
+            entry: {
+              type: 'sell',
+              amount: 12.3,
+              price: 0.7,
+              timestamp: mockTimestamp - 100,
+            },
           },
-        },
-      ],
-    });
+        ],
+      }),
+    );
 
     render(<PredictTransactionsView />);
 
@@ -145,26 +172,28 @@ describe('PredictTransactionsView', () => {
 
   it('transforms buy activity entry into BUY activity item with formatted details', () => {
     const mockTimestamp = Math.floor(Date.now() / 1000);
-    (usePredictActivity as jest.Mock).mockReturnValueOnce({
-      isLoading: false,
-      activity: [
-        {
-          id: 'a1',
-          title: 'Market A',
-          outcome: 'Yes',
-          icon: 'https://example.com/a.png',
-          entry: {
-            type: 'buy',
-            amount: 50,
-            price: 0.34,
-            timestamp: mockTimestamp,
-            marketId: 'market-a',
-            outcomeId: 'outcome-yes',
-            outcomeTokenId: 1,
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        activity: [
+          {
+            id: 'a1',
+            title: 'Market A',
+            outcome: 'Yes',
+            icon: 'https://example.com/a.png',
+            entry: {
+              type: 'buy',
+              amount: 50,
+              price: 0.34,
+              timestamp: mockTimestamp,
+              marketId: 'market-a',
+              outcomeId: 'outcome-yes',
+              outcomeTokenId: 1,
+            },
           },
-        },
-      ],
-    });
+        ],
+      }),
+    );
 
     render(<PredictTransactionsView />);
 
@@ -183,26 +212,28 @@ describe('PredictTransactionsView', () => {
 
   it('transforms sell activity entry into SELL activity item with formatted price', () => {
     const mockTimestamp = Math.floor(Date.now() / 1000);
-    (usePredictActivity as jest.Mock).mockReturnValueOnce({
-      isLoading: false,
-      activity: [
-        {
-          id: 'b2',
-          title: 'Market B',
-          outcome: 'No',
-          icon: 'https://example.com/b.png',
-          entry: {
-            type: 'sell',
-            amount: 12.3,
-            price: 0.7,
-            timestamp: mockTimestamp - 100,
-            marketId: 'market-b',
-            outcomeId: 'outcome-no',
-            outcomeTokenId: 2,
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        activity: [
+          {
+            id: 'b2',
+            title: 'Market B',
+            outcome: 'No',
+            icon: 'https://example.com/b.png',
+            entry: {
+              type: 'sell',
+              amount: 12.3,
+              price: 0.7,
+              timestamp: mockTimestamp - 100,
+              marketId: 'market-b',
+              outcomeId: 'outcome-no',
+              outcomeTokenId: 2,
+            },
           },
-        },
-      ],
-    });
+        ],
+      }),
+    );
 
     render(<PredictTransactionsView />);
 
@@ -220,22 +251,24 @@ describe('PredictTransactionsView', () => {
 
   it('transforms claimWinnings activity entry into CLAIM activity item', () => {
     const mockTimestamp = Math.floor(Date.now() / 1000);
-    (usePredictActivity as jest.Mock).mockReturnValueOnce({
-      isLoading: false,
-      activity: [
-        {
-          id: 'c3',
-          title: 'Market C',
-          outcome: 'Yes',
-          icon: 'https://example.com/c.png',
-          entry: {
-            type: 'claimWinnings',
-            amount: 99.99,
-            timestamp: mockTimestamp - 200,
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        activity: [
+          {
+            id: 'c3',
+            title: 'Market C',
+            outcome: 'Yes',
+            icon: 'https://example.com/c.png',
+            entry: {
+              type: 'claimWinnings',
+              amount: 99.99,
+              timestamp: mockTimestamp - 200,
+            },
           },
-        },
-      ],
-    });
+        ],
+      }),
+    );
 
     render(<PredictTransactionsView />);
 
@@ -253,22 +286,24 @@ describe('PredictTransactionsView', () => {
 
   it('transforms unknown activity type into CLAIM activity item with zero amount', () => {
     const mockTimestamp = Math.floor(Date.now() / 1000);
-    (usePredictActivity as jest.Mock).mockReturnValueOnce({
-      isLoading: false,
-      activity: [
-        {
-          id: 'd4',
-          title: 'Market D',
-          outcome: 'Yes',
-          icon: 'https://example.com/d.png',
-          entry: {
-            type: 'unknown',
-            amount: 1.23,
-            timestamp: mockTimestamp - 300,
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        activity: [
+          {
+            id: 'd4',
+            title: 'Market D',
+            outcome: 'Yes',
+            icon: 'https://example.com/d.png',
+            entry: {
+              type: 'unknown',
+              amount: 1.23,
+              timestamp: mockTimestamp - 300,
+            },
           },
-        },
-      ],
-    });
+        ],
+      }),
+    );
 
     render(<PredictTransactionsView />);
 
@@ -282,5 +317,69 @@ describe('PredictTransactionsView', () => {
     expect(defaultItem?.marketTitle).toBe('Market D');
     expect(defaultItem?.amountUsd).toBe(0);
     expect(defaultItem?.detail).toBe('Claimed winnings');
+  });
+
+  it('keeps rendered items visible during background refreshes', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: true,
+        activity: [
+          {
+            id: 'refreshing-item',
+            title: 'Market Refresh',
+            outcome: 'Yes',
+            entry: {
+              type: 'buy',
+              amount: 10,
+              price: 0.5,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    expect(screen.queryByTestId('activity-indicator')).toBeNull();
+    expect(
+      screen.getByTestId('predict-activity-refreshing-item'),
+    ).toBeOnTheScreen();
+  });
+
+  it('passes refreshing state and triggers refresh handler on pull to refresh', async () => {
+    const mockLoadActivity = jest.fn().mockResolvedValue(undefined);
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isRefreshing: true,
+        loadActivity: mockLoadActivity,
+        activity: [
+          {
+            id: 'refreshable',
+            title: 'Market Refreshable',
+            outcome: 'Yes',
+            entry: {
+              type: 'sell',
+              amount: 5,
+              price: 0.4,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    const sectionList = screen.UNSAFE_getByType(SectionList);
+    expect(sectionList.props.refreshing).toBe(true);
+
+    await act(async () => {
+      await sectionList.props.onRefresh();
+    });
+
+    expect(mockLoadActivity).toHaveBeenCalledWith({ isRefresh: true });
   });
 });

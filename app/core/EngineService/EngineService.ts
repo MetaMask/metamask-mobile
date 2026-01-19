@@ -22,13 +22,14 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
+import { setExistingUser } from '../../actions/user';
 
 export class EngineService {
   private engineInitialized = false;
@@ -50,7 +51,16 @@ export class EngineService {
     }),
   );
 
-  private initializeControllers = (engine: TypedEngine) => {
+  /**
+   * Initializes controller subscriptions for Redux updates and filesystem persistence.
+   *
+   * @param engine - The initialized Engine instance
+   * @param initialState - Optional initial state loaded from persistence. If provided, controllers whose state changed during Engine.init() will be persisted.
+   */
+  private initializeControllers = (
+    engine: TypedEngine,
+    initialState?: Record<string, unknown>,
+  ) => {
     // coordination mechanism to prevent race conditions between engine initialization and UI rendering
     if (!engine.context) {
       Logger.error(
@@ -107,7 +117,8 @@ export class EngineService {
     // CRITICAL: Set up filesystem persistence for all controllers
     // This is called automatically after Redux subscriptions to ensure
     // both Redux and filesystem are kept in sync when controller state changes
-    this.setupEnginePersistence();
+    // Pass initialState to detect and persist any state changes that occurred during Engine.init()
+    this.setupEnginePersistence(initialState);
   };
 
   /**
@@ -154,10 +165,19 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      Engine.init(state, null, metaMetricsId);
+
+      // Note on why Engine.init() requires analyticsId:
+      // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
+      // It is also used as a random source for other controllers like RemoteFeatureFlagController.
+      // Passing it to engine ensures all controllers are initialized with the same analyticsId.
+      const analyticsId = await getAnalyticsId();
+      Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
-      this.initializeControllers(Engine as unknown as TypedEngine);
+      // Pass state to detect controllers that changed during init
+      this.initializeControllers(
+        Engine as unknown as TypedEngine,
+        state as Record<string, unknown>,
+      );
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -197,8 +217,10 @@ export class EngineService {
    *
    * The persistence is debounced in createPersistController to prevent excessive disk writes during rapid state changes.
    * Controllers with no persistent state are skipped to avoid storing empty objects.
+   *
+   * @param initialState - Optional initial state to compare against. If provided, controllers whose state changed during Engine.init() will be persisted immediately. This catches state changes that occur before subscriptions are set up.
    */
-  private setupEnginePersistence = () => {
+  private setupEnginePersistence = (initialState?: Record<string, unknown>) => {
     try {
       if (UntypedEngine.controllerMessenger) {
         BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
@@ -215,8 +237,67 @@ export class EngineService {
             return;
           }
 
+          // Create debounced persist function (reused for both initial and ongoing persistence)
           const persistController = createPersistController(200);
 
+          // Check if state changed during Engine.init()
+          // Compare 1 level deep - check if any property of the filtered state differs
+          // from the initial state. Controllers preserve referential equality for unchanged properties.
+          // If initialControllerState is undefined (new install or new controller), always persist.
+          // @ts-expect-error - Engine context has stateless controllers
+          const currentState = UntypedEngine.context[controllerName]?.state;
+
+          // Only check for init-time state changes if controller has state
+          // (stateless controllers will have undefined state)
+          if (currentState) {
+            try {
+              const initialControllerState = initialState?.[controllerName] as
+                | Record<string, unknown>
+                | undefined;
+              const filteredState = getPersistentState(
+                currentState,
+                controllerMetadata,
+              );
+
+              // Check if any property at the first level has changed
+              // Only persist if there's state to persist AND either:
+              // 1. No initial state existed but now there is state (new install/new controller)
+              // 2. Initial state existed and has changed (added, modified, or removed properties)
+              const filteredStateKeys = Object.keys(filteredState);
+              const initialStateKeys = initialControllerState
+                ? Object.keys(initialControllerState)
+                : [];
+              const hasStateToSave = filteredStateKeys.length > 0;
+
+              // Check for changes: different key count, or any value differs
+              const hasKeyCountChanged =
+                filteredStateKeys.length !== initialStateKeys.length;
+              const hasValueChanged = filteredStateKeys.some(
+                (key) =>
+                  !initialControllerState ||
+                  filteredState[key] !== initialControllerState[key],
+              );
+
+              const hasChanged =
+                hasStateToSave && (hasKeyCountChanged || hasValueChanged);
+
+              if (hasChanged) {
+                // Reuse the same debounced function for consistency
+                persistController(filteredState, controllerName);
+                Logger.log(
+                  `${LOG_TAG}: ${controllerName} state changed during init, queued for persist`,
+                );
+              }
+            } catch (error) {
+              // Log error but don't crash - init-time persistence is best-effort
+              Logger.error(
+                error as Error,
+                `Failed to check/persist ${controllerName} state during init`,
+              );
+            }
+          }
+
+          // Set up subscription for future state changes (always, even for stateless controllers)
           UntypedEngine.controllerMessenger.subscribe(
             eventName,
             async (controllerState: StateConstraint) => {
@@ -287,10 +368,15 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      const instance = Engine.init(state, newKeyringState, metaMetricsId);
+      const analyticsId = await getAnalyticsId();
+      const instance = Engine.init(analyticsId, state, newKeyringState);
       if (instance) {
-        this.initializeControllers(instance);
+        // Pass state to detect controllers that changed during init
+        this.initializeControllers(instance, state as Record<string, unknown>);
+        // CRITICAL: Set existingUser = true after successful vault unlock from recovery
+        // This prevents the vault recovery screen from appearing again on app restart
+        // Only set after successful unlock to ensure vault is unlocked and credentials are stored
+        ReduxService.store.dispatch(setExistingUser(true));
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {

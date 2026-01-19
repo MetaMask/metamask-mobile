@@ -5,6 +5,7 @@ import AppConstants from '../../core/AppConstants';
  * {@see {@link https://github.com/mathiasbynens/punycode.js?tab=readme-ov-file#installation}
  */
 import { toASCII } from 'punycode/';
+import Logger from '../Logger';
 
 const hostnameRegex =
   /^(?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)?(?:www\.)?([^/?:]+)(?::\d+)?/;
@@ -38,10 +39,32 @@ export const isCardUrl = (url: string) => {
     const currentUrl = new URL(url);
     return currentUrl.origin === AppConstants.CARD.URL;
   } catch (error) {
+    Logger.log('Error in isCardUrl', error);
     return false;
   }
 };
 
+export const isCardTravelUrl = (url: string) => {
+  try {
+    const currentUrl = new URL(url);
+    const travelUrl = new URL(AppConstants.CARD.TRAVEL_URL);
+    return currentUrl.origin === travelUrl.origin;
+  } catch (error) {
+    Logger.log('Error in isCardTravelUrl', error);
+    return false;
+  }
+};
+
+export const isCardTosUrl = (url: string) => {
+  try {
+    const currentUrl = new URL(url);
+    const tosUrl = new URL(AppConstants.CARD.CARD_TOS_URL);
+    return currentUrl.origin === tosUrl.origin;
+  } catch (error) {
+    Logger.log('Error in isCardTosUrl', error);
+    return false;
+  }
+};
 /**
  * This method does not use the URL library because it does not support punycode encoding in react native.
  * It compares the original hostname to a punycode version of the hostname.

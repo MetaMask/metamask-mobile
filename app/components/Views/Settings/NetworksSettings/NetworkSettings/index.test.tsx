@@ -1,14 +1,28 @@
 // Mock the Analytics module BEFORE any imports
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ name: 'test-event' });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+});
+
 jest.mock('../../../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn(() => ({
       addTraitsToUser: jest.fn(),
+      trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
     })),
   },
   MetaMetricsEvents: {
     NETWORK_REMOVED: 'Network Removed',
+    RPC_ADDED: { category: 'RPC Added' },
+    RPC_REMOVED: { category: 'RPC Removed' },
   },
 }));
+
+jest.mock('../../../../../core/Analytics/MetricsEventBuilder');
 
 import React from 'react';
 import { shallow } from 'enzyme';
@@ -24,7 +38,11 @@ import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 const { PreferencesController } = Engine.context;
+
+// Set up MetricsEventBuilder mock after import
+MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 jest.mock(
   '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
@@ -37,24 +55,6 @@ jest.mock(
     }),
   }),
 );
-
-const mockTrackEvent = jest.fn();
-
-const mockCreateEventBuilder = jest.fn((eventName) => {
-  let properties = {};
-  return {
-    addProperties(props: Record<string, unknown>) {
-      properties = { ...properties, ...props };
-      return this;
-    },
-    build() {
-      return {
-        name: eventName,
-        properties,
-      };
-    },
-  };
-});
 
 jest.mock('../../../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -854,6 +854,209 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('rpcUrls').length).toBe(0);
     });
 
+    describe('RPC event tracking', () => {
+      beforeEach(() => {
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockAddProperties.mockClear();
+        mockBuild.mockClear();
+      });
+
+      it('tracks RPC_ADDED event when adding RPC URL with chainId set', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x1';
+        const ticker = 'ETH';
+
+        wrapper.setState({
+          chainId,
+          ticker,
+          rpcUrls: [],
+        });
+
+        await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+        // Verify RPC_ADDED event was tracked
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Added' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x1',
+          source: 'Network Settings',
+          symbol: 'ETH',
+          rpc_url_index: 0,
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('tracks RPC_ADDED event with correct rpc_url_index when adding multiple RPC URLs', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x64';
+        const ticker = 'xDai';
+
+        wrapper.setState({
+          chainId,
+          ticker,
+          rpcUrls: [
+            {
+              url: 'https://first-rpc-url.com',
+              name: 'First RPC',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        // Add second RPC URL
+        await instance.onRpcItemAdd('https://second-rpc-url.com', 'Second RPC');
+
+        // Verify RPC_ADDED event was tracked with index 1
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Added' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x64',
+          source: 'Network Settings',
+          symbol: 'xDai',
+          rpc_url_index: 1,
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('does not track RPC_ADDED event when chainId is not set', async () => {
+        const instance = wrapper.instance();
+
+        wrapper.setState({
+          chainId: undefined,
+          rpcUrls: [],
+        });
+
+        await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+        // Verify RPC_ADDED event was NOT tracked
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+
+      it('tracks RPC_REMOVED event when deleting RPC URL with chainId set', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x2';
+        const ticker = 'TST';
+        const rpcUrlToDelete = 'https://to-delete-url.com';
+
+        wrapper.setState({
+          chainId,
+          ticker,
+          rpcUrls: [
+            {
+              url: 'https://first-rpc-url.com',
+              name: 'First RPC',
+              type: RpcEndpointType.Custom,
+            },
+            {
+              url: rpcUrlToDelete,
+              name: 'RPC to delete',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete(rpcUrlToDelete);
+
+        // Verify RPC_REMOVED event was tracked
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Removed' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x2',
+          source: 'Network Settings',
+          symbol: 'TST',
+          rpc_url_index: 1, // Second RPC URL (index 1)
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('tracks RPC_REMOVED event with correct rpc_url_index when deleting first RPC URL', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x3';
+        const ticker = 'ABC';
+        const rpcUrlToDelete = 'https://first-rpc-url.com';
+
+        wrapper.setState({
+          chainId,
+          ticker,
+          rpcUrls: [
+            {
+              url: rpcUrlToDelete,
+              name: 'First RPC',
+              type: RpcEndpointType.Custom,
+            },
+            {
+              url: 'https://second-rpc-url.com',
+              name: 'Second RPC',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete(rpcUrlToDelete);
+
+        // Verify RPC_REMOVED event was tracked with index 0
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Removed' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x3',
+          source: 'Network Settings',
+          symbol: 'ABC',
+          rpc_url_index: 0, // First RPC URL (index 0)
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('does not track RPC_REMOVED event when chainId is not set', async () => {
+        const instance = wrapper.instance();
+        const rpcUrlToDelete = 'https://to-delete-url.com';
+
+        wrapper.setState({
+          chainId: undefined,
+          rpcUrls: [
+            {
+              url: rpcUrlToDelete,
+              name: 'RPC to delete',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete(rpcUrlToDelete);
+
+        // Verify RPC_REMOVED event was NOT tracked
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+
+      it('does not track RPC_REMOVED event when RPC URL is not found', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x4';
+
+        wrapper.setState({
+          chainId,
+          rpcUrls: [
+            {
+              url: 'https://existing-rpc-url.com',
+              name: 'Existing RPC',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete('https://non-existent-url.com');
+
+        // Verify RPC_REMOVED event was NOT tracked (rpcUrlIndex would be -1)
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+    });
+
     it('should correctly delete a Block Explorer URL and update state', async () => {
       const instance = wrapper.instance();
 
@@ -1330,6 +1533,57 @@ describe('NetworkSettings', () => {
 
       expect(updateNavBarSpy).toHaveBeenCalled();
       expect(validateRpcAndChainIdSpy).toHaveBeenCalled();
+    });
+
+    it('uses fallback block explorer URL when blockExplorerUrls is empty', () => {
+      const propsWithEmptyBlockExplorerUrls = {
+        route: {
+          params: {
+            network: 'mainnet',
+          },
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+        networkConfigurations: {
+          '0x1': {
+            blockExplorerUrls: [], // Empty array - should trigger fallback
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Infura',
+                url: 'https://mainnet.infura.io/v3/',
+              },
+            ],
+            name: 'Ethereum Main Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      const wrapperWithFallback = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...propsWithEmptyBlockExplorerUrls} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instanceWithFallback = wrapperWithFallback.instance();
+      instanceWithFallback.componentDidMount?.();
+
+      // Fallback should use BlockExplorerUrl['mainnet'] = 'https://etherscan.io'
+      expect(wrapperWithFallback.state('blockExplorerUrl')).toBe(
+        'https://etherscan.io',
+      );
+      expect(wrapperWithFallback.state('blockExplorerUrls')).toEqual([
+        'https://etherscan.io',
+      ]);
     });
   });
 

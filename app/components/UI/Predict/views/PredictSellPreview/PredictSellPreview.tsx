@@ -16,7 +16,7 @@ import {
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -55,16 +55,14 @@ const PredictSellPreview = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;
 
-  const {
-    icon,
-    title,
-    outcome: outcomeSideText,
-    initialValue,
-    size,
-  } = position;
+  const { icon, title, initialValue, size } = position;
 
   const outcomeGroupTitle = outcome?.groupItemTitle ?? '';
   const outcomeTitle = title;
+  const outcomeToken = outcome?.tokens.find(
+    (t) => t.id === position.outcomeTokenId,
+  );
+  const outcomeSideText = outcomeToken?.title ?? position.outcome;
 
   // Prepare analytics properties for sell/cash-out action
   const analyticsProperties = useMemo(

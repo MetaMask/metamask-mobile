@@ -27,7 +27,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -51,7 +51,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -108,7 +108,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
               style={
                 {
                   "color": "#457a39",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -186,7 +186,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -203,7 +203,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import type { Position } from '../controllers/types';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
@@ -24,6 +24,8 @@ export interface UseStopLossPromptParams {
   currentPrice: number;
   /** Enable/disable the hook (default: true) */
   enabled?: boolean;
+  /** Timestamp when position was opened (from order fills) - bypasses debounce if position is >2min old */
+  positionOpenedTimestamp?: number;
 }
 
 export interface UseStopLossPromptResult {
@@ -37,6 +39,12 @@ export interface UseStopLossPromptResult {
   suggestedStopLossPrice: string | null;
   /** Suggested stop loss as percentage from entry */
   suggestedStopLossPercent: number | null;
+  /** Whether banner is currently visible (includes dismissing state) */
+  isVisible: boolean;
+  /** Whether banner is in fade-out animation state */
+  isDismissing: boolean;
+  /** Callback when fade-out animation completes */
+  onDismissComplete: () => void;
 }
 
 /**
@@ -44,7 +52,7 @@ export interface UseStopLossPromptResult {
  *
  * Implements the logic from TASK_AUTOSET.md:
  * - Shows "add_margin" variant when within 3% of liquidation
- * - Shows "stop_loss" variant when ROE <= -20% for 60s (debounced)
+ * - Shows "stop_loss" variant when ROE <= -10% for 60s (debounced)
  * - Suppresses when position has cross margin or existing stop loss
  *
  * @example
@@ -57,6 +65,7 @@ export interface UseStopLossPromptResult {
  * } = useStopLossPrompt({
  *   position: existingPosition,
  *   currentPrice: 50000,
+ *   positionOpenedTimestamp: 1234567890000, // Optional: from order fills
  * });
  * ```
  */
@@ -64,10 +73,29 @@ export const useStopLossPrompt = ({
   position,
   currentPrice,
   enabled = true,
+  positionOpenedTimestamp,
 }: UseStopLossPromptParams): UseStopLossPromptResult => {
   // Track when ROE first dropped below threshold for debouncing
   const roeBelowThresholdSinceRef = useRef<number | null>(null);
+  const hasBeenShownRef = useRef(false);
   const [roeDebounceComplete, setRoeDebounceComplete] = useState(false);
+
+  // Track when the current position was first detected (client-side)
+  // This is used to enforce the minimum position age requirement
+  const positionFirstSeenRef = useRef<{
+    coin: string;
+    timestamp: number;
+  } | null>(null);
+  const [positionAgeCheckPassed, setPositionAgeCheckPassed] = useState(false);
+
+  // Visibility orchestration state
+  // Tracks fade-out animation when banner conditions no longer met
+  const [isDismissing, setIsDismissing] = useState(false);
+  // Preserve variant during fade-out so banner can still render with correct content
+  const [dismissingVariant, setDismissingVariant] =
+    useState<StopLossPromptVariant | null>(null);
+  const prevShouldShowBannerRef = useRef(false);
+  const prevVariantRef = useRef<StopLossPromptVariant | null>(null);
 
   // Calculate liquidation distance
   const liquidationDistance = useMemo(() => {
@@ -96,11 +124,87 @@ export const useStopLossPrompt = ({
     return roeValue * 100;
   }, [position?.returnOnEquity]);
 
+  // Callback to finish debounce (from main - for server timestamp bypass)
+  const finishDebounce = useCallback(() => {
+    setRoeDebounceComplete(true);
+    hasBeenShownRef.current = true;
+  }, []);
+
+  // Reset hasBeenShownRef when position changes (from main)
+  useEffect(() => {
+    hasBeenShownRef.current = false;
+  }, [position?.coin]);
+
+  // Server timestamp bypass effect (from main)
+  // If positionOpenedTimestamp shows position is >2 minutes old, bypass debounce AND position age check
+  useEffect(() => {
+    if (!enabled || roePercent === null || hasBeenShownRef.current) {
+      return;
+    }
+
+    // Check if position was opened more than 2 minutes ago (from order fills timestamp)
+    const POSITION_AGE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes
+    const positionAge = positionOpenedTimestamp
+      ? Date.now() - positionOpenedTimestamp
+      : 0;
+
+    const isBelowThreshold =
+      roePercent <= STOP_LOSS_PROMPT_CONFIG.ROE_THRESHOLD;
+
+    // If position is old enough (from actual order fill data), bypass both debounce and position age check
+    // Server timestamp is authoritative - no need to wait for client-side age tracking
+    if (positionAge >= POSITION_AGE_THRESHOLD_MS && isBelowThreshold) {
+      setPositionAgeCheckPassed(true); // Also bypass client-side age check
+      finishDebounce();
+    }
+  }, [positionOpenedTimestamp, enabled, roePercent, finishDebounce]);
+
+  // Handle client-side position age tracking (from HEAD)
+  // Track when a position is first detected and enforce minimum age before showing banners
+  useEffect(() => {
+    if (!enabled || !position?.coin) {
+      // Reset when disabled or no position
+      positionFirstSeenRef.current = null;
+      setPositionAgeCheckPassed(false);
+      return;
+    }
+
+    // Check if this is a new position (different coin or first time seeing it)
+    if (
+      !positionFirstSeenRef.current ||
+      positionFirstSeenRef.current.coin !== position.coin
+    ) {
+      positionFirstSeenRef.current = {
+        coin: position.coin,
+        timestamp: Date.now(),
+      };
+      setPositionAgeCheckPassed(false);
+    }
+
+    // Check if minimum age has passed
+    const elapsed = Date.now() - positionFirstSeenRef.current.timestamp;
+    if (elapsed >= STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS) {
+      setPositionAgeCheckPassed(true);
+    } else {
+      // Set up timer to check again when age threshold is reached
+      const remainingTime =
+        STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS - elapsed;
+      const timer = setTimeout(() => {
+        setPositionAgeCheckPassed(true);
+      }, remainingTime);
+
+      return () => clearTimeout(timer);
+    }
+
+    return undefined;
+  }, [enabled, position?.coin]);
+
   // Handle ROE debounce logic
   useEffect(() => {
     if (!enabled || roePercent === null) {
       roeBelowThresholdSinceRef.current = null;
       setRoeDebounceComplete(false);
+      hasBeenShownRef.current = false; // Reset when position is closed
       return;
     }
 
@@ -116,14 +220,14 @@ export const useStopLossPrompt = ({
       // Check if debounce period has passed
       const elapsed = Date.now() - roeBelowThresholdSinceRef.current;
       if (elapsed >= STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS) {
-        setRoeDebounceComplete(true);
+        finishDebounce();
       } else {
         // Set up timer to check again
         const remainingTime = STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS - elapsed;
         const timer = setTimeout(() => {
           // Re-check if still below threshold
           if (roeBelowThresholdSinceRef.current !== null) {
-            setRoeDebounceComplete(true);
+            finishDebounce();
           }
         }, remainingTime);
 
@@ -136,7 +240,7 @@ export const useStopLossPrompt = ({
     }
 
     return undefined;
-  }, [enabled, roePercent]);
+  }, [enabled, roePercent, position, positionOpenedTimestamp, finishDebounce]);
 
   // Calculate suggested stop loss price based on entry price and target ROE
   // Formula: For a position, SL price at -50% ROE = entryPrice * (1 + targetROE/100/leverage)
@@ -234,6 +338,21 @@ export const useStopLossPrompt = ({
       // So we'll NOT suppress just for having TP
     }
 
+    // Suppression check: Position age requirement
+    // Don't show any banner until position has been open for at least POSITION_MIN_AGE_MS
+    if (!positionAgeCheckPassed) {
+      return { shouldShowBanner: false, variant: null };
+    }
+
+    // Suppression check: Minimum loss requirement
+    // No banner shown until ROE drops below MIN_LOSS_THRESHOLD (-10%)
+    if (
+      roePercent === null ||
+      roePercent > STOP_LOSS_PROMPT_CONFIG.MIN_LOSS_THRESHOLD
+    ) {
+      return { shouldShowBanner: false, variant: null };
+    }
+
     // Priority 1: Near liquidation → Add margin variant
     if (
       liquidationDistance !== null &&
@@ -244,20 +363,74 @@ export const useStopLossPrompt = ({
     }
 
     // Priority 2: ROE below threshold with debounce → Stop loss variant
-    // Note: Position age check skipped as createdAt not available in Position type
     if (roeDebounceComplete) {
       return { shouldShowBanner: true, variant: 'stop_loss' };
     }
 
     return { shouldShowBanner: false, variant: null };
-  }, [enabled, position, liquidationDistance, roeDebounceComplete]);
+  }, [
+    enabled,
+    position,
+    liquidationDistance,
+    roeDebounceComplete,
+    positionAgeCheckPassed,
+    roePercent,
+  ]);
+
+  // Handle visibility orchestration - detect transitions and trigger fade-out
+  // When shouldShowBanner transitions from true → false, trigger dismissing state
+  // Also capture the variant so banner can continue rendering during animation
+  useEffect(() => {
+    const prevShouldShow = prevShouldShowBannerRef.current;
+    const prevVariant = prevVariantRef.current;
+
+    // Update refs for next render
+    prevShouldShowBannerRef.current = shouldShowBanner;
+    prevVariantRef.current = variant;
+
+    // Transition from showing to hidden → trigger fade-out animation
+    if (prevShouldShow && !shouldShowBanner && !isDismissing) {
+      setIsDismissing(true);
+      // Capture the variant that was showing so it's preserved during fade-out
+      setDismissingVariant(prevVariant);
+    }
+
+    // Reset dismissing state if conditions worsen again (banner needs to show)
+    if (shouldShowBanner && isDismissing) {
+      setIsDismissing(false);
+      setDismissingVariant(null);
+    }
+  }, [shouldShowBanner, isDismissing, variant]);
+
+  // Reset visibility orchestration when position changes
+  useEffect(() => {
+    setIsDismissing(false);
+    setDismissingVariant(null);
+    prevShouldShowBannerRef.current = false;
+    prevVariantRef.current = null;
+  }, [position?.coin]);
+
+  // Callback when fade-out animation completes
+  const onDismissComplete = useCallback(() => {
+    setIsDismissing(false);
+    setDismissingVariant(null);
+  }, []);
+
+  // Banner is visible when conditions are met OR when dismissing (for animation)
+  const isVisible = shouldShowBanner || isDismissing;
+
+  // Use preserved variant during fade-out so banner can still render with correct content
+  const effectiveVariant = isDismissing ? dismissingVariant : variant;
 
   return {
     shouldShowBanner,
-    variant,
+    variant: effectiveVariant,
     liquidationDistance,
     suggestedStopLossPrice,
     suggestedStopLossPercent,
+    isVisible,
+    isDismissing,
+    onDismissComplete,
   };
 };
 

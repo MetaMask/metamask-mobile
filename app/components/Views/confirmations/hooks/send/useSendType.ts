@@ -81,27 +81,35 @@ export const useSendType = () => {
   return useMemo(
     () => ({
       isEvmSendType,
+      isPredefinedEvm,
       isEvmNativeSendType: isEvmSendType && assetIsNative,
       isNonEvmNativeSendType: isNonEvmSendType && assetIsNative,
       isNonEvmSendType,
       isSolanaSendType,
+      isPredefinedSolana,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
+      isPredefinedBitcoin,
       /// END:ONLY_INCLUDE_IF
       /// BEGIN:ONLY_INCLUDE_IF(tron)
       isTronSendType,
+      isPredefinedTron,
       /// END:ONLY_INCLUDE_IF
     }),
     [
       isEvmSendType,
+      isPredefinedEvm,
       isNonEvmSendType,
       assetIsNative,
       isSolanaSendType,
+      isPredefinedSolana,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
+      isPredefinedBitcoin,
       /// END:ONLY_INCLUDE_IF
       /// BEGIN:ONLY_INCLUDE_IF(tron)
       isTronSendType,
+      isPredefinedTron,
       /// END:ONLY_INCLUDE_IF
     ],
   );

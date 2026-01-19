@@ -35,8 +35,13 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci
+      - name: Clean state and following up dependencies installation with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci
       - name: Require clean working directory
         shell: bash
         run: |
@@ -272,19 +277,25 @@ jobs:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number}}
+          pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
           post-comment: 'true'
+          base-ref: ${{ github.event.pull_request.base.ref }}
 
   # Main E2E tests
 
   build-android-apks:
     name: 'Build Android APKs'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.android_changed == 'true' &&
+        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build]
+    needs: [needs_e2e_build, smart-e2e-selection]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
@@ -298,19 +309,29 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
+        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build]
+    needs: [needs_e2e_build, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
@@ -329,10 +350,15 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   # Flask E2E tests
@@ -343,17 +369,22 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -369,6 +400,8 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
@@ -573,13 +606,16 @@ jobs:
 
   log-merge-group-failure:
     name: Log merge group failure
+    runs-on: ubuntu-latest
     # Only run this job if the merge group event fails, skip on forks
     if: ${{ github.event_name == 'merge_group' && failure() && !github.event.repository.fork }}
     needs:
       - check-all-jobs-pass
-    uses: metamask/github-tools/.github/workflows/log-merge-group-failure.yml@6bbad335a01fce1a9ec1eabd9515542c225d46c0
-    secrets:
-      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-      GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-      SPREADSHEET_ID: ${{ secrets.GOOGLE_MERGE_QUEUE_SPREADSHEET_ID }}
-      SHEET_NAME: ${{ secrets.GOOGLE_MERGE_QUEUE_SHEET_NAME }}
+    steps:
+      - name: Log merge group failure to Google Sheets
+        uses: MetaMask/github-tools/.github/actions/log-merge-group-failure@v1
+        with:
+          google-application-credentials: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          google-service-account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          spreadsheet-id: ${{ secrets.GOOGLE_MERGE_QUEUE_SPREADSHEET_ID }}
+          sheet-name: ${{ secrets.GOOGLE_MERGE_QUEUE_SHEET_NAME }}

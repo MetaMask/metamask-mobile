@@ -2,12 +2,11 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import ImportPrivateKey from './';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
-import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 import { Alert } from 'react-native';
 
 // Mock dependencies
@@ -15,6 +14,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockFetchAccountsWithActivity = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
+const mockImportAccountFromPrivateKey = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -27,10 +27,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../util/importAccountFromPrivateKey', () => ({
-  importAccountFromPrivateKey: jest.fn(),
-}));
-
 jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
   useAccountsWithNetworkActivitySync: () => ({
     fetchAccountsWithActivity: mockFetchAccountsWithActivity,
@@ -42,6 +38,8 @@ jest.mock('../../../core', () => ({
   Authentication: {
     checkIsSeedlessPasswordOutdated: () =>
       mockCheckIsSeedlessPasswordOutdated(),
+    importAccountFromPrivateKey: (privateKey: string) =>
+      mockImportAccountFromPrivateKey(privateKey),
   },
 }));
 
@@ -49,11 +47,6 @@ jest.mock('../../../core', () => ({
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
 }));
-
-const mockImportAccountFromPrivateKey =
-  importAccountFromPrivateKey as jest.MockedFunction<
-    typeof importAccountFromPrivateKey
-  >;
 
 // Cast Alert.alert as a mock for better TypeScript support
 const mockAlert = Alert.alert as jest.MockedFunction<typeof Alert.alert>;
@@ -100,7 +93,7 @@ describe('ImportPrivateKey', () => {
   });
 
   it('displays SRP warning description when user has no social auth connection', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByPlaceholderText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: srpState },
@@ -108,9 +101,13 @@ describe('ImportPrivateKey', () => {
 
     expect(getByText(strings('import_private_key.title'))).toBeTruthy();
     expect(
-      getByText(strings('import_private_key.description_srp')),
+      getByText(strings('import_private_key.description_srp'), {
+        exact: false,
+      }),
     ).toBeTruthy();
-    expect(getByText(strings('import_private_key.subtitle'))).toBeTruthy();
+    expect(
+      getByPlaceholderText(strings('import_private_key.subtitle')),
+    ).toBeTruthy();
     expect(getByText(strings('import_private_key.cta_text'))).toBeTruthy();
     expect(
       getByText(strings('import_private_key.or_scan_a_qr_code')),
@@ -118,7 +115,7 @@ describe('ImportPrivateKey', () => {
   });
 
   it('displays Apple/Google auth description when user has social auth connection', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByPlaceholderText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: initialState },
@@ -128,7 +125,9 @@ describe('ImportPrivateKey', () => {
     expect(
       getByText(strings('import_private_key.description_one')),
     ).toBeTruthy();
-    expect(getByText(strings('import_private_key.subtitle'))).toBeTruthy();
+    expect(
+      getByPlaceholderText(strings('import_private_key.subtitle')),
+    ).toBeTruthy();
   });
 
   it('calls dismiss function when close button is pressed', () => {
@@ -156,7 +155,7 @@ describe('ImportPrivateKey', () => {
       { state: srpState },
     );
 
-    const learnMoreText = getByText(strings('import_private_key.here'));
+    const learnMoreText = getByText(strings('import_private_key.learn_more'));
     expect(learnMoreText).toBeOnTheScreen();
     fireEvent.press(learnMoreText);
 
@@ -231,7 +230,7 @@ describe('ImportPrivateKey', () => {
     });
 
     it('successfully imports private key and navigates to success screen', async () => {
-      mockImportAccountFromPrivateKey.mockResolvedValue(undefined);
+      mockImportAccountFromPrivateKey.mockResolvedValue(true);
 
       const { getByTestId } = renderScreen(
         ImportPrivateKey,
@@ -300,7 +299,7 @@ describe('ImportPrivateKey', () => {
 
   describe('onScanSuccess function', () => {
     it('imports private key when scanned data contains private_key', async () => {
-      mockImportAccountFromPrivateKey.mockResolvedValue(undefined);
+      mockImportAccountFromPrivateKey.mockResolvedValue(true);
 
       const { getByText } = renderScreen(
         ImportPrivateKey,

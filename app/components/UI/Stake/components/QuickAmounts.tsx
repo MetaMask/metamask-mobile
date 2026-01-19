@@ -11,7 +11,7 @@ import {
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import type { QuickAmount } from '../../Ramp/Aggregator/types';
+import type { QuickAmount } from '../../Earn/types/lending.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -28,9 +28,18 @@ const createStyles = (colors: Colors) =>
     },
     amount: {
       flex: 1,
+      backgroundColor: colors.background.muted,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      borderRadius: 20,
+    },
+    amountHighlighted: {
+      flex: 1,
       borderWidth: 1,
-      borderColor: colors.border.default,
-      backgroundColor: colors.background.default,
+      borderColor: colors.primary.default,
+      backgroundColor: colors.primary.muted,
       flexDirection: 'row',
       justifyContent: 'center',
       paddingHorizontal: 16,
@@ -47,7 +56,7 @@ interface AmountProps {
 }
 
 const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
-  const { value, label } = amount;
+  const { value, label, isHighlighted } = amount;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -70,12 +79,12 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
         size={ButtonSize.Md}
         width={ButtonWidthTypes.Full}
         label={label}
-        labelColor={TextColor.Default}
+        labelColor={isHighlighted ? TextColor.Primary : TextColor.Default}
         labelTextVariant={TextVariant.BodyMDMedium}
         {...(value === 1 && !isStablecoinLendingEnabled
           ? { startIconName: IconName.Sparkle }
           : {})}
-        style={styles.amount}
+        style={isHighlighted ? styles.amountHighlighted : styles.amount}
       />
     </>
   );

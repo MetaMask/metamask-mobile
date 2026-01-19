@@ -12,7 +12,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
-import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
 import styleSheet from './predict-claim-footer.styles';
 import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
@@ -70,6 +70,7 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
 }
 
 function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
+  const { styles } = useStyles(styleSheet, {});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const position = wonPositions[0];
@@ -91,9 +92,15 @@ function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
         imageSource={{ uri: position.icon }}
         size={AvatarSize.Lg}
       />
-      <Box flexDirection={FlexDirection.Column}>
-        <Text variant={TextVariant.BodyMDMedium}>{position.title}</Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+      <Box flexDirection={FlexDirection.Column} style={styles.textContainer}>
+        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+          {position.title}
+        </Text>
+        <Text
+          variant={TextVariant.BodySMMedium}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+        >
           {amountFormatted} on {position.outcome}
         </Text>
       </Box>

@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import type { Theme } from '../../../util/theme/models';
@@ -64,8 +64,7 @@ export const createStyles = (colors: Theme['colors']) =>
       lineHeight: Device.isMediumDevice() ? 30 : 40,
       textAlign: 'center',
       paddingHorizontal: Device.isMediumDevice() ? 40 : 60,
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
+      fontFamily: 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
       width: '100%',
       marginVertical: 16,

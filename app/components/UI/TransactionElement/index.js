@@ -109,7 +109,6 @@ const createStyles = (colors, typography) =>
     },
     importRowBody: {
       alignItems: 'center',
-      backgroundColor: colors.background.alternative,
       paddingTop: 10,
     },
     listItemDate: {
@@ -163,6 +162,20 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
+const INTENT_STATUS = {
+  SUBMITTED: 'SUBMITTED',
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
+};
+
+const TRANSACTION_STATUS = {
+  SUBMITTED: 'submitted',
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  FAILED: 'failed',
+};
 /**
  * View that renders a transaction item part of transactions list
  */
@@ -364,7 +377,7 @@ class TransactionElement extends PureComponent {
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     if (tx.insertImportTime && accountImportTime) {
       return (
-        <>
+        <View style={styles.row}>
           <TouchableOpacity
             onPress={this.onPressImportWalletTip}
             style={styles.importRowBody}
@@ -375,7 +388,7 @@ class TransactionElement extends PureComponent {
             </Text>
             <ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
           </TouchableOpacity>
-        </>
+        </View>
       );
     }
     return null;
@@ -450,6 +463,24 @@ class TransactionElement extends PureComponent {
     );
   };
 
+  mapIntentStatusToTransactionStatus = (intentStatus) => {
+    if (intentStatus === INTENT_STATUS.PENDING) {
+      return TRANSACTION_STATUS.PENDING;
+    }
+    if (intentStatus === INTENT_STATUS.COMPLETE) {
+      return TRANSACTION_STATUS.CONFIRMED;
+    }
+    if (intentStatus === INTENT_STATUS.FAILED) {
+      return TRANSACTION_STATUS.FAILED;
+    }
+    if (intentStatus === INTENT_STATUS.SUBMITTED) {
+      return TRANSACTION_STATUS.SUBMITTED;
+    }
+
+    // if it is unknown status, default to failed
+    return TRANSACTION_STATUS.FAILED;
+  };
+
   /**
    * Renders an horizontal bar with basic tx information
    *
@@ -457,11 +488,10 @@ class TransactionElement extends PureComponent {
    */
   renderTxElement = (transactionElement) => {
     const {
-      selectedInternalAccount,
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { time, status, isSmartTransaction, chainId, type },
+      tx: { status, isSmartTransaction, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
@@ -469,82 +499,86 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
+    const transactionStatus =
+      bridgeTxHistoryItem?.status && bridgeTxHistoryItem.quote.intent
+        ? this.mapIntentStatusToTransactionStatus(
+            bridgeTxHistoryItem.status.status,
+          )
+        : status;
 
     const renderNormalActions =
-      (status === 'submitted' ||
-        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      (transactionStatus === 'submitted' ||
+        (transactionStatus === 'approved' &&
+          !isQRHardwareAccount &&
+          !isLedgerAccount)) &&
       !isSmartTransaction &&
       !isBridgeTransaction;
     const renderUnsignedQRActions =
-      status === 'approved' && isQRHardwareAccount;
-    const renderLedgerActions = status === 'approved' && isLedgerAccount;
-    const accountImportTime = selectedInternalAccount?.metadata.importTime;
+      transactionStatus === 'approved' && isQRHardwareAccount;
+    const renderLedgerActions =
+      transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
     if (isBridgeTransaction && bridgeTxHistoryItem) {
       title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
     }
 
     return (
-      <>
-        {accountImportTime > time && this.renderImportTime()}
-        <ListItem>
-          <ListItem.Date style={styles.listItemDate}>
-            {this.renderTxTime()}
-          </ListItem.Date>
-          <ListItem.Content style={styles.listItemContent}>
-            <ListItem.Icon>
-              {this.renderTxElementIcon(transactionElement, tx)}
-            </ListItem.Icon>
-            <ListItem.Body>
-              <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-                {title}
-              </ListItem.Title>
-              {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
-              isBridgeTransaction &&
-              !isBridgeComplete ? (
-                <BridgeActivityItemTxSegments
-                  bridgeTxHistoryItem={bridgeTxHistoryItem}
-                  transactionStatus={this.props.tx.status}
-                />
-              ) : (
-                <StatusText
-                  testID={`transaction-status-${i}`}
-                  status={status}
-                  style={styles.listItemStatus}
-                />
-              )}
-            </ListItem.Body>
-            {Boolean(value) && (
-              <ListItem.Amounts>
-                {!isTestNet(chainId) && (
-                  <ListItem.FiatAmount style={styles.listItemFiatAmount}>
-                    {fiatValue}
-                  </ListItem.FiatAmount>
-                )}
-                <ListItem.Amount style={styles.listItemAmount}>
-                  {value}
-                </ListItem.Amount>
-              </ListItem.Amounts>
+      <ListItem>
+        <ListItem.Date style={styles.listItemDate}>
+          {this.renderTxTime()}
+        </ListItem.Date>
+        <ListItem.Content style={styles.listItemContent}>
+          <ListItem.Icon>
+            {this.renderTxElementIcon(transactionElement, tx)}
+          </ListItem.Icon>
+          <ListItem.Body>
+            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+              {title}
+            </ListItem.Title>
+            {!FINAL_NON_CONFIRMED_STATUSES.includes(transactionStatus) &&
+            isBridgeTransaction &&
+            !isBridgeComplete ? (
+              <BridgeActivityItemTxSegments
+                bridgeTxHistoryItem={bridgeTxHistoryItem}
+                transactionStatus={transactionStatus}
+              />
+            ) : (
+              <StatusText
+                testID={`transaction-status-${i}`}
+                status={transactionStatus}
+                style={styles.listItemStatus}
+              />
             )}
-          </ListItem.Content>
-          {renderNormalActions && (
-            <ListItem.Actions>
-              {this.renderSpeedUpButton()}
-              {this.renderCancelButton()}
-            </ListItem.Actions>
+          </ListItem.Body>
+          {Boolean(value) && (
+            <ListItem.Amounts>
+              {!isTestNet(chainId) && (
+                <ListItem.FiatAmount style={styles.listItemFiatAmount}>
+                  {fiatValue}
+                </ListItem.FiatAmount>
+              )}
+              <ListItem.Amount style={styles.listItemAmount}>
+                {value}
+              </ListItem.Amount>
+            </ListItem.Amounts>
           )}
-          {renderUnsignedQRActions && (
-            <ListItem.Actions>
-              {this.renderQRSignButton()}
-              {this.renderCancelUnsignedButton()}
-            </ListItem.Actions>
-          )}
-          {renderLedgerActions && (
-            <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
-          )}
-        </ListItem>
-        {accountImportTime <= time && this.renderImportTime()}
-      </>
+        </ListItem.Content>
+        {renderNormalActions && (
+          <ListItem.Actions>
+            {this.renderSpeedUpButton()}
+            {this.renderCancelButton()}
+          </ListItem.Actions>
+        )}
+        {renderUnsignedQRActions && (
+          <ListItem.Actions>
+            {this.renderQRSignButton()}
+            {this.renderCancelUnsignedButton()}
+          </ListItem.Actions>
+        )}
+        {renderLedgerActions && (
+          <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
+        )}
+      </ListItem>
     );
   };
 
@@ -693,7 +727,7 @@ class TransactionElement extends PureComponent {
   };
 
   render() {
-    const { tx } = this.props;
+    const { tx, selectedInternalAccount } = this.props;
     const {
       detailsModalVisible,
       importModalVisible,
@@ -705,8 +739,13 @@ class TransactionElement extends PureComponent {
     const styles = createStyles(colors, typography);
 
     if (!transactionElement || !transactionDetails) return null;
+
+    const accountImportTime = selectedInternalAccount?.metadata.importTime;
+    const { time } = tx;
+
     return (
       <>
+        {accountImportTime > time && this.renderImportTime()}
         <TouchableHighlight
           style={
             this.props.showBottomBorder ? styles.rowWithBorder : styles.row
@@ -717,6 +756,7 @@ class TransactionElement extends PureComponent {
         >
           {this.renderTxElement(transactionElement)}
         </TouchableHighlight>
+        {accountImportTime <= time && this.renderImportTime()}
         {detailsModalVisible && (
           <Modal
             isVisible={detailsModalVisible}

@@ -1,19 +1,32 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
-  Text,
+  Text as RNText,
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
@@ -27,7 +40,7 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
-import WarningMessage from '../confirmations/legacy/SendFlow/WarningMessage';
+import WarningMessage from '../confirmations/legacy/components/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
@@ -51,9 +64,40 @@ import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
 import { areAddressesEqual } from '../../../util/address';
+// Perps Discovery Banner imports
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
+import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
+import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
+import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
+
+// Inline header styles
+const inlineHeaderStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+    gap: 16,
+  },
+  leftButton: {
+    marginLeft: 16,
+  },
+  titleWrapper: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  rightPlaceholder: {
+    marginRight: 16,
+    width: 24,
+  },
+});
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
+    wrapper: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
     container: {
       padding: 16,
       backgroundColor: colors.background.default,
@@ -119,10 +163,13 @@ const AssetDetails = (props: InnerProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { toastRef } = useContext(ToastContext);
   const providerConfig = useSelector(selectProviderConfig);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
+
+  // Perps Discovery Banner
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const selectedAccountAddress = selectedAccountAddressEvm?.address;
   const chainId = networkId;
@@ -155,6 +202,25 @@ const AssetDetails = (props: InnerProps) => {
 
   const { symbol, decimals, aggregators = [] } = token;
 
+  // Perps Discovery Banner - check if perps market exists for this asset
+  const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
+    isPerpsEnabled ? symbol : null,
+  );
+
+  // Handler for perps discovery banner press
+  // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
+  const handlePerpsDiscoveryPress = useCallback(() => {
+    if (marketData) {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: marketData,
+          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+        },
+      });
+    }
+  }, [marketData, navigation]);
+
   const getNetworkName = useCallback(() => {
     let name = '';
     if (isAllNetworks) {
@@ -169,32 +235,21 @@ const AssetDetails = (props: InnerProps) => {
     return name;
   }, [isAllNetworks, tokenNetworkConfig, providerConfig]);
 
-  useEffect(() => {
-    const networkName = getNetworkName();
-    navigation.setOptions(
-      getNetworkNavbarOptions(
-        'Token Details',
-        false,
-        navigation,
-        colors,
-        undefined,
-        true,
-        undefined,
-        networkName,
-      ),
-    );
-  }, [navigation, colors, getNetworkName]);
+  const insets = useSafeAreaInsets();
+  const networkName = getNetworkName();
 
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
-    dispatch(
-      showAlert({
-        isVisible: true,
-        autodismiss: 1500,
-        content: 'clipboard-alert',
-        data: { msg: strings('detected_tokens.address_copied_to_clipboard') },
-      }),
-    );
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('detected_tokens.address_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
+    });
   };
 
   const triggerHideToken = () => {
@@ -243,10 +298,10 @@ const AssetDetails = (props: InnerProps) => {
       style={styles.warningBanner}
       warningMessage={
         <>
-          <Text style={styles.warningBannerDesc}>
+          <RNText style={styles.warningBannerDesc}>
             {strings('asset_overview.were_unable')} {symbol}{' '}
             {strings('asset_overview.balance')}{' '}
-            <Text
+            <RNText
               suppressHighlighting
               onPress={() => {
                 navigation.navigate('Webview', {
@@ -260,26 +315,26 @@ const AssetDetails = (props: InnerProps) => {
               style={styles.warningBannerLink}
             >
               {strings('asset_overview.troubleshooting_missing')}{' '}
-            </Text>
+            </RNText>
             {strings('asset_overview.for_help')}
-          </Text>
+          </RNText>
         </>
       }
     />
   );
 
   const renderSectionTitle = (title: string, isFirst?: boolean) => (
-    <Text
+    <RNText
       style={[styles.sectionTitleLabel, isFirst && styles.firstSectionTitle]}
     >
       {title}
-    </Text>
+    </RNText>
   );
 
   const renderSectionDescription = (description: string) => (
-    <Text style={[styles.descriptionLabel, styles.descriptionContainer]}>
+    <RNText style={[styles.descriptionLabel, styles.descriptionContainer]}>
       {description}
-    </Text>
+    </RNText>
   );
 
   const renderTokenSymbol = () => (
@@ -289,7 +344,7 @@ const AssetDetails = (props: InnerProps) => {
         containerStyle={styles.tokenImage}
         iconStyle={styles.tokenImage}
       />
-      <Text style={styles.descriptionLabel}>{symbol}</Text>
+      <RNText style={styles.descriptionLabel}>{symbol}</RNText>
     </View>
   );
 
@@ -338,7 +393,7 @@ const AssetDetails = (props: InnerProps) => {
 
     return (
       <View style={styles.descriptionContainer}>
-        <Text style={styles.descriptionLabel}>{balanceDisplay}</Text>
+        <RNText style={styles.descriptionLabel}>{balanceDisplay}</RNText>
       </View>
     );
   };
@@ -349,9 +404,9 @@ const AssetDetails = (props: InnerProps) => {
       hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
       style={styles.hideButton}
     >
-      <Text style={styles.hideButtonLabel}>
+      <RNText style={styles.hideButtonLabel}>
         {strings('asset_details.hide_cta')}
-      </Text>
+      </RNText>
     </TouchableOpacity>
   );
 
@@ -371,25 +426,68 @@ const AssetDetails = (props: InnerProps) => {
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {renderSectionTitle(strings('asset_details.token'), true)}
-      {renderTokenSymbol()}
-      {renderSectionTitle(strings('asset_details.amount'))}
-      {renderTokenBalance()}
-      {renderSectionTitle(strings('asset_details.address'))}
-      {renderTokenAddressLink()}
-      {renderSectionTitle(strings('asset_details.decimal'))}
-      {renderSectionDescription(String(decimals))}
-      {renderSectionTitle(strings('asset_details.network'))}
-      {renderSectionDescription(getNetworkName())}
-      {aggregators.length > 0 && (
-        <>
-          {renderSectionTitle(strings('asset_details.lists'))}
-          {renderSectionDescription(aggregators.join(', '))}
-        </>
-      )}
-      {renderHideButton()}
-    </ScrollView>
+    <View style={styles.wrapper}>
+      {/* Inline header for instant rendering */}
+      <View
+        style={[
+          inlineHeaderStyles.container,
+          { marginTop: insets.top, backgroundColor: colors.background.default },
+        ]}
+      >
+        <ButtonIcon
+          style={inlineHeaderStyles.leftButton}
+          onPress={() => navigation.goBack()}
+          size={ButtonIconSize.Lg}
+          iconName={IconName.ArrowLeft}
+        />
+        <View style={inlineHeaderStyles.titleWrapper}>
+          <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
+            {strings('asset_details.options.token_details')}
+          </Text>
+          {networkName ? (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              numberOfLines={1}
+            >
+              {networkName}
+            </Text>
+          ) : null}
+        </View>
+        <View style={inlineHeaderStyles.rightPlaceholder} />
+      </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        {renderSectionTitle(strings('asset_details.token'), true)}
+        {renderTokenSymbol()}
+        {renderSectionTitle(strings('asset_details.amount'))}
+        {renderTokenBalance()}
+        {/* Perps Discovery Banner - show when perps market exists for this asset */}
+        {isPerpsEnabled && hasPerpsMarket && marketData && (
+          <>
+            {renderSectionTitle(strings('asset_details.perps_trading'))}
+            <PerpsDiscoveryBanner
+              symbol={marketData.symbol}
+              maxLeverage={marketData.maxLeverage}
+              onPress={handlePerpsDiscoveryPress}
+              testID="perps-discovery-banner"
+            />
+          </>
+        )}
+        {renderSectionTitle(strings('asset_details.address'))}
+        {renderTokenAddressLink()}
+        {renderSectionTitle(strings('asset_details.decimal'))}
+        {renderSectionDescription(String(decimals))}
+        {renderSectionTitle(strings('asset_details.network'))}
+        {renderSectionDescription(networkName)}
+        {aggregators.length > 0 && (
+          <>
+            {renderSectionTitle(strings('asset_details.lists'))}
+            {renderSectionDescription(aggregators.join(', '))}
+          </>
+        )}
+        {renderHideButton()}
+      </ScrollView>
+    </View>
   );
 };
 

@@ -39,8 +39,10 @@ import {
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
-import { stripSingleLeadingZero } from '../util';
+import { isE2ETest, stripSingleLeadingZero } from '../util';
 
+// Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
+const SEPOLIA_CHAIN_ID = '0xaa36a7';
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
 
@@ -155,7 +157,7 @@ export class Delegation7702PublishHook {
     }
 
     const delegationEnvironment = getDeleGatorEnvironment(
-      parseInt(transactionMeta.chainId, 16),
+      parseInt(isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
     const includeTransfer =
@@ -191,6 +193,9 @@ export class Delegation7702PublishHook {
       chainId,
       data: transactionData,
       to: delegationManagerAddress,
+      metadata: {
+        txType: transactionMeta.type,
+      },
     };
 
     if (!delegationAddress) {
@@ -261,6 +266,7 @@ export class Delegation7702PublishHook {
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
   ): Promise<Delegation[][]> {
+    const { chainId } = transactionMeta;
     const unsignedDelegation = this.#buildUnsignedDelegation(
       delegationEnvironment,
       transactionMeta,
@@ -273,7 +279,7 @@ export class Delegation7702PublishHook {
     const delegationSignature = (await this.#messenger.call(
       'DelegationController:signDelegation',
       {
-        chainId: transactionMeta.chainId,
+        chainId: isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId,
         delegation: unsignedDelegation,
       },
     )) as Hex;

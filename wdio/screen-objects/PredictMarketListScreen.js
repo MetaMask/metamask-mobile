@@ -2,7 +2,7 @@ import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import { PredictMarketListSelectorsIDs, getPredictMarketListSelector } from '../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketListSelectorsIDs, getPredictMarketListSelector, PredictBalanceSelectorsIDs } from '../../app/components/UI/Predict/Predict.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
 class PredictMarketListScreen {
@@ -83,6 +83,65 @@ class PredictMarketListScreen {
     } else {
       const tabElement = await AppwrightSelectors.getElementByText(this._device, categoryLabels[category]);
       await AppwrightGestures.tap(tabElement);
+    }
+  }
+
+  async tapAddFundsButton() {
+    if (!this._device) {
+      const addFundsButton = await Selectors.getXpathElementByText('Add funds');
+      await Gestures.waitAndTap(addFundsButton);
+    } else {
+      const addFundsButton = await AppwrightSelectors.getElementByCatchAll(
+        this._device,
+        'Add funds',
+      );
+      await AppwrightGestures.tap(addFundsButton);
+    }
+  }
+
+  get balanceCard() {
+    if (!this._device) {
+      return Selectors.getElementByPlatform(PredictBalanceSelectorsIDs.BALANCE_CARD);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, PredictBalanceSelectorsIDs.BALANCE_CARD);
+    }
+  }
+
+  async isBalanceCardDisplayed() {
+    if (!this._device) {
+      const balanceCard = await this.balanceCard;
+      await balanceCard.waitForDisplayed();
+    } else {
+      const balanceCard = await this.balanceCard;
+      await appwrightExpect(balanceCard).toBeVisible();
+    }
+  }
+
+  async getAvailableBalanceText() {
+    if (!this._device) {
+      const balanceText = await Selectors.getXpathElementByText('Available balance');
+      await balanceText.waitForDisplayed();
+      return balanceText;
+    } else {
+      const balanceText = await AppwrightSelectors.getElementByCatchAll(
+        this._device,
+        'Available balance',
+      );
+      await appwrightExpect(balanceText).toBeVisible();
+      return balanceText;
+    }
+  }
+
+  async isAvailableBalanceDisplayed() {
+    if (!this._device) {
+      const balanceText = await Selectors.getXpathElementByText('Available balance');
+      await balanceText.waitForDisplayed();
+    } else {
+      const balanceText = await AppwrightSelectors.getElementByCatchAll(
+        this._device,
+        'Available balance',
+      );
+      await appwrightExpect(balanceText).toBeVisible();
     }
   }
 }

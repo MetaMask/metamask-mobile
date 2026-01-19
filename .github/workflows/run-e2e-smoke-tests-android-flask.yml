@@ -3,6 +3,11 @@ name: Android Flask E2E Smoke Tests
 on:
   workflow_call:
     inputs:
+      selected_tags:
+        description: 'JSON array of selected tags from Smart E2E selection'
+        required: false
+        type: string
+        default: '["ALL"]'
       changed_files:
         description: 'Changed files'
         required: false
@@ -15,6 +20,7 @@ permissions:
 
 jobs:
   repack-android-flask-apps:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')
     name: 'Repack Android Flask Apps'
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     permissions:
@@ -42,7 +48,7 @@ jobs:
         run: yarn setup:github-ci --no-build-ios
 
       - name: Configure Keystore
-        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+        uses: MetaMask/github-tools/.github/actions/configure-keystore@v1
         with:
           aws-role-to-assume: ${{ secrets.METAMASK_MOBILE_BUILDER_SIGNER_QA }}
           aws-region: us-east-2
@@ -81,7 +87,6 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -130,6 +135,7 @@ jobs:
           retention-days: 1
 
   flask-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')
     needs: [repack-android-flask-apps]
     strategy:
       matrix:
@@ -149,7 +155,7 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && (contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')) }}
     needs:
       - flask-android-smoke
     steps:

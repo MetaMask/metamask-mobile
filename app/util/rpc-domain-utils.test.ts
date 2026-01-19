@@ -1,4 +1,4 @@
-import { SafeChain } from '../components/UI/NetworkModal';
+import { SafeChain } from '../components/hooks/useSafeChains';
 import StorageWrapper from '../store/storage-wrapper';
 import Engine from '../core/Engine';
 import {
@@ -52,7 +52,7 @@ describe('rpc-domain-utils', () => {
         // Setup
         const mockChains: SafeChain[] = [
           {
-            chainId: '1',
+            chainId: 1,
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
             rpc: ['https://mainnet.infura.io'],
@@ -104,7 +104,7 @@ describe('rpc-domain-utils', () => {
         setupTestEnvironment(); // Reset state
         const mockChains: SafeChain[] = [
           {
-            chainId: '1',
+            chainId: 1,
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
             rpc: [
@@ -131,7 +131,7 @@ describe('rpc-domain-utils', () => {
         setupTestEnvironment(); // Reset state
         const mockChains: SafeChain[] = [
           {
-            chainId: '1',
+            chainId: 1,
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
             rpc: ['invalid-url', 'https://mainnet.infura.io'],
@@ -183,7 +183,7 @@ describe('rpc-domain-utils', () => {
         setupTestEnvironment();
         const mockChains: SafeChain[] = [
           {
-            chainId: '1',
+            chainId: 1,
             name: 'Test Chain',
             nativeCurrency: { symbol: 'TEST' },
             rpc: ['https://known-domain.com/api'],
@@ -221,7 +221,7 @@ describe('rpc-domain-utils', () => {
         setupTestEnvironment();
         const mockChains: SafeChain[] = [
           {
-            chainId: '1',
+            chainId: 1,
             name: 'Test Chain',
             nativeCurrency: { symbol: 'TEST' },
             rpc: ['https://Known-Domain.com/api'],
@@ -246,7 +246,7 @@ describe('rpc-domain-utils', () => {
         setupTestEnvironment();
         const mockChains: SafeChain[] = [
           {
-            chainId: '1',
+            chainId: 1,
             name: 'Test Chain',
             nativeCurrency: { symbol: 'TEST' },
             rpc: ['https://known-domain.com/api'],
@@ -309,7 +309,7 @@ describe('rpc-domain-utils', () => {
         setupTestEnvironment();
         const mockChains: SafeChain[] = [
           {
-            chainId: '1',
+            chainId: 1,
             name: 'Test Chain',
             nativeCurrency: { symbol: 'TEST' },
             rpc: ['https://known-domain.com/api'],

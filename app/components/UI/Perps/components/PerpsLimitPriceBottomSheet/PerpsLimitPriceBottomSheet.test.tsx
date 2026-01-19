@@ -107,11 +107,41 @@ jest.mock('bignumber.js', () => ({
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsTopOfBook: jest.fn(() => ({
+    bestBid: '2995',
+    bestAsk: '3005',
+  })),
 }));
 
 // Mock usePerpsConnection hook
 jest.mock('../../hooks/index', () => ({
   usePerpsConnection: jest.fn(),
+}));
+
+// Mock usePerpsEventTracking hook
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+}));
+
+// Mock eventNames constants
+jest.mock('../../constants/eventNames', () => ({
+  PerpsEventProperties: {
+    INTERACTION_TYPE: 'interaction_type',
+    SETTING_TYPE: 'setting_type',
+    INPUT_METHOD: 'input_method',
+    ASSET: 'asset',
+    DIRECTION: 'direction',
+  },
+  PerpsEventValues: {
+    INTERACTION_TYPE: { SETTING_CHANGED: 'setting_changed' },
+    INPUT_METHOD: {
+      PRESET: 'preset',
+      PERCENTAGE_BUTTON: 'percentage_button',
+      KEYBOARD: 'keyboard',
+    },
+  },
 }));
 
 // Mock Keypad component from Base
@@ -329,9 +359,11 @@ describe('PerpsLimitPriceBottomSheet', () => {
     jest.clearAllMocks();
     mockUseTheme.mockReturnValue(mockTheme);
 
-    // Mock usePerpsLivePrices hook to return empty by default
-    const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+    // Mock stream hooks
+    const { usePerpsLivePrices, usePerpsTopOfBook } =
+      jest.requireMock('../../hooks/stream');
     usePerpsLivePrices.mockReturnValue({});
+    usePerpsTopOfBook.mockReturnValue({ bestBid: '2995', bestAsk: '3005' });
 
     // Mock usePerpsConnection hook
     const { usePerpsConnection } = jest.requireMock('../../hooks/index');
@@ -451,43 +483,83 @@ describe('PerpsLimitPriceBottomSheet', () => {
   });
 
   describe('Quick Action Buttons', () => {
-    it('displays direction-specific preset buttons for long orders', () => {
-      // Act
+    it('displays Mid, Bid, and percentage preset buttons for long orders', () => {
       render(<PerpsLimitPriceBottomSheet {...defaultProps} direction="long" />);
 
-      // Assert - Long orders show negative percentages (buy below market)
+      expect(
+        screen.getByText('perps.order.limit_price_modal.mid_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.order.limit_price_modal.bid_price'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('-1%')).toBeOnTheScreen();
       expect(screen.getByText('-2%')).toBeOnTheScreen();
-      expect(screen.getByText('-5%')).toBeOnTheScreen();
-      expect(screen.getByText('-10%')).toBeOnTheScreen();
     });
 
-    it('displays direction-specific preset buttons for short orders', () => {
-      // Act
+    it('displays Mid, Ask, and percentage preset buttons for short orders', () => {
       render(
         <PerpsLimitPriceBottomSheet {...defaultProps} direction="short" />,
       );
 
-      // Assert - Short orders show positive percentages (sell above market)
+      expect(
+        screen.getByText('perps.order.limit_price_modal.mid_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.order.limit_price_modal.ask_price'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('+1%')).toBeOnTheScreen();
       expect(screen.getByText('+2%')).toBeOnTheScreen();
-      expect(screen.getByText('+5%')).toBeOnTheScreen();
-      expect(screen.getByText('+10%')).toBeOnTheScreen();
     });
 
-    it('calculates price based on current market price for long orders', () => {
-      // Act
+    it('sets price when Mid button is pressed', () => {
+      render(<PerpsLimitPriceBottomSheet {...defaultProps} direction="long" />);
+
+      const midButton = screen.getByText(
+        'perps.order.limit_price_modal.mid_price',
+      );
+      fireEvent.press(midButton);
+
+      // Verify limit price was updated to current price (3000)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
+    });
+
+    it('sets price when Bid button is pressed for long orders', () => {
+      render(<PerpsLimitPriceBottomSheet {...defaultProps} direction="long" />);
+
+      const bidButton = screen.getByText(
+        'perps.order.limit_price_modal.bid_price',
+      );
+      fireEvent.press(bidButton);
+
+      // Verify limit price was updated to bid price (2995 from mock)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2995');
+    });
+
+    it('sets price when Ask button is pressed for short orders', () => {
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} direction="short" />,
+      );
+
+      const askButton = screen.getByText(
+        'perps.order.limit_price_modal.ask_price',
+      );
+      fireEvent.press(askButton);
+
+      // Verify limit price was updated to ask price (3005 from mock)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3005');
+    });
+
+    it('sets price when percentage button is pressed for long orders', () => {
       render(<PerpsLimitPriceBottomSheet {...defaultProps} direction="long" />);
 
       const onePercentButton = screen.getByText('-1%');
       fireEvent.press(onePercentButton);
 
-      // Assert - Button exists and is pressable
-      expect(onePercentButton).toBeOnTheScreen();
+      // Verify limit price was updated (BigNumber mock returns base price)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
     });
 
-    it('calculates price based on current market price for short orders', () => {
-      // Act
+    it('sets price when percentage button is pressed for short orders', () => {
       render(
         <PerpsLimitPriceBottomSheet {...defaultProps} direction="short" />,
       );
@@ -495,8 +567,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       const onePercentButton = screen.getByText('+1%');
       fireEvent.press(onePercentButton);
 
-      // Assert - Button exists and is pressable
-      expect(onePercentButton).toBeOnTheScreen();
+      // Verify limit price was updated (BigNumber mock returns base price)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
     });
   });
 

@@ -176,15 +176,12 @@ describe('useGasFeeEstimateLevelOptions', () => {
 
     expect(result.current.length).toEqual(3);
 
-    // Check low option
     const lowOption = result.current.find((option) => option.key === 'low');
     expect(lowOption).toBeDefined();
     expect(lowOption?.isSelected).toEqual(false);
     expect(lowOption?.value).toEqual('5');
     expect(lowOption?.valueInFiat).toEqual('$5');
-    expect(lowOption?.emoji).toEqual('🐢');
 
-    // Check medium option
     const mediumOption = result.current.find(
       (option) => option.key === 'medium',
     );
@@ -192,15 +189,12 @@ describe('useGasFeeEstimateLevelOptions', () => {
     expect(mediumOption?.isSelected).toEqual(false);
     expect(mediumOption?.value).toEqual('10');
     expect(mediumOption?.valueInFiat).toEqual('$10');
-    expect(mediumOption?.emoji).toEqual('🦊');
 
-    // Check high option
     const highOption = result.current.find((option) => option.key === 'high');
     expect(highOption).toBeDefined();
     expect(highOption?.isSelected).toEqual(true);
     expect(highOption?.value).toEqual('15');
     expect(highOption?.valueInFiat).toEqual('$15');
-    expect(highOption?.emoji).toEqual('🦍');
 
     expect(mockCalculateGasEstimate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -506,5 +500,87 @@ describe('useGasFeeEstimateLevelOptions', () => {
       userFeeLevel: 'high',
     });
     expect(mockHandleCloseModals).toHaveBeenCalled();
+  });
+
+  it('excludes high option when medium and high have identical fees for FeeMarket estimates', () => {
+    const mockHandleCloseModals = jest.fn();
+
+    const transactionWithFeeMarketEstimates = {
+      ...simpleSendTransaction,
+      id: 'test-id',
+      userFeeLevel: 'medium',
+      txParams: {
+        ...simpleSendTransaction.txParams,
+        type: TransactionEnvelopeType.feeMarket,
+      },
+      gasFeeEstimates: {
+        type: GasFeeEstimateType.FeeMarket,
+        low: {
+          maxFeePerGas: '0x1',
+          maxPriorityFeePerGas: '0x1',
+        },
+        medium: {
+          maxFeePerGas: '0x2',
+          maxPriorityFeePerGas: '0x2',
+        },
+        high: {
+          maxFeePerGas: '0x2',
+          maxPriorityFeePerGas: '0x2',
+        },
+      },
+    } as unknown as TransactionMeta;
+
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      transactionWithFeeMarketEstimates,
+    );
+
+    mockUseGasFeeEstimates.mockReturnValue({
+      gasFeeEstimates: {
+        low: {
+          minWaitTimeEstimate: 60000,
+          maxWaitTimeEstimate: 120000,
+          suggestedMaxPriorityFeePerGas: '1',
+        },
+        medium: {
+          minWaitTimeEstimate: 30000,
+          maxWaitTimeEstimate: 60000,
+          suggestedMaxPriorityFeePerGas: '2',
+        },
+        high: {
+          minWaitTimeEstimate: 15000,
+          maxWaitTimeEstimate: 30000,
+          suggestedMaxPriorityFeePerGas: '2',
+        },
+      } as unknown as GasFeeEstimates,
+    });
+
+    mockCalculateGasEstimate.mockImplementation(({ feePerGas }) => {
+      const value = feePerGas === '0x1' ? '5' : '10';
+      const valueInFiat = feePerGas === '0x1' ? '$5' : '$10';
+
+      return {
+        currentCurrencyFee: valueInFiat,
+        preciseNativeCurrencyFee: value,
+      };
+    });
+
+    const { result } = renderHook(() =>
+      useGasFeeEstimateLevelOptions({
+        handleCloseModals: mockHandleCloseModals,
+      }),
+    );
+
+    expect(result.current.length).toEqual(2);
+
+    const lowOption = result.current.find((option) => option.key === 'low');
+    expect(lowOption).toBeDefined();
+
+    const mediumOption = result.current.find(
+      (option) => option.key === 'medium',
+    );
+    expect(mediumOption).toBeDefined();
+
+    const highOption = result.current.find((option) => option.key === 'high');
+    expect(highOption).toBeUndefined();
   });
 });

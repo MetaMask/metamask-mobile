@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
@@ -20,11 +20,34 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
-import { selectIsBridgeEnabledSourceFactory } from '../../../../../core/redux/slices/bridge';
+import {
+  selectIsBridgeEnabledSourceFactory,
+  setSourceToken,
+  setDestToken,
+  setIsDestTokenManuallySet,
+} from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
-import { getNativeSourceToken } from '../../utils/tokenUtils';
+import {
+  getNativeSourceToken,
+  getDefaultDestToken,
+} from '../../utils/tokenUtils';
+import { areAddressesEqual } from '../../../../../util/address';
+import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+
+/**
+ * When navigating to the Asset view from trending tokens list, we add a property
+ * to indicate the user's intent is to BUY the token (not sell).
+ *
+ * This is used to determine whether the token should be pre-filled as the
+ * destination token (buy) rather than source token (sell) in the swap flow.
+ */
+export const isAssetFromTrending = (asset: unknown) =>
+  typeof asset === 'object' &&
+  asset !== null &&
+  'isFromTrending' in asset &&
+  asset.isFromTrending === true;
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -37,18 +60,22 @@ export enum SwapBridgeNavigationLocation {
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
  * @param sourceToken token object containing address and chainId we want to set as source.
+ * @param destToken optional token object to set as destination. If not provided, or matches source, defaults to computed destination token.
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
-  sourceToken: tokenBase,
+  sourceToken: sourceTokenBase,
+  destToken: destTokenBase,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
   sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const getIsBridgeEnabledSource = useSelector(
     selectIsBridgeEnabledSourceFactory,
@@ -57,12 +84,21 @@ export const useSwapBridgeNavigation = ({
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
-    (bridgeViewMode: BridgeViewMode) => {
+    (
+      bridgeViewMode: BridgeViewMode,
+      sourceTokenOverride?: BridgeToken,
+      destTokenOverride?: BridgeToken,
+    ) => {
+      // Use tokenOverride if provided, otherwise fall back to tokenBase
+      const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
+      // Use destTokenOverride if provided, otherwise fall back to destTokenBase
+      const effectiveDestTokenBase = destTokenOverride ?? destTokenBase;
+
       // Determine effective chain ID - use home page filter network when no sourceToken provided
-      const getEffectiveChainId = (): CaipChainId | Hex => {
-        if (tokenBase) {
+      const getEffectiveSourceChainId = (): CaipChainId | Hex => {
+        if (effectiveSourceTokenBase) {
           // If specific token provided, use its chainId
-          return tokenBase.chainId;
+          return effectiveSourceTokenBase.chainId;
         }
 
         // No token provided - check home page filter network
@@ -78,12 +114,14 @@ export const useSwapBridgeNavigation = ({
         return homePageFilterNetwork.caipChainId as CaipChainId;
       };
 
-      const effectiveChainId = getEffectiveChainId();
+      const effectiveSourceChainId = getEffectiveSourceChainId();
 
       let bridgeSourceNativeAsset;
       try {
-        if (!tokenBase) {
-          bridgeSourceNativeAsset = getNativeAssetForChainId(effectiveChainId);
+        if (!effectiveSourceTokenBase) {
+          bridgeSourceNativeAsset = getNativeAssetForChainId(
+            effectiveSourceChainId,
+          );
         }
       } catch (error) {
         // Suppress error as it's expected when the chain is not supported
@@ -92,20 +130,24 @@ export const useSwapBridgeNavigation = ({
       const bridgeNativeSourceTokenFormatted: BridgeToken | undefined =
         bridgeSourceNativeAsset
           ? {
-              address: bridgeSourceNativeAsset.address,
+              address: isNonEvmChainId(effectiveSourceChainId)
+                ? bridgeSourceNativeAsset.assetId
+                : bridgeSourceNativeAsset.address,
               name: bridgeSourceNativeAsset.name ?? '',
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',
               decimals: bridgeSourceNativeAsset.decimals,
-              chainId: isNonEvmChainId(effectiveChainId)
-                ? effectiveChainId
-                : formatChainIdToHex(effectiveChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
+              chainId: isNonEvmChainId(effectiveSourceChainId)
+                ? effectiveSourceChainId
+                : formatChainIdToHex(effectiveSourceChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
             }
           : undefined;
 
       const candidateSourceToken =
-        tokenBase ?? bridgeNativeSourceTokenFormatted;
-      const isBridgeEnabledSource = getIsBridgeEnabledSource(effectiveChainId);
+        effectiveSourceTokenBase ?? bridgeNativeSourceTokenFormatted;
+      const isBridgeEnabledSource = getIsBridgeEnabledSource(
+        effectiveSourceChainId,
+      );
       let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
@@ -113,6 +155,40 @@ export const useSwapBridgeNavigation = ({
       if (!sourceToken) {
         // fallback to ETH on mainnet
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
+      }
+
+      // Reset the manual dest token flag on navigation so auto-update works correctly
+      // This ensures if user previously manually set dest, then closed and reopened the app,
+      // changing source token will still auto-update the dest token
+      dispatch(setIsDestTokenManuallySet(false));
+
+      // Pre-populate Redux state before navigation to prevent empty button flash
+      dispatch(setSourceToken(sourceToken));
+
+      // Use provided destToken if available and different from sourceToken, otherwise compute default
+      if (
+        effectiveDestTokenBase &&
+        !areAddressesEqual(sourceToken.address, effectiveDestTokenBase.address)
+      ) {
+        dispatch(setDestToken(effectiveDestTokenBase));
+      } else {
+        // Either no destToken provided, or it's the same as sourceToken - use default logic
+        const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
+        // Make sure source and dest tokens are different
+        if (
+          defaultDestToken &&
+          !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+        ) {
+          dispatch(setDestToken(defaultDestToken));
+        } else {
+          // Fall back to native token if default dest is same as source
+          const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
+          if (
+            !areAddressesEqual(sourceToken.address, nativeDestToken.address)
+          ) {
+            dispatch(setDestToken(nativeDestToken));
+          }
+        }
       }
 
       const params: BridgeRouteParams = {
@@ -139,14 +215,21 @@ export const useSwapBridgeNavigation = ({
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
       });
+      // Check if user is in an active trending session for analytics
+      const isFromTrending =
+        TrendingFeedSessionManager.getInstance().isFromTrending;
+
+      const swapEventProperties = {
+        location,
+        chain_id_source: getDecimalChainId(sourceToken.chainId),
+        token_symbol_source: sourceToken?.symbol,
+        token_address_source: sourceToken?.address,
+        from_trending: isFromTrending,
+      };
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-          .addProperties({
-            location,
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            token_symbol_source: sourceToken?.symbol,
-            token_address_source: sourceToken?.address,
-          })
+          .addProperties(swapEventProperties)
           .build(),
       );
       trace({
@@ -156,7 +239,9 @@ export const useSwapBridgeNavigation = ({
     },
     [
       navigation,
-      tokenBase,
+      dispatch,
+      sourceTokenBase,
+      destTokenBase,
       sourcePage,
       trackEvent,
       createEventBuilder,
@@ -167,9 +252,16 @@ export const useSwapBridgeNavigation = ({
   );
   const { networkModal } = useAddNetwork();
 
-  const goToSwaps = useCallback(() => {
-    goToNativeBridge(BridgeViewMode.Unified);
-  }, [goToNativeBridge]);
+  const goToSwaps = useCallback(
+    (tokenOverride?: BridgeToken, destTokenOverride?: BridgeToken) => {
+      goToNativeBridge(
+        BridgeViewMode.Unified,
+        tokenOverride,
+        destTokenOverride,
+      );
+    },
+    [goToNativeBridge],
+  );
 
   return {
     goToSwaps,

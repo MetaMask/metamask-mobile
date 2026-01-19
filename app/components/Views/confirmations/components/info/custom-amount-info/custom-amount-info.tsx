@@ -4,6 +4,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
@@ -37,7 +38,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -52,6 +52,9 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -59,10 +62,22 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
+  /**
+   * Optional render function that overrides the default content.
+   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
+   */
+  overrideContent?: (amountHuman: string) => ReactNode;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay, hasMax, preferredToken }) => {
+  ({
+    children,
+    currency,
+    disablePay,
+    hasMax,
+    overrideContent,
+    preferredToken,
+  }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
       disable: disablePay,
@@ -70,6 +85,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
 
+    const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
@@ -116,11 +132,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
+          {overrideContent ? (
+            overrideContent(amountHuman)
+          ) : (
+            <>
+              {disablePay !== true && (
+                <PayTokenAmount
+                  amountHuman={amountHuman}
+                  disabled={!hasTokens}
+                />
+              )}
+              {children}
+              {disablePay !== true && hasTokens && <PayWithRow />}
+            </>
           )}
-          {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -129,6 +154,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <BridgeFeeRow />
               <BridgeTimeRow />
               <TotalRow />
+              <PercentageRow />
             </Box>
           )}
           {isKeyboardVisible && hasTokens && (
@@ -139,7 +165,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax}
+              hasMax={hasMax && !isNativePayToken}
             />
           )}
           {!hasTokens && <BuySection />}
@@ -241,6 +267,7 @@ function ConfirmButton({
       width={ButtonWidthTypes.Full}
       disabled={disabled}
       onPress={onConfirm}
+      testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     />
   );
 }
@@ -277,7 +304,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirmation_button');
+    return strings('earn.musd_conversion.convert');
   }
 
   return strings('confirm.deposit_edit_amount_done');

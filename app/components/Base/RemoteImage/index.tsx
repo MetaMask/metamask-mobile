@@ -36,35 +36,40 @@ interface RemoteImageProps {
   contentFit?: ImageContentFit;
 }
 
-const createStyles = () =>
-  StyleSheet.create({
-    imageStyle: {
-      width: '100%',
-      height: '100%',
-      borderRadius: 8,
-    },
-    detailedImageStyle: {
-      borderRadius: 8,
-    },
-  });
+const styles = StyleSheet.create({
+  imageStyle: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  detailedImageStyle: {
+    borderRadius: 8,
+  },
+});
 
 const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const [error, setError] = useState<string | undefined>(undefined);
   const source = resolveAssetSource(props.source);
   const ipfsGateway = useIpfsGateway();
-  const styles = createStyles();
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>(false);
 
   const uri =
     resolvedIpfsUrl ||
     (source?.uri && !source.uri.startsWith('ipfs') ? source.uri : '');
 
-  const onError = (event: ImageErrorEventData) => setError(event.error);
+  const onError = (event: ImageErrorEventData) => {
+    setError(event.error);
+    props.onError?.();
+  };
 
   const [dimensions, setDimensions] = useState<{
     width: number;
     height: number;
   } | null>(null);
+
+  useEffect(() => {
+    setError(undefined);
+  }, [source?.uri]);
 
   useEffect(() => {
     async function resolveIpfsUrl() {
@@ -79,7 +84,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
           false,
         );
         setResolvedIpfsUrl(ipfsUrl || false);
-      } catch (err) {
+      } catch {
         Logger.log(`Failed to resolve IPFS URL for ${source.uri}`);
         setResolvedIpfsUrl(false);
       }
@@ -117,7 +122,17 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
       if (width && height) {
         const { width: calculatedWidth, height: calculatedHeight } =
           calculateImageDimensions(width, height);
-        setDimensions({ width: calculatedWidth, height: calculatedHeight });
+
+        // Only update if dimensions actually changed
+        setDimensions((prevDimensions) => {
+          if (
+            prevDimensions?.width === calculatedWidth &&
+            prevDimensions?.height === calculatedHeight
+          ) {
+            return prevDimensions; // Return same reference, no re-render
+          }
+          return { width: calculatedWidth, height: calculatedHeight };
+        });
       }
     },
     [calculateImageDimensions],

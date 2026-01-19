@@ -1,6 +1,6 @@
 import {
   shouldShowNewPrivacyToastSelector,
-  selectShouldShowPna25Toast,
+  selectShouldShowPna25Notice,
   selectIsPna25Acknowledged,
 } from '.';
 import { RootState } from '../../reducers';
@@ -93,7 +93,7 @@ describe('legalNotices selectors', () => {
     });
   });
 
-  describe('selectShouldShowPna25Toast', () => {
+  describe('selectShouldShowPna25Notice', () => {
     const createMockState = (overrides: {
       completedOnboarding?: boolean;
       isPna25Acknowledged?: boolean;
@@ -119,7 +119,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({ completedOnboarding: false });
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
-      const result = selectShouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Notice(state);
 
       expect(result).toBe(false);
     });
@@ -128,7 +128,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({});
       mockSelectIsPna25FlagEnabled.mockReturnValue(false);
 
-      const result = selectShouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Notice(state);
 
       expect(result).toBe(false);
     });
@@ -137,7 +137,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({ isPna25Acknowledged: true });
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
-      const result = selectShouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Notice(state);
 
       expect(result).toBe(false);
     });
@@ -149,7 +149,7 @@ describe('legalNotices selectors', () => {
         isEnabled: jest.fn().mockReturnValue(false),
       } as never);
 
-      const result = selectShouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Notice(state);
 
       expect(result).toBe(false);
     });
@@ -158,7 +158,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({});
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
-      const result = selectShouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Notice(state);
 
       expect(result).toBe(true);
     });

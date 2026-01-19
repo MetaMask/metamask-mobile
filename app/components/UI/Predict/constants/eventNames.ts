@@ -74,6 +74,7 @@ export const PredictEventValues = {
     GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
     TRENDING_SEARCH: 'trending_search',
+    TRENDING: 'trending',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',

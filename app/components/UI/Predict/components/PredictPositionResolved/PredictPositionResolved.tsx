@@ -2,16 +2,18 @@ import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
-import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 dayjs.extend(relativeTime);
 
@@ -50,6 +52,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
     percentPnl,
   } = position;
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
 
   return (
     <TouchableOpacity
@@ -62,16 +65,18 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       </View>
       <View style={styles.positionDetails}>
         <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
           {title}
         </Text>
         <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          style={tw.style('font-medium')}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
@@ -85,8 +90,9 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       <View>
         {percentPnl > 0 ? (
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Success}
+            variant={TextVariant.BodyMd}
+            color={TextColor.SuccessDefault}
+            style={tw.style('font-medium')}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -95,8 +101,9 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
           </Text>
         ) : (
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Error}
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            style={tw.style('font-medium')}
             numberOfLines={1}
             ellipsizeMode="tail"
           >

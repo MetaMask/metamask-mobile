@@ -12,7 +12,7 @@ import Skeleton from '../../../../../component-library/components/Skeleton/Skele
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import type { CandleData } from '../../types/perps-types';
-import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { TradingViewChartSelectorsIDs } from '../../Perps.testIds';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';

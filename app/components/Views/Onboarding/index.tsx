@@ -43,7 +43,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -295,8 +295,7 @@ const Onboarding = () => {
       await Authentication.resetVault();
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
-      await Authentication.lockApp();
-      navigation.replace(Routes.ONBOARDING.LOGIN);
+      await Authentication.lockApp({ navigateToLogin: true });
     }
   }, [navigation, passwordSet]);
 
@@ -495,7 +494,11 @@ const Onboarding = () => {
   );
 
   const handleLoginError = useCallback(
-    (error: Error, socialConnectionType: string): void => {
+    async (
+      error: Error,
+      socialConnectionType: string,
+      createWallet: boolean,
+    ): Promise<void> => {
       if (error instanceof OAuthError) {
         // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
         if (
@@ -511,18 +514,44 @@ const Onboarding = () => {
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
           error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
         ) {
-          // de-escalate google no credential error
-          const errorMessage = 'google_login_no_credential';
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings(`error_sheet.${errorMessage}_title`),
-              description: strings(`error_sheet.${errorMessage}_description`),
-              descriptionAlign: 'center',
-              buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-              type: 'error',
-            },
-          });
+          // For Android Google, try browser fallback instead of showing error
+          if (Platform.OS === 'android' && socialConnectionType === 'google') {
+            try {
+              setLoading();
+              const fallbackHandler = createLoginHandler(
+                Platform.OS,
+                AuthConnection.Google,
+                true, // Use browser fallback
+              );
+              const result = await OAuthLoginService.handleOAuthLogin(
+                fallbackHandler,
+                !createWallet,
+              );
+              handlePostSocialLogin(
+                result as OAuthLoginResult,
+                createWallet,
+                socialConnectionType,
+              );
+
+              // delay unset loading to avoid flash of loading state
+              setTimeout(() => {
+                unsetLoading();
+              }, 1000);
+              return;
+            } catch (fallbackError) {
+              unsetLoading();
+              if (
+                fallbackError instanceof OAuthError &&
+                (fallbackError.code === OAuthErrorType.UserCancelled ||
+                  fallbackError.code === OAuthErrorType.UserDismissed)
+              ) {
+                return;
+              }
+              if (fallbackError instanceof OAuthError) {
+                handleOAuthLoginError(fallbackError);
+              }
+            }
+          }
           return;
         }
         // unexpected oauth login error
@@ -559,7 +588,13 @@ const Onboarding = () => {
         },
       });
     },
-    [navigation, handleOAuthLoginError],
+    [
+      navigation,
+      handleOAuthLoginError,
+      setLoading,
+      unsetLoading,
+      handlePostSocialLogin,
+    ],
   );
 
   const onPressContinueWithSocialLogin = useCallback(
@@ -625,24 +660,25 @@ const Onboarding = () => {
       const action = async () => {
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
-        const result = await OAuthLoginService.handleOAuthLogin(
-          loginHandler,
-          !createWallet,
-        ).catch((error: Error) => {
-          unsetLoading();
-          handleLoginError(error, provider);
-          return { type: 'error' as const, error, existingUser: false };
-        });
-        handlePostSocialLogin(
-          result as OAuthLoginResult,
-          createWallet,
-          provider,
-        );
+        try {
+          const result = await OAuthLoginService.handleOAuthLogin(
+            loginHandler,
+            !createWallet,
+          );
+          handlePostSocialLogin(
+            result as OAuthLoginResult,
+            createWallet,
+            provider,
+          );
 
-        // delay unset loading to avoid flash of loading state
-        setTimeout(() => {
+          // delay unset loading to avoid flash of loading state
+          setTimeout(() => {
+            unsetLoading();
+          }, 1000);
+        } catch (error) {
           unsetLoading();
-        }, 1000);
+          await handleLoginError(error as Error, provider, createWallet);
+        }
       };
       handleExistingUser(action);
     },
@@ -903,7 +939,9 @@ const Onboarding = () => {
 
         <FadeOutOverlay />
 
-        <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        {!isE2E && (
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+        )}
 
         <View>{handleSimpleNotification()}</View>
 

@@ -48,7 +48,10 @@ const AssetSelectorButton: React.FC<Props> = ({
       {loading ? (
         <ListItem>
           <ListItemColumn>
-            <AvatarToken size={AvatarTokenSize.Lg} />
+            <AvatarToken
+              size={AvatarTokenSize.Xl}
+              twClassName="bg-background-hover"
+            />
           </ListItemColumn>
           <ListItemColumn widthType={WidthType.Fill}>
             <SkeletonText small />

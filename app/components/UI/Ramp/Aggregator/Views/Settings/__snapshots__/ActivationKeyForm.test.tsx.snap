@@ -227,14 +227,14 @@ exports[`AddActivationKey renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  Add Activation Key
+                  Add activation key
                 </Text>
               </Text>
             </View>
@@ -476,14 +476,14 @@ exports[`AddActivationKey renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 18,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
                               }
                             >
-                              Add Activation Key
+                              Add activation key
                             </Text>
                             <View
                               style={
@@ -502,7 +502,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -581,12 +581,11 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
-                                        "lineHeight": 20,
                                         "opacity": 1,
                                         "paddingVertical": 2,
                                         "textAlignVertical": "center",
@@ -614,7 +613,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -686,7 +685,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
-                                    placeholder="Paste or type an Activation Key"
+                                    placeholder="Paste or type an activation key"
                                     returnKeyType="done"
                                     spellCheck={false}
                                     style={
@@ -695,12 +694,11 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 38,
                                         "letterSpacing": 0,
-                                        "lineHeight": 20,
                                         "opacity": 1,
                                         "paddingVertical": 2,
                                         "textAlignVertical": "center",
@@ -755,7 +753,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -794,7 +792,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

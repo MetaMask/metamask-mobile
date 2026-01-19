@@ -2,43 +2,43 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "app/fonts/Geist Bold Italic.otf",
+      "path": "app/fonts/Geist-BoldItalic.otf",
       "sha1": "98112360bd15168cd0416f7457d2cf930bdd9194"
     },
     {
-      "path": "app/fonts/Geist Bold.otf",
+      "path": "app/fonts/Geist-Bold.otf",
       "sha1": "53d4deff787adeb561e69bfa4b28375710f4686f"
     },
     {
-      "path": "app/fonts/Geist Medium Italic.otf",
+      "path": "app/fonts/Geist-MediumItalic.otf",
       "sha1": "5f1ba7a59a89db9a70a046aa7b6d38345e79eb5c"
     },
     {
-      "path": "app/fonts/Geist Medium.otf",
+      "path": "app/fonts/Geist-Medium.otf",
       "sha1": "ebfe71219b8c2b9ebcc5642ab71ddd2078aa1508"
     },
     {
-      "path": "app/fonts/Geist Regular Italic.otf",
+      "path": "app/fonts/Geist-RegularItalic.otf",
       "sha1": "2b8792d447b7ab520850cdf5f123cce79f639a5a"
     },
     {
-      "path": "app/fonts/Geist Regular.otf",
+      "path": "app/fonts/Geist-Regular.otf",
       "sha1": "39f145abcdd04b4e1824fc6bbd1cb370344db90c"
     },
     {
-      "path": "app/fonts/MM Poly Regular.otf",
+      "path": "app/fonts/MMPoly-Regular.otf",
       "sha1": "b6cd0bc868fe5f53469bf52246917210c807954d"
     },
     {
-      "path": "app/fonts/MM Sans Bold.otf",
+      "path": "app/fonts/MMSans-Bold.otf",
       "sha1": "048a70c36b9a3453853ecff2ded9b0e88b411dc0"
     },
     {
-      "path": "app/fonts/MM Sans Medium.otf",
+      "path": "app/fonts/MMSans-Medium.otf",
       "sha1": "4a304a2ce85a51be718c56ec71e7cad713ab7f84"
     },
     {
-      "path": "app/fonts/MM Sans Regular.otf",
+      "path": "app/fonts/MMSans-Regular.otf",
       "sha1": "db0290dd245c9a6496fe9b1a0b3b544f976af2d9"
     },
     {

@@ -20,11 +20,10 @@ const useGetDelegationSettings = () => {
     return sdk.getDelegationSettings();
   }, [sdk, isAuthenticated]);
 
-  return useWrapWithCache(
-    'delegation-settings',
-    fetchDelegationSettings,
-    { cacheDuration: 10 * 60 * 1000 }, // 10 minutes cache
-  );
+  return useWrapWithCache('delegation-settings', fetchDelegationSettings, {
+    cacheDuration: 10 * 60 * 1000, // 10 minutes cache
+    fetchOnMount: false, // Disabled - fetchAllData orchestrates fetching
+  });
 };
 
 export default useGetDelegationSettings;

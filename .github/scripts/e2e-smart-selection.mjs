@@ -72,7 +72,10 @@ async function main() {
       return;
     }
 
+    // Build command - always uses origin/main as base (job only runs on PRs targeting main)
     const baseCmd = `node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags --pr ${env.PR_NUMBER}`;
+    console.log(`🎯 Analyzing PR against origin/main`);
+
     try {
       execSync(baseCmd, {
         encoding: 'utf8',

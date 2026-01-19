@@ -7,6 +7,7 @@ import EarnMusdConversionEducationView from '../Views/EarnMusdConversionEducatio
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -19,29 +20,32 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const EarnScreenStack = () => (
-  <Stack.Navigator headerMode="screen">
-    <Stack.Screen
-      name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
-      component={EarnLendingDepositConfirmationView}
-    />
-    <Stack.Screen
-      name={Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION}
-      component={EarnLendingWithdrawalConfirmationView}
-    />
-    <Stack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-      component={Confirm}
-      options={{
-        headerShown: false,
-      }}
-    />
-    <Stack.Screen
-      name={Routes.EARN.MUSD.CONVERSION_EDUCATION}
-      component={EarnMusdConversionEducationView}
-    />
-  </Stack.Navigator>
-);
+const EarnScreenStack = () => {
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  return (
+    <Stack.Navigator headerMode="screen">
+      <Stack.Screen
+        name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
+        component={EarnLendingDepositConfirmationView}
+      />
+      <Stack.Screen
+        name={Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION}
+        component={EarnLendingWithdrawalConfirmationView}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        component={Confirm}
+        options={emptyNavHeaderOptions}
+      />
+      <Stack.Screen
+        name={Routes.EARN.MUSD.CONVERSION_EDUCATION}
+        component={EarnMusdConversionEducationView}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const EarnModalStack = () => (
   <ModalStack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>

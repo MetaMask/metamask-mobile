@@ -118,6 +118,10 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
         (route) => route.name === 'BuildQuote',
       );
 
+      if (buildQuoteIndex === -1) {
+        return state;
+      }
+
       return {
         payload: {
           count: state.routes.length - buildQuoteIndex - 1,

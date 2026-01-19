@@ -227,14 +227,14 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  WalletConnect Sessions
+                  WalletConnect sessions
                 </Text>
               </Text>
             </View>
@@ -661,14 +661,14 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  WalletConnect Sessions
+                  WalletConnect sessions
                 </Text>
               </Text>
             </View>
@@ -893,7 +893,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Regular",
+                                  "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                 }
                               }
@@ -1143,14 +1143,14 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  WalletConnect Sessions
+                  WalletConnect sessions
                 </Text>
               </Text>
             </View>
@@ -1442,7 +1442,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "marginBottom": 10,
                                   }
@@ -1454,7 +1454,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,
                                   }
@@ -1466,7 +1466,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,
                                   }
@@ -1556,7 +1556,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "marginBottom": 10,
                                   }
@@ -1568,7 +1568,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,
                                   }
@@ -1580,7 +1580,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "marginBottom": 10,
                                   }

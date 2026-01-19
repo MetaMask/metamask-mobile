@@ -1,4 +1,4 @@
-# Prediction Markets
+# Prediction markets
 
 The Predict feature enables users to participate in prediction markets within MetaMask Mobile. This document reflects the current implementation architecture and structure.
 

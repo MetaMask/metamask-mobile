@@ -10,6 +10,7 @@ import {
   selectSelectedDestChainId,
   selectSourceToken,
   setDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
@@ -33,12 +34,13 @@ import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
-import Routes from '../../../../../constants/navigation/Routes';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 export const getNetworkName = (
   chainId: Hex,
   networkConfigurations: Record<string, MultichainNetworkConfiguration>,
 ) =>
+  NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId] ??
   networkConfigurations?.[chainId as Hex]?.name ??
   PopularList.find((network) => network.chainId === chainId)?.nickname ??
   'Unknown Network';
@@ -76,7 +78,9 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
 
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
+      // Mark as manually set to prevent auto-updating dest when source chain changes
       dispatch(setDestToken(token));
+      dispatch(setIsDestTokenManuallySet(true));
       navigation.goBack();
     },
     [dispatch, navigation],
@@ -110,13 +114,15 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
         networkConfigurations,
       );
 
-      // Open the token insights bottom sheet
+      // Open the asset details screen as a bottom sheet
+      // Use dispatch with unique key to force new modal instance
       const handleInfoButtonPress = () => {
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.TOKEN_INSIGHTS,
-          params: {
-            token: item,
-            networkName,
+        navigation.dispatch({
+          type: 'NAVIGATE',
+          payload: {
+            name: 'Asset',
+            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
+            params: { ...item },
           },
         });
 

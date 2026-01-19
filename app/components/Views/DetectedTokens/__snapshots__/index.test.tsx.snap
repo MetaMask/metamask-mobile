@@ -6,7 +6,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     style={
       {
         "color": "black",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 18,
         "paddingVertical": 16,
         "textAlign": "center",
@@ -93,7 +93,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             null,
             [
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -106,7 +106,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
           ]
         }
       >
-        Hide All
+        Hide all
       </Text>
     </TouchableOpacity>
     <View
@@ -158,7 +158,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             },
             [
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -186,7 +186,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     style={
       {
         "color": "black",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 18,
         "paddingVertical": 16,
         "textAlign": "center",
@@ -355,7 +355,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 18,
                   "marginBottom": 4,
                 }
@@ -375,7 +375,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": undefined,
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                   }
                 }
@@ -396,7 +396,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                   style={
                     {
                       "color": "blue",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                     }
                   }
@@ -442,7 +442,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": "black",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                   }
                 }
@@ -610,7 +610,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 18,
                   "marginBottom": 4,
                 }
@@ -630,7 +630,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": undefined,
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                   }
                 }
@@ -651,7 +651,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                   style={
                     {
                       "color": "blue",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                     }
                   }
@@ -697,7 +697,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": "black",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                   }
                 }
@@ -797,7 +797,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -810,7 +810,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
           ]
         }
       >
-        Hide All
+        Hide all
       </Text>
     </TouchableOpacity>
     <View
@@ -859,7 +859,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },

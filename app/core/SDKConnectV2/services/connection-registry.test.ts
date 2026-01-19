@@ -6,6 +6,7 @@ import { KeyManager } from './key-manager';
 import { Connection } from './connection';
 import { ConnectionRequest } from '../types/connection-request';
 import { ConnectionInfo } from '../types/connection-info';
+import Engine from '../../Engine';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -107,6 +108,10 @@ describe('ConnectionRegistry', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
 
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
     mockStore = new ConnectionStore(
@@ -138,7 +143,7 @@ describe('ConnectionRegistry', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
-  describe('isConnectDeeplink', () => {
+  describe('isMwpDeeplink', () => {
     it('should return true for valid MWP connect deeplinks', () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
@@ -147,10 +152,10 @@ describe('ConnectionRegistry', () => {
         mockStore,
       );
 
-      expect(registry.isConnectDeeplink(validDeeplink)).toBe(true);
-      expect(
-        registry.isConnectDeeplink('metamask://connect/mwp?p=somedata'),
-      ).toBe(true);
+      expect(registry.isMwpDeeplink(validDeeplink)).toBe(true);
+      expect(registry.isMwpDeeplink('metamask://connect/mwp?p=somedata')).toBe(
+        true,
+      );
     });
 
     it('should return false for non-MWP deeplinks', () => {
@@ -161,13 +166,9 @@ describe('ConnectionRegistry', () => {
         mockStore,
       );
 
-      expect(registry.isConnectDeeplink('metamask://some-other-path')).toBe(
-        false,
-      );
-      expect(registry.isConnectDeeplink('https://example.com')).toBe(false);
-      expect(registry.isConnectDeeplink('metamask://connect/other')).toBe(
-        false,
-      );
+      expect(registry.isMwpDeeplink('metamask://some-other-path')).toBe(false);
+      expect(registry.isMwpDeeplink('https://example.com')).toBe(false);
+      expect(registry.isMwpDeeplink('metamask://connect/other')).toBe(false);
     });
 
     it('should return false for non-string values', () => {
@@ -178,10 +179,163 @@ describe('ConnectionRegistry', () => {
         mockStore,
       );
 
-      expect(registry.isConnectDeeplink(null)).toBe(false);
-      expect(registry.isConnectDeeplink(undefined)).toBe(false);
-      expect(registry.isConnectDeeplink(123)).toBe(false);
-      expect(registry.isConnectDeeplink({})).toBe(false);
+      expect(registry.isMwpDeeplink(null)).toBe(false);
+      expect(registry.isMwpDeeplink(undefined)).toBe(false);
+      expect(registry.isMwpDeeplink(123)).toBe(false);
+      expect(registry.isMwpDeeplink({})).toBe(false);
+    });
+  });
+
+  describe('handleMwpDeeplink', () => {
+    it('should handle a valid simple deeplink', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const simpleDeeplink = 'metamask://connect/mwp?id=1-1-1-1';
+      const spyHandleSimpleDeeplink = jest
+        .spyOn(registry, 'handleSimpleDeeplink')
+        .mockResolvedValue(undefined);
+
+      await registry.handleMwpDeeplink(simpleDeeplink);
+
+      expect(spyHandleSimpleDeeplink).toHaveBeenCalledWith('1-1-1-1');
+      spyHandleSimpleDeeplink.mockRestore();
+    });
+
+    it('should handle a valid connect deeplink', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const connectDeeplink = validDeeplink;
+      const spyHandleConnectDeeplink = jest
+        .spyOn(registry, 'handleConnectDeeplink')
+        .mockResolvedValue(undefined);
+
+      await registry.handleMwpDeeplink(connectDeeplink);
+
+      expect(spyHandleConnectDeeplink).toHaveBeenCalledWith(connectDeeplink);
+      spyHandleConnectDeeplink.mockRestore();
+    });
+
+    it('should throw for unsupported or malformed deeplink', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const invalidDeeplink = 'metamask://bad/path';
+
+      await expect(registry.handleMwpDeeplink(invalidDeeplink)).rejects.toThrow(
+        'Invalid MWP deeplink: metamask://bad/path',
+      );
+    });
+
+    it('should throw when deeplink is not a string', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // @ts-expect-error test non-string input
+      await expect(registry.handleMwpDeeplink(null)).rejects.toThrow(
+        'Invalid MWP deeplink: null',
+      );
+    });
+  });
+
+  describe('handleSimpleDeeplink', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should not show error if connection is found in the store', async () => {
+      const persistedConnInfo = {
+        ...mockConnectionInfo,
+        id: 'mock-conn-id',
+        metadata: { ...mockConnectionInfo.metadata },
+        expiresAt: Date.now() + 100000,
+      };
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      mockStore.get.mockResolvedValue(persistedConnInfo);
+
+      await registry.handleSimpleDeeplink('mock-conn-id');
+
+      expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
+
+      expect(mockHostApp.showNotFoundError).not.toHaveBeenCalled();
+    });
+
+    describe('when the connection is not found in the store', () => {
+      it('should show error when the keyring is unlocked', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        await registry.handleSimpleDeeplink('mock-conn-id');
+        await jest.advanceTimersByTimeAsync(1000);
+
+        expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
+        expect(mockHostApp.showNotFoundError).toHaveBeenCalled();
+      });
+
+      it('should show error if the keyring is not unlocked but becomes unlocked later', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        (
+          Engine.context.KeyringController.isUnlocked as jest.Mock
+        ).mockReturnValueOnce(false);
+
+        Engine.controllerMessenger.unsubscribe = jest.fn();
+
+        const promise = registry.handleSimpleDeeplink('mock-conn-id');
+
+        expect(mockHostApp.showNotFoundError).not.toHaveBeenCalled();
+
+        await jest.advanceTimersByTimeAsync(1000);
+        expect(mockHostApp.showNotFoundError).not.toHaveBeenCalled();
+
+        // Trigger the subscription handler
+        (Engine.controllerMessenger.subscribe as jest.Mock).mock.calls[0][1]();
+
+        await jest.advanceTimersByTimeAsync(1000);
+        expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalled();
+
+        await promise;
+
+        expect(mockStore.get).toHaveBeenCalledWith('mock-conn-id');
+        expect(mockHostApp.showNotFoundError).toHaveBeenCalled();
+      });
     });
   });
 
@@ -445,6 +599,62 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockStore.save).not.toHaveBeenCalled();
+    });
+
+    it('blocks connection requests with `metamask` as origin', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const blockedRequest = {
+        ...mockConnectionRequest,
+        metadata: {
+          ...mockConnectionRequest.metadata,
+          dapp: {
+            ...mockConnectionRequest.metadata.dapp,
+            url: 'metamask',
+          },
+        },
+      };
+
+      const blockedDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(blockedRequest),
+      )}`;
+
+      await registry.handleConnectDeeplink(blockedDeeplink);
+
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+    });
+
+    it('blocks connection requests with `metamask` as dapp name', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const blockedRequest = {
+        ...mockConnectionRequest,
+        metadata: {
+          ...mockConnectionRequest.metadata,
+          dapp: {
+            ...mockConnectionRequest.metadata.dapp,
+            name: 'metamask',
+          },
+        },
+      };
+
+      const blockedDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(blockedRequest),
+      )}`;
+
+      await registry.handleConnectDeeplink(blockedDeeplink);
     });
   });
 

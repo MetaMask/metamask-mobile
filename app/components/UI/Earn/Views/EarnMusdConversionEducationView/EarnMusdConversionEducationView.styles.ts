@@ -1,40 +1,40 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-export const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
-
-  return StyleSheet.create({
+export const styleSheet = (_params: { theme: Theme }) =>
+  StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background.default,
-      gap: 24,
+      paddingTop: 40,
+    },
+    imageContainer: {
+      flex: 1,
+      minHeight: 100,
     },
     backgroundImage: {
       width: '100%',
-      height: 438,
-      resizeMode: 'cover',
+      height: '100%',
+      resizeMode: 'contain',
     },
     content: {
       paddingHorizontal: 16,
-      justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 24,
     },
     heading: {
-      marginBottom: 8,
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
+      fontFamily: 'MMPoly-Regular',
+      fontSize: 40,
+      lineHeight: 40,
+      paddingVertical: 16,
+      textAlign: 'center',
+      textOverflow: 'ellipsis',
     },
     bodyText: {
-      marginBottom: 32,
       textAlign: 'center',
+      paddingHorizontal: 30,
     },
-    continueButton: {
-      alignSelf: 'stretch',
+    buttonsContainer: {
       marginHorizontal: 32,
-      marginBottom: 24,
+      gap: 8,
+      marginBottom: 16,
     },
   });
-};

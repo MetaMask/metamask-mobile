@@ -76,7 +76,7 @@ exports[`SnapUIAddressInput renders the matched address info in a disabled state
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -92,7 +92,7 @@ exports[`SnapUIAddressInput renders the matched address info in a disabled state
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 12,
             "letterSpacing": 0.25,
             "lineHeight": 20,
@@ -213,12 +213,11 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 20,
             "opacity": 1,
             "paddingVertical": 2,
             "textAlignVertical": "center",

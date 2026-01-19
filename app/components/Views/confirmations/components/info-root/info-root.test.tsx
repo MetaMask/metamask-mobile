@@ -168,7 +168,7 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE),
     ).toBeDefined();
-    expect(getByText('Standard Account')).toBeTruthy();
+    expect(getByText('Standard account')).toBeTruthy();
   });
 
   it('renders SwitchAccountType for smart account type - upgrade confirmations', () => {
@@ -178,7 +178,7 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE),
     ).toBeDefined();
-    expect(getByText('Smart Account')).toBeTruthy();
+    expect(getByText('Smart account')).toBeTruthy();
   });
 
   it('renders correctly for smart account type - upgrade + batched confirmations', () => {

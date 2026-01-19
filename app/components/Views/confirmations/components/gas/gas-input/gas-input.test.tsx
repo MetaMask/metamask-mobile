@@ -20,7 +20,7 @@ describe('GasInput', () => {
       },
     );
 
-    expect(getByText('Gas Limit')).toBeOnTheScreen();
+    expect(getByText('Gas limit')).toBeOnTheScreen();
     expect(getByTestId('gas-input')).toBeOnTheScreen();
     expect(getByTestId('gas-input')).toHaveProp('value', '26190');
   });

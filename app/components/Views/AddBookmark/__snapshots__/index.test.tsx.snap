@@ -93,7 +93,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                 }
               }
             >
@@ -111,7 +111,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "black",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "padding": 16,
                 }
               }
@@ -122,7 +122,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "red",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                 }
               }
             />
@@ -138,11 +138,11 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                 }
               }
             >
-              Url
+              URL
             </Text>
             <TextInput
               keyboardAppearance="light"
@@ -155,7 +155,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "black",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "padding": 16,
                 }
               }
@@ -166,110 +166,111 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "red",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                 }
               }
             />
           </View>
         </View>
-        <View
-          style={
-            [
-              {
-                "flexDirection": "row",
-                "gap": 16,
-                "paddingHorizontal": 16,
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              undefined,
-            ]
-          }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="add-bookmark-cancel-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            loading={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
-                "borderRadius": 12,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="add-bookmark-confirm-button"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Add
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </RCTScrollView>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+            "paddingBottom": 16,
+            "paddingHorizontal": 16,
+            "paddingTop": 24,
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="add-bookmark-cancel-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        loading={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="add-bookmark-confirm-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Add
+        </Text>
+      </TouchableOpacity>
+    </View>
   </View>
 </RCTSafeAreaView>
 `;

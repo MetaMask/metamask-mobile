@@ -1,10 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, Image } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PredictMarketRowItem.styles';
 import { PredictMarket as PredictMarketType } from '../../types';
@@ -15,7 +11,12 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { formatPercentage } from '../../utils/format';
 
 interface PredictMarketRowItemProps {
@@ -89,8 +90,9 @@ const PredictMarketRowItem = ({
       <View style={styles.leftContainer}>
         <View style={styles.marketHeaderRow}>
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            style={tw.style('font-medium')}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -98,8 +100,8 @@ const PredictMarketRowItem = ({
           </Text>
         </View>
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           numberOfLines={1}
           ellipsizeMode="tail"
         >

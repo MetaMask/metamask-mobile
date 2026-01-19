@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { usePopularNetworks } from '../usePopularNetworks/usePopularNetworks';
+import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 interface SearchResult {
   assetId: CaipChainId;
@@ -24,21 +23,22 @@ export const useSearchRequest = (options: {
   chainIds?: CaipChainId[];
   query: string;
   limit: number;
+  includeMarketData?: boolean;
 }) => {
-  const { chainIds: providedChainIds = [], query, limit } = options;
+  const {
+    chainIds: providedChainIds = [],
+    query,
+    limit,
+    includeMarketData,
+  } = options;
 
-  // Get popular networks for filtering
-  const popularNetworks = usePopularNetworks();
-
-  // Use provided chainIds or default to popular networks
+  // Use provided chainIds or default to trending networks
   const chainIds = useMemo((): CaipChainId[] => {
     if (providedChainIds.length > 0) {
       return providedChainIds;
     }
-    return popularNetworks.map(
-      (network: ProcessedNetwork) => network.caipChainId,
-    );
-  }, [providedChainIds, popularNetworks]);
+    return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
+  }, [providedChainIds]);
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,6 +65,7 @@ export const useSearchRequest = (options: {
     try {
       const searchResults = await searchTokens(stableChainIds, query, {
         limit,
+        includeMarketData,
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
@@ -82,7 +83,7 @@ export const useSearchRequest = (options: {
         setIsLoading(false);
       }
     }
-  }, [stableChainIds, query, limit]);
+  }, [stableChainIds, query, limit, includeMarketData]);
 
   // Automatically trigger search when query changes
   useEffect(() => {

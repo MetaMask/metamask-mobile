@@ -174,10 +174,14 @@ export const usePerpsTransactionHistory = ({
 
   // Merge live WebSocket fills with REST transactions for instant updates
   // Live fills take precedence for recent trades
-  // IMPORTANT: Deduplicate trades using asset+timestamp, not tx.id, because
-  // the ID includes array index which differs between REST and WebSocket arrays
+  // IMPORTANT: Deduplicate trades using asset+timestamp (truncated to seconds), not tx.id,
+  // because:
+  // 1. The ID includes array index which differs between REST and WebSocket arrays
+  // 2. Aggregated fills (from split stop loss/TP) may have slightly different first-fill
+  //    timestamps between REST and WebSocket if fills arrive in different order
   const mergedTransactions = useMemo(() => {
     // Transform live fills to PerpsTransaction format
+    // Note: transformFillsToTransactions now aggregates split stop loss/TP fills
     const liveTransactions = transformFillsToTransactions(liveFills);
 
     // If no REST transactions yet, return only live fills
@@ -194,20 +198,23 @@ export const usePerpsTransactionHistory = ({
       (tx) => tx.type !== 'trade',
     );
 
-    // Merge trades using asset+timestamp as dedup key (avoids index mismatch in IDs)
-    // This ensures the same fill from REST and WebSocket is deduplicated correctly
+    // Merge trades using asset+timestamp(seconds) as dedup key
+    // Use seconds-truncated timestamp to handle cases where REST and WebSocket
+    // aggregated fills have slightly different first-fill timestamps
     const tradeMap = new Map<string, PerpsTransaction>();
 
     // Add REST trade transactions first
     for (const tx of restTradeTransactions) {
-      // Use asset + timestamp as key (unique per fill, index-independent)
-      const dedupKey = `${tx.asset}-${tx.timestamp}`;
+      // Use asset + timestamp (truncated to seconds) as key
+      const timestampSeconds = Math.floor(tx.timestamp / 1000);
+      const dedupKey = `${tx.asset}-${timestampSeconds}`;
       tradeMap.set(dedupKey, tx);
     }
 
     // Add live fills (overwrites REST duplicates - live data is fresher)
     for (const tx of liveTransactions) {
-      const dedupKey = `${tx.asset}-${tx.timestamp}`;
+      const timestampSeconds = Math.floor(tx.timestamp / 1000);
+      const dedupKey = `${tx.asset}-${timestampSeconds}`;
       tradeMap.set(dedupKey, tx);
     }
 

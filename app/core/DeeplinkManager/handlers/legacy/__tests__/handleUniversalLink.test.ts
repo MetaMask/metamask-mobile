@@ -6,15 +6,16 @@ import {
 } from '../../../../../constants/deeplinks';
 import AppConstants from '../../../../AppConstants';
 import SDKConnect from '../../../../SDKConnect/SDKConnect';
-import handleDeeplink from '../../../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../../DeeplinkManager';
+import { DeeplinkManager } from '../../../DeeplinkManager';
 import extractURLParams from '../../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+// eslint-disable-next-line import/no-namespace
+import * as signatureUtils from '../../../utils/verifySignature';
 
 jest.mock('../handleMetaMaskDeeplink');
 jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
@@ -53,17 +54,9 @@ const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
   verify: jest.Mock<Promise<boolean>>;
 };
 
-describe('handleUniversalLinks', () => {
+describe('handleUniversalLink', () => {
   const mockParse = jest.fn();
   const mockNavigation = { navigate: jest.fn() };
-  const mockConnectToChannel = jest.fn();
-  const mockGetConnections = jest.fn();
-  const mockRevalidateChannel = jest.fn();
-  const mockReconnect = jest.fn();
-  const mockWC2ManagerConnect = jest.fn();
-  const mockBindAndroidSDK = jest.fn();
-
-  const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockHandleMetaMaskDeeplink =
     handleMetaMaskDeeplink as jest.MockedFunction<
       typeof handleMetaMaskDeeplink
@@ -102,19 +95,16 @@ describe('handleUniversalLinks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockBindAndroidSDK.mockResolvedValue(undefined);
-    mockHandleDeeplink.mockResolvedValue(undefined);
-
     mockSDKConnectGetInstance.mockImplementation(() => ({
-      getConnections: mockGetConnections,
-      connectToChannel: mockConnectToChannel,
-      revalidateChannel: mockRevalidateChannel,
-      reconnect: mockReconnect,
-      bindAndroidSDK: mockBindAndroidSDK,
+      getConnections: jest.fn(),
+      connectToChannel: jest.fn(),
+      revalidateChannel: jest.fn(),
+      reconnect: jest.fn(),
+      bindAndroidSDK: jest.fn().mockResolvedValue(undefined),
     }));
 
     mockWC2ManagerGetInstance.mockResolvedValue({
-      connect: mockWC2ManagerConnect,
+      connect: jest.fn(),
     });
 
     url = 'https://metamask.app.link';
@@ -122,7 +112,6 @@ describe('handleUniversalLinks', () => {
 
   describe('SDK Actions', () => {
     const testCases = [
-      { action: ACTIONS.ANDROID_SDK },
       { action: ACTIONS.CONNECT },
       { action: ACTIONS.MMSDK },
     ] as const;
@@ -145,7 +134,6 @@ describe('handleUniversalLinks', () => {
         });
 
         expect(mockHandleMetaMaskDeeplink).toHaveBeenCalledWith({
-          instance,
           handled,
           wcURL,
           origin: 'origin',
@@ -1214,6 +1202,340 @@ describe('handleUniversalLinks', () => {
         onBack: expect.any(Function),
       });
       expect(handled).toHaveBeenCalled();
+    });
+
+    describe('in-app link sources', () => {
+      const inAppSources = [
+        AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+        AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+        AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+        AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+        AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+      ];
+
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+
+      beforeEach(() => {
+        mockSubtle.verify.mockResolvedValue(true);
+      });
+
+      it.each(inAppSources)(
+        'skips modal when source is "%s" with signed (PRIVATE) link',
+        async (testSource) => {
+          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com?sig=${validSignature}`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: signedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: signedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+
+      it.each(inAppSources)(
+        'displays "Proceed with caution" modal when source is "%s" with unsigned (PUBLIC) link',
+        async (testSource) => {
+          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: unsignedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: unsignedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+    });
+
+    describe('external sources always show redirect modal', () => {
+      const sourcesRequiringModal = [AppConstants.DEEPLINKS.ORIGIN_DEEPLINK];
+
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+
+      beforeEach(() => {
+        mockSubtle.verify.mockResolvedValue(true);
+      });
+
+      it.each(sourcesRequiringModal)(
+        'displays "Redirecting you to MetaMask" modal when source is "%s" with signed (PRIVATE) link',
+        async (testSource) => {
+          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com?sig=${validSignature}`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: signedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: signedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PRIVATE,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+
+      it.each(sourcesRequiringModal)(
+        'displays "Proceed with caution" modal when source is "%s" with unsigned (PUBLIC) link',
+        async (testSource) => {
+          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: unsignedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: unsignedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+    });
+
+    describe('non-whitelisted sources', () => {
+      it('displays interstitial modal when source is not whitelisted and URL is not whitelisted', async () => {
+        const nonWhitelistedSource = 'external-browser';
+        const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+        const testUrlObj = {
+          ...urlObj,
+          hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+          href: nonWhitelistedUrl,
+          pathname: `/${ACTIONS.DAPP}/example.com`,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: nonWhitelistedUrl,
+          source: nonWhitelistedSource,
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.PUBLIC,
+          pageTitle: 'Dapp',
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
+        expect(handled).toHaveBeenCalled();
+      });
+    });
+
+    describe('external sources show modal regardless of signature status', () => {
+      const sourcesRequiringModal = [AppConstants.DEEPLINKS.ORIGIN_DEEPLINK];
+
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+
+      beforeEach(() => {
+        mockSubtle.verify.mockResolvedValue(true);
+      });
+
+      it.each(sourcesRequiringModal)(
+        'displays "Redirecting you to MetaMask" modal when source is "%s" with signed (PRIVATE) link',
+        async (testSource) => {
+          const signedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com?sig=${validSignature}`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: signedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: signedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PRIVATE,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+
+      it.each(sourcesRequiringModal)(
+        'displays "Proceed with caution" modal when source is "%s" with unsigned (PUBLIC) link',
+        async (testSource) => {
+          const unsignedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+          const testUrlObj = {
+            ...urlObj,
+            hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+            href: unsignedUrl,
+            pathname: `/${ACTIONS.DAPP}/example.com`,
+          };
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: testUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: unsignedUrl,
+            source: testSource,
+          });
+
+          expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+            linkType: DeepLinkModalLinkType.PUBLIC,
+            pageTitle: 'Dapp',
+            onContinue: expect.any(Function),
+            onBack: expect.any(Function),
+          });
+          expect(handled).toHaveBeenCalled();
+        },
+      );
+    });
+
+    describe('sources not in inAppLinkSources', () => {
+      it('skips interstitial modal when URL is whitelisted even with non-whitelisted source', async () => {
+        const nonWhitelistedSource = 'external-browser';
+        const whitelistedUrl =
+          'https://link.metamask.io/perps-asset?symbol=ETH';
+        const parsedUrl = new URL(whitelistedUrl);
+        const testUrlObj = {
+          ...urlObj,
+          hostname: parsedUrl.hostname,
+          href: whitelistedUrl,
+          pathname: parsedUrl.pathname,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: whitelistedUrl,
+          source: nonWhitelistedSource,
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handled).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('skips handling deeplinks without pathname and query params', () => {
+    // Link cases to test for skipping handling
+    const testLinkCases = [
+      {
+        link: 'metamask://',
+        shouldSkip: true,
+      },
+      {
+        link: 'https://link.metamask.io/',
+        shouldSkip: true,
+      },
+      {
+        link: 'https://link.metamask.io',
+        shouldSkip: true,
+      },
+      {
+        link: 'https://link.metamask.io/action',
+        shouldSkip: false,
+      },
+      {
+        link: 'https://link.metamask.io/action?query=value',
+        shouldSkip: false,
+      },
+      {
+        link: 'metamask://action',
+        shouldSkip: false,
+      },
+      {
+        link: 'metamask://action?query=value',
+        shouldSkip: false,
+      },
+    ];
+
+    testLinkCases.forEach((testCase) => {
+      it(`${testCase.shouldSkip ? 'skips' : 'does NOT skip'} handling ${testCase.link}`, async () => {
+        const hasSignatureSpy = jest.spyOn(signatureUtils, 'hasSignature');
+
+        const mappedUrl = testCase.link.replace(
+          `${PROTOCOLS.METAMASK}://`,
+          `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
+        );
+        const { urlObj } = extractURLParams(mappedUrl);
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: mappedUrl,
+          source: 'origin',
+        });
+
+        if (testCase.shouldSkip) {
+          expect(hasSignatureSpy).not.toHaveBeenCalled();
+        } else {
+          expect(hasSignatureSpy).toHaveBeenCalled();
+        }
+      });
     });
   });
 });

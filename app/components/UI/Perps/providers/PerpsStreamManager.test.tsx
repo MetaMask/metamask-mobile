@@ -2004,4 +2004,659 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenCalledWith(undefined);
     });
   });
+
+  describe('PositionStreamChannel.updatePositionTPSLOptimistic', () => {
+    let mockPositionsSubscribe: jest.Mock;
+    let mockPositionsUnsubscribe: jest.Mock;
+
+    const createMockPosition = (overrides = {}) => ({
+      coin: 'ETH',
+      size: '1.5',
+      entryPrice: '3000',
+      positionValue: '4500',
+      unrealizedPnl: '100',
+      marginUsed: '450',
+      leverage: {
+        type: 'cross' as const,
+        value: 10,
+      },
+      liquidationPrice: '2700',
+      maxLeverage: 50,
+      returnOnEquity: '0.22',
+      cumulativeFunding: {
+        allTime: '5',
+        sinceOpen: '2',
+        sinceChange: '1',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      mockPositionsUnsubscribe = jest.fn();
+      mockPositionsSubscribe = jest
+        .fn()
+        .mockReturnValue(mockPositionsUnsubscribe);
+      mockEngine.context.PerpsController.subscribeToPositions =
+        mockPositionsSubscribe;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    it('updates take profit price in cached position', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data
+      const initialPosition = createMockPosition();
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          undefined,
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'ETH',
+          takeProfitPrice: '3300',
+          stopLossPrice: undefined,
+          takeProfitCount: 1,
+          stopLossCount: 0,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates stop loss price in cached position', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data
+      const initialPosition = createMockPosition();
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          undefined,
+          '2700',
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'ETH',
+          takeProfitPrice: undefined,
+          stopLossPrice: '2700',
+          takeProfitCount: 0,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates both take profit and stop loss prices', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data
+      const initialPosition = createMockPosition();
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2700',
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'ETH',
+          takeProfitPrice: '3300',
+          stopLossPrice: '2700',
+          takeProfitCount: 1,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('removes take profit and stop loss when set to undefined', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position with TP/SL set
+      const initialPosition = createMockPosition({
+        takeProfitPrice: '3500',
+        stopLossPrice: '2500',
+        takeProfitCount: 1,
+        stopLossCount: 1,
+      });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update to remove TP/SL
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          undefined,
+          undefined,
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'ETH',
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('does not update other positions in cache', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send multiple positions
+      const ethPosition = createMockPosition({ coin: 'ETH' });
+      const btcPosition = createMockPosition({
+        coin: 'BTC',
+        entryPrice: '50000',
+      });
+      act(() => {
+        positionCallback?.([ethPosition, btcPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([ethPosition, btcPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update only to ETH
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2700',
+        );
+      });
+
+      const calledPositions = callback.mock.calls[0][0];
+
+      // Verify ETH position was updated
+      expect(calledPositions[0]).toMatchObject({
+        coin: 'ETH',
+        takeProfitPrice: '3300',
+        stopLossPrice: '2700',
+        takeProfitCount: 1,
+        stopLossCount: 1,
+      });
+
+      // Verify BTC position was NOT updated (should keep original values)
+      expect(calledPositions[1]).toMatchObject({
+        coin: 'BTC',
+        entryPrice: '50000',
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      });
+      expect(calledPositions[1].takeProfitPrice).toBeUndefined();
+      expect(calledPositions[1].stopLossPrice).toBeUndefined();
+
+      unsubscribe();
+    });
+
+    it('does not update when position not found in cache', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data for ETH
+      const initialPosition = createMockPosition({ coin: 'ETH' });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Try to update BTC (not in cache)
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'BTC',
+          '55000',
+          '45000',
+        );
+      });
+
+      // Callback not called because position was not found
+      expect(callback).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('does not update when cache is empty', () => {
+      const callback = jest.fn();
+
+      // Subscribe but don't populate cache
+      mockPositionsSubscribe.mockReturnValue(mockPositionsUnsubscribe);
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      callback.mockClear();
+
+      // Try to update when cache is empty
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2700',
+        );
+      });
+
+      // Callback not called because cache is empty
+      expect(callback).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('preserves all other position properties during update', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send position with specific values
+      const initialPosition = createMockPosition({
+        coin: 'ETH',
+        size: '2.5',
+        entryPrice: '3100',
+        unrealizedPnl: '250',
+        leverage: { type: 'isolated' as const, value: 20 },
+      });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3400',
+          '2800',
+        );
+      });
+
+      // Verify all original properties are preserved
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'ETH',
+          size: '2.5',
+          entryPrice: '3100',
+          unrealizedPnl: '250',
+          leverage: { type: 'isolated', value: 20 },
+          takeProfitPrice: '3400',
+          stopLossPrice: '2800',
+          takeProfitCount: 1,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+  });
+
+  describe('clearAllChannels', () => {
+    it('disconnects all channels when called', () => {
+      // Arrange - spy on disconnect methods
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+      const ordersDisconnect = jest.spyOn(
+        testStreamManager.orders,
+        'disconnect',
+      );
+      const positionsDisconnect = jest.spyOn(
+        testStreamManager.positions,
+        'disconnect',
+      );
+      const fillsDisconnect = jest.spyOn(testStreamManager.fills, 'disconnect');
+      const accountDisconnect = jest.spyOn(
+        testStreamManager.account,
+        'disconnect',
+      );
+      const marketDataDisconnect = jest.spyOn(
+        testStreamManager.marketData,
+        'disconnect',
+      );
+      const oiCapsDisconnect = jest.spyOn(
+        testStreamManager.oiCaps,
+        'disconnect',
+      );
+      const topOfBookDisconnect = jest.spyOn(
+        testStreamManager.topOfBook,
+        'disconnect',
+      );
+      const candlesDisconnect = jest.spyOn(
+        testStreamManager.candles,
+        'disconnect',
+      );
+
+      // Act
+      testStreamManager.clearAllChannels();
+
+      // Assert - all channels should be disconnected
+      expect(pricesDisconnect).toHaveBeenCalledTimes(1);
+      expect(ordersDisconnect).toHaveBeenCalledTimes(1);
+      expect(positionsDisconnect).toHaveBeenCalledTimes(1);
+      expect(fillsDisconnect).toHaveBeenCalledTimes(1);
+      expect(accountDisconnect).toHaveBeenCalledTimes(1);
+      expect(marketDataDisconnect).toHaveBeenCalledTimes(1);
+      expect(oiCapsDisconnect).toHaveBeenCalledTimes(1);
+      expect(topOfBookDisconnect).toHaveBeenCalledTimes(1);
+      expect(candlesDisconnect).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      pricesDisconnect.mockRestore();
+      ordersDisconnect.mockRestore();
+      positionsDisconnect.mockRestore();
+      fillsDisconnect.mockRestore();
+      accountDisconnect.mockRestore();
+      marketDataDisconnect.mockRestore();
+      oiCapsDisconnect.mockRestore();
+      topOfBookDisconnect.mockRestore();
+      candlesDisconnect.mockRestore();
+    });
+
+    it('clears WebSocket subscriptions from all channels', () => {
+      // Arrange - set up subscriptions on multiple channels
+      const priceCallback = jest.fn();
+      const orderCallback = jest.fn();
+      const positionCallback = jest.fn();
+
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+      const ordersDisconnect = jest.spyOn(
+        testStreamManager.orders,
+        'disconnect',
+      );
+      const positionsDisconnect = jest.spyOn(
+        testStreamManager.positions,
+        'disconnect',
+      );
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: priceCallback,
+      });
+
+      testStreamManager.orders.subscribe({
+        callback: orderCallback,
+      });
+
+      testStreamManager.positions.subscribe({
+        callback: positionCallback,
+      });
+
+      // Verify subscriptions are active
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+      expect(mockSubscribeToOrders).toHaveBeenCalled();
+      expect(mockSubscribeToPositions).toHaveBeenCalled();
+
+      // Act - reconnect all channels
+      testStreamManager.clearAllChannels();
+
+      // Assert - disconnect was called on all channels
+      expect(pricesDisconnect).toHaveBeenCalled();
+      expect(ordersDisconnect).toHaveBeenCalled();
+      expect(positionsDisconnect).toHaveBeenCalled();
+
+      // Cleanup
+      pricesDisconnect.mockRestore();
+      ordersDisconnect.mockRestore();
+      positionsDisconnect.mockRestore();
+    });
+
+    it('allows channels to reconnect when subscribers are still active', () => {
+      // Arrange - clear any previous calls
+      jest.clearAllMocks();
+
+      // Set up a subscription
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+
+      // Act - reconnect all channels
+      testStreamManager.clearAllChannels();
+
+      expect(pricesDisconnect).toHaveBeenCalled();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      unsubscribe();
+      pricesDisconnect.mockRestore();
+    });
+  });
 });

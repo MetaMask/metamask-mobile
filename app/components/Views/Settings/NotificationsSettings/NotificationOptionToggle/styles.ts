@@ -11,9 +11,6 @@ export const createStyles = () =>
       alignItems: 'flex-start',
       flex: 1,
     },
-    title: {
-      flex: 1,
-    },
     switch: {
       alignSelf: 'flex-start',
     },

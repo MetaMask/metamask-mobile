@@ -1,8 +1,14 @@
+import { useCallback, useContext } from 'react';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { showAlert } from '../../../../../actions/alert';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import ClipboardManager from '../../../../../core/ClipboardManager';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 
 export const CopyClipboardAlertMessage = {
   default: (): string => strings('notifications.copied_to_clipboard'),
@@ -13,30 +19,37 @@ export const CopyClipboardAlertMessage = {
 
 function useCopyClipboard() {
   const dispatch = useDispatch();
+  const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
 
-  const handleShowAlert = (config: {
-    isVisible: boolean;
-    autodismiss: number;
-    content: string;
-    data: { msg: string };
-  }) => dispatch(showAlert(config));
+  const handleProtectWalletModalVisible = useCallback(
+    () => dispatch(protectWalletModalVisible()),
+    [dispatch],
+  );
 
-  const handleProtectWalletModalVisible = () =>
-    dispatch(protectWalletModalVisible());
-
-  const copyToClipboard = async (value: string, alertText?: string) => {
-    if (!value) return;
-    await ClipboardManager.setString(value);
-    handleShowAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: {
-        msg: alertText ?? CopyClipboardAlertMessage.default(),
-      },
-    });
-    setTimeout(() => handleProtectWalletModalVisible(), 2000);
-  };
+  const copyToClipboard = useCallback(
+    async (value: string, alertText?: string) => {
+      if (!value) return;
+      await ClipboardManager.setString(value);
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.CheckBold,
+        iconColor: colors.accent03.dark,
+        backgroundColor: colors.accent03.normal,
+        labelOptions: [
+          { label: alertText ?? CopyClipboardAlertMessage.default() },
+        ],
+        hasNoTimeout: false,
+      });
+      setTimeout(() => handleProtectWalletModalVisible(), 2000);
+    },
+    [
+      colors.accent03.dark,
+      colors.accent03.normal,
+      toastRef,
+      handleProtectWalletModalVisible,
+    ],
+  );
 
   return copyToClipboard;
 }

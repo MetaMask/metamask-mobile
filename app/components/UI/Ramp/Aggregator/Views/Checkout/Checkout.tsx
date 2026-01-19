@@ -40,6 +40,7 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
+import Device from '../../../../../../util/device';
 
 interface CheckoutParams {
   url: string;
@@ -256,6 +257,7 @@ const CheckoutWebView = () => {
         ref={sheetRef}
         shouldNavigateBack
         isFullscreen
+        isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
       >
         <BottomSheetHeader

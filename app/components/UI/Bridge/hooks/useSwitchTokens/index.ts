@@ -6,6 +6,7 @@ import {
   selectSourceToken,
   setSelectedDestChainId,
   setSourceAmount,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -48,6 +49,8 @@ export const useSwitchTokens = () => {
     if (sourceToken && destToken) {
       dispatch(setSourceToken(destToken));
       dispatch(setDestToken(sourceToken));
+      // Mark dest as manually set since user explicitly chose to flip
+      dispatch(setIsDestTokenManuallySet(true));
       // Swap amounts
       dispatch(setSourceAmount(destTokenAmount));
 

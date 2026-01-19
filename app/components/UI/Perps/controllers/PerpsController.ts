@@ -13,18 +13,29 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
 } from '../types/transactionTypes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
-import { MetaMetrics } from '../../../../core/Analytics';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
+import { ensureError } from '../../../../util/errorUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -42,7 +53,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import type { ServiceContext } from './services/ServiceContext';
 import {
   getStreamManagerInstance,
-  type PerpsStreamManager,
+  type PerpsStreamChannelKey,
 } from '../providers/PerpsStreamManager';
 import type {
   AccountState,
@@ -62,6 +73,7 @@ import type {
   GetAccountStateParams,
   GetAvailableDexsParams,
   GetFundingParams,
+  GetMarketsParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetPositionsParams,
@@ -123,7 +135,6 @@ export type PerpsControllerState = {
   // Active provider
   activeProvider: string;
   isTestnet: boolean; // Dev toggle for testnet
-  connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Initialization state machine
   initializationState: InitializationState;
@@ -132,9 +143,6 @@ export type PerpsControllerState = {
 
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
-
-  // Current positions
-  positions: Position[];
 
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
@@ -162,6 +170,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this withdrawal
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -185,6 +194,7 @@ export type PerpsControllerState = {
     id: string;
     amount: string;
     asset: string;
+    accountAddress: string; // Account that initiated this deposit
     txHash?: string;
     timestamp: number;
     success: boolean;
@@ -271,12 +281,10 @@ export type PerpsControllerState = {
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  connectionStatus: 'disconnected',
   initializationState: InitializationState.UNINITIALIZED,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
-  positions: [],
   perpsBalances: {},
   depositInProgress: false,
   lastDepositResult: null,
@@ -323,12 +331,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  positions: {
-    includeInStateLogs: true,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   perpsBalances: {
     includeInStateLogs: true,
     persist: true,
@@ -344,12 +346,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
   activeProvider: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  connectionStatus: {
-    includeInStateLogs: true,
-    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -577,6 +573,10 @@ export type PerpsControllerActions =
       handler: PerpsController['resetFirstTimeUserState'];
     }
   | {
+      type: 'PerpsController:clearPendingTransactionRequests';
+      handler: PerpsController['clearPendingTransactionRequests'];
+    }
+  | {
       type: 'PerpsController:saveTradeConfiguration';
       handler: PerpsController['saveTradeConfiguration'];
     }
@@ -676,6 +676,14 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
+  /**
+   * Version counter for blocked region list.
+   * Used to prevent race conditions where stale eligibility checks
+   * (started with fallback config) overwrite results from newer checks
+   * (started with remote config).
+   */
+  private blockedRegionListVersion = 0;
+
   // Store HIP-3 configuration (mutable for runtime updates from remote flags)
   private hip3Enabled: boolean;
   private hip3AllowlistMarkets: string[];
@@ -740,6 +748,28 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
+
+    // Migrate old persisted data without accountAddress
+    this.migrateRequestsIfNeeded();
+  }
+
+  /**
+   * Clean up old withdrawal/deposit requests that don't have accountAddress
+   * These are from before the accountAddress field was added and can't be displayed
+   * in the UI (which filters by account), so we discard them
+   */
+  private migrateRequestsIfNeeded(): void {
+    this.update((state) => {
+      // Remove withdrawal requests without accountAddress - they can't be attributed to any account
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+
+      // Remove deposit requests without accountAddress - they can't be attributed to any account
+      state.depositRequests = state.depositRequests.filter(
+        (req) => !!req.accountAddress,
+      );
+    });
   }
 
   protected setBlockedRegionList(
@@ -756,6 +786,7 @@ export class PerpsController extends BaseController<
           newSource: 'remote' | 'fallback',
         ) => {
           this.blockedRegionList = { list: newList, source: newSource };
+          this.blockedRegionListVersion += 1;
         },
         refreshEligibility: () => this.refreshEligibility(),
       }),
@@ -782,6 +813,7 @@ export class PerpsController extends BaseController<
             source: 'remote' | 'fallback',
           ) => {
             this.blockedRegionList = { list, source };
+            this.blockedRegionListVersion += 1;
           },
           refreshEligibility: () => this.refreshEligibility(),
           getHip3Config: () => ({
@@ -844,10 +876,10 @@ export class PerpsController extends BaseController<
    */
   private async withStreamPause<T>(
     operation: () => Promise<T>,
-    channels: (keyof PerpsStreamManager)[],
+    channels: PerpsStreamChannelKey[],
   ): Promise<T> {
     const streamManager = getStreamManagerInstance();
-    const pausedChannels: (keyof PerpsStreamManager)[] = [];
+    const pausedChannels: PerpsStreamChannelKey[] = [];
 
     // Pause emission on specified channels (WebSocket stays connected)
     // Track which channels successfully paused to ensure proper cleanup
@@ -1210,10 +1242,7 @@ export class PerpsController extends BaseController<
         getOpenOrders: () => this.getOpenOrders(),
       }),
       withStreamPause: <T>(operation: () => Promise<T>, channels: string[]) =>
-        this.withStreamPause(
-          operation,
-          channels as (keyof PerpsStreamManager)[],
-        ),
+        this.withStreamPause(operation, channels as PerpsStreamChannelKey[]),
     });
   }
 
@@ -1337,12 +1366,17 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastDepositResult = null;
 
+        // Get current account address
+        const evmAccount = getEvmAccountFromSelectedAccountGroup();
+        const accountAddress = evmAccount?.address || 'unknown';
+
         // Add deposit request to tracking
         const depositRequest = {
           id: currentDepositId,
           timestamp: Date.now(),
           amount: amount || '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
+          accountAddress, // Track which account initiated deposit
           success: false, // Will be updated when transaction completes
           txHash: undefined,
           status: 'pending' as TransactionStatus,
@@ -1356,6 +1390,14 @@ export class PerpsController extends BaseController<
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(assetChainId);
 
+      const gasFeeToken =
+        transaction.to &&
+        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        transaction.to.toLowerCase() ===
+          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
+          ? (transaction.to as Hex)
+          : undefined;
+
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
       const { result, transactionMeta } =
@@ -1364,6 +1406,7 @@ export class PerpsController extends BaseController<
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
+          gasFeeToken,
         });
 
       // Store the transaction ID and try to get amount from transaction
@@ -1512,6 +1555,8 @@ export class PerpsController extends BaseController<
     status: 'completed' | 'failed',
     txHash?: string,
   ): void {
+    let withdrawalAmount: string | undefined;
+
     this.update((state) => {
       const withdrawalIndex = state.withdrawalRequests.findIndex(
         (request) => request.id === withdrawalId,
@@ -1519,6 +1564,8 @@ export class PerpsController extends BaseController<
 
       if (withdrawalIndex >= 0) {
         const request = state.withdrawalRequests[withdrawalIndex];
+        withdrawalAmount = request.amount;
+        const originalStatus = request.status;
         request.status = status;
         request.success = status === 'completed';
         if (txHash) {
@@ -1532,6 +1579,21 @@ export class PerpsController extends BaseController<
             lastUpdated: Date.now(),
             activeWithdrawalId: null,
           };
+        }
+
+        // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
+        if (withdrawalAmount !== undefined && originalStatus !== status) {
+          const eventBuilder = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
+          ).addProperties({
+            [PerpsEventProperties.STATUS]:
+              status === 'completed'
+                ? PerpsEventValues.STATUS.COMPLETED
+                : PerpsEventValues.STATUS.FAILED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+              Number.parseFloat(withdrawalAmount),
+          });
+          MetaMetrics.getInstance().trackEvent(eventBuilder.build());
         }
 
         DevLogger.log('PerpsController: Updated withdrawal status', {
@@ -1692,11 +1754,27 @@ export class PerpsController extends BaseController<
   /**
    * Get available markets with optional filtering
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow market discovery
+   * without full perps initialization (e.g., for discovery banners on spot screens)
    */
-  async getMarkets(params?: {
-    symbols?: string[];
-    dex?: string;
-  }): Promise<MarketInfo[]> {
+  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if market exists) without full perps setup
+    if (params?.readOnly) {
+      // Try to get existing provider, or create a temporary one for readOnly queries
+      let provider = this.providers.get(this.state.activeProvider);
+      // Create a temporary provider instance for readOnly queries
+      // The readOnly path in provider creates a standalone InfoClient without full init
+      provider ??= new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.hip3AllowlistMarkets,
+        blocklistMarkets: this.hip3BlocklistMarkets,
+      });
+      return provider.getMarkets(params);
+    }
+
     const provider = this.getActiveProvider();
     return MarketDataService.getMarkets({
       provider,
@@ -1839,7 +1917,6 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.isTestnet = !state.isTestnet;
-        state.connectionStatus = 'disconnected';
       });
 
       const newNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -1890,7 +1967,6 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.activeProvider = providerId;
-      state.connectionStatus = 'disconnected';
     });
 
     return { success: true, providerId };
@@ -2145,12 +2221,24 @@ export class PerpsController extends BaseController<
    * Refresh eligibility status
    */
   async refreshEligibility(): Promise<void> {
-    try {
-      DevLogger.log('PerpsController: Refreshing eligibility');
+    // Capture the current version before starting the async operation.
+    // This prevents race conditions where stale eligibility checks
+    // (started with fallback config) overwrite results from newer checks
+    // (started with remote config after it was fetched).
+    const versionAtStart = this.blockedRegionListVersion;
 
+    try {
+      // TODO: It would be good to have this location before we call this async function to avoid the race condition
       const isEligible = await EligibilityService.checkEligibility(
         this.blockedRegionList.list,
       );
+
+      // Only update state if the blocked region list hasn't changed while we were awaiting.
+      // This prevents stale fallback-based eligibility checks from overwriting
+      // results from remote-based checks.
+      if (this.blockedRegionListVersion !== versionAtStart) {
+        return;
+      }
 
       this.update((state) => {
         state.isEligible = isEligible;
@@ -2160,10 +2248,14 @@ export class PerpsController extends BaseController<
         ensureError(error),
         this.getErrorContext('refreshEligibility'),
       );
-      // Default to eligible on error
-      this.update((state) => {
-        state.isEligible = true;
-      });
+
+      // Only update on error if version is still current
+      if (this.blockedRegionListVersion === versionAtStart) {
+        // Default to eligible on error
+        this.update((state) => {
+          state.isEligible = true;
+        });
+      }
     }
   }
 
@@ -2238,6 +2330,36 @@ export class PerpsController extends BaseController<
       state.hasPlacedFirstOrder = {
         testnet: false,
         mainnet: false,
+      };
+    });
+  }
+
+  /**
+   * Clear pending/bridging withdrawal and deposit requests
+   * This is useful when users want to clear stuck pending indicators
+   * Called by Reset Account feature in settings
+   */
+  clearPendingTransactionRequests(): void {
+    DevLogger.log('PerpsController: Clearing pending transaction requests', {
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      // Filter out pending/bridging withdrawals, keep completed/failed for history
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Filter out pending deposits, keep completed/failed for history
+      state.depositRequests = state.depositRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Reset withdrawal progress
+      state.withdrawalProgress = {
+        progress: 0,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: null,
       };
     });
   }

@@ -1,24 +1,44 @@
-name: Push OTA Update (Test)
+name: Push OTA Update
 
 on:
   workflow_dispatch:
     inputs:
+      commit_hash:
+        description: 'Commit hash to publish'
+        required: true
+        type: string
       pr_number:
-        description: 'Pull request number to publish'
+        description: 'PR number associated with the commit'
         required: true
         type: string
       base_branch:
         description: 'Base branch ref to compare fingerprints against (e.g., main)'
         required: true
         type: string
+      message:
+        description: 'EAS update message'
+        required: true
+        type: string
+      channel:
+        description: 'OTA channel to push update to (exp, rc, production)'
+        required: true
+        type: choice
+        options:
+          - exp
+          - rc
+          - production
+        default: exp
 
 permissions:
   contents: read
   id-token: write
 
 env:
+  TARGET_COMMIT_HASH: ${{ inputs.commit_hash }}
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
   BASE_BRANCH_REF: ${{ inputs.base_branch }}
+  UPDATE_MESSAGE: ${{ inputs.message }}
+  TARGET_CHANNEL: ${{ inputs.channel }}
 
 jobs:
   fingerprint-comparison:
@@ -29,10 +49,10 @@ jobs:
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     steps:
-      - name: Checkout target PR branch
+      - name: Checkout target commit
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
+          ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
       - name: Checkout base branch snapshot
@@ -46,7 +66,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
 
       - name: Install dependencies (workflow branch)
         run: |
@@ -60,8 +79,6 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
-          echo "Writing detailed fingerprint file to fingerprint-pr.json"
-          npx @expo/fingerprint ./ > fingerprint-pr.json
 
       - name: Install dependencies (base branch)
         working-directory: main
@@ -77,8 +94,6 @@ jobs:
           FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Base branch fingerprint: $FINGERPRINT"
-          echo "Writing detailed fingerprint file to ../fingerprint-base.json"
-          npx @expo/fingerprint ./ > ../fingerprint-base.json
 
       - name: Compare fingerprints
         id: compare
@@ -91,42 +106,60 @@ jobs:
             exit 1
           fi
 
-          echo "Target PR fingerprint: $BRANCH_FP"
-          echo "Base branch fingerprint: $MAIN_FP"
-
           if [ "$BRANCH_FP" = "$MAIN_FP" ]; then
             echo "✅ Fingerprints match. No native changes detected."
             echo "equal=true" >> "$GITHUB_OUTPUT"
           else
             echo "⚠️ Fingerprints differ. Native changes detected."
             echo "equal=false" >> "$GITHUB_OUTPUT"
-            if [ -f fingerprint-base.json ] && [ -f fingerprint-pr.json ]; then
-              echo "Fingerprint differences:"
-              npx @expo/fingerprint ./ fingerprint-base.json fingerprint-pr.json || true
-            else
-              echo "Detailed fingerprint files not found; skipping diff."
-            fi
           fi
+
+          echo "Target PR fingerprint: $BRANCH_FP"
+          echo "Base branch fingerprint: $MAIN_FP"
 
       - name: Record fingerprint summary
         env:
           BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
           MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
           MATCHES: ${{ steps.compare.outputs.equal }}
-          TARGET_PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          TARGET_COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
           BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
         run: |
           {
             echo "### Expo Fingerprint Comparison"
             echo ""
-            echo "- Target PR (#$TARGET_PR_NUMBER) fingerprint: \`$BRANCH_FP\`"
+            echo "- Target commit (\`$TARGET_COMMIT_HASH\`) fingerprint: \`$BRANCH_FP\`"
             echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  validate-pr:
+    name: Validate PR and Commit
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.validate-pr.outputs.pr_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR contains commit
+        id: validate-pr
+        env:
+          COMMIT_HASH: ${{ env.TARGET_COMMIT_HASH }}
+          PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
+          BASE_BRANCH: ${{ env.BASE_BRANCH_REF }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          .github/scripts/validate-pr-commit.sh
+
   approval:
     name: Require OTA Update Approval
-    needs: fingerprint-comparison
+    needs:
+      - fingerprint-comparison
+      - validate-pr
     if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -134,34 +167,124 @@ jobs:
         uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
         with:
           team: mobile-platform
-          pr-number: ${{ env.TARGET_PR_NUMBER }}
+          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
   push-update:
     name: Push EAS Update
     runs-on: ubuntu-latest
-    environment: expo-update
+    environment: ${{ inputs.channel == 'exp' && 'build-exp' || inputs.channel == 'rc' && 'build-rc' || 'build-production' }}
     needs:
       - fingerprint-comparison
       - approval
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+      - validate-pr
+    if: >
+      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+      needs.approval.result == 'success'
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
-
+      GIT_BRANCH: ${{ github.ref_name }}
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+      FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+      SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+      SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+      SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+      SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+      MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
+      MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+      IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+      IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+      ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+      ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+      GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+      GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+      MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
+      MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+      WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+      MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+      FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+      FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+      FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+      FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+      FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+      FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+      FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+      QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+      QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+      QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+      QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+      QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+      QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+      QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+      QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ env.TARGET_PR_NUMBER }}/head
+          ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+
+      - name: Determine signing secret name
+        shell: bash
+        env:
+          TARGET: ${{ inputs.channel }}
+        run: |
+          case "$TARGET" in
+            exp)
+              SECRET_NAME="metamask-exp-expo-signer"
+              ;;
+            rc)
+              SECRET_NAME="metamask-rc-expo-signer"
+              ;;
+            production)
+              SECRET_NAME="metamask-prod-expo-signer"
+              ;;
+            *)
+              echo "❌ Unknown target: $TARGET"
+              exit 1
+              ;;
+          esac
+          echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch secret and export as environment variables
+        shell: bash
+        run: |
+          echo "🔐 Fetching secret from Secrets Manager..."
+          secret_json=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "${AWS_SIGNING_CERT_SECRET_NAME}" \
+            --query SecretString \
+            --output text)
+
+          keys=$(echo "$secret_json" | jq -r 'keys[]')
+          for key in $keys; do
+            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
+            echo "::add-mask::$value"
+            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+            echo "✅ Set secret for key: $key"
+          done
 
       - name: Install dependencies
         run: |
@@ -176,67 +299,47 @@ jobs:
       - name: Display configuration
         run: |
           TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
-          TARGET_PROJECT_ID=$(node -p "require('./ota.config.js').PROJECT_ID")
           echo "🔧 Configuration:"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
-          echo "  Message: test eas update workflow"
+          echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
-          # Fingerprint comparison temporarily disabled
-          echo ""
-          echo "📱 Project Info:"
-          echo "  Project ID (target branch): ${TARGET_PROJECT_ID}"
-          echo "  EXPO_PROJECT_ID (from secrets): $EXPO_PROJECT_ID"
-          echo "  EXPO_TOKEN (from secrets): $EXPO_TOKEN"
 
-      - name: Prepare Expo update signing key
+      - name: Build & Push EAS Update via build.sh
         env:
-          EXPO_KEY_PRIV: ${{ secrets.EXPO_KEY_PRIV }}
-        run: |
-          if [ -z "${EXPO_KEY_PRIV}" ]; then
-            echo "::error title=Missing EXPO_KEY_PRIV::EXPO_KEY_PRIV secret is not configured. Cannot sign update." >&2
-            exit 1
-          fi
-          mkdir -p keys
-          echo "Writing Expo private key to ./keys/private-key.pem"
-          printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
-
-      - name: Push EAS Update
-        env:
-          # Skip linting during Metro transform in CI (linting already done separately)
           SKIP_TRANSFORM_LINT: 'true'
           # Increase Node heap to avoid OOM during Expo export in CI
           NODE_OPTIONS: '--max_old_space_size=8192'
           # Disable LavaMoat sandbox to prevent duplicate bundle executions in CI
           EXPO_NO_LAVAMOAT: '1'
         run: |
-          echo "🚀 Publishing EAS update..."
-
-          if [ -z "${EXPO_CHANNEL}" ]; then
-            echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
+          echo "📦 Configuring EXPO key..."
+          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
+            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
             exit 1
           fi
 
-          if [ ! -f keys/private-key.pem ]; then
-            echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
-            exit 1
-          fi
+          # Decode the key
+          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          export EXPO_KEY_PRIV
+          echo "✅ Expo key decoded and exported"
 
-          echo "ℹ️ Git head: $(git rev-parse HEAD)"
-          echo "ℹ️ Checking for eas script in package.json..."
-          if ! grep -q '"eas": "eas"' package.json; then
-            echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
-            exit 1
-          fi
-
-          echo "ℹ️ Available yarn scripts containing eas:"
-          yarn run --json | grep '"name":"eas"' || true
-
-          yarn run eas update \
-            --channel "${EXPO_CHANNEL}" \
-            --private-key-path "./keys/private-key.pem" \
-            --message "test eas update workflow" \
-            --non-interactive
+          echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
+          case "${TARGET_CHANNEL}" in
+            exp)
+              yarn run build:expo-update:main:exp
+              ;;
+            rc)
+              yarn run build:expo-update:main:rc
+              ;;
+            production)
+              yarn run build:expo-update:main:prod
+              ;;
+            *)
+              echo "❌ Unsupported TARGET_CHANNEL: ${TARGET_CHANNEL}" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Update summary
         if: success()
@@ -245,7 +348,7 @@ jobs:
             echo "### ✅ EAS Update Published Successfully"
             echo
             echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
-            echo "**Message:** test eas update workflow"
+            echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
             echo
             echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
           } >> "$GITHUB_STEP_SUMMARY"

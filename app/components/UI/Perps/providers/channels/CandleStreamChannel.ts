@@ -8,7 +8,7 @@ import {
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -113,7 +113,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
-   * Subscribe to candle updates for a specific coin and interval
+   * Subscribe to candle updates for a specific coin and interval.
+   * Note: The duration parameter is accepted for API compatibility but ignored -
+   * we always fetch maximum candles (YEAR_TO_DATE = 500) to avoid complex caching issues.
    */
   public subscribe(params: {
     coin: string;
@@ -123,13 +125,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     throttleMs?: number;
     onError?: (error: Error) => void;
   }): () => void {
-    const { coin, interval, duration, callback, throttleMs, onError } = params;
+    const { coin, interval, callback, throttleMs, onError } = params;
     const cacheKey = this.getCacheKey(coin, interval);
     const id = Math.random().toString(36);
 
     const subscription: StreamSubscription<CandleData> = {
       id,
-      cacheKey, // Store cacheKey to filter subscribers by their subscription
+      cacheKey,
       callback,
       throttleMs,
       hasReceivedFirstUpdate: false,
@@ -145,7 +147,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     }
 
     // Ensure WebSocket connected for this coin+interval
-    this.connect(coin, interval, duration, cacheKey);
+    this.connect(coin, interval, cacheKey);
 
     // Return unsubscribe function
     return () => {
@@ -165,9 +167,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       if (remainingForThisKey === 0) {
         DevLogger.log(
           'CandleStreamChannel: Disconnecting WebSocket (no subscribers)',
-          {
-            cacheKey,
-          },
+          { cacheKey },
         );
         this.disconnect(cacheKey);
       }
@@ -175,12 +175,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
-   * Connect to WebSocket for specific coin and interval
+   * Connect to WebSocket for specific coin and interval.
+   * Always uses YEAR_TO_DATE duration to fetch maximum candles (500) on initial load.
+   * This ensures all subscribers get the full dataset regardless of their individual duration needs.
    */
   private connect(
     coin: string,
     interval: CandlePeriod,
-    duration: TimeDuration,
     cacheKey: string,
   ): void {
     // Skip if already connected for this coin+interval
@@ -198,17 +199,18 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
         // Only reconnect if subscribers still exist and no connection established
         if (hasActiveSubscribers && !this.wsSubscriptions.has(cacheKey)) {
-          this.connect(coin, interval, duration, cacheKey);
+          this.connect(coin, interval, cacheKey);
         }
       }, PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
       return;
     }
 
     // Subscribe to candle updates via controller
+    // Always use YEAR_TO_DATE to fetch maximum candles (500) regardless of subscriber's duration
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       coin,
       interval,
-      duration,
+      duration: TimeDuration.YEAR_TO_DATE, // Always fetch max candles
       callback: (candleData: CandleData) => {
         // Update cache
         this.cache.set(cacheKey, candleData);
@@ -253,9 +255,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
-   * Disconnect from WebSocket for specific coin+interval
+   * Disconnect from WebSocket for specific coin+interval, or all subscriptions if no cacheKey provided
+   * @param cacheKey - Optional cache key for specific coin+interval. If omitted, disconnects all subscriptions.
    */
-  private disconnect(cacheKey: string): void {
+  public disconnect(cacheKey?: string): void {
+    if (cacheKey === undefined) {
+      // Disconnect all subscriptions
+      this.disconnectAll();
+      return;
+    }
+    // Disconnect specific subscription
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
     if (unsubscribe) {
       unsubscribe();

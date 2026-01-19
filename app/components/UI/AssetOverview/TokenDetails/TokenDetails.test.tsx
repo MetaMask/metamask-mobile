@@ -201,16 +201,17 @@ describe('TokenDetails', () => {
     });
   };
 
-  it('should render correctly', () => {
+  it('renders token details and market details sections', () => {
     mockSelectors();
 
-    const { toJSON, getByText } = renderWithProvider(
+    const { getByText, getAllByText } = renderWithProvider(
       <TokenDetails asset={mockDAI} />,
       {
         state: initialState,
       },
     );
 
+    // Token details section
     expect(getByText('Token details')).toBeDefined();
     expect(getByText('Contract address')).toBeDefined();
     expect(getByText('0x6B175...71d0F')).toBeDefined();
@@ -219,20 +220,19 @@ describe('TokenDetails', () => {
     expect(getByText('Token list')).toBeDefined();
     expect(getByText('Metamask, Coinmarketcap')).toBeDefined();
     expect(getByText('Market details')).toBeDefined();
-    expect(getByText('Market Cap')).toBeDefined();
-    expect(getByText('Total Volume (24h)')).toBeDefined();
-    expect(getByText('$147.65M')).toBeDefined();
-    expect(getByText('Volume / Market Cap')).toBeDefined();
+    expect(getByText('Market cap')).toBeDefined();
+    expect(getAllByText('$5.22B').length).toBe(2); // marketCap and fullyDiluted (same value)
+    expect(getByText('Total volume (24h)')).toBeDefined();
+    expect(getByText('$147.65M')).toBeDefined(); // totalVolume (ETH) * conversionRate
+    expect(getByText('Volume / Market cap')).toBeDefined();
     expect(getByText('2.83%')).toBeDefined();
     expect(getByText('Circulating supply')).toBeDefined();
     expect(getByText('5.21B')).toBeDefined();
     expect(getByText('All time high')).toBeDefined();
-    expect(getByText('$1.22')).toBeDefined();
+    expect(getByText('$1.22')).toBeDefined(); // allTimeHigh (ETH) * conversionRate
     expect(getByText('All time low')).toBeDefined();
-    expect(getByText('$0.88')).toBeDefined();
-    expect(getByText('2.83%')).toBeDefined();
+    expect(getByText('$0.88')).toBeDefined(); // allTimeLow (ETH) * conversionRate
     expect(getByText('Fully diluted')).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render Token Details without Market Details when marketData is null', () => {

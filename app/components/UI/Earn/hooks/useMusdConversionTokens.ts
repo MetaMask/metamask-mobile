@@ -1,33 +1,88 @@
 import { useSelector } from 'react-redux';
-import { selectMusdConversionPaymentTokensAllowlist } from '../selectors/featureFlags';
-import { isMusdConversionPaymentToken } from '../utils/musd';
+import {
+  selectMusdConversionMinAssetBalanceRequired,
+  selectMusdConversionPaymentTokensAllowlist,
+  selectMusdConversionPaymentTokensBlocklist,
+} from '../selectors/featureFlags';
+import { isTokenAllowed } from '../utils/wildcardTokenList';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useCallback, useMemo } from 'react';
 import { TokenI } from '../../Tokens/types';
+import {
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+} from '../constants/musd';
+import { toHex } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 
 export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
     selectMusdConversionPaymentTokensAllowlist,
   );
 
-  const allTokens = useAccountTokens({ includeNoBalance: false });
-
-  const tokenFilter = useCallback(
-    (tokens: AssetType[]) =>
-      tokens.filter((token) =>
-        isMusdConversionPaymentToken(
-          token.address,
-          musdConversionPaymentTokensAllowlist,
-          token.chainId,
-        ),
-      ),
-    [musdConversionPaymentTokensAllowlist],
+  const musdConversionPaymentTokensBlocklist = useSelector(
+    selectMusdConversionPaymentTokensBlocklist,
   );
 
+  const musdConversionMinAssetBalanceRequired = useSelector(
+    selectMusdConversionMinAssetBalanceRequired,
+  );
+
+  const allTokens = useAccountTokens({ includeNoBalance: false });
+
+  const filterTokensWithMinBalance = useCallback(
+    (token: AssetType) => {
+      const fiatBalance = token?.fiat?.balance;
+
+      // Can't use truthiness checks here, because `0` is valid when the threshold is '0'.
+      if (fiatBalance === undefined || fiatBalance === null) {
+        return false;
+      }
+
+      const fiatBalanceBn = new BigNumber(fiatBalance);
+      if (!fiatBalanceBn.isFinite()) {
+        return false;
+      }
+
+      return fiatBalanceBn.isGreaterThanOrEqualTo(
+        musdConversionMinAssetBalanceRequired,
+      );
+    },
+    [musdConversionMinAssetBalanceRequired],
+  );
+
+  const filterTokensWithAllowlistAndBlocklist = useCallback(
+    (token: AssetType) =>
+      isTokenAllowed(
+        token.symbol,
+        musdConversionPaymentTokensAllowlist,
+        musdConversionPaymentTokensBlocklist,
+        token.chainId,
+      ),
+    [
+      musdConversionPaymentTokensAllowlist,
+      musdConversionPaymentTokensBlocklist,
+    ],
+  );
+
+  // Filter tokens based on allowlist and blocklist rules.
+  // If allowlist is non-empty, token must be in it.
+  // If blocklist is non-empty, token must NOT be in it.
+  // Token must have minimum balance to be eligible for conversion.
+  const filterAllowedTokens = useCallback(
+    (tokens: AssetType[]) =>
+      tokens
+        .filter(filterTokensWithAllowlistAndBlocklist)
+        .filter(filterTokensWithMinBalance),
+    [filterTokensWithAllowlistAndBlocklist, filterTokensWithMinBalance],
+  );
+
+  // Allowed tokens for conversion.
   const conversionTokens = useMemo(
-    () => tokenFilter(allTokens),
-    [allTokens, tokenFilter],
+    () => filterAllowedTokens(allTokens),
+    [allTokens, filterAllowedTokens],
   );
 
   const isConversionToken = (token?: AssetType | TokenI) => {
@@ -40,9 +95,26 @@ export const useMusdConversionTokens = () => {
     );
   };
 
+  const isMusdSupportedOnChain = (chainId?: string) =>
+    chainId
+      ? Object.keys(MUSD_TOKEN_ADDRESS_BY_CHAIN).includes(toHex(chainId))
+      : false;
+
+  /**
+   * Returns the output chain ID for mUSD conversion.
+   * If the provided chain supports mUSD, returns that chain ID.
+   * Otherwise, falls back to the default chain (mainnet).
+   */
+  const getMusdOutputChainId = (chainId?: string): Hex =>
+    chainId && isMusdSupportedOnChain(chainId)
+      ? toHex(chainId)
+      : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+
   return {
-    tokenFilter,
+    filterAllowedTokens,
     isConversionToken,
+    isMusdSupportedOnChain,
+    getMusdOutputChainId,
     tokens: conversionTokens,
   };
 };

@@ -42,14 +42,14 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
         }
       >
-        Pet Names on this network
+        Pet names on this network
       </Text>
       <View
         testID="mocked-sample-pet-names-list"

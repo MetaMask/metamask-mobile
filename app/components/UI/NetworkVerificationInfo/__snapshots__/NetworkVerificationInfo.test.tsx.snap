@@ -8,21 +8,31 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     style={
       [
         {
+          "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "padding": 16,
+          "height": 56,
         },
         false,
+        {
+          "paddingHorizontal": 16,
+        },
       ]
     }
     testID="header"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
       }
     >
       <Text
@@ -30,7 +40,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -109,7 +119,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             {
               "color": "#121314",
               "flexShrink": 1,
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -170,7 +180,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -227,7 +237,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -243,7 +253,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -282,7 +292,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -296,7 +306,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -320,7 +330,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -335,7 +345,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -350,7 +360,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -364,7 +374,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -379,7 +389,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -393,7 +403,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -408,7 +418,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -422,7 +432,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -438,7 +448,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "paddingHorizontal": 8,
         "paddingVertical": 4,
@@ -476,7 +485,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -516,7 +525,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -538,21 +547,31 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     style={
       [
         {
+          "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "padding": 16,
+          "height": 56,
         },
         false,
+        {
+          "paddingHorizontal": 16,
+        },
       ]
     }
     testID="header"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
       }
     >
       <Text
@@ -560,7 +579,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -639,7 +658,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             {
               "color": "#121314",
               "flexShrink": 1,
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -656,7 +675,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -669,7 +688,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -708,7 +727,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -722,7 +741,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -746,7 +765,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -800,7 +819,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 14,
                         "letterSpacing": 0,
                         "lineHeight": 22,
@@ -831,7 +850,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -846,7 +865,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -860,7 +879,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -875,7 +894,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -889,7 +908,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -904,7 +923,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -918,7 +937,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -932,7 +951,6 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "paddingHorizontal": 8,
         "paddingVertical": 4,
@@ -970,7 +988,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1010,7 +1028,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

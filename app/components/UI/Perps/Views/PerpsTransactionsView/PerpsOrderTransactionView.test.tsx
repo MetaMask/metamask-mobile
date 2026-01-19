@@ -8,7 +8,7 @@ import {
   usePerpsNetwork,
   usePerpsOrderFees,
 } from '../../hooks';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 
 const mockTransaction = {
   id: 'order-123',

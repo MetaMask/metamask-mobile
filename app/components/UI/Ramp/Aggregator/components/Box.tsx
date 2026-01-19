@@ -14,8 +14,7 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       padding: 16,
-      borderWidth: 1.5,
-      borderColor: colors.border.default,
+      backgroundColor: colors.background.muted,
       borderRadius: 8,
     },
     label: {

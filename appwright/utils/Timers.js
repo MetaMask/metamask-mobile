@@ -44,6 +44,19 @@ class Timers {
     return this.timers.get(id);
   }
 
+  // Rename a timer
+  renameTimer(oldId, newId) {
+    if (!this.timers.has(oldId)) {
+      throw new Error(`Timer with id "${oldId}" does not exist.`);
+    }
+    if (this.timers.has(newId)) {
+      throw new Error(`Timer with id "${newId}" already exists.`);
+    }
+    const timerData = this.timers.get(oldId);
+    this.timers.delete(oldId);
+    this.timers.set(newId, timerData);
+  }
+
   // Obtener todos los timers
   getAllTimers() {
     return Array.from(this.timers.entries()).map(([id, timer]) => ({

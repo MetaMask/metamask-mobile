@@ -1,10 +1,10 @@
 import {
   ConnectAccountBottomSheetSelectorsIDs,
   ConnectAccountBottomSheetSelectorsText,
-} from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
+} from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class ConnectBottomSheet {
   get container(): DetoxElement {

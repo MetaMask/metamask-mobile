@@ -50,7 +50,7 @@ const mockSelectAdditionalNetworksBlacklistFeatureFlag =
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
-      'rewards.ways_to_earn.supported_networks': 'Supported Networks',
+      'rewards.ways_to_earn.supported_networks': 'Supported networks',
     };
     return mockStrings[key] || key;
   }),
@@ -67,10 +67,6 @@ jest.mock('../../../../../../../util/networks/customNetworks', () => ({
     {
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       nickname: 'Solana Mainnet',
-    },
-    {
-      chainId: 'pacific-1',
-      nickname: 'Sei Network',
     },
   ],
 }));
@@ -107,7 +103,6 @@ describe('SwapSupportedNetworksSection', () => {
 
   const mockNonEvmNetworks: Record<string, { name: string }> = {
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': { name: 'Solana Mainnet' },
-    'pacific-1': { name: 'Sei Network' },
   };
 
   beforeEach(() => {
@@ -144,7 +139,7 @@ describe('SwapSupportedNetworksSection', () => {
     const { getByText } = render(<SwapSupportedNetworksSection />);
 
     // Assert
-    expect(getByText('Supported Networks')).toBeOnTheScreen();
+    expect(getByText('Supported networks')).toBeOnTheScreen();
   });
 
   it('renders supported networks', () => {

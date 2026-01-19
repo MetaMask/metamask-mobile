@@ -59,9 +59,7 @@ const WalletRestored = () => {
       Logger.error(error as Error, 'Failed to clear migration error flag');
     }
 
-    navigation.replace(Routes.ONBOARDING.LOGIN, {
-      isVaultRecovery: true,
-    });
+    navigation.replace(Routes.ONBOARDING.LOGIN);
   }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {

@@ -34,6 +34,48 @@ describe('MainNavigator', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  describe('Tab Bar Visibility', () => {
+    it('hides tab bar when browser is active', () => {
+      // Given a state where browser is the active route
+      const stateWithBrowserActive = {
+        ...initialRootState,
+        browser: {
+          ...initialRootState.browser,
+          activeTab: 0,
+          tabs: [{ url: 'https://example.com', id: 0 }],
+        },
+      };
+
+      // When rendering the MainNavigator
+      const { toJSON } = renderWithProvider(<MainNavigator />, {
+        state: stateWithBrowserActive,
+      });
+
+      // Then the tab bar should be hidden (returns null in renderTabBar)
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('shows tab bar when not in browser', () => {
+      // Given a state where wallet is the active route
+      const stateWithWalletActive = {
+        ...initialRootState,
+        browser: {
+          ...initialRootState.browser,
+          activeTab: null,
+          tabs: [],
+        },
+      };
+
+      // When rendering the MainNavigator
+      const { toJSON } = renderWithProvider(<MainNavigator />, {
+        state: stateWithWalletActive,
+      });
+
+      // Then the tab bar should be visible
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
   it('includes SampleFeature screen in the navigation stack', () => {
     // Given the initial app state
     // When rendering the MainNavigator

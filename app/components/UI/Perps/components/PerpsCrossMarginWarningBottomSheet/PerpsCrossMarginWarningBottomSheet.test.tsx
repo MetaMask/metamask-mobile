@@ -199,7 +199,7 @@ describe('PerpsCrossMarginWarningBottomSheet', () => {
     it('renders cross margin warning title', () => {
       render(<PerpsCrossMarginWarningBottomSheet />);
 
-      expect(screen.getByText('Cross Margin Not Supported')).toBeTruthy();
+      expect(screen.getByText('Cross margin not supported')).toBeTruthy();
     });
 
     it('renders isolated margin requirement message', () => {

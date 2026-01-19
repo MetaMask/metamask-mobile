@@ -2,7 +2,9 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import ReusableModal, { ReusableModalRef } from '../../../UI/ReusableModal';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconSize,
@@ -26,11 +28,11 @@ import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+} from './SrpQuizModal.testIds';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useSelector } from 'react-redux';
 
-const introductionImg = require('../../../../images/reveal-srp.png');
+const introductionImg = require('../../../../images/reveal_srp.png');
 
 export interface SRPQuizProps {
   route: {
@@ -48,7 +50,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
       params: { keyringId },
     },
   } = props;
-  const modalRef = useRef<ReusableModalRef>(null);
+  const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
@@ -56,7 +58,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const dismissModal = (): void => {
-    modalRef.current?.dismissModal();
+    modalRef.current?.onCloseBottomSheet();
   };
 
   useEffect(() => {
@@ -107,7 +109,6 @@ const SRPQuiz = (props: SRPQuizProps) => {
     );
     trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      credentialName: 'seed_phrase',
       shouldUpdateNav: true,
       keyringId,
     });
@@ -428,9 +429,9 @@ const SRPQuiz = (props: SRPQuizProps) => {
   ]);
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
+    <BottomSheet ref={modalRef}>
       <View style={styles.modal}>{quizPage()}</View>
-    </ReusableModal>
+    </BottomSheet>
   );
 };
 

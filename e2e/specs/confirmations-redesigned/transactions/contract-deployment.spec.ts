@@ -1,5 +1,5 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -76,7 +76,7 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.tapDeployContractButton();
 
@@ -96,9 +96,16 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Check activity tab
+        // Wait for browser screen to be visible after confirmation modal dismisses
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+          description:
+            'Browser screen should be visible after confirming transaction',
+        });
+
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Contract Deployment');
+        await Assertions.expectTextDisplayed('Contract deployment');
         await Assertions.expectTextDisplayed('Confirmed');
       },
     );

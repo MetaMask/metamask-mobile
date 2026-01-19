@@ -1,0 +1,175 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomAction Component shows loading indicator when isLoading is true 1`] = `
+<View
+  style={
+    {
+      "opacity": 0,
+    }
+  }
+  testID="animated-view-opacity"
+>
+  <TouchableOpacity
+    accessibilityLabel="Paypal (Staging)"
+    accessible={true}
+    activeOpacity={0.8}
+    disabled={true}
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#3c4d9d0f",
+            "borderRadius": 8,
+            "padding": 16,
+          },
+          undefined,
+          undefined,
+          {
+            "padding": 0,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityRole="none"
+        accessible={true}
+        style={
+          {
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "marginBottom": 8,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityHint="Shows provider details"
+            accessibilityLabel="Paypal (Staging) logo"
+            disabled={true}
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                source={
+                  {
+                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png",
+                  }
+                }
+                style={
+                  {
+                    "height": 24,
+                    "width": 65,
+                  }
+                }
+              />
+              <Text
+                allowFontScaling={false}
+                selectable={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 12,
+                    },
+                    {
+                      "color": "#686e7d",
+                      "marginLeft": 8,
+                    },
+                    {
+                      "fontFamily": "Feather",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        />
+        <View
+          style={
+            {
+              "marginTop": 0,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+            style={
+              [
+                {
+                  "marginTop": 4,
+                  "overflow": "hidden",
+                },
+                {},
+              ]
+            }
+            testID="animated-view-height"
+          >
+            <View
+              style={
+                {
+                  "marginTop": 10,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                disabled={true}
+                loading={true}
+                onPress={[Function]}
+                onPressIn={[Function]}
+                onPressOut={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "#121314",
+                    "borderRadius": 12,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "opacity": 0.5,
+                    "overflow": "hidden",
+                    "paddingHorizontal": 16,
+                  }
+                }
+              >
+                <ActivityIndicator
+                  color="#ffffff"
+                  size="small"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;

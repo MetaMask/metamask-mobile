@@ -4,6 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
+// Mock the trendingNetworksList module to avoid getNetworkImageSource errors
+jest.mock('../../utils/trendingNetworksList', () => ({
+  TRENDING_NETWORKS_LIST: [],
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -472,7 +477,7 @@ describe('TrendingTokenRowItem', () => {
       false,
     );
 
-    expect(getByText(/\$0\.00 cap • \$0\.00 vol/)).toBeTruthy();
+    expect(getByText(/- cap • - vol/)).toBeTruthy();
   });
 
   it('renders with very large market cap and volume', () => {
@@ -552,6 +557,7 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: false,
         isETH: false,
+        isFromTrending: true,
       });
     });
 
@@ -609,6 +615,7 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: true,
         isETH: true,
+        isFromTrending: true,
       });
     });
 
@@ -666,6 +673,7 @@ describe('TrendingTokenRowItem', () => {
         pricePercentChange1d: 3.44,
         isNative: true,
         isETH: false,
+        isFromTrending: true,
       });
     });
 

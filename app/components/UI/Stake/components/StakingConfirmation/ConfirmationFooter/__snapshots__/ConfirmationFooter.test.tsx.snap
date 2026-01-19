@@ -30,7 +30,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -54,7 +54,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -108,7 +108,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -150,7 +150,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

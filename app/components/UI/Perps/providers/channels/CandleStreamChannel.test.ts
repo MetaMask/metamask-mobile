@@ -981,4 +981,132 @@ describe('CandleStreamChannel', () => {
       expect(subscriber).not.toHaveBeenCalled();
     });
   });
+
+  describe('Always Uses Maximum Duration', () => {
+    it('always uses YEAR_TO_DATE duration when subscribing regardless of requested duration', () => {
+      mockSubscribeToCandles.mockImplementation(({ duration }) => {
+        // Verify YEAR_TO_DATE is always used
+        expect(duration).toBe(TimeDuration.YEAR_TO_DATE);
+        return jest.fn();
+      });
+
+      // Subscribe with ONE_DAY - should still use YEAR_TO_DATE internally
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('shares WebSocket connection when subscribers use different durations for same coin+interval', () => {
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      // First subscriber with ONE_DAY
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      // Second subscriber with YEAR_TO_DATE (different duration, same coin+interval)
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.YEAR_TO_DATE,
+        callback: jest.fn(),
+      });
+
+      // WebSocket subscription created only once (connection is shared)
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('second subscriber receives cached data immediately', () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      const firstCallback = jest.fn();
+      const secondCallback = jest.fn();
+
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      // First subscriber
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.YEAR_TO_DATE,
+        callback: firstCallback,
+      });
+
+      // Simulate initial data load
+      capturedCallback?.(mockCandleData);
+
+      // Second subscriber
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: secondCallback,
+      });
+
+      // Second callback receives cached data immediately
+      expect(secondCallback).toHaveBeenCalledWith(mockCandleData);
+    });
+  });
+
+  describe('disconnect without cacheKey', () => {
+    it('calls disconnectAll when disconnect is called without cacheKey', () => {
+      const mockBtcUnsubscribe = jest.fn();
+      const mockEthUnsubscribe = jest.fn();
+
+      // Set up subscriptions
+      mockSubscribeToCandles
+        .mockReturnValueOnce(mockBtcUnsubscribe)
+        .mockReturnValueOnce(mockEthUnsubscribe);
+
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      channel.subscribe({
+        coin: 'ETH',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      // Act - call disconnect without cacheKey
+      channel.disconnect();
+
+      // Assert - both unsubscribe functions should be called (via disconnectAll)
+      expect(mockBtcUnsubscribe).toHaveBeenCalled();
+      expect(mockEthUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('calls disconnectAll when disconnect is called with undefined cacheKey', () => {
+      const mockBtcUnsubscribe = jest.fn();
+
+      mockSubscribeToCandles.mockReturnValueOnce(mockBtcUnsubscribe);
+
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      // Act - call disconnect with undefined
+      channel.disconnect(undefined);
+
+      // Assert - unsubscribe function should be called (via disconnectAll)
+      expect(mockBtcUnsubscribe).toHaveBeenCalled();
+    });
+  });
 });

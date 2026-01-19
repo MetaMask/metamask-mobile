@@ -48,6 +48,7 @@ export const ScanResult = {
   UNRECOGNIZED_QR_CODE: 'unrecognized_qr_code',
   INVALID_ADDRESS_FORMAT: 'invalid_address_format',
   URL_NAVIGATION_CANCELLED: 'url_navigation_cancelled',
+  ADDRESS_TYPE_NOT_SUPPORTED: 'address_type_not_supported',
 
   // System state outcomes
   WALLET_LOCKED: 'wallet_locked',
@@ -63,4 +64,5 @@ export type ScanResultValue =
   | typeof ScanResult.UNRECOGNIZED_QR_CODE
   | typeof ScanResult.INVALID_ADDRESS_FORMAT
   | typeof ScanResult.URL_NAVIGATION_CANCELLED
+  | typeof ScanResult.ADDRESS_TYPE_NOT_SUPPORTED
   | typeof ScanResult.WALLET_LOCKED;

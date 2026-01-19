@@ -54,20 +54,29 @@ export const selectInternalAccounts = createDeepEqualSelector(
   selectAccountsControllerState,
   selectFlattenedKeyringAccounts,
   (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
-    const keyringAccountsMap = new Map(
-      orderedKeyringAccounts.map((account, index) => [
-        toFormattedAddress(account),
-        index,
-      ]),
-    );
-    const sortedAccounts = Object.values(
+    // Build index map from formatted keyring addresses: O(n) calls to toFormattedAddress
+    const keyringIndexMap = new Map<string, number>();
+    for (let i = 0; i < orderedKeyringAccounts.length; i++) {
+      keyringIndexMap.set(toFormattedAddress(orderedKeyringAccounts[i]), i);
+    }
+
+    const accounts = Object.values(
       accountControllerState.internalAccounts.accounts,
-    ).sort(
-      (a, b) =>
-        (keyringAccountsMap.get(toFormattedAddress(a.address)) || 0) -
-        (keyringAccountsMap.get(toFormattedAddress(b.address)) || 0),
     );
-    return sortedAccounts;
+
+    // Pre-compute sort index for each account: O(m) calls to toFormattedAddress
+    const sortIndices = new Map<InternalAccount, number>();
+    for (const account of accounts) {
+      sortIndices.set(
+        account,
+        keyringIndexMap.get(toFormattedAddress(account.address)) ?? 0,
+      );
+    }
+
+    // Sort using pre-computed indices: O(m log m) but NO toFormattedAddress calls
+    return [...accounts].sort(
+      (a, b) => (sortIndices.get(a) ?? 0) - (sortIndices.get(b) ?? 0),
+    );
   },
 );
 
@@ -224,7 +233,7 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
-      selectedAccount?.methods?.includes(TrxMethod.SignMessageV2) ||
+      selectedAccount?.methods?.includes(TrxMethod.SignMessage) ||
       selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );

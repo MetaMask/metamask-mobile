@@ -23,7 +23,10 @@ export interface CalculateMaxRemovableMarginParams {
   positionSize: number;
   entryPrice: number;
   currentPrice: number;
-  maxLeverage: number;
+  /** The actual leverage of the position (not the asset's max leverage) */
+  positionLeverage: number;
+  /** Optional pre-calculated notional value (e.g., from position.positionValue) for immediate display before live prices load */
+  notionalValue?: number;
 }
 
 export interface CalculateNewLiquidationPriceParams {
@@ -86,65 +89,80 @@ export function assessMarginRemovalRisk(
  *
  * HyperLiquid enforces: transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
  * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+ * See also: docs/perps/hyperliquid/margining.md
  *
- * For high leverage assets (e.g., 50x where initial margin = 2%),
- * the 10% requirement is the binding constraint.
+ * Key insight from Hyperliquid support (Xulian, Dec 6, 2025):
+ * "you need to account for initial margin for withdrawal, maintenance is what is needed to not be liquidated"
  *
- * IMPORTANT: We apply an additional 50% safety buffer on top of the minimum required
- * because HyperLiquid's actual margin requirements can vary based on market conditions,
- * unrealized PnL, and other factors not captured in this simplified calculation.
+ * The initial margin is calculated using the POSITION'S leverage (not the asset's max leverage).
+ * For example, a position opened at 10x leverage requires 10% initial margin,
+ * not 2% (which would be for 50x max leverage).
  *
- * @param params - Current margin, position size, entry price, current price, and max leverage limit
+ * @param params - Current margin, position size, prices, and position leverage
  * @returns Maximum removable margin amount in USD
  */
 export function calculateMaxRemovableMargin(
   params: CalculateMaxRemovableMarginParams,
 ): number {
-  const { currentMargin, positionSize, entryPrice, currentPrice, maxLeverage } =
-    params;
+  const {
+    currentMargin,
+    positionSize,
+    currentPrice,
+    positionLeverage,
+    notionalValue: providedNotionalValue,
+  } = params;
 
   // Validate inputs
   if (
     isNaN(currentMargin) ||
-    isNaN(positionSize) ||
-    isNaN(entryPrice) ||
-    isNaN(currentPrice) ||
-    isNaN(maxLeverage) ||
+    isNaN(positionLeverage) ||
     currentMargin <= 0 ||
-    positionSize <= 0 ||
-    entryPrice <= 0 ||
-    currentPrice <= 0 ||
-    maxLeverage <= 0
+    positionLeverage <= 0
   ) {
     return 0;
   }
 
-  // Use the higher price to be conservative (HyperLiquid uses current mark price)
-  const price = Math.max(entryPrice, currentPrice);
+  // Use provided notional value (e.g., from position.positionValue) or calculate from price
+  // This allows immediate display before live prices load
+  let notionalValue = providedNotionalValue;
+  if (
+    notionalValue === undefined ||
+    isNaN(notionalValue) ||
+    notionalValue <= 0
+  ) {
+    // Fall back to calculating from price if not provided or invalid
+    if (
+      isNaN(positionSize) ||
+      isNaN(currentPrice) ||
+      positionSize <= 0 ||
+      currentPrice <= 0
+    ) {
+      return 0;
+    }
+    notionalValue = positionSize * currentPrice;
+  }
 
-  // Calculate notional value
-  const notionalValue = positionSize * price;
-
-  // HyperLiquid's transfer margin requirement:
+  // Hyperliquid's transfer margin requirement formula:
   // transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
-  const initialMarginRequired = notionalValue / maxLeverage;
+  //
+  // IMPORTANT: Use the position's actual leverage, not the asset's max leverage
+  // A position at 10x leverage needs 10% initial margin ($100 for $1000 notional)
+  // NOT the 2% that 50x max leverage would imply
+  const initialMarginRequired = notionalValue / positionLeverage;
   const tenPercentMargin =
     notionalValue * MARGIN_ADJUSTMENT_CONFIG.MARGIN_REMOVAL_SAFETY_BUFFER;
 
-  // Minimum margin is the MAX of these two constraints
-  const baseMinimumRequired = Math.max(initialMarginRequired, tenPercentMargin);
+  // Transfer margin required is the MAX of these two constraints
+  const transferMarginRequired = Math.max(
+    initialMarginRequired,
+    tenPercentMargin,
+  );
 
-  // Apply 3x safety buffer because HyperLiquid's actual requirements are significantly higher
-  // than the documented formula due to:
-  // - Maintenance margin requirements
-  // - Unrealized PnL impact
-  // - Market volatility adjustments
-  // - Funding rate considerations
-  // Testing showed 1.5x was insufficient - $2 removal rejected when calc showed $2.95 available
-  const minimumMarginRequired = baseMinimumRequired * 3;
-
-  // Maximum removable = current - minimum (must be non-negative)
-  return Math.max(0, currentMargin - minimumMarginRequired);
+  // Note: Unrealized PnL is NOT counted as part of "remaining margin" for withdrawals
+  // Per Hyperliquid docs, unrealized PnL helps prevent liquidation but doesn't
+  // increase your available withdrawal limit for margin transfers
+  // Maximum removable = current margin - required (must be non-negative)
+  return Math.max(0, currentMargin - transferMarginRequired);
 }
 
 /**

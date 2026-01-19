@@ -97,6 +97,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock(
+  '../PerpsFillTag',
+  () =>
+    function MockPerpsFillTag() {
+      return null;
+    },
+);
+
 describe('PerpsRecentActivityList', () => {
   const mockNavigate = jest.fn();
 
@@ -174,10 +182,11 @@ describe('PerpsRecentActivityList', () => {
       expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
     });
 
-    it('does not render See All button when loading', () => {
+    it('does not render arrow icon when loading', () => {
       render(<PerpsRecentActivityList transactions={[]} isLoading />);
 
-      expect(screen.queryByText('See All')).not.toBeOnTheScreen();
+      // Arrow icon is not shown when loading (no pressable header)
+      expect(screen.queryByText('Recent Activity')).toBeOnTheScreen();
     });
 
     it('does not render activity list when loading', () => {
@@ -207,10 +216,11 @@ describe('PerpsRecentActivityList', () => {
       expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
     });
 
-    it('does not render See All button when empty', () => {
+    it('does not render pressable header when empty', () => {
       render(<PerpsRecentActivityList transactions={[]} />);
 
-      expect(screen.queryByText('See All')).not.toBeOnTheScreen();
+      // When empty, header is not pressable (no arrow icon)
+      expect(screen.queryByText('Recent Activity')).toBeOnTheScreen();
     });
   });
 
@@ -222,11 +232,11 @@ describe('PerpsRecentActivityList', () => {
       expect(screen.getByText('Closed long')).toBeOnTheScreen();
     });
 
-    it('renders header with title and See All button', () => {
+    it('renders header with title and pressable row', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
-      expect(screen.getByText('See All')).toBeOnTheScreen();
+      // Header row is pressable with arrow icon (no "See All" text)
     });
 
     it('renders transaction subtitles correctly', () => {
@@ -313,11 +323,12 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Navigation Handling', () => {
-    it('navigates to transactions view when See All is pressed', () => {
+    it('navigates to transactions view when header is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
-      const seeAllButton = screen.getByText('See All');
-      fireEvent.press(seeAllButton);
+      // Press the header row (title text is within the pressable area)
+      const headerTitle = screen.getByText('Recent Activity');
+      fireEvent.press(headerTitle);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ACTIVITY, {
@@ -326,41 +337,41 @@ describe('PerpsRecentActivityList', () => {
       });
     });
 
-    it('navigates to market details when transaction item is pressed', () => {
+    it('navigates to position transaction detail when transaction item is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
       fireEvent.press(transactionItem.parent?.parent || transactionItem);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: 'BTC', name: 'BTC' },
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        {
+          transaction: mockTransactions[0],
         },
-      });
+      );
     });
 
-    it('navigates with correct market data for different transactions', () => {
+    it('navigates with correct transaction data for different transactions', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const ethTransaction = screen.getByText('Closed long');
       fireEvent.press(ethTransaction.parent?.parent || ethTransaction);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: 'ETH', name: 'ETH' },
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        {
+          transaction: mockTransactions[1],
         },
-      });
+      );
     });
 
-    it('handles multiple presses on See All button', () => {
+    it('handles multiple presses on header', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
-      const seeAllButton = screen.getByText('See All');
-      fireEvent.press(seeAllButton);
-      fireEvent.press(seeAllButton);
+      const headerTitle = screen.getByText('Recent Activity');
+      fireEvent.press(headerTitle);
+      fireEvent.press(headerTitle);
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
     });

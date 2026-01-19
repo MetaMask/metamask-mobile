@@ -59,6 +59,12 @@ export interface BridgeState {
   isSelectingRecipient: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
+  /**
+   * Tracks whether the user has manually selected a destination token.
+   * When true, changing the source token to a different network won't auto-update the dest token.
+   * When false, changing source network will update dest to the default for that network.
+   */
+  isDestTokenManuallySet: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -76,6 +82,7 @@ export const initialState: BridgeState = {
   isSelectingRecipient: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
+  isDestTokenManuallySet: false,
 };
 
 const name = 'bridge';
@@ -132,6 +139,13 @@ const slice = createSlice({
       state.destToken = action.payload;
       // Update selectedDestChainId to match the destination token's chain ID
       state.selectedDestChainId = action.payload.chainId;
+    },
+    /**
+     * Sets whether the destination token was manually selected by the user.
+     * When true, auto-updates to dest token are prevented when source chain changes.
+     */
+    setIsDestTokenManuallySet: (state, action: PayloadAction<boolean>) => {
+      state.isDestTokenManuallySet = action.payload;
     },
     setDestAddress: (state, action: PayloadAction<string | undefined>) => {
       state.destAddress = action.payload;
@@ -275,35 +289,6 @@ export const selectIsBridgeEnabledSourceFactory = createSelector(
       bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
     );
   },
-);
-
-export const selectIsBridgeEnabledSource = createSelector(
-  selectIsBridgeEnabledSourceFactory,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
-);
-
-export const selectIsBridgeEnabledDest = createSelector(
-  selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
-    const caipChainId = formatChainIdToCaip(chainId);
-
-    return (
-      bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
-    );
-  },
-);
-
-export const selectIsSwapsLive = createSelector(
-  [
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledSource(state, chainId),
-    (state: RootState, chainId: Hex | CaipChainId) =>
-      selectIsBridgeEnabledDest(state, chainId),
-  ],
-  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
 );
 
 /**
@@ -565,6 +550,11 @@ export const selectIsSelectingRecipient = createSelector(
   (bridgeState) => bridgeState.isSelectingRecipient,
 );
 
+export const selectIsDestTokenManuallySet = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isDestTokenManuallySet,
+);
+
 export const selectIsGaslessSwapEnabled = createSelector(
   selectIsSwap,
   selectBridgeFeatureFlags,
@@ -617,6 +607,35 @@ export const selectBip44DefaultPair = createSelector(
   },
 );
 
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
+);
+
+export const selectIsBridgeEnabledDest = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+
+    return (
+      bridgeFeatureFlags.support &&
+      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
+    );
+  },
+);
+
+export const selectIsSwapsLive = createSelector(
+  [
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledSource(state, chainId),
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledDest(state, chainId),
+  ],
+  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -625,6 +644,7 @@ export const {
   resetBridgeState,
   setSourceToken,
   setDestToken,
+  setIsDestTokenManuallySet,
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,

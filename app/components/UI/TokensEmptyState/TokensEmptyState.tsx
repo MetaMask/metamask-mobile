@@ -32,6 +32,7 @@ export const TokensEmptyState: React.FC<TokensEmptyStateProps> = ({
 
   return (
     <TabEmptyState
+      testID="tokens-empty-state"
       icon={
         <Image
           source={tokensImage}

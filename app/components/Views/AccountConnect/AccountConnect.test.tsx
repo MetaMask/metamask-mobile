@@ -6,7 +6,6 @@ import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
@@ -18,13 +17,14 @@ import {
   Caip25EndowmentPermissionName,
   Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import { AccountConnectSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountConnect.selectors';
-import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { PermissionSummaryBottomSheetSelectorsIDs } from './PermissionSummaryBottomSheet.testIds';
+import { AccountConnectSelectorsIDs } from './AccountConnect.testIds';
+import { AddNewAccountIds } from '../AddNewAccount/AddHdAccount.testIds';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from './ConnectedAccountModal.testIds';
+import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -55,14 +55,18 @@ const createMockCaip25Permission = (
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 const mockedTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn().mockReturnValue({
+  build: mockBuild,
+});
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnValue({
-    build: jest.fn(),
-  }),
+  addProperties: mockAddProperties,
+  build: mockBuild,
 });
 const mockGetNextAvailableAccountName = jest
   .fn()
   .mockReturnValue('Snap Account 1');
+const mockGetConnectedDevicesCount = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -213,6 +217,10 @@ jest.mock('../../../core/AppConstants', () => ({
     ANDROID: 'io.metamask',
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+}));
+
+jest.mock('../../../core/HardwareWallets/analytics', () => ({
+  getConnectedDevicesCount: () => mockGetConnectedDevicesCount(),
 }));
 
 // Setup test state with proper account data
@@ -744,7 +752,7 @@ describe('AccountConnect', () => {
 
   describe('Phishing detection', () => {
     describe('dapp scanning is enabled', () => {
-      it('should show phishing modal for phishing URLs', async () => {
+      it('displays phishing modal when origin is flagged as phishing', async () => {
         const { findByText } = renderWithProvider(
           <AccountConnect
             route={{
@@ -873,6 +881,42 @@ describe('AccountConnect', () => {
           entropySource: mockKeyringId,
         });
       });
+    });
+  });
+
+  describe('Metrics tracking', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('tracks metrics when user cancels connection', () => {
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'cancel-metrics-id',
+                  origin: 'https://cancel-test.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-cancel-metrics',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      const cancelButton = getByTestId('cancel-button');
+      fireEvent.press(cancelButton);
+
+      expect(mockedTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
     });
   });
 

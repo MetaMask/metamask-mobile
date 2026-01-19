@@ -29,6 +29,25 @@ const normalizeAmount = (value: string, decimals: number): string => {
   return value;
 };
 
+export const formatEffectiveGasFee = (
+  effectiveGasFee: string,
+  decimals: number,
+) => {
+  // Truncate to token.decimals to avoid parseUnits overflow
+  const decimalIndex = effectiveGasFee.indexOf('.');
+  return decimalIndex === -1
+    ? effectiveGasFee
+    : effectiveGasFee.slice(0, decimalIndex + 1 + decimals);
+};
+
+export const transformEffectiveToAtomic = (
+  effectiveGasFee: string,
+  decimals: number,
+) => {
+  const formattedFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+  return parseUnits(formattedFee, decimals);
+};
+
 const useIsInsufficientBalance = ({
   amount,
   token,
@@ -89,7 +108,10 @@ const useIsInsufficientBalance = ({
       : null;
 
     if (effectiveGasFee) {
-      atomicGasFee = parseUnits(effectiveGasFee, token.decimals);
+      atomicGasFee = transformEffectiveToAtomic(
+        effectiveGasFee,
+        token.decimals,
+      );
     }
   }
 

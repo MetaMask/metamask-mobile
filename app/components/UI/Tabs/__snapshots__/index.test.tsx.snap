@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Tabs should render correctly 1`] = `
+exports[`Tabs renders tabs component with multiple tabs 1`] = `
 <View
   style={
     {
@@ -65,7 +65,10 @@ exports[`Tabs should render correctly 1`] = `
                 "overflow": "hidden",
                 "width": 720,
               },
-              false,
+              {
+                "borderColor": "#4459ff",
+                "borderWidth": 5,
+              },
             ]
           }
           testID="browser-tab-1"
@@ -124,7 +127,7 @@ exports[`Tabs should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -134,7 +137,7 @@ exports[`Tabs should render correctly 1`] = `
                   }
                 }
               >
-                about:blank
+                example.com
               </Text>
             </View>
             <TouchableOpacity
@@ -177,7 +180,171 @@ exports[`Tabs should render correctly 1`] = `
             <Image
               source={
                 {
-                  "uri": "",
+                  "uri": "image1",
+                }
+              }
+              style={
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "paddingTop": 1044,
+                  "position": "absolute",
+                  "resizeMode": "cover",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          [
+            {
+              "shadowOffset": {
+                "height": 4.8,
+              },
+              "shadowOpacity": 0.192,
+              "shadowRadius": 4.32,
+            },
+            {
+              "backgroundColor": "transparent",
+              "overflow": "hidden",
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityLabel="Switch tab"
+          accessible={true}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "borderColor": "#b7bbc8",
+                "borderRadius": 10,
+                "borderWidth": 1,
+                "elevation": 8,
+                "height": 266.8,
+                "justifyContent": "space-evenly",
+                "marginBottom": 15,
+                "overflow": "hidden",
+                "width": 720,
+              },
+              false,
+            ]
+          }
+          testID="browser-tab-2"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "flexDirection": "row",
+                "padding": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "transparent",
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "marginRight": 40,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "height": 22,
+                    "marginLeft": 2,
+                    "marginRight": 5,
+                    "marginTop": 1,
+                    "overflow": "hidden",
+                    "width": 22,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="Global"
+                  style={
+                    {
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+              </View>
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 18,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginLeft": 5,
+                    "marginRight": 40,
+                    "marginTop": 0,
+                  }
+                }
+              >
+                test.com
+              </Text>
+            </View>
+            <TouchableOpacity
+              accessibilityLabel="Close tab"
+              accessible={true}
+              hitSlop={
+                {
+                  "bottom": 10,
+                  "left": 10,
+                  "right": 10,
+                  "top": 10,
+                }
+              }
+              onPress={[Function]}
+              testID="tab-close-button-2"
+            >
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={20}
+                name="Close"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "flex": 1,
+              }
+            }
+          >
+            <Image
+              source={
+                {
+                  "uri": "image2",
                 }
               }
               style={
@@ -199,23 +366,29 @@ exports[`Tabs should render correctly 1`] = `
   </RCTScrollView>
   <View
     style={
-      {
-        "backgroundColor": "#ffffff",
-        "flexDirection": "row",
-        "height": 50,
-        "paddingHorizontal": 20,
-        "paddingTop": 17,
-        "shadowColor": "#0000001a",
-        "shadowOffset": {
-          "height": 2,
-          "width": 0,
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flexDirection": "row",
+          "paddingBottom": 17,
+          "paddingHorizontal": 20,
+          "paddingTop": 17,
+          "shadowColor": "#0000001a",
+          "shadowOffset": {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 1,
+          "shadowRadius": 16,
         },
-        "shadowOpacity": 1,
-        "shadowRadius": 16,
-      }
+        {
+          "paddingBottom": 17,
+        },
+      ]
     }
   >
     <TouchableOpacity
+      onPress={[MockFunction]}
       style={
         [
           {
@@ -237,19 +410,19 @@ exports[`Tabs should render correctly 1`] = `
           {
             "0": {
               "color": "#4459ff",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
             },
             "1": null,
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
         }
       >
-        Close All
+        Close all
       </Text>
     </TouchableOpacity>
     <View
@@ -309,6 +482,7 @@ exports[`Tabs should render correctly 1`] = `
       </TouchableOpacity>
     </View>
     <TouchableOpacity
+      onPress={[MockFunction]}
       style={
         [
           {
@@ -331,15 +505,15 @@ exports[`Tabs should render correctly 1`] = `
           {
             "0": {
               "color": "#4459ff",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
             },
             "1": {
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
             },
             "2": null,
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -352,3 +526,5 @@ exports[`Tabs should render correctly 1`] = `
   </View>
 </View>
 `;
+
+exports[`Tabs renders with single tab 1`] = `null`;

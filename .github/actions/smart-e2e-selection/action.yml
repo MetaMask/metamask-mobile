@@ -20,14 +20,18 @@ inputs:
     description: 'Whether to post a comment to the PR'
     required: false
     default: 'false'
+  base-ref:
+    description: 'Base branch ref (must be main for analysis to run)'
+    required: false
+    default: ''
 
 outputs:
   ai_e2e_test_tags:
     description: 'E2E test tags to run (JSON array format)'
-    value: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+    value: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}
   ai_confidence:
     description: 'AI confidence score (0-100)'
-    value: ${{ steps.ai-analysis.outputs.ai_confidence }}
+    value: ${{ steps.final-outputs.outputs.ai_confidence }}
 
 runs:
   using: 'composite'
@@ -43,12 +47,12 @@ runs:
         git sparse-checkout disable
         git checkout HEAD -- .
 
-    - name: Fetch base branch for comparison
+    - name: Fetch main branch for comparison
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
         git fetch --unshallow 2>/dev/null || true
-        # Then fetch base branch to ensure merge-base exists
+        # Fetch main branch for diff comparison
         git fetch origin main 2>/dev/null || true
 
     - name: Setup Node.js
@@ -100,6 +104,7 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
+        BASE_REF: ${{ inputs.base-ref }}
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
@@ -109,26 +114,47 @@ runs:
         if [[ "$EVENT_NAME" != "pull_request" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="only runs on PRs"
+        elif [[ "$BASE_REF" != "main" ]]; then
+          SHOULD_SKIP=true
+          SKIP_REASON="base branch is not main (base: $BASE_REF)"
         elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="skip-smart-e2e-selection label found"
         fi
 
+        # Export skip status and reason for the comment step
+        echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
+        echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
+
         if [[ "$SHOULD_SKIP" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          # The script will generate the GH output variables
-          node .github/scripts/e2e-smart-selection.mjs 
+          # The script will generate the GH output variables - don't fail if script errors
+          node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
         fi
 
+    - name: Set final outputs with fallback
+      id: final-outputs
+      if: always()
+      shell: bash
+      run: |
+        TAGS='${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}'
+        if [[ -n "$TAGS" ]]; then
+          printf 'ai_e2e_test_tags=%s\n' "$TAGS" >> "$GITHUB_OUTPUT"
+        else
+          echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
+        fi
+        echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
+
     - name: Display AI Analysis Outputs
+      if: always()
       shell: bash
       run: |
         echo "📊 Final GitHub Action Outputs:"
         echo "================================"
-        echo "ai_e2e_test_tags: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}"
-        echo "ai_confidence: ${{ steps.ai-analysis.outputs.ai_confidence }}"
+        echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
+        echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "================================"
 
     - name: Delete previous comments
@@ -174,18 +200,15 @@ runs:
         MARKER="<!-- smart-e2e-selection -->"
         COMMENT_BODY=""
 
-        if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
-          COMMENT_BODY="⏭️ **Smart E2E selection disabled due to \`skip-smart-e2e-selection\` label**
+        if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
+          SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
+          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
+
           All E2E tests pre-selected."
-          
+        elif [ -f "$COMMENT_FILE" ]; then
+          COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
-          # Read analysis results from file
-          if [ -f "$COMMENT_FILE" ]; then
-            COMMENT_BODY=$(cat "$COMMENT_FILE")
-          else
-            echo "⚠️ PR comment file not found: $COMMENT_FILE - using default message"
-            COMMENT_BODY="AI analysis completed but results file was not generated."
-          fi
+          COMMENT_BODY="⚠️ AI analysis was inconclusive. Selecting all E2E tests as a fallback, if applicable based on changed files."
         fi
 
         # Build and post comment

@@ -45,7 +45,7 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,

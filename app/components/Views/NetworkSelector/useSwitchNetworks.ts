@@ -66,7 +66,6 @@ export function useSwitchNetworks({
   domainIsConnectedDapp = false,
   origin = '',
   selectedChainId,
-  selectedNetworkName,
   dismissModal,
   closeRpcModal,
   parentSpan,
@@ -109,12 +108,8 @@ export function useSwitchNetworks({
 
       const { MultichainNetworkController, SelectedNetworkController } =
         Engine.context;
-      const {
-        name: nickname,
-        chainId,
-        rpcEndpoints,
-        defaultRpcEndpointIndex,
-      } = networkConfiguration;
+      const { chainId, rpcEndpoints, defaultRpcEndpointIndex } =
+        networkConfiguration;
 
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
@@ -154,8 +149,9 @@ export function useSwitchNetworks({
         createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
           .addProperties({
             chain_id: getDecimalChainId(chainId),
-            from_network: selectedNetworkName,
-            to_network: nickname,
+            from_network: selectedChainId,
+            to_network: chainId,
+            custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(chainId),
           })
           .build(),
       );
@@ -163,7 +159,7 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      selectedNetworkName,
+      selectedChainId,
       trackEvent,
       createEventBuilder,
       parentSpan,
@@ -225,12 +221,14 @@ export function useSwitchNetworks({
       endTrace({ name: TraceName.SwitchBuiltInNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
 
+      const toChainId = BUILT_IN_NETWORKS[type].chainId;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
           .addProperties({
-            chain_id: getDecimalChainId(selectedChainId),
-            from_network: selectedNetworkName,
-            to_network: type,
+            chain_id: getDecimalChainId(toChainId),
+            from_network: selectedChainId,
+            to_network: toChainId,
+            custom_network: !POPULAR_NETWORK_CHAIN_IDS.has(toChainId),
           })
           .build(),
       );
@@ -241,7 +239,6 @@ export function useSwitchNetworks({
       networkConfigurations,
       setTokenNetworkFilter,
       selectedChainId,
-      selectedNetworkName,
       trackEvent,
       createEventBuilder,
       parentSpan,

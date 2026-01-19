@@ -423,7 +423,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Bold",
+                                              "fontFamily": "Geist-Bold",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 34,
@@ -449,7 +449,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Bold",
+                                                "fontFamily": "Geist-Bold",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -469,7 +469,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                             {
                                               "backgroundColor": "transparent",
                                               "color": "#4459ff",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
@@ -484,14 +484,14 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                             style={
                                               {
                                                 "color": "#4459ff",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
                                           >
-                                            Verify third party details
+                                            Verify third-party details
                                           </Text>
                                         </Text>
                                         <View
@@ -534,7 +534,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                                   style={
                                                     {
                                                       "color": "#4459ff",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 12,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 16,
@@ -576,105 +576,106 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                     </View>
                                   </RCTScrollView>
                                 </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "flexDirection": "row",
-                                        "gap": 16,
-                                        "paddingHorizontal": 16,
-                                        "paddingVertical": 16,
-                                        "width": "100%",
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <TouchableOpacity
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={false}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "alignSelf": "flex-start",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "transparent",
-                                        "borderRadius": 12,
-                                        "borderWidth": 1,
-                                        "flex": 1,
-                                        "flexDirection": "row",
-                                        "height": 48,
-                                        "justifyContent": "center",
-                                        "overflow": "hidden",
-                                        "paddingHorizontal": 16,
-                                      }
-                                    }
-                                    testID=""
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Reject
-                                    </Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={true}
-                                    loading={false}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "alignSelf": "flex-start",
-                                        "backgroundColor": "#121314",
-                                        "borderRadius": 12,
-                                        "flex": 1,
-                                        "flexDirection": "row",
-                                        "height": 48,
-                                        "justifyContent": "center",
-                                        "opacity": 0.5,
-                                        "overflow": "hidden",
-                                        "paddingHorizontal": 16,
-                                      }
-                                    }
-                                    testID="Confirm"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#ffffff",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Approve
-                                    </Text>
-                                  </TouchableOpacity>
-                                </View>
                               </View>
                             </RCTScrollView>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "paddingBottom": 16,
+                                    "paddingHorizontal": 16,
+                                    "paddingTop": 24,
+                                    "width": "100%",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "transparent",
+                                    "borderRadius": 12,
+                                    "borderWidth": 1,
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID=""
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Reject
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={true}
+                                loading={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "#121314",
+                                    "borderRadius": 12,
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID="Confirm"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Approve
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>

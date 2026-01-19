@@ -434,58 +434,61 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select network
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -637,7 +640,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
@@ -743,7 +746,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,
@@ -849,7 +852,113 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
+                                                      "fontFamily": "Geist-Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Tron
+                                                </Text>
+                                              </View>
+                                            </View>
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                    >
+                                      <View
+                                        accessibilityRole="none"
+                                        accessible={true}
+                                        style={
+                                          {
+                                            "padding": 16,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            alignItems="center"
+                                            flexDirection="row"
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                },
+                                                {
+                                                  "flex": 1,
+                                                },
+                                              ]
+                                            }
+                                          >
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
+                                              gap={8}
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                    "gap": 8,
+                                                  },
+                                                  {
+                                                    "flex": 1,
+                                                  },
+                                                ]
+                                              }
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderRadius": 8,
+                                                    "height": 32,
+                                                    "justifyContent": "center",
+                                                    "overflow": "hidden",
+                                                    "width": 32,
+                                                  }
+                                                }
+                                              >
+                                                <Image
+                                                  onError={[Function]}
+                                                  resizeMode="contain"
+                                                  source={1}
+                                                  style={
+                                                    {
+                                                      "height": 32,
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                  testID="network-avatar-image"
+                                                />
+                                              </View>
+                                              <View
+                                                style={
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist-Medium",
                                                       "fontSize": 18,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 24,

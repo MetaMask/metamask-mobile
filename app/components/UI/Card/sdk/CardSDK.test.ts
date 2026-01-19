@@ -24,7 +24,6 @@ import AppConstants from '../../../../core/AppConstants';
 interface CardSDKPrivateAccess {
   userCardLocation: string;
   enableLogs: boolean;
-  mapAPINetworkToCaipChainId: (network: string) => string;
   getFirstSupportedTokenOrNull: () => CardToken | null;
   findSupportedTokenByAddress: (address: string) => CardToken | null;
   mapSupportedTokenToCardToken: (token: SupportedToken) => CardToken;
@@ -76,6 +75,17 @@ jest.mock('../../../../util/networks', () => ({
 
 // Mock fetch for geolocation API
 global.fetch = jest.fn();
+
+// Mock i18n
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: { [key: string]: string } = {
+      'card.card_home.enable_card_error':
+        'Failed to provision card. Please try again.',
+    };
+    return translations[key] || key;
+  },
+}));
 
 describe('CardSDK', () => {
   let cardSDK: CardSDK;
@@ -156,7 +166,7 @@ describe('CardSDK', () => {
   describe('constructor', () => {
     it('initializes with correct card feature flag and chain ID', () => {
       expect(cardSDK.isCardEnabled).toBe(true);
-      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
+      expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
     });
@@ -200,7 +210,7 @@ describe('CardSDK', () => {
 
   describe('getSupportedTokensByChainId', () => {
     it('returns supported tokens when card is enabled', () => {
-      expect(cardSDK.getSupportedTokensByChainId(cardSDK.lineaChainId)).toEqual(
+      expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
     });
@@ -223,9 +233,7 @@ describe('CardSDK', () => {
       });
 
       expect(
-        disabledCardholderSDK.getSupportedTokensByChainId(
-          disabledCardholderSDK.lineaChainId,
-        ),
+        disabledCardholderSDK.getSupportedTokensByChainId('eip155:59144'),
       ).toEqual([]);
     });
 
@@ -247,9 +255,7 @@ describe('CardSDK', () => {
       });
 
       expect(
-        noTokensCardSDK.getSupportedTokensByChainId(
-          noTokensCardSDK.lineaChainId,
-        ),
+        noTokensCardSDK.getSupportedTokensByChainId('eip155:59144'),
       ).toEqual([]);
     });
 
@@ -277,9 +283,7 @@ describe('CardSDK', () => {
         cardFeatureFlag: customFeatureFlag,
       });
 
-      const tokens = customSDK.getSupportedTokensByChainId(
-        customSDK.lineaChainId,
-      );
+      const tokens = customSDK.getSupportedTokensByChainId('eip155:59144');
       expect(tokens).toHaveLength(1);
       expect(tokens[0].address).toBe(mockSupportedTokens[0].address);
     });
@@ -310,7 +314,7 @@ describe('CardSDK', () => {
           '0x1234567890123456789012345678901234567890',
         ),
       ).rejects.toThrow(
-        'FoxConnect addresses are not defined for the current chain',
+        'FoxConnect contracts are not defined for the current network',
       );
     });
 
@@ -348,9 +352,7 @@ describe('CardSDK', () => {
 
   describe('supportedTokensAddresses', () => {
     it('returns valid token addresses', () => {
-      const addresses = cardSDK.getSupportedTokensByChainId(
-        cardSDK.lineaChainId,
-      );
+      const addresses = cardSDK.getSupportedTokensByChainId('eip155:59144');
       expect(addresses).toHaveLength(2);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
       expect(addresses[1].address).toBe(mockSupportedTokens[1].address);
@@ -382,9 +384,7 @@ describe('CardSDK', () => {
         cardFeatureFlag: customFeatureFlag,
       });
 
-      const addresses = customSDK.getSupportedTokensByChainId(
-        customSDK.lineaChainId,
-      );
+      const addresses = customSDK.getSupportedTokensByChainId('eip155:59144');
       expect(addresses).toHaveLength(1);
       expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
     });
@@ -1691,7 +1691,38 @@ describe('CardSDK', () => {
       );
     });
 
-    it('throws SERVER_ERROR when provision fails', async () => {
+    it('throws SERVER_ERROR with API message when provision fails with message', async () => {
+      const errorResponse = {
+        message:
+          'Unable to place a card order. Please contact customer support',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue(errorResponse),
+      });
+
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
+
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message:
+          'Unable to place a card order. Please contact customer support',
+      });
+      expect(Logger.log).toHaveBeenCalledWith(
+        errorResponse,
+        'Failed to provision card.',
+      );
+    });
+
+    it('throws SERVER_ERROR with fallback message when provision fails without message', async () => {
       const errorResponse = { error: 'Card provision failed' };
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -1700,20 +1731,25 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(errorResponse),
       });
 
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
 
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message: 'Failed to provision card. Please try again.',
       });
-
       expect(Logger.log).toHaveBeenCalledWith(
         errorResponse,
         'Failed to provision card.',
       );
     });
 
-    it('handles error when response JSON parsing fails', async () => {
+    it('throws SERVER_ERROR with fallback message when response JSON parsing fails', async () => {
       const parseError = new Error('Invalid JSON');
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -1722,9 +1758,15 @@ describe('CardSDK', () => {
         json: jest.fn().mockRejectedValue(parseError),
       });
 
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
 
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message: 'Failed to provision card. Please try again.',
       });
@@ -3030,22 +3072,6 @@ describe('CardSDK', () => {
   });
 
   describe('private helper methods', () => {
-    describe('mapAPINetworkToCaipChainId', () => {
-      it('maps linea network to correct CAIP chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToCaipChainId('linea');
-        expect(result).toBe('eip155:59144');
-      });
-
-      it('maps solana network to correct CAIP chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToCaipChainId('solana');
-        expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
-      });
-    });
-
     describe('getFirstSupportedTokenOrNull', () => {
       it('returns first supported token when tokens exist', () => {
         const result = (
@@ -3174,6 +3200,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3210,6 +3237,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('15000000');
@@ -3263,6 +3291,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('11806489');
@@ -3304,6 +3333,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('5000000'); // Returns latest log
@@ -3316,6 +3346,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBeNull();
@@ -3379,6 +3410,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       // Most recent should be block 100, logIndex 2
@@ -3422,6 +3454,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe('0'); // Returns most recent, even if zero
@@ -3435,6 +3468,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBeNull();
@@ -3454,6 +3488,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(mockProvider.getLogs).toHaveBeenCalledWith({
@@ -3494,6 +3529,7 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
+        'linea',
       );
 
       expect(result).toBe(largeValue);

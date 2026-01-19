@@ -63,7 +63,7 @@ exports[`PaymentRequest renders correctly 1`] = `
           {
             "color": "#121314",
             "flexShrink": 1,
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -137,7 +137,7 @@ exports[`PaymentRequest renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
               }
             }
@@ -197,7 +197,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "height": 40,
                   "paddingLeft": 8,
@@ -224,7 +224,7 @@ exports[`PaymentRequest renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "marginBottom": 8,
               }
@@ -364,7 +364,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "paddingBottom": 4,
                       }
@@ -376,7 +376,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                       }
                     }
                   >
@@ -505,7 +505,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "paddingBottom": 4,
                       }
@@ -517,7 +517,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                       }
                     }
                   >
@@ -597,7 +597,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
           {
             "color": "#121314",
             "flexShrink": 1,
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -671,7 +671,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
               }
             }
@@ -731,7 +731,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "height": 40,
                   "paddingLeft": 8,
@@ -758,7 +758,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "marginBottom": 8,
               }
@@ -898,7 +898,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "paddingBottom": 4,
                       }
@@ -910,7 +910,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                       }
                     }
                   >
@@ -1039,7 +1039,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "paddingBottom": 4,
                       }
@@ -1051,7 +1051,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                       }
                     }
                   >

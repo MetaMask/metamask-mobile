@@ -29,7 +29,7 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
-import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
+import { AddAssetViewSelectorsIDs } from './AddAssetView.testIds';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet';
@@ -39,13 +39,15 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from './ImportTokenView.testIds';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
@@ -174,13 +176,8 @@ const AddAsset = () => {
               onPress={() => setOpenNetworkSelector(true)}
               onLongPress={() => setOpenNetworkSelector(true)}
             >
-              <Text style={styles.networkSelectorText}>
-                {selectedNetwork
-                  ? networkConfigurations?.[selectedNetwork as Hex]?.name
-                  : strings('networks.select_network')}
-              </Text>
-              <View style={styles.overlappingAvatarsContainer}>
-                {selectedNetwork ? (
+              {selectedNetwork ? (
+                <View style={styles.networkSelectorAvatarContainer}>
                   <Avatar
                     variant={AvatarVariant.Network}
                     size={AvatarSize.Sm}
@@ -194,10 +191,17 @@ const AddAsset = () => {
                     })}
                     testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
                   />
-                ) : null}
-
+                </View>
+              ) : null}
+              <Text style={styles.networkSelectorText}>
+                {selectedNetwork
+                  ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                  : strings('networks.select_network')}
+              </Text>
+              <View style={styles.overlappingAvatarsContainer}>
                 <ButtonIcon
                   iconName={IconName.ArrowDown}
+                  size={ButtonIconSizes.Sm}
                   iconColor={IconColor.Default}
                   testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
                   onPress={() => setOpenNetworkSelector(true)}

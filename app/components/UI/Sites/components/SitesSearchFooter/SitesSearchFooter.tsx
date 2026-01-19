@@ -14,6 +14,9 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import Routes from '../../../../../constants/navigation/Routes';
+import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -31,13 +34,17 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const searchEngine = useSelector(selectSearchEngine);
 
   const onPressLink = useCallback(
     (url: string) => {
-      navigation.navigate('TrendingBrowser', {
-        newTabUrl: url,
-        timestamp: Date.now(),
-        fromTrending: true,
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
       });
     },
     [navigation],
@@ -48,6 +55,14 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   }
 
   const isUrl = looksLikeUrl(searchQuery.toLowerCase());
+
+  const searchUrl =
+    searchEngine === 'DuckDuckGo'
+      ? `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`
+      : `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+
+  const searchEngineLabel =
+    searchEngine === 'DuckDuckGo' ? 'DuckDuckGo' : 'Google';
 
   return (
     <Box>
@@ -78,11 +93,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
-        onPress={() =>
-          onPressLink(
-            `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`,
-          )
-        }
+        onPress={() => onPressLink(searchUrl)}
         testID="trending-search-footer-google-link"
       >
         <Box twClassName="flex-1 flex-row items-center">
@@ -103,7 +114,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
             variant={TextVariant.BodyMd}
             twClassName="text-primary shrink-0"
           >
-            {'"'} on Google
+            {'"'} on {searchEngineLabel}
           </Text>
         </Box>
         <Box twClassName="ml-3">

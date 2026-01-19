@@ -1,25 +1,29 @@
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import Text from '../../../../../../component-library/components/Texts/Text/Text';
+import React, { useCallback, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import styleSheet from './selected-gas-fee-token.styles';
+import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
-import React, { useCallback, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
-import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
-import { GasFeeTokenModal } from '../gas-fee-token-modal';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsInsufficientBalance } from '../../../hooks/useIsInsufficientBalance';
+import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
+import useNetworkInfo from '../../../hooks/useNetworkInfo';
+import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
+import { GasFeeTokenModal } from '../gas-fee-token-modal';
+import styleSheet from './selected-gas-fee-token.styles';
 
 export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
-  const { chainId, gasFeeTokens } = transactionMetadata || {};
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
+  const { chainId: chainIdSingle, gasFeeTokens } = transactionMetadata || {};
+  const { chainId: chainIdBatch } = transactionBatchesMetadata || {};
+  const chainId = chainIdSingle ?? chainIdBatch;
   const hasGasFeeTokens = Boolean(gasFeeTokens?.length);
 
   const { styles } = useStyles(styleSheet, {
@@ -71,7 +75,7 @@ export function SelectedGasFeeToken() {
           tokenAddress={gasFeeToken?.tokenAddress ?? NATIVE_TOKEN_ADDRESS}
           size={GasFeeTokenIconSize.Sm}
         />
-        <Text>{symbol}</Text>
+        <Text testID="selected-gas-fee-token-symbol">{symbol}</Text>
         {supportsGasFeeTokens && (
           <Icon
             testID="selected-gas-fee-token-arrow"

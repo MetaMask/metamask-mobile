@@ -6,12 +6,15 @@ import { BridgeSourceNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
-import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/bridge';
-import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import {
+  setSelectedSourceChainIds,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
+import { BridgeSourceNetworkSelectorSelectorsIDs } from './BridgeSourceNetworkSelector.testIds';
 import { cloneDeep } from 'lodash';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -35,11 +38,23 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
   };
 });
 
+const mockOnSetRpcTarget = jest.fn().mockResolvedValue(undefined);
+const mockOnNonEvmNetworkChange = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
   useSwitchNetworks: jest.fn(() => ({
-    onSetRpcTarget: jest.fn().mockResolvedValue(undefined),
+    onSetRpcTarget: mockOnSetRpcTarget,
     onNetworkChange: jest.fn(),
+    onNonEvmNetworkChange: mockOnNonEvmNetworkChange,
   })),
+}));
+
+const mockAutoUpdateDestToken = jest.fn();
+
+jest.mock('../../hooks/useAutoUpdateDestToken', () => ({
+  useAutoUpdateDestToken: () => ({
+    autoUpdateDestToken: mockAutoUpdateDestToken,
+  }),
 }));
 
 describe('BridgeSourceNetworkSelector', () => {
@@ -48,6 +63,9 @@ describe('BridgeSourceNetworkSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOnSetRpcTarget.mockResolvedValue(undefined);
+    mockOnNonEvmNetworkChange.mockResolvedValue(undefined);
+    mockAutoUpdateDestToken.mockClear();
   });
 
   it('renders with initial state and displays networks', async () => {
@@ -64,7 +82,7 @@ describe('BridgeSourceNetworkSelector', () => {
 
     // Networks should be visible with fiat values
     await waitFor(() => {
-      expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      expect(getByText('Ethereum')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
 
       // Check for fiat values
@@ -180,6 +198,7 @@ describe('BridgeSourceNetworkSelector', () => {
         optimismChainId,
         SolScope.Mainnet,
         BtcScope.Mainnet,
+        TrxScope.Mainnet,
       ]);
 
       // Should navigate back
@@ -220,6 +239,183 @@ describe('BridgeSourceNetworkSelector', () => {
       BridgeSourceNetworkSelectorSelectorsIDs.APPLY_BUTTON,
     );
     expect(applyButton.props.disabled).toBe(true);
+  });
+
+  describe('handleApply', () => {
+    it('calls onApply callback when provided instead of dispatching actions', async () => {
+      const mockOnApply = jest.fn();
+      const { getAllByTestId, getByText } = renderScreen(
+        () => <BridgeSourceNetworkSelector onApply={mockOnApply} />,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Uncheck Ethereum to have only Optimism selected
+      const ethereumCheckbox = getAllByTestId(`checkbox-${mockChainId}`)[0];
+      fireEvent.press(ethereumCheckbox);
+
+      // Click Apply button
+      const applyButton = getByText('Apply');
+      fireEvent.press(applyButton);
+
+      await waitFor(() => {
+        expect(mockOnApply).toHaveBeenCalledWith([
+          optimismChainId,
+          SolScope.Mainnet,
+          BtcScope.Mainnet,
+          TrxScope.Mainnet,
+        ]);
+        expect(mockGoBack).not.toHaveBeenCalled();
+        expect(setSelectedSourceChainIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('sets source token to native token when single EVM network is selected', async () => {
+      const { getAllByTestId, getByText } = renderScreen(
+        BridgeSourceNetworkSelector,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Deselect all first
+      const deselectAllButton = getByText('Deselect all');
+      fireEvent.press(deselectAllButton);
+
+      // Select only Ethereum
+      const ethereumCheckbox = getAllByTestId(`checkbox-${mockChainId}`)[0];
+      fireEvent.press(ethereumCheckbox);
+
+      // Click Apply
+      const applyButton = getByText('Apply');
+      fireEvent.press(applyButton);
+
+      await waitFor(() => {
+        expect(setSourceToken).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: mockChainId,
+            symbol: 'ETH',
+          }),
+        );
+      });
+    });
+
+    it('calls autoUpdateDestToken when single network is selected', async () => {
+      const { getAllByTestId, getByText } = renderScreen(
+        BridgeSourceNetworkSelector,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Deselect all first
+      const deselectAllButton = getByText('Deselect all');
+      fireEvent.press(deselectAllButton);
+
+      // Select only Optimism
+      const optimismCheckbox = getAllByTestId(`checkbox-${optimismChainId}`)[0];
+      fireEvent.press(optimismCheckbox);
+
+      // Click Apply
+      const applyButton = getByText('Apply');
+      fireEvent.press(applyButton);
+
+      await waitFor(() => {
+        expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: optimismChainId,
+          }),
+        );
+      });
+    });
+
+    it('calls onSetRpcTarget when single EVM network is selected', async () => {
+      const { getAllByTestId, getByText } = renderScreen(
+        BridgeSourceNetworkSelector,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Deselect all first
+      const deselectAllButton = getByText('Deselect all');
+      fireEvent.press(deselectAllButton);
+
+      // Select only Ethereum
+      const ethereumCheckbox = getAllByTestId(`checkbox-${mockChainId}`)[0];
+      fireEvent.press(ethereumCheckbox);
+
+      // Click Apply
+      const applyButton = getByText('Apply');
+      fireEvent.press(applyButton);
+
+      await waitFor(() => {
+        expect(mockOnSetRpcTarget).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: mockChainId,
+          }),
+        );
+      });
+    });
+
+    it('calls onNonEvmNetworkChange when single non-EVM network is selected', async () => {
+      const { getAllByTestId, getByText } = renderScreen(
+        BridgeSourceNetworkSelector,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Deselect all first
+      const deselectAllButton = getByText('Deselect all');
+      fireEvent.press(deselectAllButton);
+
+      // Select only Solana
+      const solanaCheckbox = getAllByTestId(`checkbox-${SolScope.Mainnet}`)[0];
+      fireEvent.press(solanaCheckbox);
+
+      // Click Apply
+      const applyButton = getByText('Apply');
+      fireEvent.press(applyButton);
+
+      await waitFor(() => {
+        expect(mockOnNonEvmNetworkChange).toHaveBeenCalledWith(
+          SolScope.Mainnet,
+        );
+        expect(mockOnSetRpcTarget).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not set source token or switch network when multiple networks are selected', async () => {
+      const { getByText } = renderScreen(
+        BridgeSourceNetworkSelector,
+        {
+          name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Keep all networks selected and click Apply
+      const applyButton = getByText('Apply');
+      fireEvent.press(applyButton);
+
+      await waitFor(() => {
+        expect(setSelectedSourceChainIds).toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+
+      // These should NOT be called when multiple networks are selected
+      expect(setSourceToken).not.toHaveBeenCalled();
+      expect(mockAutoUpdateDestToken).not.toHaveBeenCalled();
+      expect(mockOnSetRpcTarget).not.toHaveBeenCalled();
+      expect(mockOnNonEvmNetworkChange).not.toHaveBeenCalled();
+    });
   });
 
   it('networks should be sorted by fiat value in descending order', async () => {
@@ -274,7 +470,7 @@ describe('BridgeSourceNetworkSelector', () => {
     );
 
     await waitFor(() => {
-      expect(queryByText('Ethereum Mainnet')).toBeNull();
+      expect(queryByText('Ethereum')).toBeNull();
       expect(getByText('Optimism')).toBeTruthy();
     });
   });
@@ -304,7 +500,7 @@ describe('BridgeSourceNetworkSelector', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Ethereum Mainnet')).toBeTruthy();
+        expect(getByText('Ethereum')).toBeTruthy();
         expect(getByText('Optimism')).toBeTruthy();
 
         const labels = queryAllByText(strings('networks.no_network_fee'));
@@ -333,7 +529,7 @@ describe('BridgeSourceNetworkSelector', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Ethereum Mainnet')).toBeTruthy();
+        expect(getByText('Ethereum')).toBeTruthy();
         expect(getByText('Optimism')).toBeTruthy();
         expect(queryByText(strings('networks.no_network_fee'))).toBeNull();
       });

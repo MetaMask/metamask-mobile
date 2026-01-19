@@ -14,7 +14,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#3c4d9d0f",
         "borderRadius": 100,
         "flexDirection": "row",
         "justifyContent": "center",
@@ -51,7 +51,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
         {
           "color": "#121314",
           "flexShrink": 1,
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -62,32 +62,20 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
     >
       Test Account
     </Text>
-    <Text
-      allowFontScaling={false}
-      selectable={false}
+    <SvgMock
+      color="#686e7d"
+      fill="currentColor"
+      height={16}
+      name="ArrowDown"
       style={
-        [
-          {
-            "color": undefined,
-            "fontSize": 18,
-          },
-          {
-            "color": "#686e7d",
-            "marginLeft": 10,
-            "marginRight": 5,
-            "textAlign": "right",
-          },
-          {
-            "fontFamily": "FontAwesome",
-            "fontStyle": "normal",
-            "fontWeight": "normal",
-          },
-          {},
-        ]
+        {
+          "height": 16,
+          "marginHorizontal": 5,
+          "width": 16,
+        }
       }
-    >
-      
-    </Text>
+      width={16}
+    />
   </View>
 </TouchableOpacity>
 `;

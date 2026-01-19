@@ -17,14 +17,6 @@ interface RampButtonClicked {
   region?: string;
 }
 
-interface BuyButtonClicked extends RampButtonClicked {
-  chain_id_destination?: string;
-}
-
-interface SellButtonClicked extends RampButtonClicked {
-  chain_id_source?: string;
-}
-
 interface RampRegionSelected {
   location?: ScreenLocation;
   country_id: string;
@@ -355,9 +347,6 @@ interface OffRampQuotesExpanded extends RampQuotesExpanded {
 }
 
 export interface AnalyticsEvents {
-  BUY_BUTTON_CLICKED: BuyButtonClicked;
-  SELL_BUTTON_CLICKED: SellButtonClicked;
-
   RAMP_REGION_SELECTED: RampRegionSelected;
   RAMP_REGION_RESET: RampRegionReset;
 

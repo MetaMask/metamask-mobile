@@ -9,6 +9,58 @@ import { Mockttp } from 'mockttp';
 import FixtureBuilder from './fixtures/FixtureBuilder';
 import CommandQueueServer from './fixtures/CommandQueueServer';
 
+/*
+ * WDIO PLAYWRIGHT TESTS
+ */
+export enum Platform {
+  ANDROID = 'android',
+  IOS = 'ios',
+}
+
+export enum DeviceOrientation {
+  PORTRAIT = 'portrait',
+  LANDSCAPE = 'landscape',
+}
+
+export interface EmulatorConfig {
+  provider: 'emulator';
+  name?: string;
+  osVersion?: string;
+  packageName?: string;
+  launchableActivity?: string;
+  udid?: string;
+  orientation?: DeviceOrientation;
+}
+
+export interface BrowserStackConfig {
+  provider: 'browserstack';
+  name: string;
+  osVersion: string;
+  orientation?: DeviceOrientation;
+  enableCameraImageInjection?: boolean;
+}
+
+export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
+
+export interface TimeoutOptions {
+  /**
+   * The maximum amount of time (in milliseconds) to wait for the condition to be met.
+   */
+  expectTimeout: number;
+}
+
+export interface WebDriverConfig {
+  platform: Platform;
+  device: DeviceConfig;
+  buildPath: string;
+  appBundleId: string;
+  launchableActivity: string;
+  expectTimeout: number;
+}
+/**
+ * END OF WDIO PLAYWRIIGHT
+ */
+
 export interface GestureOptions {
   timeout?: number;
   checkStability?: boolean;
@@ -226,6 +278,7 @@ export interface MockApiEndpoint {
   ignoreFields?: string[];
   response: unknown;
   responseCode: number;
+  priority?: number;
 }
 
 export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;

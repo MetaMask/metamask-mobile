@@ -122,21 +122,31 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
         style={
           [
             {
+              "alignItems": "center",
               "flexDirection": "row",
               "gap": 16,
-              "padding": 16,
+              "height": 56,
             },
             false,
+            {
+              "paddingHorizontal": 16,
+            },
           ]
         }
         testID="header"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+              },
+              undefined,
+            ]
           }
         >
           <Text
@@ -144,7 +154,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -227,7 +237,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -250,7 +260,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -304,7 +314,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -321,7 +331,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#4459ff1a",
+                "backgroundColor": "#3c4d9d0f",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,
@@ -330,19 +340,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                 "top": 0,
               }
             }
-          >
-            <View
-              style={
-                {
-                  "backgroundColor": "#4459ff",
-                  "borderRadius": 2,
-                  "marginLeft": 4,
-                  "marginVertical": 4,
-                  "width": 4,
-                }
-              }
-            />
-          </View>
+          />
         </TouchableOpacity>
       </View>
     </View>

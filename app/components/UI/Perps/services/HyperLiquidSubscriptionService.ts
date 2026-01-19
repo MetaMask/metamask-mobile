@@ -1,14 +1,16 @@
 import {
-  type Subscription,
-  type WsAllMidsEvent,
-  type WsWebData2Event,
-  type WsWebData3Event,
-  type WsUserFillsEvent,
-  type WsActiveAssetCtxEvent,
-  type WsActiveSpotAssetCtxEvent,
+  type ISubscription,
+  type AllMidsWsEvent,
+  type WebData2WsEvent,
+  type WebData3WsEvent,
+  type UserFillsWsEvent,
+  type ActiveAssetCtxWsEvent,
+  type ActiveSpotAssetCtxWsEvent,
   type L2BookResponse,
-  type WsAssetCtxsEvent,
+  type AssetCtxsWsEvent,
   type FrontendOpenOrdersResponse,
+  type ClearinghouseStateWsEvent,
+  type OpenOrdersWsEvent,
 } from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -39,7 +41,7 @@ import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { processL2BookData } from '../utils/hyperLiquidOrderBookProcessor';
 import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
 
@@ -59,6 +61,15 @@ export class HyperLiquidSubscriptionService {
   private blocklistMarkets: string[]; // Market filtering (blocklist)
   private discoveredDexNames: string[] = []; // DEX order for mapping webData3 perpDexStates indices
 
+  // DEX discovery synchronization - allows subscriptions to wait for HIP-3 DEX discovery
+  private dexDiscoveryPromise: Promise<void> | null = null;
+  private dexDiscoveryResolver: (() => void) | null = null;
+
+  // Track DEXs for synchronized position notifications
+  // Ensures all DEXs send initial data before notifying subscribers
+  private expectedDexs: Set<string> = new Set();
+  private initializedDexs: Set<string> = new Set();
+
   // Subscriber collections
   private readonly priceSubscribers = new Map<
     string,
@@ -67,8 +78,10 @@ export class HyperLiquidSubscriptionService {
   private readonly positionSubscribers = new Set<
     (positions: Position[]) => void
   >();
-  private readonly orderFillSubscribers = new Set<
-    (fills: OrderFill[]) => void
+  // Order fill subscribers keyed by accountId (normalized: undefined -> 'default')
+  private readonly orderFillSubscribers = new Map<
+    string,
+    Set<(fills: OrderFill[], isSnapshot?: boolean) => void>
   >();
   private readonly orderSubscribers = new Set<(orders: Order[]) => void>();
   private readonly accountSubscribers = new Set<
@@ -81,19 +94,27 @@ export class HyperLiquidSubscriptionService {
     Set<(prices: PriceUpdate[]) => void>
   >();
 
+  // Track which subscribers want L2Book (order book) data
+  private readonly orderBookSubscribers = new Map<
+    string,
+    Set<(prices: PriceUpdate[]) => void>
+  >();
+
   // Global singleton subscriptions
-  private globalAllMidsSubscription?: Subscription;
+  private globalAllMidsSubscription?: ISubscription;
   private globalAllMidsPromise?: Promise<void>; // Track in-progress subscription
   private readonly globalActiveAssetSubscriptions = new Map<
     string,
-    Subscription
+    ISubscription
   >();
-  private readonly globalL2BookSubscriptions = new Map<string, Subscription>();
+  private readonly globalL2BookSubscriptions = new Map<string, ISubscription>();
+  // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
+  private readonly orderFillSubscriptions = new Map<string, ISubscription>();
   private readonly symbolSubscriberCounts = new Map<string, number>();
   private readonly dexSubscriberCounts = new Map<string, number>(); // Track subscribers per DEX for assetCtxs
 
   // Multi-DEX webData3 subscription for all user data (positions, orders, account, OI caps)
-  private readonly webData3Subscriptions = new Map<string, Subscription>(); // Key: dex name ('' for main)
+  private readonly webData3Subscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
   private webData3SubscriptionPromise?: Promise<void>;
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
@@ -120,12 +141,31 @@ export class HyperLiquidSubscriptionService {
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
   // HIP-3: assetCtxs subscriptions for multi-DEX market data
-  private readonly assetCtxsSubscriptions = new Map<string, Subscription>(); // Key: dex name ('' for main)
+  private readonly assetCtxsSubscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
   private readonly dexAssetCtxsCache = new Map<
     string,
-    WsAssetCtxsEvent['ctxs']
+    AssetCtxsWsEvent['ctxs']
   >(); // Per-DEX asset contexts
   private assetCtxsSubscriptionPromises = new Map<string, Promise<void>>(); // Track in-progress subscriptions
+
+  private readonly clearinghouseStateSubscriptions = new Map<
+    string,
+    ISubscription
+  >(); // Key: dex name ('' for main)
+  private readonly openOrdersSubscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
+
+  // Meta cache per DEX - populated by metaAndAssetCtxs, used by createAssetCtxsSubscription
+  // This avoids redundant meta() API calls since metaAndAssetCtxs already returns meta data
+  private readonly dexMetaCache = new Map<
+    string,
+    {
+      universe: {
+        name: string;
+        szDecimals: number;
+        maxLeverage: number;
+      }[];
+    }
+  >();
 
   // Order book data cache
   private readonly orderBookCache = new Map<
@@ -214,6 +254,99 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Populate DEX meta cache with pre-fetched meta data
+   * Called by Provider after buildAssetMapping to share cached meta,
+   * avoiding redundant metaAndAssetCtxs/meta API calls during subscription setup
+   * @param dex - DEX key ('' for main DEX, 'xyz'/'flx'/etc for HIP-3)
+   * @param meta - Meta response containing universe data
+   */
+  public setDexMetaCache(
+    dex: string,
+    meta: {
+      universe: {
+        name: string;
+        szDecimals: number;
+        maxLeverage: number;
+      }[];
+    },
+  ): void {
+    this.dexMetaCache.set(dex, meta);
+    DevLogger.log('[SubscriptionService] DEX meta cache populated', {
+      dex: dex || 'main',
+      universeSize: meta.universe.length,
+    });
+  }
+
+  /**
+   * Cache asset contexts for a specific DEX from API response
+   * This allows buildAssetMapping() to populate cache for getMarketDataWithPrices() to use
+   * @param dex - DEX name ('' for main perps)
+   * @param assetCtxs - Asset contexts from metaAndAssetCtxs response
+   */
+  public setDexAssetCtxsCache(
+    dex: string,
+    assetCtxs: AssetCtxsWsEvent['ctxs'],
+  ): void {
+    this.dexAssetCtxsCache.set(dex, assetCtxs);
+    DevLogger.log('[SubscriptionService] DEX assetCtxs cache populated', {
+      dex: dex || 'main',
+      ctxsCount: assetCtxs.length,
+    });
+  }
+
+  /**
+   * Get cached assetCtxs for a DEX
+   * Returns the cached asset contexts from WebSocket subscription if available
+   * @param dex - DEX key ('' for main DEX, 'xyz'/'flx'/etc for HIP-3)
+   * @returns Array of asset contexts or undefined if not cached
+   */
+  public getDexAssetCtxsCache(
+    dex: string,
+  ): AssetCtxsWsEvent['ctxs'] | undefined {
+    return this.dexAssetCtxsCache.get(dex);
+  }
+
+  /**
+   * Wait for DEX discovery to complete (with timeout)
+   * Used when HIP-3 is enabled but enabledDexs hasn't been populated yet.
+   * This allows subscriptions to wait for DEX discovery before creating per-DEX subscriptions.
+   */
+  private async waitForDexDiscovery(timeoutMs: number = 5000): Promise<void> {
+    // Already have DEXs, no need to wait
+    if (this.enabledDexs.length > 0) {
+      return;
+    }
+
+    // Create promise if not exists
+    if (!this.dexDiscoveryPromise) {
+      this.dexDiscoveryPromise = new Promise<void>((resolve) => {
+        this.dexDiscoveryResolver = resolve;
+      });
+    }
+
+    // Wait with timeout
+    let timeoutId: NodeJS.Timeout | undefined;
+    const timeoutPromise = new Promise<void>((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error('DEX discovery timeout')),
+        timeoutMs,
+      );
+    });
+
+    try {
+      await Promise.race([this.dexDiscoveryPromise, timeoutPromise]);
+    } catch {
+      DevLogger.log(
+        'DEX discovery wait timed out, proceeding with main DEX only',
+      );
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }
+
+  /**
    * Update feature flags for HIP-3 support
    * Called when provider configuration changes at runtime
    * Note: Market filtering is NOT applied in subscription service - only in Provider
@@ -234,6 +367,13 @@ export class HyperLiquidSubscriptionService {
     this.allowlistMarkets = allowlistMarkets;
     this.blocklistMarkets = blocklistMarkets;
     this.discoveredDexNames = enabledDexs; // Store DEX order for webData3 index mapping
+
+    // Resolve any pending DEX discovery wait now that DEXs are available
+    if (this.dexDiscoveryResolver && enabledDexs.length > 0) {
+      this.dexDiscoveryResolver();
+      this.dexDiscoveryPromise = null;
+      this.dexDiscoveryResolver = null;
+    }
 
     DevLogger.log('Feature flags updated:', {
       previousHip3Enabled,
@@ -278,8 +418,47 @@ export class HyperLiquidSubscriptionService {
         );
       }
 
-      // Note: webData3 automatically includes all DEX data, so no separate
-      // subscription setup needed for positions/orders/account data
+      // Establish clearinghouseState/openOrders subscriptions for new DEXs
+      // (needed for positions, orders, and account data when using individual subscriptions)
+      const hasUserDataSubscribers =
+        this.positionSubscriberCount > 0 ||
+        this.orderSubscriberCount > 0 ||
+        this.accountSubscriberCount > 0;
+
+      if (hasUserDataSubscribers && this.hip3Enabled) {
+        try {
+          const userAddress =
+            await this.walletService.getUserAddressWithDefault();
+
+          await Promise.all(
+            newDexs.map(async (dex) => {
+              try {
+                await this.ensureClearinghouseStateSubscription(
+                  userAddress,
+                  dex,
+                );
+                await this.ensureOpenOrdersSubscription(userAddress, dex);
+                DevLogger.log(
+                  `Established user data subscriptions for new DEX: ${dex}`,
+                );
+              } catch (error) {
+                Logger.error(
+                  ensureError(error),
+                  this.getErrorContext(
+                    'updateFeatureFlags.ensureUserDataSubscription',
+                    { dex },
+                  ),
+                );
+              }
+            }),
+          );
+        } catch (error) {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('updateFeatureFlags.getUserAddress'),
+          );
+        }
+      }
     }
   }
 
@@ -321,16 +500,18 @@ export class HyperLiquidSubscriptionService {
   private cachedAccountHash = '';
 
   /**
-   * Extract TP/SL data from open orders and process orders
-   * DRY helper used by both webData2 and clearinghouseState callbacks
+   * Extract TP/SL from orders and optionally convert raw SDK orders to Order format.
+   * DRY helper used by both webData2 and clearinghouseState callbacks.
    *
    * @param orders - Raw SDK orders from WebSocket event
    * @param positions - Current positions for TP/SL matching
+   * @param cachedProcessedOrders - Optional pre-processed orders (skips conversion if provided)
    * @returns Maps for TP/SL prices and counts, plus processed Order array
    */
   private extractTPSLFromOrders(
     orders: FrontendOpenOrdersResponse,
     positions: Position[],
+    cachedProcessedOrders?: Order[],
   ): {
     tpslMap: Map<string, { takeProfitPrice?: string; stopLossPrice?: string }>;
     tpslCountMap: Map<
@@ -349,6 +530,75 @@ export class HyperLiquidSubscriptionService {
       { takeProfitCount?: number; stopLossCount?: number }
     >();
 
+    // If cached processed orders provided, extract TP/SL from them directly
+    if (cachedProcessedOrders) {
+      cachedProcessedOrders.forEach((order) => {
+        // Use triggerPrice for TP/SL (trigger condition price), falling back to price
+        // This ensures consistency with raw SDK order processing which uses triggerPx
+        const tpslPrice = order.triggerPrice || order.price;
+        if (order.isTrigger && tpslPrice) {
+          const isTakeProfit = order.detailedOrderType?.includes('Take Profit');
+          const isStop = order.detailedOrderType?.includes('Stop');
+
+          const matchingPosition = positions.find(
+            (p) => p.coin === order.symbol,
+          );
+
+          // Determine TP vs SL classification for count and price updates
+          // Use order type first, fallback to price-based detection for ambiguous 'Trigger' types
+          let classifiedAsTakeProfit = isTakeProfit;
+          let classifiedAsStop = isStop;
+
+          if (!isTakeProfit && !isStop && matchingPosition) {
+            // Fallback: determine based on trigger price vs entry price
+            // This handles orders with ambiguous type 'Trigger'
+            const triggerPrice = parseFloat(tpslPrice);
+            const entryPrice = parseFloat(matchingPosition.entryPrice || '0');
+            const isLong = parseFloat(matchingPosition.size) > 0;
+
+            if (isLong) {
+              if (triggerPrice > entryPrice) {
+                classifiedAsTakeProfit = true;
+              } else {
+                classifiedAsStop = true;
+              }
+            } else if (triggerPrice < entryPrice) {
+              classifiedAsTakeProfit = true;
+            } else {
+              classifiedAsStop = true;
+            }
+          }
+
+          const currentTakeProfitCount =
+            tpslCountMap.get(order.symbol)?.takeProfitCount || 0;
+          const currentStopLossCount =
+            tpslCountMap.get(order.symbol)?.stopLossCount || 0;
+
+          tpslCountMap.set(order.symbol, {
+            takeProfitCount: classifiedAsTakeProfit
+              ? currentTakeProfitCount + 1
+              : currentTakeProfitCount,
+            stopLossCount: classifiedAsStop
+              ? currentStopLossCount + 1
+              : currentStopLossCount,
+          });
+
+          if (matchingPosition) {
+            const existing = tpslMap.get(order.symbol) || {};
+            if (classifiedAsTakeProfit) {
+              existing.takeProfitPrice = tpslPrice;
+            } else if (classifiedAsStop) {
+              existing.stopLossPrice = tpslPrice;
+            }
+            tpslMap.set(order.symbol, existing);
+          }
+        }
+      });
+
+      return { tpslMap, tpslCountMap, processedOrders: cachedProcessedOrders };
+    }
+
+    // Process raw SDK orders
     const processedOrders: Order[] = [];
 
     orders.forEach((order) => {
@@ -374,49 +624,58 @@ export class HyperLiquidSubscriptionService {
       if (order.triggerPx) {
         const isTakeProfit = order.orderType?.includes('Take Profit');
         const isStop = order.orderType?.includes('Stop');
-        const currentTakeProfitCount =
-          tpslCountMap.get(order.coin)?.takeProfitCount || 0;
-        const currentStopLossCount =
-          tpslCountMap.get(order.coin)?.stopLossCount || 0;
-
-        tpslCountMap.set(order.coin, {
-          takeProfitCount: isTakeProfit
-            ? currentTakeProfitCount + 1
-            : currentTakeProfitCount,
-          stopLossCount: isStop
-            ? currentStopLossCount + 1
-            : currentStopLossCount,
-        });
 
         const coin = order.coin;
         position = positions.find(matchPositionToTpsl);
         positionForCoin = positions.find(matchPositionToCoin);
 
-        if (position) {
-          const existing = tpslMap.get(coin) || {};
+        // Determine TP vs SL classification for count and price updates
+        // Use order type first, fallback to price-based detection for ambiguous 'Trigger' types
+        // This matches the cached order processing logic for consistency
+        let classifiedAsTakeProfit = isTakeProfit;
+        let classifiedAsStop = isStop;
+
+        if (!isTakeProfit && !isStop && position) {
+          // Fallback: determine based on trigger price vs entry price
+          // This handles orders with ambiguous type 'Trigger'
+          const triggerPrice = parseFloat(order.triggerPx);
+          const entryPrice = parseFloat(position.entryPrice || '0');
           const isLong = parseFloat(position.size) > 0;
 
-          // Determine if it's TP or SL based on order type
-          if (isTakeProfit) {
-            existing.takeProfitPrice = order.triggerPx;
-          } else if (isStop) {
-            existing.stopLossPrice = order.triggerPx;
-          } else {
-            // Fallback: determine based on trigger price vs entry price
-            const triggerPrice = parseFloat(order.triggerPx);
-            const entryPrice = parseFloat(position.entryPrice || '0');
-
-            if (isLong) {
-              if (triggerPrice > entryPrice) {
-                existing.takeProfitPrice = order.triggerPx;
-              } else {
-                existing.stopLossPrice = order.triggerPx;
-              }
-            } else if (triggerPrice < entryPrice) {
-              existing.takeProfitPrice = order.triggerPx;
+          if (isLong) {
+            if (triggerPrice > entryPrice) {
+              classifiedAsTakeProfit = true;
             } else {
-              existing.stopLossPrice = order.triggerPx;
+              classifiedAsStop = true;
             }
+          } else if (triggerPrice < entryPrice) {
+            classifiedAsTakeProfit = true;
+          } else {
+            classifiedAsStop = true;
+          }
+        }
+
+        const currentTakeProfitCount =
+          tpslCountMap.get(coin)?.takeProfitCount || 0;
+        const currentStopLossCount = tpslCountMap.get(coin)?.stopLossCount || 0;
+
+        tpslCountMap.set(coin, {
+          takeProfitCount: classifiedAsTakeProfit
+            ? currentTakeProfitCount + 1
+            : currentTakeProfitCount,
+          stopLossCount: classifiedAsStop
+            ? currentStopLossCount + 1
+            : currentStopLossCount,
+        });
+
+        if (position) {
+          const existing = tpslMap.get(coin) || {};
+
+          // Use classified values for price assignment (consistent with count logic)
+          if (classifiedAsTakeProfit) {
+            existing.takeProfitPrice = order.triggerPx;
+          } else if (classifiedAsStop) {
+            existing.stopLossPrice = order.triggerPx;
           }
 
           tpslMap.set(coin, existing);
@@ -550,6 +809,12 @@ export class HyperLiquidSubscriptionService {
           this.createSubscription(this.marketDataSubscribers, callback, symbol),
         );
       }
+      // Track order book subscribers separately
+      if (includeOrderBook) {
+        unsubscribers.push(
+          this.createSubscription(this.orderBookSubscribers, callback, symbol),
+        );
+      }
     });
 
     this.clientService.ensureSubscriptionClient(
@@ -590,45 +855,10 @@ export class HyperLiquidSubscriptionService {
       });
     }
 
-    // Cache funding rates from initial market data fetch if available (legacy fallback)
-    if (includeMarketData) {
-      // Get initial market data to cache funding rates
-      try {
-        // Get the provider through the clientService instead of Engine directly
-        const infoClient = this.clientService.getInfoClient();
-        const [perpsMeta, assetCtxs] = await Promise.all([
-          infoClient.meta(),
-          infoClient.metaAndAssetCtxs(),
-        ]);
-
-        if (perpsMeta?.universe && assetCtxs?.[1]) {
-          // Cache funding rates directly from assetCtxs and meta
-          perpsMeta.universe.forEach((asset, index) => {
-            const assetCtx = assetCtxs[1][index];
-            if (assetCtx && 'funding' in assetCtx) {
-              const existing = this.marketDataCache.get(asset.name) || {
-                lastUpdated: 0,
-              };
-              this.marketDataCache.set(asset.name, {
-                ...existing,
-                funding: parseFloat(assetCtx.funding),
-                lastUpdated: Date.now(),
-              });
-            }
-          });
-
-          DevLogger.log('Cached funding rates from initial market data:', {
-            cachedCount: perpsMeta.universe.filter((_asset, index) => {
-              const assetCtx = assetCtxs[1][index];
-              return assetCtx && 'funding' in assetCtx;
-            }).length,
-            totalMarkets: perpsMeta.universe.length,
-          });
-        }
-      } catch (error) {
-        DevLogger.log('Failed to cache initial funding rates:', error);
-      }
-    }
+    // Note: Funding rates are now cached via assetCtxs WebSocket subscription
+    // (ensureAssetCtxsSubscription above), eliminating the need for a separate
+    // metaAndAssetCtxs API call here. The WebSocket callback in createAssetCtxsSubscription
+    // populates marketDataCache with funding rates as they arrive.
 
     symbols.forEach((symbol) => {
       // Subscribe to activeAssetCtx only when market data is requested
@@ -737,83 +967,114 @@ export class HyperLiquidSubscriptionService {
       return;
     }
 
+    // Wait for DEX discovery if HIP-3 is enabled but DEXs haven't been discovered yet
+    // This ensures HIP-3 subscriptions are created together with main DEX
+    if (this.hip3Enabled && this.enabledDexs.length === 0) {
+      DevLogger.log(
+        'Waiting for DEX discovery before creating subscriptions...',
+      );
+      await this.waitForDexDiscovery();
+      DevLogger.log('DEX discovery complete, proceeding with subscriptions', {
+        enabledDexs: this.enabledDexs,
+      });
+    }
+
     return new Promise<void>((resolve, reject) => {
       // Choose channel based on HIP-3 master switch
       if (!this.hip3Enabled) {
         // HIP-3 disabled: Use webData2 (main DEX only)
         subscriptionClient
-          .webData2({ user: userAddress }, (data: WsWebData2Event) => {
-            // webData2 returns clearinghouseState for main DEX only
-            const currentDexName = ''; // Main DEX
+          .webData2({ user: userAddress }, (data: WebData2WsEvent) => {
+            try {
+              // webData2 returns clearinghouseState for main DEX only
+              const currentDexName = ''; // Main DEX
 
-            // Extract and process positions from clearinghouseState
-            const positions = data.clearinghouseState.assetPositions
-              .filter((assetPos) => assetPos.position.szi !== '0')
-              .map((assetPos) => adaptPositionFromSDK(assetPos));
+              // Check for removed fields before accessing
+              if (!data.clearinghouseState) {
+                return;
+              }
 
-            // Extract TP/SL from orders
-            const {
-              tpslMap,
-              tpslCountMap,
-              processedOrders: orders,
-            } = this.extractTPSLFromOrders(data.openOrders || [], positions);
+              // Extract and process positions from clearinghouseState
+              const positions = data.clearinghouseState.assetPositions
+                .filter((assetPos) => assetPos.position.szi !== '0')
+                .map((assetPos) => adaptPositionFromSDK(assetPos));
 
-            // Merge TP/SL data into positions
-            const positionsWithTPSL = this.mergeTPSLIntoPositions(
-              positions,
-              tpslMap,
-              tpslCountMap,
-            );
+              // Extract TP/SL from orders
+              const {
+                tpslMap,
+                tpslCountMap,
+                processedOrders: orders,
+              } = this.extractTPSLFromOrders(data.openOrders || [], positions);
 
-            // Extract account data (webData2 provides clearinghouseState)
-            const accountState: AccountState = adaptAccountStateFromSDK(
-              data.clearinghouseState,
-              undefined, // webData2 doesn't include spotState
-            );
-
-            // Store in caches (main DEX only)
-            this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
-            this.dexOrdersCache.set(currentDexName, orders);
-            this.dexAccountCache.set(currentDexName, accountState);
-
-            // OI caps (main DEX only)
-            const oiCaps = data.perpsAtOpenInterestCap || [];
-            const oiCapsHash = [...oiCaps]
-              .sort((a: string, b: string) => a.localeCompare(b))
-              .join(',');
-            if (oiCapsHash !== this.cachedOICapsHash) {
-              this.cachedOICaps = oiCaps;
-              this.cachedOICapsHash = oiCapsHash;
-              this.oiCapsCacheInitialized = true;
-              this.oiCapSubscribers.forEach((callback) => callback(oiCaps));
-            }
-
-            // Notify subscribers (no aggregation needed - only main DEX)
-            const positionsHash = this.hashPositions(positionsWithTPSL);
-            const ordersHash = this.hashOrders(orders);
-            const accountHash = this.hashAccountState(accountState);
-
-            if (positionsHash !== this.cachedPositionsHash) {
-              this.cachedPositions = positionsWithTPSL;
-              this.cachedPositionsHash = positionsHash;
-              this.positionsCacheInitialized = true;
-              this.positionSubscribers.forEach((callback) =>
-                callback(positionsWithTPSL),
+              // Merge TP/SL data into positions
+              const positionsWithTPSL = this.mergeTPSLIntoPositions(
+                positions,
+                tpslMap,
+                tpslCountMap,
               );
-            }
 
-            if (ordersHash !== this.cachedOrdersHash) {
-              this.cachedOrders = orders;
-              this.cachedOrdersHash = ordersHash;
-              this.ordersCacheInitialized = true;
-              this.orderSubscribers.forEach((callback) => callback(orders));
-            }
+              // Extract account data (webData2 provides clearinghouseState)
+              const accountState: AccountState = adaptAccountStateFromSDK(
+                data.clearinghouseState,
+                undefined, // webData2 doesn't include spotState
+              );
 
-            if (accountHash !== this.cachedAccountHash) {
-              this.cachedAccount = accountState;
-              this.cachedAccountHash = accountHash;
-              this.accountSubscribers.forEach((callback) =>
-                callback(accountState),
+              // Store in caches (main DEX only)
+              this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
+              this.dexOrdersCache.set(currentDexName, orders);
+              this.dexAccountCache.set(currentDexName, accountState);
+
+              // OI caps (main DEX only)
+              const oiCaps = data.perpsAtOpenInterestCap || [];
+              const oiCapsHash = [...oiCaps]
+                .sort((a: string, b: string) => a.localeCompare(b))
+                .join(',');
+              if (oiCapsHash !== this.cachedOICapsHash) {
+                this.cachedOICaps = oiCaps;
+                this.cachedOICapsHash = oiCapsHash;
+                this.oiCapsCacheInitialized = true;
+                this.oiCapSubscribers.forEach((callback) => callback(oiCaps));
+              }
+
+              // Notify subscribers (no aggregation needed - only main DEX)
+              const positionsHash = this.hashPositions(positionsWithTPSL);
+              const ordersHash = this.hashOrders(orders);
+              const accountHash = this.hashAccountState(accountState);
+
+              if (positionsHash !== this.cachedPositionsHash) {
+                this.cachedPositions = positionsWithTPSL;
+                this.cachedPositionsHash = positionsHash;
+                this.positionsCacheInitialized = true;
+                this.positionSubscribers.forEach((callback) =>
+                  callback(positionsWithTPSL),
+                );
+              }
+
+              if (ordersHash !== this.cachedOrdersHash) {
+                this.cachedOrders = orders;
+                this.cachedOrdersHash = ordersHash;
+                this.ordersCacheInitialized = true;
+                this.orderSubscribers.forEach((callback) => callback(orders));
+              }
+
+              if (accountHash !== this.cachedAccountHash) {
+                this.cachedAccount = accountState;
+                this.cachedAccountHash = accountHash;
+                this.accountSubscribers.forEach((callback) =>
+                  callback(accountState),
+                );
+              }
+            } catch (error) {
+              Logger.error(
+                ensureError(error),
+                this.getErrorContext('webData2 callback error', {
+                  user: userAddress,
+                  dataKeys: data ? Object.keys(data) : 'data is null/undefined',
+                  hasClearinghouseState: data?.clearinghouseState !== undefined,
+                  hasOpenOrders: data?.openOrders !== undefined,
+                  hasPerpsAtOpenInterestCap:
+                    data?.perpsAtOpenInterestCap !== undefined,
+                }),
               );
             }
           })
@@ -834,163 +1095,106 @@ export class HyperLiquidSubscriptionService {
             reject(ensureError(error));
           });
       } else {
-        // HIP-3 enabled: Use webData3 (main + HIP-3 DEXs)
-        subscriptionClient
-          .webData3({ user: userAddress }, (data: WsWebData3Event) => {
-            // Process data from each DEX in perpDexStates array
-            // webData3 returns data for ALL protocol DEXs, but we only process the ones we care about
-            data.perpDexStates.forEach((dexState, index) => {
-              // Map webData3 index to DEX name
-              // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
-              const dexIdentifier =
-                index === 0 ? null : this.discoveredDexNames[index - 1];
+        // HIP-3 enabled: Use individual subscriptions for positions/orders/account
+        // webData3 is only used for OI caps extraction
 
-              // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
-              if (index > 0 && dexIdentifier === undefined) {
-                return; // Unknown DEX - skip to prevent misidentifying as main DEX
-              }
+        // Determine which DEXs to subscribe to
+        const dexsToSubscribe = [
+          '', // Main DEX
+          ...this.enabledDexs.filter((d) => this.isDexEnabled(d)),
+        ];
 
-              // Only process DEXs we care about (skip others silently)
-              // webData3 API returns all protocol DEXs regardless of our config
-              if (!this.isDexEnabled(dexIdentifier ?? null)) {
-                return; // Skip this DEX - not enabled in our configuration
-              }
+        // Track expected DEXs for synchronized notifications
+        // Clear previous tracking and set new expected DEXs
+        this.expectedDexs = new Set(dexsToSubscribe);
+        this.initializedDexs = new Set();
 
-              const currentDexName = dexIdentifier ?? ''; // null -> '' for Map keys
+        // Set up individual subscriptions for each DEX
+        const subscriptionPromises: Promise<void>[] = [];
 
-              // Extract and process positions for this DEX
-              const positions = dexState.clearinghouseState.assetPositions
-                .filter((assetPos) => assetPos.position.szi !== '0')
-                .map((assetPos) => adaptPositionFromSDK(assetPos));
+        for (const currentDexName of dexsToSubscribe) {
+          // Set up clearinghouseState subscription for positions + account
+          subscriptionPromises.push(
+            this.ensureClearinghouseStateSubscription(
+              userAddress,
+              currentDexName,
+            ),
+          );
 
-              // Extract TP/SL from orders and process orders using shared helper
-              const {
-                tpslMap,
-                tpslCountMap,
-                processedOrders: orders,
-              } = this.extractTPSLFromOrders(
-                dexState.openOrders || [],
-                positions,
-              );
+          // Set up openOrders subscription for orders
+          subscriptionPromises.push(
+            this.ensureOpenOrdersSubscription(userAddress, currentDexName),
+          );
+        }
 
-              // Merge TP/SL data into positions using shared helper
-              const positionsWithTPSL = this.mergeTPSLIntoPositions(
-                positions,
-                tpslMap,
-                tpslCountMap,
-              );
+        // Also set up webData3 for OI caps only
+        const webData3Promise = subscriptionClient
+          .webData3({ user: userAddress }, (data: WebData3WsEvent) => {
+            try {
+              // webData3 is ONLY used for OI caps extraction
+              // Positions, orders, and account data come from individual subscriptions
+              const allOICaps: string[] = [];
+              data.perpDexStates.forEach((dexState, index) => {
+                // Map webData3 index to DEX name
+                // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
+                const dexIdentifier =
+                  index === 0 ? null : this.discoveredDexNames[index - 1];
 
-              // Extract account data for this DEX
-              // Note: spotState is not included in webData3
-              const accountState: AccountState = adaptAccountStateFromSDK(
-                dexState.clearinghouseState,
-                undefined, // webData3 doesn't include spotState
-              );
+                // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
+                if (index > 0 && dexIdentifier === undefined) {
+                  return; // Unknown DEX - skip to prevent misidentifying as main DEX
+                }
 
-              // Store per-DEX data in caches
-              this.dexPositionsCache.set(currentDexName, positionsWithTPSL);
-              this.dexOrdersCache.set(currentDexName, orders);
-              this.dexAccountCache.set(currentDexName, accountState);
-            });
+                // Only process DEXs we care about (skip others silently)
+                if (!this.isDexEnabled(dexIdentifier ?? null)) {
+                  return; // Skip this DEX - not enabled in our configuration
+                }
 
-            // Extract OI caps from all DEXs (main + HIP-3)
-            const allOICaps: string[] = [];
-            data.perpDexStates.forEach((dexState, index) => {
-              // Map webData3 index to DEX name
-              // Index 0 = main DEX (null), Index 1+ = HIP-3 DEXs from discoveredDexNames
-              const dexIdentifier =
-                index === 0 ? null : this.discoveredDexNames[index - 1];
+                const currentDexName = dexIdentifier ?? '';
 
-              // Skip unknown DEXs (not in discoveredDexNames) to prevent main DEX cache corruption
-              if (index > 0 && dexIdentifier === undefined) {
-                return; // Unknown DEX - skip to prevent misidentifying as main DEX
-              }
+                const oiCaps = dexState.perpsAtOpenInterestCap || [];
 
-              // Only process DEXs we care about (skip others silently)
-              if (!this.isDexEnabled(dexIdentifier ?? null)) {
-                return; // Skip this DEX - not enabled in our configuration
-              }
+                // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
+                if (currentDexName) {
+                  allOICaps.push(
+                    ...oiCaps.map((symbol) => `${currentDexName}:${symbol}`),
+                  );
+                } else {
+                  // Main DEX - no prefix needed
+                  allOICaps.push(...oiCaps);
+                }
+              });
 
-              const currentDexName = dexIdentifier ?? '';
-              const oiCaps = dexState.perpsAtOpenInterestCap || [];
+              // Update OI caps cache and notify if changed
+              const oiCapsHash = [...allOICaps]
+                .sort((a: string, b: string) => a.localeCompare(b))
+                .join(',');
+              if (oiCapsHash !== this.cachedOICapsHash) {
+                this.cachedOICaps = allOICaps;
+                this.cachedOICapsHash = oiCapsHash;
+                this.oiCapsCacheInitialized = true;
 
-              // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
-              if (currentDexName) {
-                allOICaps.push(
-                  ...oiCaps.map((symbol) => `${currentDexName}:${symbol}`),
+                // Notify all subscribers
+                this.oiCapSubscribers.forEach((callback) =>
+                  callback(allOICaps),
                 );
-              } else {
-                // Main DEX - no prefix needed
-                allOICaps.push(...oiCaps);
               }
-            });
-
-            // Update OI caps cache and notify if changed
-            const oiCapsHash = [...allOICaps]
-              .sort((a: string, b: string) => a.localeCompare(b))
-              .join(',');
-            if (oiCapsHash !== this.cachedOICapsHash) {
-              this.cachedOICaps = allOICaps;
-              this.cachedOICapsHash = oiCapsHash;
-              this.oiCapsCacheInitialized = true;
-
-              // Notify all subscribers
-              this.oiCapSubscribers.forEach((callback) => callback(allOICaps));
-            }
-
-            // Aggregate data from all DEX caches
-            const aggregatedPositions = Array.from(
-              this.dexPositionsCache.values(),
-            ).flat();
-
-            const aggregatedOrders = Array.from(
-              this.dexOrdersCache.values(),
-            ).flat();
-
-            const aggregatedAccount = this.aggregateAccountStates();
-
-            // Check if aggregated data changed using fast hash comparison
-            const positionsHash = this.hashPositions(aggregatedPositions);
-            const ordersHash = this.hashOrders(aggregatedOrders);
-            const accountHash = this.hashAccountState(aggregatedAccount);
-
-            const positionsChanged = positionsHash !== this.cachedPositionsHash;
-            const ordersChanged = ordersHash !== this.cachedOrdersHash;
-            const accountChanged = accountHash !== this.cachedAccountHash;
-
-            // Only notify subscribers if aggregated data changed
-            if (positionsChanged) {
-              this.cachedPositions = aggregatedPositions;
-              this.cachedPositionsHash = positionsHash;
-              this.positionsCacheInitialized = true; // Mark cache as initialized
-              this.positionSubscribers.forEach((callback) => {
-                callback(aggregatedPositions);
-              });
-            }
-
-            if (ordersChanged) {
-              this.cachedOrders = aggregatedOrders;
-              this.cachedOrdersHash = ordersHash;
-              this.ordersCacheInitialized = true; // Mark cache as initialized
-              this.orderSubscribers.forEach((callback) => {
-                callback(aggregatedOrders);
-              });
-            }
-
-            if (accountChanged) {
-              this.cachedAccount = aggregatedAccount;
-              this.cachedAccountHash = accountHash;
-              this.accountSubscribers.forEach((callback) => {
-                callback(aggregatedAccount);
-              });
+            } catch (error) {
+              Logger.error(
+                ensureError(error),
+                this.getErrorContext('webData3 callback error', {
+                  user: userAddress,
+                  hasPerpDexStates: data?.perpDexStates !== undefined,
+                  perpDexStatesLength: data?.perpDexStates?.length ?? 0,
+                }),
+              );
             }
           })
           .then((sub) => {
             this.webData3Subscriptions.set(dexName, sub);
             DevLogger.log(
-              `webData3 subscription established for all DEXs (main + HIP-3)`,
+              `webData3 subscription established for OI caps (main + HIP-3)`,
             );
-            resolve();
           })
           .catch((error) => {
             Logger.error(
@@ -999,16 +1203,282 @@ export class HyperLiquidSubscriptionService {
                 dex: dexName,
               }),
             );
+            throw error;
+          });
+
+        subscriptionPromises.push(webData3Promise);
+
+        // Wait for all subscriptions to be established
+        Promise.all(subscriptionPromises)
+          .then(() => {
+            DevLogger.log(
+              `HIP-3 user data subscriptions established for ${dexsToSubscribe.length} DEXs`,
+            );
+            resolve();
+          })
+          .catch((error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext('createUserDataSubscription (HIP-3)', {
+                dexs: dexsToSubscribe,
+              }),
+            );
             reject(ensureError(error));
           });
-      } // Close else block for webData3
-    }); // Close Promise wrapper
+      }
+    });
+  }
+
+  /**
+   * Ensure clearinghouseState subscription exists for a DEX
+   */
+  private async ensureClearinghouseStateSubscription(
+    userAddress: string,
+    dexName: string,
+  ): Promise<void> {
+    if (this.clearinghouseStateSubscriptions.has(dexName)) {
+      return; // Already subscribed
+    }
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not available');
+    }
+
+    try {
+      const subscription = await subscriptionClient.clearinghouseState(
+        {
+          user: userAddress,
+          dex: dexName || undefined, // Empty string -> undefined for main DEX
+        },
+        (data: ClearinghouseStateWsEvent) => {
+          const cacheKey = data.dex || '';
+
+          // Update caches and notify subscribers if we have positions/account subscribers
+          if (
+            this.positionSubscriberCount > 0 ||
+            this.accountSubscriberCount > 0
+          ) {
+            // Process positions from clearinghouse state
+            const positions = data.clearinghouseState.assetPositions
+              .filter((assetPos) => assetPos.position.szi !== '0')
+              .map((assetPos) => adaptPositionFromSDK(assetPos));
+
+            // Get cached orders to preserve TP/SL data (prevents flickering)
+            // Orders are cached by openOrders subscription
+            const cachedOrders = this.dexOrdersCache.get(cacheKey) || [];
+
+            // Re-extract TP/SL from cached orders for the new positions
+            // This ensures TP/SL data persists across clearinghouseState updates
+            let positionsWithTPSL = positions;
+            if (cachedOrders.length > 0) {
+              const { tpslMap, tpslCountMap } = this.extractTPSLFromOrders(
+                [],
+                positions,
+                cachedOrders,
+              );
+
+              positionsWithTPSL = this.mergeTPSLIntoPositions(
+                positions,
+                tpslMap,
+                tpslCountMap,
+              );
+            }
+
+            // Update account state
+            const accountState: AccountState = adaptAccountStateFromSDK(
+              data.clearinghouseState,
+              undefined,
+            );
+
+            // Update caches
+            this.dexPositionsCache.set(cacheKey, positionsWithTPSL);
+            this.dexAccountCache.set(cacheKey, accountState);
+
+            // Mark this DEX as initialized (has sent first data)
+            this.initializedDexs.add(cacheKey);
+
+            // Trigger aggregation and notify subscribers
+            this.aggregateAndNotifySubscribers();
+          }
+        },
+      );
+
+      this.clearinghouseStateSubscriptions.set(dexName, subscription);
+      DevLogger.log(
+        `clearinghouseState subscription established for DEX: ${dexName || 'main'}`,
+      );
+    } catch (error) {
+      // Remove this DEX from expected set so it doesn't block notifications for other DEXs
+      this.expectedDexs.delete(dexName);
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('ensureClearinghouseStateSubscription', {
+          dex: dexName,
+        }),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Ensure openOrders subscription exists for a DEX
+   */
+  private async ensureOpenOrdersSubscription(
+    userAddress: string,
+    dexName: string,
+  ): Promise<void> {
+    if (this.openOrdersSubscriptions.has(dexName)) {
+      return; // Already subscribed
+    }
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not available');
+    }
+
+    try {
+      const subscription = await subscriptionClient.openOrders(
+        {
+          user: userAddress,
+          dex: dexName || undefined, // Empty string -> undefined for main DEX
+        },
+        (data: OpenOrdersWsEvent) => {
+          const cacheKey = data.dex || '';
+
+          // Update caches and notify subscribers if we have order subscribers
+          if (
+            this.orderSubscriberCount > 0 ||
+            this.positionSubscriberCount > 0
+          ) {
+            // Get cached positions for TP/SL processing
+            const cachedPositions = this.dexPositionsCache.get(cacheKey) || [];
+
+            // Extract TP/SL and process orders
+            const {
+              tpslMap,
+              tpslCountMap,
+              processedOrders: orders,
+            } = this.extractTPSLFromOrders(data.orders, cachedPositions);
+
+            // Update orders cache with processed orders
+            this.dexOrdersCache.set(cacheKey, orders);
+
+            // Update positions with TP/SL if we have positions
+            if (cachedPositions.length > 0) {
+              const positionsWithTPSL = this.mergeTPSLIntoPositions(
+                cachedPositions,
+                tpslMap,
+                tpslCountMap,
+              );
+              this.dexPositionsCache.set(cacheKey, positionsWithTPSL);
+            }
+
+            // Mark this DEX as initialized (has sent first data)
+            this.initializedDexs.add(cacheKey);
+
+            // Trigger aggregation and notify subscribers
+            this.aggregateAndNotifySubscribers();
+          }
+        },
+      );
+
+      this.openOrdersSubscriptions.set(dexName, subscription);
+      DevLogger.log(
+        `openOrders subscription established for DEX: ${dexName || 'main'}`,
+      );
+    } catch (error) {
+      // Remove this DEX from expected set so it doesn't block notifications for other DEXs
+      this.expectedDexs.delete(dexName);
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('ensureOpenOrdersSubscription', {
+          dex: dexName,
+        }),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Aggregate data from all DEX caches and notify subscribers if data changed
+   * Used by both webData3 callback and fallback subscription callbacks
+   */
+  private aggregateAndNotifySubscribers(): void {
+    // Wait for all expected DEXs to send initial data before notifying
+    // This ensures positions from all DEXs appear simultaneously
+    if (this.expectedDexs.size > 0) {
+      const allDexsInitialized = Array.from(this.expectedDexs).every((dex) =>
+        this.initializedDexs.has(dex),
+      );
+      if (!allDexsInitialized) {
+        DevLogger.log('Waiting for all DEXs to send initial data', {
+          expected: Array.from(this.expectedDexs),
+          initialized: Array.from(this.initializedDexs),
+        });
+        return; // Don't notify yet - waiting for more DEXs
+      }
+    }
+
+    // Aggregate data from all DEX caches
+    // Order: Main DEX (crypto perps) first, then HIP-3 DEXs
+    const mainDexPositions = this.dexPositionsCache.get('') || [];
+    const hip3DexPositions = Array.from(this.dexPositionsCache.entries())
+      .filter(([key]) => key !== '')
+      .flatMap(([, positions]) => positions);
+    const aggregatedPositions = [...mainDexPositions, ...hip3DexPositions];
+
+    const mainDexOrders = this.dexOrdersCache.get('') || [];
+    const hip3DexOrders = Array.from(this.dexOrdersCache.entries())
+      .filter(([key]) => key !== '')
+      .flatMap(([, orders]) => orders);
+    const aggregatedOrders = [...mainDexOrders, ...hip3DexOrders];
+
+    const aggregatedAccount = this.aggregateAccountStates();
+
+    // Check if aggregated data changed using fast hash comparison
+    const positionsHash = this.hashPositions(aggregatedPositions);
+    const ordersHash = this.hashOrders(aggregatedOrders);
+    const accountHash = this.hashAccountState(aggregatedAccount);
+
+    const positionsChanged = positionsHash !== this.cachedPositionsHash;
+    const ordersChanged = ordersHash !== this.cachedOrdersHash;
+    const accountChanged = accountHash !== this.cachedAccountHash;
+
+    // Only notify subscribers if aggregated data changed
+    if (positionsChanged) {
+      this.cachedPositions = aggregatedPositions;
+      this.cachedPositionsHash = positionsHash;
+      this.positionsCacheInitialized = true; // Mark cache as initialized
+      this.positionSubscribers.forEach((callback) => {
+        callback(aggregatedPositions);
+      });
+    }
+
+    if (ordersChanged) {
+      this.cachedOrders = aggregatedOrders;
+      this.cachedOrdersHash = ordersHash;
+      this.ordersCacheInitialized = true; // Mark cache as initialized
+      this.orderSubscribers.forEach((callback) => {
+        callback(aggregatedOrders);
+      });
+    }
+
+    if (accountChanged) {
+      this.cachedAccount = aggregatedAccount;
+      this.cachedAccountHash = accountHash;
+      this.accountSubscribers.forEach((callback) => {
+        callback(aggregatedAccount);
+      });
+    }
   }
 
   /**
    * Clean up webData3 subscription when no longer needed
    */
-  private cleanupSharedWebData3Subscription(): void {
+  private cleanupSharedWebData3ISubscription(): void {
     const totalSubscribers =
       this.positionSubscriberCount +
       this.orderSubscriberCount +
@@ -1023,7 +1493,7 @@ export class HyperLiquidSubscriptionService {
             Logger.error(
               ensureError(error),
               this.getErrorContext(
-                'cleanupSharedWebData3Subscription.webData3',
+                'cleanupSharedWebData3ISubscription.webData3',
                 {
                   dex: dexName,
                 },
@@ -1035,7 +1505,42 @@ export class HyperLiquidSubscriptionService {
         this.webData3SubscriptionPromise = undefined;
       }
 
-      // Note: No separate clearinghouseState cleanup needed (webData3 handles all DEXs)
+      // Cleanup individual subscriptions (clearinghouseState + openOrders)
+      if (this.clearinghouseStateSubscriptions.size > 0) {
+        this.clearinghouseStateSubscriptions.forEach(
+          (subscription, dexName) => {
+            subscription.unsubscribe().catch((error: Error) => {
+              Logger.error(
+                ensureError(error),
+                this.getErrorContext(
+                  'cleanupSharedWebData3ISubscription.clearinghouseState',
+                  {
+                    dex: dexName,
+                  },
+                ),
+              );
+            });
+          },
+        );
+        this.clearinghouseStateSubscriptions.clear();
+      }
+
+      if (this.openOrdersSubscriptions.size > 0) {
+        this.openOrdersSubscriptions.forEach((subscription, dexName) => {
+          subscription.unsubscribe().catch((error: Error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext(
+                'cleanupSharedWebData3ISubscription.openOrders',
+                {
+                  dex: dexName,
+                },
+              ),
+            );
+          });
+        });
+        this.openOrdersSubscriptions.clear();
+      }
 
       // Clear subscriber counts
       this.positionSubscriberCount = 0;
@@ -1047,6 +1552,10 @@ export class HyperLiquidSubscriptionService {
       this.dexPositionsCache.clear();
       this.dexOrdersCache.clear();
       this.dexAccountCache.clear();
+
+      // Clear DEX tracking for synchronized notifications
+      this.expectedDexs.clear();
+      this.initializedDexs.clear();
 
       // Clear aggregated caches
       this.cachedPositions = null;
@@ -1061,7 +1570,7 @@ export class HyperLiquidSubscriptionService {
       this.cachedAccountHash = '';
 
       DevLogger.log(
-        'All multi-DEX subscriptions cleaned up (webData2 + clearinghouseState)',
+        'All multi-DEX subscriptions cleaned up (webData2/3 + individual subscriptions)',
       );
     }
   }
@@ -1095,7 +1604,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.positionSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1131,7 +1640,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.oiCapSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1145,88 +1654,113 @@ export class HyperLiquidSubscriptionService {
 
   /**
    * Subscribe to live order fill updates
+   * Shares subscriptions per accountId to avoid duplicate WebSocket connections
    */
   public subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
     const { callback, accountId } = params;
+    // Normalize accountId: undefined -> 'default' for Map key
+    const normalizedAccountId = accountId ?? 'default';
     const unsubscribe = this.createSubscription(
       this.orderFillSubscribers,
       callback,
+      normalizedAccountId,
     );
 
-    let subscription: Subscription | undefined;
-    let cancelled = false;
-
-    this.clientService.ensureSubscriptionClient(
-      this.walletService.createWalletAdapter(),
-    );
-    const subscriptionClient = this.clientService.getSubscriptionClient();
-
-    if (subscriptionClient) {
-      this.walletService
-        .getUserAddressWithDefault(accountId)
-        .then((userAddress) =>
-          subscriptionClient.userFills(
-            { user: userAddress },
-            (data: WsUserFillsEvent) => {
-              const orderFills: OrderFill[] = data.fills.map((fill) => ({
-                orderId: fill.oid.toString(),
-                symbol: fill.coin,
-                side: fill.side,
-                size: fill.sz,
-                price: fill.px,
-                fee: fill.fee,
-                timestamp: fill.time,
-                pnl: fill.closedPnl,
-                direction: fill.dir,
-                feeToken: fill.feeToken,
-                startPosition: fill.startPosition,
-                liquidation: fill.liquidation
-                  ? {
-                      liquidatedUser: fill.liquidation.liquidatedUser,
-                      markPx: fill.liquidation.markPx,
-                      method: fill.liquidation.method,
-                    }
-                  : undefined,
-              }));
-
-              callback(orderFills, data.isSnapshot);
-            },
-          ),
-        )
-        .then((sub) => {
-          // If cleanup was called before subscription completed, immediately unsubscribe
-          if (cancelled) {
-            sub.unsubscribe().catch((error: Error) => {
-              Logger.error(
-                ensureError(error),
-                this.getErrorContext('subscribeToOrderFills.cleanup'),
-              );
-            });
-          } else {
-            subscription = sub;
-          }
-        })
-        .catch((error) => {
-          Logger.error(
-            ensureError(error),
-            this.getErrorContext('subscribeToOrderFills'),
-          );
-        });
-    }
+    // Ensure subscription is established for this accountId
+    this.ensureOrderFillISubscription(accountId).catch((error) => {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderFills'),
+      );
+    });
 
     return () => {
-      cancelled = true;
       unsubscribe();
 
-      if (subscription) {
-        subscription.unsubscribe().catch((error: Error) => {
-          Logger.error(
-            ensureError(error),
-            this.getErrorContext('subscribeToOrderFills.unsubscribe'),
-          );
-        });
+      // If no more subscribers for this accountId, clean up subscription
+      const subscribers = this.orderFillSubscribers.get(normalizedAccountId);
+      if (!subscribers || subscribers.size === 0) {
+        const subscription =
+          this.orderFillSubscriptions.get(normalizedAccountId);
+        if (subscription) {
+          subscription.unsubscribe().catch((error: Error) => {
+            Logger.error(
+              ensureError(error),
+              this.getErrorContext('subscribeToOrderFills.unsubscribe'),
+            );
+          });
+          this.orderFillSubscriptions.delete(normalizedAccountId);
+        }
       }
     };
+  }
+
+  /**
+   * Ensure order fill subscription is active for the given accountId
+   * Shares subscription across all callbacks for the same accountId
+   */
+  private async ensureOrderFillISubscription(
+    accountId?: CaipAccountId,
+  ): Promise<void> {
+    // Normalize accountId: undefined -> 'default' for Map key
+    const normalizedAccountId = accountId ?? 'default';
+
+    // If subscription already exists, no need to create another
+    if (this.orderFillSubscriptions.has(normalizedAccountId)) {
+      return;
+    }
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      this.clientService.ensureSubscriptionClient(
+        this.walletService.createWalletAdapter(),
+      );
+      const client = this.clientService.getSubscriptionClient();
+      if (!client) {
+        throw new Error('SubscriptionClient not available');
+      }
+      return this.ensureOrderFillISubscription(accountId);
+    }
+
+    const userAddress =
+      await this.walletService.getUserAddressWithDefault(accountId);
+
+    // userFills returns a Promise<ISubscription>, need to await it
+    const subscription = await subscriptionClient.userFills(
+      { user: userAddress },
+      (data: UserFillsWsEvent) => {
+        const orderFills: OrderFill[] = data.fills.map((fill) => ({
+          orderId: fill.oid.toString(),
+          symbol: fill.coin,
+          side: fill.side,
+          size: fill.sz,
+          price: fill.px,
+          fee: fill.fee,
+          timestamp: fill.time,
+          pnl: fill.closedPnl,
+          direction: fill.dir,
+          feeToken: fill.feeToken,
+          startPosition: fill.startPosition,
+          liquidation: fill.liquidation
+            ? {
+                liquidatedUser: fill.liquidation.liquidatedUser,
+                markPx: fill.liquidation.markPx,
+                method: fill.liquidation.method,
+              }
+            : undefined,
+        }));
+
+        // Distribute to all callbacks for this accountId
+        const subscribers = this.orderFillSubscribers.get(normalizedAccountId);
+        if (subscribers) {
+          subscribers.forEach((callback) => {
+            callback(orderFills, data.isSnapshot);
+          });
+        }
+      },
+    );
+
+    this.orderFillSubscriptions.set(normalizedAccountId, subscription);
   }
 
   /**
@@ -1259,7 +1793,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.orderSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1293,7 +1827,7 @@ export class HyperLiquidSubscriptionService {
     return () => {
       unsubscribe();
       this.accountSubscriberCount--;
-      this.cleanupSharedWebData3Subscription();
+      this.cleanupSharedWebData3ISubscription();
     };
   }
 
@@ -1424,7 +1958,7 @@ export class HyperLiquidSubscriptionService {
 
     // Store the promise immediately to prevent duplicate calls
     this.globalAllMidsPromise = subscriptionClient
-      .allMids((data: WsAllMidsEvent) => {
+      .allMids((data: AllMidsWsEvent) => {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
@@ -1517,14 +2051,14 @@ export class HyperLiquidSubscriptionService {
     subscriptionClient
       .activeAssetCtx(
         { coin: symbol },
-        (data: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent) => {
+        (data: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent) => {
           subscriptionMetrics.messagesReceived++;
 
           if (data.coin === symbol && data.ctx) {
             // Type guard using SDK types: check if this is perps (has funding) or spot (no funding)
             const isPerpsContext = (
-              event: WsActiveAssetCtxEvent | WsActiveSpotAssetCtxEvent,
-            ): event is WsActiveAssetCtxEvent =>
+              event: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent,
+            ): event is ActiveAssetCtxWsEvent =>
               'funding' in event.ctx &&
               'openInterest' in event.ctx &&
               'oraclePx' in event.ctx;
@@ -1597,18 +2131,19 @@ export class HyperLiquidSubscriptionService {
     if (currentCount <= 1) {
       // Last subscriber, cleanup subscription
       const subscription = this.globalActiveAssetSubscriptions.get(symbol);
-      if (subscription) {
-        subscription.unsubscribe().catch((error: unknown) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FEATURE_NAME,
-            message: `Failed to cleanup active asset subscription for ${symbol}`,
-          });
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        const unsubscribeResult = Promise.resolve(subscription.unsubscribe());
+
+        unsubscribeResult.catch(() => {
+          // Ignore errors during cleanup
         });
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
-        DevLogger.log(
-          `HyperLiquid: Cleaned up market data subscription for ${symbol}`,
-        );
+      } else if (subscription) {
+        // Subscription exists but unsubscribe is not a function or doesn't return a Promise
+        // Just clean up the reference
+        this.globalActiveAssetSubscriptions.delete(symbol);
+        this.symbolSubscriberCounts.delete(symbol);
       }
     } else {
       // Still has subscribers, just decrement count
@@ -1655,7 +2190,8 @@ export class HyperLiquidSubscriptionService {
    * Create assetCtxs subscription for specific DEX
    * Provides real-time market data for all assets on the DEX
    *
-   * Performance: Fetches meta() ONCE during setup to avoid REST API spam on every WebSocket update
+   * Performance: Uses cached meta from dexMetaCache (populated by metaAndAssetCtxs)
+   * to avoid redundant meta() API calls during subscription setup
    */
   private async createAssetCtxsSubscription(dex: string): Promise<void> {
     this.clientService.ensureSubscriptionClient(
@@ -1668,31 +2204,41 @@ export class HyperLiquidSubscriptionService {
     }
 
     const dexKey = dex || '';
-
-    // Fetch meta ONCE during setup to cache symbol mapping
-    // This prevents REST API call on every WebSocket update (critical performance fix)
-    const infoClient = this.clientService.getInfoClient();
-    const perpsMeta = await infoClient.meta({ dex: dex || undefined });
-
     const dexIdentifier = dex ?? 'main DEX';
+
+    // Check cache first - populated by metaAndAssetCtxs in ensureAssetCtxsSubscription
+    let perpsMeta = this.dexMetaCache.get(dexKey);
+
+    if (!perpsMeta) {
+      // Fallback: fetch meta if not in cache (shouldn't happen in normal flow)
+      DevLogger.log(`Meta cache miss for ${dexIdentifier}, fetching from API`);
+      const infoClient = this.clientService.getInfoClient();
+      const fetchedMeta = await infoClient.meta({ dex: dex || undefined });
+      if (fetchedMeta?.universe) {
+        perpsMeta = fetchedMeta;
+        this.dexMetaCache.set(dexKey, fetchedMeta);
+      }
+    }
 
     if (!perpsMeta?.universe) {
       const errorMessage = `No universe data available for ${dexIdentifier}`;
       throw new Error(errorMessage);
     }
 
-    const metaLogMessage = `Cached meta for ${dexIdentifier}`;
-    DevLogger.log(metaLogMessage, {
-      dex,
-      universeCount: perpsMeta.universe.length,
-      firstAssetSample: perpsMeta.universe[0]?.name,
-    });
+    DevLogger.log(
+      `Using ${this.dexMetaCache.has(dexKey) ? 'cached' : 'fetched'} meta for ${dexIdentifier}`,
+      {
+        dex,
+        universeCount: perpsMeta.universe.length,
+        firstAssetSample: perpsMeta.universe[0]?.name,
+      },
+    );
 
     return new Promise<void>((resolve, reject) => {
       const subscriptionParams = dex ? { dex } : {};
 
       subscriptionClient
-        .assetCtxs(subscriptionParams, (data: WsAssetCtxsEvent) => {
+        .assetCtxs(subscriptionParams, (data: AssetCtxsWsEvent) => {
           // Cache asset contexts for this DEX
           this.dexAssetCtxsCache.set(dexKey, data.ctxs);
 
@@ -1841,18 +2387,19 @@ export class HyperLiquidSubscriptionService {
    */
   private cleanupL2BookSubscription(symbol: string): void {
     const subscription = this.globalL2BookSubscriptions.get(symbol);
-    if (subscription) {
-      subscription.unsubscribe().catch((error: unknown) => {
-        Logger.error(ensureError(error), {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
-          message: `Failed to cleanup L2 book subscription for ${symbol}`,
-        });
+    if (subscription && typeof subscription.unsubscribe === 'function') {
+      const unsubscribeResult = Promise.resolve(subscription.unsubscribe());
+      unsubscribeResult.catch(() => {
+        // Ignore errors during cleanup
       });
+
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
-      DevLogger.log(
-        `HyperLiquid: Cleaned up L2 book subscription for ${symbol}`,
-      );
+    } else if (subscription) {
+      // Subscription exists but unsubscribe is not a function or doesn't return a Promise
+      // Just clean up the reference
+      this.globalL2BookSubscriptions.delete(symbol);
+      this.orderBookCache.delete(symbol);
     }
   }
 
@@ -1888,7 +2435,7 @@ export class HyperLiquidSubscriptionService {
       };
     }
 
-    let subscription: Subscription | undefined;
+    let subscription: ISubscription | undefined;
     let cancelled = false;
 
     subscriptionClient
@@ -2058,6 +2605,132 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
+   * Restore all active subscriptions after WebSocket reconnection
+   * Re-establishes WebSocket subscriptions for all active subscribers
+   */
+  public async restoreSubscriptions(): Promise<void> {
+    // Re-establish global allMids subscription if there are price subscribers
+    if (this.priceSubscribers.size > 0) {
+      // Clear existing subscription reference (it's dead after reconnection)
+      this.globalAllMidsSubscription = undefined;
+      this.globalAllMidsPromise = undefined;
+
+      // Re-establish the subscription
+      this.ensureGlobalAllMidsSubscription();
+    }
+
+    // Re-establish order fill subscriptions if there are fill subscribers
+    if (this.orderFillSubscribers.size > 0) {
+      // Clear existing subscription references (they're dead after reconnection)
+      this.orderFillSubscriptions.clear();
+
+      // Re-establish subscriptions for all accountIds with subscribers
+      // Note: normalizedAccountId is 'default' for undefined, need to convert back
+      const normalizedAccountIds = Array.from(this.orderFillSubscribers.keys());
+      await Promise.all(
+        normalizedAccountIds.map((normalizedAccountId) => {
+          // Convert normalized key back to original accountId (undefined if 'default')
+          const accountId =
+            normalizedAccountId === 'default'
+              ? undefined
+              : (normalizedAccountId as CaipAccountId);
+          return this.ensureOrderFillISubscription(accountId).catch(() => {
+            // Ignore errors during order fill subscription restoration
+          });
+        }),
+      );
+    }
+
+    // Re-establish user data subscriptions if there are user data subscribers
+    if (
+      this.positionSubscribers.size > 0 ||
+      this.orderSubscribers.size > 0 ||
+      this.accountSubscribers.size > 0 ||
+      this.oiCapSubscribers.size > 0
+    ) {
+      // Clear existing subscription references (they're dead after reconnection)
+      this.webData3Subscriptions.clear();
+      this.webData3SubscriptionPromise = undefined;
+
+      // Clear individual subscriptions (clearinghouseState + openOrders) for HIP-3 mode
+      this.clearinghouseStateSubscriptions.clear();
+      this.openOrdersSubscriptions.clear();
+
+      // Re-establish the subscription (will use current account)
+      // This will set up webData2 for non-HIP-3, or individual subscriptions + webData3 (OI caps only) for HIP-3
+      await this.ensureSharedWebData3Subscription();
+    }
+
+    // Re-establish activeAsset subscriptions if there are market data subscribers
+    if (this.marketDataSubscribers.size > 0) {
+      // Clear existing subscriptions (they're dead after reconnection)
+      this.globalActiveAssetSubscriptions.clear();
+      // Clear reference counts to prevent double-counting after reconnection
+      this.symbolSubscriberCounts.clear();
+
+      // Re-establish subscriptions for all symbols with market data subscribers
+      const symbolsNeedingMarketData = Array.from(
+        this.marketDataSubscribers.keys(),
+      );
+      symbolsNeedingMarketData.forEach((symbol) => {
+        this.ensureActiveAssetSubscription(symbol);
+      });
+    }
+
+    // Re-establish L2Book subscriptions if there are order book subscribers
+    if (this.orderBookSubscribers.size > 0) {
+      // Clear existing subscriptions (they're dead after reconnection)
+      this.globalL2BookSubscriptions.clear();
+
+      // Re-establish subscriptions for all symbols with order book subscribers
+      const symbolsNeedingOrderBook = Array.from(
+        this.orderBookSubscribers.keys(),
+      );
+      symbolsNeedingOrderBook.forEach((symbol) => {
+        this.ensureL2BookSubscription(symbol);
+      });
+    }
+
+    // Re-establish assetCtxs subscriptions if there are market data subscribers
+    if (this.marketDataSubscribers.size > 0) {
+      // Clear existing subscriptions (they're dead after reconnection)
+      this.assetCtxsSubscriptions.clear();
+      this.assetCtxsSubscriptionPromises.clear();
+      // Clear reference counts to prevent double-counting after reconnection
+      this.dexSubscriberCounts.clear();
+
+      // Re-establish subscriptions for all DEXs with market data subscribers
+      const dexsNeeded = new Set<string>();
+      this.marketDataSubscribers.forEach((_subscribers, symbol) => {
+        const { dex } = parseAssetName(symbol);
+        if (dex) {
+          dexsNeeded.add(dex);
+        }
+      });
+
+      // Add main DEX if any main DEX symbols have subscribers
+      const hasMainDexSubscribers = Array.from(
+        this.marketDataSubscribers.keys(),
+      ).some((symbol) => {
+        const { dex } = parseAssetName(symbol);
+        return !dex;
+      });
+      if (hasMainDexSubscribers) {
+        dexsNeeded.add('');
+      }
+
+      // Re-establish subscriptions
+      await Promise.all(
+        Array.from(dexsNeeded).map((dex) =>
+          this.ensureAssetCtxsSubscription(dex).catch(() => {
+            // Ignore errors during assetCtxs subscription restoration
+          }),
+        ),
+      );
+    }
+  }
+
+  /**
    * Clear all subscriptions and cached data (multi-DEX support)
    */
   public clearAll(): void {
@@ -2068,6 +2741,15 @@ export class HyperLiquidSubscriptionService {
     this.orderSubscribers.clear();
     this.accountSubscribers.clear();
     this.marketDataSubscribers.clear();
+    this.orderBookSubscribers.clear();
+
+    // Clear order fill subscriptions
+    this.orderFillSubscriptions.forEach((subscription) => {
+      subscription.unsubscribe().catch(() => {
+        // Ignore errors during cleanup
+      });
+    });
+    this.orderFillSubscriptions.clear();
 
     // Clear cached data
     this.cachedPriceData = null;
@@ -2112,8 +2794,37 @@ export class HyperLiquidSubscriptionService {
     this.assetCtxsSubscriptions.clear();
     this.assetCtxsSubscriptionPromises.clear();
 
+    // Cleanup individual subscriptions (clearinghouseState + openOrders)
+    if (this.clearinghouseStateSubscriptions.size > 0) {
+      this.clearinghouseStateSubscriptions.forEach((subscription, dexName) => {
+        subscription.unsubscribe().catch((error: Error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('clearAll.clearinghouseState', {
+              dex: dexName,
+            }),
+          );
+        });
+      });
+      this.clearinghouseStateSubscriptions.clear();
+    }
+
+    if (this.openOrdersSubscriptions.size > 0) {
+      this.openOrdersSubscriptions.forEach((subscription, dexName) => {
+        subscription.unsubscribe().catch((error: Error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('clearAll.openOrders', {
+              dex: dexName,
+            }),
+          );
+        });
+      });
+      this.openOrdersSubscriptions.clear();
+    }
+
     DevLogger.log(
-      'HyperLiquid: Subscription service cleared (multi-DEX with webData3)',
+      'HyperLiquid: Subscription service cleared (multi-DEX with individual subscriptions)',
       {
         timestamp: new Date().toISOString(),
       },

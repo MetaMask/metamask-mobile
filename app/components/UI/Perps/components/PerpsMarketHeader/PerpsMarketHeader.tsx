@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -29,6 +29,8 @@ interface PerpsMarketHeaderProps {
   onFullscreenPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
+  /** Current price from candle stream - syncs header with chart */
+  currentPrice: number;
 }
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
@@ -39,6 +41,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   onFullscreenPress,
   isFavorite = false,
   testID,
+  currentPrice,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -75,15 +78,17 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           >
             {getPerpsDisplaySymbol(market.symbol)}-USD
           </Text>
-          <PerpsLeverage maxLeverage={market.maxLeverage} />
+          {market.maxLeverage && (
+            <PerpsLeverage maxLeverage={market.maxLeverage} />
+          )}
         </View>
         <View style={styles.secondRow}>
           <LivePriceHeader
             symbol={market.symbol}
-            fallbackPrice={market.price || '0'}
             testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
             testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
             throttleMs={1000}
+            currentPrice={currentPrice}
           />
         </View>
       </View>

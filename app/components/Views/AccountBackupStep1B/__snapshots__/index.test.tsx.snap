@@ -309,7 +309,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                       "color": "#b7bbc8",
                     },
                     {
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 10,
                     },
                   ]
@@ -357,7 +357,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                       "color": "#4459ff",
                     },
                     {
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 10,
                     },
                   ]
@@ -405,7 +405,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                       "color": "#b7bbc8",
                     },
                     {
-                      "fontFamily": "Geist Regular",
+                      "fontFamily": "Geist-Regular",
                       "fontSize": 10,
                     },
                   ]
@@ -437,7 +437,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 24,
                 "justifyContent": "center",
                 "marginBottom": 16,
@@ -460,7 +460,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "lineHeight": 20,
                   "textAlign": "left",
@@ -544,7 +544,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "lineHeight": 17,
                 "marginBottom": 8,
@@ -763,7 +763,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 14,
                       "textAlign": "center",
                     },

@@ -1,5 +1,5 @@
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import type { ServiceContext } from './ServiceContext';
 import type { IPerpsProvider, WithdrawParams, WithdrawResult } from '../types';
 import type { TransactionStatus } from '../../types/transactionTypes';
@@ -20,6 +20,7 @@ import {
 import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
 
 /**
  * AccountService
@@ -103,12 +104,24 @@ export class AccountService {
           const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
+          // Get current account address
+          const evmAccount = getEvmAccountFromSelectedAccountGroup();
+          const accountAddress = evmAccount?.address || 'unknown';
+
+          DevLogger.log('AccountService: Creating withdrawal request', {
+            accountAddress,
+            hasEvmAccount: !!evmAccount,
+            evmAccountAddress: evmAccount?.address,
+            amount: netAmount.toString(),
+          });
+
           // Add withdrawal request to tracking
           const withdrawalRequest = {
             id: currentWithdrawalId,
             timestamp: Date.now(),
             amount: netAmount.toString(), // Use net amount (after fees)
             asset: USDC_SYMBOL,
+            accountAddress, // Track which account initiated withdrawal
             success: false, // Will be updated when transaction completes
             txHash: undefined,
             status: 'pending' as TransactionStatus,

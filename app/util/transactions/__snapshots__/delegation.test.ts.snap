@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Transaction Delegation Utils returns delegation data 1`] = `
+exports[`Transaction Delegation Utils getDelegationTransaction returns delegation data 1`] = `
 {
   "authorizationList": [
     {

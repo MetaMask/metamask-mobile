@@ -13,6 +13,7 @@ export const PerpsEventProperties = {
   DIRECTION: 'direction',
   SOURCE: 'source',
   TAB_NAME: 'tab_name',
+  LOCATION: 'location',
 
   // Trade properties
   LEVERAGE: 'leverage',
@@ -68,6 +69,8 @@ export const PerpsEventProperties = {
   TAKE_PROFIT_PERCENT: 'take_profit_percent',
   POSITION_SIZE: 'position_size',
   POSITION_AGE: 'position_age',
+  LIQUIDATION_DISTANCE_OLD: 'liquidation_distance_old',
+  LIQUIDATION_DISTANCE_NEW: 'liquidation_distance_new',
 
   // Notification properties
   NOTIFICATION_TYPE: 'notification_type',
@@ -111,8 +114,23 @@ export const PerpsEventProperties = {
   AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
   // Future tests: add as AB_TEST_{TEST_NAME} (no _ENABLED property needed)
 
+  // Entry point tracking properties
+  BUTTON_CLICKED: 'button_clicked',
+  BUTTON_LOCATION: 'button_location',
+
+  // Balance properties
+  HAS_PERP_BALANCE: 'has_perp_balance',
+
+  // TP/SL differentiation properties
+  HAS_TAKE_PROFIT: 'has_take_profit',
+  HAS_STOP_LOSS: 'has_stop_loss',
+  TAKE_PROFIT_PERCENTAGE: 'take_profit_percentage',
+  STOP_LOSS_PERCENTAGE: 'stop_loss_percentage',
   // Watchlist/Favorites properties
   FAVORITES_COUNT: 'favorites_count',
+
+  // Scroll tracking properties
+  SECTION_VIEWED: 'section_viewed',
 } as const;
 
 /**
@@ -153,6 +171,46 @@ export const PerpsEventValues = {
     PERP_MARKET_SEARCH: 'perp_market_search',
     POSITION_SCREEN: 'position_screen',
     TP_SL_VIEW: 'tp_sl_view',
+    PERPS_HOME: 'perps_home',
+    PERPS_TUTORIAL: 'perps_tutorial',
+    PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
+    PERPS_ASSET_SCREEN_NO_FUNDS: 'perps_asset_screen_no_funds',
+    TRADE_MENU_ACTION: 'trade_menu_action',
+    WALLET_HOME: 'wallet_home',
+    TOOLTIP: 'tooltip',
+    MAGNIFYING_GLASS: 'magnifying_glass',
+    CRYPTO_BUTTON: 'crypto_button',
+    STOCKS_BUTTON: 'stocks_button',
+    CLOSE_TOAST: 'close_toast',
+    // Perps home section sources (for navigation tracking)
+    PERPS_HOME_POSITION: 'perps_home_position',
+    PERPS_HOME_ORDERS: 'perps_home_orders',
+    PERPS_HOME_WATCHLIST: 'perps_home_watchlist',
+    PERPS_HOME_EXPLORE_CRYPTO: 'perps_home_explore_crypto',
+    PERPS_HOME_EXPLORE_STOCKS: 'perps_home_explore_stocks',
+    PERPS_HOME_ACTIVITY: 'perps_home_activity',
+    // Market list tab sources
+    PERPS_MARKET_LIST_ALL: 'perps_market_list_all',
+    PERPS_MARKET_LIST_CRYPTO: 'perps_market_list_crypto',
+    PERPS_MARKET_LIST_STOCKS: 'perps_market_list_stocks',
+    // Other navigation sources
+    PERPS_TAB: 'perps_tab',
+    WALLET_MAIN_ACTION_MENU: 'wallet_main_action_menu',
+    PUSH_NOTIFICATION: 'push_notification',
+    ORDER_BOOK: 'order_book',
+    FULL_SCREEN_CHART: 'full_screen_chart',
+    STOP_LOSS_PROMPT_BANNER: 'stop_loss_prompt_banner',
+    // Position management sources
+    OPEN_POSITION: 'open_position',
+    POSITION_CLOSE_TOAST: 'position_close_toast',
+    TRADE_DETAILS: 'trade_details',
+    // Geo-block trigger sources (for tracking what action was blocked)
+    DEPOSIT_BUTTON: 'deposit_button',
+    WITHDRAW_BUTTON: 'withdraw_button',
+    TRADE_ACTION: 'trade_action',
+    ADD_FUNDS_ACTION: 'add_funds_action',
+    CANCEL_ORDER: 'cancel_order',
+    ASSET_DETAIL_SCREEN: 'asset_detail_screen',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -164,6 +222,25 @@ export const PerpsEventValues = {
     APP_CRASH: 'app_crash',
     BACKEND: 'backend',
     VALIDATION: 'validation',
+    WARNING: 'warning',
+  },
+  // Standardized error message keys for PERP_ERROR events
+  // These should be used instead of localized strings for consistent analytics
+  ERROR_MESSAGE_KEY: {
+    ORDER_CHANGED_FROM_LIMIT_TO_MARKET: 'order_changed_from_limit_to_market',
+    OPEN_CROSS_MARGIN_POSITION_DETECTED: 'open_cross_margin_position_detected',
+    INSUFFICIENT_BALANCE: 'insufficient_balance',
+    ORDER_FAILED: 'order_failed',
+    GEO_RESTRICTION: 'geo_restriction',
+    MINIMUM_ORDER_SIZE: 'minimum_order_size',
+    MAXIMUM_LEVERAGE_EXCEEDED: 'maximum_leverage_exceeded',
+    PRICE_DEVIATION_TOO_HIGH: 'price_deviation_too_high',
+    MARKET_AT_CAPACITY: 'market_at_capacity',
+    NETWORK_ERROR: 'network_error',
+    CONNECTION_FAILED: 'connection_failed',
+    POSITION_UPDATE_FAILED: 'position_update_failed',
+    TP_SL_UPDATE_FAILED: 'tp_sl_update_failed',
+    MARGIN_UPDATE_FAILED: 'margin_update_failed',
   },
   INTERACTION_TYPE: {
     TAP: 'tap',
@@ -172,13 +249,29 @@ export const PerpsEventValues = {
     SEARCH_CLICKED: 'search_clicked',
     ORDER_TYPE_VIEWED: 'order_type_viewed',
     ORDER_TYPE_SELECTED: 'order_type_selected',
+    /** @deprecated Use LEVERAGE_CHANGED instead for clarity */
     SETTING_CHANGED: 'setting_changed',
+    LEVERAGE_CHANGED: 'leverage_changed',
     TUTORIAL_STARTED: 'tutorial_started',
     TUTORIAL_COMPLETED: 'tutorial_completed',
     TUTORIAL_NAVIGATION: 'tutorial_navigation',
     CANDLE_PERIOD_VIEWED: 'candle_period_viewed',
     CANDLE_PERIOD_CHANGED: 'candle_period_changed',
     FAVORITE_TOGGLED: 'favorite_toggled',
+    BUTTON_CLICKED: 'button_clicked',
+    // Position management interactions
+    CONTACT_SUPPORT: 'contact_support',
+    STOP_LOSS_ONE_CLICK_PROMPT: 'stop_loss_one_click_prompt',
+    ADD_MARGIN: 'add_margin',
+    REMOVE_MARGIN: 'remove_margin',
+    INCREASE_EXPOSURE: 'increase_exposure',
+    REDUCE_EXPOSURE: 'reduce_exposure',
+    FLIP_POSITION: 'flip_position',
+    // Hero card interactions
+    DISPLAY_HERO_CARD: 'display_hero_card',
+    SHARE_PNL_HERO_CARD: 'share_pnl_hero_card',
+    // Chart interactions
+    FULL_SCREEN_CHART: 'full_screen_chart',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -218,20 +311,38 @@ export const PerpsEventValues = {
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',
+    MARKET_LIST: 'market_list',
     ASSET_DETAILS: 'asset_details',
     TRADING: 'trading',
+    /** @deprecated Use PERPS_HOME or WALLET_HOME_PERPS_TAB instead */
     HOMESCREEN: 'homescreen',
+    PERPS_HOME: 'perps_home',
+    WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
     POSITION_CLOSE: 'position_close',
     LEVERAGE: 'leverage',
     TUTORIAL: 'tutorial',
     WITHDRAWAL: 'withdrawal',
     TP_SL: 'tp_sl',
+    CREATE_TPSL: 'create_tpsl',
+    EDIT_TPSL: 'edit_tpsl',
     DEPOSIT_INPUT: 'deposit_input',
     DEPOSIT_REVIEW: 'deposit_review',
     CLOSE_ALL_POSITIONS: 'close_all_positions',
     CANCEL_ALL_ORDERS: 'cancel_all_orders',
+    PNL_HERO_CARD: 'pnl_hero_card',
     ORDER_BOOK: 'order_book',
     ERROR: 'error',
+    // Market list tab screen types
+    MARKET_LIST_ALL: 'market_list_all',
+    MARKET_LIST_CRYPTO: 'market_list_crypto',
+    MARKET_LIST_STOCKS: 'market_list_stocks',
+    // Additional screens
+    FULL_SCREEN_CHART: 'full_screen_chart',
+    ACTIVITY: 'activity',
+    INCREASE_EXPOSURE: 'increase_exposure',
+    ADD_MARGIN: 'add_margin',
+    REMOVE_MARGIN: 'remove_margin',
+    GEO_BLOCK_NOTIF: 'geo_block_notif',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
@@ -240,10 +351,27 @@ export const PerpsEventValues = {
     CONNECTION_ERROR: 'connection_error',
     PERPS_HERO_CARD: 'perps_hero_card',
     PERPS_ACTIVITY_HISTORY: 'perps_activity_history',
+    PERPS_HOME: 'perps_home',
+    PERPS_MARKET_DETAILS: 'perps_market_details',
+    PERPS_ORDER: 'perps_order',
   },
   ACTION: {
     CONNECTION_RETRY: 'connection_retry',
     SHARE: 'share',
+    // Risk management actions
+    ADD_MARGIN: 'add_margin',
+    REMOVE_MARGIN: 'remove_margin',
+    EDIT_TP_SL: 'edit_tp_sl',
+    CREATE_TP_SL: 'create_tp_sl',
+    // Trade transaction actions - differentiates new position from adding to existing
+    CREATE_POSITION: 'create_position',
+    INCREASE_EXPOSURE: 'increase_exposure',
+  },
+  // Risk management sources
+  RISK_MANAGEMENT_SOURCE: {
+    TRADE_SCREEN: 'trade_screen',
+    POSITION_SCREEN: 'position_screen',
+    STOP_LOSS_PROMPT_BANNER: 'stop_loss_prompt_banner',
   },
   PERPS_HISTORY_TABS: {
     TRADES: 'trades',
@@ -258,5 +386,33 @@ export const PerpsEventValues = {
     // Button color test variants
     CONTROL: 'control',
     MONOCHROME: 'monochrome',
+  },
+  BUTTON_CLICKED: {
+    DEPOSIT: 'deposit',
+    WITHDRAW: 'withdraw',
+    PERPS_HOME: 'perps_home',
+    TUTORIAL: 'tutorial',
+    TOOLTIP: 'tooltip',
+    MARKET_LIST: 'market_list',
+    OPEN_POSITION: 'open_position',
+    MAGNIFYING_GLASS: 'magnifying_glass',
+    CRYPTO: 'crypto',
+    STOCKS: 'stocks',
+    GIVE_FEEDBACK: 'give_feedback',
+  },
+  BUTTON_LOCATION: {
+    PERPS_HOME: 'perps_home',
+    PERPS_TUTORIAL: 'perps_tutorial',
+    PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
+    PERPS_ASSET_SCREEN: 'perps_asset_screen',
+    PERPS_TAB: 'perps_tab',
+    TRADE_MENU_ACTION: 'trade_menu_action',
+    WALLET_HOME: 'wallet_home',
+    MARKET_LIST: 'market_list',
+    SCREEN: 'screen',
+    TOOLTIP: 'tooltip',
+    PERP_MARKET_DETAILS: 'perp_market_details',
+    ORDER_BOOK: 'order_book',
+    FULL_SCREEN_CHART: 'full_screen_chart',
   },
 } as const;

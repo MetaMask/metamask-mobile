@@ -279,7 +279,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -314,7 +314,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -350,7 +350,7 @@ exports[`StyledButton should render correctly on iOS the button with type danger
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -386,7 +386,7 @@ exports[`StyledButton should render correctly on iOS the button with type info 1
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -422,7 +422,7 @@ exports[`StyledButton should render correctly on iOS the button with type invers
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -458,7 +458,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -493,13 +493,13 @@ exports[`StyledButton should render correctly on iOS the button with type onOver
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
       {
         "color": "#ffffff",
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 18,
       },
       undefined,
@@ -530,7 +530,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -566,7 +566,7 @@ exports[`StyledButton should render correctly on iOS the button with type second
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
@@ -602,13 +602,13 @@ exports[`StyledButton should render correctly on iOS the button with type transp
   style={
     [
       {
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 14,
         "textAlign": "center",
       },
       {
         "color": "#ffffff",
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
       },
       undefined,
     ]

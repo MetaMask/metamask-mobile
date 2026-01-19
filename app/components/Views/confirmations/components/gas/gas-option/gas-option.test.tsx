@@ -4,7 +4,6 @@ import { noop } from 'lodash';
 import { GasOption } from './gas-option';
 
 const mockGasOption = {
-  emoji: '🚀',
   estimatedTime: '',
   isSelected: false,
   key: 'fast',
@@ -21,7 +20,6 @@ describe('GasOption', () => {
     );
 
     expect(getByTestId('gas-option-fast')).toBeOnTheScreen();
-    expect(getByText('🚀')).toBeOnTheScreen();
     expect(getByText('Test gas option')).toBeOnTheScreen();
     expect(getByText('< 0.0001')).toBeOnTheScreen();
     expect(getByText('0.05')).toBeOnTheScreen();

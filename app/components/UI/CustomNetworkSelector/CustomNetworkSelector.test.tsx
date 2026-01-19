@@ -18,7 +18,11 @@ import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse'
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../../core/Multichain/utils', () => ({
@@ -45,6 +49,12 @@ jest.mock('@metamask/utils', () => ({
 
 jest.mock('@metamask/controller-utils', () => ({
   toHex: jest.fn(),
+}));
+
+jest.mock('@metamask/bridge-controller', () => ({
+  formatChainIdToCaip: jest.fn(
+    (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
+  ),
 }));
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -111,6 +121,7 @@ jest.mock('../../../util/device', () => ({
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
+  selectEvmChainId: jest.fn(),
   createProviderConfig: jest.fn(),
 }));
 
@@ -159,6 +170,7 @@ jest.mock('@shopify/flash-list', () => {
 
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
+  selectSelectedNonEvmNetworkChainId: jest.fn(),
 }));
 
 // Mock store setup
@@ -301,6 +313,12 @@ describe('CustomNetworkSelector', () => {
       if (selector === mockSelectIsEvmNetworkSelected) {
         return true;
       }
+      if (selector === selectEvmChainId) {
+        return '0x1'; // Ethereum mainnet
+      }
+      if (selector === selectSelectedNonEvmNetworkChainId) {
+        return 'solana:mainnet';
+      }
       return undefined;
     });
   });
@@ -360,7 +378,7 @@ describe('CustomNetworkSelector', () => {
       expect(mockUseSafeAreaInsets).toHaveBeenCalled();
     });
 
-    it('calls useStyles with theme colors', () => {
+    it('calls useStyles with createStyles', () => {
       renderWithProvider(
         <CustomNetworkSelector
           openModal={mockOpenModal}
@@ -368,12 +386,7 @@ describe('CustomNetworkSelector', () => {
         />,
       );
 
-      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {
-        colors: expect.objectContaining({
-          icon: expect.any(Object),
-          text: expect.any(Object),
-        }),
-      });
+      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {});
     });
   });
 

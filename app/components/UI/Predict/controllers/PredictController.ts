@@ -44,6 +44,8 @@ import {
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
+  ConnectionStatus,
+  GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
@@ -54,6 +56,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PriceUpdateCallback,
   Signer,
 } from '../providers/types';
 import {
@@ -80,6 +83,17 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_LIVE_SPORTS_FLAG,
+  DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+} from '../constants/flags';
+import { filterSupportedLeagues } from '../constants/sports';
+import {
+  PredictFeeCollection,
+  PredictLiveSportsFlag,
+  PredictMarketHighlightsFlag,
+} from '../types/flags';
 
 /**
  * State shape for PredictController
@@ -458,18 +472,63 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
+      const { RemoteFeatureFlagController } = Engine.context;
+      const liveSportsFlag =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
+        DEFAULT_LIVE_SPORTS_FLAG;
+      const liveSportsLeagues = liveSportsFlag.enabled
+        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
+        : [];
+
+      const marketHighlightsFlag =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictMarketHighlights as unknown as
+          | PredictMarketHighlightsFlag
+          | undefined) ?? DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+      const paramsWithLiveSports = { ...params, liveSportsLeagues };
+
       const allMarkets = await Promise.all(
         providerIds.map((id: string) =>
-          this.providers.get(id)?.getMarkets(params),
+          this.providers.get(id)?.getMarkets(paramsWithLiveSports),
         ),
       );
 
-      //TODO: We need to sort the markets after merging them
-      const markets = allMarkets
+      let markets = allMarkets
         .flat()
         .filter((market): market is PredictMarket => market !== undefined);
 
-      // Clear any previous errors on successful call
+      const isFirstPage = !params.offset || params.offset === 0;
+      const shouldFetchHighlights =
+        marketHighlightsFlag.enabled && isFirstPage && params.category;
+
+      if (shouldFetchHighlights) {
+        const highlightedMarketIds =
+          (marketHighlightsFlag.highlights ?? []).find(
+            (h) => h.category === params.category,
+          )?.markets ?? [];
+
+        if (highlightedMarketIds.length > 0) {
+          const provider = this.providers.get(
+            params.providerId ?? 'polymarket',
+          );
+
+          const highlightedMarkets =
+            (await provider?.getMarketsByIds?.(
+              highlightedMarketIds,
+              liveSportsLeagues,
+            )) ?? [];
+
+          const highlightedIdSet = new Set(highlightedMarkets.map((m) => m.id));
+          markets = markets.filter(
+            (market) => !highlightedIdSet.has(market.id),
+          );
+
+          markets = [...highlightedMarkets, ...markets];
+        }
+      }
+
       this.update((state) => {
         state.lastError = null;
         state.lastUpdateTimestamp = Date.now();
@@ -555,8 +614,18 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
+      const { RemoteFeatureFlagController } = Engine.context;
+      const liveSportsFlag =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
+        DEFAULT_LIVE_SPORTS_FLAG;
+      const liveSportsLeagues = liveSportsFlag.enabled
+        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
+        : [];
+
       const market = await provider.getMarketDetails({
         marketId: resolvedMarketId,
+        liveSportsLeagues,
       });
 
       this.update((state) => {
@@ -1265,9 +1334,16 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
+      const { RemoteFeatureFlagController } = Engine.context;
+      const feeCollection =
+        (RemoteFeatureFlagController.state.remoteFeatureFlags
+          .predictFeeCollection as unknown as
+          | PredictFeeCollection
+          | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
+
       const signer = this.getSigner();
 
-      return provider.previewOrder({ ...params, signer });
+      return provider.previewOrder({ ...params, signer, feeCollection });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(
@@ -1698,9 +1774,59 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Test utility method to update state for testing purposes
-   * @param updater - Function that updates the state
+   * Subscribes to real-time game updates via WebSocket.
+   *
+   * @param gameId - Unique identifier of the game to subscribe to
+   * @param callback - Function invoked when game state changes (score, period, status)
+   * @param providerId - Provider to use for subscription (default: 'polymarket')
+   * @returns Unsubscribe function to clean up the subscription
    */
+  public subscribeToGameUpdates(
+    gameId: string,
+    callback: GameUpdateCallback,
+    providerId = 'polymarket',
+  ): () => void {
+    const provider = this.providers.get(providerId);
+    if (!provider?.subscribeToGameUpdates) {
+      return () => undefined;
+    }
+    return provider.subscribeToGameUpdates(gameId, callback);
+  }
+
+  /**
+   * Subscribes to real-time market price updates via WebSocket.
+   *
+   * @param tokenIds - Array of token IDs to subscribe to price updates for
+   * @param callback - Function invoked when prices change (includes bestBid/bestAsk)
+   * @param providerId - Provider to use for subscription (default: 'polymarket')
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToMarketPrices(
+    tokenIds: string[],
+    callback: PriceUpdateCallback,
+    providerId = 'polymarket',
+  ): () => void {
+    const provider = this.providers.get(providerId);
+    if (!provider?.subscribeToMarketPrices) {
+      return () => undefined;
+    }
+    return provider.subscribeToMarketPrices(tokenIds, callback);
+  }
+
+  /**
+   * Gets the current WebSocket connection status for live data feeds.
+   *
+   * @param providerId - Provider to check connection status for (default: 'polymarket')
+   * @returns Connection status for sports and market data WebSocket channels
+   */
+  public getConnectionStatus(providerId = 'polymarket'): ConnectionStatus {
+    const provider = this.providers.get(providerId);
+    if (!provider?.getConnectionStatus) {
+      return { sportsConnected: false, marketConnected: false };
+    }
+    return provider.getConnectionStatus();
+  }
+
   public updateStateForTesting(
     updater: (state: PredictControllerState) => void,
   ): void {
@@ -1734,7 +1860,7 @@ export class PredictController extends BaseController<
         throw new Error('Deposit preparation returned undefined');
       }
 
-      const { transactions, chainId } = depositPreparation;
+      const { transactions, chainId, gasFeeToken } = depositPreparation;
 
       if (!transactions || transactions.length === 0) {
         throw new Error('No transactions returned from deposit preparation');
@@ -1767,6 +1893,7 @@ export class PredictController extends BaseController<
         disableUpgrade: true,
         skipInitialGasEstimate: true,
         transactions,
+        gasFeeToken,
       });
 
       if (!batchResult?.batchId) {
@@ -2116,7 +2243,7 @@ export class PredictController extends BaseController<
         newParams,
         networkClientId,
       );
-      updatedGas = estimateResult.gas;
+      updatedGas = estimateResult.gas as Hex;
     } catch (error) {
       // Log the error but continue - we'll use the original gas values
       DevLogger.log(
@@ -2147,6 +2274,10 @@ export class PredictController extends BaseController<
         transaction.txParams.data = callData;
         transaction.txParams.to = this.state.withdrawTransaction
           ?.predictAddress as Hex;
+        transaction.assetsFiatValues = {
+          ...transaction.assetsFiatValues,
+          receiving: String(amount),
+        };
         // Only update gas if estimation succeeded
         if (updatedGas) {
           transaction.txParams.gas = updatedGas;

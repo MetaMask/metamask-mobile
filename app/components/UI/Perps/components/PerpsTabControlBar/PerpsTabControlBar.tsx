@@ -17,7 +17,7 @@ import {
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTabViewSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import {
   Icon,
@@ -63,8 +63,8 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   useEffect(() => {
     if (!perpsAccount) return;
 
-    // Use availableBalance since that's what we display in the UI
-    const currentBalance = perpsAccount.availableBalance;
+    // Use totalBalance since that's what we display in the UI
+    const currentBalance = perpsAccount.totalBalance;
 
     // Only animate if balance actually changed (and we have a previous value to compare)
     if (
@@ -134,11 +134,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
     onManageBalancePress?.();
   };
 
-  const availableBalance = perpsAccount?.availableBalance || '0';
+  const totalBalance = perpsAccount?.totalBalance || '0';
   const pnlNum = parseFloat(perpsAccount?.unrealizedPnl || '0');
   const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
   const pnlColor = pnlNum >= 0 ? TextColor.Success : TextColor.Error;
-  const isBalanceEmpty = BigNumber(availableBalance).isZero();
+  const isBalanceEmpty = BigNumber(totalBalance).isZero();
   const shouldShowPnl = hasPositions;
   const shouldShowBalance = !isBalanceEmpty || shouldShowPnl;
   const balancePillContainerStyle =
@@ -162,7 +162,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               color={TextColor.Alternative}
               style={styles.titleText}
             >
-              {strings('perps.available_balance')}
+              {strings('perps.total_balance')}
             </Text>
           </View>
           <View style={styles.rightSection}>
@@ -177,8 +177,9 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
                 color={TextColor.Default}
                 testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
               >
-                {formatPerpsFiat(availableBalance, {
+                {formatPerpsFiat(totalBalance, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  stripTrailingZeros: false,
                 })}
               </Text>
               <Icon

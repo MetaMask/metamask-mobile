@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -26,7 +27,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-import TrendingView from './TrendingView';
+import { ExploreFeed } from './TrendingView';
 import {
   selectChainId,
   selectPopularNetworkConfigurationsByCaipChainId,
@@ -39,6 +40,19 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
+import Routes from '../../../constants/navigation/Routes';
+
+const Stack = createStackNavigator();
+
+const TrendingView: React.FC = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
+  </Stack.Navigator>
+);
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -48,7 +62,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 }));
 
 jest.mock('../../../util/browser', () => ({
-  appendURLParams: jest.fn((url) => ({
+  buildPortfolioUrl: jest.fn((url) => ({
     href: `${url}?metamaskEntry=mobile&metricsEnabled=true&marketingEnabled=false`,
   })),
 }));
@@ -237,7 +251,11 @@ describe('TrendingView', () => {
       expect(getByText('99')).toBeOnTheScreen();
     });
 
-    it('navigates to TrendingBrowser when button is pressed', () => {
+    it('opens new tab with portfolio URL when no tabs exist', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 0 }),
+      );
+
       const { getByTestId } = render(
         <NavigationContainer>
           <TrendingView />
@@ -248,10 +266,48 @@ describe('TrendingView', () => {
       fireEvent.press(browserButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        'TrendingBrowser',
+        Routes.BROWSER.HOME,
         expect.objectContaining({
-          newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-          fromTrending: true,
+          screen: Routes.BROWSER.VIEW,
+          params: expect.objectContaining({
+            newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
+            fromTrending: true,
+          }),
+        }),
+      );
+    });
+
+    it('opens tabs view when tabs already exist', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 3 }),
+      );
+
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      const browserButton = getByTestId('trending-view-browser-button');
+      fireEvent.press(browserButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
+          screen: Routes.BROWSER.VIEW,
+          params: expect.objectContaining({
+            showTabsView: true,
+            fromTrending: true,
+          }),
+        }),
+      );
+      // Should NOT pass newTabUrl when tabs exist
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            newTabUrl: expect.anything(),
+          }),
         }),
       );
     });

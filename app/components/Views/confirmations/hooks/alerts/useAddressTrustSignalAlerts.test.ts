@@ -91,7 +91,7 @@ describe('useAddressTrustSignalAlerts', () => {
         field: RowAlertKey.InteractingWith,
         message:
           "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
-        title: 'Address Needs Review',
+        title: 'Address needs review',
         severity: Severity.Warning,
         isBlocking: false,
       },

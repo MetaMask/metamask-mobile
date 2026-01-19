@@ -1,34 +1,31 @@
 'use strict';
 
-import { ParseOutput } from 'eth-url-parser';
-import { Dispatch } from 'redux';
-import switchNetwork from './handlers/legacy/switchNetwork';
-import parseDeeplink from './parseDeeplink';
-import approveTransaction from './utils/approveTransaction';
-import { store } from '../../store';
-import NavigationService from '../NavigationService';
+import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
-import { handleDeeplink } from './handleDeeplink';
-import SharedDeeplinkManager from './SharedDeeplinkManager';
+import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
+import AppConstants from '../AppConstants';
 
-class DeeplinkManager {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public navigation: any;
+export class DeeplinkManager {
+  // singleton instance
+  private static _instance: DeeplinkManager | null = null;
   public pendingDeeplink: string | null;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public dispatch: Dispatch<any>;
 
   constructor() {
-    const navigation = NavigationService.navigation;
-    const dispatch = store.dispatch;
-    this.navigation = navigation;
     this.pendingDeeplink = null;
-    this.dispatch = dispatch;
+  }
+
+  static getInstance(): DeeplinkManager {
+    if (!DeeplinkManager._instance) {
+      DeeplinkManager._instance = new DeeplinkManager();
+    }
+    return DeeplinkManager._instance;
+  }
+
+  static resetInstance(): void {
+    this._instance = null;
   }
 
   setDeeplink = (url: string) => (this.pendingDeeplink = url);
@@ -36,24 +33,6 @@ class DeeplinkManager {
   getPendingDeeplink = () => this.pendingDeeplink;
 
   expireDeeplink = () => (this.pendingDeeplink = null);
-
-  /**
-   * Method in charge of changing network if is needed
-   *
-   * @param switchToChainId - Corresponding chain id for new network
-   */
-  _handleNetworkSwitch = (switchToChainId: `${number}` | undefined) =>
-    switchNetwork({
-      deeplinkManager: this,
-      switchToChainId,
-    });
-
-  _approveTransaction = async (ethUrl: ParseOutput, origin: string) =>
-    approveTransaction({
-      deeplinkManager: this,
-      ethUrl,
-      origin,
-    });
 
   async parse(
     url: string,
@@ -77,7 +56,7 @@ class DeeplinkManager {
   }
 
   static start() {
-    SharedDeeplinkManager.init();
+    DeeplinkManager.getInstance();
 
     const getBranchDeeplink = async (uri?: string) => {
       if (uri) {
@@ -98,13 +77,19 @@ class DeeplinkManager {
 
     FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
       if (deeplink) {
-        handleDeeplink({ uri: deeplink });
+        handleDeeplink({
+          uri: deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+        });
       }
     });
 
     FCMService.onClickPushNotificationWhenAppSuspended((deeplink) => {
       if (deeplink) {
-        handleDeeplink({ uri: deeplink });
+        handleDeeplink({
+          uri: deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+        });
       }
     });
 
@@ -142,4 +127,19 @@ class DeeplinkManager {
   }
 }
 
-export default DeeplinkManager;
+export default {
+  init: () => DeeplinkManager.getInstance(),
+  start: () => DeeplinkManager.start(),
+  getInstance: () => DeeplinkManager.getInstance(),
+  parse: (
+    url: string,
+    args: {
+      browserCallBack?: (url: string) => void;
+      origin: string;
+      onHandled?: () => void;
+    },
+  ) => DeeplinkManager.getInstance().parse(url, args),
+  setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
+  getPendingDeeplink: () => DeeplinkManager.getInstance().getPendingDeeplink(),
+  expireDeeplink: () => DeeplinkManager.getInstance().expireDeeplink(),
+};

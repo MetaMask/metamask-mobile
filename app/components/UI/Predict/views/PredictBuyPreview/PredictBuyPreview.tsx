@@ -64,7 +64,10 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
-import { PredictBuyPreviewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
+import { calculateMaxBetAmount } from '../../utils/orders';
+
+export const MINIMUM_BET = 1; // $1 minimum bet
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -193,8 +196,6 @@ const PredictBuyPreview = () => {
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
-  // Validation constants and states
-  const MINIMUM_BET = 1; // $1 minimum bet
   const hasInsufficientFunds = total > balance;
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const canPlaceBet =
@@ -226,7 +227,10 @@ const PredictBuyPreview = () => {
     ? outcome.groupItemTitle
     : '';
 
-  const maxBetAmount = balance - (providerFee + metamaskFee);
+  const maxBetAmount = calculateMaxBetAmount(
+    balance,
+    preview?.fees?.totalFeePercentage ?? 0,
+  );
 
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
@@ -407,25 +411,6 @@ const PredictBuyPreview = () => {
   const renderErrorMessage = () => {
     if (isBalanceLoading) return null;
 
-    if (hasInsufficientFunds) {
-      return (
-        <Box twClassName="px-12 pb-4">
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={tw.style('text-center')}
-          >
-            {strings('predict.order.prediction_insufficient_funds', {
-              amount: formatPrice(maxBetAmount, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              }),
-            })}
-          </Text>
-        </Box>
-      );
-    }
-
     if (isBelowMinimum) {
       return (
         <Box twClassName="px-12 pb-4">
@@ -440,6 +425,30 @@ const PredictBuyPreview = () => {
                 maximumDecimals: 2,
               }),
             })}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (hasInsufficientFunds) {
+      return (
+        <Box twClassName="px-12 pb-4">
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            style={tw.style('text-center')}
+          >
+            {strings(
+              maxBetAmount < MINIMUM_BET
+                ? 'predict.order.no_funds_enough'
+                : 'predict.order.prediction_insufficient_funds',
+              {
+                amount: formatPrice(maxBetAmount, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                }),
+              },
+            )}
           </Text>
         </Box>
       );

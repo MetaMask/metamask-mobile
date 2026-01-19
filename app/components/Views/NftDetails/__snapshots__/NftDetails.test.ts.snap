@@ -512,7 +512,7 @@ exports[`NftDetails renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -545,7 +545,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -600,7 +600,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -625,7 +625,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -668,7 +668,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -693,7 +693,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -755,7 +755,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -780,7 +780,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -823,7 +823,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -851,7 +851,7 @@ exports[`NftDetails renders correctly 1`] = `
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -899,7 +899,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -914,7 +914,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -942,7 +942,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -957,7 +957,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -985,7 +985,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -1000,7 +1000,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -1028,7 +1028,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -1043,7 +1043,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -1059,7 +1059,7 @@ exports[`NftDetails renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1086,7 +1086,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -1101,7 +1101,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -1117,7 +1117,7 @@ exports[`NftDetails renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1144,7 +1144,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -1168,7 +1168,7 @@ exports[`NftDetails renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -1204,7 +1204,7 @@ exports[`NftDetails renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1250,7 +1250,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1267,7 +1267,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -1292,7 +1292,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1353,7 +1353,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 null,
                                 [
                                   {
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 14,
                                     "textAlign": "center",
                                   },

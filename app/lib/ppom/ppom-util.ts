@@ -74,7 +74,7 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
 async function validateRequest(
   req: PPOMRequest,
   {
-    transactionMeta = {} as TransactionMeta,
+    transactionMeta,
     securityAlertId,
   }: {
     transactionMeta?: TransactionMeta;
@@ -84,7 +84,12 @@ async function validateRequest(
   const { AccountsController, NetworkController } = Engine.context;
 
   const { method, networkClientId: requestNetworkClientId } = req;
-  const { networkClientId: transactionNetworkClientId } = transactionMeta;
+
+  const {
+    chainId: transactionChainId,
+    id: transactionId,
+    networkClientId: transactionNetworkClientId,
+  } = transactionMeta ?? {};
 
   const globalNetworkClientId =
     NetworkController.state?.selectedNetworkClientId;
@@ -94,9 +99,10 @@ async function validateRequest(
     requestNetworkClientId ??
     globalNetworkClientId;
 
-  const {
-    configuration: { chainId },
-  } = NetworkController.getNetworkClientById(networkClientId);
+  const chainId =
+    transactionChainId ??
+    NetworkController.getNetworkClientById(networkClientId).configuration
+      .chainId;
 
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
@@ -122,7 +128,6 @@ async function validateRequest(
   }
 
   const isTransaction = isTransactionRequest(req);
-  const transactionId = transactionMeta?.id;
   let securityAlertResponse: SecurityAlertResponse | undefined;
 
   try {

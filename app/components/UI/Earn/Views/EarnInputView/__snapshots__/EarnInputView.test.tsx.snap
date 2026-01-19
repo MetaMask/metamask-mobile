@@ -402,7 +402,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 14,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
@@ -451,7 +451,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -471,34 +471,77 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
+                                <View
+                                  accessibilityState={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Bold",
-                                      "fontSize": 32,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 40,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
                                   }
-                                >
-                                  0
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
+                                  accessibilityValue={
                                     {
-                                      "color": "#b7bbc8",
-                                      "fontFamily": "Geist Bold",
-                                      "fontSize": 32,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 40,
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
                                     }
                                   }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                 >
-                                  ETH
-                                </Text>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "gap": 4,
+                                        "justifyContent": "center",
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Bold",
+                                          "fontSize": 32,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 40,
+                                        }
+                                      }
+                                    >
+                                      0
+                                    </Text>
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#b7bbc8",
+                                          "fontFamily": "Geist-Bold",
+                                          "fontSize": 32,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 40,
+                                        }
+                                      }
+                                    >
+                                      ETH
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                               <View>
                                 <TouchableOpacity
@@ -528,7 +571,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -562,110 +605,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "paddingBottom": 8,
                                 }
                               }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderRadius": 8,
-                                    "justifyContent": "center",
-                                    "paddingHorizontal": 16,
-                                    "paddingVertical": 8,
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "justifyContent": "space-between",
-                                      "width": "100%",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      MetaMask Pool
-                                    </Text>
-                                    <TouchableOpacity
-                                      accessibilityLabel="Learn More"
-                                      onPress={[Function]}
-                                    >
-                                      <SvgMock
-                                        color="#b7bbc8"
-                                        fill="currentColor"
-                                        height={16}
-                                        name="Question"
-                                        style={
-                                          {
-                                            "height": 16,
-                                            "width": 16,
-                                          }
-                                        }
-                                        width={16}
-                                      />
-                                    </TouchableOpacity>
-                                  </View>
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "flex-end",
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#457a39",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      50%
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Estimated annual rewards
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                            </View>
+                            />
                           </View>
                         </RCTScrollView>
                         <View
@@ -689,10 +629,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -707,7 +645,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -726,10 +664,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -744,7 +680,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -763,10 +699,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -781,7 +715,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -800,10 +734,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -832,7 +764,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -906,7 +838,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -958,7 +890,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1010,7 +942,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1076,7 +1008,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1128,7 +1060,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1180,7 +1112,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1246,7 +1178,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1298,7 +1230,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1350,7 +1282,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1418,7 +1350,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1470,7 +1402,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1572,7 +1504,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -1947,7 +1879,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               "flexGrow": 1,
                             }
                           }
-                          handlerTag={8}
+                          handlerTag={14}
                           handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -1999,7 +1931,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 14,
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
@@ -2048,7 +1980,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -2068,34 +2000,77 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
+                                <View
+                                  accessibilityState={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Bold",
-                                      "fontSize": 32,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 40,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
                                   }
-                                >
-                                  0
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
+                                  accessibilityValue={
                                     {
-                                      "color": "#b7bbc8",
-                                      "fontFamily": "Geist Bold",
-                                      "fontSize": 32,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 40,
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
                                     }
                                   }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                 >
-                                  ETH
-                                </Text>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "gap": 4,
+                                        "justifyContent": "center",
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Bold",
+                                          "fontSize": 32,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 40,
+                                        }
+                                      }
+                                    >
+                                      0
+                                    </Text>
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#b7bbc8",
+                                          "fontFamily": "Geist-Bold",
+                                          "fontSize": 32,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 40,
+                                        }
+                                      }
+                                    >
+                                      ETH
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                               <View>
                                 <TouchableOpacity
@@ -2125,7 +2100,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Medium",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2159,110 +2134,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "paddingBottom": 8,
                                 }
                               }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderRadius": 8,
-                                    "justifyContent": "center",
-                                    "paddingHorizontal": 16,
-                                    "paddingVertical": 8,
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "justifyContent": "space-between",
-                                      "width": "100%",
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      MetaMask Pool
-                                    </Text>
-                                    <TouchableOpacity
-                                      accessibilityLabel="Learn More"
-                                      onPress={[Function]}
-                                    >
-                                      <SvgMock
-                                        color="#b7bbc8"
-                                        fill="currentColor"
-                                        height={16}
-                                        name="Question"
-                                        style={
-                                          {
-                                            "height": 16,
-                                            "width": 16,
-                                          }
-                                        }
-                                        width={16}
-                                      />
-                                    </TouchableOpacity>
-                                  </View>
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "flex-end",
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#457a39",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      50%
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "Geist Medium",
-                                          "fontSize": 14,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                        }
-                                      }
-                                    >
-                                      Estimated annual rewards
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                            </View>
+                            />
                           </View>
                         </RCTScrollView>
                         <View
@@ -2286,10 +2158,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -2304,7 +2174,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2323,10 +2193,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -2341,7 +2209,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2360,10 +2228,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -2378,7 +2244,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2397,10 +2263,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc8",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
-                                "borderWidth": 1,
                                 "flex": 1,
                                 "flexDirection": "row",
                                 "height": 40,
@@ -2429,7 +2293,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -2503,7 +2367,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2555,7 +2419,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2607,7 +2471,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2673,7 +2537,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2725,7 +2589,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2777,7 +2641,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2843,7 +2707,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2895,7 +2759,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2947,7 +2811,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3015,7 +2879,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3067,7 +2931,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3169,7 +3033,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,

@@ -13,7 +13,7 @@ import {
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
 import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
-import AddressElement from '../../../components/Views/confirmations/legacy/SendFlow/AddressElement';
+import AddressElement from '../../../components/Views/confirmations/legacy/components/AddressElement';
 import { Box } from '../Box/Box';
 import { SnapUICard } from '../../Snaps/SnapUICard/SnapUICard';
 import { SnapUILink } from '../../Snaps/SnapUILink/SnapUILink';
@@ -38,6 +38,7 @@ import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAsset
 import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
 import { SnapUIAccountSelector } from '../../Snaps/SnapUIAccountSelector/SnapUIAccountSelector';
 import { SnapUIRadioGroup } from '../../Snaps/SnapUIRadioGroup/SnapUIRadioGroup';
+import { SnapUIDateTimePicker } from '../../Snaps/SnapUIDateTimePicker/SnapUIDateTimePicker';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -72,6 +73,7 @@ export const safeComponentList = {
   SnapUISpinner,
   SnapUIInfoRow,
   SnapUIAccountSelector,
+  SnapUIDateTimePicker,
   RNText,
   ScrollView,
   SnapUITooltip,

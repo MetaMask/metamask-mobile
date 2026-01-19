@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import useBalance from '../../Stake/hooks/useBalance';
 import useInputHandler from './useInput';
 import { EarnTokenDetails } from '../types/lending.types';
+import useMultichainInputHandlers from './useMultichainInputHandlers';
 
 const useEarnWithdrawInputHandlers = ({
   earnToken,
@@ -25,22 +26,48 @@ const useEarnWithdrawInputHandlers = ({
   const {
     amountToken,
     amountTokenMinimalUnit,
-    amountFiatNumber,
+    amountFiatNumber: evmAmountFiatNumber,
     isFiat,
-    currencyToggleValue,
+    currencyToggleValue: evmCurrencyToggleValue,
     isNonZeroAmount,
     isOverMaximum: isOverMaximumFromInputHandler,
-    handleKeypadChange,
-    handleCurrencySwitch,
+    handleKeypadChange: evmHandleKeypadChange,
+    handleCurrencySwitch: evmHandleCurrencySwitch,
     percentageOptions,
-    handleQuickAmountPress,
+    handleQuickAmountPress: evmHandleQuickAmountPress,
     currentCurrency,
+    handleTokenInput: evmHandleTokenInput,
+    handleFiatInput: evmHandleFiatInput,
   } = useInputHandler({
     balance: balanceMinimalUnit,
     decimals: earnToken.decimals,
     ticker: earnToken.ticker ?? earnToken.symbol,
     conversionRate,
     exchangeRate,
+  });
+
+  const {
+    isNonEvm,
+    nonEvmFiatRate,
+    currencyToggleValue,
+    handleKeypadChange,
+    handleCurrencySwitch,
+    handleQuickAmountPress,
+    amountFiatNumber,
+  } = useMultichainInputHandlers({
+    earnToken,
+    evmHandlers: {
+      isFiat,
+      currencyToggleValue: evmCurrencyToggleValue,
+      handleKeypadChange: evmHandleKeypadChange,
+      handleCurrencySwitch: evmHandleCurrencySwitch,
+      handleQuickAmountPress: evmHandleQuickAmountPress,
+      handleTokenInput: evmHandleTokenInput,
+      handleFiatInput: evmHandleFiatInput,
+      amountToken,
+      amountFiatNumber: evmAmountFiatNumber,
+      currentCurrency,
+    },
   });
 
   // TODO: this does not consider gas fee, as staking does not seem to have one for withdrawal
@@ -53,11 +80,31 @@ const useEarnWithdrawInputHandlers = ({
     [isOverMaximumFromInputHandler],
   );
 
-  // TODO: implement balanceMinimalUnit value for the earn token's underlying token
-  // once we have this data to link the two tokens in the state
+  // For non-EVM chains calculate balance fiat using multichain rate
+  const earnBalanceFiatValue = useMemo(() => {
+    if (isNonEvm && nonEvmFiatRate && nonEvmFiatRate > 0) {
+      const balanceNumber = parseFloat(earnToken?.balanceFormatted ?? '0') || 0;
+      return (balanceNumber * nonEvmFiatRate).toFixed(2);
+    }
+    return stakedBalanceFiatNumber?.toString();
+  }, [
+    isNonEvm,
+    nonEvmFiatRate,
+    earnToken?.balanceFormatted,
+    stakedBalanceFiatNumber,
+  ]);
+
+  // For non-EVM chains use the token's formatted balance
+  const earnBalanceTokenValue = useMemo(() => {
+    if (isNonEvm) {
+      return earnToken?.balanceFormatted ?? '0';
+    }
+    return formattedStakedBalanceETH;
+  }, [isNonEvm, earnToken?.balanceFormatted, formattedStakedBalanceETH]);
+
   const earnBalanceValue = isFiat
-    ? `${stakedBalanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`
-    : formattedStakedBalanceETH;
+    ? `${earnBalanceFiatValue} ${currentCurrency.toUpperCase()}`
+    : earnBalanceTokenValue;
 
   return {
     isFiat,

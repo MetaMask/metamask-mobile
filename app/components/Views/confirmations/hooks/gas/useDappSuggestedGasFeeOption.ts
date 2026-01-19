@@ -7,7 +7,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { type GasOption } from '../../types/gas';
-import { EMPTY_VALUE_STRING, GasOptionIcon } from '../../constants/gas';
+import { EMPTY_VALUE_STRING } from '../../constants/gas';
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFeeCalculations } from './useFeeCalculations';
@@ -71,7 +71,6 @@ export const useDappSuggestedGasFeeOption = ({
       });
 
     options.push({
-      emoji: GasOptionIcon.SITE_SUGGESTED,
       estimatedTime: undefined,
       isSelected: isDappSuggestedGasFeeSelected,
       key: 'site_suggested',

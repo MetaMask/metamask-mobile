@@ -1,5 +1,5 @@
 import Logger from '../../../../../util/Logger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import {
   trace,
   endTrace,
@@ -27,6 +27,7 @@ import type {
   Order,
   GetOrdersParams,
   MarketInfo,
+  GetMarketsParams,
   GetAvailableDexsParams,
   LiquidationPriceParams,
   MaintenanceMarginParams,
@@ -538,7 +539,7 @@ export class MarketDataService {
    */
   static async getMarkets(options: {
     provider: IPerpsProvider;
-    params?: { symbols?: string[]; dex?: string };
+    params?: GetMarketsParams;
     context: ServiceContext;
   }): Promise<MarketInfo[]> {
     const { provider, params, context } = options;

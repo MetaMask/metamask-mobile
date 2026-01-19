@@ -32,30 +32,28 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   NetworkEducationModal.device = device;
   NetworksScreen.device = device;
   BridgeScreen.device = device;
-
   await login(device);
-  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
+    { ios: 1100, android: 2200 },
+    device,
   );
-  timer1.start();
 
   await WalletMainScreen.tapSwapButton();
-  await BridgeScreen.isVisible();
-  timer1.stop();
+  await timer1.measure(() => BridgeScreen.isVisible());
 
   await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
   await BridgeScreen.enterSourceTokenAmount('1');
 
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
+    { ios: 9000, android: 7000 },
+    device,
   );
 
-  timer2.start();
-  await BridgeScreen.isQuoteDisplayed();
-  timer2.stop();
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
+  await timer2.measure(() => BridgeScreen.isQuoteDisplayed());
+
+  performanceTracker.addTimers(timer1, timer2);
   await performanceTracker.attachToTest(testInfo);
 });

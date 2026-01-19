@@ -13,6 +13,10 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
+import { store } from '../../../../store';
+import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import { strings } from '../../../../../locales/i18n';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -88,6 +92,8 @@ export function getAvailableTokens({
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
 }): AssetType[] {
+  const supportedGasFeeTokens = getSupportedGasFeeTokens();
+
   return tokens
     .filter((token) => {
       if (
@@ -120,13 +126,50 @@ export function getAvailableTokens({
       return new BigNumber(token.balance).gt(0);
     })
     .map((token) => {
+      const chainId = (token.chainId as Hex) ?? '0x0';
+
+      const nativeToken = tokens.find(
+        (t) =>
+          t.chainId === chainId && t.address === getNativeTokenAddress(chainId),
+      );
+
+      const noNativeBalance =
+        !nativeToken || new BigNumber(nativeToken.balance).isZero();
+
+      const isGasStationSupported = supportedGasFeeTokens[chainId]?.includes(
+        token.address?.toLowerCase() as Hex,
+      );
+
+      const disabled = noNativeBalance && !isGasStationSupported;
+
+      const disabledMessage = disabled
+        ? strings('pay_with_modal.no_gas')
+        : undefined;
+
       const isSelected =
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
         payToken?.chainId === token.chainId;
 
       return {
         ...token,
+        disabled,
+        disabledMessage,
         isSelected,
       };
     });
+}
+
+function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
+  const state = store.getState();
+  const { gasFeeTokens } = selectGasFeeTokenFlags(state);
+
+  return Object.keys(gasFeeTokens).reduce(
+    (acc, chainId) => ({
+      ...acc,
+      [chainId]: gasFeeTokens[chainId as Hex].tokens.map(
+        (token) => token.address.toLowerCase() as Hex,
+      ),
+    }),
+    {},
+  );
 }

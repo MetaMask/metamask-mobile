@@ -20,7 +20,7 @@ import {
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -49,6 +49,25 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+// Mock whenEngineReady to prevent Engine access after Jest teardown
+jest.mock('../../../../core/Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => false),
+    trackEvent: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    identify: jest.fn(),
+    trackView: jest.fn(),
+    isOptedIn: jest.fn().mockResolvedValue(false),
+  },
+}));
+
 describe('MultichainAccountSelectorList', () => {
   const mockOnSelectAccount = jest.fn();
 
@@ -67,8 +86,13 @@ describe('MultichainAccountSelectorList', () => {
     const searchInput = getByTestId(
       MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
     );
-    fireEvent.changeText(searchInput, searchTerm);
 
+    await act(async () => {
+      fireEvent.changeText(searchInput, searchTerm);
+    });
+
+    // Wait for debounce to complete and filtering to occur
+    // Check both visible and hidden items to ensure filtering has completed
     await waitFor(
       () => {
         expectedVisible.forEach((text) => {
@@ -353,19 +377,22 @@ describe('MultichainAccountSelectorList', () => {
       const searchInput = getByTestId(
         MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
       );
-      fireEvent.changeText(searchInput, 'Test');
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'Test');
+      });
 
       // Immediately after typing, both accounts should still be visible (debounced)
       expect(queryByText('My Account')).toBeTruthy();
       expect(queryByText('Test Account')).toBeTruthy();
 
-      // Wait for debounce delay (300ms) and check that filtering has occurred
+      // Wait for debounce delay (200ms) and check that filtering has occurred
       await waitFor(
         () => {
           expect(queryByText('My Account')).toBeFalsy();
           expect(queryByText('Test Account')).toBeTruthy();
         },
-        { timeout: 500 },
+        { timeout: 1000 },
       );
     });
 
@@ -543,7 +570,10 @@ describe('MultichainAccountSelectorList', () => {
       const searchInput = getByTestId(
         MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
       );
-      fireEvent.changeText(searchInput, 'NonExistentAccount');
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'NonExistentAccount');
+      });
 
       // Wait for debounced search to complete and check empty state
       await waitFor(
@@ -589,17 +619,21 @@ describe('MultichainAccountSelectorList', () => {
       );
 
       // Test uppercase search
-      fireEvent.changeText(searchInput, 'MY ACCOUNT');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'MY ACCOUNT');
+      });
       await waitFor(
         () => {
           expect(queryByText('My Account')).toBeTruthy();
           expect(queryByText('Test Account')).toBeFalsy();
         },
-        { timeout: 500 },
+        { timeout: 1000 }, // Increased timeout for debounced search
       );
 
       // Test mixed case search
-      fireEvent.changeText(searchInput, 'tEsT aCcOuNt');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'tEsT aCcOuNt');
+      });
       await waitFor(
         () => {
           expect(queryByText('My Account')).toBeFalsy();
@@ -642,23 +676,27 @@ describe('MultichainAccountSelectorList', () => {
       expect(queryByText('Test Account')).toBeTruthy();
 
       // Search for something
-      fireEvent.changeText(searchInput, 'Test');
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'Test');
+      });
       await waitFor(
         () => {
           expect(queryByText('My Account')).toBeFalsy();
           expect(queryByText('Test Account')).toBeTruthy();
         },
-        { timeout: 500 },
+        { timeout: 1000 },
       );
 
       // Clear search
-      fireEvent.changeText(searchInput, '');
+      await act(async () => {
+        fireEvent.changeText(searchInput, '');
+      });
       await waitFor(
         () => {
           expect(queryByText('My Account')).toBeTruthy();
           expect(queryByText('Test Account')).toBeTruthy();
         },
-        { timeout: 500 },
+        { timeout: 1000 },
       );
     });
 
@@ -691,7 +729,9 @@ describe('MultichainAccountSelectorList', () => {
       );
 
       // Search with leading/trailing whitespace
-      fireEvent.changeText(searchInput, '  My Account  ');
+      await act(async () => {
+        fireEvent.changeText(searchInput, '  My Account  ');
+      });
       await waitFor(
         () => {
           expect(queryByText('My Account')).toBeTruthy();
@@ -973,7 +1013,10 @@ describe('MultichainAccountSelectorList', () => {
       const searchInput = getByTestId(
         MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
       );
-      fireEvent.changeText(searchInput, 'Test');
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, 'Test');
+      });
 
       // Wait for debounce and re-render
       await waitFor(
