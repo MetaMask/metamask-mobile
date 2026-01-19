@@ -433,10 +433,12 @@ export const Browser = React.memo((props) => {
   );
 
   const closeTabsView = useCallback(() => {
-    if (tabs.length) {
-      setShouldShowTabs(false);
+    setShouldShowTabs(false);
+    // If no tabs left, navigate away from browser
+    if (tabs.length === 0) {
+      navigation.goBack();
     }
-  }, [tabs, setShouldShowTabs]);
+  }, [tabs, setShouldShowTabs, navigation]);
 
   const renderTabList = useCallback(() => {
     if (shouldShowTabs) {
