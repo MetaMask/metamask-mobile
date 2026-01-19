@@ -105,9 +105,6 @@ const PREDICTIONS_FUSE_OPTIONS = {
   keys: [...PREDICTIONS_FUSE_KEYS],
 };
 
-const normalizeSearchQuery = (query?: string): string =>
-  query?.trim().toLowerCase() ?? '';
-
 /**
  * Centralized configuration for all Trending View sections.
  * This config is used by QuickActions, SectionHeaders, Search, and TrendingView rendering.
@@ -144,20 +141,16 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         undefined,
         false, // Disable debouncing here because useExploreSearch already handles it
       );
-      const normalizedQuery = useMemo(
-        () => normalizeSearchQuery(searchQuery),
-        [searchQuery],
-      );
       const tokenFuse = useMemo(
         () => new Fuse(data, TOKEN_FUSE_OPTIONS),
         [data],
       );
       const filteredData = useMemo(() => {
-        if (!normalizedQuery) {
+        if (!searchQuery) {
           return data;
         }
-        return tokenFuse.search(normalizedQuery);
-      }, [data, normalizedQuery, tokenFuse]);
+        return tokenFuse.search(searchQuery);
+      }, [data, searchQuery, tokenFuse]);
       return { data: filteredData, isLoading, refetch };
     },
   },
@@ -198,21 +191,17 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
-      const normalizedQuery = useMemo(
-        () => normalizeSearchQuery(searchQuery),
-        [searchQuery],
-      );
       const perpsFuse = useMemo(
         () => new Fuse(markets, PERPS_FUSE_OPTIONS),
         [markets],
       );
 
       const filteredMarkets = useMemo(() => {
-        if (!normalizedQuery) {
+        if (!searchQuery) {
           return markets;
         }
-        return perpsFuse.search(normalizedQuery);
-      }, [markets, normalizedQuery, perpsFuse]);
+        return perpsFuse.search(searchQuery);
+      }, [markets, searchQuery, perpsFuse]);
 
       return {
         data: filteredMarkets,
@@ -249,20 +238,16 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         q: searchQuery || undefined,
       });
 
-      const normalizedQuery = useMemo(
-        () => normalizeSearchQuery(searchQuery),
-        [searchQuery],
-      );
       const predictionsFuse = useMemo(
         () => new Fuse(marketData, PREDICTIONS_FUSE_OPTIONS),
         [marketData],
       );
       const filteredData = useMemo(() => {
-        if (!normalizedQuery) {
+        if (!searchQuery) {
           return marketData;
         }
-        return predictionsFuse.search(normalizedQuery);
-      }, [marketData, normalizedQuery, predictionsFuse]);
+        return predictionsFuse.search(searchQuery);
+      }, [marketData, searchQuery, predictionsFuse]);
 
       return { data: filteredData, isLoading: isFetching, refetch };
     },
