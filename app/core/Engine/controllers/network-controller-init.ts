@@ -19,7 +19,10 @@ import { Hex, Json } from '@metamask/utils';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
 import { AnalyticsEventProperties } from '@metamask/analytics-controller';
-import { CONNECTIVITY_STATUSES } from '@metamask/connectivity-controller';
+import {
+  CONNECTIVITY_STATUSES,
+  type ConnectivityControllerState,
+} from '@metamask/connectivity-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -141,9 +144,11 @@ export const networkControllerInit: ControllerInitFunction<
       // (which is why we add 1 below).
       const maxRetries = DEFAULT_MAX_RETRIES;
       const isOffline = (): boolean => {
-        const connectivityState = controllerMessenger.call(
-          'ConnectivityController:getState',
-        );
+        const connectivityState = (
+          controllerMessenger.call as unknown as (
+            action: 'ConnectivityController:getState',
+          ) => ConnectivityControllerState
+        )('ConnectivityController:getState');
         return (
           connectivityState.connectivityStatus === CONNECTIVITY_STATUSES.Offline
         );

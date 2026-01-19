@@ -22,13 +22,18 @@ import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slice
 import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
-import { Asset, TokenListToken } from '@metamask/assets-controllers';
+import {
+  Asset,
+  TokenListToken,
+  TokenRwaData,
+} from '@metamask/assets-controllers';
 import packageJSON from '../../../../../../package.json';
 import { getTokenIconUrl } from '../../utils';
+import { memoize } from 'lodash';
 
 const { version: clientVersion } = packageJSON;
 const MAX_TOP_TOKENS = 30;
-export const memoizedFetchBridgeTokens = fetchBridgeTokens;
+export const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
 
 /**
  * Only needed for BTC
@@ -79,7 +84,7 @@ const formatCachedTokenListControllerTokens = (
       name: token.name,
       image: getTokenIconUrl(assetId, isNonEnvChain) || token.iconUrl || '',
       decimals: token.decimals,
-      aggregators: token.aggregators,
+      aggregators: token.aggregators ?? [],
       chainId: isNonEnvChain ? caipChainId : hexChainId,
       accountType: getAccountType(caipChainId),
     };
@@ -205,16 +210,21 @@ export const useTopTokens = ({
         ? bridgeAsset.assetId
         : bridgeAsset.address;
 
+      const bridgeAssetRwaData = (bridgeAsset as { rwaData?: TokenRwaData })
+        .rwaData;
+      const bridgeAssetAggregators = (bridgeAsset as { aggregators?: string[] })
+        .aggregators;
+
       bridgeTokenObj[addr] = {
         address: tokenAddress,
         symbol: bridgeAsset.symbol,
         name: bridgeAsset.name,
         image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
-        aggregators: bridgeAsset.aggregators,
+        aggregators: bridgeAssetAggregators ?? [],
         chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
         accountType: getAccountType(caipChainId),
-        rwaData: bridgeAsset.rwaData,
+        rwaData: bridgeAssetRwaData,
       };
     });
 

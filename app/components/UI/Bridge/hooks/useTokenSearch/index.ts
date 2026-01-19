@@ -54,10 +54,7 @@ export function useTokenSearch({
   const tokenSearchResults = useMemo(
     () =>
       tokenFuse
-        .search(debouncedSearchString, {
-          limit: MAX_TOKENS_RESULTS,
-          includeRwaData: true,
-        })
+        .search(debouncedSearchString, { limit: MAX_TOKENS_RESULTS })
         .sort((a, b) => {
           // Sort results by balance fiat in descending order
           const balanceA = a.tokenFiatAmount ?? 0;

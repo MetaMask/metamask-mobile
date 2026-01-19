@@ -234,7 +234,7 @@ export const useTokensWithBalance: ({
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
           accountType: token.accountType,
-          aggregators: token.aggregators,
+          aggregators: token.aggregators ?? [],
           metadata: ('metadata' in token
             ? token.metadata
             : undefined) as BridgeToken['metadata'],
