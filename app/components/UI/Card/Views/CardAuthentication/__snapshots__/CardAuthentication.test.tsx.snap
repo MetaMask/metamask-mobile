@@ -332,6 +332,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                     >
                       <RCTScrollView
                         alwaysBounceVertical={false}
+                        automaticallyAdjustContentInsets={false}
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
@@ -339,8 +340,33 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                             "paddingRight": 16,
                           }
                         }
+                        contentInset={
+                          {
+                            "bottom": 0,
+                          }
+                        }
+                        enableAutomaticScroll={true}
+                        enableOnAndroid={true}
+                        enableResetScrollToCoords={true}
+                        extraHeight={75}
+                        extraScrollHeight={20}
+                        getScrollResponder={[Function]}
+                        handleOnScroll={[Function]}
+                        keyboardDismissMode="interactive"
+                        keyboardOpeningTime={250}
                         keyboardShouldPersistTaps="handled"
+                        keyboardSpace={0}
+                        onScroll={[Function]}
+                        resetKeyboardSpace={[Function]}
+                        scrollEventThrottle={1}
+                        scrollForExtraHeightOnAndroid={[Function]}
+                        scrollIntoView={[Function]}
+                        scrollToEnd={[Function]}
+                        scrollToFocusedInput={[Function]}
+                        scrollToPosition={[Function]}
                         showsVerticalScrollIndicator={false}
+                        update={[Function]}
+                        viewIsInsideTabBar={false}
                       >
                         <View>
                           <View
