@@ -603,7 +603,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                   }
                                 }
                               >
-                                Visit our Website
+                                Visit our website
                               </Text>
                             </TouchableOpacity>
                             <TouchableOpacity

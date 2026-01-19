@@ -1891,7 +1891,7 @@ describe('getSwapTokens', () => {
     });
   });
 
-  it('returns default pair token as sourceToken and native gas token as destToken when asset is native gas token', () => {
+  it('returns native gas token as sourceToken when asset is native gas token from home page', () => {
     const nativeGasToken = {
       ...asset,
       address: '0x0000000000000000000000000000000000000000',
@@ -1900,18 +1900,8 @@ describe('getSwapTokens', () => {
 
     const result = getSwapTokens(nativeGasToken);
 
-    // sourceToken is the default pair token for mainnet (mUSD)
+    // sourceToken is the native gas token (user wants to swap FROM it)
     expect(result.sourceToken).toEqual({
-      symbol: 'mUSD',
-      name: 'MetaMask USD',
-      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-      decimals: 6,
-      image:
-        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
-      chainId: MOCK_CHAIN_ID,
-    });
-    // destToken is the native gas token
-    expect(result.destToken).toEqual({
       ...nativeGasToken,
       address: '0x0000000000000000000000000000000000000000',
       chainId: MOCK_CHAIN_ID,
@@ -1920,5 +1910,25 @@ describe('getSwapTokens', () => {
       name: nativeGasToken.name,
       image: nativeGasToken.image,
     });
+    // destToken is undefined (will be determined by swap UI)
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns native gas token as destToken when asset is native gas token from trending', () => {
+    const trendingNativeGasToken = {
+      ...asset,
+      address: '0x0000000000000000000000000000000000000000',
+      isETH: true,
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingNativeGasToken);
+
+    // When coming from trending with native token, user wants to BUY it (dest position)
+    expect(result.destToken).toBeDefined();
+    expect(result.destToken?.address).toBe(
+      '0x0000000000000000000000000000000000000000',
+    );
+    expect(result.destToken?.symbol).toBe(trendingNativeGasToken.symbol);
   });
 });
