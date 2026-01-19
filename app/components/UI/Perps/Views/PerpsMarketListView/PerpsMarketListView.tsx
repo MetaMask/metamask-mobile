@@ -5,12 +5,32 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { View, Animated, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Animated,
+  ScrollView,
+  Dimensions,
+  TextInput,
+  TouchableOpacity,
+  Pressable,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import {
+  IconName as DSIconName,
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -22,7 +42,6 @@ import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFie
 import PerpsStocksCommoditiesBottomSheet from '../../components/PerpsStocksCommoditiesBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
-import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
@@ -55,6 +74,8 @@ const PerpsMarketListView = ({
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const tw = useTailwind();
+  const { colors } = useTheme();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
@@ -463,17 +484,60 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - Using extracted component */}
-      <PerpsMarketListHeader
-        title={title}
-        isSearchVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        onSearchClear={() => setSearchQuery('')}
-        onBack={handleBackPressed}
-        onSearchToggle={handleSearchToggle}
-        testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-      />
+      {/* Header */}
+      {isSearchVisible ? (
+        <Pressable
+          style={styles.header}
+          onPress={() => Keyboard.dismiss()}
+          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+        >
+          <View style={styles.headerContainerWrapper}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName={`flex-1 bg-muted rounded-lg ${Platform.OS === 'ios' ? 'py-3' : 'py-1'} px-3 mr-2`}
+            >
+              <Icon
+                name={IconName.Search}
+                size={IconSize.Sm}
+                color={IconColor.Alternative}
+                style={tw.style('mr-2')}
+              />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder={strings('perps.search_by_token_symbol')}
+                placeholderTextColor={colors.text.muted}
+                autoFocus
+                style={tw.style('flex-1 text-base text-default')}
+                testID={`${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-bar`}
+              />
+            </Box>
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={handleSearchToggle}
+              testID={`${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-close`}
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('perps.cancel')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      ) : (
+        <HeaderCenter
+          title={title || strings('perps.home.markets')}
+          onBack={handleBackPressed}
+          endButtonIconProps={[
+            {
+              iconName: DSIconName.Search,
+              onPress: handleSearchToggle,
+              testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
+            },
+          ]}
+          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+        />
+      )}
 
       {/* Balance Actions Component - Only show in full variant when search not visible */}
       {!isSearchVisible && showBalanceActions && variant === 'full' && (
