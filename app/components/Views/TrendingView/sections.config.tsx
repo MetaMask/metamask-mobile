@@ -22,6 +22,7 @@ import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/Sit
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { filterMarketsByQuery } from '../../UI/Perps/utils/marketUtils';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
@@ -200,7 +201,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
       const filteredMarkets = useMemo(() => {
-        return fuseSearch(markets, searchQuery, PERPS_FUSE_OPTIONS);
+        if (!searchQuery) {
+          return markets;
+        }
+        const filteredByQuery = filterMarketsByQuery(markets, searchQuery);
+        return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
       }, [markets, searchQuery]);
 
       return {
