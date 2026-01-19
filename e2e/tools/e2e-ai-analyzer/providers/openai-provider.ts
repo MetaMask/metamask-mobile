@@ -11,6 +11,9 @@ import {
   LLMRequest,
   LLMResponse,
   LLMContentBlock,
+  LLMTextBlock,
+  LLMToolUseBlock,
+  LLMToolResultBlock,
   LLMMessage,
   LLMTool,
 } from './types';
@@ -57,11 +60,15 @@ function toOpenAIMessages(
         content: msg.content,
       });
     } else {
-      // Handle content blocks
-      const textBlocks = msg.content.filter((b) => b.type === 'text');
-      const toolUseBlocks = msg.content.filter((b) => b.type === 'tool_use');
+      // Handle content blocks with type guards for proper narrowing
+      const textBlocks = msg.content.filter(
+        (b): b is LLMTextBlock => b.type === 'text',
+      );
+      const toolUseBlocks = msg.content.filter(
+        (b): b is LLMToolUseBlock => b.type === 'tool_use',
+      );
       const toolResultBlocks = msg.content.filter(
-        (b) => b.type === 'tool_result',
+        (b): b is LLMToolResultBlock => b.type === 'tool_result',
       );
 
       if (msg.role === 'assistant') {
