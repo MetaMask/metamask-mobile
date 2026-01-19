@@ -92,6 +92,7 @@ const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+  AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
 ] as string[];
 
 async function handleUniversalLink({
