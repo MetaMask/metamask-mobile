@@ -956,4 +956,74 @@ describe('SetPhoneNumber Component', () => {
       expect(mockSendPhoneVerification).not.toHaveBeenCalled();
     });
   });
+
+  describe('Region Filtering for US Users', () => {
+    it('navigates to region selector with only US region for US users', () => {
+      const usStore = createUsUserStore();
+
+      const { getByTestId } = render(
+        <Provider store={usStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      fireEvent.press(countrySelect);
+
+      // Verify navigate was called
+      expect(mockNavigate).toHaveBeenCalled();
+
+      // Verify non-US regions are excluded (regions are in params.regions)
+      const navigateCall = mockNavigate.mock.calls[0];
+      const regionsArg = navigateCall[1]?.params?.regions || [];
+      expect(regionsArg.length).toBe(1);
+      expect(regionsArg[0].key).toBe('US');
+    });
+
+    it('navigates to region selector with all regions for international users', () => {
+      const internationalStore = createInternationalUserStore();
+
+      const { getByTestId } = render(
+        <Provider store={internationalStore}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      fireEvent.press(countrySelect);
+
+      // Verify navigate was called with multiple regions (in params.regions)
+      const navigateCall = mockNavigate.mock.calls[0];
+      const regionsArg = navigateCall[1]?.params?.regions || [];
+      expect(regionsArg.length).toBeGreaterThan(1);
+
+      // Verify it includes countries other than US
+      const regionKeys = regionsArg.map((r: { key: string }) => r.key);
+      expect(regionKeys).toContain('US');
+      expect(regionKeys).toContain('CA');
+      expect(regionKeys).toContain('GB');
+    });
+
+    it('navigates to region selector with all regions when userCardLocation is null', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const countrySelect = getByTestId(
+        'set-phone-number-country-area-code-select',
+      );
+      fireEvent.press(countrySelect);
+
+      // Verify navigate was called with all available regions (in params.regions)
+      const navigateCall = mockNavigate.mock.calls[0];
+      const regionsArg = navigateCall[1]?.params?.regions || [];
+      expect(regionsArg.length).toBeGreaterThan(1);
+    });
+  });
 });

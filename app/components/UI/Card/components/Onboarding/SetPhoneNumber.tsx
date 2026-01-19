@@ -88,6 +88,14 @@ const SetPhoneNumber = () => {
 
   const isUsUser = userCardLocation === 'us';
 
+  // For US users, only show US in the region selector
+  const availableRegions = useMemo(() => {
+    if (isUsUser) {
+      return regions.filter((region) => region.key === 'US');
+    }
+    return regions;
+  }, [regions, isUsUser]);
+
   // Sync local state when selectedCountry changes (e.g., after regions load)
   useEffect(() => {
     if (selectedCountry) {
@@ -176,11 +184,11 @@ const SetPhoneNumber = () => {
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        regions,
+        regions: availableRegions,
         renderAreaCode: true,
       }),
     );
-  }, [navigation, regions, resetPhoneVerificationSend]);
+  }, [navigation, availableRegions, resetPhoneVerificationSend]);
 
   const handlePhoneNumberChange = (text: string) => {
     resetPhoneVerificationSend();

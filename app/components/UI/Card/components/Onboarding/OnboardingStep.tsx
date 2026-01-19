@@ -1,7 +1,13 @@
-import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface OnboardingStepProps {
@@ -25,6 +31,26 @@ const OnboardingStep = ({
   stickyActions = false,
 }: OnboardingStepProps) => {
   const tw = useTailwind();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  // Track keyboard height for Android sticky actions
+  useEffect(() => {
+    if (!stickyActions || Platform.OS !== 'android') {
+      return;
+    }
+
+    const showSubscription = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [stickyActions]);
 
   const renderContent = () => (
     <>
@@ -55,15 +81,46 @@ const OnboardingStep = ({
   );
 
   if (stickyActions) {
+    // On Android, use keyboard height tracking; on iOS, use KeyboardAvoidingView
+    if (Platform.OS === 'android') {
+      return (
+        <SafeAreaView
+          style={tw.style('flex-1 bg-background-default')}
+          edges={['bottom']}
+        >
+          <ScrollView
+            contentContainerStyle={tw.style('flex-grow px-4')}
+            showsVerticalScrollIndicator={false}
+            alwaysBounceVertical={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="none"
+          >
+            <Box twClassName="flex-1 items-stretch gap-4 mb-6">
+              {renderContent()}
+            </Box>
+          </ScrollView>
+
+          {/* Actions - Fixed at bottom, moves up with keyboard on Android */}
+          <Box
+            testID="onboarding-step-actions"
+            twClassName="px-4 pb-6"
+            style={{ marginBottom: keyboardHeight }}
+          >
+            {actions}
+          </Box>
+        </SafeAreaView>
+      );
+    }
+
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
           style={tw.style('flex-1')}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          keyboardVerticalOffset={90}
         >
           <ScrollView
             contentContainerStyle={tw.style('flex-grow px-4')}
@@ -91,10 +148,13 @@ const OnboardingStep = ({
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical={false}
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
         keyboardShouldPersistTaps="handled"
       >
         <Box twClassName="flex-1 items-stretch gap-4 mb-6">
@@ -105,7 +165,7 @@ const OnboardingStep = ({
             {actions}
           </Box>
         </Box>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
