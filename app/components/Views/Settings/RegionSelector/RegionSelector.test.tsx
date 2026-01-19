@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, act } from '@testing-library/react-native';
 import RegionSelector from './RegionSelector';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -147,12 +147,12 @@ describe('RegionSelector', () => {
     };
   });
 
-  it('renders correctly with countries list', () => {
+  it('renders countries list', () => {
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly when regions are loading', () => {
+  it('renders loading state when regions are loading', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
       countries: null,
@@ -162,7 +162,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly when regions are null', () => {
+  it('calls fetchCountries when regions are null', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
       countries: null,
@@ -174,7 +174,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly when countries error occurs', () => {
+  it('renders error state when countries error occurs', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
       countries: null,
@@ -199,7 +199,7 @@ describe('RegionSelector', () => {
     expect(mockFetchCountries).toHaveBeenCalled();
   });
 
-  it('renders correctly when user region is selected', () => {
+  it('renders with selected user region', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ca'),
@@ -208,7 +208,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with recommended countries', () => {
+  it('renders recommended countries', () => {
     const recommendedRegions = [
       createMockCountry('US', 'United States', '🇺🇸', undefined, true, true),
       createMockCountry('CA', 'Canada', '🇨🇦', undefined, true, false),
@@ -250,7 +250,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders states view correctly', () => {
+  it('renders states view', () => {
     render(RegionSelector);
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
@@ -270,7 +270,9 @@ describe('RegionSelector', () => {
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
     const stateItem = screen.getByText('California');
-    fireEvent.press(stateItem);
+    await act(async () => {
+      fireEvent.press(stateItem);
+    });
     await expect(mockSetUserRegion).toHaveBeenCalledWith('ca');
     expect(mockGoBack).toHaveBeenCalled();
   });
@@ -278,17 +280,19 @@ describe('RegionSelector', () => {
   it('calls setUserRegion and navigates back when country without states is selected', async () => {
     render(RegionSelector);
     const countryItem = screen.getByText('France');
-    fireEvent.press(countryItem);
+    await act(async () => {
+      fireEvent.press(countryItem);
+    });
     await expect(mockSetUserRegion).toHaveBeenCalledWith('fr');
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('renders correctly with unsupported country', () => {
+  it('renders unsupported country', () => {
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly when country has states and user region state is shown', () => {
+  it('renders when country has states and user region state is shown', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
       userRegion: createMockUserRegion('us-ca'),
@@ -320,7 +324,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with empty regions array', () => {
+  it('renders with empty regions array', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
       countries: [],
@@ -329,7 +333,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with country without flag', () => {
+  it('renders country without flag', () => {
     const regionsWithoutFlag = [
       createMockCountry('US', 'United States', '', [
         createMockState('CA', 'California'),
@@ -343,7 +347,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with state without stateId', () => {
+  it('renders state without stateId', () => {
     const stateWithoutId: State = {
       name: 'State Without ID',
       supported: true,
@@ -359,7 +363,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with unsupported state', () => {
+  it('renders unsupported state', () => {
     const unsupportedState = createMockState('TX', 'Texas', false);
     const regionsWithUnsupportedState = [
       createMockCountry('US', 'United States', '🇺🇸', [
@@ -377,7 +381,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles setUserRegion error gracefully', async () => {
+  it('does not navigate back when setUserRegion error occurs', async () => {
     const errorMock = jest
       .fn()
       .mockRejectedValue(new Error('Failed to set region'));
@@ -387,7 +391,9 @@ describe('RegionSelector', () => {
     };
     render(RegionSelector);
     const countryItem = screen.getByText('France');
-    fireEvent.press(countryItem);
+    await act(async () => {
+      fireEvent.press(countryItem);
+    });
     await expect(errorMock).toHaveBeenCalledWith('fr');
     expect(mockGoBack).not.toHaveBeenCalled();
   });
@@ -441,14 +447,14 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles search with grouped results showing country and matching states', () => {
+  it('displays grouped search results showing country and matching states', () => {
     render(RegionSelector);
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'Cal');
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles search with standalone states', () => {
+  it('displays standalone states in search results', () => {
     const standaloneState: State = {
       stateId: 'TX',
       name: 'Texas',
@@ -470,7 +476,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles search with standalone countries', () => {
+  it('displays standalone countries in search results', () => {
     const standaloneCountry = createMockCountry('DE', 'Germany', '🇩🇪');
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
@@ -482,12 +488,12 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders disabled country correctly', () => {
+  it('renders disabled country', () => {
     render(RegionSelector);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders disabled state correctly', () => {
+  it('renders disabled state', () => {
     const unsupportedState = createMockState('TX', 'Texas', false);
     const regionsWithUnsupportedState = [
       createMockCountry('US', 'United States', '🇺🇸', [
@@ -526,7 +532,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles country with supported set to false', () => {
+  it('renders country with supported set to false', () => {
     const unsupportedCountry = createMockCountry(
       'XX',
       'Unsupported',
@@ -542,7 +548,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles state with supported set to false', () => {
+  it('renders state with supported set to false', () => {
     const unsupportedState = createMockState('TX', 'Texas', false);
     const regionsWithUnsupportedState = [
       createMockCountry('US', 'United States', '🇺🇸', [unsupportedState]),
@@ -557,7 +563,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles region selection with empty regionId', () => {
+  it('does not call setUserRegion when region selection has empty regionId', async () => {
     const stateWithoutId: State = {
       name: 'State Without ID',
       supported: true,
@@ -573,12 +579,14 @@ describe('RegionSelector', () => {
     const countryItem = screen.getByText('United States');
     fireEvent.press(countryItem);
     const stateItem = screen.getByText('State Without ID');
-    fireEvent.press(stateItem);
+    await act(async () => {
+      fireEvent.press(stateItem);
+    });
     expect(mockSetUserRegion).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('handles search results limit correctly', () => {
+  it('limits search results', () => {
     const manyRegions = Array.from({ length: 30 }, (_, i) =>
       createMockCountry(`C${i}`, `Country ${i}`, '🏳️'),
     );
@@ -714,7 +722,7 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('handles state selection when regionInTransit is null and falls back to userCountryCode', () => {
+  it('falls back to userCountryCode when regionInTransit is null during state selection', () => {
     const standaloneState: State = {
       stateId: 'CA',
       name: 'California',

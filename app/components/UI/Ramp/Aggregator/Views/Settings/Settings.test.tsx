@@ -166,6 +166,12 @@ jest.mock('../../sdk', () => ({
   withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
+let mockUseRampsUnifiedV2EnabledValue = true;
+
+jest.mock('../../../hooks/useRampsUnifiedV2Enabled', () =>
+  jest.fn(() => mockUseRampsUnifiedV2EnabledValue),
+);
+
 describe('Settings', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -181,6 +187,7 @@ describe('Settings', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
     };
+    mockUseRampsUnifiedV2EnabledValue = true;
   });
 
   it('renders correctly', () => {
