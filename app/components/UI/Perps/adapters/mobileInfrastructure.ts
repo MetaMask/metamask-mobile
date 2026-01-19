@@ -83,21 +83,17 @@ function createMobileMetrics(): IPerpsMetrics {
           ).addProperties(properties);
         metricsInstance.trackEvent(eventBuilder.build(), true);
       } else {
-        // Fallback: log warning and still track with legacy format
+        // Fallback: log warning and track with a generic Perps event
         // This shouldn't happen if PerpsAnalyticsEvent values match MetaMetricsEvents
         DevLogger.log(
           `PerpsAnalyticsEvent "${event}" not found in MetaMetricsEvents`,
         );
-        metricsInstance.trackEvent(
-          {
-            category: 'Perps',
-            properties: {
-              name: event,
-              ...properties,
-            },
-          } as unknown as Parameters<IMetaMetrics['trackEvent']>[0],
-          true,
-        );
+        // Create a proper tracking event using MetricsEventBuilder
+        // Use event name as category to match generateOpt pattern in MetaMetrics.events.ts
+        const fallbackEvent = MetricsEventBuilder.createEventBuilder({
+          category: event,
+        }).addProperties(properties);
+        metricsInstance.trackEvent(fallbackEvent.build(), true);
       }
     },
   };
