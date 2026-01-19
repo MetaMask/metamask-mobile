@@ -231,7 +231,7 @@ function generateTestSuggestions(file, uncoveredLines = []) {
  */
 function runTestsWithFallback(testFiles) {
   const testArgs = testFiles.join(' ');
-  const cmd = `npx jest ${testArgs} --coverage --coverageReporters=lcov --passWithNoTests`;
+  const cmd = `yarn jest ${testArgs} --coverage --coverageReporters=lcov --passWithNoTests`;
 
   try {
     // Phase 1: Try running all tests together (fast path)
@@ -285,14 +285,14 @@ function runTestsWithFallback(testFiles) {
       error: failureDetails[file]?.length > 0
         ? failureDetails[file].join('\n')
         : 'Test failed (see full output for details)',
-      command: `npx jest ${file} --no-coverage`
+      command: `yarn jest ${file} --no-coverage`
     }));
 
     // Phase 3: Re-run only passing tests with coverage if any passed
     if (passedTests.length > 0) {
       console.log(`🔄 Re-running ${passedTests.length} passing tests to generate coverage...\n`);
       const passingTestsArgs = passedTests.join(' ');
-      const coverageCmd = `npx jest ${passingTestsArgs} --coverage --coverageReporters=lcov --silent --passWithNoTests`;
+      const coverageCmd = `yarn jest ${passingTestsArgs} --coverage --coverageReporters=lcov --silent --passWithNoTests`;
 
       try {
         execSync(coverageCmd, { cwd: process.cwd(), stdio: 'pipe' });
@@ -638,7 +638,7 @@ function printCoverageSummary(stats, coverageResults, needsTests, failedTests) {
 
     console.log('\n📝 To re-run failed tests:');
     const failedFilesArgs = failedTests.map(t => t.file).join(' ');
-    console.log(`   npx jest ${failedFilesArgs} --no-coverage\n`);
+    console.log(`   yarn jest ${failedFilesArgs} --no-coverage\n`);
   }
 }
 

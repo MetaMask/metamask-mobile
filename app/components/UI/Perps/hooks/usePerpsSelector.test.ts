@@ -59,7 +59,7 @@ describe('usePerpsSelector', () => {
     expect(result.current).toBe(false);
   });
 
-  it('should work with different selector functions', () => {
+  it('works with different selector functions', () => {
     // Arrange
     const mockState: PerpsControllerState = {
       isFirstTimeUser: {
@@ -67,8 +67,8 @@ describe('usePerpsSelector', () => {
         mainnet: true,
       },
       isEligible: true,
-      connectionStatus: 'connected',
-      positions: [{ coin: 'ETH' }],
+      isTestnet: false,
+      activeProvider: 'hyperliquid',
     } as PerpsControllerState;
 
     mockUseSelector.mockImplementation((selectorFn) =>
@@ -82,11 +82,10 @@ describe('usePerpsSelector', () => {
       state?.isFirstTimeUser.mainnet ?? false;
     const isEligibleSelector = (state: PerpsControllerState | undefined) =>
       state?.isEligible ?? false;
-    const connectionStatusSelector = (
-      state: PerpsControllerState | undefined,
-    ) => state?.connectionStatus ?? 'disconnected';
-    const positionsCountSelector = (state: PerpsControllerState | undefined) =>
-      state?.positions?.length ?? 0;
+    const isTestnetSelector = (state: PerpsControllerState | undefined) =>
+      state?.isTestnet ?? false;
+    const activeProviderSelector = (state: PerpsControllerState | undefined) =>
+      state?.activeProvider ?? 'hyperliquid';
 
     // Act & Assert
     const { result: isFirstTimeUserResult } = renderHook(() =>
@@ -99,24 +98,24 @@ describe('usePerpsSelector', () => {
     );
     expect(isEligibleResult.current).toBe(true);
 
-    const { result: connectionStatusResult } = renderHook(() =>
-      usePerpsSelector(connectionStatusSelector),
+    const { result: isTestnetResult } = renderHook(() =>
+      usePerpsSelector(isTestnetSelector),
     );
-    expect(connectionStatusResult.current).toBe('connected');
+    expect(isTestnetResult.current).toBe(false);
 
-    const { result: positionsCountResult } = renderHook(() =>
-      usePerpsSelector(positionsCountSelector),
+    const { result: activeProviderResult } = renderHook(() =>
+      usePerpsSelector(activeProviderSelector),
     );
-    expect(positionsCountResult.current).toBe(1);
+    expect(activeProviderResult.current).toBe('hyperliquid');
   });
 
-  it('should return computed values from selector functions', () => {
+  it('returns computed values from selector functions', () => {
     // Arrange
     const mockState: PerpsControllerState = {
-      positions: [
-        { coin: 'ETH', size: '1.5' },
-        { coin: 'BTC', size: '0.1' },
-      ],
+      watchlistMarkets: {
+        testnet: ['ETH', 'BTC'],
+        mainnet: ['SOL', 'DOGE'],
+      },
     } as PerpsControllerState;
 
     mockUseSelector.mockImplementation((selectorFn) =>
@@ -125,16 +124,17 @@ describe('usePerpsSelector', () => {
       }),
     );
 
-    const positionCoinsSelector = (state: PerpsControllerState | undefined) =>
-      state?.positions?.map((p) => p.coin) ?? [];
+    const mainnetWatchlistSelector = (
+      state: PerpsControllerState | undefined,
+    ) => state?.watchlistMarkets?.mainnet ?? [];
 
     // Act
     const { result } = renderHook(() =>
-      usePerpsSelector(positionCoinsSelector),
+      usePerpsSelector(mainnetWatchlistSelector),
     );
 
     // Assert
-    expect(result.current).toEqual(['ETH', 'BTC']);
+    expect(result.current).toEqual(['SOL', 'DOGE']);
   });
 
   it('should handle complex nested state selection', () => {

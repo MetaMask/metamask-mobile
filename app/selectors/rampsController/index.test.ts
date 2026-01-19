@@ -1,67 +1,110 @@
 import { RootState } from '../../reducers';
-import { RampsControllerState } from '@metamask/ramps-controller';
-import { selectRampsControllerState, selectGeolocation } from './index';
+import {
+  RampsControllerState,
+  RequestStatus,
+} from '@metamask/ramps-controller';
+import { selectUserRegion, selectUserRegionRequest } from './index';
+
+const createMockState = (
+  rampsController: Partial<RampsControllerState> = {},
+): RootState =>
+  ({
+    engine: {
+      backgroundState: {
+        RampsController: {
+          userRegion: null,
+          eligibility: null,
+          requests: {},
+          ...rampsController,
+        },
+      },
+    },
+  }) as unknown as RootState;
 
 describe('RampsController Selectors', () => {
-  describe('selectRampsControllerState', () => {
-    it('returns RampsController state from engine', () => {
-      const mockRampsControllerState: RampsControllerState = {
-        geolocation: 'US-CA',
-      };
+  describe('selectUserRegion', () => {
+    it('returns user region from state', () => {
+      const state = createMockState({ userRegion: 'US-CA' });
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: mockRampsControllerState,
-          },
-        },
-      } as unknown as RootState;
+      expect(selectUserRegion(state)).toBe('US-CA');
+    });
 
-      expect(selectRampsControllerState(mockState)).toEqual(
-        mockRampsControllerState,
-      );
+    it('returns null when user region is null', () => {
+      const state = createMockState({ userRegion: null });
+
+      expect(selectUserRegion(state)).toBeNull();
     });
   });
 
-  describe('selectGeolocation', () => {
-    it('returns geolocation from RampsController state', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: {
-              geolocation: 'US-NY',
-            },
+  describe('selectUserRegionRequest', () => {
+    it('returns request state with data, isFetching, and error', () => {
+      const state = createMockState({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.SUCCESS,
+            data: 'US-CA',
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
           },
         },
-      } as unknown as RootState;
+      });
 
-      expect(selectGeolocation(mockState)).toBe('US-NY');
+      const result = selectUserRegionRequest(state);
+
+      expect(result).toEqual({
+        data: 'US-CA',
+        isFetching: false,
+        error: null,
+      });
     });
 
-    it('returns null if geolocation is null', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: {
-              geolocation: null,
-            },
+    it('returns isFetching true when request is loading', () => {
+      const state = createMockState({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.LOADING,
+            data: null,
+            error: null,
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
           },
         },
-      } as unknown as RootState;
+      });
 
-      expect(selectGeolocation(mockState)).toBeNull();
+      const result = selectUserRegionRequest(state);
+
+      expect(result.isFetching).toBe(true);
     });
 
-    it('returns null if RampsController state is undefined', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RampsController: undefined,
+    it('returns error when request failed', () => {
+      const state = createMockState({
+        requests: {
+          'updateUserRegion:[]': {
+            status: RequestStatus.ERROR,
+            data: null,
+            error: 'Network error',
+            timestamp: Date.now(),
+            lastFetchedAt: Date.now(),
           },
         },
-      } as unknown as RootState;
+      });
 
-      expect(selectGeolocation(mockState)).toBeNull();
+      const result = selectUserRegionRequest(state);
+
+      expect(result.error).toBe('Network error');
+    });
+
+    it('returns default state when request does not exist', () => {
+      const state = createMockState();
+
+      const result = selectUserRegionRequest(state);
+
+      expect(result).toEqual({
+        data: null,
+        isFetching: false,
+        error: null,
+      });
     });
   });
 });

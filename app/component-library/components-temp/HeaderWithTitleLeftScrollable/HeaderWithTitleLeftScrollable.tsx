@@ -13,13 +13,16 @@ import Animated, {
 // External dependencies.
 import {
   Box,
+  BoxAlignItems,
   Text,
   TextVariant,
+  TextColor,
   FontWeight,
   IconName,
   ButtonIconProps,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Internal dependencies.
 import HeaderBase from '../../components/HeaderBase';
@@ -27,7 +30,7 @@ import TitleLeft from '../TitleLeft';
 import { HeaderWithTitleLeftScrollableProps } from './HeaderWithTitleLeftScrollable.types';
 
 const DEFAULT_EXPANDED_HEIGHT = 140;
-const DEFAULT_COLLAPSED_HEIGHT = 48;
+const DEFAULT_COLLAPSED_HEIGHT = 56;
 
 /**
  * HeaderWithTitleLeftScrollable is a collapsing header component that transitions
@@ -67,19 +70,28 @@ const HeaderWithTitleLeftScrollable: React.FC<
   HeaderWithTitleLeftScrollableProps
 > = ({
   title,
+  titleProps,
+  subtitle,
+  subtitleProps,
+  children,
   onBack,
   backButtonProps,
+  onClose,
+  closeButtonProps,
   titleLeft,
   titleLeftProps,
   scrollTriggerPosition,
   scrollY,
   startButtonIconProps,
+  endButtonIconProps,
   twClassName,
   onExpandedHeightChange,
   testID,
+  isInsideSafeAreaView = false,
   ...headerBaseProps
 }) => {
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
 
   // Measure actual content height for dynamic sizing
   const [measuredHeight, setMeasuredHeight] = useState(DEFAULT_EXPANDED_HEIGHT);
@@ -118,6 +130,26 @@ const HeaderWithTitleLeftScrollable: React.FC<
 
     return undefined;
   }, [startButtonIconProps, onBack, backButtonProps]);
+
+  // Build endButtonIconProps with close button if onClose or closeButtonProps is provided
+  const resolvedEndButtonIconProps = useMemo(() => {
+    const props: ButtonIconProps[] = [];
+
+    if (onClose || closeButtonProps) {
+      const closeProps: ButtonIconProps = {
+        iconName: IconName.Close,
+        ...(closeButtonProps || {}),
+        onPress: closeButtonProps?.onPress ?? onClose,
+      };
+      props.push(closeProps);
+    }
+
+    if (endButtonIconProps) {
+      props.push(...endButtonIconProps);
+    }
+
+    return props.length > 0 ? props : undefined;
+  }, [endButtonIconProps, onClose, closeButtonProps]);
 
   // Animated style for the header container height (uses measured content height)
   const headerAnimatedStyle = useAnimatedStyle(() => {
@@ -181,19 +213,53 @@ const HeaderWithTitleLeftScrollable: React.FC<
     return <TitleLeft title={title} {...titleLeftProps} />;
   };
 
+  // Render compact title content
+  // If children is provided, use it; otherwise render default title + subtitle
+  const renderCompactContent = () => {
+    if (children) {
+      return children;
+    }
+    return (
+      <Box alignItems={BoxAlignItems.Center}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+          {...titleProps}
+        >
+          {title}
+        </Text>
+        {subtitle && (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            {...subtitleProps}
+            twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
+          >
+            {subtitle}
+          </Text>
+        )}
+      </Box>
+    );
+  };
+  const containerStyle = useMemo(
+    () => [
+      tw.style('absolute left-0 right-0 z-10'),
+      { top: isInsideSafeAreaView ? insets.top : 0 },
+      headerAnimatedStyle,
+    ],
+    [tw, isInsideSafeAreaView, insets.top, headerAnimatedStyle],
+  );
+
   return (
-    <Animated.View
-      style={[
-        tw.style('absolute top-0 left-0 right-0 z-10'),
-        headerAnimatedStyle,
-      ]}
-      testID={testID}
-    >
+    <Animated.View style={containerStyle} testID={testID}>
       {/* Header content - measured for dynamic height */}
       <View onLayout={handleLayout}>
         {/* HeaderBase with compact title */}
         <HeaderBase
           startButtonIconProps={resolvedStartButtonIconProps}
+          endButtonIconProps={resolvedEndButtonIconProps}
           twClassName={
             twClassName ? `${twClassName} bg-default px-2` : 'bg-default px-2'
           }
@@ -201,13 +267,7 @@ const HeaderWithTitleLeftScrollable: React.FC<
         >
           {/* Compact title - fades in when collapsed */}
           <Animated.View style={compactTitleAnimatedStyle}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              numberOfLines={1}
-            >
-              {title}
-            </Text>
+            {renderCompactContent()}
           </Animated.View>
         </HeaderBase>
 

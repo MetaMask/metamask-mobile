@@ -48,6 +48,7 @@ interface SectionConfig {
     navigation: NavigationProp<RootParamList>;
   }>;
   Skeleton: React.ComponentType;
+  OverrideSkeletonSearch?: React.ComponentType;
   Section: React.ComponentType<{
     sectionId: SectionId;
     data: unknown[];
@@ -91,7 +92,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     Skeleton: TrendingTokensSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
+      const { data, isLoading, refetch } = useTrendingSearch(
+        searchQuery,
+        undefined,
+        undefined,
+        false, // Disable debouncing here because useExploreSearch already handles it
+      );
       return { data, isLoading, refetch };
     },
   },
@@ -162,6 +168,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    // Using sites skeleton cause PredictMarketSkeleton has too much spacing
+    OverrideSkeletonSearch: SiteSkeleton,
     Section: SectionCarrousel,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({

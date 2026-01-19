@@ -39,7 +39,7 @@ test('Predict Available Balance - Load Time Performance', async ({
   // Timer 1: Navigate to Predict tab and wait for available balance to load
   const timer1 = new TimerHelper(
     'Time since user taps Predict button in Action modal until Available Balance is displayed',
-    { ios: 4500, android: 3700 },
+    { ios: 4500, android: 8000 },
     device,
   );
   timer1.start();

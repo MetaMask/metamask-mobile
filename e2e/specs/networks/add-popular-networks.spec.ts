@@ -1,5 +1,4 @@
 import { SmokeNetworkAbstractions } from '../../tags';
-import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -12,7 +11,7 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
     jest.setTimeout(170000);
   });
 
-  it('Add all popular networks to verify the empty list content', async () => {
+  it('adds a popular network directly without confirmation modal', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -26,9 +25,11 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
           NetworkListModal.popularNetworksContainer,
         );
 
+        // Tap on a popular network - it should be added directly without confirmation
         await NetworkListModal.scrollToBottomOfNetworkMultiSelector();
         await NetworkListModal.tapNetworkMenuButton('Arbitrum');
-        await NetworkApprovalBottomSheet.tapApproveButton();
+
+        // Network is added immediately, no approval modal needed
         await NetworkListModal.tapOnCustomTab();
         await NetworkListModal.swipeToDismissNetworkMultiSelectorModal();
         await WalletView.verifyTokenNetworkFilterText('Arbitrum');

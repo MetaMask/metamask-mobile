@@ -136,7 +136,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 48,
+                "height": 56,
               },
               false,
               {
@@ -684,7 +684,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           }
                         }
                       >
-                        2.3% APR
+                        2.29% APR
                       </Text>
                       <Text
                         accessibilityRole="text"
@@ -890,7 +890,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           }
                         }
                       >
-                        4.0% APR
+                        4% APR
                       </Text>
                       <Text
                         accessibilityRole="text"

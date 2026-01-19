@@ -39,7 +39,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { whatsNewList } from './';
-import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/WhatsNewModal.selectors';
+import { WhatsNewModalSelectorsIDs } from './WhatsNewModal.testIds';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootParamList } from '../../../types/navigation';

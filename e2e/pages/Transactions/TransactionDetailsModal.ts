@@ -2,7 +2,7 @@ import {
   TransactionDetailsModalSelectorsText,
   TransactionDetailsModalSelectorsIDs,
   TransactionDetailsSelectorIDs,
-} from '../../selectors/Transactions/TransactionDetailsModal.selectors';
+} from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { Assertions, logger } from '../../framework';

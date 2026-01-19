@@ -227,6 +227,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onPress: handleKeepButtonPress,
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
+        style: styles.footerButtonSecondary,
         disabled: isClosing,
       },
       {
@@ -240,7 +241,12 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         danger: true,
       },
     ],
-    [handleKeepButtonPress, handleCloseAll, isClosing],
+    [
+      handleKeepButtonPress,
+      handleCloseAll,
+      isClosing,
+      styles.footerButtonSecondary,
+    ],
   );
 
   // Show loading state while fetching positions

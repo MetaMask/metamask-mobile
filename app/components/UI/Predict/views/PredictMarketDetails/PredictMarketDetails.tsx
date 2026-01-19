@@ -36,7 +36,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume, estimateLineCount } from '../../utils/format';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import Engine from '../../../../../core/Engine';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import {
   Box,
   BoxFlexDirection,
@@ -80,6 +80,7 @@ import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderS
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
+import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -736,8 +737,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const renderHeader = () => {
-    // Show skeleton header if no title/market data available
-    if (!title && !market?.title) {
+    if (isMarketFetching && !market) {
       return <PredictDetailsHeaderSkeleton />;
     }
 
@@ -1024,6 +1024,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {market?.description}
       </Text>
+      <Box twClassName="w-full border-t border-muted" />
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        {strings('predict.market_details.disclaimer')}
+      </Text>
     </Box>
   );
 
@@ -1288,6 +1292,24 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
     return null;
   };
+
+  if (market?.game) {
+    return (
+      <PredictGameDetailsContent
+        market={market}
+        onBack={handleBackPress}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+        onBetPress={handleBuyPress}
+        onClaimPress={handleClaimPress}
+        claimableAmount={claimablePositions.reduce(
+          (sum, p) => sum + (p.currentValue ?? 0),
+          0,
+        )}
+        isLoading={isClaimablePositionsLoading}
+      />
+    );
+  }
 
   return (
     <SafeAreaView

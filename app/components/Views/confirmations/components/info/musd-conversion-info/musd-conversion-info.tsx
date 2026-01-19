@@ -73,6 +73,7 @@ export const MusdConversionInfo = () => {
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
       overrideContent={renderOverrideContent}
+      hasMax
     />
   );
 };

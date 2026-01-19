@@ -6,7 +6,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../AccountDetails.testIds';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import ButtonSecondary from '../../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
@@ -29,7 +29,7 @@ import { useKeyringId } from '../../../../hooks/useKeyringId';
 import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-lock.svg';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
-import { ExportCredentialsIds } from '../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { ExportCredentialsIds } from '../../AccountDetails/ExportCredentials.testIds';
 
 type RevealSRPProp = RouteProp<RootParamList, 'RevealSRP'>;
 

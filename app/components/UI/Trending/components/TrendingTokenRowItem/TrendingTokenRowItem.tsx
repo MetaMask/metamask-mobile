@@ -36,7 +36,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPrice } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import NetworkModals from '../../../NetworkModal';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
@@ -112,6 +112,17 @@ const getPriceChangeColor = (priceChange: number): TextColor => {
 };
 
 /**
+ * Gets the prefix symbol for price percentage change
+ */
+const getPriceChangePrefix = (
+  priceChange: number,
+  isPositive: boolean,
+): string => {
+  if (priceChange === 0) return '';
+  return isPositive ? '+' : '-';
+};
+
+/**
  * Maps TimeOption to the corresponding priceChangePct field key
  */
 export const getPriceChangeFieldKey = (
@@ -145,9 +156,9 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
 
   const isEvmChain = caipChainId.startsWith('eip155:');
   const isNativeToken = assetIdentifier?.startsWith('slip44:');
-  const address = (
-    isNativeToken ? NATIVE_SWAPS_TOKEN_ADDRESS : assetIdentifier?.split(':')[1]
-  ) as Hex | undefined;
+  const address = isNativeToken
+    ? NATIVE_SWAPS_TOKEN_ADDRESS
+    : assetIdentifier?.split(':')[1];
 
   const hexChainId = caipChainIdToHex(caipChainId);
 
@@ -163,6 +174,7 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
       : undefined,
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
+    isFromTrending: true,
   };
 };
 
@@ -295,7 +307,7 @@ const TrendingTokenRowItem = ({
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {token.name}
+              {token?.name ?? token?.symbol}
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -307,19 +319,22 @@ const TrendingTokenRowItem = ({
         </View>
         <View style={styles.rightContainer}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {formatPrice(token.price, {
-              minimumDecimals: 2,
-              maximumDecimals: 4,
-            })}
+            {formatPriceWithSubscriptNotation(token.price)}
           </Text>
-          {hasPercentageChange && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={getPriceChangeColor(pricePercentChange)}
-            >
-              {pricePercentChange === 0 ? '' : isPositiveChange ? '+' : '-'}
-              {Math.abs(pricePercentChange).toFixed(2)}%
+          {parseFloat(token.price) === 0 ? (
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              —
             </Text>
+          ) : (
+            hasPercentageChange && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={getPriceChangeColor(pricePercentChange)}
+              >
+                {getPriceChangePrefix(pricePercentChange, isPositiveChange)}
+                {Math.abs(pricePercentChange).toFixed(2)}%
+              </Text>
+            )
           )}
         </View>
       </TouchableOpacity>

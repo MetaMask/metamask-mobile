@@ -971,6 +971,18 @@ export type RootParamList = {
   };
   RewardsReferralBottomSheetModal: undefined;
   RewardsIntroModal: undefined;
+  EndOfSeasonClaimBottomSheet: {
+    rewardId: string;
+    seasonRewardId: string;
+    title: string;
+    description?: string;
+    contactInfo?: string;
+    rewardType: import('../core/Engine/controllers/rewards-controller/types').SeasonRewardType;
+    showEmail?: string;
+    showTelegram?: string;
+    url?: string;
+    showAccount?: boolean;
+  };
 
   // =========================================================================
   // Wallet Full View Screens

@@ -14,6 +14,7 @@ import styleSheet from './SmartAccountModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { RootParamList } from '../../../../../../types/navigation';
+import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import AppConstants from '../../../../../../core/AppConstants';
 import HeaderBase from '../../../../../../component-library/components/HeaderBase';
 import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
@@ -62,6 +63,7 @@ const SmartAccountModal = () => {
             labelTextVariant={TextVariant.BodyMDMedium}
             label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
             onPress={() => navigation.goBack()}
+            testID={SwitchAccountModalSelectorIDs.SMART_ACCOUNT_BACK_BUTTON}
           />
         }
       >

@@ -70,6 +70,9 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
+  SUPPORTED_ACTIONS.PERPS,
+  SUPPORTED_ACTIONS.PERPS_MARKETS,
+  SUPPORTED_ACTIONS.PERPS_ASSET,
 ];
 
 /**
@@ -81,9 +84,7 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.MMSDK,
 ];
 
-const interstitialWhitelistUrls = [
-  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
-] as const;
+const interstitialWhitelistUrls = [] as const;
 
 // This is used when links originate from within the app itself
 const inAppLinkSources = [
@@ -91,6 +92,7 @@ const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+  AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
 ] as string[];
 
 async function handleUniversalLink({
@@ -314,6 +316,13 @@ async function handleUniversalLink({
     case SUPPORTED_ACTIONS.PERPS_MARKETS: {
       handlePerpsUrl({
         perpsPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.PERPS_ASSET: {
+      // perps-asset URLs need screen=asset injected since actionBasedRampPath is just '?symbol=X'
+      handlePerpsUrl({
+        perpsPath: `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`,
       });
       break;
     }

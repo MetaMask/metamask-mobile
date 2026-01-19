@@ -460,22 +460,28 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       >
         $76.00
       </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#686e7d",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 14,
-            "letterSpacing": 0,
-            "lineHeight": 22,
-            "paddingHorizontal": 0,
-          }
-        }
-        testID="secondary-balance-test-id"
+      <TouchableOpacity
+        disabled={true}
+        onPress={[Function]}
+        testID="secondary-balance-button-test-id"
       >
-        32.05 ADAI
-      </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingHorizontal": 0,
+            }
+          }
+          testID="secondary-balance-test-id"
+        >
+          32.05 ADAI
+        </Text>
+      </TouchableOpacity>
     </View>
   </TouchableOpacity>
   <View

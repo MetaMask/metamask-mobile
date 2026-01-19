@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { SuccessImportAccountIDs } from '../../selectors/ImportAccount/SuccessImportAccount.selectors';
+import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
 import WalletView from '../wallet/WalletView';
 import { Utilities } from '../../framework';
 

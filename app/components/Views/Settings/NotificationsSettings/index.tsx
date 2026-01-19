@@ -33,7 +33,7 @@ import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
 import { useFirstHDWalletAccounts } from './AccountsList.hooks';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();

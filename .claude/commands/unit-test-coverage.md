@@ -74,7 +74,7 @@ flowchart TD
   "failedTests": [{
     "file": "usePerps.test.tsx",
     "error": "Cannot read property 'data' of undefined",
-    "command": "npx jest usePerps.test.tsx --no-coverage"
+    "command": "yarn jest usePerps.test.tsx --no-coverage"
   }]
 }
 ```
@@ -316,11 +316,11 @@ cat scripts/reports/coverage-report-*.json | jq '.failedTests | length'
 cat scripts/reports/coverage-report-*.json | jq '.actionableRecommendations.filesNeedingImprovement[0]'
 
 # Debug failing test
-npx jest path/to/test.tsx --no-coverage --verbose
+yarn jest path/to/test.tsx --no-coverage --verbose
 
 # Type check & lint
 yarn lint:tsc
-npx eslint path/to/test.tsx --fix
+yarn eslint path/to/test.tsx --fix
 ```
 
 ## Skip These Files

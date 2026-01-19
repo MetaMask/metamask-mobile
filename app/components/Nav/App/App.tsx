@@ -1,7 +1,9 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { useRoute } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import NavigationService from '../../../core/NavigationService';
+import { useNavigation, useRoute, useNavigationState } from '@react-navigation/native';
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
 
 /**
  * Loose param list that allows any screen with any params.
@@ -14,6 +16,16 @@ interface LooseParamList {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
+
+/**
+ * Type-loosened Stack.Screen that accepts components with any props.
+ * Used during v7 migration to avoid updating every screen component.
+ */
+interface LooseStackScreen {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (props: { name: string; component: React.ComponentType<any>; options?: StackNavigationOptions | ((props: any) => StackNavigationOptions); initialParams?: object }): React.JSX.Element;
+}
+
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -65,6 +77,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -112,7 +125,6 @@ import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-import TokenInsightsSheet from '../../UI/Bridge/components/TokenInsightsSheet';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
@@ -158,7 +170,6 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -170,6 +181,7 @@ import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hoo
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -184,9 +196,15 @@ const clearStackNavigatorOptions = {
   animation: 'none' as const,
 };
 
-// Using LooseParamList allows any screen component to be used
-// This is a pragmatic approach during the v7 migration
-const Stack = createStackNavigator<LooseParamList>();
+const StackNavigator = createStackNavigator<LooseParamList>();
+
+// Re-export with loosened Screen type for v7 migration
+const Stack = {
+  ...StackNavigator,
+  Navigator: StackNavigator.Navigator,
+  Screen: StackNavigator.Screen as unknown as LooseStackScreen,
+  Group: StackNavigator.Group,
+};
 
 const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
@@ -362,7 +380,6 @@ const DetectedTokensFlow = () => (
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
     <Stack.Screen
       name={'DetectedTokensConfirmation'}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={DetectedTokensConfirmation}
     />
   </Stack.Navigator>
@@ -374,12 +391,7 @@ interface RootModalFlowProps {
   };
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
-  <Stack.Navigator
-    screenOptions={{
-      ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
-    }}
-  >
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' } }}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
@@ -398,17 +410,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.MODAL.MODAL_CONFIRMATION}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={ModalConfirmation}
     />
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={ModalMandatory}
     />
     <Stack.Screen
       name={Routes.SHEET.ONBOARDING_SHEET}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={OnboardingSheet}
     />
     <Stack.Screen
@@ -417,12 +426,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={SkipAccountSecurityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SUCCESS_ERROR_SHEET}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={SuccessErrorSheet}
     />
     <Stack.Screen
@@ -452,7 +459,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={AddNewAccountBottomSheet}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
@@ -462,7 +468,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={SDKSessionModal}
     />
     <Stack.Screen
@@ -475,28 +480,23 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={SDKDisconnectModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={State2AccountConnectWrapper}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={BIP44AccountPermissionWrapper}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
       name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={AccountPermissionsConfirmRevokeAll}
     />
     <Stack.Screen
       name={Routes.SHEET.CONNECTION_DETAILS}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={ConnectionDetails}
     />
     <Stack.Screen
@@ -517,7 +517,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={BasicFunctionalityModal}
     />
     <Stack.Screen
@@ -538,15 +537,16 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={'AssetHideConfirmation'}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={AssetHideConfirmation}
     />
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    {/* @ts-expect-error - Component has custom props, v7 migration */}
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
-    {/* @ts-expect-error - Component has custom props, v7 migration */}
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
+    <Stack.Screen
+      name={Routes.MODAL.OTA_UPDATES_MODAL}
+      component={OTAUpdatesModal}
+    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -555,7 +555,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     }
     <Stack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={SRPQuiz}
       initialParams={{ ...props.route.params }}
     />
@@ -592,20 +591,13 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={OriginSpamModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={ChangeInSimulationModal}
     />
-    {/* @ts-expect-error - Component has custom props, v7 migration */}
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen
-      name={Routes.SHEET.TOKEN_INSIGHTS}
-      component={TokenInsightsSheet}
-    />
     <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
@@ -617,7 +609,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
     />
@@ -627,7 +618,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
-      // @ts-expect-error - Component has custom props, v7 migration
       component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
     />
@@ -720,12 +710,11 @@ const MultichainAccountDetails = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'none',
+        animation: 'none' as const,
       }}
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
-        // @ts-expect-error - Component has custom props, v7 migration
         component={AccountDetails}
         initialParams={route?.params}
       />
@@ -734,7 +723,7 @@ const MultichainAccountDetails = () => {
         component={SmartAccountModal}
         options={{
           headerShown: false,
-          animation: 'default',
+          animation: 'default' as const,
         }}
       />
     </Stack.Navigator>
@@ -748,12 +737,11 @@ const MultichainAccountGroupDetails = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'none',
+        animation: 'none' as const,
       }}
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-        // @ts-expect-error - Component has custom props, v7 migration
         component={AccountGroupDetails}
         initialParams={route?.params}
       />
@@ -762,17 +750,24 @@ const MultichainAccountGroupDetails = () => {
         component={SmartAccountModal}
         options={{
           headerShown: false,
-          animation: 'default',
+          animation: 'default' as const,
         }}
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        // @ts-expect-error - Component has custom props, v7 migration
         component={WalletDetails}
         initialParams={route?.params}
         options={{
           headerShown: false,
-          animation: 'default',
+          animation: 'default' as const,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={EditMultichainAccountName}
+        options={{
+          headerShown: false,
+          animation: 'default' as const,
         }}
       />
     </Stack.Navigator>
@@ -797,18 +792,12 @@ const MultichainAccountDetailsActions = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'none',
+        animation: 'none' as const,
       }}
     >
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
         component={MultichainAccountActions}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={EditMultichainAccountName}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -838,7 +827,6 @@ const MultichainAccountDetailsActions = () => {
       />
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
-        // @ts-expect-error - Component has custom props, v7 migration
         component={SRPQuiz}
         initialParams={route?.params}
         options={commonScreenOptions}
@@ -864,7 +852,7 @@ const MultichainAddressList = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'default',
+        animation: 'default' as const,
         presentation: 'card',
       }}
     >
@@ -881,9 +869,7 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator
-      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}
-    >
+    <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}>
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -897,7 +883,7 @@ const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
+      cardStyle: { backgroundColor: 'transparent' },
       presentation: 'transparentModal',
     }}
   >
@@ -912,7 +898,7 @@ const ModalSwitchAccountType = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
+      cardStyle: { backgroundColor: 'transparent' },
       presentation: 'transparentModal',
     }}
   >
@@ -927,7 +913,7 @@ const ModalSmartAccountOptIn = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
+      cardStyle: { backgroundColor: 'transparent' },
       presentation: 'transparentModal',
     }}
   >
@@ -938,18 +924,227 @@ const ModalSmartAccountOptIn = () => (
   </Stack.Navigator>
 );
 
-/**
- * Component that handles app startup navigation logic.
- * Uses NavigationService for navigation since it runs outside the navigator.
- */
-const AppNavigationHandler: React.FC = () => {
+const AppFlow = () => {
+  const userLoggedIn = useSelector(selectUserLoggedIn);
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  return (
+    <>
+      <Stack.Navigator
+        initialRouteName={Routes.FOX_LOADER}
+        screenOptions={{
+          headerShown: false,
+          cardStyle: { backgroundColor: importedColors.transparent },
+          animation: 'none' as const,
+          presentation: 'card',
+        }}
+      >
+        {userLoggedIn && (
+          // Render only if wallet is unlocked
+          // Note: This is probably not needed but nice to ensure that wallet isn't accessible when it is locked
+          <Stack.Screen
+            name={Routes.ONBOARDING.HOME_NAV}
+            component={Main}
+            options={{ headerShown: false }}
+          />
+        )}
+        <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
+        <Stack.Screen
+          name={Routes.ONBOARDING.LOGIN}
+          component={Login}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Rehydrate"
+          component={OAuthRehydration}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
+          component={MaxBrowserTabsModal}
+        />
+        <Stack.Screen
+          name="OnboardingRootNav"
+          component={OnboardingRootNav}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.ONBOARDING.SUCCESS_FLOW}
+          component={OnboardingSuccessFlow}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+          component={VaultRecoveryFlow}
+        />
+        <Stack.Screen
+          name={Routes.MODAL.ROOT_MODAL_FLOW}
+          component={RootModalFlow}
+        />
+        <Stack.Screen
+          name="ImportPrivateKeyView"
+          component={ImportPrivateKeyView}
+          options={{ animation: 'default' as const }}
+        />
+        {
+          <Stack.Screen
+            name="ImportSRPView"
+            component={ImportSRPView}
+            options={{ animation: 'default' as const }}
+          />
+        }
+        <Stack.Screen
+          name="ConnectQRHardwareFlow"
+          component={ConnectQRHardwareFlow}
+          options={{ animation: 'default' as const }}
+        />
+        <Stack.Screen
+          name={Routes.HW.CONNECT_LEDGER}
+          component={LedgerConnectFlow}
+        />
+        <Stack.Screen
+          name={Routes.HW.CONNECT}
+          component={ConnectHardwareWalletFlow}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
+          component={MultichainAccountDetails}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+          component={MultichainAccountGroupDetails}
+          options={{
+            animation: 'default' as const,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
+          component={MultichainAccountActions}
+        />
+        <Stack.Screen
+          name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
+          component={MultichainAccountDetailsActions}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+          component={MultichainAddressList}
+          options={{ animation: 'default' as const }}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+          component={MultichainPrivateKeyList}
+        />
+        <Stack.Screen
+          options={{
+            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+            cardStyle: { backgroundColor: importedColors.transparent },
+            cardStyleInterpolator: () => ({
+              overlayStyle: {
+                opacity: 0,
+              },
+            }),
+          }}
+          name={Routes.LEDGER_TRANSACTION_MODAL}
+          component={LedgerTransactionModal}
+        />
+        <Stack.Screen
+          options={{
+            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+            cardStyle: { backgroundColor: importedColors.transparent },
+            cardStyleInterpolator: () => ({
+              overlayStyle: {
+                opacity: 0,
+              },
+            }),
+          }}
+          name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+          component={LedgerMessageSignModal}
+        />
+        <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
+        <Stack.Screen
+          name={Routes.EDIT_ACCOUNT_NAME}
+          component={EditAccountName}
+          options={{ animation: 'default' as const }}
+        />
+        <Stack.Screen
+          name={Routes.ADD_NETWORK}
+          component={AddNetworkFlow}
+          options={{ animation: 'default' as const }}
+        />
+        {isNetworkUiRedesignEnabled() ? (
+          <Stack.Screen
+            name={Routes.EDIT_NETWORK}
+            component={AddNetworkFlow}
+            options={{ animation: 'default' as const }}
+          />
+        ) : null}
+        <Stack.Screen
+          name={Routes.LOCK_SCREEN}
+          component={LockScreen}
+          options={{ gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_REQUEST_MODAL}
+          options={emptyNavHeaderOptions}
+          component={ModalConfirmationRequest}
+        />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+          component={ModalSwitchAccountType}
+        />
+        <Stack.Screen
+          name={Routes.SMART_ACCOUNT_OPT_IN}
+          component={ModalSmartAccountOptIn}
+        />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+          component={PayWithModal}
+        />
+      </Stack.Navigator>
+    </>
+  );
+};
+
+const App: React.FC = () => {
+  const navigation = useNavigation();
+  const routes = useNavigationState((state) => state.routes);
+  const { toastRef } = useContext(ToastContext);
+  const isFirstRender = useRef(true);
   const { isEnabled: checkMetricsEnabled } = useMetrics();
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-  const existingUser = useSelector(selectExistingUser);
-  const firstLoad = useRef(true);
 
+  useOTAUpdates();
+
+  if (isFirstRender.current) {
+    trace({
+      name: TraceName.NavInit,
+      parentContext: getUIStartupSpan(),
+      op: TraceOperation.NavInit,
+    });
+
+    isFirstRender.current = false;
+  }
+
+  useEffect(() => {
+    // End trace when first render is complete
+    endTrace({ name: TraceName.UIStartup });
+  }, []);
+
+  const firstLoad = useRef(true);
   // periodically check seedless password outdated when app UI is open
   useInterval(
     async () => {
@@ -967,24 +1162,13 @@ const AppNavigationHandler: React.FC = () => {
       immediate: true,
     },
   );
+  const existingUser = useSelector(selectExistingUser);
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
       try {
-        // Get navigation from service since we're outside the navigator
-        const navigation = NavigationService.navigation;
-        if (!navigation) {
-          Logger.error(
-            new Error('Navigation not ready'),
-            'AppNavigationHandler',
-          );
-          return;
-        }
-
         if (existingUser) {
           // Check if we came from Settings screen to skip auto-authentication
-          const state = navigation.getState();
-          const routes = state?.routes || [];
           const previousRoute = routes[routes.length - 2]?.name;
 
           if (previousRoute === Routes.SETTINGS_VIEW) {
@@ -1063,277 +1247,17 @@ const AppNavigationHandler: React.FC = () => {
         if (locked) {
           Logger.error(
             new Error(errorMessage),
-            'App: No credentials when starting app',
+            'Nav/App: Error in appTriggeredAuth:',
           );
-          NavigationService.navigation?.reset({
-            routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
-          });
-        } else {
-          Logger.error(new Error(errorMessage), 'App: Error starting app');
         }
+        // We are not logging when it's a keychain error
       }
     };
-
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-    // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return null; // This component only handles side effects
-};
-
-const AppFlow = () => {
-  const userLoggedIn = useSelector(selectUserLoggedIn);
-  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
-
-  return (
-    <>
-      <Stack.Navigator
-        initialRouteName={Routes.FOX_LOADER}
-        screenOptions={{
-          headerShown: false,
-          cardStyle: { backgroundColor: importedColors.transparent },
-          animation: 'none',
-          presentation: 'card',
-        }}
-      >
-        {userLoggedIn && (
-          // Render only if wallet is unlocked
-          // Note: This is probably not needed but nice to ensure that wallet isn't accessible when it is locked
-          <Stack.Screen
-            name={Routes.ONBOARDING.HOME_NAV}
-            component={Main}
-            options={{ headerShown: false, presentation: 'card' }}
-          />
-        )}
-        <Stack.Screen
-          name={Routes.FOX_LOADER}
-          component={FoxLoader}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.ONBOARDING.LOGIN}
-          component={Login}
-          options={{ headerShown: false, presentation: 'card' }}
-        />
-        <Stack.Screen
-          name="Rehydrate"
-          component={OAuthRehydration}
-          options={{ headerShown: false, presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
-          component={MaxBrowserTabsModal}
-        />
-        <Stack.Screen
-          name="OnboardingRootNav"
-          component={OnboardingRootNav}
-          options={{ headerShown: false, presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.ONBOARDING.SUCCESS_FLOW}
-          component={OnboardingSuccessFlow}
-          options={{ headerShown: false, presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-          component={VaultRecoveryFlow}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.ROOT_MODAL_FLOW}
-          // @ts-expect-error - Component has custom props, v7 migration
-          component={RootModalFlow}
-          options={{
-            presentation: 'transparentModal',
-            cardStyle: { backgroundColor: 'transparent' },
-          }}
-        />
-        <Stack.Screen
-          name="ImportPrivateKeyView"
-          component={ImportPrivateKeyView}
-          options={{ animation: 'default', presentation: 'card' }}
-        />
-        {
-          <Stack.Screen
-            name="ImportSRPView"
-            component={ImportSRPView}
-            options={{ animation: 'default', presentation: 'card' }}
-          />
-        }
-        <Stack.Screen
-          name="ConnectQRHardwareFlow"
-          component={ConnectQRHardwareFlow}
-          options={{ animation: 'default', presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.HW.CONNECT_LEDGER}
-          component={LedgerConnectFlow}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.HW.CONNECT}
-          component={ConnectHardwareWalletFlow}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
-          component={MultichainAccountDetails}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-          component={MultichainAccountGroupDetails}
-          options={{
-            animation: 'default',
-            presentation: 'card',
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
-          component={MultichainAccountActions}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
-          component={MultichainAccountDetailsActions}
-          options={{
-            presentation: 'transparentModal',
-            cardStyle: { backgroundColor: 'transparent' },
-          }}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-          component={MultichainAddressList}
-          options={{ animation: 'default', presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
-          component={MultichainPrivateKeyList}
-          options={{ presentation: 'card' }}
-        />
-        <Stack.Screen
-          options={{
-            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-            cardStyle: { backgroundColor: importedColors.transparent },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
-          }}
-          name={Routes.LEDGER_TRANSACTION_MODAL}
-          component={LedgerTransactionModal}
-        />
-        <Stack.Screen
-          options={{
-            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-            cardStyle: { backgroundColor: importedColors.transparent },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
-          }}
-          name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-          component={LedgerMessageSignModal}
-        />
-        <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
-        <Stack.Screen
-          name={Routes.EDIT_ACCOUNT_NAME}
-          component={EditAccountName}
-          options={{ animation: 'default', presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.ADD_NETWORK}
-          component={AddNetworkFlow}
-          options={{ animation: 'default', presentation: 'card' }}
-        />
-        {isNetworkUiRedesignEnabled() ? (
-          <Stack.Screen
-            name={Routes.EDIT_NETWORK}
-            component={AddNetworkFlow}
-            options={{ animation: 'default', presentation: 'card' }}
-          />
-        ) : null}
-        <Stack.Screen
-          name={Routes.LOCK_SCREEN}
-          component={LockScreen}
-          options={{ gestureEnabled: false, presentation: 'card' }}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_REQUEST_MODAL}
-          options={{
-            ...emptyNavHeaderOptions,
-            presentation: 'transparentModal',
-            cardStyle: { backgroundColor: 'transparent' },
-          }}
-          component={ModalConfirmationRequest}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
-          component={ModalSwitchAccountType}
-          options={{
-            presentation: 'transparentModal',
-            cardStyle: { backgroundColor: 'transparent' },
-          }}
-        />
-        <Stack.Screen
-          name={Routes.SMART_ACCOUNT_OPT_IN}
-          component={ModalSmartAccountOptIn}
-          options={{
-            presentation: 'transparentModal',
-            cardStyle: { backgroundColor: 'transparent' },
-          }}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
-          component={PayWithModal}
-          options={{
-            presentation: 'transparentModal',
-            cardStyle: { backgroundColor: 'transparent' },
-          }}
-        />
-      </Stack.Navigator>
-      {/* Render navigation handler after navigator is mounted */}
-      <AppNavigationHandler />
-    </>
-  );
-};
-
-const AppContent: React.FC = () => {
-  const { toastRef } = useContext(ToastContext);
-  const isFirstRender = useRef(true);
-  const existingUser = useSelector(selectExistingUser);
-
-  if (isFirstRender.current) {
-    trace({
-      name: TraceName.NavInit,
-      parentContext: getUIStartupSpan(),
-      op: TraceOperation.NavInit,
-    });
-
-    isFirstRender.current = false;
-  }
-
-  useEffect(() => {
-    // End trace when first render is complete
-    endTrace({ name: TraceName.UIStartup });
-  }, []);
+    // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
+  }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const initMetrics = async () => {
@@ -1385,16 +1309,6 @@ const AppContent: React.FC = () => {
       <ProfilerManager />
     </>
   );
-};
-
-const App: React.FC = () => {
-  const { isCheckingUpdates } = useOTAUpdates();
-
-  if (isCheckingUpdates) {
-    return <FoxLoader />;
-  }
-
-  return <AppContent />;
 };
 
 export default App;

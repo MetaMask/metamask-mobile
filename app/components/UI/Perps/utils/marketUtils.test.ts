@@ -2,6 +2,7 @@ import {
   calculateFundingCountdown,
   calculate24hHighLow,
   getAssetIconUrl,
+  getAssetIconUrls,
   escapeRegex,
   compileMarketPattern,
   matchesMarketPattern,
@@ -16,6 +17,8 @@ import { CandlePeriod } from '../constants/chartConfig';
 
 jest.mock('../constants/hyperLiquidConfig', () => ({
   HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
+  METAMASK_PERPS_ICONS_BASE_URL:
+    'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
 }));
 
 describe('marketUtils', () => {
@@ -408,6 +411,77 @@ describe('marketUtils', () => {
       const result = getAssetIconUrl(symbol);
 
       expect(result).toBe('https://app.hyperliquid.xyz/coins/xyz:TSLA.svg');
+    });
+  });
+
+  describe('getAssetIconUrls', () => {
+    it('returns primary and fallback URLs for regular asset', () => {
+      const symbol = 'BTC';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BTC.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/BTC.svg',
+      });
+    });
+
+    it('returns primary and fallback URLs for HIP-3 asset', () => {
+      const symbol = 'xyz:TSLA';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:xyz_TSLA.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/xyz:TSLA.svg',
+      });
+    });
+
+    it('returns null for empty symbol', () => {
+      const symbol = '';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toBeNull();
+    });
+
+    it('removes k prefix for specified assets', () => {
+      const symbol = 'kBONK';
+      const kPrefixAssets = new Set(['KBONK']);
+
+      const result = getAssetIconUrls(symbol, kPrefixAssets);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BONK.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/BONK.svg',
+      });
+    });
+
+    it('uppercases lowercase symbols for regular assets', () => {
+      const symbol = 'eth';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/ETH.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/ETH.svg',
+      });
+    });
+
+    it('formats HIP-3 assets with hip3 prefix and underscore separator', () => {
+      const symbol = 'ABC:xyz100';
+
+      const result = getAssetIconUrls(symbol);
+
+      expect(result).toEqual({
+        primary:
+          'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/hip3:abc_XYZ100.svg',
+        fallback: 'https://app.hyperliquid.xyz/coins/abc:XYZ100.svg',
+      });
     });
   });
 

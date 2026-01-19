@@ -28,7 +28,7 @@ import * as UseNotificationsModule from '../../../util/notifications/hooks/useNo
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
+import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 
 const navigationMock = {
   navigate: jest.fn(),

@@ -399,50 +399,24 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       }
                     >
                       <RCTScrollView
-                        automaticallyAdjustContentInsets={false}
+                        bottomOffset={180}
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
                             "paddingHorizontal": 16,
                           }
                         }
-                        contentInset={
-                          {
-                            "bottom": 0,
-                          }
-                        }
-                        enableAutomaticScroll={true}
-                        enableOnAndroid={true}
-                        enableResetScrollToCoords={true}
-                        extraHeight={75}
-                        extraScrollHeight={20}
-                        getScrollResponder={[Function]}
-                        handleOnScroll={[Function]}
                         keyboardDismissMode="none"
-                        keyboardOpeningTime={250}
                         keyboardShouldPersistTaps="always"
-                        keyboardSpace={0}
-                        onScroll={[Function]}
-                        resetKeyboardSpace={[Function]}
-                        scrollEventThrottle={1}
-                        scrollForExtraHeightOnAndroid={[Function]}
-                        scrollIntoView={[Function]}
-                        scrollToEnd={[Function]}
-                        scrollToFocusedInput={[Function]}
-                        scrollToPosition={[Function]}
                         showsVerticalScrollIndicator={false}
                         testID="import-from-seed-screen"
-                        update={[Function]}
-                        viewIsInsideTabBar={false}
                       >
                         <View>
                           <View
                             collapsable={false}
-                            pointerEvents="auto"
                             style={
                               {
                                 "flex": 1,
-                                "opacity": 1,
                                 "transform": [
                                   {
                                     "translateX": 0,
@@ -521,6 +495,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     "flexDirection": "column",
                                     "gap": 4,
                                     "marginBottom": 24,
+                                    "marginTop": 8,
                                   }
                                 }
                               >
@@ -529,9 +504,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     {
                                       "backgroundColor": "#f3f5f9",
                                       "borderRadius": 10,
-                                      "marginTop": 16,
                                       "maxHeight": "auto",
-                                      "minHeight": 264,
+                                      "minHeight": 210,
                                       "paddingTop": 16,
                                     }
                                   }
@@ -608,7 +582,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             autoCorrect={false}
                                             autoFocus={false}
                                             editable={true}
-                                            keyboardType="default"
+                                            importantForAutofill="no"
+                                            keyboardType="visible-password"
                                             onBlur={[Function]}
                                             onChangeText={[Function]}
                                             onFocus={[Function]}
@@ -641,7 +616,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             submitBehavior="submit"
                                             testID="import-from-seed-screen-seed-phrase-input-id_0"
                                             textAlignVertical="top"
-                                            textContentType="oneTimeCode"
+                                            textContentType="none"
                                             value=""
                                           />
                                         </View>
@@ -701,7 +676,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             autoCorrect={false}
                                             autoFocus={true}
                                             editable={true}
-                                            keyboardType="default"
+                                            importantForAutofill="no"
+                                            keyboardType="visible-password"
                                             multiline={true}
                                             onBlur={[Function]}
                                             onChangeText={[Function]}
@@ -734,7 +710,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                             submitBehavior="submit"
                                             testID="import-from-seed-screen-seed-phrase-input-id"
                                             textAlignVertical="top"
-                                            textContentType="oneTimeCode"
+                                            textContentType="none"
                                             value=""
                                           />
                                         </View>
@@ -753,8 +729,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
-                                      "paddingBottom": 16,
-                                      "paddingTop": 12,
+                                      "paddingBottom": 1,
+                                      "paddingTop": 8,
                                       "textAlign": "right",
                                     }
                                   }
@@ -808,516 +784,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     }
                                   >
                                     Continue
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </View>
-                          <View
-                            collapsable={false}
-                            pointerEvents="none"
-                            style={
-                              {
-                                "flex": 1,
-                                "left": 0,
-                                "opacity": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                                "transform": [
-                                  {
-                                    "translateX": 750,
-                                  },
-                                ],
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "flexDirection": "column",
-                                  "flexGrow": 1,
-                                  "rowGap": 16,
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "flexDirection": "column",
-                                    "rowGap": 4,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 32,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 40,
-                                    }
-                                  }
-                                  testID="create-password-screen-title-id"
-                                >
-                                  MetaMask password
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="create-password-screen-description-id"
-                                >
-                                  Unlocks MetaMask on this device only.
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "flexDirection": "column",
-                                    "gap": 8,
-                                    "position": "relative",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": -4,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Create password
-                                </Text>
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#b7bbc8",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "opacity": 1,
-                                      "paddingHorizontal": 16,
-                                    }
-                                  }
-                                  testID="textfield"
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <TextInput
-                                      autoCapitalize="none"
-                                      autoComplete="new-password"
-                                      autoFocus={false}
-                                      editable={true}
-                                      keyboardAppearance="light"
-                                      onBlur={[Function]}
-                                      onChangeText={[Function]}
-                                      onFocus={[Function]}
-                                      onSubmitEditing={[Function]}
-                                      placeholderTextColor="#b7bbc8"
-                                      returnKeyType="next"
-                                      secureTextEntry={true}
-                                      style={
-                                        {
-                                          "backgroundColor": "inherit",
-                                          "borderColor": "transparent",
-                                          "borderWidth": 1,
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "fontWeight": "400",
-                                          "height": 46,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 20,
-                                          "opacity": 1,
-                                          "paddingVertical": 2,
-                                          "textAlignVertical": "center",
-                                        }
-                                      }
-                                      testID="create-password-first-input-field"
-                                      value=""
-                                    />
-                                  </View>
-                                  <View
-                                    style={
-                                      {
-                                        "marginLeft": 8,
-                                      }
-                                    }
-                                    testID="textfield-endacccessory"
-                                  >
-                                    <SvgMock
-                                      color="#686e7d"
-                                      fill="currentColor"
-                                      height={24}
-                                      name="Eye"
-                                      onPress={[Function]}
-                                      style={
-                                        {
-                                          "height": 24,
-                                          "width": 24,
-                                        }
-                                      }
-                                      testID="import-from-seed-screen-new-password-visibility-id"
-                                      width={24}
-                                    />
-                                  </View>
-                                </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Must be at least 8 characters
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "flexDirection": "column",
-                                    "gap": 8,
-                                    "position": "relative",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": -4,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Confirm password
-                                </Text>
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#b7bbc8",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "opacity": 0.5,
-                                      "paddingHorizontal": 16,
-                                    }
-                                  }
-                                  testID="textfield"
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <TextInput
-                                      autoCapitalize="none"
-                                      autoComplete="new-password"
-                                      autoFocus={false}
-                                      editable={false}
-                                      keyboardAppearance="light"
-                                      onBlur={[Function]}
-                                      onChangeText={[Function]}
-                                      onFocus={[Function]}
-                                      placeholderTextColor="#b7bbc8"
-                                      returnKeyType="next"
-                                      secureTextEntry={true}
-                                      style={
-                                        {
-                                          "backgroundColor": "inherit",
-                                          "borderColor": "transparent",
-                                          "borderWidth": 1,
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "fontWeight": "400",
-                                          "height": 46,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 20,
-                                          "opacity": 1,
-                                          "paddingVertical": 2,
-                                          "textAlignVertical": "center",
-                                        }
-                                      }
-                                      testID="create-password-second-input-field"
-                                      value=""
-                                    />
-                                  </View>
-                                  <View
-                                    style={
-                                      {
-                                        "marginLeft": 8,
-                                      }
-                                    }
-                                    testID="textfield-endacccessory"
-                                  >
-                                    <SvgMock
-                                      color="#686e7d"
-                                      fill="currentColor"
-                                      height={24}
-                                      name="Eye"
-                                      onPress={[Function]}
-                                      style={
-                                        {
-                                          "height": 24,
-                                          "width": 24,
-                                        }
-                                      }
-                                      testID="import-from-seed-screen-confirm-password-visibility-id"
-                                      width={24}
-                                    />
-                                  </View>
-                                </View>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#f3f5f9",
-                                    "borderRadius": 8,
-                                    "flexDirection": "row",
-                                    "gap": 8,
-                                    "justifyContent": "flex-start",
-                                    "marginBottom": 16,
-                                    "marginTop": 8,
-                                    "padding": 16,
-                                  }
-                                }
-                              >
-                                <TouchableOpacity
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "flexDirection": "row",
-                                      "height": 24,
-                                      "opacity": 1,
-                                    }
-                                  }
-                                  testID="password-understand-box"
-                                >
-                                  <View
-                                    accessibilityRole="checkbox"
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 4,
-                                        "borderWidth": 2,
-                                        "height": 20,
-                                        "justifyContent": "center",
-                                        "width": 20,
-                                      }
-                                    }
-                                  />
-                                </TouchableOpacity>
-                                <Text
-                                  accessibilityRole="link"
-                                  accessible={true}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "flex-start",
-                                      "backgroundColor": "transparent",
-                                      "color": "#121314",
-                                      "flexDirection": "row",
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "gap": 1,
-                                      "justifyContent": "flex-start",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginTop": -6,
-                                      "width": "90%",
-                                    }
-                                  }
-                                  suppressHighlighting={true}
-                                  testID="import-from-seed-screen-checkbox-text-id"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    If I forget this password, MetaMask can't recover it for me.
-                                    <Text
-                                      accessibilityRole="text"
-                                      onPress={[Function]}
-                                      style={
-                                        {
-                                          "color": "#4459ff",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                      testID="import-from-seed-screen-learn-more-link-id"
-                                    >
-                                       Learn more
-                                    </Text>
-                                  </Text>
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "flexDirection": "column",
-                                    "marginBottom": 16,
-                                    "marginTop": "auto",
-                                    "rowGap": 18,
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={true}
-                                  loading={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "opacity": 0.5,
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
-                                    }
-                                  }
-                                  testID="submit-button"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Create password
                                   </Text>
                                 </TouchableOpacity>
                               </View>

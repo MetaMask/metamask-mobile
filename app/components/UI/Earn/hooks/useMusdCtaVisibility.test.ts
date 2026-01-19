@@ -2,14 +2,25 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdCtaVisibility } from './useMusdCtaVisibility';
-import { useHasMusdBalance } from './useHasMusdBalance';
+import { useMusdBalance } from './useMusdBalance';
+import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../constants/musd';
-import { selectIsMusdCtaEnabledFlag } from '../selectors/featureFlags';
+import { createMockToken } from '../../Stake/testUtils';
+import {
+  selectIsMusdConversionAssetOverviewEnabledFlag,
+  selectIsMusdConversionTokenListItemCtaEnabledFlag,
+  selectIsMusdGetBuyCtaEnabledFlag,
+  selectMusdConversionCTATokens,
+} from '../selectors/featureFlags';
+import type { WildcardTokenList } from '../utils/wildcardTokenList';
+import type { TokenI } from '../../Tokens/types';
+import type { AssetType } from '../../../Views/confirmations/types/token';
 
-jest.mock('./useHasMusdBalance');
+jest.mock('./useMusdBalance');
+jest.mock('./useMusdConversionTokens');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
 jest.mock('../../Ramp/hooks/useRampTokens');
@@ -18,11 +29,19 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../selectors/featureFlags');
+jest.mock('../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(),
+}));
+
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
 
 import { useSelector } from 'react-redux';
 
-const mockUseHasMusdBalance = useHasMusdBalance as jest.MockedFunction<
-  typeof useHasMusdBalance
+const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
+  typeof useMusdBalance
 >;
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
   typeof useCurrentNetworkInfo
@@ -34,6 +53,10 @@ const mockUseNetworksByCustomNamespace =
 const mockUseRampTokens = useRampTokens as jest.MockedFunction<
   typeof useRampTokens
 >;
+const mockUseMusdConversionTokens =
+  useMusdConversionTokens as jest.MockedFunction<
+    typeof useMusdConversionTokens
+  >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('useMusdCtaVisibility', () => {
@@ -84,25 +107,50 @@ describe('useMusdCtaVisibility', () => {
   };
 
   let mockIsMusdCtaEnabled = true;
+  let mockIsMusdConversionTokenListItemCtaEnabled = false;
+  let mockIsMusdConversionAssetOverviewEnabled = false;
+  let mockMusdConversionCtaTokens: WildcardTokenList = {};
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsMusdCtaEnabled = true;
+    mockIsMusdConversionTokenListItemCtaEnabled = false;
+    mockIsMusdConversionAssetOverviewEnabled = false;
+    mockMusdConversionCtaTokens = {};
+
+    mockIsNonEvmChainId.mockReturnValue(false);
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectIsMusdCtaEnabledFlag) {
+      if (selector === selectIsMusdGetBuyCtaEnabledFlag) {
         return mockIsMusdCtaEnabled;
+      }
+      if (selector === selectIsMusdConversionTokenListItemCtaEnabledFlag) {
+        return mockIsMusdConversionTokenListItemCtaEnabled;
+      }
+      if (selector === selectIsMusdConversionAssetOverviewEnabledFlag) {
+        return mockIsMusdConversionAssetOverviewEnabled;
+      }
+      if (selector === selectMusdConversionCTATokens) {
+        return mockMusdConversionCtaTokens;
       }
       return undefined;
     });
-    mockUseHasMusdBalance.mockReturnValue({
-      hasMusdBalance: false,
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
       balancesByChain: {},
+      hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
     });
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
     mockUseNetworksByCustomNamespace.mockReturnValue(
       defaultNetworksByNamespace,
     );
     mockUseRampTokens.mockReturnValue(defaultRampTokens);
+    mockUseMusdConversionTokens.mockReturnValue({
+      tokens: [],
+      filterAllowedTokens: jest.fn(),
+      isConversionToken: jest.fn(),
+      isMusdSupportedOnChain: jest.fn(),
+      getMusdOutputChainId: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -110,7 +158,7 @@ describe('useMusdCtaVisibility', () => {
   });
 
   describe('hook structure', () => {
-    it('returns object with shouldShowCta, showNetworkIcon, and selectedChainId properties', () => {
+    it('returns object with shouldShowBuyGetMusdCta, shouldShowTokenListItemCta, and shouldShowAssetOverviewCta functions', () => {
       mockUseNetworksByCustomNamespace.mockReturnValue({
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
@@ -118,161 +166,64 @@ describe('useMusdCtaVisibility', () => {
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
-      expect(result.current).toHaveProperty('shouldShowCta');
-      expect(result.current).toHaveProperty('showNetworkIcon');
-      expect(result.current).toHaveProperty('selectedChainId');
+      expect(result.current).toHaveProperty('shouldShowBuyGetMusdCta');
+      expect(result.current).toHaveProperty('shouldShowTokenListItemCta');
+      expect(result.current).toHaveProperty('shouldShowAssetOverviewCta');
     });
   });
 
-  describe('feature flag', () => {
-    it('returns shouldShowCta false when feature flag is disabled', () => {
-      mockIsMusdCtaEnabled = false;
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsMusdCtaEnabledFlag) {
-          return mockIsMusdCtaEnabled;
-        }
-        return undefined;
-      });
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: true,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [
-          { chainId: CHAIN_IDS.MAINNET, enabled: true },
-          { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
-        ],
-      });
+  describe('shouldShowBuyGetMusdCta', () => {
+    describe('feature flag', () => {
+      it('returns shouldShowCta false when feature flag is disabled', () => {
+        mockIsMusdCtaEnabled = false;
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
+        });
 
-      const { result } = renderHook(() => useMusdCtaVisibility());
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
 
-      expect(result.current.shouldShowCta).toBe(false);
-      expect(result.current.showNetworkIcon).toBe(false);
-      expect(result.current.selectedChainId).toBeNull();
-    });
-
-    it('returns shouldShowCta true when feature flag is enabled and conditions are met', () => {
-      mockIsMusdCtaEnabled = true;
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsMusdCtaEnabledFlag) {
-          return mockIsMusdCtaEnabled;
-        }
-        return undefined;
-      });
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: true,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [
-          { chainId: CHAIN_IDS.MAINNET, enabled: true },
-          { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
-        ],
-      });
-      mockUseHasMusdBalance.mockReturnValue({
-        hasMusdBalance: false,
-        balancesByChain: {},
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
       });
 
-      const { result } = renderHook(() => useMusdCtaVisibility());
+      it('returns shouldShowCta true when feature flag is enabled and conditions are met', () => {
+        mockIsMusdCtaEnabled = true;
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
-      expect(result.current.shouldShowCta).toBe(true);
-    });
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
 
-    it('returns shouldShowCta false when feature flag is disabled even on supported single chain', () => {
-      mockIsMusdCtaEnabled = false;
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsMusdCtaEnabledFlag) {
-          return mockIsMusdCtaEnabled;
-        }
-        return undefined;
-      });
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
-      });
-      mockUseHasMusdBalance.mockReturnValue({
-        hasMusdBalance: false,
-        balancesByChain: {},
-      });
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.shouldShowCta).toBe(false);
-      expect(result.current.showNetworkIcon).toBe(false);
-      expect(result.current.selectedChainId).toBeNull();
-    });
-  });
-
-  describe('all networks selected (popular networks)', () => {
-    beforeEach(() => {
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: true,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [
-          { chainId: CHAIN_IDS.MAINNET, enabled: true },
-          { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
-          { chainId: CHAIN_IDS.BSC, enabled: true },
-        ],
-      });
-    });
-
-    it('returns shouldShowCta true when user has no MUSD balance and MUSD is buyable', () => {
-      mockUseHasMusdBalance.mockReturnValue({
-        hasMusdBalance: false,
-        balancesByChain: {},
+        expect(shouldShowCta).toBe(true);
       });
 
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.shouldShowCta).toBe(true);
-      expect(result.current.showNetworkIcon).toBe(false);
-      expect(result.current.selectedChainId).toBeNull();
-    });
-
-    it('returns shouldShowCta false when user has MUSD balance', () => {
-      mockUseHasMusdBalance.mockReturnValue({
-        hasMusdBalance: true,
-        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
-      });
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.shouldShowCta).toBe(false);
-      expect(result.current.showNetworkIcon).toBe(false);
-      expect(result.current.selectedChainId).toBeNull();
-    });
-
-    it('returns shouldShowCta false when MUSD is not buyable on any chain', () => {
-      mockUseRampTokens.mockReturnValue({
-        ...defaultRampTokens,
-        allTokens: [],
-      });
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.shouldShowCta).toBe(false);
-    });
-
-    it('returns showNetworkIcon false for all networks', () => {
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.showNetworkIcon).toBe(false);
-    });
-  });
-
-  describe('single supported network selected', () => {
-    describe('mainnet selected', () => {
-      beforeEach(() => {
+      it('returns shouldShowCta false when feature flag is disabled even on supported single chain', () => {
+        mockIsMusdCtaEnabled = false;
         mockUseNetworksByCustomNamespace.mockReturnValue({
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: false,
@@ -281,77 +232,365 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworkInfo,
           enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
         });
-      });
-
-      it('returns shouldShowCta true when user has no MUSD on mainnet', () => {
-        mockUseHasMusdBalance.mockReturnValue({
-          hasMusdBalance: false,
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
           balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
 
-        expect(result.current.shouldShowCta).toBe(true);
-        expect(result.current.showNetworkIcon).toBe(true);
-        expect(result.current.selectedChainId).toBe(CHAIN_IDS.MAINNET);
-      });
-
-      it('returns shouldShowCta false when user has MUSD on mainnet', () => {
-        mockUseHasMusdBalance.mockReturnValue({
-          hasMusdBalance: true,
-          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
-        });
-
-        const { result } = renderHook(() => useMusdCtaVisibility());
-
-        expect(result.current.shouldShowCta).toBe(false);
-      });
-
-      it('returns shouldShowCta true when user has MUSD on different chain but not mainnet', () => {
-        mockUseHasMusdBalance.mockReturnValue({
-          hasMusdBalance: true,
-          balancesByChain: { [CHAIN_IDS.LINEA_MAINNET]: '0x1234' },
-        });
-
-        const { result } = renderHook(() => useMusdCtaVisibility());
-
-        expect(result.current.shouldShowCta).toBe(true);
-        expect(result.current.showNetworkIcon).toBe(true);
-      });
-
-      it('returns shouldShowCta false when MUSD not buyable in region for mainnet', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET, false), // tokenSupported = false
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
-          ],
-        });
-
-        const { result } = renderHook(() => useMusdCtaVisibility());
-
-        expect(result.current.shouldShowCta).toBe(false);
-        expect(result.current.showNetworkIcon).toBe(false);
-        expect(result.current.selectedChainId).toBeNull();
-      });
-
-      it('returns shouldShowCta false when MUSD not buyable anywhere', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET, false),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false),
-          ],
-        });
-
-        const { result } = renderHook(() => useMusdCtaVisibility());
-
-        expect(result.current.shouldShowCta).toBe(false);
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
       });
     });
 
-    describe('linea selected', () => {
+    describe('all networks selected (popular networks)', () => {
       beforeEach(() => {
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.BSC, enabled: true },
+          ],
+        });
+      });
+
+      it('returns shouldShowCta true when user has no MUSD balance and MUSD is buyable', () => {
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(true);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('returns shouldShowCta false when user has MUSD balance', () => {
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('returns shouldShowCta false when MUSD is not buyable on any chain', () => {
+        mockUseRampTokens.mockReturnValue({
+          ...defaultRampTokens,
+          allTokens: [],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+      });
+
+      it('returns showNetworkIcon false for all networks', () => {
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { showNetworkIcon } = result.current.shouldShowBuyGetMusdCta();
+
+        expect(showNetworkIcon).toBe(false);
+      });
+    });
+
+    describe('single supported network selected', () => {
+      describe('mainnet selected', () => {
+        beforeEach(() => {
+          mockUseNetworksByCustomNamespace.mockReturnValue({
+            ...defaultNetworksByNamespace,
+            areAllNetworksSelected: false,
+          });
+          mockUseCurrentNetworkInfo.mockReturnValue({
+            ...defaultNetworkInfo,
+            enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+          });
+        });
+
+        it('returns shouldShowCta true when user has no MUSD on mainnet', () => {
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: false,
+            balancesByChain: {},
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta, showNetworkIcon, selectedChainId } =
+            result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(true);
+          expect(showNetworkIcon).toBe(true);
+          expect(selectedChainId).toBe(CHAIN_IDS.MAINNET);
+        });
+
+        it('returns shouldShowCta false when user has MUSD on mainnet', () => {
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: true,
+            balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+            hasMusdBalanceOnChain: jest
+              .fn()
+              .mockImplementation(
+                (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
+              ),
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(false);
+        });
+
+        it('returns shouldShowCta true when user has MUSD on different chain but not mainnet', () => {
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: true,
+            balancesByChain: { [CHAIN_IDS.LINEA_MAINNET]: '0x1234' },
+            hasMusdBalanceOnChain: jest
+              .fn()
+              .mockImplementation(
+                (chainId: Hex) => chainId === CHAIN_IDS.LINEA_MAINNET,
+              ),
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta, showNetworkIcon } =
+            result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(true);
+          expect(showNetworkIcon).toBe(true);
+        });
+
+        it('returns shouldShowCta false when MUSD not buyable in region for mainnet', () => {
+          mockUseRampTokens.mockReturnValue({
+            ...defaultRampTokens,
+            allTokens: [
+              createMusdRampToken(CHAIN_IDS.MAINNET, false), // tokenSupported = false
+              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET),
+            ],
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta, showNetworkIcon, selectedChainId } =
+            result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(false);
+          expect(showNetworkIcon).toBe(false);
+          expect(selectedChainId).toBeNull();
+        });
+
+        it('returns shouldShowCta false when MUSD not buyable anywhere', () => {
+          mockUseRampTokens.mockReturnValue({
+            ...defaultRampTokens,
+            allTokens: [
+              createMusdRampToken(CHAIN_IDS.MAINNET, false),
+              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false),
+            ],
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(false);
+        });
+      });
+
+      describe('linea selected', () => {
+        beforeEach(() => {
+          mockUseNetworksByCustomNamespace.mockReturnValue({
+            ...defaultNetworksByNamespace,
+            areAllNetworksSelected: false,
+          });
+          mockUseCurrentNetworkInfo.mockReturnValue({
+            ...defaultNetworkInfo,
+            enabledNetworks: [
+              { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+            ],
+          });
+        });
+
+        it('returns shouldShowCta true with network icon when no MUSD on Linea', () => {
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: false,
+            balancesByChain: {},
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta, showNetworkIcon, selectedChainId } =
+            result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(true);
+          expect(showNetworkIcon).toBe(true);
+          expect(selectedChainId).toBe(CHAIN_IDS.LINEA_MAINNET);
+        });
+
+        it('returns shouldShowCta false when MUSD not buyable in region for Linea', () => {
+          mockUseRampTokens.mockReturnValue({
+            ...defaultRampTokens,
+            allTokens: [
+              createMusdRampToken(CHAIN_IDS.MAINNET),
+              createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false), // tokenSupported = false
+            ],
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta, showNetworkIcon, selectedChainId } =
+            result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(false);
+          expect(showNetworkIcon).toBe(false);
+          expect(selectedChainId).toBeNull();
+        });
+      });
+
+      describe('BSC selected', () => {
+        beforeEach(() => {
+          mockUseNetworksByCustomNamespace.mockReturnValue({
+            ...defaultNetworksByNamespace,
+            areAllNetworksSelected: false,
+          });
+          mockUseCurrentNetworkInfo.mockReturnValue({
+            ...defaultNetworkInfo,
+            enabledNetworks: [{ chainId: CHAIN_IDS.BSC, enabled: true }],
+          });
+        });
+
+        it('returns shouldShowCta false when BSC selected', () => {
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: false,
+            balancesByChain: {},
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta, showNetworkIcon, selectedChainId } =
+            result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(false);
+          expect(showNetworkIcon).toBe(false);
+          expect(selectedChainId).toBeNull();
+        });
+
+        it('returns shouldShowCta false when user has MUSD balance', () => {
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: true,
+            balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+          });
+
+          const { result } = renderHook(() => useMusdCtaVisibility());
+          const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+          expect(shouldShowCta).toBe(false);
+        });
+      });
+    });
+
+    describe('unsupported network selected', () => {
+      it('returns shouldShowCta false for Polygon', () => {
+        const polygonChainId = '0x89' as Hex;
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: polygonChainId, enabled: true }],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('returns shouldShowCta false for Arbitrum', () => {
+        const arbitrumChainId = '0xa4b1' as Hex;
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: arbitrumChainId, enabled: true }],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+      });
+
+      it('returns shouldShowCta false for Optimism', () => {
+        const optimismChainId = '0xa' as Hex;
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: optimismChainId, enabled: true }],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+      });
+
+      it('returns shouldShowCta false for unsupported network when user has MUSD balance', () => {
+        const polygonChainId = '0x89' as Hex;
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: polygonChainId, enabled: true }],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+      });
+    });
+
+    describe('multiple networks selected (not all)', () => {
+      it('returns shouldShowCta true without network icon when multiple networks selected and no MUSD balance', () => {
         mockUseNetworksByCustomNamespace.mockReturnValue({
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: false,
@@ -359,261 +598,378 @@ describe('useMusdCtaVisibility', () => {
         mockUseCurrentNetworkInfo.mockReturnValue({
           ...defaultNetworkInfo,
           enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
             { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
           ],
         });
-      });
-
-      it('returns shouldShowCta true with network icon when no MUSD on Linea', () => {
-        mockUseHasMusdBalance.mockReturnValue({
-          hasMusdBalance: false,
-          balancesByChain: {},
-        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
 
-        expect(result.current.shouldShowCta).toBe(true);
-        expect(result.current.showNetworkIcon).toBe(true);
-        expect(result.current.selectedChainId).toBe(CHAIN_IDS.LINEA_MAINNET);
+        expect(shouldShowCta).toBe(true);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
       });
 
-      it('returns shouldShowCta false when MUSD not buyable in region for Linea', () => {
-        mockUseRampTokens.mockReturnValue({
-          ...defaultRampTokens,
-          allTokens: [
-            createMusdRampToken(CHAIN_IDS.MAINNET),
-            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, false), // tokenSupported = false
-          ],
-        });
-
-        const { result } = renderHook(() => useMusdCtaVisibility());
-
-        expect(result.current.shouldShowCta).toBe(false);
-        expect(result.current.showNetworkIcon).toBe(false);
-        expect(result.current.selectedChainId).toBeNull();
-      });
-    });
-
-    describe('BSC selected', () => {
-      beforeEach(() => {
+      it('returns shouldShowCta false when multiple networks selected and user has MUSD balance', () => {
         mockUseNetworksByCustomNamespace.mockReturnValue({
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: false,
         });
         mockUseCurrentNetworkInfo.mockReturnValue({
           ...defaultNetworkInfo,
-          enabledNetworks: [{ chainId: CHAIN_IDS.BSC, enabled: true }],
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
         });
-      });
-
-      it('returns shouldShowCta false when BSC selected', () => {
-        mockUseHasMusdBalance.mockReturnValue({
-          hasMusdBalance: false,
-          balancesByChain: {},
-        });
-
-        const { result } = renderHook(() => useMusdCtaVisibility());
-
-        expect(result.current.shouldShowCta).toBe(false);
-        expect(result.current.showNetworkIcon).toBe(false);
-        expect(result.current.selectedChainId).toBeNull();
-      });
-
-      it('returns shouldShowCta false when user has MUSD balance', () => {
-        mockUseHasMusdBalance.mockReturnValue({
-          hasMusdBalance: true,
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
           balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
         });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
 
-        expect(result.current.shouldShowCta).toBe(false);
+        expect(shouldShowCta).toBe(false);
+      });
+    });
+
+    describe('geo restriction scenarios', () => {
+      it('returns shouldShowCta false when allTokens is null (loading)', () => {
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseRampTokens.mockReturnValue({
+          ...defaultRampTokens,
+          allTokens: null,
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+      });
+
+      it('returns shouldShowCta true when MUSD buyable on at least one chain in all networks view', () => {
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseRampTokens.mockReturnValue({
+          ...defaultRampTokens,
+          allTokens: [
+            createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable
+            createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable
+          ],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(true);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns shouldShowCta false with empty enabledNetworks', () => {
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('handles undefined values gracefully', () => {
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [],
+        });
+
+        expect(() => renderHook(() => useMusdCtaVisibility())).not.toThrow();
       });
     });
   });
 
-  describe('unsupported network selected', () => {
-    it('returns shouldShowCta false for Polygon', () => {
-      const polygonChainId = '0x89' as Hex;
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
+  describe('shouldShowTokenListItemCta', () => {
+    const conversionToken: AssetType = createMockToken({
+      chainId: CHAIN_IDS.MAINNET,
+      name: 'USD Coin',
+      symbol: 'USDC',
+      decimals: 6,
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      balance: '0',
+      balanceFiat: '0',
+    });
+
+    const listItemToken: TokenI = {
+      ...conversionToken,
+      // checksum-casing to validate case-insensitive matching
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    };
+
+    beforeEach(() => {
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [conversionToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        getMusdOutputChainId: jest.fn(),
       });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: polygonChainId, enabled: true }],
-      });
+
+      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
+      mockIsMusdConversionTokenListItemCtaEnabled = true;
+    });
+
+    it('returns false when token list item CTA flag is disabled', () => {
+      mockIsMusdConversionTokenListItemCtaEnabled = false;
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
-      expect(result.current.shouldShowCta).toBe(false);
-      expect(result.current.showNetworkIcon).toBe(false);
-      expect(result.current.selectedChainId).toBeNull();
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(listItemToken);
+
+      expect(isVisible).toBe(false);
     });
 
-    it('returns shouldShowCta false for Arbitrum', () => {
-      const arbitrumChainId = '0xa4b1' as Hex;
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: arbitrumChainId, enabled: true }],
-      });
+    it('returns false when token chainId is undefined', () => {
+      const tokenWithoutChainId: TokenI = {
+        ...listItemToken,
+        chainId: undefined,
+      };
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
-      expect(result.current.shouldShowCta).toBe(false);
-      expect(result.current.showNetworkIcon).toBe(false);
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(tokenWithoutChainId);
+
+      expect(isVisible).toBe(false);
     });
 
-    it('returns shouldShowCta false for Optimism', () => {
-      const optimismChainId = '0xa' as Hex;
+    it('returns false when token is on a non-EVM chain like Tron', () => {
+      const tronChainId = 'tron:728126428';
+      const tronToken: TokenI = {
+        ...listItemToken,
+        chainId: tronChainId,
+      };
+      mockIsNonEvmChainId.mockImplementation(
+        (chainId) => chainId === tronChainId,
+      );
       mockUseNetworksByCustomNamespace.mockReturnValue({
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: false,
       });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: optimismChainId, enabled: true }],
-      });
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.shouldShowCta).toBe(false);
-      expect(result.current.showNetworkIcon).toBe(false);
-    });
-
-    it('returns shouldShowCta false for unsupported network when user has MUSD balance', () => {
-      const polygonChainId = '0x89' as Hex;
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: polygonChainId, enabled: true }],
-      });
-      mockUseHasMusdBalance.mockReturnValue({
-        hasMusdBalance: true,
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
         balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
-      expect(result.current.shouldShowCta).toBe(false);
-    });
-  });
+      const isVisible = result.current.shouldShowTokenListItemCta(tronToken);
 
-  describe('multiple networks selected (not all)', () => {
-    it('returns shouldShowCta true without network icon when multiple networks selected and no MUSD balance', () => {
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [
-          { chainId: CHAIN_IDS.MAINNET, enabled: true },
-          { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
-        ],
-      });
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.shouldShowCta).toBe(true);
-      expect(result.current.showNetworkIcon).toBe(false);
-      expect(result.current.selectedChainId).toBeNull();
+      expect(isVisible).toBe(false);
+      expect(mockIsNonEvmChainId).toHaveBeenCalledWith(tronChainId);
     });
 
-    it('returns shouldShowCta false when multiple networks selected and user has MUSD balance', () => {
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [
-          { chainId: CHAIN_IDS.MAINNET, enabled: true },
-          { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
-        ],
-      });
-      mockUseHasMusdBalance.mockReturnValue({
-        hasMusdBalance: true,
-        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
-      });
-
-      const { result } = renderHook(() => useMusdCtaVisibility());
-
-      expect(result.current.shouldShowCta).toBe(false);
-    });
-  });
-
-  describe('geo restriction scenarios', () => {
-    it('returns shouldShowCta false when allTokens is null (loading)', () => {
+    it('returns false for non-EVM chain even when all conditions are met', () => {
+      const tronChainId = 'tron:728126428';
+      const tronToken: TokenI = {
+        ...listItemToken,
+        chainId: tronChainId,
+      };
+      mockIsNonEvmChainId.mockImplementation(
+        (chainId) => chainId === tronChainId,
+      );
       mockUseNetworksByCustomNamespace.mockReturnValue({
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
       });
-      mockUseRampTokens.mockReturnValue({
-        ...defaultRampTokens,
-        allTokens: null,
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
-      expect(result.current.shouldShowCta).toBe(false);
+      const isVisible = result.current.shouldShowTokenListItemCta(tronToken);
+
+      expect(isVisible).toBe(false);
     });
 
-    it('returns shouldShowCta true when MUSD buyable on at least one chain in all networks view', () => {
+    it('returns true when all networks selected, user has mUSD on any chain, and token is configured for CTA', () => {
       mockUseNetworksByCustomNamespace.mockReturnValue({
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
       });
-      mockUseRampTokens.mockReturnValue({
-        ...defaultRampTokens,
-        allTokens: [
-          createMusdRampToken(CHAIN_IDS.MAINNET, false), // not buyable
-          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET, true), // buyable
-        ],
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
       });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
-      expect(result.current.shouldShowCta).toBe(true);
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(listItemToken);
+
+      expect(isVisible).toBe(true);
+    });
+
+    it('returns false when all networks selected and user has no mUSD on any chain', () => {
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
+      });
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: false,
+        balancesByChain: {},
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(listItemToken);
+
+      expect(isVisible).toBe(false);
+    });
+
+    it('returns true when single network selected, user has mUSD on selected chain, and token is configured for CTA', () => {
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: false,
+      });
+      mockUseCurrentNetworkInfo.mockReturnValue({
+        ...defaultNetworkInfo,
+        enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+      });
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest
+          .fn()
+          .mockImplementation((chainId: Hex) => chainId === CHAIN_IDS.MAINNET),
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(listItemToken);
+
+      expect(isVisible).toBe(true);
+    });
+
+    it('returns false when token is not configured for CTA', () => {
+      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['DAI'] };
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
+      });
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(listItemToken);
+
+      expect(isVisible).toBe(false);
     });
   });
 
-  describe('edge cases', () => {
-    it('returns shouldShowCta false with empty enabledNetworks', () => {
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
+  describe('shouldShowAssetOverviewCta', () => {
+    const conversionToken: AssetType = createMockToken({
+      chainId: CHAIN_IDS.MAINNET,
+      name: 'USD Coin',
+      symbol: 'USDC',
+      decimals: 6,
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      balance: '0',
+      balanceFiat: '0',
+    });
+
+    const assetOverviewToken: TokenI = {
+      ...conversionToken,
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    };
+
+    beforeEach(() => {
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [conversionToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        getMusdOutputChainId: jest.fn(),
       });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [],
-      });
+      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['USDC'] };
+    });
+
+    it('returns false when asset overview CTA flag is disabled', () => {
+      mockIsMusdConversionAssetOverviewEnabled = false;
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
-      expect(result.current.shouldShowCta).toBe(false);
-      expect(result.current.showNetworkIcon).toBe(false);
-      expect(result.current.selectedChainId).toBeNull();
+      const isVisible =
+        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+      expect(isVisible).toBe(false);
     });
 
-    it('handles undefined values gracefully', () => {
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        ...defaultNetworksByNamespace,
-        areAllNetworksSelected: false,
-      });
-      mockUseCurrentNetworkInfo.mockReturnValue({
-        ...defaultNetworkInfo,
-        enabledNetworks: [],
-      });
+    it('returns false when asset is undefined', () => {
+      mockIsMusdConversionAssetOverviewEnabled = true;
 
-      expect(() => renderHook(() => useMusdCtaVisibility())).not.toThrow();
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible = result.current.shouldShowAssetOverviewCta(undefined);
+
+      expect(isVisible).toBe(false);
+    });
+
+    it('returns true when flag is enabled and token is configured for CTA', () => {
+      mockIsMusdConversionAssetOverviewEnabled = true;
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+      expect(isVisible).toBe(true);
+    });
+
+    it('returns false when token is not configured for CTA', () => {
+      mockIsMusdConversionAssetOverviewEnabled = true;
+      mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['DAI'] };
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+      expect(isVisible).toBe(false);
     });
   });
 });

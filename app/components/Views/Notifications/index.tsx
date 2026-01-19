@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { INotification } from '@metamask/notification-services-controller/notification-services';
 
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
+import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
@@ -36,7 +36,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { NotificationMenuViewSelectorsIDs } from '../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
 
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];

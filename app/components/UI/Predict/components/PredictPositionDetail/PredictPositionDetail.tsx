@@ -12,7 +12,7 @@ import {
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,

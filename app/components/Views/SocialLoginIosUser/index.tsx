@@ -20,7 +20,7 @@ import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import styles from './index.styles';
 import Device from '../../../util/device';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
 
 interface SocialLoginIosUserProps {
   type: 'new' | 'existing';

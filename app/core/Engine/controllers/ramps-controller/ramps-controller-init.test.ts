@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
@@ -9,15 +10,27 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
+const mockInit = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('@metamask/ramps-controller', () => {
-  const actualRampsController = jest.requireActual(
-    '@metamask/ramps-controller',
+  const actual = jest.requireActual('@metamask/ramps-controller');
+
+  const MockRampsControllerSpy = jest.fn().mockImplementation(() => {
+    const instance = Object.create(MockRampsControllerSpy.prototype);
+    instance.constructor = MockRampsControllerSpy;
+    instance.init = mockInit;
+    return instance;
+  });
+
+  MockRampsControllerSpy.prototype = Object.create(
+    actual.RampsController.prototype,
   );
+  MockRampsControllerSpy.prototype.constructor = MockRampsControllerSpy;
+  Object.setPrototypeOf(MockRampsControllerSpy, actual.RampsController);
 
   return {
-    getDefaultRampsControllerState:
-      actualRampsController.getDefaultRampsControllerState,
-    RampsController: jest.fn(),
+    ...actual,
+    RampsController: MockRampsControllerSpy,
   };
 });
 
@@ -28,17 +41,12 @@ describe('ramps controller init', () => {
   >;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockInit.mockResolvedValue(undefined);
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
-  });
-
-  it('returns controller instance', () => {
-    expect(rampsControllerInit(initRequestMock).controller).toBeInstanceOf(
-      RampsController,
-    );
   });
 
   it('uses default state when no initial state is passed in', () => {
@@ -56,7 +64,10 @@ describe('ramps controller init', () => {
 
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
-      geolocation: 'US-CA',
+      userRegion: 'US-CA',
+      eligibility: null,
+      tokens: null,
+      requests: {},
     };
 
     initRequestMock.persistedState = {
@@ -70,5 +81,23 @@ describe('ramps controller init', () => {
       rampsControllerClassMock.mock.calls[0][0].state;
 
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
+  });
+
+  it('calls init at startup', async () => {
+    rampsControllerInit(initRequestMock);
+
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('handles init failure gracefully', async () => {
+    mockInit.mockRejectedValue(new Error('Network error'));
+
+    expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
+
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
+    });
   });
 });

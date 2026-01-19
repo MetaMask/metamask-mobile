@@ -37,10 +37,6 @@ export const createAccountGroupDetailsNavigationDetails =
     accountGroup: AccountGroupObject;
   }>(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS);
 
-export const createEditAccountNameNavigationDetails = createNavigationDetails<{
-  accountGroup: AccountGroupObject;
-}>(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME);
-
 export const createMultichainAccountDetailActionsModalNavigationDetails =
   createNavigationDetails<{
     screen: string;
@@ -77,13 +73,14 @@ const MultichainAccountActions = () => {
   }, [navigate, goBack, accountGroup]);
 
   const goToEditAccountName = useCallback(() => {
-    // Navigate to edit account name sheet within the same modal
-    navigate(
-      ...createEditAccountNameNavigationDetails({
-        accountGroup,
-      }),
-    );
-  }, [navigate, accountGroup]);
+    // Close the modal and navigate to edit account name in account group details
+    goBack();
+    navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS, {
+      accountGroup,
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      params: { accountGroup },
+    });
+  }, [navigate, goBack, accountGroup]);
 
   const goToAddresses = useCallback(() => {
     // Start the trace before navigating to the address list to include the

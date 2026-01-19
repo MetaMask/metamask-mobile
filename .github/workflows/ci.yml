@@ -190,7 +190,7 @@ jobs:
   merge-unit-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -286,11 +286,16 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.android_changed == 'true' &&
+        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build]
+    needs: [needs_e2e_build, smart-e2e-selection]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
@@ -304,19 +309,29 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
+        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build]
+    needs: [needs_e2e_build, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
@@ -335,10 +350,15 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   # Flask E2E tests
@@ -349,10 +369,15 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-apks]
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   js-bundle-size-check:
@@ -409,7 +434,7 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-tests
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -452,7 +477,7 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -537,7 +562,7 @@ jobs:
         run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
   check-all-jobs-pass:
     name: Check all jobs pass
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs:
       - all-jobs-pass

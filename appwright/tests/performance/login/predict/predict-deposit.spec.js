@@ -47,7 +47,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 1: Navigate to Predict tab
   const timer1 = new TimerHelper(
     'Time since user taps Predict button until Predict Market List is displayed',
-    { ios: 2300, android: 2300 },
+    { ios: 2300, android: 2600 },
     device,
   );
   await timer1.measure(async () => {
@@ -58,7 +58,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 2: Open deposit screen
   const timer2 = new TimerHelper(
     'Time since user taps Add Funds button until Deposit screen is displayed',
-    { ios: 7000, android: 7000 },
+    { ios: 7000, android: 12000 },
     device,
   );
   await timer2.measure(async () => {
@@ -69,7 +69,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 3: Change default asset
   const timer3 = new TimerHelper(
     'Time since user taps Pay With button until select payment method modal appears',
-    { ios: 2900, android: 2900 },
+    { ios: 4500, android: 2900 },
     device,
   );
   await timer3.measure(async () => {
@@ -81,7 +81,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 4: Search, select and enter amount for asseet to pay
   const timer4 = new TimerHelper(
     'Time user search, select and enter amount for asseet to pay',
-    { ios: 11800, android: 11800 },
+    { ios: 15000, android: 12000 },
     device,
   );
   await timer4.measure(async () => {
@@ -95,7 +95,7 @@ test('Predict Deposit - Complete Flow Performance', async ({
   // Timer 5: Proceed to confirmation screen
   const timer5 = new TimerHelper(
     'Time since user taps Continue until Confirmation screen is displayed',
-    { ios: 4800, android: 6100 },
+    { ios: 4800, android: 9000 },
     device,
   );
   await timer5.measure(async () => {

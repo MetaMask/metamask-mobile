@@ -10,6 +10,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useStakingChain from '../../../hooks/useStakingChain';
+import useStakingEligibility from '../../../hooks/useStakingEligibility';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootParamList } from '../../../../../../types/navigation';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
@@ -22,6 +23,22 @@ import { EARN_EXPERIENCES } from '../../../../Earn/constants/experiences';
 import { getMockUseEarnTokens } from '../../../../Earn/__mocks__/earnMockData';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
+
+// Prevent `useMetrics` from triggering async Engine readiness polling (`whenEngineReady`)
+// which can cause Jest timeouts / "import after environment torn down" errors.
+jest.mock('../../../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    STAKE_BUTTON_CLICKED: 'STAKE_BUTTON_CLICKED',
+    STAKE_WITHDRAW_BUTTON_CLICKED: 'STAKE_WITHDRAW_BUTTON_CLICKED',
+  },
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }),
+  }),
+}));
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
   typeof selectPooledStakingEnabledFlag
@@ -98,6 +115,15 @@ jest.mock('../../../hooks/useStakingChain', () => ({
   })),
 }));
 
+jest.mock('../../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -138,6 +164,13 @@ describe('StakingButtons', () => {
       dispatch: jest.fn(),
     } as unknown as NavigationProp<RootParamList>);
 
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
     (
       selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
     ).mockReturnValue(true);
@@ -160,6 +193,33 @@ describe('StakingButtons', () => {
     });
     expect(getByText('Unstake')).toBeDefined();
     expect(getByText('Stake more')).toBeDefined();
+  });
+
+  it('renders unstake button and hides stake button when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const props = {
+      style: {},
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <StakingButtons {...props} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(getByText('Unstake')).toBeDefined();
+    expect(queryByText('Stake more')).toBeNull();
+    expect(queryByText('Stake')).toBeNull();
   });
 
   it('should not render stake/stake more button if pooled staking is disabled', () => {

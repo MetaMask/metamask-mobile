@@ -129,6 +129,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       if (!section) return null;
 
       if (item.type === 'skeleton') {
+        if (section.OverrideSkeletonSearch) {
+          return <section.OverrideSkeletonSearch />;
+        }
         return <section.Skeleton />;
       }
 

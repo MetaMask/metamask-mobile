@@ -86,11 +86,13 @@ jest.mock(
   () => 'ConfirmPhoneNumber',
 );
 jest.mock('../components/Onboarding/VerifyIdentity', () => 'VerifyIdentity');
-jest.mock('../components/Onboarding/ValidatingKYC', () => 'ValidatingKYC');
+jest.mock(
+  '../components/Onboarding/VerifyingVeriffKYC',
+  () => 'VerifyingVeriffKYC',
+);
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
-jest.mock('../components/Onboarding/MailingAddress', () => 'MailingAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
 jest.mock('../components/Onboarding/KYCWebview', () => 'KYCWebview');
 
@@ -154,11 +156,10 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       SET_PHONE_NUMBER: 'SET_PHONE_NUMBER',
       CONFIRM_PHONE_NUMBER: 'CONFIRM_PHONE_NUMBER',
       VERIFY_IDENTITY: 'VERIFY_IDENTITY',
-      VALIDATING_KYC: 'VALIDATING_KYC',
+      VERIFYING_VERIFF_KYC: 'VERIFYING_VERIFF_KYC',
       KYC_FAILED: 'KYC_FAILED',
       PERSONAL_DETAILS: 'PERSONAL_DETAILS',
       PHYSICAL_ADDRESS: 'PHYSICAL_ADDRESS',
-      MAILING_ADDRESS: 'MAILING_ADDRESS',
       COMPLETE: 'COMPLETE',
       WEBVIEW: 'WEBVIEW',
     },
@@ -320,14 +321,42 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns PHYSICAL_ADDRESS route when firstName exists but addressLine1 is missing', () => {
+        it('returns VERIFYING_VERIFF_KYC route when firstName exists', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'PENDING',
               firstName: 'John',
-              // addressLine1 is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+            isReturningSession: false,
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          const stackNavigator = queryByTestId('stack-navigator');
+          expect(stackNavigator).not.toBeNull();
+          expect(stackNavigator?.props.initialRouteName).toBe(
+            Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC,
+          );
+        });
+      });
+
+      describe('when user verification state is VERIFIED', () => {
+        it('returns PHYSICAL_ADDRESS route when address is missing', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'VERIFIED',
+              countryOfNationality: 'US',
             },
             isLoading: false,
             sdk: null,
@@ -348,72 +377,12 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns PHYSICAL_ADDRESS route when city is missing', () => {
+        it('returns PERSONAL_DETAILS route when countryOfNationality is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
-              addressLine1: '123 Main St',
-              // city is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-            isReturningSession: false,
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-          );
-        });
-
-        it('returns PHYSICAL_ADDRESS route when zip is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
-              addressLine1: '123 Main St',
-              city: 'New York',
-              // zip is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-            isReturningSession: false,
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-          );
-        });
-
-        it('returns PERSONAL_DETAILS route when all user data is complete', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
+              verificationState: 'VERIFIED',
               addressLine1: '123 Main St',
               city: 'New York',
               zip: '10001',
@@ -436,37 +405,8 @@ describe('OnboardingNavigator', () => {
             Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
           );
         });
-      });
 
-      describe('when user verification state is VERIFIED', () => {
-        it('returns PHYSICAL_ADDRESS route when address is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'VERIFIED',
-              // addressLine1 is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-            isReturningSession: false,
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-          );
-        });
-
-        it('returns COMPLETE route when all address data exists', () => {
+        it('returns COMPLETE route when all address data and countryOfNationality exists', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
@@ -475,6 +415,7 @@ describe('OnboardingNavigator', () => {
               addressLine1: '123 Main St',
               city: 'New York',
               zip: '10001',
+              countryOfNationality: 'US',
             },
             isLoading: false,
             sdk: null,
@@ -690,28 +631,6 @@ describe('OnboardingNavigator', () => {
       expect(stackNavigator).not.toBeNull();
       expect(stackNavigator?.props.initialRouteName).toBe(
         Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
-      );
-    });
-
-    it('routes to MAILING_ADDRESS when cardUserPhase is MAILING_ADDRESS', () => {
-      mockUseParams.mockReturnValue({ cardUserPhase: 'MAILING_ADDRESS' });
-      mockUseSelector.mockReturnValue('onboarding-123');
-      mockUseCardSDK.mockReturnValue({
-        user: { id: 'user-123', contactVerificationId: 'contact-123' },
-        isLoading: false,
-        sdk: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-        fetchUserData: jest.fn(),
-        isReturningSession: false,
-      });
-
-      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
-      const stackNavigator = queryByTestId('stack-navigator');
-      expect(stackNavigator).not.toBeNull();
-      expect(stackNavigator?.props.initialRouteName).toBe(
-        Routes.CARD.ONBOARDING.MAILING_ADDRESS,
       );
     });
   });

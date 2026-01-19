@@ -37,6 +37,19 @@ import {
 import { areAddressesEqual } from '../../../../../util/address';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
+/**
+ * When navigating to the Asset view from trending tokens list, we add a property
+ * to indicate the user's intent is to BUY the token (not sell).
+ *
+ * This is used to determine whether the token should be pre-filled as the
+ * destination token (buy) rather than source token (sell) in the swap flow.
+ */
+export const isAssetFromTrending = (asset: unknown) =>
+  typeof asset === 'object' &&
+  asset !== null &&
+  'isFromTrending' in asset &&
+  asset.isFromTrending === true;
+
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
   TokenDetails = 'TokenDetails',
@@ -118,7 +131,9 @@ export const useSwapBridgeNavigation = ({
       const bridgeNativeSourceTokenFormatted: BridgeToken | undefined =
         bridgeSourceNativeAsset
           ? {
-              address: bridgeSourceNativeAsset.address,
+              address: isNonEvmChainId(effectiveSourceChainId)
+                ? bridgeSourceNativeAsset.assetId
+                : bridgeSourceNativeAsset.address,
               name: bridgeSourceNativeAsset.name ?? '',
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',

@@ -230,6 +230,12 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
+    perpsPerpGtmOnboardingModalEnabled: {
+      enabled: false,
+      minimumVersion: '7.60.0',
+    },
+  },
+  {
     enableMultichainAccounts: {
       enabled: true,
       featureVersion: '1',
@@ -248,11 +254,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
       androidMinimumAPIVersion: 0,
       appMinimumBuild: 0,
       appleMinimumOS: 0,
-    },
-  },
-  {
-    sendRedesign: {
-      enabled: true,
     },
   },
   {
@@ -285,6 +286,12 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   {
     rampsUnifiedBuyV1: {
       minimumVersion: '7.61.0',
+      active: false,
+    },
+  },
+  {
+    rampsUnifiedBuyV2: {
+      minimumVersion: '7.63.0',
       active: false,
     },
   },

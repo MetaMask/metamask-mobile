@@ -28,6 +28,7 @@ import {
   type DiscoverSeasonsDto,
   type SeasonMetadataDto,
   type SeasonStateDto,
+  type LineaTokenRewardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -518,6 +519,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:resetAll',
       this.resetAll.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getSeasonOneLineaRewardTokens',
+      this.getSeasonOneLineaRewardTokens.bind(this),
     );
   }
 
@@ -2942,6 +2947,34 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to claim reward:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get Season 1 Linea token reward for the subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The Linea token reward DTO or null if not found.
+   */
+  async getSeasonOneLineaRewardTokens(
+    subscriptionId: string,
+  ): Promise<LineaTokenRewardDto | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+
+    try {
+      const result = await this.messenger.call(
+        'RewardsDataService:getSeasonOneLineaRewardTokens',
+        subscriptionId,
+      );
+      return result;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get Season 1 Linea reward tokens:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

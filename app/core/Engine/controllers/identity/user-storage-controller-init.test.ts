@@ -1,6 +1,9 @@
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { getUserStorageControllerMessenger } from '../../messengers/identity/user-storage-controller-messenger';
+import {
+  getUserStorageControllerMessenger,
+  getUserStorageControllerInitMessenger,
+} from '../../messengers/identity/user-storage-controller-messenger';
 import { ControllerInitRequest } from '../../types';
 import { userStorageControllerInit } from './user-storage-controller-init';
 import {
@@ -12,7 +15,10 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/profile-sync-controller/user-storage');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<UserStorageControllerMessenger>
+  ControllerInitRequest<
+    UserStorageControllerMessenger,
+    ReturnType<typeof getUserStorageControllerInitMessenger>
+  >
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
@@ -21,7 +27,7 @@ function getInitRequestMock(): jest.Mocked<
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getUserStorageControllerMessenger(baseMessenger),
-    initMessenger: undefined,
+    initMessenger: getUserStorageControllerInitMessenger(baseMessenger),
   };
 
   return requestMock;

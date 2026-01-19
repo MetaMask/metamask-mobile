@@ -4,6 +4,7 @@ import { Hex, hexToNumber } from '@metamask/utils';
 import { NetworkStatus } from '@metamask/network-controller';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
 import { useNavigation } from '../../../util/navigation/navUtils';
+import { selectIsDeviceOffline } from '../../../selectors/connectivityController';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../useMetrics';
@@ -46,6 +47,7 @@ const useNetworkConnectionBanner = (): {
   const networkConnectionBannerState = useSelector(
     selectNetworkConnectionBannerState,
   );
+  const isOffline = useSelector(selectIsDeviceOffline);
 
   // Use ref to access current banner state without causing timer effect to re-run
   const bannerStateRef = useRef(networkConnectionBannerState);
@@ -85,6 +87,17 @@ const useNetworkConnectionBanner = (): {
   }
 
   useEffect(() => {
+    // When device is offline, clear timers and reset banner state
+    // We don't want to show network degraded/unavailable banners when the real issue
+    // is the device's internet connectivity
+    if (isOffline) {
+      const currentBannerState = bannerStateRef.current;
+      if (currentBannerState.visible) {
+        dispatch(hideNetworkConnectionBanner());
+      }
+      return;
+    }
+
     const checkNetworkStatus = (timeoutType: NetworkConnectionBannerStatus) => {
       const currentBannerState = bannerStateRef.current;
       const networksMetadata =
@@ -192,7 +205,7 @@ const useNetworkConnectionBanner = (): {
       clearTimeout(degradedTimeout);
       clearTimeout(unavailableTimeout);
     };
-  }, [evmEnabledNetworksChainIds, dispatch]);
+  }, [isOffline, evmEnabledNetworksChainIds, dispatch]);
 
   useEffect(() => {
     bannerStateRef.current = networkConnectionBannerState;

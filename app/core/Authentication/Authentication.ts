@@ -78,11 +78,11 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { handlePasswordSubmissionError } from './utils';
+import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import AppConstants from '../AppConstants';
-import { setLockTime } from '../../actions/settings';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
 
@@ -360,7 +360,7 @@ class AuthenticationService {
       ReduxService.store.getState().security?.allowLoginWithRememberMe;
     if (existingUser && allowLoginWithRememberMe) {
       const credentials = await SecureKeychain.getGenericPassword();
-      if (credentials && credentials.password) {
+      if (credentials?.password) {
         return {
           currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
           availableBiometryType,
@@ -485,6 +485,7 @@ class AuthenticationService {
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
           break;
       }
+      this.dispatchPasswordSet();
     } catch (error) {
       throw new AuthenticationError(
         (error as Error).message,
@@ -554,16 +555,13 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await StorageWrapper.getItem(
-      BIOMETRY_CHOICE_DISABLED,
-    );
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
       biometryChoice &&
-      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
+      passcodePreviouslyDisabled === TRUE
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
@@ -696,7 +694,6 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       await this.dispatchLogin();
       this.authData = authData;
-      this.dispatchPasswordSet();
 
       // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
       // discovery...).
@@ -722,6 +719,101 @@ class AuthenticationService {
       );
     }
     password = this.wipeSensitiveData();
+  };
+
+  /**
+   * Method for unlocking the wallet.
+   *
+   * If the user exists, it will try to derive the password from biometric credentials and navigate to the wallet if successful.
+   * If the user exists and the biometric credentials are not found, it will navigate to the login flow and request the user to enter their password.
+   * If the user does not exist, it will place the user in the onboarding flow.
+   *
+   * @param options - Options for unlocking the wallet.
+   * @param options.password - The password to use to unlock the wallet.
+   * @returns - void
+   */
+  unlockWallet = async (
+    {
+      password,
+      authPreference,
+    }: {
+      password?: string;
+      authPreference?: AuthData;
+    } = {
+      password: undefined,
+      authPreference: undefined,
+    },
+  ) => {
+    let passwordToUse: string | undefined;
+    try {
+      const existingUser = selectExistingUser(ReduxService.store.getState());
+
+      if (existingUser) {
+        // User exists. Attempt to unlock wallet.
+
+        if (password) {
+          // Explicitly provided password.
+          passwordToUse = password;
+        } else {
+          // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
+          const credentials = await SecureKeychain.getGenericPassword();
+          passwordToUse = credentials?.password;
+        }
+
+        if (passwordToUse) {
+          // Password available. Use password to unlock wallet.
+          if (authPreference?.oauth2Login) {
+            // if seedless flow - rehydrate
+            await this.rehydrateSeedPhrase(passwordToUse);
+          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+            // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+            await this.syncPasswordAndUnlockWallet(passwordToUse);
+          }
+
+          // Unlock keyrings.
+          await this.loginVaultCreation(passwordToUse);
+
+          // Update authentication preference.
+          if (authPreference) {
+            await this.updateAuthPreference({
+              password: passwordToUse,
+              authType: authPreference.currentAuthType,
+            });
+          }
+
+          // Perform post login operations.
+          await this.dispatchLogin();
+          this.dispatchPasswordSet();
+          void this.postLoginAsyncOperations();
+
+          // Authentication successful.Navigate to home screen.
+          NavigationService.navigation?.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        } else {
+          // No password provided or derived. Navigate to login.
+          NavigationService.navigation?.reset({
+            routes: [
+              {
+                name: Routes.ONBOARDING.LOGIN,
+              },
+            ],
+          });
+        }
+      } else {
+        // User is new. Navigate to onboarding.
+        NavigationService.navigation?.reset({
+          routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+        });
+      }
+    } catch (error) {
+      // Error while submitting password.
+      handlePasswordSubmissionError(error as Error);
+    } finally {
+      // Wipe sensitive data.
+      password = this.wipeSensitiveData();
+      passwordToUse = this.wipeSensitiveData();
+    }
   };
 
   /**
@@ -802,12 +894,18 @@ class AuthenticationService {
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   lockApp = async ({
+    allowRememberMe = undefined as boolean | undefined,
     reset = true,
     locked = false,
     navigateToLogin = true,
   } = {}): Promise<void> => {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    if (allowRememberMe === false) {
+      ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
     if (reset) await this.resetPassword();
+
+    // Lock the KeyringController.
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
@@ -821,8 +919,14 @@ class AuthenticationService {
     // the function swallowed the error
     this.checkIsSeedlessPasswordOutdated(true);
 
+    // Reset authentication preference.
+    // NOTE: This does not seem necessary as it's just setting the state rather than updating the keychain.
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
+
+    // Dispatch logout to Redux. Authentication state machine in sagas uses this action.
     this.dispatchLogout();
+
+    // Navigate user to the login screen.
     if (navigateToLogin) {
       NavigationService.navigation?.reset({
         routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
@@ -1321,6 +1425,8 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
+
+    // Reset biometrics since the password that is stored should not be valid.
     await this.resetPassword();
   };
 
@@ -1484,39 +1590,26 @@ class AuthenticationService {
    * Throws AuthenticationError if password is not found in keychain and not provided.
    * Callers should handle navigation to password entry screen when this error is thrown.
    *
-   * @param authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
-   * @param password - optional password to use. If not provided, gets from keychain.
+   * @param options - Options for updating auth preference
+   * @param options.authType - type of authentication to use (BIOMETRIC, PASSCODE, or PASSWORD)
+   * @param options.password - optional password to use. If not provided, gets from keychain.
    * @returns {Promise<void>}
    * @throws {AuthenticationError} when password is not found and not provided
    */
-  updateAuthPreference = async (
-    authType: AUTHENTICATION_TYPE = AUTHENTICATION_TYPE.PASSWORD,
-    password?: string,
-  ): Promise<void> => {
+  updateAuthPreference = async (options: {
+    authType: AUTHENTICATION_TYPE;
+    password?: string;
+  }): Promise<void> => {
+    const { authType, password } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
-      if (!passwordToUse.password) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          this.authData,
-        );
-      }
-      // TUDO: Check if this is really needed for IOS
+
+      // TODO: Check if this is really needed for IOS (if so, userEntryAuth is not calling it, and we should move the reset to storePassword)
       await this.resetPassword();
 
       // storePassword handles all storage flag management internally
       await this.storePassword(passwordToUse.password, authType);
-
-      ReduxService.store.dispatch(passwordSet());
-
-      const lockTime = ReduxService.store.getState().settings.lockTime;
-      if (lockTime === -1) {
-        ReduxService.store.dispatch(
-          setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT),
-        );
-      }
     } catch (e) {
       const errorWithMessage = e as { message: string };
 

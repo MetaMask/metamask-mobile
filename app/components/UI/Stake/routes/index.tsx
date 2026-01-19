@@ -9,6 +9,9 @@ import MaxInputModal from '../../Earn/components/MaxInputModal';
 import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import TronStakingLearnMoreModal from '../../Earn/components/Tron/TronStakingLearnMoreModal';
+///: END:ONLY_INCLUDE_IF
 import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
@@ -75,6 +78,17 @@ const StakeModalStack = () => (
         component={PoolStakingLearnMoreModal}
         options={{ headerShown: false }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      }
+      <ModalStack.Screen
+        name={Routes.STAKING.MODALS.TRX_LEARN_MORE}
+        component={TronStakingLearnMoreModal}
+        options={{ headerShown: false }}
+      />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.MAX_INPUT}
         component={MaxInputModal}

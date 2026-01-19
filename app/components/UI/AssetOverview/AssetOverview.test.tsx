@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
 import { NetworkController } from '@metamask/network-controller';
-import AssetOverview from './AssetOverview';
+import AssetOverview, { getSwapTokens } from './AssetOverview';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -11,7 +11,7 @@ import {
   MOCK_ADDRESS_2,
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
 // eslint-disable-next-line import/no-namespace
 import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
@@ -273,6 +273,25 @@ jest.mock('../../../components/hooks/useAddNetwork', () => ({
   })),
 }));
 
+// Mock useSwapBridgeNavigation to capture hook arguments while still calling navigation
+const mockUseSwapBridgeNavigationArgs = jest.fn();
+jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => {
+  const actual = jest.requireActual('../Bridge/hooks/useSwapBridgeNavigation');
+  return {
+    ...actual,
+    useSwapBridgeNavigation: (args: unknown) => {
+      mockUseSwapBridgeNavigationArgs(args);
+      return actual.useSwapBridgeNavigation(args);
+    },
+  };
+});
+
+const mockUseRampsUnifiedV1Enabled = jest.fn();
+jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV1Enabled(),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -291,6 +310,11 @@ const asset = {
 const assetFromSearch = {
   ...asset,
   isFromSearch: true,
+};
+
+const assetFromTrending = {
+  ...asset,
+  isFromTrending: true,
 };
 
 describe('AssetOverview', () => {
@@ -327,6 +351,9 @@ describe('AssetOverview', () => {
       address: MOCK_ADDRESS_2,
     });
     selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
+
+    // Default mock for unified V1 flag - disabled
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -447,6 +474,78 @@ describe('AssetOverview', () => {
     expect(mockAddProperties).toHaveBeenCalledTimes(2);
     expect(mockBuild).toHaveBeenCalledTimes(2);
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('tracks RAMPS_BUTTON_CLICKED with ramp_type BUY when unified V1 is disabled', async () => {
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    jest.clearAllMocks();
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    onBuyFunction();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'BUY',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_BUTTON_CLICKED with ramp_type UNIFIED_BUY when unified V1 is enabled', async () => {
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    const navigationCall = navigate.mock.calls[0];
+    const onBuyFunction = navigationCall[1].params.onBuy;
+
+    jest.clearAllMocks();
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
+    onBuyFunction();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'UNIFIED_BUY',
+      }),
+    );
   });
 
   it('should handle send button press', async () => {
@@ -978,6 +1077,139 @@ describe('AssetOverview', () => {
         bridgeViewMode: 'Unified',
         sourcePage: 'MainView',
       }),
+    });
+  });
+
+  it('navigates to bridge for buy when coming from trending tokens', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={assetFromTrending}
+        displayBuyButton
+        displaySwapsButton
+      />,
+      { state: mockInitialState },
+    );
+
+    const swapButton = getByTestId('token-swap-button');
+    fireEvent.press(swapButton);
+
+    await Promise.resolve();
+
+    // Navigates to Bridge with unified mode
+    expect(navigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: expect.objectContaining({
+        bridgeViewMode: 'Unified',
+        sourcePage: 'MainView',
+      }),
+    });
+  });
+
+  describe('useSwapBridgeNavigation token configuration', () => {
+    beforeEach(() => {
+      mockUseSwapBridgeNavigationArgs.mockClear();
+    });
+
+    it('passes native token as source and asset as destination when asset is from trending', () => {
+      renderWithProvider(
+        <AssetOverview
+          asset={assetFromTrending}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      // Verify hook was called with correct token configuration
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is native token (ETH) since user wants to BUY the trending token
+          sourceToken: expect.objectContaining({
+            symbol: 'ETH',
+            chainId: MOCK_CHAIN_ID,
+          }),
+          // destToken is the trending token (what user wants to buy)
+          destToken: expect.objectContaining({
+            address: assetFromTrending.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: assetFromTrending.symbol,
+          }),
+        }),
+      );
+    });
+
+    it('passes asset as source and undefined destination when asset is not from trending', () => {
+      renderWithProvider(
+        <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+        { state: mockInitialState },
+      );
+
+      // Verify hook was called with correct token configuration
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is the asset itself since user wants to SELL
+          sourceToken: expect.objectContaining({
+            address: asset.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: asset.symbol,
+          }),
+          // destToken is undefined since no specific destination
+          destToken: undefined,
+        }),
+      );
+    });
+
+    it('passes asset as source when asset is from search but not trending', () => {
+      renderWithProvider(
+        <AssetOverview
+          asset={assetFromSearch}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      // isFromSearch does not trigger buy mode, only isFromTrending does
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceToken: expect.objectContaining({
+            address: assetFromSearch.address,
+            chainId: MOCK_CHAIN_ID,
+            symbol: assetFromSearch.symbol,
+          }),
+          destToken: undefined,
+        }),
+      );
+    });
+
+    it('passes native token of different chain as source when trending asset is on different chain', () => {
+      const trendingAssetOnPolygon = {
+        ...assetFromTrending,
+        chainId: '0x89', // Polygon
+      };
+
+      renderWithProvider(
+        <AssetOverview
+          asset={trendingAssetOnPolygon}
+          displayBuyButton
+          displaySwapsButton
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(mockUseSwapBridgeNavigationArgs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // sourceToken is native token of Polygon chain
+          sourceToken: expect.objectContaining({
+            chainId: '0x89',
+          }),
+          // destToken is the trending token on Polygon
+          destToken: expect.objectContaining({
+            address: trendingAssetOnPolygon.address,
+            chainId: '0x89',
+          }),
+        }),
+      );
     });
   });
 
@@ -1558,6 +1790,135 @@ describe('AssetOverview', () => {
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
+    });
+  });
+});
+
+describe('getSwapTokens', () => {
+  it('returns native token as source and asset as dest when asset is from trending', () => {
+    const trendingAsset = {
+      ...asset,
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingAsset);
+
+    // sourceToken is the native token for the chain
+    expect(result.sourceToken).toEqual({
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: MOCK_CHAIN_ID,
+      decimals: 18,
+      image: '',
+      name: 'Ether',
+      symbol: 'ETH',
+    });
+    // destToken is the bridgeToken built from the asset
+    expect(result.destToken).toEqual({
+      ...trendingAsset,
+      address: trendingAsset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: trendingAsset.decimals,
+      symbol: trendingAsset.symbol,
+      name: trendingAsset.name,
+      image: trendingAsset.image,
+    });
+  });
+
+  it('returns asset as source and undefined dest when asset is not from trending', () => {
+    const regularAsset = {
+      ...asset,
+      isFromTrending: false,
+    };
+
+    const result = getSwapTokens(regularAsset);
+
+    // sourceToken is the bridgeToken built from the asset
+    expect(result.sourceToken).toEqual({
+      ...regularAsset,
+      address: regularAsset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: regularAsset.decimals,
+      symbol: regularAsset.symbol,
+      name: regularAsset.name,
+      image: regularAsset.image,
+    });
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns asset as source when asset has no isFromTrending property', () => {
+    const result = getSwapTokens(asset);
+
+    // sourceToken is the bridgeToken built from the asset
+    expect(result.sourceToken).toEqual({
+      ...asset,
+      address: asset.address,
+      chainId: MOCK_CHAIN_ID,
+      decimals: asset.decimals,
+      symbol: asset.symbol,
+      name: asset.name,
+      image: asset.image,
+    });
+    expect(result.destToken).toBeUndefined();
+  });
+
+  it('returns native token for the correct chain when asset is from trending on different chain', () => {
+    const trendingAssetOnPolygon = {
+      ...asset,
+      chainId: '0x89',
+      isFromTrending: true,
+    };
+
+    const result = getSwapTokens(trendingAssetOnPolygon);
+
+    // sourceToken is the native token for Polygon
+    expect(result.sourceToken).toEqual({
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x89',
+      decimals: 18,
+      image: '',
+      name: 'Polygon',
+      symbol: 'POL',
+    });
+    // destToken is the bridgeToken built from the asset
+    expect(result.destToken).toEqual({
+      ...trendingAssetOnPolygon,
+      address: trendingAssetOnPolygon.address,
+      chainId: '0x89',
+      decimals: trendingAssetOnPolygon.decimals,
+      symbol: trendingAssetOnPolygon.symbol,
+      name: trendingAssetOnPolygon.name,
+      image: trendingAssetOnPolygon.image,
+    });
+  });
+
+  it('returns default pair token as sourceToken and native gas token as destToken when asset is native gas token', () => {
+    const nativeGasToken = {
+      ...asset,
+      address: '0x0000000000000000000000000000000000000000',
+      isETH: true,
+    };
+
+    const result = getSwapTokens(nativeGasToken);
+
+    // sourceToken is the default pair token for mainnet (mUSD)
+    expect(result.sourceToken).toEqual({
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      decimals: 6,
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+      chainId: MOCK_CHAIN_ID,
+    });
+    // destToken is the native gas token
+    expect(result.destToken).toEqual({
+      ...nativeGasToken,
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: MOCK_CHAIN_ID,
+      decimals: nativeGasToken.decimals,
+      symbol: nativeGasToken.symbol,
+      name: nativeGasToken.name,
+      image: nativeGasToken.image,
     });
   });
 });

@@ -44,7 +44,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
-import { EVENT_LOCATIONS } from '../../constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
@@ -241,6 +241,17 @@ const EarnInputView = () => {
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
+
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // Navigate to TRX staking learn more modal
+      if (isTronNative) {
+        navigation.navigate('StakeModals', {
+          screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
+        });
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: earnToken?.chainId },
@@ -890,7 +901,7 @@ const EarnInputView = () => {
         navBarEventOptions,
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         earnToken,
-        tronApyPercent,
+        isTronEnabled ? tronApyPercent : null,
         ///: END:ONLY_INCLUDE_IF
       ),
     );
@@ -906,6 +917,7 @@ const EarnInputView = () => {
     earnToken?.name,
     earnToken,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronEnabled,
     tronApyPercent,
     ///: END:ONLY_INCLUDE_IF
   ]);

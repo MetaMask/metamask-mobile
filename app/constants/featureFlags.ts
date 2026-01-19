@@ -8,4 +8,5 @@ export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
   fullPageAccountList = 'fullPageAccountList',
+  importSrpWordSuggestion = 'importSrpWordSuggestion',
 }
