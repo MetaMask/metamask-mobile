@@ -77,7 +77,7 @@ runs:
         mkdir -p /tmp/ai-deps
         cd /tmp/ai-deps
         npm init -y
-        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.21.0 esbuild-register@3.6.0 --no-audit --no-fund
+        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.24.1 esbuild-register@3.6.0 --no-audit --no-fund
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
