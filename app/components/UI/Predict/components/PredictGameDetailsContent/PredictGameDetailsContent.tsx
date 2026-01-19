@@ -26,60 +26,9 @@ import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutS
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import PredictSportTeamGradient from '../PredictSportTeamGradient';
-import PredictSportScoreboard, {
-  GameState,
-  Possession,
-  Winner,
-} from '../PredictSportScoreboard';
+import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
-import { PredictGameScore, PredictGameStatus } from '../../types';
-
-const getGameState = (
-  status: PredictGameStatus,
-  period: string | null,
-): GameState => {
-  if (status === 'scheduled') return GameState.PreGame;
-  if (status === 'ended') return GameState.Final;
-  if (period?.toUpperCase() === 'HT') return GameState.Halftime;
-  return GameState.InProgress;
-};
-
-const getPossession = (
-  turn: string | undefined,
-  awayAbbr: string,
-  homeAbbr: string,
-): Possession => {
-  if (!turn) return Possession.None;
-  const lowerTurn = turn.toLowerCase();
-  if (lowerTurn === awayAbbr.toLowerCase()) return Possession.Away;
-  if (lowerTurn === homeAbbr.toLowerCase()) return Possession.Home;
-  return Possession.None;
-};
-
-const getWinner = (score: PredictGameScore | null): Winner => {
-  if (!score) return Winner.None;
-  if (score.away > score.home) return Winner.Away;
-  if (score.home > score.away) return Winner.Home;
-  return Winner.None;
-};
-
-const formatGameDateTime = (
-  startTime: string,
-): { date: string; time: string } => {
-  const dateObj = new Date(startTime);
-  const date = dateObj.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-  const time = dateObj.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  });
-  return { date, time };
-};
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -106,28 +55,10 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
-  const tokenIds = useMemo(
-    () => (outcome?.tokens ?? []).map((t) => t.id),
-    [outcome?.tokens],
-  );
-
-  const gameDateTime = useMemo(
-    () => (game ? formatGameDateTime(game.startTime) : null),
-    [game],
-  );
 
   if (!outcome || !game) {
     return null;
   }
-
-  const gameState = getGameState(game.status, game.period);
-  const possession = getPossession(
-    game.turn,
-    game.awayTeam.abbreviation,
-    game.homeTeam.abbreviation,
-  );
-  const winner =
-    gameState === GameState.Final ? getWinner(game.score) : Winner.None;
 
   return (
     <PredictSportTeamGradient
@@ -183,45 +114,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             />
           }
         >
-          <PredictSportScoreboard
-            awayTeam={{
-              abbreviation: game.awayTeam.abbreviation,
-              color: game.awayTeam.color,
-            }}
-            homeTeam={{
-              abbreviation: game.homeTeam.abbreviation,
-              color: game.homeTeam.color,
-            }}
-            awayScore={game.score?.away}
-            homeScore={game.score?.home}
-            gameState={gameState}
-            eventTitle={market.title}
-            date={gameDateTime?.date}
-            time={gameDateTime?.time}
-            quarter={game.period ?? undefined}
-            possession={possession}
-            winner={winner}
-            testID="game-scoreboard"
-          />
+          <Box twClassName="px-4 py-2">
+            <PredictSportScoreboard game={game} testID="game-scoreboard" />
+          </Box>
 
-          {tokenIds.length === 2 && (
-            <Box twClassName="mt-4">
-              <PredictGameChart
-                tokenIds={tokenIds as [string, string]}
-                seriesConfig={[
-                  {
-                    label: game.awayTeam.abbreviation,
-                    color: game.awayTeam.color,
-                  },
-                  {
-                    label: game.homeTeam.abbreviation,
-                    color: game.homeTeam.color,
-                  },
-                ]}
-                testID="game-chart"
-              />
-            </Box>
-          )}
+          <Box twClassName="mt-4">
+            <PredictGameChart market={market} testID="game-chart" />
+          </Box>
 
           <Box twClassName="px-4 py-2">
             <PredictPicks market={market} testID="game-picks" />
