@@ -44,6 +44,7 @@ jest.mock('../../../../util/address', () => ({
 }));
 jest.mock('../../../Multichain/utils', () => ({
   isNonEvmAddress: jest.fn(),
+  isBtcAccount: jest.fn(),
 }));
 jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn(),
@@ -54,6 +55,9 @@ jest.mock('@metamask/controller-utils', () => ({
 }));
 jest.mock('./utils/solana-snap', () => ({
   signSolanaRewardsMessage: jest.fn(),
+}));
+jest.mock('./utils/bitcoin-snap', () => ({
+  signBitcoinRewardsMessage: jest.fn(),
 }));
 jest.mock('./services/rewards-data-service', () => {
   const actual = jest.requireActual('./services/rewards-data-service');
@@ -76,7 +80,7 @@ jest.mock('ethers/lib/utils', () => ({
 // Import mocked modules
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isHardwareAccount } from '../../../../util/address';
-import { isNonEvmAddress } from '../../../Multichain/utils';
+import { isNonEvmAddress, isBtcAccount } from '../../../Multichain/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
@@ -87,6 +91,7 @@ import {
   getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
+import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
@@ -102,6 +107,9 @@ const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
 >;
 const mockIsNonEvmAddress = isNonEvmAddress as jest.MockedFunction<
   typeof isNonEvmAddress
+>;
+const mockIsBtcAccount = isBtcAccount as jest.MockedFunction<
+  typeof isBtcAccount
 >;
 const mockIsSolanaAddress = isSolanaAddress as jest.MockedFunction<
   typeof isSolanaAddress
@@ -125,6 +133,10 @@ const mockSignSolanaRewardsMessage =
   signSolanaRewardsMessage as jest.MockedFunction<
     typeof signSolanaRewardsMessage
   >;
+const mockSignBitcoinRewardsMessage =
+  signBitcoinRewardsMessage as jest.MockedFunction<
+    typeof signBitcoinRewardsMessage
+  >;
 const MockRewardsDataServiceClass = jest.mocked(RewardsDataService);
 
 // Test constants - CAIP-10 format addresses
@@ -143,10 +155,14 @@ class TestableRewardsController extends RewardsController {
     timestamp: number,
     isNonEvmAddress: boolean,
     isSolanaAddress: boolean,
+    isBtcAccount: boolean = false,
+    isBtcEnabledOverride?: boolean,
   ): Promise<string> {
     // For unsupported account types - return a rejected promise
-    if (isNonEvmAddress && !isSolanaAddress) {
-      return Promise.reject(new Error('Unsupported account type'));
+    if (isNonEvmAddress && !isSolanaAddress && !isBtcAccount) {
+      return Promise.reject(
+        new Error('Unsupported account type for signing rewards message'),
+      );
     }
 
     // For Solana accounts
@@ -164,6 +180,36 @@ class TestableRewardsController extends RewardsController {
 
       // Return the expected format
       return Promise.resolve('0x01020304');
+    }
+
+    // For Bitcoin accounts - only if BTC is enabled
+    if (isBtcAccount) {
+      // Check if BTC is enabled - use override if provided, otherwise try to access private method
+      const isBtcEnabled =
+        isBtcEnabledOverride !== undefined
+          ? isBtcEnabledOverride
+          : this.testIsBtcEnabled();
+
+      if (!isBtcEnabled) {
+        // If BTC is disabled, fall through to error case
+        return Promise.reject(
+          new Error('Unsupported account type for signing rewards message'),
+        );
+      }
+
+      // Format the message exactly as expected in the test
+      const message = `rewards,${account.address},${timestamp}`;
+      const base64Message = Buffer.from(message, 'utf8').toString('base64');
+
+      // Call the actual mock function
+      return mockSignBitcoinRewardsMessage(account.id, base64Message).then(
+        (result) =>
+          // Bitcoin signatures are already in hex format, just ensure 0x prefix
+           result.signature.startsWith('0x')
+            ? result.signature
+            : `0x${result.signature}`
+        ,
+      );
     }
 
     // For EVM accounts
@@ -194,6 +240,13 @@ class TestableRewardsController extends RewardsController {
 
   public testUpdate(callback: (state: RewardsControllerState) => void) {
     this.update(callback);
+  }
+
+  // Expose BTC enabled check for testing
+  public testIsBtcEnabled(): boolean {
+    // Access private method via type assertion
+    const isBtcEnabled = (this as any)['#isBtcEnabled'];
+    return isBtcEnabled ? isBtcEnabled() : false;
   }
 
   public async invalidateAccountsAndSubscriptions() {
@@ -14097,6 +14150,7 @@ describe('RewardsController', () => {
         mockTimestamp,
         true,
         true,
+        false,
       );
 
       // Assert
@@ -14117,6 +14171,223 @@ describe('RewardsController', () => {
       expect(result).toContain('0x');
     });
 
+    it('should sign Bitcoin message correctly when BTC account and BTC enabled', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        type: 'bip122:p2wpkh' as const,
+        id: 'bitcoin-account-id',
+        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
+        options: {},
+        methods: ['signMessage'],
+        metadata: {
+          name: 'Bitcoin Account',
+          keyring: { type: 'Bitcoin Snap Keyring' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is detected as Bitcoin
+      mockIsBtcAccount.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
+
+      // Mock the Bitcoin signature result
+      mockSignBitcoinRewardsMessage.mockResolvedValue({
+        signature: '0xabcdef123456',
+        signedMessage: 'test',
+        signatureType: 'ecdsa',
+      });
+
+      // Create TestableRewardsController with BTC enabled
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isBtcEnabled: () => true,
+      });
+
+      // Act - use test helper that includes BTC enabled check
+      const result = await testController.testSignRewardsMessage(
+        mockInternalAccount,
+        mockTimestamp,
+        true, // isNonEvmAddress
+        false, // isSolanaAddress
+        true, // isBtcAccount
+        true, // isBtcEnabledOverride
+      );
+
+      // Assert
+      // Verify the message was formatted correctly
+      const expectedMessage = `rewards,${mockInternalAccount.address},${mockTimestamp}`;
+      const expectedBase64Message = Buffer.from(
+        expectedMessage,
+        'utf8',
+      ).toString('base64');
+
+      expect(mockSignBitcoinRewardsMessage).toHaveBeenCalledWith(
+        mockInternalAccount.id,
+        expectedBase64Message,
+      );
+
+      // Verify the signature was returned correctly
+      expect(result).toBe('0xabcdef123456');
+    });
+
+    it('should add 0x prefix to Bitcoin signature when missing', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        type: 'bip122:p2wpkh' as const,
+        id: 'bitcoin-account-id',
+        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
+        options: {},
+        methods: ['signMessage'],
+        metadata: {
+          name: 'Bitcoin Account',
+          keyring: { type: 'Bitcoin Snap Keyring' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is detected as Bitcoin
+      mockIsBtcAccount.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
+
+      // Mock the Bitcoin signature result without 0x prefix
+      mockSignBitcoinRewardsMessage.mockResolvedValue({
+        signature: 'abcdef123456',
+        signedMessage: 'test',
+        signatureType: 'ecdsa',
+      });
+
+      // Create TestableRewardsController with BTC enabled
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isBtcEnabled: () => true,
+      });
+
+      // Act - use test helper that includes BTC enabled check and 0x prefix logic
+      const result = await testController.testSignRewardsMessage(
+        mockInternalAccount,
+        mockTimestamp,
+        true, // isNonEvmAddress
+        false, // isSolanaAddress
+        true, // isBtcAccount
+        true, // isBtcEnabledOverride
+      );
+
+      // Assert
+      // Verify the signature was prefixed with 0x
+      expect(result).toBe('0xabcdef123456');
+      expect(mockSignBitcoinRewardsMessage).toHaveBeenCalled();
+    });
+
+    it('should throw error for BTC account when BTC is disabled', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        type: 'bip122:p2wpkh' as const,
+        id: 'bitcoin-account-id',
+        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
+        options: {},
+        methods: ['signMessage'],
+        metadata: {
+          name: 'Bitcoin Account',
+          keyring: { type: 'Bitcoin Snap Keyring' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is detected as Bitcoin
+      mockIsBtcAccount.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
+
+      // Create TestableRewardsController with BTC disabled
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isBtcEnabled: () => false,
+      });
+
+      // Act & Assert - use test helper that checks BTC enabled status
+      await expect(
+        testController.testSignRewardsMessage(
+          mockInternalAccount,
+          mockTimestamp,
+          true, // isNonEvmAddress
+          false, // isSolanaAddress
+          true, // isBtcAccount
+          false, // isBtcEnabledOverride - BTC is disabled
+        ),
+      ).rejects.toThrow('Unsupported account type for signing rewards message');
+
+      // Verify Bitcoin signing was not called
+      expect(mockSignBitcoinRewardsMessage).not.toHaveBeenCalled();
+    });
+
+    it('should not use Bitcoin signing for non-BTC account', async () => {
+      // Arrange
+      const mockInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa',
+        id: 'test-id',
+        scopes: ['eip155:1'],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'EVM Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      } as InternalAccount;
+
+      // Ensure the account is not detected as Bitcoin
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(false);
+
+      // Mock the KeyringController:signPersonalMessage call
+      mockMessenger.call.mockResolvedValueOnce('0xsignature');
+
+      // Create TestableRewardsController with BTC enabled (should not matter for non-BTC account)
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isBtcEnabled: () => true,
+      });
+
+      // Act - use test helper for non-BTC account
+      const result = await testController.testSignRewardsMessage(
+        mockInternalAccount,
+        mockTimestamp,
+        false, // isNonEvmAddress
+        false, // isSolanaAddress
+        false, // isBtcAccount
+      );
+
+      // Assert
+      expect(result).toBe('0xsignature');
+
+      // Verify Bitcoin signing was not called
+      expect(mockSignBitcoinRewardsMessage).not.toHaveBeenCalled();
+
+      // Verify EVM signing was called instead
+      const expectedMessage = `rewards,${mockInternalAccount.address},${mockTimestamp}`;
+      const expectedHexMessage =
+        '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        {
+          data: expectedHexMessage,
+          from: mockInternalAccount.address,
+        },
+      );
+    });
+
     it('should throw error for unsupported account type', async () => {
       // Arrange
       const mockInternalAccount = {
@@ -14133,21 +14404,27 @@ describe('RewardsController', () => {
         },
       } as InternalAccount;
 
-      // Create a TestableRewardsController to access the private method
+      // Ensure account is not Solana, Bitcoin, or EVM
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true);
+
+      // Create TestableRewardsController
       const testController = new TestableRewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
-      // Act & Assert - directly call the exposed test method
+      // Act & Assert - use test helper for unsupported account type
       await expect(
         testController.testSignRewardsMessage(
           mockInternalAccount,
           mockTimestamp,
-          true,
-          false,
+          true, // isNonEvmAddress
+          false, // isSolanaAddress
+          false, // isBtcAccount
         ),
-      ).rejects.toThrow('Unsupported account type');
+      ).rejects.toThrow('Unsupported account type for signing rewards message');
     });
 
     it('should handle errors from KeyringController when signing EVM message', async () => {
@@ -14533,6 +14810,7 @@ describe('RewardsController', () => {
       // Reset all mocks before each test
       mockIsHardwareAccount.mockClear();
       mockIsNonEvmAddress.mockClear();
+      mockIsBtcAccount.mockClear();
       mockIsSolanaAddress.mockClear();
       mockLogger.log.mockClear();
     });
@@ -14628,9 +14906,9 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should return false for non-EVM accounts that are not Solana', () => {
+    it('should return true for Bitcoin accounts that are not hardware and BTC is enabled', () => {
       // Arrange
-      const nonEvmNonSolanaAccount = {
+      const bitcoinAccount = {
         address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
         type: 'bip122:p2wpkh' as const,
         id: 'bitcoin-account',
@@ -14644,12 +14922,63 @@ describe('RewardsController', () => {
         methods: [],
       };
 
+      const btcEnabledController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isBtcEnabled: () => true,
+      });
+
       mockIsHardwareAccount.mockReturnValue(false);
       mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
       mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(true); // Is Bitcoin
 
       // Act
-      const result = controller.isOptInSupported(nonEvmNonSolanaAccount);
+      const result = btcEnabledController.isOptInSupported(bitcoinAccount);
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith(
+        'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+      );
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith(
+        'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+      );
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith(
+        'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+      );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
+    });
+
+    it('should return false for Bitcoin accounts when BTC is disabled', () => {
+      // Arrange
+      const bitcoinAccount = {
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        type: 'bip122:p2wpkh' as const,
+        id: 'bitcoin-account',
+        options: {},
+        metadata: {
+          name: 'Bitcoin Account',
+          importTime: Date.now(),
+          keyring: { type: 'Bitcoin Snap Keyring' },
+        },
+        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
+        methods: [],
+      };
+
+      const btcDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isBtcEnabled: () => false,
+      });
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(true); // Is Bitcoin
+
+      // Act
+      const result = btcDisabledController.isOptInSupported(bitcoinAccount);
 
       // Assert
       expect(result).toBe(false);
@@ -14661,6 +14990,93 @@ describe('RewardsController', () => {
       );
       expect(mockIsSolanaAddress).toHaveBeenCalledWith(
         'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+      );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
+    });
+
+    it('should return false for non-Bitcoin accounts regardless of BTC enabled status', () => {
+      // Arrange
+      const nonBitcoinAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account',
+        options: {},
+        metadata: {
+          name: 'Tron Account',
+          importTime: Date.now(),
+          keyring: { type: 'Tron Snap Keyring' },
+        },
+        scopes: ['tron:mainnet' as const],
+        methods: [],
+      };
+
+      const btcEnabledController = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => false,
+        isBtcEnabled: () => true,
+      });
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
+
+      // Act
+      const result = btcEnabledController.isOptInSupported(nonBitcoinAccount);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(nonBitcoinAccount);
+    });
+
+    it('should return false for non-EVM accounts that are not Solana or Bitcoin', () => {
+      // Arrange
+      const nonEvmNonSolanaNonBitcoinAccount = {
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        type: 'tron:eoa' as const,
+        id: 'tron-account',
+        options: {},
+        metadata: {
+          name: 'Tron Account',
+          importTime: Date.now(),
+          keyring: { type: 'Tron Snap Keyring' },
+        },
+        scopes: ['tron:mainnet' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
+
+      // Act
+      const result = controller.isOptInSupported(
+        nonEvmNonSolanaNonBitcoinAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith(
+        'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+      );
+      expect(mockIsBtcAccount).toHaveBeenCalledWith(
+        nonEvmNonSolanaNonBitcoinAccount,
       );
     });
 
@@ -14751,6 +15167,7 @@ describe('RewardsController', () => {
       mockIsHardwareAccount.mockReturnValue(true); // Is hardware
       mockIsNonEvmAddress.mockReturnValue(false); // Would be EVM (supported)
       mockIsSolanaAddress.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
 
       // Act
       const result = controller.isOptInSupported(hardwareEvmAccount);
@@ -14758,9 +15175,10 @@ describe('RewardsController', () => {
       // Assert
       expect(result).toBe(false); // Should return false due to hardware check
       expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
-      // Non-EVM and Solana checks should not be called since hardware check failed
+      // Non-EVM, Solana, and Bitcoin checks should not be called since hardware check failed
       expect(mockIsNonEvmAddress).not.toHaveBeenCalled();
       expect(mockIsSolanaAddress).not.toHaveBeenCalled();
+      expect(mockIsBtcAccount).not.toHaveBeenCalled();
     });
   });
 

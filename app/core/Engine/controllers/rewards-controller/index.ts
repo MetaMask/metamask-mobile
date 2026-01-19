@@ -5,6 +5,7 @@ import {
   RewardsControllerMessenger,
   defaultRewardsControllerState,
 } from './RewardsController';
+import { getFeatureFlagValue } from '../../../../selectors/featureFlagController/env';
 
 /**
  * Initialize the RewardsController.
@@ -26,6 +27,23 @@ export const rewardsControllerInit: ControllerInitFunction<
     isDisabled: () => {
       const isEnabled = selectBasicFunctionalityEnabled(getState());
       return !isEnabled;
+    },
+    isBtcEnabled: () => {
+      try {
+        const remoteValue =
+          controllerMessenger.call('RemoteFeatureFlagController:getState')
+            ?.remoteFeatureFlags?.['rewards-bitcoin-enabled'] ?? false;
+        return getFeatureFlagValue(
+          process.env.MM_REWARDS_BITCOIN_ENABLED,
+          Boolean(remoteValue),
+        );
+      } catch {
+        // If RemoteFeatureFlagController is not available, fall back to env variable
+        return getFeatureFlagValue(
+          process.env.MM_REWARDS_BITCOIN_ENABLED,
+          false,
+        );
+      }
     },
   });
 

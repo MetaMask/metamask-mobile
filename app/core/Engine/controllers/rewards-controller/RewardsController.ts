@@ -47,8 +47,9 @@ import {
   toCaipAccountId,
 } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
-import { isNonEvmAddress } from '../../../Multichain/utils';
+import { isNonEvmAddress, isBtcAccount } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
+import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
 import {
   AuthorizationFailedError,
   InvalidTimestampError,
@@ -253,6 +254,7 @@ export class RewardsController extends BaseController<
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
   #isDisabled: () => boolean;
+  #isBtcEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -395,10 +397,12 @@ export class RewardsController extends BaseController<
     messenger,
     state,
     isDisabled,
+    isBtcEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
+    isBtcEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -411,6 +415,7 @@ export class RewardsController extends BaseController<
     });
 
     this.#isDisabled = isDisabled ?? (() => false);
+    this.#isBtcEnabled = isBtcEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -627,6 +632,15 @@ export class RewardsController extends BaseController<
       return `0x${Buffer.from(base58.decode(result.signature)).toString(
         'hex',
       )}`;
+    } else if (isBtcAccount(account) && this.#isBtcEnabled()) {
+      const result = await signBitcoinRewardsMessage(
+        account.id,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      // Bitcoin signatures are already in hex format, just ensure 0x prefix
+      return result.signature.startsWith('0x')
+        ? result.signature
+        : `0x${result.signature}`;
     } else if (!isNonEvmAddress(account.address)) {
       const result = await this.#signEvmMessage(account, message);
       return result;
@@ -798,7 +812,12 @@ export class RewardsController extends BaseController<
         return true;
       }
 
-      // If it's neither Solana nor EVM, opt-in is not supported
+      // Check if it's a Bitcoin account
+      if (isBtcAccount(account) && this.#isBtcEnabled()) {
+        return true;
+      }
+
+      // If it's neither Solana, Bitcoin, nor EVM, opt-in is not supported
       return false;
     } catch (error) {
       // If there's an exception (e.g., checking hardware wallet status fails),
