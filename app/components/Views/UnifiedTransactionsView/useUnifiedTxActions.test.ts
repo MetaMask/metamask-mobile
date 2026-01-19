@@ -659,6 +659,50 @@ describe('useUnifiedTxActions', () => {
             'Missing transaction id for speed up',
           );
         });
+
+        it('cleans up modal state when user rejects on Ledger modal', async () => {
+          let capturedOnConfirmationComplete:
+            | ((isComplete: boolean) => void)
+            | null = null;
+          (
+            createLedgerTransactionModalNavDetails as jest.Mock
+          ).mockImplementation(({ onConfirmationComplete }) => {
+            capturedOnConfirmationComplete = onConfirmationComplete;
+            return ['LedgerModal', { onConfirmationComplete }];
+          });
+
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-speedup-reject',
+          } as unknown as TransactionMeta;
+          const gas = { isEIP1559Transaction: true };
+
+          act(() => result.current.onSpeedUpAction(true, gas, tx));
+
+          expect(result.current.speedUp1559IsOpen).toBe(true);
+          expect(result.current.speedUpTxId).toBe('ledger-speedup-reject');
+
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              suggestedMaxFeePerGasHex: 'ff',
+              suggestedMaxPriorityFeePerGasHex: 'ee',
+            });
+          });
+
+          expect(capturedOnConfirmationComplete).not.toBeNull();
+
+          // Simulate user rejection on Ledger modal
+          act(() => {
+            capturedOnConfirmationComplete?.(false);
+          });
+
+          // Modal state should be cleaned up even on rejection
+          expect(result.current.speedUp1559IsOpen).toBe(false);
+          expect(result.current.speedUpIsOpen).toBe(false);
+          expect(result.current.speedUpTxId).toBeNull();
+          expect(result.current.existingGas).toBeNull();
+          expect(result.current.existingTx).toBeNull();
+        });
       });
 
       describe('cancelTransaction with Ledger account', () => {
@@ -789,6 +833,50 @@ describe('useUnifiedTxActions', () => {
           expect(result.current.retryErrorMsg).toBe(
             'Missing transaction id for cancel',
           );
+        });
+
+        it('cleans up modal state when user rejects on Ledger modal', async () => {
+          let capturedOnConfirmationComplete:
+            | ((isComplete: boolean) => void)
+            | null = null;
+          (
+            createLedgerTransactionModalNavDetails as jest.Mock
+          ).mockImplementation(({ onConfirmationComplete }) => {
+            capturedOnConfirmationComplete = onConfirmationComplete;
+            return ['LedgerModal', { onConfirmationComplete }];
+          });
+
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-cancel-reject',
+          } as unknown as TransactionMeta;
+          const gas = { isEIP1559Transaction: true };
+
+          act(() => result.current.onCancelAction(true, gas, tx));
+
+          expect(result.current.cancel1559IsOpen).toBe(true);
+          expect(result.current.cancelTxId).toBe('ledger-cancel-reject');
+
+          await act(async () => {
+            await result.current.cancelTransaction({
+              suggestedMaxFeePerGasHex: '11',
+              suggestedMaxPriorityFeePerGasHex: '22',
+            });
+          });
+
+          expect(capturedOnConfirmationComplete).not.toBeNull();
+
+          // Simulate user rejection on Ledger modal
+          act(() => {
+            capturedOnConfirmationComplete?.(false);
+          });
+
+          // Modal state should be cleaned up even on rejection
+          expect(result.current.cancel1559IsOpen).toBe(false);
+          expect(result.current.cancelIsOpen).toBe(false);
+          expect(result.current.cancelTxId).toBeNull();
+          expect(result.current.existingGas).toBeNull();
+          expect(result.current.existingTx).toBeNull();
         });
       });
     });

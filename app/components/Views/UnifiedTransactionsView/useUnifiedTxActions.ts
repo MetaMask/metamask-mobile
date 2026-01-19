@@ -111,12 +111,15 @@ export function useUnifiedTxActions() {
 
   const signLedgerTransaction = async (transaction: LedgerSignRequest) => {
     const deviceId = await getDeviceId();
-    const onConfirmation = (isComplete: boolean) => {
-      if (isComplete) {
-        transaction.speedUpParams &&
-        transaction.speedUpParams?.type === 'SpeedUp'
-          ? onSpeedUpCompleted()
-          : onCancelCompleted();
+    const onConfirmation = (_isComplete: boolean) => {
+      // Clean up modal state regardless of whether the user confirmed or rejected.
+      // Without this, rejecting on the Ledger modal leaves stale state that can
+      // cause the speed up/cancel modal to reappear unexpectedly.
+      const isSpeedUp = transaction.speedUpParams?.type === 'SpeedUp';
+      if (isSpeedUp) {
+        onSpeedUpCompleted();
+      } else {
+        onCancelCompleted();
       }
     };
     navigation.navigate(
