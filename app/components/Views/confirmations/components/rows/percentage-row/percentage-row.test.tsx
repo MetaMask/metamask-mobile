@@ -47,7 +47,7 @@ describe('PercentageRow', () => {
     const { queryByText, queryByTestId } = render();
 
     expect(queryByTestId('percentage-row-skeleton')).toBeNull();
-    expect(queryByText(strings('earn.bonus'))).toBeNull();
+    expect(queryByText(strings('earn.claimable_bonus'))).toBeNull();
     expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
   });
 
@@ -57,7 +57,7 @@ describe('PercentageRow', () => {
     const { queryByText, queryByTestId } = render();
 
     expect(queryByTestId('percentage-row-skeleton')).toBeNull();
-    expect(queryByText(strings('earn.bonus'))).toBeNull();
+    expect(queryByText(strings('earn.claimable_bonus'))).toBeNull();
     expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
   });
 
