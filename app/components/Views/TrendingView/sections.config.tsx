@@ -63,6 +63,25 @@ interface SectionConfig {
   SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
 
+type FuseKeys<T> = ReadonlyArray<Extract<keyof T, string>>;
+
+const TOKEN_FUSE_KEYS = [
+  'symbol',
+  'name',
+  'assetId',
+] as const satisfies FuseKeys<TrendingAsset>;
+
+const PERPS_FUSE_KEYS = ['symbol', 'name'] as const satisfies FuseKeys<
+  PerpsMarketData
+>;
+
+const PREDICTIONS_FUSE_KEYS = [
+  'title',
+  'description',
+  'tags',
+  'slug',
+] as const satisfies FuseKeys<PredictMarketType>;
+
 const BASE_FUSE_OPTIONS = {
   shouldSort: true,
   threshold: 0.4,
@@ -74,18 +93,18 @@ const BASE_FUSE_OPTIONS = {
 
 const TOKEN_FUSE_OPTIONS = {
   ...BASE_FUSE_OPTIONS,
-  keys: ['symbol', 'name', 'assetId'],
+  keys: [...TOKEN_FUSE_KEYS],
 };
 
 const PERPS_FUSE_OPTIONS = {
   ...BASE_FUSE_OPTIONS,
-  keys: ['symbol', 'name'],
+  keys: [...PERPS_FUSE_KEYS],
 };
 
 const PREDICTIONS_FUSE_OPTIONS = {
   ...BASE_FUSE_OPTIONS,
   threshold: 0.35,
-  keys: ['title', 'description', 'tags', 'slug'],
+  keys: [...PREDICTIONS_FUSE_KEYS],
 };
 
 const normalizeSearchQuery = (query?: string): string =>
