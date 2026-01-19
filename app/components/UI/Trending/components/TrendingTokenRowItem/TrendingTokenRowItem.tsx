@@ -111,6 +111,17 @@ const getPriceChangeColor = (priceChange: number): TextColor => {
 };
 
 /**
+ * Gets the prefix symbol for price percentage change
+ */
+const getPriceChangePrefix = (
+  priceChange: number,
+  isPositive: boolean,
+): string => {
+  if (priceChange === 0) return '';
+  return isPositive ? '+' : '-';
+};
+
+/**
  * Maps TimeOption to the corresponding priceChangePct field key
  */
 export const getPriceChangeFieldKey = (
@@ -296,7 +307,7 @@ const TrendingTokenRowItem = ({
               variant={TextVariant.BodySM}
               color={getPriceChangeColor(pricePercentChange)}
             >
-              {pricePercentChange === 0 ? '' : isPositiveChange ? '+' : '-'}
+              {getPriceChangePrefix(pricePercentChange, isPositiveChange)}
               {Math.abs(pricePercentChange).toFixed(2)}%
             </Text>
           )
