@@ -469,7 +469,15 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     // Re-establish connections for each active cache key
     activeCacheKeys.forEach((cacheKey) => {
       // Parse coin and interval from cacheKey (format: "coin-interval")
-      const [coin, interval] = cacheKey.split('-');
+      // Since coin symbols can contain hyphens (e.g., "ETH-USD"), we need to
+      // split from the right. The interval is always the last segment after the final hyphen.
+      const lastHyphenIndex = cacheKey.lastIndexOf('-');
+      if (lastHyphenIndex === -1 || lastHyphenIndex === 0) {
+        // Invalid cache key format - skip
+        return;
+      }
+      const coin = cacheKey.substring(0, lastHyphenIndex);
+      const interval = cacheKey.substring(lastHyphenIndex + 1);
       if (coin && interval) {
         this.connect(coin, interval as CandlePeriod, cacheKey);
       }

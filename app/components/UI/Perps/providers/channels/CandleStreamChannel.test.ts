@@ -1109,4 +1109,117 @@ describe('CandleStreamChannel', () => {
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
     });
   });
+
+  describe('reconnect', () => {
+    it('should correctly parse cache keys with coin symbols containing hyphens', () => {
+      const mockEthUsdUnsubscribe = jest.fn();
+      const mockBtcUnsubscribe = jest.fn();
+
+      // Setup subscriptions with coins that contain hyphens
+      mockSubscribeToCandles
+        .mockReturnValueOnce(mockEthUsdUnsubscribe)
+        .mockReturnValueOnce(mockBtcUnsubscribe);
+
+      // Subscribe to ETH-USD (coin with hyphen)
+      channel.subscribe({
+        coin: 'ETH-USD',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      // Subscribe to BTC (coin without hyphen)
+      channel.subscribe({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_DAY,
+        duration: TimeDuration.ONE_WEEK,
+        callback: jest.fn(),
+      });
+
+      // Clear previous calls
+      mockSubscribeToCandles.mockClear();
+
+      // Act - reconnect all channels
+      channel.reconnect();
+
+      // Assert - both subscriptions should be re-established with correct coin and interval
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(2);
+
+      // Verify ETH-USD subscription was reconnected correctly
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'ETH-USD',
+          interval: CandlePeriod.ONE_HOUR,
+        }),
+      );
+
+      // Verify BTC subscription was reconnected correctly
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'BTC',
+          interval: CandlePeriod.ONE_DAY,
+        }),
+      );
+    });
+
+    it('should handle multiple coins with hyphens correctly', () => {
+      const mockUnsubscribe1 = jest.fn();
+      const mockUnsubscribe2 = jest.fn();
+      const mockUnsubscribe3 = jest.fn();
+
+      mockSubscribeToCandles
+        .mockReturnValueOnce(mockUnsubscribe1)
+        .mockReturnValueOnce(mockUnsubscribe2)
+        .mockReturnValueOnce(mockUnsubscribe3);
+
+      // Subscribe to multiple coins with hyphens
+      channel.subscribe({
+        coin: 'ETH-USD',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      channel.subscribe({
+        coin: 'BTC-USD',
+        interval: CandlePeriod.TWO_HOURS,
+        duration: TimeDuration.ONE_DAY,
+        callback: jest.fn(),
+      });
+
+      channel.subscribe({
+        coin: 'SOL-USD',
+        interval: CandlePeriod.FOUR_HOURS,
+        duration: TimeDuration.ONE_WEEK,
+        callback: jest.fn(),
+      });
+
+      // Clear previous calls
+      mockSubscribeToCandles.mockClear();
+
+      // Act - reconnect
+      channel.reconnect();
+
+      // Assert - all three subscriptions should be re-established correctly
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(3);
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'ETH-USD',
+          interval: CandlePeriod.ONE_HOUR,
+        }),
+      );
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'BTC-USD',
+          interval: CandlePeriod.TWO_HOURS,
+        }),
+      );
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'SOL-USD',
+          interval: CandlePeriod.FOUR_HOURS,
+        }),
+      );
+    });
+  });
 });
