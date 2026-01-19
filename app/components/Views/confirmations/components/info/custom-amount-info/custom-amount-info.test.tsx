@@ -232,6 +232,20 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
+  it('renders quickActionsHint when passed in', () => {
+    const hint = 'Test quick actions hint';
+    const { getByText } = render({ quickActionsHint: hint });
+
+    expect(getByText(hint)).toBeOnTheScreen();
+  });
+
+  it('does not render quickActionsHint when not passed in', () => {
+    const hint = 'Test quick actions hint';
+    const { queryByText } = render();
+
+    expect(queryByText(hint)).toBeNull();
+  });
+
   it('renders buy button if no available tokens', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue([]);
 

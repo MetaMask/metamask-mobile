@@ -8,6 +8,7 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { useCustomAmount } from '../../../hooks/earn/useCustomAmount';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useMusdConversionNavbar } from '../../../../../UI/Earn/hooks/useMusdConversionNavbar';
+import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
@@ -144,6 +145,27 @@ describe('MusdConversionInfo', () => {
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
           overrideContent: expect.any(Function),
+        }),
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('quickActionsHint', () => {
+    it('passes quickActionsHint to CustomAmountInfo', () => {
+      mockRoute.params = {
+        outputChainId: '0x1' as Hex,
+      };
+
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<MusdConversionInfo />, {
+        state: {},
+      });
+
+      expect(CustomAmountInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          quickActionsHint: strings('earn.musd_conversion.powered_by_relay'),
         }),
         expect.anything(),
       );

@@ -62,6 +62,7 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
+  quickActionsHint?: string;
   /**
    * Optional render function that overrides the default content.
    * When set, automatically hides PayTokenAmount, PayWithRow, and children.
@@ -77,6 +78,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     hasMax,
     overrideContent,
     preferredToken,
+    quickActionsHint,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -156,6 +158,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <TotalRow />
               <PercentageRow />
             </Box>
+          )}
+          {quickActionsHint && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.quickActionsHint}
+            >
+              {quickActionsHint}
+            </Text>
           )}
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard

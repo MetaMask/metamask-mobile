@@ -19,6 +19,10 @@ const styleSheet = (_params: { theme: Theme }) =>
     disabledButton: {
       opacity: 0.5,
     },
+
+    quickActionsHint: {
+      alignSelf: 'center',
+    },
   });
 
 export default styleSheet;
