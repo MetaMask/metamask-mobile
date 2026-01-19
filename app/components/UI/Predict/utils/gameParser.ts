@@ -176,6 +176,7 @@ export function buildGameData(
     id: event.gameId,
     startTime:
       event.startTime ?? event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
+    endTime: event.finishedTimestamp,
     status: getGameStatus(event),
     league,
     elapsed: event.elapsed || null,

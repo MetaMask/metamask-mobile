@@ -152,6 +152,7 @@ export type PredictGamePeriod =
 export interface PredictMarketGame {
   id: string;
   startTime: string;
+  endTime?: string; // ISO date when game ended, available for ended games
   status: PredictGameStatus;
   league: PredictSportsLeague;
   elapsed: string | null; // Game clock, null if not available
@@ -277,6 +278,8 @@ export interface GetPriceHistoryParams {
   providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  startTs?: number;
+  endTs?: number;
 }
 
 /**
