@@ -11,9 +11,12 @@ import {
 import { AlertKeys } from '../../constants/alerts';
 import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
 import { Alert } from '../../types/alerts';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../../context/alert-system-context');
 jest.mock('../alerts/usePendingAmountAlerts');
+jest.mock('./useTransactionMetadataRequest');
 
 const TITLE_MOCK = 'Test Title';
 const MESSAGE_MOCK = 'Test Message';
@@ -29,10 +32,12 @@ function runHook({
   isInputChanged = false,
   isKeyboardVisible = false,
   pendingTokenAmount = '0',
+  hasMax = false,
 }: {
   isInputChanged?: boolean;
   isKeyboardVisible?: boolean;
   pendingTokenAmount?: string;
+  hasMax?: boolean;
 } = {}) {
   return renderHookWithProvider(
     () =>
@@ -40,6 +45,7 @@ function runHook({
         isInputChanged,
         isKeyboardVisible,
         pendingTokenAmount,
+        hasMax,
       }),
     {
       state: merge(
@@ -55,6 +61,9 @@ function runHook({
 describe('useTransactionCustomAmountAlerts', () => {
   const useAlertsMock = jest.mocked(useAlerts);
   const usePendingAmountAlertsMock = jest.mocked(usePendingAmountAlerts);
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -64,6 +73,11 @@ describe('useTransactionCustomAmountAlerts', () => {
     } as AlertsContextParams);
 
     usePendingAmountAlertsMock.mockReturnValue([]);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
   });
 
   it('returns title as alert title if present', () => {
@@ -190,6 +204,31 @@ describe('useTransactionCustomAmountAlerts', () => {
       isKeyboardVisible: true,
     });
 
+    expect(result.current.alertMessage).toBeUndefined();
+  });
+
+  it('filters InsufficientPayTokenBalance when hasMax is true for musdConversion transactions', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.musdConversion,
+      txParams: { from: '0x123' },
+    } as never);
+
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          ...ALERT_MOCK,
+          key: AlertKeys.InsufficientPayTokenBalance,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook({
+      hasMax: true,
+      isInputChanged: true,
+      isKeyboardVisible: false,
+    });
+
+    expect(result.current.alertTitle).toBeUndefined();
     expect(result.current.alertMessage).toBeUndefined();
   });
 });
