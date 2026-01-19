@@ -385,8 +385,24 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       const pricesMap = new Map([
-        ['token-a', { tokenId: 'token-a', price: 0.55, timestamp: Date.now() }],
-        ['token-b', { tokenId: 'token-b', price: 0.45, timestamp: Date.now() }],
+        [
+          'token-a',
+          {
+            tokenId: 'token-a',
+            price: 0.54,
+            bestAsk: 0.56,
+            timestamp: Date.now(),
+          },
+        ],
+        [
+          'token-b',
+          {
+            tokenId: 'token-b',
+            price: 0.44,
+            bestAsk: 0.46,
+            timestamp: Date.now(),
+          },
+        ],
       ]);
 
       mockUseLiveMarketPrices.mockReturnValue({
@@ -424,10 +440,8 @@ describe('PredictGameChart Wrapper', () => {
         const dataText = getByTestId('content-data').children[0];
         const data = JSON.parse(String(dataText));
 
-        // Should still have 1 data point (updated, not added)
         expect(data[0].data).toHaveLength(1);
-        // Value should be updated to new price
-        expect(data[0].data[0].value).toBe(55);
+        expect(data[0].data[0].value).toBe(56);
       });
     });
 
@@ -469,8 +483,24 @@ describe('PredictGameChart Wrapper', () => {
       jest.setSystemTime(new Date(nextMinute));
 
       const pricesMap = new Map([
-        ['token-a', { tokenId: 'token-a', price: 0.55, timestamp: nextMinute }],
-        ['token-b', { tokenId: 'token-b', price: 0.45, timestamp: nextMinute }],
+        [
+          'token-a',
+          {
+            tokenId: 'token-a',
+            price: 0.54,
+            bestAsk: 0.56,
+            timestamp: nextMinute,
+          },
+        ],
+        [
+          'token-b',
+          {
+            tokenId: 'token-b',
+            price: 0.44,
+            bestAsk: 0.46,
+            timestamp: nextMinute,
+          },
+        ],
       ]);
 
       mockUseLiveMarketPrices.mockReturnValue({
@@ -560,7 +590,8 @@ describe('PredictGameChart Wrapper', () => {
           'token-a',
           {
             tokenId: 'token-a',
-            price: 0.55,
+            price: 0.54,
+            bestAsk: 0.56,
             timestamp: baseTimestamp + 120000,
           },
         ],
@@ -609,7 +640,12 @@ describe('PredictGameChart Wrapper', () => {
       const pricesMap = new Map([
         [
           'token-a',
-          { tokenId: 'token-a', price: 0.65, timestamp: baseTimestamp + 30000 },
+          {
+            tokenId: 'token-a',
+            price: 0.64,
+            bestAsk: 0.66,
+            timestamp: baseTimestamp + 30000,
+          },
         ],
       ]);
 
@@ -632,7 +668,7 @@ describe('PredictGameChart Wrapper', () => {
         const dataText = getByTestId('content-data').children[0];
         const data = JSON.parse(String(dataText));
 
-        expect(data[0].data[0].value).toBe(65);
+        expect(data[0].data[0].value).toBe(66);
         expect(data[1].data[0].value).toBe(40);
       });
     });
@@ -656,11 +692,21 @@ describe('PredictGameChart Wrapper', () => {
       const pricesMap = new Map([
         [
           'token-a',
-          { tokenId: 'token-a', price: 0.7, timestamp: baseTimestamp + 30000 },
+          {
+            tokenId: 'token-a',
+            price: 0.69,
+            bestAsk: 0.71,
+            timestamp: baseTimestamp + 30000,
+          },
         ],
         [
           'token-b',
-          { tokenId: 'token-b', price: 0.3, timestamp: baseTimestamp + 30000 },
+          {
+            tokenId: 'token-b',
+            price: 0.29,
+            bestAsk: 0.31,
+            timestamp: baseTimestamp + 30000,
+          },
         ],
       ]);
 
@@ -682,7 +728,7 @@ describe('PredictGameChart Wrapper', () => {
       await waitFor(() => {
         const dataText = getByTestId('content-data').children[0];
         const data = JSON.parse(String(dataText));
-        expect(data[0].data[0].value).toBe(70);
+        expect(data[0].data[0].value).toBe(71);
       });
 
       const refetchedHistories = [
@@ -709,8 +755,8 @@ describe('PredictGameChart Wrapper', () => {
         const dataText = getByTestId('content-data').children[0];
         const data = JSON.parse(String(dataText));
 
-        expect(data[0].data[0].value).toBe(70);
-        expect(data[1].data[0].value).toBe(30);
+        expect(data[0].data[0].value).toBe(71);
+        expect(data[1].data[0].value).toBe(31);
       });
     });
   });
@@ -894,7 +940,15 @@ describe('PredictGameChart Wrapper', () => {
 
       // Only provide price for token-a
       const pricesMap = new Map([
-        ['token-a', { tokenId: 'token-a', price: 0.55, timestamp: Date.now() }],
+        [
+          'token-a',
+          {
+            tokenId: 'token-a',
+            price: 0.54,
+            bestAsk: 0.56,
+            timestamp: Date.now(),
+          },
+        ],
       ]);
 
       mockUseLiveMarketPrices.mockReturnValue({

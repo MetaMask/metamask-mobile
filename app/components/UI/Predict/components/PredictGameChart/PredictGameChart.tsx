@@ -139,7 +139,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         const lastPoint = existingData[existingData.length - 1];
 
         const newValue = priceUpdate
-          ? Number((priceUpdate.price * 100).toFixed(2))
+          ? Number((priceUpdate.bestAsk * 100).toFixed(2))
           : (lastPoint?.value ?? 50);
 
         const newPoint: GameChartDataPoint = {
