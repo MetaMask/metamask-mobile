@@ -59,8 +59,8 @@ export const TitleOnly = {
 export const Size = {
   render: () => (
     <>
-    <TitleLeft size={TitleLeftSize.Sm} topLabel="Balance" title="$1,234.56" />
-    <TitleLeft size={TitleLeftSize.Md} topLabel="Balance" title="$1,234.56" />
+      <TitleLeft size={TitleLeftSize.Sm} topLabel="Balance" title="$1,234.56" />
+      <TitleLeft size={TitleLeftSize.Md} topLabel="Balance" title="$1,234.56" />
     </>
   ),
 };
