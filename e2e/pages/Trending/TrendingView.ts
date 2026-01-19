@@ -353,6 +353,18 @@ class TrendingView {
    */
   async verifySectionHeaderInFeed(title: string): Promise<void> {
     const header = this.getSectionHeader(title);
+
+    // First check if header is already visible (no scroll needed)
+    try {
+      await Assertions.expectElementToBeVisible(header, {
+        description: `${title} section header should be visible`,
+        timeout: 2000, // Short timeout for quick check
+      });
+      return; // Element is visible, no need to scroll
+    } catch {
+      // If not visible, try scrolling to it
+    }
+
     // Scroll to section header if needed
     await this.scrollToElementInFeed(
       header,
