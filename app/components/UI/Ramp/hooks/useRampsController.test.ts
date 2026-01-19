@@ -61,6 +61,10 @@ jest.mock('./useRampsCountries', () => ({
   })),
 }));
 
+jest.mock('./useRampsPreferredProviderAutoSet', () => ({
+  useRampsPreferredProviderAutoSet: jest.fn(),
+}));
+
 const createMockStore = () =>
   configureStore({
     reducer: {
