@@ -62,7 +62,7 @@ interface SectionConfig {
   SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
 
-type FuseKeys<T> = ReadonlyArray<Extract<keyof T, string>>;
+type FuseKeys<T> = readonly Extract<keyof T, string>[];
 
 const TOKEN_FUSE_KEYS = [
   'symbol',
@@ -70,9 +70,10 @@ const TOKEN_FUSE_KEYS = [
   'assetId',
 ] as const satisfies FuseKeys<TrendingAsset>;
 
-const PERPS_FUSE_KEYS = ['symbol', 'name'] as const satisfies FuseKeys<
-  PerpsMarketData
->;
+const PERPS_FUSE_KEYS = [
+  'symbol',
+  'name',
+] as const satisfies FuseKeys<PerpsMarketData>;
 
 const PREDICTIONS_FUSE_KEYS = [
   'title',
@@ -156,9 +157,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         undefined,
         false, // Disable debouncing here because useExploreSearch already handles it
       );
-      const filteredData = useMemo(() => {
-        return fuseSearch(data, searchQuery, TOKEN_FUSE_OPTIONS);
-      }, [data, searchQuery]);
+      const filteredData = useMemo(
+        () => fuseSearch(data, searchQuery, TOKEN_FUSE_OPTIONS),
+        [data, searchQuery],
+      );
       return { data: filteredData, isLoading, refetch };
     },
   },
@@ -243,9 +245,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         q: searchQuery || undefined,
       });
 
-      const filteredData = useMemo(() => {
-        return fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS);
-      }, [marketData, searchQuery]);
+      const filteredData = useMemo(
+        () => fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS),
+        [marketData, searchQuery],
+      );
 
       return { data: filteredData, isLoading: isFetching, refetch };
     },
