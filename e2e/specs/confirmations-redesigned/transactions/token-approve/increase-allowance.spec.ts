@@ -3,6 +3,7 @@ import { SmokeConfirmationsRedesigned } from '../../../../tags';
 import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import Browser from '../../../../pages/Browser/BrowserView';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
 import Assertions from '../../../../framework/Assertions';
@@ -126,7 +127,14 @@ describe(
           // Accept confirmation
           await FooterActions.tapConfirmButton();
 
-          // Check activity tab
+          // Wait for browser screen to be visible after confirmation modal dismisses
+          await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+            description:
+              'Browser screen should be visible after confirming transaction',
+          });
+
+          // Close browser to reveal app tab bar, then check activity
+          await Browser.tapCloseBrowserButton();
           await TabBarComponent.tapActivity();
           await Assertions.expectTextDisplayed('Increase allowance');
           await Assertions.expectTextDisplayed('Confirmed');

@@ -662,7 +662,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       }
                                     >
-                                      SDK Activation Keys
+                                      SDK activation keys
                                     </Text>
                                     <Text
                                       accessibilityRole="text"
@@ -824,7 +824,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Edit Activation Key"
+                                          accessibilityLabel="Edit activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
@@ -884,7 +884,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
+                                          accessibilityLabel="Delete activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
@@ -1043,7 +1043,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Edit Activation Key"
+                                          accessibilityLabel="Edit activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
@@ -1103,7 +1103,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
+                                          accessibilityLabel="Delete activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
@@ -1881,7 +1881,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       }
                                     >
-                                      SDK Activation Keys
+                                      SDK activation keys
                                     </Text>
                                     <Text
                                       accessibilityRole="text"
@@ -4552,7 +4552,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       }
                                     >
-                                      SDK Activation Keys
+                                      SDK activation keys
                                     </Text>
                                     <Text
                                       accessibilityRole="text"
@@ -4711,7 +4711,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Edit Activation Key"
+                                          accessibilityLabel="Edit activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
@@ -4771,7 +4771,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
+                                          accessibilityLabel="Delete activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
@@ -4930,7 +4930,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Edit Activation Key"
+                                          accessibilityLabel="Edit activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
@@ -4990,7 +4990,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         testID="listitemcolumn"
                                       >
                                         <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
+                                          accessibilityLabel="Delete activation key"
                                           accessibilityRole="button"
                                           accessible={true}
                                           activeOpacity={1}
