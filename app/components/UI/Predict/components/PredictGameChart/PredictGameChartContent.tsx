@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback, useState } from 'react';
-import { PanResponder, View } from 'react-native';
+import { ActivityIndicator, PanResponder, View } from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -139,8 +139,10 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
     return (
       <Box twClassName="flex-1" testID={testID}>
         <Box
-          twClassName={`h-[${CHART_HEIGHT}px] bg-background-alternative rounded-lg`}
-        />
+          twClassName={`h-[${CHART_HEIGHT}px] bg-transparent rounded-lg items-center justify-center`}
+        >
+          <ActivityIndicator color={colors.primary.default} />
+        </Box>
         {onTimeframeChange && (
           <TimeframeSelector
             selected={timeframe}
