@@ -3,7 +3,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -21,7 +21,7 @@ import Button, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
@@ -50,6 +50,12 @@ const PerpsOrderTransactionView: React.FC = () => {
     amount: transaction?.order?.size ?? '0',
   });
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
+
   if (!transaction) {
     return (
       <ScreenView>
@@ -59,11 +65,6 @@ const PerpsOrderTransactionView: React.FC = () => {
       </ScreenView>
     );
   }
-
-  // Set navigation title
-  navigation.setOptions(
-    getPerpsTransactionsDetailsNavbar(navigation, transaction.title),
-  );
 
   const handleViewOnBlockExplorer = () => {
     if (!selectedInternalAccount) {
@@ -123,6 +124,11 @@ const PerpsOrderTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
+      <HeaderCenter
+        includesTopInset
+        title={transaction.title}
+        onBack={() => navigation.goBack()}
+      />
       <ScrollView
         testID={PerpsTransactionSelectorsIDs.ORDER_TRANSACTION_VIEW}
         style={styles.container}

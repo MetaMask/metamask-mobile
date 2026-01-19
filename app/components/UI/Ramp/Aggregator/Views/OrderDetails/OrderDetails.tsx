@@ -1,4 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -21,7 +26,7 @@ import {
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
 import {
@@ -67,18 +72,11 @@ const OrderDetails = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
-          showClose: false,
-        },
-        theme,
-      ),
-    );
-  }, [theme, navigation]);
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   const navigateToSendTransaction = useCallback(() => {
     if (order?.id) {
@@ -214,12 +212,25 @@ const OrderDetails = () => {
   );
 
   if (!order) {
-    return <ScreenLayout />;
+    return (
+      <ScreenLayout>
+        <HeaderCenter
+          includesTopInset
+          title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
+          onBack={() => navigation.goBack()}
+        />
+      </ScreenLayout>
+    );
   }
 
   if (isLoading) {
     return (
       <ScreenLayout>
+        <HeaderCenter
+          in
+          title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
+          onBack={() => navigation.goBack()}
+        />
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <ActivityIndicator />
@@ -232,6 +243,11 @@ const OrderDetails = () => {
   if (error) {
     return (
       <ScreenLayout>
+        <HeaderCenter
+          in
+          title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
+          onBack={() => navigation.goBack()}
+        />
         <ScreenLayout.Body>
           <ErrorView
             description={error}
@@ -245,6 +261,11 @@ const OrderDetails = () => {
 
   return (
     <ScreenLayout>
+      <HeaderCenter
+        in
+        title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
+        onBack={() => navigation.goBack()}
+      />
       <ScrollView
         refreshControl={
           <RefreshControl
