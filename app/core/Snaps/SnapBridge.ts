@@ -8,13 +8,16 @@ import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 // @ts-expect-error - No types declarations
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
-import { JsonRpcParams, Json } from '@metamask/utils';
+import { JsonRpcParams, Json, CaipChainId } from '@metamask/utils';
 import {
   createSelectedNetworkMiddleware,
   SelectedNetworkControllerMessenger,
 } from '@metamask/selected-network-controller';
 import { createPreinstalledSnapsMiddleware } from '@metamask/snaps-rpc-methods';
-import { SubjectType } from '@metamask/permission-controller';
+import {
+  RequestedPermissions,
+  SubjectType,
+} from '@metamask/permission-controller';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 import { SnapId } from '@metamask/snaps-sdk';
@@ -23,10 +26,27 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../Engine/Engine';
 import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
-import { createOriginMiddleware } from '../../util/middlewares';
+import {
+  createLoggerMiddleware,
+  createOriginMiddleware,
+} from '../../util/middlewares';
 import { RPCMethodsMiddleParameters } from '../RPCMethods/RPCMethodMiddleware';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { isSnapPreinstalled } from '../SnapKeyring/utils/snaps';
+import { MESSAGE_TYPE } from '../createTracingMiddleware';
+import {
+  multichainMethodCallValidatorMiddleware,
+  walletCreateSession,
+  walletGetSession,
+  walletInvokeMethod,
+  walletRevokeSession,
+} from '@metamask/multichain-api-middleware';
+import { rpcErrors } from '@metamask/rpc-errors';
+import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
+import {
+  makeMethodMiddlewareMaker,
+  UNSUPPORTED_RPC_METHODS,
+} from '../RPCMethods/utils';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -166,6 +186,136 @@ export default class SnapBridge {
     return engine;
   }
 
+  #setupProviderEngineCaip() {
+    const origin = this.#snapId;
+
+    const { NetworkController, AccountsController, PermissionController } =
+      Engine.context;
+
+    const engine = new JsonRpcEngine();
+
+    // Append origin to each request
+    engine.push(
+      createOriginMiddleware({ origin }) as JsonRpcMiddleware<
+        JsonRpcParams,
+        Json
+      >,
+    );
+
+    engine.push(
+      createLoggerMiddleware({ origin }) as JsonRpcMiddleware<
+        JsonRpcParams,
+        Json
+      >,
+    );
+
+    engine.push((req, _res, next, end) => {
+      // TODO: Check multichain-provider perm
+      if (
+        ![
+          MESSAGE_TYPE.WALLET_CREATE_SESSION,
+          MESSAGE_TYPE.WALLET_INVOKE_METHOD,
+          MESSAGE_TYPE.WALLET_GET_SESSION,
+          MESSAGE_TYPE.WALLET_REVOKE_SESSION,
+        ].includes(req.method)
+      ) {
+        return end(rpcErrors.methodNotFound({ data: { method: req.method } }));
+      }
+      return next();
+    });
+
+    engine.push(multichainMethodCallValidatorMiddleware);
+
+    const middlewareMaker = makeMethodMiddlewareMaker([
+      walletRevokeSession,
+      walletGetSession,
+      walletInvokeMethod,
+      walletCreateSession,
+    ]);
+
+    engine.push(
+      middlewareMaker({
+        findNetworkClientIdByChainId:
+          NetworkController.findNetworkClientIdByChainId.bind(
+            NetworkController,
+          ),
+        listAccounts: AccountsController.listAccounts.bind(AccountsController),
+        requestPermissionsForOrigin: (
+          requestedPermissions: RequestedPermissions,
+          options = {},
+        ) =>
+          PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
+            options,
+          ),
+        getCaveatForOrigin: PermissionController.getCaveat.bind(
+          PermissionController,
+          origin,
+        ),
+        updateCaveat: PermissionController.updateCaveat.bind(
+          PermissionController,
+          origin,
+        ),
+        getSelectedNetworkClientId: () =>
+          NetworkController.state.selectedNetworkClientId,
+        revokePermissionForOrigin: PermissionController.revokePermission.bind(
+          PermissionController,
+          origin,
+        ),
+        getNonEvmSupportedMethods: (scope: CaipChainId) =>
+          Engine.controllerMessenger.call(
+            'MultichainRouter:getSupportedMethods',
+            scope,
+          ),
+        isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
+          Engine.controllerMessenger,
+          'MultichainRouter:isSupportedScope',
+        ),
+        handleNonEvmRequestForOrigin: (params) =>
+          Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
+            ...params,
+            origin: this.#snapId,
+          }),
+        getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
+          Engine.controllerMessenger,
+          'MultichainRouter:getSupportedAccounts',
+        ),
+        trackSessionCreatedEvent: () => undefined,
+      }),
+    );
+
+    engine.push(
+      createUnsupportedMethodMiddleware(
+        new Set([
+          ...UNSUPPORTED_RPC_METHODS,
+          'eth_requestAccounts',
+          'eth_accounts',
+        ]),
+      ),
+    );
+
+    // user-facing RPC methods
+    engine.push(
+      this.#getRPCMethodMiddleware({
+        hostname: this.#snapId,
+        getProviderState: this.#getProviderState.bind(this),
+      }),
+    );
+
+    // engine.push(this.createEip5792Middleware());
+
+    engine.push(async (req, res, _next, end) => {
+      const { provider } = NetworkController.getNetworkClientById(
+        req.networkClientId,
+      );
+      res.result = await provider.request(req);
+      return end();
+    });
+
+    return engine;
+  }
+
   /**
    * Sets up the provider connection for the Snap.
    */
@@ -185,6 +335,19 @@ export default class SnapBridge {
 
       if (error) {
         Logger.log('[SNAP BRIDGE] Error with provider stream:', error);
+      }
+    });
+
+    const caipStream = mux.createStream('metamask-multichain-provider');
+    const caipEngine = this.#setupProviderEngineCaip();
+
+    const caipProviderStream = createEngineStream({ engine: caipEngine });
+
+    pump(caipStream, caipProviderStream, caipStream, (error: Error | null) => {
+      caipEngine.destroy();
+
+      if (error) {
+        Logger.log('[SNAP BRIDGE] Error with CAIP provider stream:', error);
       }
     });
   }
