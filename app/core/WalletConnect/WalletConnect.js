@@ -24,11 +24,7 @@ import NotificationManager from '../NotificationManager';
 import { msBetweenDates, msToHours } from '../../util/date';
 import { addTransaction } from '../../util/transaction-controller';
 import URL from 'url-parse';
-import {
-  parseWalletConnectUri,
-  normalizeDappUrl,
-  getSafeDappHostname,
-} from './wc-utils';
+import { parseWalletConnectUri, normalizeDappUrl } from './wc-utils';
 import { store } from '../../store';
 import { selectEvmChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
@@ -163,17 +159,7 @@ class WalletConnect {
       }
 
       if (payload.method) {
-        const payloadUrl = this.walletConnector.session.peerMeta.url;
-        // Safely extract hostname, with fallback for malformed URLs
-        let payloadHostname = getSafeDappHostname(payloadUrl);
-        if (!payloadHostname) {
-          // Use the raw URL as fallback to allow the request to proceed
-          Logger.log(
-            'WC: Could not extract hostname from payload URL, using raw URL',
-          );
-          payloadHostname = payloadUrl || '';
-        }
-        if (payloadHostname === this.backgroundBridge.hostname) {
+        if (this.hostname === this.backgroundBridge.hostname) {
           if (METHODS_TO_REDIRECT[payload.method]) {
             this.requestsToRedirect[payload.id] = true;
           }
@@ -196,7 +182,7 @@ class WalletConnect {
                 chainId,
                 isWalletConnect: true,
                 activeAccounts: [selectedAddress],
-                hostname: payloadHostname,
+                hostname: this.hostname,
               });
 
               const { NetworkController } = Engine.context;
@@ -336,15 +322,6 @@ class WalletConnect {
       chainId: parseInt(chainId, 10),
       accounts: [selectedAddress],
     };
-
-    // Normalize the URL to prevent crashes from malformed URLs (adds https:// if missing)
-    const rawUrl = sessionData.peerMeta?.url;
-    const normalizedUrl = normalizeDappUrl(rawUrl);
-    if (!normalizedUrl) {
-      Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
-      throw new Error('Invalid dApp URL');
-    }
-
     if (existing) {
       this.walletConnector.updateSession(approveData);
     } else {
@@ -352,12 +329,19 @@ class WalletConnect {
       persistSessions();
     }
 
+    const rawUrl = approveData.peerMeta?.url;
+    const normalizedUrl = normalizeDappUrl(rawUrl);
+    if (!normalizedUrl) {
+      Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
+      throw new Error('Invalid dApp URL');
+    }
+
     this.url.current = normalizedUrl;
     this.title.current = sessionData.peerMeta?.name;
     this.icon.current = sessionData.peerMeta?.icons?.[0];
     this.dappScheme.current = sessionData.peerMeta?.dappScheme;
 
-    this.hostname = getSafeDappHostname(normalizedUrl);
+    this.hostname = new URL(normalizedUrl).hostname;
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
@@ -400,14 +384,9 @@ class WalletConnect {
   sessionRequest = async (peerInfo) => {
     const { ApprovalController } = Engine.context;
     try {
-      // Safely extract hostname from dApp URL, with fallback for malformed URLs
       const rawUrl = peerInfo.peerMeta?.url;
-      let host = getSafeDappHostname(rawUrl);
-      if (!host) {
-        // Fallback: try to use the raw URL as host, or a generic placeholder
-        Logger.log('WC: Could not extract hostname, using fallback');
-        host = rawUrl || 'unknown.dapp';
-      }
+      const normalizedUrl = normalizeDappUrl(rawUrl);
+      const host = normalizedUrl ? new URL(normalizedUrl).host : rawUrl;
 
       return await ApprovalController.add({
         id: random(),

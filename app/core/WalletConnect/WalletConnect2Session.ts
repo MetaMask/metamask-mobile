@@ -72,7 +72,6 @@ class WalletConnect2Session {
   private lastChainId: Hex;
   private isHandlingChainChange = false;
   private _isHandlingRequest = false;
-  // Normalized and validated URL from session metadata
   private normalizedUrl: string;
 
   public session: SessionTypes.Struct;
@@ -110,7 +109,6 @@ class WalletConnect2Session {
     const name = session.peer.metadata.name;
     const icons = session.peer.metadata.icons;
 
-    // Normalize the dApp URL to prevent crashes from malformed URLs (adds https:// if missing)
     const url = normalizeDappUrl(rawUrl);
     if (!url) {
       throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
@@ -173,7 +171,6 @@ class WalletConnect2Session {
   }
 
   private get origin() {
-    // Use the validated and normalized URL instead of raw session metadata
     return this.normalizedUrl;
   }
 

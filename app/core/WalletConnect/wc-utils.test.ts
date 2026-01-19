@@ -9,7 +9,6 @@ import {
   networkModalOnboardingConfig,
   getHostname,
   normalizeDappUrl,
-  getSafeDappHostname,
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -342,48 +341,6 @@ describe('WalletConnect Utils', () => {
       expect(normalizeDappUrl('example.com', 'http://')).toBe(
         'http://example.com',
       );
-    });
-  });
-
-  describe('getSafeDappHostname', () => {
-    it('returns empty string for null or undefined URL', () => {
-      expect(getSafeDappHostname(null)).toBe('');
-      expect(getSafeDappHostname(undefined)).toBe('');
-      expect(getSafeDappHostname('')).toBe('');
-    });
-
-    it('extracts hostname from valid https URL', () => {
-      expect(getSafeDappHostname('https://example.com')).toBe('example.com');
-      expect(getSafeDappHostname('https://example.com/path')).toBe(
-        'example.com',
-      );
-      expect(getSafeDappHostname('https://subdomain.example.com:8080')).toBe(
-        'subdomain.example.com',
-      );
-    });
-
-    it('extracts hostname from URL without protocol by normalizing first', () => {
-      expect(getSafeDappHostname('example.com')).toBe('example.com');
-      expect(getSafeDappHostname('subdomain.example.com/path')).toBe(
-        'subdomain.example.com',
-      );
-    });
-
-    it('returns empty string for invalid URLs', () => {
-      expect(getSafeDappHostname('not a valid url')).toBe('');
-      expect(getSafeDappHostname('://invalid')).toBe('');
-    });
-
-    it('handles the malformed URL case that caused DoS (no protocol)', () => {
-      // This is the specific vulnerability case - "metamask.io" instead of "https://metamask.io"
-      expect(getSafeDappHostname('metamask.io')).toBe('metamask.io');
-      expect(getSafeDappHostname('dapp.example.com')).toBe('dapp.example.com');
-    });
-
-    it('returns empty string for protocol-only URIs like wc: or ethereum:', () => {
-      // These are not valid dApp URLs and should return empty
-      expect(getSafeDappHostname('wc:topic@1')).toBe('');
-      expect(getSafeDappHostname('ethereum:0x123')).toBe('');
     });
   });
 });

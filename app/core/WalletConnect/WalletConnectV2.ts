@@ -445,8 +445,6 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
-    // Normalize the URL to ensure it has a proper protocol (adds https:// if missing)
-    // This prevents crashes when processing malformed URLs
     const url = normalizeDappUrl(rawUrl);
     if (!url) {
       console.warn(
@@ -459,7 +457,7 @@ export class WC2Manager {
       return;
     }
 
-    if (url === ORIGIN_METAMASK) {
+    if (rawUrl === ORIGIN_METAMASK) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       await this.web3Wallet.rejectSession({
         id: proposal.id,

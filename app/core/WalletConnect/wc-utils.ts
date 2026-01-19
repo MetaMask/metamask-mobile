@@ -72,7 +72,6 @@ export const normalizeDappUrl = (
   defaultProtocol = 'https://',
 ): string => {
   try {
-    // Handle empty or null URLs
     if (!url || typeof url !== 'string' || url.trim() === '') {
       return '';
     }
@@ -86,7 +85,6 @@ export const normalizeDappUrl = (
         new URL(trimmedUrl);
         return trimmedUrl;
       } catch (e) {
-        // Invalid URL format even with protocol
         DevLogger.log('Invalid URL format:', trimmedUrl);
         return '';
       }
@@ -100,35 +98,11 @@ export const normalizeDappUrl = (
       new URL(normalizedUrl);
       return normalizedUrl;
     } catch (e) {
-      // Still invalid after adding protocol
       DevLogger.log('Unable to normalize URL:', trimmedUrl);
       return '';
     }
   } catch (error) {
     DevLogger.log('Error in normalizeDappUrl:', error);
-    return '';
-  }
-};
-
-/**
- * Safely extracts the hostname from a dApp URL.
- * Unlike getHostname, this specifically handles dApp URLs and ensures
- * proper normalization before extraction.
- *
- * @param url - The URL string to extract hostname from
- * @returns The hostname or empty string if invalid
- */
-export const getSafeDappHostname = (url: string | undefined | null): string => {
-  try {
-    const normalizedUrl = normalizeDappUrl(url);
-    if (!normalizedUrl) {
-      return '';
-    }
-
-    const parsedUrl = new URL(normalizedUrl);
-    return parsedUrl.hostname;
-  } catch (error) {
-    DevLogger.log('Error in getSafeDappHostname:', error);
     return '';
   }
 };
