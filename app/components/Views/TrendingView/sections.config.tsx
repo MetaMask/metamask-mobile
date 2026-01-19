@@ -22,8 +22,6 @@ import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/Sit
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import { getPerpsDisplaySymbol } from '../../UI/Perps/utils/marketUtils';
-import { parseVolume } from '../../UI/Perps/hooks/usePerpsMarkets';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
@@ -110,141 +108,6 @@ const PREDICTIONS_FUSE_OPTIONS = {
 const normalizeSearchQuery = (query?: string): string =>
   query?.trim().toLowerCase() ?? '';
 
-const normalizeSearchValues = (
-  values: Array<string | undefined>,
-): string[] =>
-  values
-    .map((value) => value?.trim().toLowerCase())
-    .filter((value): value is string => Boolean(value));
-
-const getSearchRank = (query: string, values: string[]): number => {
-  if (values.some((value) => value === query)) {
-    return 0;
-  }
-  if (values.some((value) => value.startsWith(query))) {
-    return 1;
-  }
-  if (values.some((value) => value.includes(query))) {
-    return 2;
-  }
-  return 3;
-};
-
-const dedupeByKey = <T,>(
-  items: T[],
-  getKey: (item: T) => string,
-): T[] => {
-  const map = new Map<string, T>();
-  items.forEach((item) => {
-    const key = getKey(item);
-    if (!map.has(key)) {
-      map.set(key, item);
-    }
-  });
-  return Array.from(map.values());
-};
-
-const filterSearchResults = <T,>(
-  items: T[],
-  query: string,
-  getValues: (item: T) => Array<string | undefined>,
-  allowFuzzyFallback = true,
-): T[] => {
-  if (!query) {
-    return items;
-  }
-
-  const strictMatches = items.filter((item) =>
-    normalizeSearchValues(getValues(item)).some((value) =>
-      value.includes(query),
-    ),
-  );
-
-  if (strictMatches.length > 0) {
-    return strictMatches;
-  }
-
-  return allowFuzzyFallback ? items : [];
-};
-
-const sortSearchResults = <T,>(
-  items: T[],
-  query: string,
-  getValues: (item: T) => Array<string | undefined>,
-  getMetric: (item: T) => number,
-): T[] => {
-  if (!query) {
-    return items;
-  }
-
-  return items
-    .map((item, index) => {
-      const values = normalizeSearchValues(getValues(item));
-      return {
-        item,
-        index,
-        rank: getSearchRank(query, values),
-        metric: getMetric(item),
-      };
-    })
-    .sort((a, b) => {
-      if (a.rank !== b.rank) {
-        return a.rank - b.rank;
-      }
-      if (a.metric !== b.metric) {
-        return b.metric - a.metric;
-      }
-      return a.index - b.index;
-    })
-    .map(({ item }) => item);
-};
-
-const getTokenSearchValues = (
-  token: TrendingAsset,
-): Array<string | undefined> => [token.symbol, token.name, token.assetId];
-
-const getTokenSortMetric = (token: TrendingAsset): number => {
-  const volume = token.aggregatedUsdVolume ?? 0;
-  if (volume > 0) {
-    return volume;
-  }
-  return token.marketCap ?? 0;
-};
-
-const getPerpsSearchValues = (
-  market: PerpsMarketData,
-): Array<string | undefined> => [
-  market.symbol,
-  getPerpsDisplaySymbol(market.symbol),
-  market.name,
-];
-
-const getPerpsSortMetric = (market: PerpsMarketData): number => {
-  const marketWithVolume = market as PerpsMarketData & {
-    volumeNumber?: number;
-  };
-  if (typeof marketWithVolume.volumeNumber === 'number') {
-    return marketWithVolume.volumeNumber;
-  }
-  return parseVolume(market.volume);
-};
-
-const getPredictSearchValues = (
-  market: PredictMarketType,
-): Array<string | undefined> => [
-  market.title,
-  market.description,
-  market.slug,
-  ...market.tags,
-];
-
-const getPredictSortMetric = (market: PredictMarketType): number => {
-  if (market.volume > 0) {
-    return market.volume;
-  }
-  return market.liquidity ?? 0;
-};
-
 /**
  * Centralized configuration for all Trending View sections.
  * This config is used by QuickActions, SectionHeaders, Search, and TrendingView rendering.
@@ -293,22 +156,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         if (!normalizedQuery) {
           return data;
         }
-        const fuseResults = tokenFuse.search(normalizedQuery);
-        const dedupedResults = dedupeByKey(
-          fuseResults,
-          (item) => item.assetId,
-        );
-        const strictResults = filterSearchResults(
-          dedupedResults,
-          normalizedQuery,
-          getTokenSearchValues,
-        );
-        return sortSearchResults(
-          strictResults,
-          normalizedQuery,
-          getTokenSearchValues,
-          getTokenSortMetric,
-        );
+        return tokenFuse.search(normalizedQuery);
       }, [data, normalizedQuery, tokenFuse]);
       return { data: filteredData, isLoading, refetch };
     },
@@ -363,19 +211,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         if (!normalizedQuery) {
           return markets;
         }
-        const fuseResults = perpsFuse.search(normalizedQuery);
-        const dedupedResults = dedupeByKey(fuseResults, (item) => item.symbol);
-        const strictResults = filterSearchResults(
-          dedupedResults,
-          normalizedQuery,
-          getPerpsSearchValues,
-        );
-        return sortSearchResults(
-          strictResults,
-          normalizedQuery,
-          getPerpsSearchValues,
-          getPerpsSortMetric,
-        );
+        return perpsFuse.search(normalizedQuery);
       }, [markets, normalizedQuery, perpsFuse]);
 
       return {
@@ -425,20 +261,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         if (!normalizedQuery) {
           return marketData;
         }
-        const fuseResults = predictionsFuse.search(normalizedQuery);
-        const dedupedResults = dedupeByKey(fuseResults, (item) => item.id);
-        const strictResults = filterSearchResults(
-          dedupedResults,
-          normalizedQuery,
-          getPredictSearchValues,
-          false,
-        );
-        return sortSearchResults(
-          strictResults,
-          normalizedQuery,
-          getPredictSearchValues,
-          getPredictSortMetric,
-        );
+        return predictionsFuse.search(normalizedQuery);
       }, [marketData, normalizedQuery, predictionsFuse]);
 
       return { data: filteredData, isLoading: isFetching, refetch };
