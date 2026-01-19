@@ -490,14 +490,17 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                 <TouchableOpacity
                                   onPress={[Function]}
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "height": 35,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 15,
-                                      "paddingVertical": 5,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 56,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 16,
+                                      },
+                                      false,
+                                    ]
                                   }
                                   testID="select-option-key1"
                                 >
@@ -508,7 +511,8 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                         "color": "#121314",
                                         "flex": 1,
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 16,
+                                        "fontWeight": 500,
                                       }
                                     }
                                   >
@@ -518,14 +522,19 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                 <TouchableOpacity
                                   onPress={[Function]}
                                   style={
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "height": 35,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 15,
-                                      "paddingVertical": 5,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "height": 56,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 16,
+                                      },
+                                      {
+                                        "backgroundColor": "#3c4d9d0f",
+                                      },
+                                    ]
                                   }
                                   testID="select-option-key2"
                                 >
@@ -536,35 +545,12 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                         "color": "#121314",
                                         "flex": 1,
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 16,
+                                        "fontWeight": 500,
                                       }
                                     }
                                   >
                                     option 2
-                                  </Text>
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
-                                    style={
-                                      [
-                                        {
-                                          "color": "#4459ff",
-                                          "fontSize": 24,
-                                        },
-                                        {
-                                          "paddingHorizontal": 10,
-                                        },
-                                        {
-                                          "fontFamily": "Material Design Icons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
-                                    }
-                                    testID="selected-option-key2"
-                                  >
-                                    󰄬
                                   </Text>
                                 </TouchableOpacity>
                               </View>

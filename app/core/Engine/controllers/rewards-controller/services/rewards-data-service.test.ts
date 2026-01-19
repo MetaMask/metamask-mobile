@@ -517,6 +517,75 @@ describe('RewardsDataService', () => {
       );
     });
 
+    it('successfully gets points events with type filter', async () => {
+      const requestWithType = {
+        ...mockGetPointsEventsRequest,
+        type: 'SWAP' as const,
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getPointsEvents(requestWithType);
+
+      expect(result).toEqual(mockPointsEventsResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?type=SWAP',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+        }),
+      );
+    });
+
+    it('successfully gets points events with both cursor and type', async () => {
+      const requestWithCursorAndType = {
+        ...mockGetPointsEventsRequest,
+        cursor: 'cursor-abc123',
+        type: 'PREDICT' as const,
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getPointsEvents(requestWithCursorAndType);
+
+      expect(result).toEqual(mockPointsEventsResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?cursor=cursor-abc123&type=PREDICT',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+        }),
+      );
+    });
+
+    it('properly encodes type parameter in URL', async () => {
+      const requestWithType = {
+        ...mockGetPointsEventsRequest,
+        type: 'SIGN_UP_BONUS' as const,
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await service.getPointsEvents(requestWithType);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?type=SIGN_UP_BONUS',
+        expect.any(Object),
+      );
+    });
+
     it('should include authentication headers with subscription token', async () => {
       const mockResponse = {
         ok: true,

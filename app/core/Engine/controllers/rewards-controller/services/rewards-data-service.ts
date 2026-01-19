@@ -481,10 +481,14 @@ export class RewardsDataService {
   async getPointsEvents(
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
-    const { seasonId, subscriptionId, cursor } = params;
+    const { seasonId, subscriptionId, cursor, type } = params;
+
+    const queryParams: string[] = [];
+    if (cursor) queryParams.push(`cursor=${encodeURIComponent(cursor)}`);
+    if (type) queryParams.push(`type=${encodeURIComponent(type)}`);
 
     let url = `/seasons/${seasonId}/points-events`;
-    if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
+    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
 
     const response = await this.makeRequest(
       url,

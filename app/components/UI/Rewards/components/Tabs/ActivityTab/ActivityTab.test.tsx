@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { ActivityTab } from './ActivityTab';
 import type {
@@ -20,6 +20,7 @@ jest.mock('../../../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 jest.mock('../../../../../../reducers/rewards/selectors', () => ({
+  selectActiveTab: jest.fn(),
   selectSeasonId: jest.fn(),
   selectSeasonStartDate: jest.fn(),
   selectSeasonStatusLoading: jest.fn(),
@@ -27,6 +28,7 @@ jest.mock('../../../../../../reducers/rewards/selectors', () => ({
 
 import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
 import {
+  selectActiveTab,
   selectSeasonId,
   selectSeasonStartDate,
   selectSeasonStatusLoading,
@@ -36,6 +38,9 @@ const mockSelectSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
   >;
+const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
+  typeof selectActiveTab
+>;
 const mockSelectSeasonId = selectSeasonId as jest.MockedFunction<
   typeof selectSeasonId
 >;
@@ -56,6 +61,15 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     const t: Record<string, string> = {
       'rewards.loading_activity': 'Loading activity',
       'rewards.error_loading_activity': 'Error loading activity',
+      'rewards.filter_title': 'Filter by',
+      'rewards.filter_all': 'All',
+      'rewards.filter_swap': 'Swap',
+      'rewards.filter_perps': 'Perps',
+      'rewards.filter_predict': 'Predict',
+      'rewards.filter_referral': 'Referral',
+      'rewards.filter_card': 'Card',
+      'rewards.filter_musd_deposit': 'MUSD Deposit',
+      'rewards.filter_shield': 'Shield',
     };
     return t[key] || key;
   }),
@@ -76,6 +90,52 @@ jest.mock('../../../hooks/usePointsEvents', () => ({
 jest.mock('../../../../../hooks/DisplayName/useAccountNames', () => ({
   useAccountNames: jest.fn(() => []),
 }));
+
+// Mock SelectOptionSheet component
+jest.mock('../../../../SelectOptionSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      label,
+      options,
+      selectedValue,
+      onValueChange,
+    }: {
+      label: string;
+      options: { key?: string; value?: string; label?: string }[];
+      selectedValue?: string;
+      onValueChange: (val: string) => void;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'select-option-sheet' },
+        ReactActual.createElement(
+          Text,
+          { testID: 'select-option-sheet-label' },
+          label,
+        ),
+        ReactActual.createElement(
+          Text,
+          { testID: 'select-option-sheet-selected' },
+          selectedValue,
+        ),
+        options.map(
+          (option: { key?: string; value?: string; label?: string }) =>
+            ReactActual.createElement(
+              TouchableOpacity,
+              {
+                key: option.key,
+                onPress: () => option.value && onValueChange(option.value),
+                testID: `activity-filter-${option.value}`,
+              },
+              ReactActual.createElement(Text, null, option.label),
+            ),
+        ),
+      ),
+  };
+});
 
 // Mock ActivityEventRow to simplify assertions
 jest.mock('./ActivityEventRow', () => ({
@@ -296,6 +356,7 @@ describe('ActivityTab', () => {
     // Mock state structure with rewards property for selectors
     const mockState = {
       rewards: {
+        activeTab: 'activity',
         seasonId: defaultSeasonStatus.season.id,
         seasonStatusLoading: false,
         seasonStartDate: new Date('2024-01-01'),
@@ -307,6 +368,7 @@ describe('ActivityTab', () => {
       (selector: (state: unknown) => unknown) => selector(mockState as unknown),
     );
     mockSelectSubscriptionId.mockReturnValue(mockSubscriptionId);
+    mockSelectActiveTab.mockReturnValue('activity');
     mockSelectSeasonId.mockReturnValue(defaultSeasonStatus.season.id);
     mockSelectSeasonStartDate.mockReturnValue(new Date('2024-01-01'));
     mockSelectSeasonStatusLoading.mockReturnValue(false);
@@ -402,6 +464,36 @@ describe('ActivityTab', () => {
     expect(lastCall[0]).toEqual({
       seasonId: defaultSeasonStatus.season.id,
       subscriptionId: '',
+      type: undefined,
+      enabled: true,
+    });
+  });
+
+  it('passes undefined type to usePointsEvents initially', () => {
+    render(<ActivityTab />);
+
+    const lastCall =
+      mockUsePointsEvents.mock.calls[mockUsePointsEvents.mock.calls.length - 1];
+    expect(lastCall[0]).toEqual({
+      seasonId: defaultSeasonStatus.season.id,
+      subscriptionId: mockSubscriptionId,
+      type: undefined,
+      enabled: true,
+    });
+  });
+
+  it('passes enabled false to usePointsEvents when not on activity tab', () => {
+    mockSelectActiveTab.mockReturnValue('overview');
+
+    render(<ActivityTab />);
+
+    const lastCall =
+      mockUsePointsEvents.mock.calls[mockUsePointsEvents.mock.calls.length - 1];
+    expect(lastCall[0]).toEqual({
+      seasonId: defaultSeasonStatus.season.id,
+      subscriptionId: mockSubscriptionId,
+      type: undefined,
+      enabled: false,
     });
   });
 
@@ -417,6 +509,7 @@ describe('ActivityTab', () => {
     );
 
     const { getByTestId } = render(<ActivityTab />);
+
     const flatList = getByTestId('flatlist');
     flatList.props.onRefresh();
 
@@ -613,6 +706,268 @@ describe('ActivityTab', () => {
       const retryButton = getByTestId('error-retry-button');
       expect(retryButton).toBeTruthy();
       expect(mockRefresh).toBeDefined();
+    });
+  });
+
+  describe('Filter functionality', () => {
+    it('renders SelectOptionSheet with filter label', () => {
+      const { getByTestId, getByText } = render(<ActivityTab />);
+
+      expect(getByTestId('select-option-sheet')).toBeOnTheScreen();
+      expect(getByText('Filter by')).toBeOnTheScreen();
+    });
+
+    it('renders all filter options', () => {
+      const { getByText } = render(<ActivityTab />);
+
+      expect(getByText('All')).toBeOnTheScreen();
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByText('Perps')).toBeOnTheScreen();
+      expect(getByText('Predict')).toBeOnTheScreen();
+      expect(getByText('Referral')).toBeOnTheScreen();
+      expect(getByText('Card')).toBeOnTheScreen();
+      expect(getByText('MUSD Deposit')).toBeOnTheScreen();
+      expect(getByText('Shield')).toBeOnTheScreen();
+    });
+
+    it('renders filter options with correct testIDs', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      expect(getByTestId('activity-filter-ALL')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-SWAP')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-PERPS')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-PREDICT')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-REFERRAL')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-CARD')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-MUSD_DEPOSIT')).toBeOnTheScreen();
+      expect(getByTestId('activity-filter-SHIELD')).toBeOnTheScreen();
+    });
+
+    it('passes SWAP type to usePointsEvents when Swap filter is selected', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      fireEvent.press(getByTestId('activity-filter-SWAP'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: 'SWAP',
+        enabled: true,
+      });
+    });
+
+    it('passes PERPS type to usePointsEvents when Perps filter is selected', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      fireEvent.press(getByTestId('activity-filter-PERPS'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: 'PERPS',
+        enabled: true,
+      });
+    });
+
+    it('passes PREDICT type to usePointsEvents when Predict filter is selected', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      fireEvent.press(getByTestId('activity-filter-PREDICT'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: 'PREDICT',
+        enabled: true,
+      });
+    });
+
+    it('passes REFERRAL type to usePointsEvents when Referral filter is selected', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      fireEvent.press(getByTestId('activity-filter-REFERRAL'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: 'REFERRAL',
+        enabled: true,
+      });
+    });
+
+    it('passes CARD type to usePointsEvents when Card filter is selected', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      fireEvent.press(getByTestId('activity-filter-CARD'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: 'CARD',
+        enabled: true,
+      });
+    });
+
+    it('passes MUSD_DEPOSIT type to usePointsEvents when MUSD Deposit filter is selected', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      fireEvent.press(getByTestId('activity-filter-MUSD_DEPOSIT'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: 'MUSD_DEPOSIT',
+        enabled: true,
+      });
+    });
+
+    it('passes SHIELD type to usePointsEvents when Shield filter is selected', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      fireEvent.press(getByTestId('activity-filter-SHIELD'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: 'SHIELD',
+        enabled: true,
+      });
+    });
+
+    it('passes undefined type when All filter is selected after selecting another filter', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      // First select SWAP filter
+      fireEvent.press(getByTestId('activity-filter-SWAP'));
+
+      // Then select All filter
+      fireEvent.press(getByTestId('activity-filter-ALL'));
+
+      const lastCall =
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ];
+      expect(lastCall[0]).toEqual({
+        seasonId: defaultSeasonStatus.season.id,
+        subscriptionId: mockSubscriptionId,
+        type: undefined,
+        enabled: true,
+      });
+    });
+
+    it('allows switching between different filter types', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      // Select SWAP
+      fireEvent.press(getByTestId('activity-filter-SWAP'));
+      expect(
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ][0].type,
+      ).toBe('SWAP');
+
+      // Switch to PERPS
+      fireEvent.press(getByTestId('activity-filter-PERPS'));
+      expect(
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ][0].type,
+      ).toBe('PERPS');
+
+      // Switch to REFERRAL
+      fireEvent.press(getByTestId('activity-filter-REFERRAL'));
+      expect(
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ][0].type,
+      ).toBe('REFERRAL');
+
+      // Switch back to All
+      fireEvent.press(getByTestId('activity-filter-ALL'));
+      expect(
+        mockUsePointsEvents.mock.calls[
+          mockUsePointsEvents.mock.calls.length - 1
+        ][0].type,
+      ).toBeUndefined();
+    });
+
+    it('shows empty state when filter returns no events', () => {
+      mockUsePointsEvents.mockReturnValue(
+        makePointsEventsResult({
+          pointsEvents: [],
+          isLoading: false,
+        }),
+      );
+
+      const { getByTestId, getByText } = render(<ActivityTab />);
+
+      // Select a filter
+      fireEvent.press(getByTestId('activity-filter-SWAP'));
+
+      // Filter still shows empty state
+      expect(getByText('rewards.activity_empty_title')).toBeOnTheScreen();
+    });
+
+    it('shows loading state when filter changes and isLoading is true', () => {
+      mockUsePointsEvents.mockReturnValue(
+        makePointsEventsResult({
+          pointsEvents: null,
+          isLoading: true,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = render(<ActivityTab />);
+
+      // Select a filter
+      fireEvent.press(getByTestId('activity-filter-SWAP'));
+
+      // Still shows skeleton (no flatlist)
+      expect(queryByTestId('flatlist')).toBeNull();
+    });
+
+    it('shows selected value in SelectOptionSheet', () => {
+      const { getByTestId } = render(<ActivityTab />);
+
+      // Initially shows "ALL" as selected value
+      expect(getByTestId('select-option-sheet-selected')).toHaveTextContent(
+        'ALL',
+      );
+
+      // Select SWAP
+      fireEvent.press(getByTestId('activity-filter-SWAP'));
+
+      // Selected value updates to "SWAP"
+      expect(getByTestId('select-option-sheet-selected')).toHaveTextContent(
+        'SWAP',
+      );
     });
   });
 });

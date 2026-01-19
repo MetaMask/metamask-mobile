@@ -1486,10 +1486,14 @@ export class RewardsController extends BaseController<
     }
 
     // First page: use cached data with SWR background refresh
-    const cacheKey = this.#createSeasonSubscriptionCompositeKey(
+    // Include type in cache key so different filters have separate cache entries
+    const baseCacheKey = this.#createSeasonSubscriptionCompositeKey(
       params.seasonId,
       params.subscriptionId,
     );
+    const cacheKey = params.type
+      ? `${baseCacheKey}:${params.type}`
+      : baseCacheKey;
 
     const result = await wrapWithCache<PaginatedPointsEventsDto>({
       key: cacheKey,
@@ -1506,10 +1510,11 @@ export class RewardsController extends BaseController<
       fetchFresh: async () => {
         try {
           Logger.log(
-            'RewardsController: Fetching fresh points events data via API call for seasonId & subscriptionId & page cursor',
+            'RewardsController: Fetching fresh points events data via API call for seasonId & subscriptionId & type & page cursor',
             {
               seasonId: params.seasonId,
               subscriptionId: params.subscriptionId,
+              type: params.type,
               cursor: params.cursor,
             },
           );
@@ -1556,10 +1561,13 @@ export class RewardsController extends BaseController<
   async getPointsEventsIfChanged(
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
-    const cacheKey = this.#createSeasonSubscriptionCompositeKey(
+    const baseCacheKey = this.#createSeasonSubscriptionCompositeKey(
       params.seasonId,
       params.subscriptionId,
     );
+    const cacheKey = params.type
+      ? `${baseCacheKey}:${params.type}`
+      : baseCacheKey;
 
     const hasPointsEventsChanged = await this.hasPointsEventsChanged(params);
 
@@ -1612,13 +1620,15 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
 
-    const cached =
-      this.state.pointsEvents[
-        this.#createSeasonSubscriptionCompositeKey(
-          params.seasonId,
-          params.subscriptionId,
-        )
-      ];
+    const baseCacheKey = this.#createSeasonSubscriptionCompositeKey(
+      params.seasonId,
+      params.subscriptionId,
+    );
+    const cacheKey = params.type
+      ? `${baseCacheKey}:${params.type}`
+      : baseCacheKey;
+
+    const cached = this.state.pointsEvents[cacheKey];
 
     const cachedLatestUpdatedAt = cached?.results?.[0]?.updatedAt;
     // If the cache is empty, we need to fetch fresh data

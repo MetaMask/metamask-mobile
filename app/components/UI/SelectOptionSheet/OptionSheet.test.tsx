@@ -2,7 +2,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import React from 'react';
 import OptionsSheet from './OptionsSheet';
 import Routes from '../../../constants/navigation/Routes';
-import { SELECT_OPTION_PREFIX, SELECT_VALUE_TICK_PREFIX } from './constants';
+import { SELECT_OPTION_PREFIX } from './constants';
 import { fireEvent } from '@testing-library/react-native';
 import { ISelectOptionSheet } from './types';
 
@@ -41,11 +41,6 @@ describe('OptionSheet', () => {
     const { getByText } = render(OptionsSheet);
     expect(getByText('option 2')).toBeDefined();
     expect(getByText('option 1')).toBeDefined();
-  });
-
-  it('shows the selected option with tick', () => {
-    const { getByTestId } = render(OptionsSheet);
-    expect(getByTestId(SELECT_VALUE_TICK_PREFIX + 'key2')).toBeDefined();
   });
 
   it('calls onValueChange when an option is selected', () => {
