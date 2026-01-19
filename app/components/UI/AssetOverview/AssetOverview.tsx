@@ -622,7 +622,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           I18n.locale,
           { minimumFractionDigits: 0, maximumFractionDigits: 5 },
         )
-      : 0;
+      : undefined;
   } else if (isEthOrNative) {
     balance = renderFromWei(
       // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion

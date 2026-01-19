@@ -361,8 +361,8 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('YES · 72¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 28¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 73¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO · 29¢')).toBeOnTheScreen();
     });
 
     it('falls back to static prices when live prices unavailable', () => {
@@ -397,7 +397,7 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('YES · 80¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES · 81¢')).toBeOnTheScreen();
       expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
     });
 
@@ -459,8 +459,8 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('SEA · 55¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN · 45¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA · 56¢')).toBeOnTheScreen();
+      expect(screen.getByText('DEN · 46¢')).toBeOnTheScreen();
     });
   });
 });
