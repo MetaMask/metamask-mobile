@@ -58,7 +58,12 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { usePerpsMarkets, usePerpsNavigation } from '../../hooks';
+import {
+  usePerpsMarkets,
+  usePerpsNavigation,
+  usePositionManagement,
+} from '../../hooks';
+import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -74,6 +79,7 @@ import {
   MAX_ORDER_BOOK_LEVELS,
   selectDefaultGrouping,
 } from '../../utils/orderBookGrouping';
+import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import styleSheet from './PerpsOrderBookView.styles';
 import type {
   OrderBookRouteParams,
@@ -89,7 +95,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { symbol } = route.params || {};
   const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
-  const { navigateToOrder } = usePerpsNavigation();
+  const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
 
@@ -108,6 +114,21 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     () => markets.find((m) => m.symbol === symbol),
     [markets, symbol],
   );
+
+  // Check if user has an existing position for this market
+  const { existingPosition } = useHasExistingPosition({
+    asset: symbol || '',
+    loadOnMount: true,
+  });
+
+  // Position management hook for bottom sheet state and handlers
+  const {
+    showModifyActionSheet,
+    modifyActionSheetRef,
+    openModifySheet,
+    closeModifySheet,
+    handleReversePosition,
+  } = usePositionManagement();
 
   // Unit display state (base currency or USD)
   const [unitDisplay, setUnitDisplay] = useState<UnitDisplay>('usd');
@@ -336,6 +357,18 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     buttonColorVariant,
   ]);
 
+  // Handle Close position button press
+  const handleClosePosition = useCallback(() => {
+    if (!existingPosition) return;
+    navigateToClosePosition(existingPosition);
+  }, [existingPosition, navigateToClosePosition]);
+
+  // Handle Modify position button press
+  const handleModifyPress = useCallback(() => {
+    if (!existingPosition) return;
+    openModifySheet();
+  }, [existingPosition, openModifySheet]);
+
   // Error state
   if (error) {
     return (
@@ -498,54 +531,84 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           </View>
         )}
 
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
-          <View style={styles.actionButtonWrapper}>
-            {buttonColorVariant === 'monochrome' ? (
+        {/* Action Buttons - Show Modify/Close when position exists, Long/Short otherwise */}
+        {existingPosition ? (
+          <View style={styles.actionsContainer}>
+            <View style={styles.actionButtonWrapper}>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label={strings('perps.market.long')}
-                onPress={handleLongPress}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+                label={strings('perps.market.modify')}
+                onPress={handleModifyPress}
+                testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
               />
-            ) : (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Success}
-                onPress={handleLongPress}
-                isFullWidth
-                size={ButtonSizeRNDesignSystem.Lg}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </ButtonSemantic>
-            )}
-          </View>
+            </View>
 
-          <View style={styles.actionButtonWrapper}>
-            {buttonColorVariant === 'monochrome' ? (
+            <View style={styles.actionButtonWrapper}>
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label={strings('perps.market.short')}
-                onPress={handleShortPress}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+                label={
+                  parseFloat(existingPosition.size) >= 0
+                    ? strings('perps.market.close_long')
+                    : strings('perps.market.close_short')
+                }
+                onPress={handleClosePosition}
+                testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
               />
-            ) : (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Danger}
-                onPress={handleShortPress}
-                isFullWidth
-                size={ButtonSizeRNDesignSystem.Lg}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </ButtonSemantic>
-            )}
+            </View>
           </View>
-        </View>
+        ) : (
+          <View style={styles.actionsContainer}>
+            <View style={styles.actionButtonWrapper}>
+              {buttonColorVariant === 'monochrome' ? (
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  label={strings('perps.market.long')}
+                  onPress={handleLongPress}
+                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+                />
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Success}
+                  onPress={handleLongPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </ButtonSemantic>
+              )}
+            </View>
+
+            <View style={styles.actionButtonWrapper}>
+              {buttonColorVariant === 'monochrome' ? (
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  label={strings('perps.market.short')}
+                  onPress={handleShortPress}
+                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+                />
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Danger}
+                  onPress={handleShortPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </ButtonSemantic>
+              )}
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Price Grouping Selection Bottom Sheet */}
@@ -599,6 +662,16 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             />
           </Modal>
         </View>
+      )}
+
+      {/* Modify Action Bottom Sheet */}
+      {showModifyActionSheet && (
+        <PerpsSelectModifyActionView
+          sheetRef={modifyActionSheetRef}
+          position={existingPosition ?? undefined}
+          onClose={closeModifySheet}
+          onReversePosition={handleReversePosition}
+        />
       )}
     </SafeAreaView>
   );
