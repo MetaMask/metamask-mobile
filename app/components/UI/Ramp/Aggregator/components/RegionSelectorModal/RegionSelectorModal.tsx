@@ -78,9 +78,8 @@ function RegionSelectorModal() {
   });
   const trackEvent = useAnalytics();
 
-  // Animation shared values
-  const countryListTranslateX = useSharedValue(0);
-  const stateListTranslateX = useSharedValue(screenWidth);
+  // Animation shared value for horizontal slide
+  const translateX = useSharedValue(0);
 
   // Animate between views
   useEffect(() => {
@@ -90,15 +89,13 @@ function RegionSelectorModal() {
     };
 
     if (activeView === RegionViewType.STATE) {
-      // Slide to state view
-      countryListTranslateX.value = withTiming(-screenWidth, animationConfig);
-      stateListTranslateX.value = withTiming(0, animationConfig);
+      // Slide to state view (container moves left)
+      translateX.value = withTiming(-screenWidth, animationConfig);
     } else {
-      // Slide to country view
-      countryListTranslateX.value = withTiming(0, animationConfig);
-      stateListTranslateX.value = withTiming(screenWidth, animationConfig);
+      // Slide to country view (container at origin)
+      translateX.value = withTiming(0, animationConfig);
     }
-  }, [activeView, screenWidth, countryListTranslateX, stateListTranslateX]);
+  }, [activeView, screenWidth, translateX]);
 
   useEffect(() => {
     if (regions && activeView === RegionViewType.COUNTRY) {
@@ -319,13 +316,9 @@ function RegionSelectorModal() {
     setSearchString('');
   }, [regions]);
 
-  // Animated styles for both lists
-  const countryListStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: countryListTranslateX.value }],
-  }));
-
-  const stateListStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: stateListTranslateX.value }],
+  // Animated style for container
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
   }));
 
   return (
@@ -378,30 +371,38 @@ function RegionSelectorModal() {
           )}
         />
       </View>
-      <View style={styles.listContainer}>
-        <Animated.View style={[styles.listWrapper, countryListStyle]}>
-          <FlatList
-            ref={listRef}
-            data={countrySearchResults}
-            renderItem={renderRegionItem}
-            extraData={selectedRegion?.id}
-            keyExtractor={(item) => item?.id}
-            ListEmptyComponent={renderEmptyList}
-            keyboardDismissMode="none"
-            keyboardShouldPersistTaps="always"
-          />
-        </Animated.View>
+      <View style={styles.listContainerOuter}>
+        <Animated.View
+          style={[styles.listContainerInner, animatedContainerStyle]}
+        >
+          {/* Country List Panel */}
+          <View style={styles.listPanel}>
+            <FlatList
+              ref={listRef}
+              style={styles.list}
+              data={countrySearchResults}
+              renderItem={renderRegionItem}
+              extraData={selectedRegion?.id}
+              keyExtractor={(item) => item?.id}
+              ListEmptyComponent={renderEmptyList}
+              keyboardDismissMode="none"
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
 
-        <Animated.View style={[styles.listWrapper, stateListStyle]}>
-          <FlatList
-            data={stateSearchResults}
-            renderItem={renderRegionItem}
-            extraData={selectedRegion?.id}
-            keyExtractor={(item) => item?.id}
-            ListEmptyComponent={renderEmptyList}
-            keyboardDismissMode="none"
-            keyboardShouldPersistTaps="always"
-          />
+          {/* State List Panel */}
+          <View style={styles.listPanel}>
+            <FlatList
+              style={styles.list}
+              data={stateSearchResults}
+              renderItem={renderRegionItem}
+              extraData={selectedRegion?.id}
+              keyExtractor={(item) => item?.id}
+              ListEmptyComponent={renderEmptyList}
+              keyboardDismissMode="none"
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
         </Animated.View>
       </View>
     </BottomSheet>

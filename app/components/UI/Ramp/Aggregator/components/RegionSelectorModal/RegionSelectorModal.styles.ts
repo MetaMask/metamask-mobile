@@ -17,19 +17,21 @@ const createStyles = (params: {
       paddingHorizontal: 16,
       paddingBottom: 16,
     },
-    list: {
+    listContainerOuter: {
       height: screenHeight * 0.8,
+      overflow: 'hidden', // Hides off-screen list
     },
-    listContainer: {
-      flex: 1,
-      position: 'relative',
-      overflow: 'hidden',
-      height: screenHeight * 0.8,
-    },
-    listWrapper: {
-      position: 'absolute',
-      width: '100%',
+    listContainerInner: {
+      flexDirection: 'row',
+      width: '200%', // Twice the width to hold both panels
       height: '100%',
+    },
+    listPanel: {
+      width: '50%', // Each panel takes half of the inner container
+      height: '100%',
+    },
+    list: {
+      flex: 1,
     },
     region: {
       flexDirection: 'row',
