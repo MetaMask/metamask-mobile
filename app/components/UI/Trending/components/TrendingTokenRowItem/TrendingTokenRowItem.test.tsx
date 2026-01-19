@@ -913,8 +913,6 @@ describe('TrendingTokenRowItem', () => {
     });
 
     it('adds network directly when network is not added and navigates to asset', async () => {
-      jest.useFakeTimers();
-
       const token = createMockToken({
         assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
@@ -972,15 +970,10 @@ describe('TrendingTokenRowItem', () => {
         );
       });
 
-      // Advance timers past the 100ms setTimeout delay and flush promises
-      jest.advanceTimersByTime(100);
-
-      // Wait for the async navigation call after timer delay
+      // Wait for the async navigation call
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.any(Object));
       });
-
-      jest.useRealTimers();
     });
 
     it('does not navigate when network addition fails', async () => {

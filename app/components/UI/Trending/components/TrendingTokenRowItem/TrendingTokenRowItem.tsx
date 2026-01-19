@@ -220,13 +220,6 @@ const TrendingTokenRowItem = ({
         // and switching to it (shouldSwitchNetwork defaults to true)
         try {
           await addPopularNetwork(popularNetwork);
-          
-          // Brief delay to ensure Redux state updates and React re-renders
-          // have propagated before navigation. This ensures the home page
-          // shows the newly switched network when the user navigates back.
-          await new Promise((resolve) => {
-            setTimeout(resolve, 100);
-          });
         } catch (error) {
           // If network addition fails, don't navigate
           console.error('Failed to add network:', error);

@@ -18,7 +18,7 @@ import {
   removeNonEvmToken,
   goToAddEvmToken,
 } from './util';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
@@ -90,6 +90,17 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   // Memoize selector computation for better performance
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
+
+  const [, forceUpdate] = useState(0);
+
+  // Force re-render when coming back into focus to ensure the component
+  // picks up any network changes that happened while navigated away
+  // (e.g., when returning from trending flow after network switch)
+  useFocusEffect(
+    useCallback(() => {
+      forceUpdate((n) => n + 1);
+    }, []),
+  );
 
   // Mark as loaded once we have data (even if empty)
   useEffect(() => {
