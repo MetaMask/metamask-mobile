@@ -57,6 +57,7 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID_2,
   DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   SeedlessOnboardingControllerErrorMessage,
@@ -414,8 +415,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
         );
-      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      } else if (
+        toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID) ||
+        loginErrorMessage.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        )
+      ) {
         updateBiometryChoice(false);
+        setLoading(false);
+        return;
       } else {
         setError(loginErrorMessage);
       }

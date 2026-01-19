@@ -3,6 +3,8 @@ import { LoginViewSelectors } from './LoginView.testIds';
 import Login from './index';
 import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import Logger from '../../../util/Logger';
 
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
@@ -28,6 +30,9 @@ import { ReduxStore } from '../../../core/redux/types';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 const mockEngine = jest.mocked(Engine);
+
+jest.mock('../../../util/Logger');
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 // Mock useMetrics with a dynamic isEnabled function
 const mockIsEnabled = jest.fn().mockReturnValue(true);
@@ -385,6 +390,60 @@ describe('Login test suite 2', () => {
       });
 
       mockRoute.mockClear();
+    });
+  });
+
+  describe('biometric cancellation', () => {
+    it('does not log error when Android biometric auth is cancelled', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      jest
+        .spyOn(Authentication, 'userEntryAuth')
+        .mockRejectedValue(new Error('Error: Cancel'));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('does not log error when iOS biometric auth is cancelled', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      jest
+        .spyOn(Authentication, 'userEntryAuth')
+        .mockRejectedValue(
+          new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+        );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockLogger.error).not.toHaveBeenCalled();
     });
   });
 

@@ -81,6 +81,7 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   ParamListBase,
   RouteProp,
@@ -363,8 +364,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         });
 
         await handleVaultCorruption();
-      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      } else if (
+        toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID) ||
+        loginErrorMessage.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        )
+      ) {
         updateBiometryChoice(false);
+        setLoading(false);
+        return;
       } else {
         setError(loginErrorMessage);
       }
