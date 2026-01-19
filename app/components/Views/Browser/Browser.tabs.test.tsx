@@ -22,6 +22,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
 
+// Type assertion for Browser component props (component is JS with PropTypes)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BrowserComponent = Browser as React.ComponentType<any>;
+
 jest.useFakeTimers();
 
 jest.mock('../../hooks/useAccounts', () => ({
@@ -281,7 +285,7 @@ describe('Browser - Tab Operations', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={initialTabs}
                     activeTab={1}
@@ -316,51 +320,51 @@ describe('Browser - Tab Operations', () => {
         },
       };
 
-      rerender(
-        <Provider store={mockStore(stateWithNoTabs)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={routeMock}
-                    tabs={[]}
-                    activeTab={null}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeAllTabs={mockCloseAllTabs}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={jest.fn()}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-      );
-
-      // Wait for re-render and capture the callback
       await act(async () => {
-        // After re-render with zero tabs, Tabs should render if shouldShowTabs is true
-        // Find the most recent call that has closeTabsView
-        if (TabsMock.mock.calls.length > 0) {
-          for (let i = TabsMock.mock.calls.length - 1; i >= 0; i--) {
-            const call = TabsMock.mock.calls[i];
-            if (call[0]?.closeTabsView) {
-              closeTabsViewCallback = call[0].closeTabsView;
-              break;
-            }
-          }
-        }
-
-        // Call closeTabsView - the callback closure captures tabs.length === 0
-        if (closeTabsViewCallback) {
-          closeTabsViewCallback();
-        }
+        rerender(
+          <Provider store={mockStore(stateWithNoTabs)}>
+            <NavigationContainer independent>
+              <Stack.Navigator>
+                <Stack.Screen name={Routes.BROWSER.VIEW}>
+                  {() => (
+                    <BrowserComponent
+                      route={routeMock}
+                      tabs={[]}
+                      activeTab={null}
+                      navigation={mockNavigation}
+                      createNewTab={jest.fn()}
+                      closeAllTabs={mockCloseAllTabs}
+                      closeTab={jest.fn()}
+                      setActiveTab={jest.fn()}
+                      updateTab={jest.fn()}
+                    />
+                  )}
+                </Stack.Screen>
+              </Stack.Navigator>
+            </NavigationContainer>
+          </Provider>,
+        );
       });
 
-      // closeTabsView should call navigation.goBack when tabs.length === 0
+      // After re-render with zero tabs, Tabs should have been called with new closeTabsView
+      // Find the most recent call that has closeTabsView
+      if (TabsMock.mock.calls.length > 0) {
+        for (let i = TabsMock.mock.calls.length - 1; i >= 0; i--) {
+          const call = TabsMock.mock.calls[i];
+          if (call[0]?.closeTabsView) {
+            closeTabsViewCallback = call[0].closeTabsView;
+            break;
+          }
+        }
+      }
+
+      // Verify callback was captured
+      expect(closeTabsViewCallback).toBeDefined();
+
+      // Call closeTabsView callback which should call navigation.goBack when tabs.length === 0
+      closeTabsViewCallback();
+
+      // navigation.goBack called when tabs.length is zero
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 

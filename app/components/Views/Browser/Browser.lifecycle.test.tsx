@@ -19,6 +19,10 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import BrowserTab from '../BrowserTab/BrowserTab';
 
+// Type assertion for Browser component props (component is JS with PropTypes)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BrowserComponent = Browser as React.ComponentType<any>;
+
 jest.useFakeTimers();
 
 jest.mock('../../hooks/useAccounts', () => ({
@@ -186,7 +190,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { existingTabId: 2 } }}
                     tabs={tabs}
                     activeTab={1}
@@ -229,7 +233,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={null}
@@ -271,7 +275,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={initialTabs}
                     activeTab={1}
@@ -309,7 +313,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={newTabs}
                     activeTab={1}
@@ -344,7 +348,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { existingTabId: 2 } }}
                     tabs={tabs}
                     activeTab={1}
@@ -387,7 +391,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { existingTabId: 999 } }}
                     tabs={tabs}
                     activeTab={1}
@@ -433,7 +437,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -484,7 +488,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -537,7 +541,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -583,7 +587,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={null}
@@ -625,7 +629,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{
                       params: {
                         newTabUrl: 'https://test.com',
@@ -661,7 +665,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { newTabUrl: 'https://test.com' } }}
                     tabs={[]}
                     activeTab={null}
@@ -697,7 +701,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { timestamp: '123456' } }}
                     tabs={tabs}
                     activeTab={1}
@@ -755,7 +759,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -806,7 +810,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{
                       params: { newTabUrl: undefined, timestamp: '123' },
                     }}

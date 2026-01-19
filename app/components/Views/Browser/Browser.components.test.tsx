@@ -20,6 +20,10 @@ import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
 import BrowserTab from '../BrowserTab/BrowserTab';
 
+// Type assertion for Browser component props (component is JS with PropTypes)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BrowserComponent = Browser as React.ComponentType<any>;
+
 jest.useFakeTimers();
 
 jest.mock('../../hooks/useAccounts', () => ({
@@ -186,7 +190,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { fromTrending: true } }}
                     tabs={tabs}
                     activeTab={1}
@@ -233,7 +237,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { fromPerps: true } }}
                     tabs={tabs}
                     activeTab={1}
@@ -286,7 +290,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={{ params: { linkType: 'deeplink' } }}
                     tabs={tabs}
                     activeTab={1}
@@ -337,7 +341,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -383,7 +387,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -426,7 +430,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -466,7 +470,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -507,7 +511,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -551,7 +555,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -594,7 +598,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
@@ -638,7 +642,7 @@ describe('Browser - Component Rendering', () => {
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
-                  <Browser
+                  <BrowserComponent
                     route={routeMock}
                     tabs={tabs}
                     activeTab={1}
