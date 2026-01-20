@@ -1,7 +1,11 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
-
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { SRPListItemSelectorsIDs } from './SRPListItem.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -11,12 +15,10 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 
 import SRPListItem from './SRPListItem';
-import { fireEvent } from '@testing-library/react-native';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useMetrics/useMetrics', () => ({
@@ -59,9 +61,12 @@ const mockKeyring2 = {
 };
 
 // Account groups representing multichain accounts
+const mockAccountGroupId1 = `entropy:${mockKeyringId1}/0` as const;
+const mockAccountGroupId2 = `entropy:${mockKeyringId1}/1` as const;
+
 const mockAccountGroup1 = {
-  id: `entropy:${mockKeyringId1}/0`,
-  type: AccountGroupType.MultichainAccount,
+  id: mockAccountGroupId1,
+  type: AccountGroupType.MultichainAccount as const,
   accounts: [internalAccount1.id],
   metadata: {
     name: 'Account 1',
@@ -72,8 +77,8 @@ const mockAccountGroup1 = {
 };
 
 const mockAccountGroup2 = {
-  id: `entropy:${mockKeyringId1}/1`,
-  type: AccountGroupType.MultichainAccount,
+  id: mockAccountGroupId2,
+  type: AccountGroupType.MultichainAccount as const,
   accounts: [internalAccount2.id],
   metadata: {
     name: 'Account 2',
@@ -83,25 +88,26 @@ const mockAccountGroup2 = {
   },
 };
 
-const mockAccountTreeControllerState = {
-  accountTree: {
-    wallets: {
-      [`entropy:${mockKeyringId1}`]: {
-        id: `entropy:${mockKeyringId1}`,
-        type: AccountWalletType.Entropy,
-        metadata: {
-          name: 'Wallet 1',
-          entropy: { id: mockKeyringId1 },
-        },
-        groups: {
-          [mockAccountGroup1.id]: mockAccountGroup1,
-          [mockAccountGroup2.id]: mockAccountGroup2,
+const mockAccountTreeControllerState: DeepPartial<AccountTreeControllerState> =
+  {
+    accountTree: {
+      wallets: {
+        [`entropy:${mockKeyringId1}`]: {
+          id: `entropy:${mockKeyringId1}`,
+          type: AccountWalletType.Entropy,
+          metadata: {
+            name: 'Wallet 1',
+            entropy: { id: mockKeyringId1 },
+          },
+          groups: {
+            [mockAccountGroupId1]: mockAccountGroup1,
+            [mockAccountGroupId2]: mockAccountGroup2,
+          },
         },
       },
+      selectedAccountGroup: mockAccountGroupId1,
     },
-    selectedAccountGroup: mockAccountGroup1.id,
-  },
-};
+  };
 
 const initialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -139,7 +145,6 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
-        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -170,7 +175,6 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
-        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -195,7 +199,6 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
-        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -228,7 +231,6 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
-        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -260,7 +262,6 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
-        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -278,8 +279,6 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
-        // @ts-expect-error - initialState is not typed entirely correct
-
         state: initialState,
       },
     );
