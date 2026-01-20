@@ -6,9 +6,35 @@ import {
   RampsController,
   RampsControllerMessenger,
   RampsControllerState,
+  type UserRegion,
 } from '@metamask/ramps-controller';
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+
+const createMockUserRegion = (regionCode: string): UserRegion => {
+  const parts = regionCode.toLowerCase().split('-');
+  const countryCode = parts[0].toUpperCase();
+  const stateCode = parts[1]?.toUpperCase();
+
+  return {
+    country: {
+      isoCode: countryCode,
+      flag: '🏳️',
+      name: countryCode,
+      phone: { prefix: '', placeholder: '', template: '' },
+      currency: '',
+      supported: true,
+    },
+    state: stateCode
+      ? {
+          stateId: stateCode,
+          name: stateCode,
+          supported: true,
+        }
+      : null,
+    regionCode: regionCode.toLowerCase(),
+  };
+};
 
 const mockInit = jest.fn().mockResolvedValue(undefined);
 
@@ -64,7 +90,7 @@ describe('ramps controller init', () => {
 
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
-      userRegion: null,
+      userRegion: createMockUserRegion('us-ca'),
       preferredProvider: null,
       providers: [],
       tokens: null,
