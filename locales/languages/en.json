@@ -3271,6 +3271,11 @@
     "bridge": "Bridge",
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
+    "merkl_rewards": {
+      "annual_bonus": "{{apy}}% bonus",
+      "claimable_bonus": "Claimable bonus",
+      "claim": "Claim"
+    },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
