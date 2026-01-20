@@ -1,41 +1,35 @@
-import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
-import {
-  trace,
-  endTrace,
-  TraceName,
-  TraceOperation,
-} from '../../../../../util/trace';
 import { v4 as uuidv4 } from 'uuid';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { ServiceContext } from './ServiceContext';
-import type {
-  IPerpsProvider,
-  Position,
-  GetPositionsParams,
-  AccountState,
-  GetAccountStateParams,
-  HistoricalPortfolioResult,
-  GetHistoricalPortfolioParams,
-  OrderFill,
-  GetOrderFillsParams,
-  Funding,
-  GetFundingParams,
-  Order,
-  GetOrdersParams,
-  MarketInfo,
-  GetMarketsParams,
-  GetAvailableDexsParams,
-  LiquidationPriceParams,
-  MaintenanceMarginParams,
-  FeeCalculationParams,
-  FeeCalculationResult,
-  OrderParams,
-  ClosePositionParams,
-  AssetRoute,
+import {
+  PerpsTraceNames,
+  PerpsTraceOperations,
+  type IPerpsProvider,
+  type Position,
+  type GetPositionsParams,
+  type AccountState,
+  type GetAccountStateParams,
+  type HistoricalPortfolioResult,
+  type GetHistoricalPortfolioParams,
+  type OrderFill,
+  type GetOrderFillsParams,
+  type Funding,
+  type GetFundingParams,
+  type Order,
+  type GetOrdersParams,
+  type MarketInfo,
+  type GetMarketsParams,
+  type GetAvailableDexsParams,
+  type LiquidationPriceParams,
+  type MaintenanceMarginParams,
+  type FeeCalculationParams,
+  type FeeCalculationResult,
+  type OrderParams,
+  type ClosePositionParams,
+  type AssetRoute,
+  type IPerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../../types/perps-types';
 import type { CandlePeriod } from '../../constants/chartConfig';
@@ -46,27 +40,25 @@ import type { CandlePeriod } from '../../constants/chartConfig';
  * Handles all read-only data-fetching operations for the Perps controller.
  * This service is stateless and delegates to the provider.
  * The controller is responsible for tracing and state management.
+ *
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class MarketDataService {
+  private readonly deps: IPerpsPlatformDependencies;
+
   /**
-   * Error context helper for consistent logging
+   * Create a new MarketDataService instance
+   * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  private static getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'MarketDataService',
-      method,
-      ...additionalContext,
-    };
+  constructor(deps: IPerpsPlatformDependencies) {
+    this.deps = deps;
   }
 
   /**
    * Get current positions
    * Handles full orchestration: tracing, error logging, state management, and provider delegation
    */
-  static async getPositions(options: {
+  async getPositions(options: {
     provider: IPerpsProvider;
     params?: GetPositionsParams;
     context: ServiceContext;
@@ -76,13 +68,13 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsGetPositions,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.GET_POSITIONS,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
@@ -119,8 +111,8 @@ export class MarketDataService {
 
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsGetPositions,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.GET_POSITIONS,
         id: traceId,
         data: traceData,
       });
@@ -131,7 +123,7 @@ export class MarketDataService {
    * Get order fills for a specific user or order
    * Handles full orchestration: tracing, error logging, and provider delegation
    */
-  static async getOrderFills(options: {
+  async getOrderFills(options: {
     provider: IPerpsProvider;
     params?: GetOrderFillsParams;
     context: ServiceContext;
@@ -141,13 +133,13 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsOrderFillsFetch,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.ORDER_FILLS_FETCH,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
@@ -156,7 +148,7 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      Logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error), {
         tags: {
           feature: 'perps',
           provider: context.tracingContext.provider,
@@ -177,8 +169,8 @@ export class MarketDataService {
       };
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsOrderFillsFetch,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.ORDER_FILLS_FETCH,
         id: traceId,
         data: traceData,
       });
@@ -189,7 +181,7 @@ export class MarketDataService {
    * Get historical user orders (order lifecycle)
    * Handles full orchestration: tracing, error logging, and provider delegation
    */
-  static async getOrders(options: {
+  async getOrders(options: {
     provider: IPerpsProvider;
     params?: GetOrdersParams;
     context: ServiceContext;
@@ -199,13 +191,13 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsOrdersFetch,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.ORDERS_FETCH,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
@@ -214,7 +206,7 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      Logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error), {
         tags: {
           feature: 'perps',
           provider: context.tracingContext.provider,
@@ -235,8 +227,8 @@ export class MarketDataService {
       };
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsOrdersFetch,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.ORDERS_FETCH,
         id: traceId,
         data: traceData,
       });
@@ -247,41 +239,40 @@ export class MarketDataService {
    * Get current open orders
    * Handles full orchestration: tracing, error logging, performance measurement, and provider delegation
    */
-  static async getOpenOrders(options: {
+  async getOpenOrders(options: {
     provider: IPerpsProvider;
     params?: GetOrdersParams;
     context: ServiceContext;
   }): Promise<Order[]> {
     const { provider, params, context } = options;
     const traceId = uuidv4();
-    const startTime = performance.now();
+    const startTime = this.deps.performance.now();
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      const traceSpan = trace({
-        name: TraceName.PerpsOrdersFetch,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.ORDERS_FETCH,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
       const result = await provider.getOpenOrders(params);
 
-      const completionDuration = performance.now() - startTime;
-      setMeasurement(
+      const completionDuration = this.deps.performance.now() - startTime;
+      this.deps.tracer.setMeasurement(
         PerpsMeasurementName.PERPS_GET_OPEN_ORDERS_OPERATION,
         completionDuration,
         'millisecond',
-        traceSpan,
       );
 
       traceData = { success: true };
       return result;
     } catch (error) {
-      Logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error), {
         tags: {
           feature: 'perps',
           provider: context.tracingContext.provider,
@@ -302,8 +293,8 @@ export class MarketDataService {
       };
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsOrdersFetch,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.ORDERS_FETCH,
         id: traceId,
         data: traceData,
       });
@@ -314,7 +305,7 @@ export class MarketDataService {
    * Get funding rates
    * Handles full orchestration: tracing, error logging, and provider delegation
    */
-  static async getFunding(options: {
+  async getFunding(options: {
     provider: IPerpsProvider;
     params?: GetFundingParams;
     context: ServiceContext;
@@ -324,13 +315,13 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsFundingFetch,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.FUNDING_FETCH,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
@@ -339,7 +330,7 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      Logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error), {
         tags: {
           feature: 'perps',
           provider: context.tracingContext.provider,
@@ -360,8 +351,8 @@ export class MarketDataService {
       };
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsFundingFetch,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.FUNDING_FETCH,
         id: traceId,
         data: traceData,
       });
@@ -372,7 +363,7 @@ export class MarketDataService {
    * Get account state
    * Handles full orchestration: tracing, error logging, state management, and provider delegation
    */
-  static async getAccountState(options: {
+  async getAccountState(options: {
     provider: IPerpsProvider;
     params?: GetAccountStateParams;
     context: ServiceContext;
@@ -382,13 +373,13 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsGetAccountState,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.GET_ACCOUNT_STATE,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
           source: params?.source || 'unknown',
         },
       });
@@ -401,7 +392,7 @@ export class MarketDataService {
           'Failed to get account state: received null/undefined response',
         );
 
-        Logger.error(ensureError(error), {
+        this.deps.logger.error(ensureError(error), {
           tags: {
             feature: 'perps',
             provider: context.tracingContext.provider,
@@ -449,8 +440,8 @@ export class MarketDataService {
 
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsGetAccountState,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.GET_ACCOUNT_STATE,
         id: traceId,
         data: traceData,
       });
@@ -461,7 +452,7 @@ export class MarketDataService {
    * Get historical portfolio data
    * Handles full orchestration: tracing, error logging, state management, and provider delegation
    */
-  static async getHistoricalPortfolio(options: {
+  async getHistoricalPortfolio(options: {
     provider: IPerpsProvider;
     params?: GetHistoricalPortfolioParams;
     context: ServiceContext;
@@ -471,13 +462,13 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsGetHistoricalPortfolio,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.GET_HISTORICAL_PORTFOLIO,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
@@ -495,7 +486,7 @@ export class MarketDataService {
           ? error.message
           : 'Failed to get historical portfolio';
 
-      Logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error), {
         tags: {
           feature: 'perps',
           provider: context.tracingContext.provider,
@@ -525,8 +516,8 @@ export class MarketDataService {
 
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsGetHistoricalPortfolio,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.GET_HISTORICAL_PORTFOLIO,
         id: traceId,
         data: traceData,
       });
@@ -537,7 +528,7 @@ export class MarketDataService {
    * Get available markets
    * Handles full orchestration: tracing, error logging, state management, and provider delegation
    */
-  static async getMarkets(options: {
+  async getMarkets(options: {
     provider: IPerpsProvider;
     params?: GetMarketsParams;
     context: ServiceContext;
@@ -547,14 +538,16 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsGetMarkets,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.GET_MARKETS,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
-          ...(params?.symbols && { symbolCount: params.symbols.length }),
+          isTestnet: String(context.tracingContext.isTestnet),
+          ...(params?.symbols && {
+            symbolCount: String(params.symbols.length),
+          }),
           ...(params?.dex !== undefined && { dex: params.dex }),
         },
       });
@@ -577,7 +570,7 @@ export class MarketDataService {
           ? error.message
           : PERPS_ERROR_CODES.MARKETS_FAILED;
 
-      Logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error), {
         tags: {
           feature: 'perps',
           provider: context.tracingContext.provider,
@@ -607,8 +600,8 @@ export class MarketDataService {
 
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsGetMarkets,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.GET_MARKETS,
         id: traceId,
         data: traceData,
       });
@@ -618,9 +611,10 @@ export class MarketDataService {
   /**
    * Get available DEXs (HIP-3 support required)
    */
-  static async getAvailableDexs(options: {
+  async getAvailableDexs(options: {
     provider: IPerpsProvider;
     params?: GetAvailableDexsParams;
+    context: ServiceContext;
   }): Promise<string[]> {
     const { provider, params } = options;
 
@@ -631,10 +625,12 @@ export class MarketDataService {
 
       return await provider.getAvailableDexs(params);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('getAvailableDexs', { params }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'MarketDataService.getAvailableDexs',
+          data: { params },
+        },
+      });
       throw error;
     }
   }
@@ -643,7 +639,7 @@ export class MarketDataService {
    * Fetch historical candle data for charting
    * Handles full orchestration: tracing, error logging, state management, and provider delegation
    */
-  static async fetchHistoricalCandles(options: {
+  async fetchHistoricalCandles(options: {
     provider: IPerpsProvider;
     coin: string;
     interval: CandlePeriod;
@@ -656,13 +652,13 @@ export class MarketDataService {
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
-      trace({
-        name: TraceName.PerpsFetchHistoricalCandles,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.FETCH_HISTORICAL_CANDLES,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
           coin,
           interval,
         },
@@ -699,7 +695,7 @@ export class MarketDataService {
           ? error.message
           : 'Failed to fetch historical candles';
 
-      Logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error), {
         tags: {
           feature: 'perps',
           provider: context.tracingContext.provider,
@@ -732,8 +728,8 @@ export class MarketDataService {
 
       throw error;
     } finally {
-      endTrace({
-        name: TraceName.PerpsFetchHistoricalCandles,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.FETCH_HISTORICAL_CANDLES,
         id: traceId,
         data: traceData,
       });
@@ -743,19 +739,22 @@ export class MarketDataService {
   /**
    * Calculate liquidation price for a position
    */
-  static async calculateLiquidationPrice(options: {
+  async calculateLiquidationPrice(options: {
     provider: IPerpsProvider;
     params: LiquidationPriceParams;
+    context: ServiceContext;
   }): Promise<string> {
     const { provider, params } = options;
 
     try {
       return await provider.calculateLiquidationPrice(params);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('calculateLiquidationPrice', { params }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'MarketDataService.calculateLiquidationPrice',
+          data: { params },
+        },
+      });
       throw error;
     }
   }
@@ -763,19 +762,22 @@ export class MarketDataService {
   /**
    * Calculate maintenance margin for a position
    */
-  static async calculateMaintenanceMargin(options: {
+  async calculateMaintenanceMargin(options: {
     provider: IPerpsProvider;
     params: MaintenanceMarginParams;
+    context: ServiceContext;
   }): Promise<number> {
     const { provider, params } = options;
 
     try {
       return await provider.calculateMaintenanceMargin(params);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('calculateMaintenanceMargin', { params }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'MarketDataService.calculateMaintenanceMargin',
+          data: { params },
+        },
+      });
       throw error;
     }
   }
@@ -783,19 +785,22 @@ export class MarketDataService {
   /**
    * Get maximum leverage for an asset
    */
-  static async getMaxLeverage(options: {
+  async getMaxLeverage(options: {
     provider: IPerpsProvider;
     asset: string;
+    context: ServiceContext;
   }): Promise<number> {
     const { provider, asset } = options;
 
     try {
       return await provider.getMaxLeverage(asset);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('getMaxLeverage', { asset }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'MarketDataService.getMaxLeverage',
+          data: { asset },
+        },
+      });
       throw error;
     }
   }
@@ -803,19 +808,22 @@ export class MarketDataService {
   /**
    * Calculate fees for an order
    */
-  static async calculateFees(options: {
+  async calculateFees(options: {
     provider: IPerpsProvider;
     params: FeeCalculationParams;
+    context: ServiceContext;
   }): Promise<FeeCalculationResult> {
     const { provider, params } = options;
 
     try {
       return await provider.calculateFees(params);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('calculateFees', { params }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'MarketDataService.calculateFees',
+          data: { params },
+        },
+      });
       throw error;
     }
   }
@@ -823,19 +831,22 @@ export class MarketDataService {
   /**
    * Validate an order before placement
    */
-  static async validateOrder(options: {
+  async validateOrder(options: {
     provider: IPerpsProvider;
     params: OrderParams;
+    context: ServiceContext;
   }): Promise<{ isValid: boolean; error?: string }> {
     const { provider, params } = options;
 
     try {
       return await provider.validateOrder(params);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('validateOrder', { params }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'MarketDataService.validateOrder',
+          data: { params },
+        },
+      });
       throw error;
     }
   }
@@ -843,38 +854,37 @@ export class MarketDataService {
   /**
    * Validate a position close request
    */
-  static async validateClosePosition(options: {
+  async validateClosePosition(options: {
     provider: IPerpsProvider;
     params: ClosePositionParams;
+    context: ServiceContext;
   }): Promise<{ isValid: boolean; error?: string }> {
     const { provider, params } = options;
 
     try {
       return await provider.validateClosePosition(params);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('validateClosePosition', { params }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'MarketDataService.validateClosePosition',
+          data: { params },
+        },
+      });
       throw error;
     }
   }
 
   /**
    * Get supported withdrawal routes (synchronous)
+   * Note: This method doesn't log errors to avoid needing context for a synchronous getter
    */
-  static getWithdrawalRoutes(options: {
-    provider: IPerpsProvider;
-  }): AssetRoute[] {
+  getWithdrawalRoutes(options: { provider: IPerpsProvider }): AssetRoute[] {
     const { provider } = options;
 
     try {
       return provider.getWithdrawalRoutes();
-    } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('getWithdrawalRoutes'),
-      );
+    } catch {
+      // Silent fail - withdrawal routes are not critical
       return [];
     }
   }
@@ -882,7 +892,7 @@ export class MarketDataService {
   /**
    * Get block explorer URL (synchronous)
    */
-  static getBlockExplorerUrl(options: {
+  getBlockExplorerUrl(options: {
     provider: IPerpsProvider;
     address?: string;
   }): string {

@@ -17,11 +17,19 @@ import {
 import { AssetType, TokenStandard } from '../../types/token';
 // eslint-disable-next-line import/no-namespace
 import * as SendContext from '../../context/send-context/send-context';
+import { validateAmountMultichain } from '../../utils/multichain-snaps';
+
 const MOCK_ADDRESS_1 = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({}),
 }));
+
+jest.mock('../../utils/multichain-snaps', () => ({
+  validateAmountMultichain: jest.fn(),
+}));
+
+const mockValidateAmountMultichain = validateAmountMultichain as jest.Mock;
 
 describe('validateERC1155Balance', () => {
   it('return error if amount is greater than balance and not otherwise', () => {
@@ -133,6 +141,10 @@ describe('validateTokenBalance', () => {
 });
 
 describe('useAmountValidation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('return error for invalid amount value', async () => {
     jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
       asset: EVM_NATIVE_ASSET,
@@ -346,6 +358,32 @@ describe('useAmountValidation', () => {
 
     await waitFor(() =>
       expect(result.current.amountError).toEqual('Insufficient funds'),
+    );
+  });
+
+  it('returns insufficient balance to cover fees error when snap returns InsufficientBalanceToCoverFee', async () => {
+    mockValidateAmountMultichain.mockResolvedValue({
+      errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+    });
+
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000', // 10^18 in hex - must cover the value to pass validateTokenBalance
+      },
+      from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
+      value: '1',
+    } as unknown as SendContext.SendContextType);
+
+    const { result } = renderHookWithProvider(() => useAmountValidation(), {
+      state: solanaSendStateMock,
+    });
+
+    await waitFor(() =>
+      expect(result.current.amountError).toEqual(
+        'Insufficient balance to cover fees',
+      ),
     );
   });
 });

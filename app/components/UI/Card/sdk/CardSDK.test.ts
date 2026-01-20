@@ -1216,6 +1216,31 @@ describe('CardSDK', () => {
         message: 'Login failed. Please try again.',
       });
     });
+
+    it('throws INVALID_OTP_CODE error when status is 400 and otpCode is provided', async () => {
+      const mockLoginDataWithOtp = {
+        ...mockLoginData,
+        otpCode: '123456',
+        location: 'us' as CardLocation,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid OTP code',
+        }),
+      });
+
+      await expect(cardSDK.login(mockLoginDataWithOtp)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.login(mockLoginDataWithOtp)).rejects.toMatchObject({
+        type: CardErrorType.INVALID_OTP_CODE,
+        message: 'Invalid OTP code',
+      });
+    });
   });
 
   describe('sendOtpLogin', () => {

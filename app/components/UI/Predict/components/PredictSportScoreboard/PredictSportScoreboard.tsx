@@ -106,7 +106,8 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
 
   const isPreGame = mergedData.status === 'scheduled' || period === 'NS';
   const isHalftime = period === 'HT';
-  const isEndOfQuarter = period === 'End Q1' || period === 'End Q3';
+  const isEndOfQuarter =
+    period === 'End Q1' || period === 'End Q3' || period === 'End Q4';
   const isOvertime = period === 'OT';
   const isFinal =
     mergedData.status === 'ended' || period === 'FT' || period === 'VFT';
