@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
-import { getNativeTokenAddress } from '../../utils/asset';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,

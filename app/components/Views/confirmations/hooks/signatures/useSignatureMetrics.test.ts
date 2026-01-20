@@ -25,7 +25,10 @@ const mockTrackEvent = jest.fn().mockImplementation();
 jest.mock('../../../../../core/Analytics', () => ({
   ...jest.requireActual('../../../../../core/Analytics'),
   MetaMetrics: {
-    getInstance: () => ({ trackEvent: mockTrackEvent }),
+    getInstance: () => ({
+      trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
+    }),
   },
 }));
 

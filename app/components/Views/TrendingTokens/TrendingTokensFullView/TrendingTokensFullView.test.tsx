@@ -38,7 +38,9 @@ jest.mock(
       searchQuery?: string,
       sortBy?: unknown,
       chainIds?: unknown,
-    ) => mockUseTrendingSearch({ searchQuery, sortBy, chainIds }),
+      enableDebounce?: boolean,
+    ) =>
+      mockUseTrendingSearch({ searchQuery, sortBy, chainIds, enableDebounce }),
   }),
 );
 
@@ -97,6 +99,31 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
     ],
   ),
 }));
+
+jest.mock(
+  '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return jest.fn(({ onRetry }: { onRetry?: () => void }) => (
+      <View testID="empty-error-trending-state">
+        <Text>Trending tokens is not available</Text>
+        {onRetry && <View testID="retry-button" onTouchEnd={onRetry} />}
+      </View>
+    ));
+  },
+);
+
+jest.mock(
+  '../../TrendingView/components/EmptyErrorState/EmptySearchResultState',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return jest.fn(() => (
+      <View testID="empty-search-result-state">
+        <Text>No tokens found</Text>
+      </View>
+    ));
+  },
+);
 
 jest.mock('../../../UI/Trending/components/TrendingTokensBottomSheet', () => {
   const { View } = jest.requireActual('react-native');
@@ -334,7 +361,7 @@ describe('TrendingTokensFullView', () => {
     expect(skeletons[0]).toBeOnTheScreen();
   });
 
-  it('displays empty error state when results are empty', () => {
+  it('displays empty error state when results are empty without search query', () => {
     mockUseTrendingSearch.mockReturnValue({
       data: [],
       isLoading: false,
@@ -348,6 +375,31 @@ describe('TrendingTokensFullView', () => {
     );
 
     expect(getByText('Trending tokens is not available')).toBeOnTheScreen();
+  });
+
+  it('displays empty search result state when search returns no results', () => {
+    mockUseTrendingSearch.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
+
+    // Open search
+    const searchToggle = getByTestId('trending-tokens-header-search-toggle');
+    fireEvent.press(searchToggle);
+
+    // Type search query
+    const searchInput = getByTestId('trending-tokens-header-search-bar');
+    fireEvent.changeText(searchInput, 'nonexistenttoken');
+
+    expect(getByTestId('empty-search-result-state')).toBeOnTheScreen();
+    expect(getByText('No tokens found')).toBeOnTheScreen();
   });
 
   it('displays trending tokens list when data is loaded', () => {

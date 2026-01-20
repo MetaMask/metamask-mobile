@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
+import { AddAccountBottomSheetSelectorsIDs } from './AddAccountBottomSheet.testIds';
 import AddAccountActions from './AddAccountActions';
 import { addNewHdAccount } from '../../../actions/multiSrp';
 import {

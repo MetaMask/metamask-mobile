@@ -1,6 +1,11 @@
 import { Mockttp } from 'mockttp';
 import _ from 'lodash';
-import { createLogger, LogLevel, MockApiEndpoint } from '../../framework';
+import {
+  createLogger,
+  LogLevel,
+  MockApiEndpoint,
+  MockEventsObject,
+} from '../../framework';
 import { getDecodedProxiedURL } from '../../specs/notifications/utils/helpers';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
@@ -332,4 +337,52 @@ export const interceptProxyUrl = async (
         body: await response.text(),
       };
     });
+};
+
+/**
+ * Sets up multiple mock events from a structured MockEventsObject definition
+ *
+ * @param mockServer - The mock server instance
+ * @param mockEvents - Object containing mock definitions grouped by method (GET, POST, etc.)
+ */
+export const setupMockEvents = async (
+  mockServer: Mockttp,
+  mockEvents: MockEventsObject,
+): Promise<void> => {
+  for (const [method, mocks] of Object.entries(mockEvents)) {
+    if (!mocks) continue;
+
+    // Cast method to the expected type for setupMockRequest
+    // setupMockRequest will safely ignore unsupported methods if passed
+    const requestMethod = method as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD';
+
+    for (const mock of mocks) {
+      // Special handling for POST requests with body matching
+      if (requestMethod === 'POST' && mock.requestBody) {
+        await setupMockPostRequest(
+          mockServer,
+          mock.urlEndpoint,
+          mock.requestBody,
+          mock.response,
+          {
+            statusCode: mock.responseCode,
+            ignoreFields: mock.ignoreFields,
+            priority: mock.priority,
+          },
+        );
+      } else {
+        // Standard handling for all other requests (and POSTs without body matching)
+        await setupMockRequest(
+          mockServer,
+          {
+            requestMethod,
+            url: mock.urlEndpoint,
+            response: mock.response,
+            responseCode: mock.responseCode,
+          },
+          mock.priority,
+        );
+      }
+    }
+  }
 };

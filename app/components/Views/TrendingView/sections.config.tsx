@@ -1,4 +1,5 @@
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useMemo } from 'react';
+import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import Routes from '../../../constants/navigation/Routes';
@@ -47,6 +48,7 @@ interface SectionConfig {
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
+  OverrideSkeletonSearch?: React.ComponentType;
   Section: React.ComponentType<{
     sectionId: SectionId;
     data: unknown[];
@@ -59,6 +61,51 @@ interface SectionConfig {
   };
   SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
+
+const BASE_FUSE_OPTIONS = {
+  shouldSort: true,
+  // Tweak threshold search strictness (0.0 = strict, 1.0 = lenient)
+  threshold: 0.2,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 32,
+  minMatchCharLength: 1,
+} as const;
+
+const fuseSearch = <T,>(
+  data: T[],
+  searchQuery: string | undefined,
+  fuseOptions: FuseOptions<T>,
+  searchSortingFn?: (a: T, b: T) => number,
+): T[] => {
+  searchQuery = searchQuery?.trim();
+  if (!searchQuery) {
+    return data;
+  }
+  const fuse = new Fuse(data, fuseOptions);
+  const results = fuse.search(searchQuery);
+
+  if (searchSortingFn) {
+    return results.sort(searchSortingFn);
+  }
+
+  return results;
+};
+
+const TOKEN_FUSE_OPTIONS: FuseOptions<TrendingAsset> = {
+  ...BASE_FUSE_OPTIONS,
+  keys: ['symbol', 'name', 'assetId'],
+};
+
+const PERPS_FUSE_OPTIONS: FuseOptions<PerpsMarketData> = {
+  ...BASE_FUSE_OPTIONS,
+  keys: ['symbol', 'name'],
+};
+
+const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
+  ...BASE_FUSE_OPTIONS,
+  keys: ['title', 'description'],
+};
 
 /**
  * Centralized configuration for all Trending View sections.
@@ -90,8 +137,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     Skeleton: TrendingTokensSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
-      return { data, isLoading, refetch };
+      const { data, isLoading, refetch } = useTrendingSearch(
+        searchQuery,
+        undefined,
+        undefined,
+        false, // Disable debouncing here because useExploreSearch already handles it
+      );
+      const filteredData = useMemo(
+        () =>
+          fuseSearch(
+            data,
+            searchQuery,
+            TOKEN_FUSE_OPTIONS,
+            // Penalize zero marketCap tokens
+            (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
+          ),
+        [data, searchQuery],
+      );
+      return { data: filteredData, isLoading, refetch };
     },
   },
   perps: {
@@ -132,9 +195,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
-      const filteredMarkets = searchQuery
-        ? filterMarketsByQuery(markets, searchQuery)
-        : markets;
+      const filteredMarkets = useMemo(() => {
+        if (!searchQuery) {
+          return markets;
+        }
+        const filteredByQuery = filterMarketsByQuery(markets, searchQuery);
+        return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
+      }, [markets, searchQuery]);
 
       return {
         data: filteredMarkets,
@@ -161,6 +228,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    // Using sites skeleton cause PredictMarketSkeleton has too much spacing
+    OverrideSkeletonSearch: SiteSkeleton,
     Section: SectionCarrousel,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
@@ -169,7 +238,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         q: searchQuery || undefined,
       });
 
-      return { data: marketData, isLoading: isFetching, refetch };
+      const filteredData = useMemo(
+        () => fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS),
+        [marketData, searchQuery],
+      );
+
+      return { data: filteredData, isLoading: isFetching, refetch };
     },
   },
   sites: {

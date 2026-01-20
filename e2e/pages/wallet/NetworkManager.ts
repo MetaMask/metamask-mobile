@@ -6,9 +6,9 @@ import Utilities from '../../framework/Utilities';
 import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
-} from '../../selectors/wallet/NetworkManager.selectors';
+} from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
 import TestHelpers from '../../helpers';
-import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 
 class NetworkManager {
   /**

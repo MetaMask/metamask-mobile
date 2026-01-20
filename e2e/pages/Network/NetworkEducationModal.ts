@@ -1,7 +1,7 @@
 import {
   NetworkEducationModalSelectorsIDs,
   NetworkEducationModalSelectorsText,
-} from '../../selectors/Network/NetworkEducationModal.selectors';
+} from '../../../app/components/UI/NetworkInfo/NetworkEducationModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

@@ -3,7 +3,7 @@ import Gestures from '../framework/Gestures';
 import {
   CommonSelectorsIDs,
   CommonSelectorsText,
-} from '../selectors/Common.selectors';
+} from '../../app/util/Common.testIds';
 
 class CommonView {
   get okAlertByText(): DetoxElement {

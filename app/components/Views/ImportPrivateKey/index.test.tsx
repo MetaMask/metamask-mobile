@@ -6,7 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
-import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 import { Alert } from 'react-native';
 
 // Mock dependencies
@@ -93,7 +93,7 @@ describe('ImportPrivateKey', () => {
   });
 
   it('displays SRP warning description when user has no social auth connection', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByPlaceholderText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: srpState },
@@ -101,9 +101,13 @@ describe('ImportPrivateKey', () => {
 
     expect(getByText(strings('import_private_key.title'))).toBeTruthy();
     expect(
-      getByText(strings('import_private_key.description_srp')),
+      getByText(strings('import_private_key.description_srp'), {
+        exact: false,
+      }),
     ).toBeTruthy();
-    expect(getByText(strings('import_private_key.subtitle'))).toBeTruthy();
+    expect(
+      getByPlaceholderText(strings('import_private_key.subtitle')),
+    ).toBeTruthy();
     expect(getByText(strings('import_private_key.cta_text'))).toBeTruthy();
     expect(
       getByText(strings('import_private_key.or_scan_a_qr_code')),
@@ -111,7 +115,7 @@ describe('ImportPrivateKey', () => {
   });
 
   it('displays Apple/Google auth description when user has social auth connection', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByPlaceholderText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
       { state: initialState },
@@ -121,7 +125,9 @@ describe('ImportPrivateKey', () => {
     expect(
       getByText(strings('import_private_key.description_one')),
     ).toBeTruthy();
-    expect(getByText(strings('import_private_key.subtitle'))).toBeTruthy();
+    expect(
+      getByPlaceholderText(strings('import_private_key.subtitle')),
+    ).toBeTruthy();
   });
 
   it('calls dismiss function when close button is pressed', () => {
@@ -149,7 +155,7 @@ describe('ImportPrivateKey', () => {
       { state: srpState },
     );
 
-    const learnMoreText = getByText(strings('import_private_key.here'));
+    const learnMoreText = getByText(strings('import_private_key.learn_more'));
     expect(learnMoreText).toBeOnTheScreen();
     fireEvent.press(learnMoreText);
 

@@ -20,7 +20,7 @@ import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,

@@ -15,7 +15,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { LEARN_MORE_URL } from '../../../../../../constants/urls';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
 import Banner, {

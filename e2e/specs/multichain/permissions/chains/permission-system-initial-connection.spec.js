@@ -1,11 +1,10 @@
 import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import Assertions from '../../../../framework/Assertions';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
@@ -30,7 +29,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();
@@ -57,7 +56,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
       async () => {
         // Initial setup: Login and navigate to test dapp
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         // First permission modification: Add Linea Sepolia
