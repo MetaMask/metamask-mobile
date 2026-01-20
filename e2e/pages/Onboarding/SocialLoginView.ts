@@ -8,7 +8,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import { AccountStatusSelectorIDs } from '../../selectors/Onboarding/AccountStatus.selectors';
 
 class SocialLoginView {

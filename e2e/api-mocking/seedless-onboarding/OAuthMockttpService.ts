@@ -20,6 +20,7 @@ import { Mockttp } from 'mockttp';
 
 import {
   AuthServer,
+  AUTH_SERVICE_BASE_URL,
   MetadataService,
   E2E_EMAILS,
   E2EScenario,
@@ -254,14 +255,73 @@ export class OAuthMockttpService {
    * Proxy Auth Server token requests to backend QA mock
    *
    * This is the key integration point:
-   * - App calls: /api/v1/oauth/token
+   * - App calls: https://auth-service.uat-api.cx.metamask.io/api/v1/oauth/token
    * - We proxy to: /api/v1/qa/mock/oauth/token
    * - Backend returns valid tokens
    */
   private async setupAuthServerProxy(server: Mockttp): Promise<void> {
     // Proxy token requests to backend QA mock
+    // Use full URL pattern to match external auth server requests
+    const tokenEndpoint = `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/token`;
+    console.log(`[E2E MockServer] Registering mock for: ${tokenEndpoint}`);
+
+    await server.forPost(tokenEndpoint).thenCallback(async (request) => {
+      console.log(`[E2E MockServer] ✅ INTERCEPTED: POST ${tokenEndpoint}`);
+      try {
+        const requestBody = (await request.body.getText()) || '{}';
+        const body = JSON.parse(requestBody);
+        console.log(
+          `[E2E MockServer] Request body:`,
+          JSON.stringify(body, null, 2),
+        );
+
+        // Override email with E2E email for scenario selection
+        body.email = this.config.email;
+        body.login_provider = this.config.loginProvider;
+
+        console.log(
+          `[E2E] Proxying OAuth token request for: ${this.config.email}`,
+        );
+        console.log(`[E2E] Proxying to: ${AuthServer.MockRequestToken}`);
+
+        // Call backend QA mock endpoint
+        const response = await fetch(AuthServer.MockRequestToken, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Add internal secret header if required by backend
+            'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          console.error(`[E2E] Backend QA mock error: ${response.status}`);
+          return {
+            statusCode: response.status,
+            json: { error: 'Backend QA mock error' },
+          };
+        }
+
+        const tokens = await response.json();
+        console.log('[E2E] Received valid tokens from backend QA mock');
+
+        return {
+          statusCode: 200,
+          json: tokens,
+        };
+      } catch (error) {
+        console.error('[E2E] Error proxying to backend QA mock:', error);
+        return {
+          statusCode: 500,
+          json: { error: 'Failed to proxy to backend QA mock' },
+        };
+      }
+    });
+
+    // Handle Apple login id_token endpoint
     await server
-      .forPost('/api/v1/oauth/token')
+      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v1/oauth/id_token`)
       .thenCallback(async (request) => {
         try {
           const requestBody = (await request.body.getText()) || '{}';
@@ -272,15 +332,14 @@ export class OAuthMockttpService {
           body.login_provider = this.config.loginProvider;
 
           console.log(
-            `[E2E] Proxying OAuth token request for: ${this.config.email}`,
+            `[E2E] Proxying Apple id_token request for: ${this.config.email}`,
           );
 
-          // Call backend QA mock endpoint
-          const response = await fetch(AuthServer.MockRequestToken, {
+          // Call backend QA mock endpoint for id_token
+          const response = await fetch(AuthServer.MockIdToken, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              // Add internal secret header if required by backend
               'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
             },
             body: JSON.stringify(body),
@@ -288,33 +347,38 @@ export class OAuthMockttpService {
 
           if (!response.ok) {
             console.error(
-              `[E2E] Backend QA mock error: ${response.status}`,
+              `[E2E] Backend QA mock error for id_token: ${response.status}`,
             );
             return {
               statusCode: response.status,
-              json: { error: 'Backend QA mock error' },
+              json: { error: 'Backend QA mock error for id_token' },
             };
           }
 
           const tokens = await response.json();
-          console.log('[E2E] Received valid tokens from backend QA mock');
+          console.log(
+            '[E2E] Received valid tokens from backend QA mock (id_token)',
+          );
 
           return {
             statusCode: 200,
             json: tokens,
           };
         } catch (error) {
-          console.error('[E2E] Error proxying to backend QA mock:', error);
+          console.error(
+            '[E2E] Error proxying id_token to backend QA mock:',
+            error,
+          );
           return {
             statusCode: 500,
-            json: { error: 'Failed to proxy to backend QA mock' },
+            json: { error: 'Failed to proxy id_token to backend QA mock' },
           };
         }
       });
 
     // Also handle token renewal
     await server
-      .forPost('/api/v2/oauth/renew_refresh_token')
+      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v2/oauth/renew_refresh_token`)
       .thenCallback(async (request) => {
         try {
           const requestBody = await request.body.getText();
@@ -338,11 +402,11 @@ export class OAuthMockttpService {
 
     // Handle token revocation
     await server
-      .forPost('/api/v2/oauth/revoke')
-      .thenCallback(async () => (
+      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v2/oauth/revoke`)
+      .thenCallback(async () =>
         // Just return success for revocation
-        { statusCode: 200, json: { success: true } }
-      ));
+        ({ statusCode: 200, json: { success: true } }),
+      );
   }
 
   /**
@@ -351,12 +415,12 @@ export class OAuthMockttpService {
   private async setupMarketingOptInMock(server: Mockttp): Promise<void> {
     // GET request
     await server
-      .forGet('/api/v1/oauth/marketing_opt_in_status')
+      .forGet(`${AUTH_SERVICE_BASE_URL}/api/v1/oauth/marketing_opt_in_status`)
       .thenJson(200, { is_opt_in: true });
 
     // POST request
     await server
-      .forPost('/api/v1/oauth/marketing_opt_in_status')
+      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v1/oauth/marketing_opt_in_status`)
       .thenJson(200, { is_opt_in: true });
   }
 
