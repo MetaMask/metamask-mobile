@@ -12,58 +12,192 @@ export function fromBase64UrlSafe(base64String: string): string {
     .padEnd(base64String.length + ((4 - (base64String.length % 4)) % 4), '=');
 }
 
-interface RetryOptions {
-  retries: number;
-  delayMs: number | number[];
-  shouldRetry?: (error: unknown, attempt: number) => boolean;
+export interface RetryContext {
+  /** The error that caused the retry (0-indexed) */
+  error: unknown;
+  /** The attempt number that just failed (0-indexed) */
+  attempt: number;
+  /** Whether another retry will be attempted */
+  willRetry: boolean;
+  /** The delay before the next retry (if willRetry is true) */
+  delayMs: number;
+}
+
+export interface RetryOptions {
+  /** Maximum number of retry attempts (not including the initial attempt) */
+  maxRetries: number;
+  /** Base delay in milliseconds for exponential backoff */
+  baseDelayMs?: number;
+  /** Maximum delay cap in milliseconds */
+  maxDelayMs?: number;
+  /** Jitter factor (0-1) to randomize delays and prevent thundering herd */
+  jitterFactor?: number;
+  /** Custom function to determine if an error should be retried */
+  shouldRetry?: (error: unknown) => boolean;
+  /** Callback fired on each retry attempt (for logging/observability) */
+  onRetry?: (context: RetryContext) => void;
+  /** AbortSignal to cancel retries (e.g., when component unmounts) */
+  abortSignal?: AbortSignal;
 }
 
 /**
- * Retries an operation with a delay between attempts.
+ * Calculates delay with exponential backoff and jitter.
  *
- * @param operation - Function to execute on each attempt.
- * @param options - Retry configuration.
- * @returns The resolved value of the operation.
+ * @param attempt - The current attempt number (0-indexed)
+ * @param baseDelayMs - Base delay in milliseconds
+ * @param maxDelayMs - Maximum delay cap
+ * @param jitterFactor - Jitter factor (0-1)
+ * @returns The calculated delay in milliseconds
+ */
+function calculateDelayWithJitter(
+  attempt: number,
+  baseDelayMs: number,
+  maxDelayMs: number,
+  jitterFactor: number,
+): number {
+  // Exponential backoff: baseDelay * 2^attempt
+  const exponentialDelay = baseDelayMs * Math.pow(2, attempt);
+  // Cap the delay
+  const cappedDelay = Math.min(exponentialDelay, maxDelayMs);
+  // Apply jitter: delay * (1 - jitterFactor + random * jitterFactor)
+  // This gives a range of [delay * (1 - jitterFactor), delay]
+  const jitteredDelay =
+    cappedDelay * (1 - jitterFactor + Math.random() * jitterFactor);
+  return Math.round(jitteredDelay);
+}
+
+/**
+ * Checks if an error message indicates a client error (4xx) that should not be retried.
+ * Client errors indicate issues with the request itself, not transient server issues.
+ *
+ * @param error - The error to check
+ * @returns true if the error should be retried, false otherwise
+ */
+export function isRetryableError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return true; // Unknown error types are retried by default
+  }
+
+  // Check for HTTP 4xx client errors in the message
+  // These are not retryable as the request itself is invalid
+  const clientErrorPattern = /status:\s*\[4\d{2}\]/i;
+  if (clientErrorPattern.test(error.message)) {
+    return false;
+  }
+
+  // Network errors and 5xx server errors are retryable
+  return true;
+}
+
+/**
+ * Retries an async operation with exponential backoff, jitter, and smart error classification.
+ *
+ * Features:
+ * - Exponential backoff with configurable base delay
+ * - Jitter to prevent thundering herd problem
+ * - Smart error classification (doesn't retry 4xx client errors by default)
+ * - Cancellation support via AbortSignal
+ * - Observability via onRetry callback
+ *
+ * @param operation - Async function to execute on each attempt
+ * @param options - Retry configuration
+ * @returns The resolved value of the operation
+ * @throws The last error if all retries are exhausted or if error is non-retryable
+ *
+ * @example
+ * ```ts
+ * const result = await retryWithDelay(
+ *   () => fetchAuthTokens(),
+ *   {
+ *     maxRetries: 3,
+ *     baseDelayMs: 1000,
+ *     onRetry: ({ attempt, error, delayMs }) => {
+ *       Logger.log(`Retry ${attempt + 1} after ${delayMs}ms: ${error.message}`);
+ *     },
+ *   },
+ * );
+ * ```
  */
 export async function retryWithDelay<T>(
-  operation: () => Promise<T> | T,
+  operation: () => Promise<T>,
   options: RetryOptions,
 ): Promise<T> {
-  const normalizedRetries = Math.max(0, options.retries);
-  const normalizedDelayMs = Array.isArray(options.delayMs)
-    ? options.delayMs.map((delayMs) => Math.max(0, delayMs))
-    : Math.max(0, options.delayMs);
+  const {
+    maxRetries,
+    baseDelayMs = 1000,
+    maxDelayMs = 10000,
+    jitterFactor = 0.3,
+    shouldRetry = isRetryableError,
+    onRetry,
+    abortSignal,
+  } = options;
 
-  const getDelayMsForAttempt = (attempt: number): number => {
-    if (!Array.isArray(normalizedDelayMs)) {
-      return normalizedDelayMs;
+  const normalizedMaxRetries = Math.max(0, maxRetries);
+
+  for (let attempt = 0; attempt <= normalizedMaxRetries; attempt++) {
+    // Check for cancellation before each attempt
+    if (abortSignal?.aborted) {
+      throw new Error('Operation aborted');
     }
 
-    if (normalizedDelayMs.length === 0) {
-      return 0;
-    }
-
-    return normalizedDelayMs[attempt] ?? normalizedDelayMs.at(-1) ?? 0;
-  };
-
-  for (let attempt = 0; attempt <= normalizedRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
-      const isLastAttempt = attempt === normalizedRetries;
-      if (
-        isLastAttempt ||
-        options.shouldRetry?.(error, attempt + 1) === false
-      ) {
+      const isLastAttempt = attempt === normalizedMaxRetries;
+      const isErrorRetryable = shouldRetry(error);
+      const willRetry = !isLastAttempt && isErrorRetryable;
+
+      const delayMs = willRetry
+        ? calculateDelayWithJitter(
+            attempt,
+            baseDelayMs,
+            maxDelayMs,
+            jitterFactor,
+          )
+        : 0;
+
+      // Fire the onRetry callback for observability
+      onRetry?.({ error, attempt, willRetry, delayMs });
+
+      if (!willRetry) {
         throw error;
       }
 
-      const delayMs = getDelayMsForAttempt(attempt);
+      // Wait before the next retry with cancellation support
       if (delayMs > 0) {
-        await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
+        await new Promise<void>((resolve, reject) => {
+          const timeoutId = setTimeout(resolve, delayMs);
+
+          // If we have an abort signal, listen for cancellation during the delay
+          if (abortSignal) {
+            const abortHandler = () => {
+              clearTimeout(timeoutId);
+              reject(new Error('Operation aborted'));
+            };
+
+            if (abortSignal.aborted) {
+              clearTimeout(timeoutId);
+              reject(new Error('Operation aborted'));
+              return;
+            }
+
+            abortSignal.addEventListener('abort', abortHandler, { once: true });
+
+            // Clean up the listener after timeout completes
+            const originalResolve = resolve;
+            resolve = () => {
+              abortSignal.removeEventListener('abort', abortHandler);
+              originalResolve();
+            };
+          }
+        });
       }
     }
   }
 
+  // This is technically unreachable because:
+  // - If operation succeeds, we return
+  // - If operation fails on last attempt or non-retryable error, we throw
+  // But TypeScript needs this for type safety
   throw new Error('Retry attempts exhausted');
 }
