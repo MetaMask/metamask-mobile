@@ -7,6 +7,7 @@ import {
   addMMOriginatedTransaction,
   get4ByteCode,
   hasTransactionType,
+  isWithdrawalTransaction,
   parseStandardTokenTransactionData,
 } from './transaction';
 import {
@@ -211,5 +212,44 @@ describe('hasTransactionType', () => {
         TransactionType.cancel,
       ]),
     ).toBe(false);
+  });
+});
+
+describe('isWithdrawalTransaction', () => {
+  it('returns true for predictWithdraw transaction type', () => {
+    const txMeta = {
+      type: TransactionType.predictWithdraw,
+    } as TransactionMeta;
+
+    expect(isWithdrawalTransaction(txMeta)).toBe(true);
+  });
+
+  it('returns false for non-withdrawal transaction types', () => {
+    const txMeta = {
+      type: TransactionType.simpleSend,
+    } as TransactionMeta;
+
+    expect(isWithdrawalTransaction(txMeta)).toBe(false);
+  });
+
+  it('returns false for deposit transaction types', () => {
+    const txMeta = {
+      type: TransactionType.predictDeposit,
+    } as TransactionMeta;
+
+    expect(isWithdrawalTransaction(txMeta)).toBe(false);
+  });
+
+  it('returns true when nested transaction is a withdrawal type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+    } as TransactionMeta;
+
+    expect(isWithdrawalTransaction(txMeta)).toBe(true);
+  });
+
+  it('returns false for undefined transaction', () => {
+    expect(isWithdrawalTransaction(undefined)).toBe(false);
   });
 });

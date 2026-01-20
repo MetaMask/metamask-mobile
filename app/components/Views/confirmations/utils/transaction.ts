@@ -118,3 +118,25 @@ export function hasTransactionType(
     ) ?? false
   );
 }
+
+/**
+ * Withdrawal transaction types that use a "Receive as" token picker
+ * instead of "Pay with" for selecting the destination token.
+ */
+export const WITHDRAWAL_TRANSACTION_TYPES = [
+  TransactionType.predictWithdraw,
+  // TransactionType.perpsWithdraw, // Add when implementing for Perps
+] as const;
+
+/**
+ * Checks if the transaction is a withdrawal type (predictWithdraw, perpsWithdraw, etc.)
+ * Withdrawal transactions use "Receive as" instead of "Pay with" for token selection.
+ */
+export function isWithdrawalTransaction(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return hasTransactionType(
+    transactionMeta,
+    WITHDRAWAL_TRANSACTION_TYPES as unknown as TransactionType[],
+  );
+}

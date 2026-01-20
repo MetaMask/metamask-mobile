@@ -9,6 +9,8 @@ import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
+  useTransactionPayIsPostQuote,
+  useTransactionPaySelectedToken,
 } from '../pay/useTransactionPayData';
 
 export function useNoPayTokenQuotesAlert() {
@@ -17,6 +19,8 @@ export function useNoPayTokenQuotesAlert() {
   const isQuotesLoading = useIsTransactionPayLoading();
   const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const isPostQuote = useTransactionPayIsPostQuote();
+  const selectedToken = useTransactionPaySelectedToken();
 
   const isOptionalOnly = (sourceAmounts ?? []).every(
     (t) =>
@@ -24,12 +28,23 @@ export function useNoPayTokenQuotesAlert() {
         ?.skipIfBalance,
   );
 
+  // For post-quote (withdrawal) flows, check if source and target are the same token
+  // Same-token-same-chain withdrawals don't need bridging, so no quotes is expected
+  const sourceToken = requiredTokens?.find((t) => !t.skipIfBalance);
+  const isSameTokenWithdrawal =
+    isPostQuote &&
+    sourceToken &&
+    selectedToken &&
+    sourceToken.address.toLowerCase() === selectedToken.address.toLowerCase() &&
+    sourceToken.chainId === selectedToken.chainId;
+
   const showAlert =
     payToken &&
     !isQuotesLoading &&
     sourceAmounts?.length &&
     !quotes?.length &&
-    !isOptionalOnly;
+    !isOptionalOnly &&
+    !isSameTokenWithdrawal; // Don't show alert for same-token withdrawals
 
   return useMemo(() => {
     if (!showAlert) {

@@ -6100,10 +6100,14 @@
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
+      "receive_as": "Receive",
       "total": "Total",
+      "you_receive": "You'll receive",
       "transaction_fee": "Transaction fee",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
+      "network_fees": "Network fees",
+      "provider_fee": "Provider fee",
       "bridge_fee": "Bridge provider fee"
     },
     "title": {
@@ -6254,6 +6258,7 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available: ",
+    "available_predict_balance": "Available Predict balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
@@ -7063,6 +7068,7 @@
   },
   "pay_with_modal": {
     "title": "Select payment method",
+    "title_receive": "Select receive token",
     "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {

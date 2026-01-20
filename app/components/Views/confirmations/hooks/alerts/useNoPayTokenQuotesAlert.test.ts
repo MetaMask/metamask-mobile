@@ -14,9 +14,14 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPaySourceAmounts,
+  useTransactionPayIsPostQuote,
+  useTransactionPaySelectedToken,
+  useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
 import {
+  TransactionPaymentToken,
   TransactionPayQuote,
+  TransactionPayRequiredToken,
   TransactionPaySourceAmount,
 } from '@metamask/transaction-pay-controller';
 
@@ -49,6 +54,15 @@ describe('useNoPayTokenQuotesAlert', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useTransactionPayIsPostQuoteMock = jest.mocked(
+    useTransactionPayIsPostQuote,
+  );
+  const useTransactionPaySelectedTokenMock = jest.mocked(
+    useTransactionPaySelectedToken,
+  );
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -64,6 +78,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     useTransactionPayQuotesMock.mockReturnValue(undefined);
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {} as TransactionPaySourceAmount,
+    ]);
+    useTransactionPayIsPostQuoteMock.mockReturnValue(false);
+    useTransactionPaySelectedTokenMock.mockReturnValue(undefined);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      { address: '0xSource', chainId: '0x89' } as TransactionPayRequiredToken,
     ]);
   });
 
@@ -97,5 +116,48 @@ describe('useNoPayTokenQuotesAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  describe('post-quote (withdrawal) flows', () => {
+    const SOURCE_TOKEN_ADDRESS = '0xSourceToken' as Hex;
+    const SOURCE_CHAIN_ID = '0x89' as Hex;
+
+    beforeEach(() => {
+      useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: SOURCE_TOKEN_ADDRESS,
+          chainId: SOURCE_CHAIN_ID,
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+    });
+
+    it('returns no alert for same-token-same-chain withdrawal (no bridge needed)', () => {
+      // Selected token matches source token
+      useTransactionPaySelectedTokenMock.mockReturnValue({
+        address: SOURCE_TOKEN_ADDRESS,
+        chainId: SOURCE_CHAIN_ID,
+      } as TransactionPaymentToken);
+
+      const { result } = runHook();
+
+      // Should not show alert because same-token withdrawal doesn't need quotes
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert for cross-chain withdrawal with no quotes', () => {
+      // Selected token is different from source token
+      useTransactionPaySelectedTokenMock.mockReturnValue({
+        address: '0xDifferentToken' as Hex,
+        chainId: '0x38' as Hex,
+      } as TransactionPaymentToken);
+
+      const { result } = runHook();
+
+      // Should show alert because bridge is needed but no quotes available
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].key).toBe(AlertKeys.NoPayTokenQuotes);
+    });
   });
 });

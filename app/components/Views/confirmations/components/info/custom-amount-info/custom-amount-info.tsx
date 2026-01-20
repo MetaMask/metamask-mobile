@@ -19,6 +19,7 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useWithdrawalPostQuote } from '../../../hooks/pay/useWithdrawalPostQuote';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -41,7 +42,11 @@ import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isWithdrawalTransaction,
+} from '../../../utils/transaction';
+import { useWithdrawalToken } from '../../../hooks/pay/useWithdrawalToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import Button, {
@@ -91,15 +96,27 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       preferredToken,
     });
     useTransactionPayMetrics();
+    // Set isPostQuote=true for withdrawal transactions
+    useWithdrawalPostQuote();
+
+    const transactionMeta = useTransactionMetadataRequest();
+    const isWithdrawal = isWithdrawalTransaction(transactionMeta);
+    const { canSelectWithdrawalToken } = useWithdrawalToken();
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
-    const hasTokens = availableTokens.length > 0;
+    // For withdrawals, we always have tokens available (the supported withdrawal tokens)
+    const hasTokens = isWithdrawal || availableTokens.length > 0;
+
+    // Withdrawal without token picker = same-token-same-chain (no bridge needed)
+    const isWithdrawalWithoutTokenPicker =
+      isWithdrawal && !canSelectWithdrawalToken;
 
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
+      isWithdrawalWithoutTokenPicker,
     });
 
     const {
@@ -144,14 +161,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             overrideContent(amountHuman)
           ) : (
             <>
-              {disablePay !== true && (
+              {/* Show PayTokenAmount only for deposits (not for withdrawals) */}
+              {!isWithdrawal && disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}
                 />
               )}
               {children}
-              {disablePay !== true && hasTokens && <PayWithRow />}
+              {/* Show PayWithRow for deposits (when disablePay is false) OR for withdrawals when token picker is enabled */}
+              {((!isWithdrawal && disablePay !== true) ||
+                canSelectWithdrawalToken) &&
+                hasTokens && <PayWithRow />}
             </>
           )}
         </Box>
@@ -161,7 +182,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <Box>
               <BridgeFeeRow />
               <BridgeTimeRow />
-              <TotalRow />
+              <TotalRow inputAmountUsd={amountFiat} />
               <PercentageRow />
             </Box>
           )}
@@ -291,16 +312,23 @@ function ConfirmButton({
 
 function useIsResultReady({
   isKeyboardVisible,
+  isWithdrawalWithoutTokenPicker,
 }: {
   isKeyboardVisible: boolean;
+  isWithdrawalWithoutTokenPicker: boolean;
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
 
+  // For withdrawals without token picker (same-token-same-chain), no quote is needed
+  // but we still want to show the result rows for gas fees
   return (
     !isKeyboardVisible &&
-    (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
+    (isQuotesLoading ||
+      Boolean(quotes?.length) ||
+      !hasSourceAmount ||
+      isWithdrawalWithoutTokenPicker)
   );
 }
 

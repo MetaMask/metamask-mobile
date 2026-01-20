@@ -1,7 +1,9 @@
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import {
+  useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -71,9 +73,14 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
-
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
+  );
+  const useTransactionPayIsPostQuoteMock = jest.mocked(
+    useTransactionPayIsPostQuote,
+  );
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
   );
 
   beforeEach(() => {
@@ -83,6 +90,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayTotalsMock.mockReturnValue(TOTALS_MOCK);
     useTokenWithBalanceMock.mockReturnValue(NATIVE_TOKEN_MOCK);
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
+    useTransactionPayIsPostQuoteMock.mockReturnValue(false);
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
@@ -339,6 +348,69 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       const { result } = runHook({ pendingAmountUsd: '1.23' });
 
       expect(result.current).toStrictEqual([]);
+    });
+  });
+
+  describe('for post-quote (withdrawal) flows', () => {
+    beforeEach(() => {
+      useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+    });
+
+    it('skips input insufficient balance check for post-quote flows', () => {
+      // Balance is less than required amount - would normally trigger alert
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceUsd: '0.50', // Less than required $1.23
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { result } = runHook();
+
+      // No alert because post-quote funds come from withdrawal, not user balance
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('skips fees insufficient balance check for post-quote flows', () => {
+      // Balance is less than source amount - would normally trigger fee alert
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '500', // Less than source amount (1000)
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { result } = runHook();
+
+      // No alert because post-quote funds come from withdrawal, not user balance
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('still checks native token for source network fees in post-quote flows', () => {
+      // Native balance too low for gas fees
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '50', // Less than max gas fee (100)
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook();
+
+      // Alert still shows because user needs native token to pay gas
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenNative,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_native.message',
+            { ticker: 'ETH' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
     });
   });
 });
