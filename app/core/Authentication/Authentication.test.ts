@@ -4552,11 +4552,13 @@ describe('Authentication', () => {
     });
 
     it('navigates to the optin metrics flow when metrics are not enabled and UI has not been seen', async () => {
-      // Mock StorageWrapper.getItem to return false for OPTIN_META_METRICS_UI_SEEN.
-      StorageWrapper.getItem = () => Promise.resolve(false);
-      // Mock MetaMetrics.getInstance to return false for isEnabled.
-      MetaMetrics.getInstance = () =>
-        ({ isEnabled: () => false }) as MetaMetrics;
+      // Mock StorageWrapper.getItem to return null for OPTIN_META_METRICS_UI_SEEN.
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+      // Clear beforeEach mock and set MetaMetrics.getInstance to return false for isEnabled.
+      jest.spyOn(MetaMetrics, 'getInstance').mockReset();
+      jest
+        .spyOn(MetaMetrics, 'getInstance')
+        .mockReturnValue({ isEnabled: () => false } as MetaMetrics);
 
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
