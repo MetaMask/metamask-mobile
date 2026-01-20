@@ -129,7 +129,6 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { parseCAIP19AssetId } from '../Ramp/Aggregator/utils/parseCaip19AssetId';
 import { toLowerCaseEquals } from '../../../util/general';
 
-
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
  *
@@ -741,13 +740,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       : undefined;
 
   const { allTokens } = useRampTokens();
-  const chainIdInCaip = isCaipChainId(asset.chainId)
-    ? asset.chainId
-    : toEvmCaipChainId(asset.chainId as Hex);
-  const assetId = toAssetId(asset.address, chainIdInCaip);
 
   const isAssetBuyable = useMemo(() => {
     if (!allTokens) return false;
+
+    const chainIdInCaip = isCaipChainId(asset.chainId)
+      ? asset.chainId
+      : toEvmCaipChainId(asset.chainId as Hex);
+    const assetId = toAssetId(asset.address, chainIdInCaip);
 
     const matchingToken = allTokens.find((token) => {
       if (!token.assetId) return false;
@@ -757,10 +757,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
       // For native assets, match by chainId and slip44 namespace
       if (asset.isNative) {
-        console.log('SDKJHSDHKJHKJDSAKJHJ', token.chainId, chainIdInCaip, (
-          token.chainId === chainIdInCaip &&
-          parsedTokenAssetId.assetNamespace === 'slip44'
-        ));
         return (
           token.chainId === chainIdInCaip &&
           parsedTokenAssetId.assetNamespace === 'slip44'
@@ -770,11 +766,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       // For ERC20 tokens, match by assetId
       return assetId && toLowerCaseEquals(token.assetId, assetId);
     });
-
     return matchingToken?.tokenSupported ?? false;
-  }, [allTokens, asset.isNative, chainIdInCaip, assetId]);
-
-  console.log('DEBUG IS ASSET BUYABLE', isAssetBuyable, assetId, allTokens?.length);
+  }, [allTokens, asset.isNative, asset.chainId, asset.address]);
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
@@ -796,7 +789,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayBuyButton={displayBuyButton && isAssetBuyable}
             displaySwapsButton={displaySwapsButton}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
