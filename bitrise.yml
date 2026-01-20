@@ -3436,7 +3436,19 @@ app:
       MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
         is_expand: false
-      MM_MUSD_CONVERSION_FLOW_ENABLED: false
+      MM_MUSD_CONVERSION_FLOW_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES: ""
+    - opts:
+        is_expand: false
+      MM_RAMPS_UNIFIED_BUY_V1_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: true
+    - opts:
+        is_expand: false
+      MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED: "0.01"
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
