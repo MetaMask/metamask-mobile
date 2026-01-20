@@ -3,7 +3,7 @@
  */
 
 /**
- * Checks if a URL value is valid (not empty, null, or placeholder).
+ * Checks if a URL value is valid (not empty, null, placeholder, and proper URL format).
  * @param {string | undefined} url - The URL to check
  * @returns {boolean} Whether the URL is valid
  */
@@ -13,7 +13,16 @@ export function isValidUrl(url) {
   }
   const trimmed = url.trim().toLowerCase();
   // Check for common placeholder/invalid values
-  return trimmed !== '' && trimmed !== 'n/a' && trimmed !== 'null' && trimmed !== 'undefined';
+  if (trimmed === '' || trimmed === 'n/a' || trimmed === 'null' || trimmed === 'undefined') {
+    return false;
+  }
+  // Validate URL format
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
 }
 
 /**
