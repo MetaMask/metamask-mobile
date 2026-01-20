@@ -73,12 +73,6 @@ export const selectCountriesRequest = (action: 'buy' | 'sell' = 'buy') =>
   );
 
 /**
- * Selects the getCountries request state (backward compatibility alias).
- * @deprecated Use selectCountriesRequest('buy') instead.
- */
-export const selectGetCountriesRequest = selectCountriesRequest('buy');
-
-/**
  * Selects the tokens request state for a given region and action.
  *
  * @param region - The region code (e.g., "us", "fr", "us-ny").
