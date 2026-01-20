@@ -24,7 +24,7 @@ export default async function migrate(versionedState: unknown) {
   }
 
   try {
-    return transformState(state);
+    return await transformState(state);
   } catch (error) {
     console.error(error);
     const newError = new Error(
