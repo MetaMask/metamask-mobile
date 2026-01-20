@@ -108,6 +108,19 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_NAME }}
 
+      - name: Verify downloaded artifacts
+        run: |
+          echo "✅ Verifying downloaded artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found in artifact"
+            exit 1
+          fi
+          echo "✅ Artifacts verified"
+
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
         run: |
@@ -307,6 +320,10 @@ jobs:
           echo "✅ Verifying downloaded artifacts..."
           if [ ! -d "node_modules" ]; then
             echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found in artifact"
             exit 1
           fi
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"

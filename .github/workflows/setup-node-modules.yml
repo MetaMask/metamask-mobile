@@ -33,12 +33,6 @@ on:
         type: number
         default: 1
     outputs:
-      cache-hit:
-        description: 'Whether the node_modules cache was hit'
-        value: ${{ jobs.setup.outputs.cache-hit }}
-      cache-key:
-        description: 'The cache key used for node_modules'
-        value: ${{ jobs.setup.outputs.cache-key }}
       artifact-name:
         description: 'The actual artifact name used (includes node version and OS)'
         value: ${{ jobs.setup.outputs.artifact-name }}
@@ -51,8 +45,6 @@ jobs:
     name: Setup Node Modules
     runs-on: ubuntu-latest
     outputs:
-      cache-hit: ${{ steps.cache-node-modules.outputs.cache-hit }}
-      cache-key: ${{ steps.cache-key.outputs.key }}
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
     steps:
       - name: Checkout repository
@@ -97,6 +89,10 @@ jobs:
             echo "❌ Terms of Use content not generated"
             exit 1
           fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not generated"
+            exit 1
+          fi
           echo "🔍 Checking yarn setup..."
           echo "  Node version: $(node --version)"
           echo "  Yarn version: $(yarn --version)"
@@ -119,6 +115,7 @@ jobs:
           path: |
             node_modules
             app/util/termsOfUse/termsOfUseContent.ts
+            app/core/InpageBridgeWeb3.js
             scripts/inpage-bridge/dist
           retention-days: ${{ inputs.artifact-retention-days }}
           compression-level: 1
