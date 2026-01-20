@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import WalletConnect2Session from './WalletConnect2Session';
-import { NavigationContainerRef } from '@react-navigation/native';
+import NavigationService from '../NavigationService';
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
@@ -218,7 +218,7 @@ describe('WalletConnect2Session', () => {
   let session: WalletConnect2Session;
   let mockClient: IWalletKit;
   let mockSession: SessionTypes.Struct;
-  let mockNavigation: NavigationContainerRef;
+  let mockNavigation: typeof NavigationService.navigation;
 
   const testChainId = '0x89';
   const testNetworkClientId = `test-network-${parseInt(testChainId, 16)}`;
@@ -256,7 +256,18 @@ describe('WalletConnect2Session', () => {
     } as unknown as SessionTypes.Struct;
     mockNavigation = {
       navigate: jest.fn(),
-    } as unknown as NavigationContainerRef;
+      goBack: jest.fn(),
+      canGoBack: jest.fn(),
+      popToTop: jest.fn(),
+      pop: jest.fn(),
+      dispatch: jest.fn(),
+      getCurrentRoute: jest.fn(),
+      getRootState: jest.fn(),
+      getState: jest.fn(),
+      isReady: jest.fn(),
+      reset: jest.fn(),
+      setParams: jest.fn(),
+    } as unknown as typeof NavigationService.navigation;
 
     (store.getState as jest.Mock).mockReturnValue({
       inpageProvider: {

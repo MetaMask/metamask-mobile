@@ -79,9 +79,9 @@ describe('handleCardOnboarding', () => {
     (ReduxService.store.dispatch as jest.Mock) = mockDispatch;
     mockGetState.mockReturnValue({});
 
-    NavigationService.navigation = {
+    jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       navigate: mockNavigate,
-    } as unknown as typeof NavigationService.navigation;
+    } as unknown as typeof NavigationService.navigation);
 
     // Default mocks - onboarding disabled
     (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);

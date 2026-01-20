@@ -80,7 +80,7 @@ const props: GasImpactModalProps = {
       estimatedGasFeePercentage: '35%',
       chainId: '1',
     },
-    name: 'params',
+    name: 'GasImpact',
   },
 };
 

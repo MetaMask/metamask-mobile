@@ -7,6 +7,7 @@ import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import type { RootParamList } from '../../../types/navigation.d';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -44,7 +45,7 @@ describe('NavigationProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     NavigationService.navigation =
-      undefined as unknown as NavigationContainerRef;
+      undefined as unknown as NavigationContainerRef<RootParamList>;
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
   });
 

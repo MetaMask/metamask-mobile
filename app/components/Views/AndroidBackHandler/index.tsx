@@ -1,4 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { PureComponent } from 'react';
 import { BackHandler, InteractionManager } from 'react-native';
 
@@ -6,7 +7,7 @@ interface AndroidBackHandlerProps {
   /**
    * react-navigation object used to switch between screens
    */
-  navigation?: NavigationProp<ParamListBase>;
+  navigation?: NavigationProp<RootParamList>;
   /**
    * Custom callback to call on back press event
    */

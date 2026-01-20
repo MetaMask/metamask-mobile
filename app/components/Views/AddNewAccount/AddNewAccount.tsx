@@ -130,7 +130,7 @@ const AddNewAccount = ({
       if (onActionComplete) {
         onActionComplete(account);
       } else {
-        navigate(Routes.WALLET.HOME);
+        navigate(Routes.ONBOARDING.HOME_NAV);
       }
     } catch (e: unknown) {
       const errorMessage = strings(

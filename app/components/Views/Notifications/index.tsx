@@ -29,7 +29,8 @@ import {
   useListNotifications,
   useMarkNotificationAsRead,
 } from '../../../util/notifications/hooks/useNotifications';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -85,7 +86,7 @@ export function useNotificationFilters(props: {
 const NotificationsView = ({
   navigation,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }) => {
   const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
@@ -141,7 +142,7 @@ export default NotificationsView;
 NotificationsView.navigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }) => ({
   headerRight: () => (
     <ButtonIcon
@@ -155,7 +156,7 @@ NotificationsView.navigationOptions = ({
     <ButtonIcon
       size={ButtonIconSizes.Md}
       iconName={IconName.Close}
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+      onPress={() => navigation.navigate(Routes.ONBOARDING.HOME_NAV)}
       style={styles.icon}
     />
   ),

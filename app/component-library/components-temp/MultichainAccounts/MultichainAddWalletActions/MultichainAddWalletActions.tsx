@@ -1,9 +1,9 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useMemo } from 'react';
 import { SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
+import { useNavigation } from '../../../../util/navigation/navUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import ActionListItem from '../../ActionListItem';
 import { strings } from '../../../../../locales/i18n';

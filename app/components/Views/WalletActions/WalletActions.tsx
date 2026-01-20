@@ -2,7 +2,8 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../core/NavigationService';
 
 // External dependencies.
 import BottomSheet, {
@@ -79,18 +80,24 @@ const WalletActions = () => {
 
   const onEarn = useCallback(async () => {
     closeBottomSheetAndNavigate(() => {
-      navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
-        params: {
-          tokenFilter: {
-            includeNativeTokens: true,
-            includeStakingTokens: false,
-            includeLendingTokens: true,
-            includeReceiptTokens: false,
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: 'StakeModals',
+          params: {
+            screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+            params: {
+              tokenFilter: {
+                includeNativeTokens: true,
+                includeStakingTokens: false,
+                includeLendingTokens: true,
+                includeReceiptTokens: false,
+              },
+              onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
+            },
           },
-          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
-        },
-      });
+        }),
+      );
     });
 
     trackEvent(
@@ -135,27 +142,41 @@ const WalletActions = () => {
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
+      // Use CommonActions to navigate from modal context
       if (isFirstTimePerpsUser) {
-        navigate(Routes.PERPS.TUTORIAL);
+        NavigationService.navigation?.dispatch(
+          CommonActions.navigate({ name: Routes.PERPS.TUTORIAL }),
+        );
       } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-          params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
-        });
+        NavigationService.navigation?.dispatch(
+          CommonActions.navigate({
+            name: Routes.PERPS.ROOT,
+            params: {
+              screen: Routes.PERPS.PERPS_HOME,
+              params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
+            },
+          }),
+        );
       }
     });
-  }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser]);
+  }, [closeBottomSheetAndNavigate, isFirstTimePerpsUser]);
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
-      });
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+            params: {
+              entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
+            },
+          },
+        }),
+      );
     });
-  }, [closeBottomSheetAndNavigate, navigate]);
+  }, [closeBottomSheetAndNavigate]);
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (

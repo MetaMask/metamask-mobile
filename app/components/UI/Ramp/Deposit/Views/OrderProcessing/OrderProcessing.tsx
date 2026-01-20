@@ -2,7 +2,8 @@ import React, { useCallback, useEffect } from 'react';
 import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import styleSheet from './OrderProcessing.styles';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../../../../core/NavigationService';
 import {
   createNavigationDetails,
   useParams,
@@ -45,7 +46,10 @@ const OrderProcessing = () => {
     ) {
       navigation.navigate(Routes.DEPOSIT.BUILD_QUOTE);
     } else {
-      navigation.navigate(Routes.WALLET.HOME);
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({ name: Routes.ONBOARDING.HOME_NAV }),
+      );
     }
   }, [order?.state, navigation]);
 
@@ -70,9 +74,12 @@ const OrderProcessing = () => {
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
-      navigation.navigate(Routes.WALLET.HOME);
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({ name: Routes.ONBOARDING.HOME_NAV }),
+      );
     }
-  }, [order?.state, navigation, orderId]);
+  }, [order?.state, orderId]);
 
   if (!order) {
     return (

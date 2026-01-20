@@ -118,7 +118,7 @@ describe('StakingWithdrawal', () => {
             amountFiat: '1000000000000000000',
           },
           key: 'mockRouteKey',
-          name: 'params',
+          name: 'UnstakeConfirmation',
         }}
       />,
       {
@@ -152,7 +152,7 @@ describe('StakingWithdrawal', () => {
             amountFiat: '1000000000000000000',
           },
           key: 'mockRouteKey',
-          name: 'params',
+          name: 'UnstakeConfirmation',
         }}
       />,
       {
@@ -184,7 +184,7 @@ describe('StakingWithdrawal', () => {
             amountFiat: '1000000000000000000',
           },
           key: 'mockRouteKey',
-          name: 'params',
+          name: 'UnstakeConfirmation',
         }}
       />,
       {

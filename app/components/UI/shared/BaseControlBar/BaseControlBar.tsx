@@ -151,11 +151,11 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
-    navigation.navigate(...createNetworkManagerNavDetails({}));
+    navigation.navigate(...createNetworkManagerNavDetails());
   }, [navigation]);
 
   const defaultShowSortControls = useCallback(() => {
-    navigation.navigate(...createTokensBottomSheetNavDetails({}));
+    navigation.navigate(...createTokensBottomSheetNavDetails());
   }, [navigation]);
 
   // Use custom handlers if provided, otherwise use defaults

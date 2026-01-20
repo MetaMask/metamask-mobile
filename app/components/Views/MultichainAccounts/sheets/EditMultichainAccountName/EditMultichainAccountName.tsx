@@ -2,12 +2,8 @@ import React, { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import Text, {
   TextColor,
   TextVariant,
@@ -28,7 +24,6 @@ import {
   Platform,
 } from 'react-native';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import HeaderBase from '../../../../../component-library/components/HeaderBase/HeaderBase';
@@ -38,14 +33,8 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 
-interface RootNavigationParamList extends ParamListBase {
-  EditMultichainAccountName: {
-    accountGroup: AccountGroupObject;
-  };
-}
-
 type EditMultichainAccountNameRouteProp = RouteProp<
-  RootNavigationParamList,
+  RootParamList,
   'EditMultichainAccountName'
 >;
 

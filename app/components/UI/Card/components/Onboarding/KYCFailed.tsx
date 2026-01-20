@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,7 +9,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardScreens } from '../../util/metrics';
 import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
@@ -38,7 +37,7 @@ const KYCFailed = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleClose = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
+    navigation.dispatch(StackActions.popToTop());
   }, [navigation]);
 
   const renderFormFields = () => (

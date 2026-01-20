@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -58,13 +59,13 @@ describe('NotificationsDetails', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
 
-  let navigation: NavigationProp<ParamListBase>;
+  let navigation: NavigationProp<RootParamList>;
 
   beforeEach(() => {
     navigation = {
       navigate: jest.fn(),
       setOptions: jest.fn(),
-    } as unknown as NavigationProp<ParamListBase>;
+    } as unknown as NavigationProp<RootParamList>;
 
     jest
       .spyOn(UseNotificationsModule, 'useMarkNotificationAsRead')

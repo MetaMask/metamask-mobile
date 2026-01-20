@@ -95,14 +95,14 @@ const PredictNavBackButton: React.FC = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate(
-        Routes.WALLET.HOME as never,
+      (navigation.navigate as (route: string, params: object) => void)(
+        Routes.WALLET.HOME,
         {
           screen: Routes.WALLET.TAB_STACK_FLOW,
           params: {
             screen: Routes.WALLET_VIEW,
           },
-        } as never,
+        },
       );
     }
   }, [navigation]);

@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { Box } from '../../../../UI/Box/Box';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -11,12 +10,8 @@ import { AccountDetailsIds } from '../../AccountDetails.testIds';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import ButtonSecondary from '../../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import HeaderBase from '../../../../../component-library/components/HeaderBase';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Text, {
@@ -36,13 +31,7 @@ import { ButtonSize } from '../../../../../component-library/components/Buttons/
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { ExportCredentialsIds } from '../../AccountDetails/ExportCredentials.testIds';
 
-interface RootNavigationParamList extends ParamListBase {
-  RevealSRP: {
-    account: InternalAccount;
-  };
-}
-
-type RevealSRPProp = RouteProp<RootNavigationParamList, 'RevealSRP'>;
+type RevealSRPProp = RouteProp<RootParamList, 'RevealSRP'>;
 
 export const RevealSRP = () => {
   const route = useRoute<RevealSRPProp>();

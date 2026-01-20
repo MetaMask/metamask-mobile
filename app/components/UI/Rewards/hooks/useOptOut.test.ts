@@ -1,10 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  ParamListBase,
-  NavigationProp,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useOptout } from './useOptout';
 import Engine from '../../../../core/Engine';
@@ -152,7 +149,7 @@ describe('useOptout', () => {
       useNavigation as jest.MockedFunction<typeof useNavigation>
     ).mockReturnValue({
       navigate: mockNavigate,
-    } as unknown as NavigationProp<ParamListBase>);
+    } as unknown as NavigationProp<RootParamList>);
     mockResetRewardsState.mockReturnValue({
       type: 'rewards/resetRewardsState',
       payload: undefined,

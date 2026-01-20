@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import {
   useNavigateToCardPage,
   useNavigateToInternalBrowserPage,
@@ -62,7 +63,7 @@ const BROWSER_PAGE_CONFIG = [
   },
 ] as const;
 
-const createMockNavigation = (): NavigationProp<ParamListBase> =>
+const createMockNavigation = (): NavigationProp<RootParamList> =>
   ({
     navigate: jest.fn(),
     dispatch: jest.fn(),
@@ -80,7 +81,7 @@ const createMockNavigation = (): NavigationProp<ParamListBase> =>
       type: 'stack',
       stale: false,
     })),
-  }) as unknown as NavigationProp<ParamListBase>;
+  }) as unknown as NavigationProp<RootParamList>;
 
 const createMockBrowserTab = (
   overrides: Partial<BrowserTab> = {},
@@ -114,7 +115,7 @@ const setupMocks = (
 };
 
 describe('useNavigateToInternalBrowserPage', () => {
-  let mockNavigation: NavigationProp<ParamListBase>;
+  let mockNavigation: NavigationProp<RootParamList>;
   let mockEventBuilder: ReturnType<typeof createMockEventBuilder>;
 
   beforeEach(() => {
@@ -305,7 +306,7 @@ describe('useNavigateToInternalBrowserPage', () => {
 });
 
 describe('useNavigateToCardPage', () => {
-  let mockNavigation: NavigationProp<ParamListBase>;
+  let mockNavigation: NavigationProp<RootParamList>;
   let mockEventBuilder: ReturnType<typeof createMockEventBuilder>;
 
   beforeEach(() => {

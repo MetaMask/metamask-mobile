@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
@@ -79,8 +80,10 @@ const MultichainTransactionsView = ({
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
-  const defaultNavigation = useNavigation();
-  const nav = navigation ?? defaultNavigation;
+  const defaultNavigation = useNavigation<NavigationProp<RootParamList>>();
+  // Cast to RootParamList for type compatibility with child components
+  const nav = (navigation ??
+    defaultNavigation) as NavigationProp<RootParamList>;
   const { namespace } = parseCaipChainId(chainId as CaipChainId);
   const isBitcoinNetwork = namespace === KnownCaipNamespace.Bip122;
 

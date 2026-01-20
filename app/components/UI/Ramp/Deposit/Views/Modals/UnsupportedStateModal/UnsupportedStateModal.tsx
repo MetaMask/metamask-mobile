@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../../../../../core/NavigationService';
 
 import Text, {
   TextVariant,
@@ -72,21 +73,21 @@ function UnsupportedStateModal() {
   const handleTryAnotherOption = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
+      navigation.getParent()?.pop();
       goToAggregator();
     });
   }, [closeBottomSheetAndNavigate, navigation, goToAggregator]);
 
   const handleClose = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: Routes.ONBOARDING.HOME_NAV,
+        }),
+      );
     });
-  }, [closeBottomSheetAndNavigate, navigation]);
+  }, [closeBottomSheetAndNavigate]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>

@@ -26,7 +26,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
-import { withNavigation } from '@react-navigation/compat';
+import { useNavigation } from '@react-navigation/native';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
@@ -576,4 +576,12 @@ const mapStateToProps = (state, ownProps) => ({
 
 TransactionDetails.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(withNavigation(TransactionDetails));
+const ConnectedTransactionDetails = connect(mapStateToProps)(TransactionDetails);
+
+// Wrapper to inject navigation via hook (replaces withNavigation HOC)
+const TransactionDetailsWithNavigation = (props) => {
+  const navigation = useNavigation();
+  return <ConnectedTransactionDetails {...props} navigation={navigation} />;
+};
+
+export default TransactionDetailsWithNavigation;

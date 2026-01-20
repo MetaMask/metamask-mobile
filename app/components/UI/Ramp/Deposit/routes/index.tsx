@@ -3,8 +3,8 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { ParamListBase , RouteProp } from '@react-navigation/native';
+import { BuyQuote , DepositRegion } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
 import { DepositNavigationParams } from '../types';
 
@@ -34,14 +34,27 @@ import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsMod
 
 import Routes from '../../../../../constants/navigation/Routes';
 
-interface DepositParamList {
-  [key: string]:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | DepositNavigationParams
+interface DepositParamList extends ParamListBase {
+  [Routes.DEPOSIT.ROOT]: DepositNavigationParams | undefined;
+  [Routes.DEPOSIT.BUILD_QUOTE]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ENTER_EMAIL]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.OTP_CODE]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.VERIFY_IDENTITY]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.BASIC_INFO]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ENTER_ADDRESS]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.KYC_PROCESSING]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ORDER_PROCESSING]:
+    | { animationEnabled?: boolean; quote?: BuyQuote }
     | undefined;
+  [Routes.DEPOSIT.BANK_DETAILS]: { animationEnabled?: boolean } | undefined;
+  [Routes.DEPOSIT.ADDITIONAL_VERIFICATION]:
+    | { animationEnabled?: boolean }
+    | undefined;
+  [Routes.DEPOSIT.MODALS.ID]: undefined;
+  [Routes.DEPOSIT.MODALS.REGION_SELECTOR]:
+    | { regions: DepositRegion[] }
+    | undefined;
+  [Routes.DEPOSIT.MODALS.CONFIGURATION]: undefined;
 }
 
 const clearStackNavigatorOptions = {
@@ -49,12 +62,12 @@ const clearStackNavigatorOptions = {
   cardStyle: {
     backgroundColor: 'transparent',
   },
-  animationEnabled: false,
+  animation: 'none' as const,
 };
 
-const RootStack = createStackNavigator();
+const RootStack = createStackNavigator<DepositParamList>();
 const Stack = createStackNavigator<DepositParamList>();
-const ModalsStack = createStackNavigator();
+const ModalsStack = createStackNavigator<DepositParamList>();
 
 const getAnimationOptions = ({
   route,
@@ -62,27 +75,30 @@ const getAnimationOptions = ({
   route: RouteProp<DepositParamList, string>;
 }): StackNavigationOptions => {
   const params = route.params;
-  const animationEnabled =
+  const shouldAnimate =
     params && 'animationEnabled' in params
       ? params.animationEnabled !== false
       : true;
-  return { animationEnabled };
+  return { animation: shouldAnimate ? 'default' : 'none' };
 };
 
 interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
+  route: RouteProp<DepositParamList, typeof Routes.DEPOSIT.ROOT>;
 }
 
 const MainRoutes = ({ route }: MainRoutesProps) => {
   const parentParams = route.params;
 
   return (
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
+    <Stack.Navigator
+      initialRouteName={Routes.DEPOSIT.ROOT}
+      screenOptions={{ headerShown: true }}
+    >
       <Stack.Screen
         name={Routes.DEPOSIT.ROOT}
         component={Root}
         initialParams={parentParams}
-        options={{ animationEnabled: false }}
+        options={{ animation: 'none' }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.BUILD_QUOTE}
@@ -140,8 +156,10 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
 
 const DepositModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
@@ -198,7 +216,7 @@ const DepositRoutes = () => (
   <DepositSDKProvider>
     <RootStack.Navigator
       initialRouteName={Routes.DEPOSIT.ROOT}
-      headerMode="none"
+      screenOptions={{ headerShown: false }}
     >
       <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
       <RootStack.Screen
@@ -206,6 +224,7 @@ const DepositRoutes = () => (
         component={DepositModalsRoutes}
         options={{
           ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
           detachPreviousScreen: false,
         }}
       />

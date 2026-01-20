@@ -1,10 +1,7 @@
 import React from 'react';
 import { screen, fireEvent, act, waitFor } from '@testing-library/react-native';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import PerpsMarketListView from './PerpsMarketListView';
 import type { PerpsMarketData } from '../../controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
@@ -824,7 +821,7 @@ describe('PerpsMarketListView', () => {
     };
 
     mockUseNavigation.mockReturnValue(
-      mockNavigation as unknown as NavigationProp<ParamListBase>,
+      mockNavigation as unknown as NavigationProp<RootParamList>,
     );
     mockNavigation.canGoBack.mockReturnValue(true);
 

@@ -11,9 +11,9 @@ describe('navigateToHomeUrl', () => {
 
   const arrangeMocks = () => {
     const mockNavigate = jest.fn();
-    NavigationService.navigation = {
+    jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       navigate: mockNavigate,
-    } as unknown as typeof NavigationService.navigation;
+    } as unknown as typeof NavigationService.navigation);
 
     const mockSetContentPreviewToken = jest.mocked(setContentPreviewToken);
 

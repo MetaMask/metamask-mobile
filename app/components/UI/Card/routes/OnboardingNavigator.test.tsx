@@ -1,11 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import {
-  NavigationContainer,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainer, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { Alert } from 'react-native';
 import OnboardingNavigator, {
   PostEmailNavigationOptions,
@@ -640,7 +637,7 @@ describe('OnboardingNavigator', () => {
 
   describe('Navigation Options', () => {
     describe('PostEmailNavigationOptions', () => {
-      let mockNavigation: Partial<NavigationProp<ParamListBase>>;
+      let mockNavigation: Partial<NavigationProp<RootParamList>>;
 
       beforeEach(() => {
         mockNavigation = {
@@ -657,7 +654,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders close button in header right', () => {
         const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
@@ -668,7 +665,7 @@ describe('OnboardingNavigator', () => {
 
       it('displays exit confirmation alert when close button is pressed', () => {
         const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
@@ -686,7 +683,7 @@ describe('OnboardingNavigator', () => {
 
       it('navigates to WALLET.HOME when exit is confirmed in alert', () => {
         const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
@@ -705,7 +702,7 @@ describe('OnboardingNavigator', () => {
 
       it('has gestureEnabled set to false', () => {
         const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
 
         expect(options.gestureEnabled).toBe(false);
@@ -713,7 +710,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders empty header left', () => {
         const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderLeft = options.headerLeft as () => React.ReactElement;
         const headerLeftElement = HeaderLeft();
@@ -723,7 +720,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders empty header title', () => {
         const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderTitle = options.headerTitle as () => React.ReactElement;
         const headerTitleElement = HeaderTitle();
@@ -733,7 +730,7 @@ describe('OnboardingNavigator', () => {
     });
 
     describe('KYCStatusNavigationOptions', () => {
-      let mockNavigation: Partial<NavigationProp<ParamListBase>>;
+      let mockNavigation: Partial<NavigationProp<RootParamList>>;
 
       beforeEach(() => {
         mockNavigation = {
@@ -750,7 +747,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders close button in header right', () => {
         const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
@@ -761,7 +758,7 @@ describe('OnboardingNavigator', () => {
 
       it('navigates directly to WALLET.HOME without alert when close button is pressed', () => {
         const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
@@ -776,7 +773,7 @@ describe('OnboardingNavigator', () => {
 
       it('has gestureEnabled set to false', () => {
         const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
 
         expect(options.gestureEnabled).toBe(false);
@@ -784,7 +781,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders empty header left', () => {
         const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderLeft = options.headerLeft as () => React.ReactElement;
         const headerLeftElement = HeaderLeft();
@@ -794,7 +791,7 @@ describe('OnboardingNavigator', () => {
 
       it('renders empty header title', () => {
         const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
+          navigation: mockNavigation as NavigationProp<RootParamList>,
         });
         const HeaderTitle = options.headerTitle as () => React.ReactElement;
         const headerTitleElement = HeaderTitle();

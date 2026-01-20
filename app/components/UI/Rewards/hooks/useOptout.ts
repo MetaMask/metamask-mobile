@@ -116,7 +116,9 @@ export const useOptout = (): UseOptoutResult => {
 
       const handleOptoutCancel = () => {
         // Navigate to dismissRoute if provided, otherwise default to REWARDS_SETTINGS_VIEW
-        navigation.navigate(dismissRoute || Routes.REWARDS_SETTINGS_VIEW);
+        (navigation.navigate as (route: string) => void)(
+          dismissRoute || Routes.REWARDS_SETTINGS_VIEW,
+        );
         trackEvent(
           createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
             .addProperties({

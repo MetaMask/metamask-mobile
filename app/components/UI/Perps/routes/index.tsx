@@ -66,7 +66,6 @@ const PerpsModalStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
             cardStyle: {
@@ -77,6 +76,7 @@ const PerpsModalStack = () => {
                 opacity: 0,
               },
             }),
+            presentation: 'transparentModal',
           }}
         >
           <ModalStack.Screen
@@ -156,7 +156,6 @@ const PerpsClosePositionBottomSheetStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
             cardStyle: {
@@ -167,6 +166,7 @@ const PerpsClosePositionBottomSheetStack = () => {
                 opacity: 0,
               },
             }),
+            presentation: 'transparentModal',
           }}
         >
           <ModalStack.Screen
@@ -358,9 +358,7 @@ const PerpsScreenStack = () => {
               cardStyle: {
                 backgroundColor: 'transparent',
               },
-              animationEnabled: false,
-              // adding detachPreviousScreen to specific screen, rather than to the entire global stack
-              detachPreviousScreen: false,
+              animation: 'none',
             }}
           />
 
@@ -373,7 +371,7 @@ const PerpsScreenStack = () => {
               cardStyle: {
                 backgroundColor: 'transparent',
               },
-              animationEnabled: false,
+              animation: 'none',
             }}
           />
 

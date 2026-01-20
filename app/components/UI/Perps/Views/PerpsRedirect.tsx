@@ -13,7 +13,7 @@ const PerpsRedirect: React.FC = () => {
     if (isConnected && isInitialized) {
       // Navigate to wallet home with perps tab selection
       // Using the same pattern as PerpsTutorialCarousel
-      NavigationService.navigation.navigate(Routes.WALLET.HOME);
+      NavigationService.navigation.navigate(Routes.ONBOARDING.HOME_NAV);
 
       // The timeout is REQUIRED - React Navigation needs time to:
       // 1. Complete the navigation transition

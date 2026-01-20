@@ -1,4 +1,4 @@
-import { ParamListBase } from '@react-navigation/native';
+import { ParamListBase, NavigatorScreenParams } from '@react-navigation/native';
 import type {
   Position,
   Order,
@@ -155,6 +155,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+    source?: string;
   };
 
   // TP/SL screen
@@ -206,8 +207,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showBackButton?: boolean;
   };
 
-  // Root perps view
-  Perps: undefined;
+  // Root perps view - accepts nested screen params for navigation through the stack
+  Perps: NavigatorScreenParams<PerpsNavigationParamList> | undefined;
 }
 
 /**

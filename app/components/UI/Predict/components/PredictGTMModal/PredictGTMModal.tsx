@@ -1,4 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, StackActions } from '@react-navigation/native';
+import NavigationService from '../../../../../core/NavigationService';
 import React, { useState, useEffect } from 'react';
 import { Image, View } from 'react-native';
 import Animated, {
@@ -36,7 +37,6 @@ import {
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigate } = useNavigation();
   const theme = useTheme();
   const [imageLoaded, setImageLoaded] = useState(false);
   const opacity = useSharedValue(0);
@@ -70,7 +70,11 @@ const PredictGTMModal = () => {
         .build(),
     );
 
-    navigate(Routes.WALLET.HOME);
+    // Pop the modal stack to dismiss this modal, then navigate to home
+    NavigationService.navigation?.dispatch(StackActions.popToTop());
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({ name: Routes.ONBOARDING.HOME_NAV }),
+    );
   };
 
   const handleGetStarted = async () => {
@@ -88,14 +92,22 @@ const PredictGTMModal = () => {
       emitEvent: false,
     });
 
-    navigate(Routes.WALLET.HOME);
-
-    navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.GTM_MODAL,
-      },
-    });
+    // Pop the modal stack to dismiss this modal, then navigate to Predict
+    NavigationService.navigation?.dispatch(StackActions.popToTop());
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({
+        name: Routes.ONBOARDING.HOME_NAV,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+            params: {
+              entryPoint: PredictEventValues.ENTRY_POINT.GTM_MODAL,
+            },
+          },
+        },
+      }),
+    );
   };
 
   return (

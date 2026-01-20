@@ -1,6 +1,6 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
-import { NavigationContainerRef } from '@react-navigation/native';
+import NavigationService from '../NavigationService';
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
@@ -89,7 +89,7 @@ export const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
 export const hideWCLoadingState = ({
   navigation,
 }: {
-  navigation?: NavigationContainerRef;
+  navigation?: typeof NavigationService.navigation;
 }): void => {
   const currentRoute = navigation?.getCurrentRoute()?.name;
   if (currentRoute === Routes.SHEET.SDK_LOADING && navigation?.canGoBack()) {
@@ -106,7 +106,7 @@ export const hideWCLoadingState = ({
 export const showWCLoadingState = ({
   navigation,
 }: {
-  navigation?: NavigationContainerRef;
+  navigation?: typeof NavigationService.navigation;
 }): void => {
   navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.SHEET.SDK_LOADING,

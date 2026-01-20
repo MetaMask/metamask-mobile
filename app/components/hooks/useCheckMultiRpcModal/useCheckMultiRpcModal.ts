@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import { isObject } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
+import { useNavigation } from '../../../util/navigation/navUtils';
 import { setMultiRpcMigrationModalOpen } from '../../../actions/security';
 import { selectShowMultiRpcModal } from '../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';

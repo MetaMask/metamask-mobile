@@ -1,14 +1,11 @@
 import { RouteProp } from '@react-navigation/native';
+import {
+  StakeScreensParamList,
+  StakeConfirmationViewRouteParams,
+} from '../../types';
 
-interface StakeConfirmationViewRouteParams {
-  amountWei: string;
-  amountFiat: string;
-  annualRewardsETH: string;
-  annualRewardsFiat: string;
-  annualRewardRate: string;
-  chainId: string;
-}
+export type { StakeConfirmationViewRouteParams };
 
 export interface StakeConfirmationViewProps {
-  route: RouteProp<{ params: StakeConfirmationViewRouteParams }, 'params'>;
+  route: RouteProp<StakeScreensParamList, 'StakeConfirmation'>;
 }

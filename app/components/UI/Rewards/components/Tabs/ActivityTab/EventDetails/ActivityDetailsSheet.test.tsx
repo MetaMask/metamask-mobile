@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../../../types/navigation';
 import { useSelector } from 'react-redux';
 import {
   ActivityDetailsSheet,
@@ -319,11 +320,14 @@ describe('ActivityDetailsSheet', () => {
         },
       };
 
-      openActivityDetailsSheet(mockNavigation, {
-        event: testEvent,
-        activityTypes: mockActivityTypes,
-        accountName: 'Test Account',
-      });
+      openActivityDetailsSheet(
+        mockNavigation as NavigationProp<RootParamList>,
+        {
+          event: testEvent,
+          activityTypes: mockActivityTypes,
+          accountName: 'Test Account',
+        },
+      );
 
       // Verify navigation was called with correct route
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -363,12 +367,15 @@ describe('ActivityDetailsSheet', () => {
         variant: ButtonVariant.Primary,
       };
 
-      openActivityDetailsSheet(mockNavigation, {
-        event: testEvent,
-        accountName: 'Test Account',
-        confirmAction: customAction,
-        activityTypes: mockActivityTypes,
-      });
+      openActivityDetailsSheet(
+        mockNavigation as NavigationProp<RootParamList>,
+        {
+          event: testEvent,
+          accountName: 'Test Account',
+          confirmAction: customAction,
+          activityTypes: mockActivityTypes,
+        },
+      );
 
       // Verify custom action is used
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -400,11 +407,14 @@ describe('ActivityDetailsSheet', () => {
         },
       };
 
-      openActivityDetailsSheet(mockNavigation, {
-        event: testEvent,
-        accountName: 'My Custom Account',
-        activityTypes: mockActivityTypes,
-      });
+      openActivityDetailsSheet(
+        mockNavigation as NavigationProp<RootParamList>,
+        {
+          event: testEvent,
+          accountName: 'My Custom Account',
+          activityTypes: mockActivityTypes,
+        },
+      );
 
       // Get the description prop which is the ActivityDetailsSheet component
       const callArgs = mockNavigate.mock.calls[0][1];
@@ -439,10 +449,13 @@ describe('ActivityDetailsSheet', () => {
 
       // Should not throw when accountName is undefined
       expect(() => {
-        openActivityDetailsSheet(mockNavigation, {
-          event: testEvent,
-          activityTypes: mockActivityTypes,
-        });
+        openActivityDetailsSheet(
+          mockNavigation as NavigationProp<RootParamList>,
+          {
+            event: testEvent,
+            activityTypes: mockActivityTypes,
+          },
+        );
       }).not.toThrow();
 
       expect(mockNavigate).toHaveBeenCalled();

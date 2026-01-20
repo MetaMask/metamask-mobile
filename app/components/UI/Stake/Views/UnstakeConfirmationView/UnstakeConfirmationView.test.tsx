@@ -110,7 +110,7 @@ describe('UnstakeConfirmationView', () => {
     const props: UnstakeConfirmationViewProps = {
       route: {
         key: '1',
-        name: 'params',
+        name: 'UnstakeConfirmation',
         params: {
           amountWei: '4999820000000000000',
           amountFiat: '12894.52',

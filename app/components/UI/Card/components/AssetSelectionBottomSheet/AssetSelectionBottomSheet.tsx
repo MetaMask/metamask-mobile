@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import { useTheme } from '../../../../../util/theme';
 import { useCardSDK } from '../../sdk';
 import {
@@ -102,7 +103,7 @@ export const createAssetSelectionModalNavigationDetails =
 
 const AssetSelectionBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootParamList>>();
   const {
     tokensWithAllowances,
     delegationSettings,
@@ -120,7 +121,9 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const { navigateToCardPage } = useNavigateToCardPage(
+    navigation as NavigationProp<RootParamList>,
+  );
   const userCardLocation = useSelector(selectUserCardLocation);
 
   // Helper: Get valid Linea chain IDs based on user location (uses shared utility)
@@ -541,10 +544,14 @@ const AssetSelectionBottomSheet: React.FC = () => {
         closeBottomSheetAndNavigate(() => {
           if (callerRoute) {
             // Navigate back to the caller route with the selected token
-            navigation.navigate(callerRoute, {
-              ...callerParams,
-              returnedSelectedToken: token,
-            });
+            // Use function cast for dynamic route name
+            (navigation.navigate as (route: string, params: object) => void)(
+              callerRoute,
+              {
+                ...callerParams,
+                returnedSelectedToken: token,
+              },
+            );
           } else {
             // Fallback: just go back
             navigation.goBack();

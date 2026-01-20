@@ -39,12 +39,12 @@ import Tokens from '../../UI/Tokens';
 
 import {
   NavigationProp,
-  ParamListBase,
   RouteProp,
   useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -214,7 +214,7 @@ const createStyles = ({ colors }: Theme) =>
   });
 
 interface WalletProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   storePrivacyPolicyShownDate: () => void;
   shouldShowNewPrivacyToast: boolean;
   currentRouteName: string;
@@ -262,7 +262,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     collectiblesEnabled,
     navigationParams,
   } = props;
-  const route = useRoute<RouteProp<ParamListBase, string>>();
+  const route = useRoute<RouteProp<RootParamList, 'WalletView'>>();
   const tabsListRef = useRef<TabsListRef>(null);
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
 
@@ -501,7 +501,7 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
   const { navigate } = useNavigation();
-  const route = useRoute<RouteProp<ParamListBase, string>>();
+  const route = useRoute<RouteProp<RootParamList, 'WalletView'>>();
   const walletRef = useRef(null);
   const theme = useTheme();
 

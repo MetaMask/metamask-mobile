@@ -2,14 +2,9 @@ import React, { useCallback, useState } from 'react';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
@@ -29,15 +24,9 @@ import Logger from '../../../../../util/Logger';
 import { TextInput } from 'react-native';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
 
-interface RootNavigationParamList extends ParamListBase {
-  EditMultichainAccountName: {
-    account: InternalAccount;
-  };
-}
-
 type EditAccountNameRouteProp = RouteProp<
-  RootNavigationParamList,
-  'EditMultichainAccountName'
+  RootParamList,
+  'LegacyEditMultichainAccountName'
 >;
 
 export const EditAccountName = () => {

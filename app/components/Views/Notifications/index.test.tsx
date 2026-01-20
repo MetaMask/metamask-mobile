@@ -18,7 +18,8 @@ import NotificationsView, {
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { RootState } from '../../../reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -31,7 +32,7 @@ import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 
 const navigationMock = {
   navigate: jest.fn(),
-} as unknown as NavigationProp<ParamListBase>;
+} as unknown as NavigationProp<RootParamList>;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

@@ -16,7 +16,8 @@ import {
   TextStyle,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../core/NavigationService';
 import styleSheet from './DeepLinkModal.styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -115,7 +116,6 @@ const ModalDescription = memo<{
 const DeepLinkModal = () => {
   const params = useParams<DeepLinkModalParams>();
   const { linkType, onBack } = params;
-  const navigation = useNavigation();
 
   const pageTitle =
     params.linkType !== DeepLinkModalLinkType.INVALID &&
@@ -228,12 +228,9 @@ const DeepLinkModal = () => {
         linkType === DeepLinkModalLinkType.UNSUPPORTED
       ) {
         // Navigate to home page for invalid/unsupported links
-        navigation.navigate(Routes.WALLET.HOME, {
-          screen: Routes.WALLET.TAB_STACK_FLOW,
-          params: {
-            screen: Routes.WALLET_VIEW,
-          },
-        });
+        NavigationService.navigation?.dispatch(
+          CommonActions.navigate({ name: Routes.ONBOARDING.HOME_NAV }),
+        );
         params.onBack();
       } else {
         // Track analytics for valid links
@@ -258,7 +255,6 @@ const DeepLinkModal = () => {
     pageTitle,
     LINK_TYPE_MAP,
     params,
-    navigation,
   ]);
 
   const onDontRemindMeAgainPressed = useCallback(() => {

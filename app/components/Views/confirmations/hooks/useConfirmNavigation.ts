@@ -67,7 +67,10 @@ export function useConfirmNavigation() {
       log('Navigating', { route, params, stack });
 
       if (stack) {
-        navigate(stack, { screen: route, params });
+        (navigate as (route: string, params: object) => void)(stack, {
+          screen: route,
+          params,
+        });
         return;
       }
 

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { withNavigation } from '@react-navigation/compat';
+import { useNavigation } from '@react-navigation/native';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import {
@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
 });
 
 const TransactionsView = ({
-  navigation,
   conversionRate,
   selectedInternalAccount,
   networkType,
@@ -57,6 +56,7 @@ const TransactionsView = ({
   tokens,
   tokenNetworkFilter,
 }) => {
+  const navigation = useNavigation();
   const [allTransactions, setAllTransactions] = useState([]);
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
@@ -227,10 +227,6 @@ TransactionsView.propTypes = {
    */
   selectedInternalAccount: PropTypes.object,
   /**
-   * navigation object required to push new views
-   */
-  navigation: PropTypes.object,
-  /**
    * An array that represents the user transactions
    */
   transactions: PropTypes.array,
@@ -285,7 +281,4 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withNavigation(TransactionsView));
+export default connect(mapStateToProps, mapDispatchToProps)(TransactionsView);

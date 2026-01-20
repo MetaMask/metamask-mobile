@@ -1,10 +1,11 @@
 import React from 'react';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
+import type { RootParamList } from '../../../../../types/navigation';
 import SiteRowItem, { type SiteData } from '../SiteRowItem/SiteRowItem';
 import Routes from '../../../../../constants/navigation/Routes';
 interface SiteRowItemWrapperProps {
   site: SiteData;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }
 
 const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
@@ -12,14 +13,18 @@ const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
   navigation,
 }) => {
   const handlePress = () => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: site.url,
-        timestamp: Date.now(),
-        fromTrending: true,
+    // Use function cast for nested navigation with dynamic params
+    (navigation.navigate as (route: string, params: object) => void)(
+      Routes.BROWSER.HOME,
+      {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: site.url,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
       },
-    });
+    );
   };
 
   return <SiteRowItem site={site} onPress={handlePress} />;

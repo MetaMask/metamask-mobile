@@ -1,4 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../types/navigation';
 import { waitFor } from '@testing-library/react-native';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
@@ -42,7 +43,7 @@ jest.mock('react-native-branch', () => ({
 
 const mockNavigation = {
   navigate: jest.fn(),
-} as unknown as NavigationProp<ParamListBase>;
+} as unknown as NavigationProp<RootParamList>;
 
 const mockStore = store as jest.Mocked<typeof store>;
 

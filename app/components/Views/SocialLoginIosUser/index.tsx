@@ -1,11 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { StackNavigationProp } from '@react-navigation/stack';
 import LottieView, { AnimationObject } from 'lottie-react-native';
 import Text, {
@@ -30,7 +27,7 @@ interface SocialLoginIosUserProps {
 }
 
 const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const route = useRoute();
 
   const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =

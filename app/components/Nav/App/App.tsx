@@ -1,10 +1,31 @@
 import React, { useContext, useEffect, useRef } from 'react';
+import { useNavigation, useRoute, useNavigationState } from '@react-navigation/native';
 import {
-  useNavigation,
-  useRoute,
-  useNavigationState,
-} from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
+
+/**
+ * Loose param list that allows any screen with any params.
+ * This is used during the v7 migration to avoid having to update
+ * every screen component's prop types.
+ *
+ * TODO: Gradually replace with properly typed param lists.
+ */
+interface LooseParamList {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
+
+/**
+ * Type-loosened Stack.Screen that accepts components with any props.
+ * Used during v7 migration to avoid updating every screen component.
+ */
+interface LooseStackScreen {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (props: { name: string; component: React.ComponentType<any>; options?: StackNavigationOptions | ((props: any) => StackNavigationOptions); initialParams?: object }): React.JSX.Element;
+}
+
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -172,10 +193,18 @@ const clearStackNavigatorOptions = {
       },
     }),
   },
-  animationEnabled: false,
+  animation: 'none' as const,
 };
 
-const Stack = createStackNavigator();
+const StackNavigator = createStackNavigator<LooseParamList>();
+
+// Re-export with loosened Screen type for v7 migration
+const Stack = {
+  ...StackNavigator,
+  Navigator: StackNavigator.Navigator,
+  Screen: StackNavigator.Screen as unknown as LooseStackScreen,
+  Group: StackNavigator.Group,
+};
 
 const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
@@ -293,7 +322,7 @@ const OnboardingNav = () => (
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-  <Stack.Navigator mode={'modal'}>
+  <Stack.Navigator screenOptions={{ presentation: 'card' }}>
     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -301,8 +330,7 @@ const SimpleWebviewScreen = () => (
 const OnboardingRootNav = () => (
   <Stack.Navigator
     initialRouteName={Routes.ONBOARDING.NAV}
-    mode="modal"
-    screenOptions={{ headerShown: false }}
+    screenOptions={{ headerShown: false, presentation: 'card' }}
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
@@ -346,8 +374,7 @@ const AddNetworkFlow = () => {
 
 const DetectedTokensFlow = () => (
   <Stack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}
     initialRouteName={'DetectedTokens'}
   >
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
@@ -364,7 +391,7 @@ interface RootModalFlowProps {
   };
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'transparentModal', cardStyle: { backgroundColor: 'transparent' } }}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
@@ -618,9 +645,9 @@ const ImportPrivateKeyView = () => (
 
 const ImportSRPView = () => (
   <Stack.Navigator
-    mode="modal"
     screenOptions={{
       headerShown: false,
+      presentation: 'card',
     }}
   >
     <Stack.Screen
@@ -683,7 +710,7 @@ const MultichainAccountDetails = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animationEnabled: false,
+        animation: 'none' as const,
       }}
     >
       <Stack.Screen
@@ -696,7 +723,7 @@ const MultichainAccountDetails = () => {
         component={SmartAccountModal}
         options={{
           headerShown: false,
-          animationEnabled: true,
+          animation: 'default' as const,
         }}
       />
     </Stack.Navigator>
@@ -710,7 +737,7 @@ const MultichainAccountGroupDetails = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animationEnabled: false,
+        animation: 'none' as const,
       }}
     >
       <Stack.Screen
@@ -723,7 +750,7 @@ const MultichainAccountGroupDetails = () => {
         component={SmartAccountModal}
         options={{
           headerShown: false,
-          animationEnabled: true,
+          animation: 'default' as const,
         }}
       />
       <Stack.Screen
@@ -732,7 +759,7 @@ const MultichainAccountGroupDetails = () => {
         initialParams={route?.params}
         options={{
           headerShown: false,
-          animationEnabled: true,
+          animation: 'default' as const,
         }}
       />
       <Stack.Screen
@@ -740,7 +767,7 @@ const MultichainAccountGroupDetails = () => {
         component={EditMultichainAccountName}
         options={{
           headerShown: false,
-          animationEnabled: true,
+          animation: 'default' as const,
         }}
       />
     </Stack.Navigator>
@@ -765,7 +792,7 @@ const MultichainAccountDetailsActions = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animationEnabled: false,
+        animation: 'none' as const,
       }}
     >
       <Stack.Screen
@@ -825,9 +852,9 @@ const MultichainAddressList = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animationEnabled: true,
+        animation: 'default' as const,
+        presentation: 'card',
       }}
-      mode={'modal'}
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
@@ -842,7 +869,7 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator screenOptions={clearStackNavigatorOptions} mode={'modal'}>
+    <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions, presentation: 'card' }}>
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -856,9 +883,9 @@ const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
+      cardStyle: { backgroundColor: 'transparent' },
+      presentation: 'transparentModal',
     }}
-    mode={'modal'}
   >
     <Stack.Screen
       name={Routes.CONFIRMATION_REQUEST_MODAL}
@@ -871,9 +898,9 @@ const ModalSwitchAccountType = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
+      cardStyle: { backgroundColor: 'transparent' },
+      presentation: 'transparentModal',
     }}
-    mode={'modal'}
   >
     <Stack.Screen
       name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
@@ -886,9 +913,9 @@ const ModalSmartAccountOptIn = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
+      cardStyle: { backgroundColor: 'transparent' },
+      presentation: 'transparentModal',
     }}
-    mode={'modal'}
   >
     <Stack.Screen
       name={Routes.SMART_ACCOUNT_OPT_IN}
@@ -905,11 +932,11 @@ const AppFlow = () => {
     <>
       <Stack.Navigator
         initialRouteName={Routes.FOX_LOADER}
-        mode={'modal'}
         screenOptions={{
           headerShown: false,
           cardStyle: { backgroundColor: importedColors.transparent },
-          animationEnabled: false,
+          animation: 'none' as const,
+          presentation: 'card',
         }}
       >
         {userLoggedIn && (
@@ -957,19 +984,19 @@ const AppFlow = () => {
         <Stack.Screen
           name="ImportPrivateKeyView"
           component={ImportPrivateKeyView}
-          options={{ animationEnabled: true }}
+          options={{ animation: 'default' as const }}
         />
         {
           <Stack.Screen
             name="ImportSRPView"
             component={ImportSRPView}
-            options={{ animationEnabled: true }}
+            options={{ animation: 'default' as const }}
           />
         }
         <Stack.Screen
           name="ConnectQRHardwareFlow"
           component={ConnectQRHardwareFlow}
-          options={{ animationEnabled: true }}
+          options={{ animation: 'default' as const }}
         />
         <Stack.Screen
           name={Routes.HW.CONNECT_LEDGER}
@@ -987,7 +1014,7 @@ const AppFlow = () => {
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
           component={MultichainAccountGroupDetails}
           options={{
-            animationEnabled: true,
+            animation: 'default' as const,
             cardStyleInterpolator: ({ current, layouts }) => ({
               cardStyle: {
                 transform: [
@@ -1013,7 +1040,7 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
           component={MultichainAddressList}
-          options={{ animationEnabled: true }}
+          options={{ animation: 'default' as const }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
@@ -1049,18 +1076,18 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.EDIT_ACCOUNT_NAME}
           component={EditAccountName}
-          options={{ animationEnabled: true }}
+          options={{ animation: 'default' as const }}
         />
         <Stack.Screen
           name={Routes.ADD_NETWORK}
           component={AddNetworkFlow}
-          options={{ animationEnabled: true }}
+          options={{ animation: 'default' as const }}
         />
         {isNetworkUiRedesignEnabled() ? (
           <Stack.Screen
             name={Routes.EDIT_NETWORK}
             component={AddNetworkFlow}
-            options={{ animationEnabled: true }}
+            options={{ animation: 'default' as const }}
           />
         ) : null}
         <Stack.Screen

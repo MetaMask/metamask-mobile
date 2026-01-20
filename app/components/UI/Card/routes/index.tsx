@@ -6,7 +6,9 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
+import { strings } from '../../../../../locales/i18n';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { StyleSheet, View } from 'react-native';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
@@ -34,7 +36,7 @@ const ModalsStack = createStackNavigator();
 const clearStackNavigatorOptions = {
   headerShown: false,
   cardStyle: { backgroundColor: colors.transparent },
-  animationEnabled: false,
+  animation: 'none' as const,
 };
 
 export const headerStyle = StyleSheet.create({
@@ -46,7 +48,7 @@ export const headerStyle = StyleSheet.create({
 export const cardDefaultNavigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: { goBack: () => void };
 }): StackNavigationOptions => ({
   headerLeft: () => (
     <ButtonIcon
@@ -134,7 +136,10 @@ const MainRoutes = () => {
   );
 
   return (
-    <Stack.Navigator initialRouteName={initialRouteName} headerMode="screen">
+    <Stack.Navigator
+      initialRouteName={initialRouteName}
+      screenOptions={{ headerShown: true }}
+    >
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
@@ -166,8 +171,10 @@ const MainRoutes = () => {
 
 const CardModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ADD_FUNDS}
@@ -189,13 +196,17 @@ const CardModalsRoutes = () => (
 );
 
 const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="none">
+  <Stack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
     <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
     <Stack.Screen
       name={Routes.CARD.MODALS.ID}
       component={CardModalsRoutes}
       options={{
         ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
         detachPreviousScreen: false,
       }}
     />

@@ -1,4 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import React, { useState } from 'react';
 import {
   Image,
@@ -32,7 +33,7 @@ const MultichainTransactionListItem = ({
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
   index?: number;
 }) => {
   const { colors, typography } = useTheme();

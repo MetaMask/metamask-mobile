@@ -19,12 +19,12 @@ const ModalStack = createStackNavigator<PredictNavigationParamList>();
 
 const PredictModalStack = () => (
   <ModalStack.Navigator
-    mode="modal"
     screenOptions={{
       headerShown: false,
       cardStyle: {
         backgroundColor: 'transparent',
       },
+      presentation: 'transparentModal',
     }}
   >
     <ModalStack.Screen
@@ -94,7 +94,7 @@ const PredictScreenStack = () => (
       options={{
         title: strings('predict.markets.title'),
         headerShown: false,
-        animationEnabled: false,
+        animation: 'none' as const,
       }}
     />
 

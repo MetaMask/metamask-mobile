@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeDestTokenSelector } from './components/BridgeDestTokenSelector';
 import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelector';
@@ -17,10 +18,10 @@ const clearStackNavigatorOptions = {
   cardStyle: {
     backgroundColor: 'transparent',
   },
-  animationEnabled: false,
+  animation: 'none' as const,
 };
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<ParamListBase>();
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -31,11 +32,13 @@ export const BridgeScreenStack = () => (
   </Stack.Navigator>
 );
 
-const ModalStack = createStackNavigator();
+const ModalStack = createStackNavigator<ParamListBase>();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR}
@@ -59,7 +62,8 @@ export const BridgeModalStack = () => (
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
-      component={BlockExplorersModal}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      component={BlockExplorersModal as any}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}

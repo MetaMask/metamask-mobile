@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectShouldShowPna25Notice } from '../../selectors/legalNotices';
 import Routes from '../../constants/navigation/Routes';
+import { useNavigation } from '../../util/navigation/navUtils';
 
 const isE2ETest =
   process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';

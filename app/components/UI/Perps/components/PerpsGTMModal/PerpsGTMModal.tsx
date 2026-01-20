@@ -1,4 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, StackActions } from '@react-navigation/native';
+import NavigationService from '../../../../../core/NavigationService';
 import React, { useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,7 +36,6 @@ import {
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigate } = useNavigation();
   const theme = useTheme();
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -84,7 +84,11 @@ const PerpsGTMModal = () => {
         .build(),
     );
 
-    navigate(Routes.WALLET.HOME);
+    // Dismiss the modal first, then navigate to HomeNav
+    NavigationService.navigation?.dispatch(StackActions.popToTop());
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({ name: Routes.ONBOARDING.HOME_NAV }),
+    );
   };
 
   const tryPerpsNow = async () => {
@@ -101,9 +105,20 @@ const PerpsGTMModal = () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
-    navigate(Routes.PERPS.TUTORIAL, {
-      isFromGTMModal: true,
-    });
+    // Dismiss the modal first, then navigate to Perps Tutorial
+    NavigationService.navigation?.dispatch(StackActions.popToTop());
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({
+        name: Routes.ONBOARDING.HOME_NAV,
+        params: {
+          screen: Routes.PERPS.ROOT,
+          params: {
+            screen: Routes.PERPS.TUTORIAL,
+            params: { isFromGTMModal: true },
+          },
+        },
+      }),
+    );
   };
 
   return (

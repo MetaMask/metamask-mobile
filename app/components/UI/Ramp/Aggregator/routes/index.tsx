@@ -22,19 +22,19 @@ const ModalsStack = createStackNavigator();
 const clearStackNavigatorOptions = {
   headerShown: false,
   cardStyle: { backgroundColor: colors.transparent },
-  animationEnabled: false,
+  animation: 'none' as const,
 };
 
 const MainRoutes = () => (
   <Stack.Navigator
     initialRouteName={Routes.RAMP.BUILD_QUOTE}
-    headerMode="screen"
+    screenOptions={{ headerShown: true }}
   >
     <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
       component={BuildQuote}
-      options={{ animationEnabled: false }}
+      options={{ animation: 'none' }}
     />
     <Stack.Screen
       name={Routes.RAMP.QUOTES}
@@ -42,7 +42,7 @@ const MainRoutes = () => (
       options={{
         headerShown: false,
         cardStyle: { backgroundColor: colors.transparent },
-        animationEnabled: false,
+        animation: 'none' as const,
         gestureEnabled: false,
         detachPreviousScreen: false,
       }}
@@ -53,7 +53,7 @@ const MainRoutes = () => (
       options={{
         headerShown: false,
         cardStyle: { backgroundColor: colors.transparent },
-        animationEnabled: false,
+        animation: 'none' as const,
         gestureEnabled: false,
         detachPreviousScreen: false,
       }}
@@ -63,8 +63,10 @@ const MainRoutes = () => (
 
 const RampModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
@@ -100,13 +102,17 @@ const RampModalsRoutes = () => (
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator initialRouteName={Routes.RAMP.ID} headerMode="none">
+    <Stack.Navigator
+      initialRouteName={Routes.RAMP.ID}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
       <Stack.Screen
         name={Routes.RAMP.MODALS.ID}
         component={RampModalsRoutes}
         options={{
           ...clearStackNavigatorOptions,
+          presentation: 'transparentModal',
           detachPreviousScreen: false,
         }}
       />

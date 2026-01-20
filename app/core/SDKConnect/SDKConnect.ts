@@ -4,7 +4,7 @@ import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
+import NavigationService from '../NavigationService';
 import Engine from '../../core/Engine';
 import { Connection, ConnectionProps } from './Connection';
 import {
@@ -30,7 +30,6 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
-import NavigationService from '../NavigationService';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -51,7 +50,7 @@ export interface approveHostProps {
 }
 
 export interface SDKConnectState {
-  navigation?: NavigationContainerRef;
+  navigation?: typeof NavigationService.navigation;
   reconnected: boolean;
 
   // Track init status to ensure connection recovery priority and prevent double initialization.

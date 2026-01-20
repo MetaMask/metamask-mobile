@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
+import { useNavigation } from '../../../util/navigation/navUtils';
 import { isMainNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { setNftAutoDetectionModalOpen } from '../../../actions/security';

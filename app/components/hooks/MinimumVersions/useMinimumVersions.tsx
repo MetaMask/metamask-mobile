@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { getBuildNumber } from 'react-native-device-info';
 import { createUpdateNeededNavDetails } from '../../UI/UpdateNeeded/UpdateNeeded';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import { InteractionManager } from 'react-native';
 import { RootState } from '../../../reducers';
+import { useNavigation } from '../../../util/navigation/navUtils';
 import { selectAppMinimumBuild } from '../../../selectors/featureFlagController/minimumAppVersion';
 
 const useMinimumVersions = () => {

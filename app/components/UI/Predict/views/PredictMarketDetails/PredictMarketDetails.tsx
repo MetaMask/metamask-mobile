@@ -559,9 +559,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       () => {
         // Use open outcomes with updated prices if available
         const firstOpenOutcome = openOutcomes[0];
+        if (!market) return;
         navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
           market,
-          outcome: firstOpenOutcome ?? market?.outcomes?.[0],
+          outcome: firstOpenOutcome ?? market.outcomes?.[0],
           outcomeToken: token,
           entryPoint:
             entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,

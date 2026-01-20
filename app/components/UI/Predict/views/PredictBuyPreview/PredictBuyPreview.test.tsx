@@ -205,7 +205,7 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
   },
 };
 
-const mockNavigation: NavigationProp<PredictNavigationParamList> = {
+const mockNavigation = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
   navigate: jest.fn(),
@@ -216,9 +216,12 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   removeListener: jest.fn(),
   canGoBack: jest.fn(),
   isFocused: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
-};
+  getParent: jest.fn(),
+  getId: jest.fn(),
+  getState: jest.fn(),
+  navigateDeprecated: jest.fn(),
+  preload: jest.fn(),
+} as unknown as NavigationProp<PredictNavigationParamList>;
 
 const initialState = {
   engine: {

@@ -237,7 +237,9 @@ export function getNavigationOptionsTitle(
 
   return {
     title,
-    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
+    headerTitle: () => (
+      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+    ),
     headerRight: () =>
       isFullScreenModal ? (
         <ButtonIcon
@@ -541,6 +543,98 @@ export function getApproveNavbar(title) {
 
 /**
  * Function that returns the navigation options
+ * This is used by views in send flow
+ *
+ * @param {string} title - Title in string format
+ * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
+ */
+export function getSendFlowTitle({
+  title,
+  navigation,
+  route,
+  themeColors,
+  resetTransaction,
+  transaction,
+  disableNetwork = true,
+  showSelectedNetwork = false,
+  globalChainId = '',
+} = {}) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+  const rightAction = () => {
+    const providerType = route?.params?.providerType ?? '';
+    const additionalTransactionMetricsParams =
+      getBlockaidTransactionMetricsParams(transaction);
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_FLOW_CANCEL)
+        .addProperties({
+          view: title.split('.')[1],
+          network: providerType,
+          ...additionalTransactionMetricsParams,
+        })
+        .build(),
+    );
+    resetTransaction();
+    navigation.getParent()?.pop();
+  };
+  const leftAction = () => navigation.pop();
+
+  const canGoBack =
+    title !== 'send.send_to' && !route?.params?.isPaymentRequest;
+
+  const titleToRender = title;
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={titleToRender}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={showSelectedNetwork}
+        networkName={globalChainId}
+      />
+    ),
+    headerRight: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        onPress={rightAction}
+        style={styles.closeButton}
+        testID={SendViewSelectorsIDs.SEND_CANCEL_BUTTON}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('transaction.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerLeft: () =>
+      canGoBack ? (
+        // eslint-disable-next-line react/jsx-no-bind
+        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+          <Text
+            style={innerStyles.headerButtonText}
+            testID={SendViewSelectorsIDs.SEND_BACK_BUTTON}
+          >
+            {strings('transaction.back')}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <View />
+      ),
+    headerStyle: innerStyles.headerStyle,
+  };
+}
+
+/**
+ * Function that returns the navigation options
  * for our modals
  *
  * @param {string} title - Title in string format
@@ -594,7 +688,7 @@ export function getOnboardingNavbarOptions(
             />
           </View>
         )
-      : null,
+      : () => null, // React Navigation v7 requires a function that returns null to hide title
     headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,
@@ -1274,7 +1368,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onPop?.();
         }}
         style={styles.closeButton}
@@ -1319,7 +1413,7 @@ export function getPaymentMethodApplePayNavbar(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onExit?.();
         }}
         style={styles.closeButton}
@@ -1448,7 +1542,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
@@ -1528,7 +1622,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           .build(),
       );
     }
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   };
 
   return {
@@ -1574,11 +1668,39 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  return getHeaderCenterNavbarOptions({
-    title,
-    onClose: () => navigation.dangerouslyGetParent()?.pop(),
-    includesTopInset: true,
-  });
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    // Render an empty left header action that matches the dimensions of the close button.
+    // This allows us to center align the title on Android devices.
+    headerLeft: Device.isAndroid()
+      ? () => (
+          <View style={[styles.closeButton, styles.hidden]}>
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Lg}
+              color={IconColor.Muted}
+            />
+          </View>
+        )
+      : null,
+    headerRight: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        onPress={() => navigation.getParent()?.pop()}
+        style={styles.closeButton}
+      >
+        <Icon name={IconName.Close} size={IconSize.Lg} />
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+  };
 }
 
 export function getBridgeTransactionDetailsNavbar(navigation) {
@@ -1691,33 +1813,63 @@ export function getDepositNavbarOptions(
   theme,
   onClose = undefined,
 ) {
-  const handleClose = () => {
-    navigation.dangerouslyGetParent()?.pop();
-    onClose?.();
-  };
+  const leftAction = () => navigation.pop();
 
-  let startButtonIconProps;
-  if (showBack) {
-    startButtonIconProps = {
-      iconName: IconName.ArrowLeft,
-      onPress: () => navigation.pop(),
-    };
-  } else if (showConfiguration) {
-    startButtonIconProps = {
-      iconName: IconName.Setting,
-      onPress: onConfigurationPress,
-      testID: 'deposit-configuration-menu-button',
-    };
-  }
-
-  return getHeaderCenterNavbarOptions({
+  return {
     title,
-    startButtonIconProps,
-    closeButtonProps: showClose
-      ? { onPress: handleClose, testID: 'deposit-close-navbar-button' }
-      : undefined,
-    includesTopInset: true,
-  });
+    headerStyle: {
+      backgroundColor: theme.colors.background.default,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    headerTitleStyle: {
+      fontWeight: '600',
+      fontSize: 18,
+      color: theme.colors.text.default,
+    },
+    headerTitle: () => (
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: showBack
+      ? () => (
+          <ButtonIcon
+            onPress={leftAction}
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Lg}
+            style={styles.headerLeftButton}
+          />
+        )
+      : showConfiguration
+        ? () => (
+            <ButtonIcon
+              onPress={onConfigurationPress}
+              iconName={IconName.Setting}
+              size={ButtonIconSize.Lg}
+              testID="deposit-configuration-menu-button"
+              style={styles.headerLeftButton}
+            />
+          )
+        : null,
+    headerRight: showClose
+      ? () => (
+          <ButtonIcon
+            style={styles.headerRightButton}
+            iconName={IconName.Close}
+            size={ButtonIconSize.Lg}
+            onPress={() => {
+              navigation.getParent()?.pop();
+              onClose?.();
+            }}
+            testID="deposit-close-navbar-button"
+          />
+        )
+      : null,
+  };
 }
 
 export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
@@ -1735,7 +1887,11 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   });
 
   return {
-    headerTitle: <Text>{strings('account_actions.edit_name')}</Text>,
+    headerTitle: () => (
+      <MorphText variant={TextVariant.HeadingMD}>
+        {strings('account_actions.edit_name')}
+      </MorphText>
+    ),
     headerLeft: null,
     headerRight: () => (
       <ButtonIcon
@@ -1790,7 +1946,7 @@ export const getSettingsNavigationOptions = (
 /**
  *
  * @param {String} title - Navbar Title.
- * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
+ * @param {NavigationProp<RootParamList>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
  * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
  * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.

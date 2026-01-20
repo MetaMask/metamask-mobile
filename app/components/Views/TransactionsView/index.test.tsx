@@ -333,7 +333,6 @@ describe('TransactionsView', () => {
           <Stack.Navigator>
             <Stack.Screen
               name="TransactionsView"
-              // @ts-expect-error-next-line
               component={TransactionsView}
             />
           </Stack.Navigator>

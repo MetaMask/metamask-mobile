@@ -107,7 +107,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
       // Navigate to tutorial for first-time users
-      navigation.navigate(Routes.PERPS.TUTORIAL);
+      navigation.navigate(Routes.PERPS.TUTORIAL, {});
     } else {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {

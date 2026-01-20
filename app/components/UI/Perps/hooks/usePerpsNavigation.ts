@@ -1,5 +1,9 @@
 import { useCallback } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  NavigationProp,
+  StackActions,
+} from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData, Position, Order } from '../controllers/types';
@@ -66,12 +70,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    // Pop back to the first screen (Home) in the MainNavigator stack
+    navigation.dispatch(StackActions.popToTop());
   }, [navigation]);
 
   const navigateToBrowser = useCallback(() => {
@@ -133,7 +133,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToTutorial = useCallback(
     (params?: PerpsNavigationParamList['PerpsTutorial']) => {
-      navigation.navigate(Routes.PERPS.TUTORIAL, params);
+      navigation.navigate(Routes.PERPS.TUTORIAL, params ?? {});
     },
     [navigation],
   );

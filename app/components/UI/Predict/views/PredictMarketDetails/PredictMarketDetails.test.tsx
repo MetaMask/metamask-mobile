@@ -4,10 +4,10 @@ import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import {
   NavigationProp,
-  ParamListBase,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import PredictMarketDetails from './PredictMarketDetails';
 import { PredictPriceHistoryInterval } from '../../types';
 import type { UsePredictPriceHistoryOptions } from '../../hooks/usePredictPriceHistory';
@@ -481,7 +481,7 @@ function setupPredictMarketDetailsTest(
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
     getParent: mockGetParent,
-  } as unknown as NavigationProp<ParamListBase>);
+  } as unknown as NavigationProp<RootParamList>);
 
   mockUseRoute.mockReturnValue(mockRoute);
 

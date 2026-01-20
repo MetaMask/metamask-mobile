@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import {
   useHandleOptInCancel,
   useHandleOptInClick,
@@ -18,7 +19,7 @@ describe('useOptimisticNavigationEffect', () => {
     const mockNavigate = jest.fn();
     const mockNavigation = {
       navigate: mockNavigate,
-    } as unknown as NavigationProp<ParamListBase>;
+    } as unknown as NavigationProp<RootParamList>;
 
     const hook = renderHook(
       (props: { isCreatingNotifications: boolean }) =>
@@ -87,7 +88,7 @@ describe('useHandleOptInClick', () => {
     const mockNavigate = jest.fn();
     const mockNavigation = {
       navigate: mockNavigate,
-    } as unknown as NavigationProp<ParamListBase>;
+    } as unknown as NavigationProp<RootParamList>;
 
     // Mock Metrics
     const mockTrackEvent = jest.fn();
@@ -176,7 +177,7 @@ describe('useHandleOptInCancel', () => {
     const mockNavigate = jest.fn();
     const mockNavigation = {
       navigate: mockNavigate,
-    } as unknown as NavigationProp<ParamListBase>;
+    } as unknown as NavigationProp<RootParamList>;
 
     // Mock Metrics
     const mockTrackEvent = jest.fn();

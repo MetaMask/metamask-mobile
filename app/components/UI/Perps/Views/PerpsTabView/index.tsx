@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -13,7 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '@metamask/design-system-react-native';
 
 interface PerpsTabViewWithProviderProps {
-  navigation?: NavigationProp<ParamListBase>;
+  navigation?: NavigationProp<RootParamList>;
   tabLabel?: string;
   isVisible?: boolean;
   onVisibilityChange?: (callback: (visible: boolean) => void) => void;

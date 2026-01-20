@@ -2,8 +2,9 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import type { RootParamList } from '../../../../../types/navigation';
 import SitesSearchFooter from './SitesSearchFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -17,7 +18,7 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('SitesSearchFooter', () => {
-  let mockNavigation: jest.Mocked<NavigationProp<ParamListBase>>;
+  let mockNavigation: jest.Mocked<NavigationProp<RootParamList>>;
   let dateNowSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -25,7 +26,7 @@ describe('SitesSearchFooter', () => {
 
     mockNavigation = {
       navigate: jest.fn(),
-    } as unknown as jest.Mocked<NavigationProp<ParamListBase>>;
+    } as unknown as jest.Mocked<NavigationProp<RootParamList>>;
 
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockReturnValue('Google');

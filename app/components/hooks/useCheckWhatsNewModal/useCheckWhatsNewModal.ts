@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Routes from '../../../constants/navigation/Routes';
+import { useNavigation } from '../../../util/navigation/navUtils';
 
 /**
  * Hook to check and show WhatsNewModal when appropriate

@@ -93,7 +93,7 @@ function TokenSelection() {
           ramp_routing: rampRoutingDecision ?? undefined,
         });
       }
-      navigation.dangerouslyGetParent()?.goBack();
+      navigation.getParent()?.goBack();
       goToBuy({ assetId });
     },
     [

@@ -24,7 +24,12 @@ export function useSendNavbar() {
         : null;
 
       const screenName = previousRoute?.name || Routes.SEND.ASSET;
-      navigation.navigate(Routes.SEND.DEFAULT, { screen: screenName });
+      // In v7, use pop: true to go back to an existing screen instead of pushing
+      navigation.navigate({
+        name: Routes.SEND.DEFAULT,
+        params: { screen: screenName },
+        pop: true,
+      } as never);
       return;
     }
 
@@ -34,17 +39,22 @@ export function useSendNavbar() {
     );
 
     if (sendRouteIndex <= 0) {
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigation.navigate({ name: Routes.WALLET_VIEW, pop: true } as never);
       return;
     }
 
     const previousMainRoute = sendStackState.routes[sendRouteIndex - 1];
 
     // Navigate to previous route with special handling for specific routes
+    // In v7, use pop: true to go back to an existing screen instead of pushing
     if (previousMainRoute.name === 'Home') {
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigation.navigate({ name: Routes.WALLET_VIEW, pop: true } as never);
     } else {
-      navigation.navigate(previousMainRoute.name, previousMainRoute.params);
+      navigation.navigate({
+        name: previousMainRoute.name,
+        params: previousMainRoute.params,
+        pop: true,
+      } as never);
     }
   }, [navigation, sendStackState]);
 

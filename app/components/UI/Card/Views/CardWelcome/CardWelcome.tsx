@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
 import { Image, View, useWindowDimensions } from 'react-native';
 
@@ -25,7 +25,8 @@ import ButtonBase from '../../../../../component-library/components/Buttons/Butt
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
+  const { navigate } = navigation;
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();
   const dimensions = useWindowDimensions();
@@ -42,8 +43,9 @@ const CardWelcome = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleClose = useCallback(() => {
-    navigate(Routes.WALLET.HOME);
-  }, [navigate]);
+    // Pop back to the first screen (Home) in the MainNavigator stack
+    navigation.dispatch(StackActions.popToTop());
+  }, [navigation]);
 
   const handleButtonPress = useCallback(() => {
     trackEvent(

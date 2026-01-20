@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import NavigationService from '../../../../../core/NavigationService';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useSelector, useDispatch } from 'react-redux';
 import { BridgeToken, BridgeViewMode } from '../../types';
@@ -197,10 +198,17 @@ export const useSwapBridgeNavigation = ({
         bridgeViewMode,
       };
 
-      navigation.navigate(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params,
-      });
+      // Use NavigationService to navigate to Bridge from any context
+      // This ensures navigation works from modals and other nested navigators
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: Routes.BRIDGE.ROOT,
+          params: {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+            params,
+          },
+        }),
+      );
 
       // Track Swap button click with new consolidated event
       const isFromNavbar = location === SwapBridgeNavigationLocation.TabBar;

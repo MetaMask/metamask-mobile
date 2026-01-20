@@ -17,7 +17,8 @@ import {
 import ProgressIndicator from './ProgressIndicator';
 import { strings } from '../../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../../../core/NavigationService';
 import { setOnboardingActiveStep } from '../../../../../reducers/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
@@ -68,13 +69,15 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
 }) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
   const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   const onClose = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [dispatch, navigation]);
+    // Use CommonActions to navigate from modal context
+    NavigationService.navigation?.dispatch(
+      CommonActions.navigate({ name: Routes.ONBOARDING.HOME_NAV }),
+    );
+  }, [dispatch]);
 
   // Create PanResponder for swipe gestures
   const panResponder = useRef(

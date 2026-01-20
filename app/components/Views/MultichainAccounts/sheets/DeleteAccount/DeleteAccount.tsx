@@ -2,14 +2,9 @@ import React, { useCallback, useState } from 'react';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RootParamList } from '../../../../../types/navigation';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
@@ -38,16 +33,7 @@ import { MultichainDeleteAccountSelectors } from './DeleteAccount.testIds';
 import { removeAccountsFromPermissions } from '../../../../../core/Permissions';
 import { toHex } from '@metamask/controller-utils';
 
-interface RootNavigationParamList extends ParamListBase {
-  DeleteAccount: {
-    account: InternalAccount;
-  };
-}
-
-type DeleteAccountRouteProp = RouteProp<
-  RootNavigationParamList,
-  'DeleteAccount'
->;
+type DeleteAccountRouteProp = RouteProp<RootParamList, 'DeleteAccount'>;
 
 export const DeleteAccount = () => {
   const { styles } = useStyles(styleSheet, {});

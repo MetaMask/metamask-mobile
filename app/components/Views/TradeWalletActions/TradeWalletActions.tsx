@@ -1,5 +1,6 @@
 import MaskedView from '@react-native-masked-view/masked-view';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, CommonActions } from '@react-navigation/native';
+import NavigationService from '../../../core/NavigationService';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Platform,
@@ -135,43 +136,63 @@ function TradeWalletActions() {
 
   const onPerps = useCallback(() => {
     postCallback.current = () => {
+      // Use CommonActions to navigate from modal context
       if (isFirstTimePerpsUser) {
-        navigate(Routes.PERPS.TUTORIAL);
+        NavigationService.navigation?.dispatch(
+          CommonActions.navigate({ name: Routes.PERPS.TUTORIAL }),
+        );
       } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
+        NavigationService.navigation?.dispatch(
+          CommonActions.navigate({
+            name: Routes.PERPS.ROOT,
+            params: {
+              screen: Routes.PERPS.PERPS_HOME,
+            },
+          }),
+        );
       }
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
+  }, [handleNavigateBack, isFirstTimePerpsUser]);
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
-      });
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+            params: {
+              entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
+            },
+          },
+        }),
+      );
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
+  }, [handleNavigateBack]);
 
   const onEarn = useCallback(async () => {
     postCallback.current = () => {
-      navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
-        params: {
-          tokenFilter: {
-            includeNativeTokens: true,
-            includeStakingTokens: false,
-            includeLendingTokens: true,
-            includeReceiptTokens: false,
+      // Use CommonActions to navigate from modal context
+      NavigationService.navigation?.dispatch(
+        CommonActions.navigate({
+          name: 'StakeModals',
+          params: {
+            screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+            params: {
+              tokenFilter: {
+                includeNativeTokens: true,
+                includeStakingTokens: false,
+                includeLendingTokens: true,
+                includeReceiptTokens: false,
+              },
+              onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
+            },
           },
-          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
-        },
-      });
+        }),
+      );
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)

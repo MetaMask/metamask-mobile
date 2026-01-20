@@ -41,7 +41,8 @@ import BottomSheet, {
 import { whatsNewList } from './';
 import { WhatsNewModalSelectorsIDs } from './WhatsNewModal.testIds';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import createStyles from './WhatsNewModal.styles';
 import Device from '../../../util/device';
 import { SlideContent, SlideContentType } from './types';
@@ -174,8 +175,12 @@ const WhatsNewModal = () => {
   );
 
   const callButton = useCallback(
-    (onPress: (props: { navigation: typeof navigation }) => void) => {
-      dismissModal(() => onPress({ navigation }));
+    (
+      onPress: (props: { navigation: NavigationProp<RootParamList> }) => void,
+    ) => {
+      dismissModal(() =>
+        onPress({ navigation: navigation as NavigationProp<RootParamList> }),
+      );
     },
     [navigation, dismissModal],
   );

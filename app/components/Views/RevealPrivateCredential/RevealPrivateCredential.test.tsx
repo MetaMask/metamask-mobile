@@ -206,16 +206,26 @@ const renderWithProviders = (ui: React.ReactNode) =>
     </Provider>,
   );
 
+interface RevealPrivateCredentialParams {
+  credentialName: string;
+  shouldUpdateNav?: boolean;
+  selectedAccount?: InternalAccount;
+  keyringId?: string;
+}
+
 const createDefaultRoute = (
-  params: Record<string, unknown> = {},
+  params: Partial<RevealPrivateCredentialParams> = {},
 ): {
   key: string;
   name: 'RevealPrivateCredential';
-  params: Record<string, unknown>;
+  params: RevealPrivateCredentialParams;
 } => ({
   key: 'RevealPrivateCredential',
   name: 'RevealPrivateCredential',
-  params,
+  params: {
+    credentialName: 'seed_phrase',
+    ...params,
+  },
 });
 
 describe('RevealPrivateCredential', () => {

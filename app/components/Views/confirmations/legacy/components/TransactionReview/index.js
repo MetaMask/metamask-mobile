@@ -1,5 +1,5 @@
 import Eth from '@metamask/ethjs-query';
-import { withNavigation } from '@react-navigation/compat';
+import { useNavigation } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
@@ -745,8 +745,14 @@ const mapStateToProps = (state) => {
 
 TransactionReview.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(
-  withNavigation(
-    withQRHardwareAwareness(withMetricsAwareness(TransactionReview)),
-  ),
+const ConnectedTransactionReview = connect(mapStateToProps)(
+  withQRHardwareAwareness(withMetricsAwareness(TransactionReview)),
 );
+
+// Wrapper to inject navigation via hook (replaces withNavigation HOC)
+const TransactionReviewWithNavigation = (props) => {
+  const navigation = useNavigation();
+  return <ConnectedTransactionReview {...props} navigation={navigation} />;
+};
+
+export default TransactionReviewWithNavigation;

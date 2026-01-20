@@ -127,7 +127,7 @@ describe('StakeConfirmationView', () => {
           annualRewardsFiat: '$0.68',
           chainId: '1',
         },
-        name: 'params',
+        name: 'StakeConfirmation',
       },
     };
 

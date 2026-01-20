@@ -31,10 +31,10 @@ describe('handlePerpsUrl', () => {
     // Setup navigation mocks
     mockNavigate = jest.fn();
     mockSetParams = jest.fn();
-    NavigationService.navigation = {
+    jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       navigate: mockNavigate,
       setParams: mockSetParams,
-    } as unknown as typeof NavigationService.navigation;
+    } as unknown as typeof NavigationService.navigation);
 
     // Mock DevLogger
     (DevLogger.log as jest.Mock) = jest.fn();

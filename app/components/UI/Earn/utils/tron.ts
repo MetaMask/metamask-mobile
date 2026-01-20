@@ -1,4 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import {
   normalizeToDotDecimal,
@@ -144,11 +145,12 @@ export const getLocalizedErrorMessage = (errors?: string[]): string => {
 };
 
 export const handleTronStakingNavigationResult = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: NavigationProp<RootParamList>,
   result: TronStakingNavigationResult,
   action: TronStakingAction,
   accountId?: string,
 ) => {
+  const nav = navigation as NavigationProp<RootParamList>;
   const copy = TRON_STAKING_COPY[action];
 
   if (result?.valid && (!result.errors || result.errors.length === 0)) {
@@ -166,9 +168,9 @@ export const handleTronStakingNavigationResult = (
       );
     }
 
-    navigation.goBack();
+    nav.goBack();
     requestAnimationFrame(() => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      nav.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {
           title: strings(copy.successTitleKey),
@@ -179,7 +181,7 @@ export const handleTronStakingNavigationResult = (
       });
     });
   } else {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    nav.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings(copy.errorTitleKey),

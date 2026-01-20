@@ -22,11 +22,7 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import KYCWebview from '../components/Onboarding/KYCWebview';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
@@ -39,7 +35,9 @@ const Stack = createStackNavigator();
 export const PostEmailNavigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: {
+    dispatch: (action: ReturnType<typeof StackActions.popToTop>) => void;
+  };
 }): StackNavigationOptions => {
   const handleClosePress = () => {
     Alert.alert(
@@ -52,7 +50,7 @@ export const PostEmailNavigationOptions = ({
         },
         {
           text: strings('card.card_onboarding.exit_confirmation.exit_button'),
-          onPress: () => navigation.navigate(Routes.WALLET.HOME),
+          onPress: () => navigation.dispatch(StackActions.popToTop()),
           style: 'destructive',
         },
       ],
@@ -80,7 +78,9 @@ export const PostEmailNavigationOptions = ({
 export const KYCStatusNavigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: {
+    dispatch: (action: ReturnType<typeof StackActions.popToTop>) => void;
+  };
 }): StackNavigationOptions => ({
   headerLeft: () => <View />,
   headerTitle: () => <View />,
@@ -90,7 +90,7 @@ export const KYCStatusNavigationOptions = ({
       size={ButtonIconSizes.Lg}
       iconName={IconName.Close}
       testID="exit-onboarding-button"
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+      onPress={() => navigation.dispatch(StackActions.popToTop())}
     />
   ),
   gestureEnabled: false,
@@ -192,7 +192,7 @@ const OnboardingNavigator: React.FC = () => {
           confirmAction: {
             label: strings('card.card_onboarding.keep_going.confirm_button'),
             onPress: () => {
-              navigation.navigate(initialRouteName);
+              (navigation.navigate as (route: string) => void)(initialRouteName);
             },
           },
           icon: IconName.ArrowDoubleRight,

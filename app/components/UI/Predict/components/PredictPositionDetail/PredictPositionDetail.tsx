@@ -115,6 +115,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         const _outcome = market?.outcomes.find(
           (o) => o.id === currentPosition.outcomeId,
         );
+        if (!_outcome) return;
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
           position: currentPosition,

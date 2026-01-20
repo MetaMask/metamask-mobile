@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectMultichainAccountsIntroModalSeen } from '../../reducers/user/selectors';
 import Routes from '../../constants/navigation/Routes';
+import { useNavigation } from '../../util/navigation/navUtils';
 import StorageWrapper from '../../store/storage-wrapper';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../constants/storage';
 

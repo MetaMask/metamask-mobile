@@ -18,7 +18,8 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import PermissionItem from './PermissionItem';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../types/navigation';
 import { RootState } from '../../../../reducers';
 import {
   PermissionListItemViewModel,
@@ -38,7 +39,7 @@ import {
 import { Json } from '@metamask/utils';
 
 interface SDKSessionsManagerProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: NavigationProp<RootParamList>;
 }
 
 const createStyles = (

@@ -55,8 +55,9 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
 
   const dispatch = useDispatch();
 
+  const state = navigation.getState();
   const currentRouteName = findRouteNameFromNavigatorState(
-    navigation.dangerouslyGetState().routes,
+    state?.routes ?? [],
   );
 
   const isSeedlessOnboardingLoginFlow = useSelector(

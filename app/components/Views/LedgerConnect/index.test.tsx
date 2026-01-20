@@ -7,11 +7,8 @@ import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootParamList } from '../../../types/navigation';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 import { strings } from '../../../../locales/i18n';
 import { getSystemVersion } from 'react-native-device-info';
@@ -173,7 +170,7 @@ describe('LedgerConnect', () => {
       navigate: jest.fn(),
       setOptions: jest.fn(),
       dispatch: jest.fn(),
-    } as unknown as NavigationProp<ParamListBase>);
+    } as unknown as NavigationProp<RootParamList>);
 
     jest.mocked(getSystemVersion).mockReturnValue('13');
     jest.mocked(Device.isAndroid).mockReturnValue(true);
@@ -260,7 +257,7 @@ describe('LedgerConnect', () => {
       navigate,
       setOptions: jest.fn(),
       dispatch: jest.fn(),
-    } as unknown as NavigationProp<ParamListBase>);
+    } as unknown as NavigationProp<RootParamList>);
 
     isSendingLedgerCommands = true;
     isAppLaunchConfirmationNeeded = false;
