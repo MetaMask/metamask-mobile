@@ -151,8 +151,8 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('quickActionsHint', () => {
-    it('passes quickActionsHint to CustomAmountInfo', () => {
+  describe('footerText', () => {
+    it('passes footerText to CustomAmountInfo', () => {
       mockRoute.params = {
         outputChainId: '0x1' as Hex,
       };
@@ -165,7 +165,7 @@ describe('MusdConversionInfo', () => {
 
       expect(CustomAmountInfo).toHaveBeenCalledWith(
         expect.objectContaining({
-          quickActionsHint: strings('earn.musd_conversion.powered_by_relay'),
+          footerText: strings('earn.musd_conversion.powered_by_relay'),
         }),
         expect.anything(),
       );

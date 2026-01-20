@@ -20,7 +20,7 @@ const styleSheet = (_params: { theme: Theme }) =>
       opacity: 0.5,
     },
 
-    quickActionsHint: {
+    footerText: {
       alignSelf: 'center',
     },
   });

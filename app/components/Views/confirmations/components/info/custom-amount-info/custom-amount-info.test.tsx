@@ -232,15 +232,15 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
-  it('renders quickActionsHint when passed in', () => {
-    const hint = 'Test quick actions hint';
-    const { getByText } = render({ quickActionsHint: hint });
+  it('renders footerText when passed in', () => {
+    const hint = 'Test footer text';
+    const { getByText } = render({ footerText: hint });
 
     expect(getByText(hint)).toBeOnTheScreen();
   });
 
-  it('does not render quickActionsHint when not passed in', () => {
-    const hint = 'Test quick actions hint';
+  it('does not render footerText when not passed in', () => {
+    const hint = 'Test footer text';
     const { queryByText } = render();
 
     expect(queryByText(hint)).toBeNull();

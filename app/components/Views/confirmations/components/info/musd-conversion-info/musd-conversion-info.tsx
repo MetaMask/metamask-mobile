@@ -74,7 +74,7 @@ export const MusdConversionInfo = () => {
     <CustomAmountInfo
       preferredToken={preferredPaymentToken}
       overrideContent={renderOverrideContent}
-      quickActionsHint={strings('earn.musd_conversion.powered_by_relay')}
+      footerText={strings('earn.musd_conversion.powered_by_relay')}
       hasMax
     />
   );
