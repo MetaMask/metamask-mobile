@@ -29,6 +29,7 @@ import PredictSportTeamGradient from '../PredictSportTeamGradient';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -67,7 +68,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       style={tw.style('flex-1 bg-default')}
       testID="game-details-gradient"
     >
-      <SafeAreaView style={tw.style('flex-1')} edges={['left', 'right']}>
+      <SafeAreaView
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+        style={tw.style('flex-1')}
+        edges={['left', 'right']}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
