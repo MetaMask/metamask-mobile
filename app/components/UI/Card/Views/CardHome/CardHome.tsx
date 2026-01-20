@@ -12,17 +12,14 @@ import {
   RefreshControl,
   ScrollView,
   TouchableOpacity,
-  View,
 } from 'react-native';
-
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   StackActions,
   useNavigation,
@@ -34,10 +31,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import createStyles from './CardHome.styles';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -132,8 +129,7 @@ const CardHome = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const theme = useTheme();
-
-  const styles = createStyles(theme);
+  const tw = useTailwind();
 
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -445,7 +441,7 @@ const CardHome = () => {
         <Skeleton
           height={28}
           width={'100%'}
-          style={styles.skeletonRounded}
+          style={tw.style('rounded-xl')}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
         />
       );
@@ -460,8 +456,8 @@ const CardHome = () => {
         // KYC verified users - delegation will automatically provision the card
         return (
           <Button
-            variant={ButtonVariants.Primary}
-            style={styles.defaultMarginTop}
+            variant={ButtonVariants.Secondary}
+            style={tw.style('mt-4')}
             label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
             onPress={openOnboardingDelegationAction}
@@ -476,8 +472,8 @@ const CardHome = () => {
       if (needToEnableAssets) {
         return (
           <Button
-            variant={ButtonVariants.Primary}
-            style={styles.defaultMarginTop}
+            variant={ButtonVariants.Secondary}
+            style={tw.style('mt-4')}
             label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
             onPress={openOnboardingDelegationAction}
@@ -490,14 +486,13 @@ const CardHome = () => {
       }
 
       return (
-        <View style={styles.buttonsContainer}>
+        <Box twClassName="w-full gap-2 flex-row justify-between items-center">
           <Button
-            variant={ButtonVariants.Primary}
-            style={
-              !isSwapEnabledForPriorityToken
-                ? styles.halfWidthButtonDisabled
-                : styles.halfWidthButton
-            }
+            variant={ButtonVariants.Secondary}
+            style={tw.style(
+              'w-1/2',
+              !isSwapEnabledForPriorityToken && 'opacity-50',
+            )}
             label={strings('card.card_home.add_funds')}
             size={ButtonSize.Lg}
             onPress={addFundsAction}
@@ -508,7 +503,7 @@ const CardHome = () => {
           />
           <Button
             variant={ButtonVariants.Secondary}
-            style={styles.halfWidthButton}
+            style={tw.style('w-1/2')}
             label={strings('card.card_home.change_asset')}
             size={ButtonSize.Lg}
             onPress={changeAssetAction}
@@ -516,13 +511,13 @@ const CardHome = () => {
             loading={isLoading}
             testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
           />
-        </View>
+        </Box>
       );
     }
 
     return (
       <Button
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariants.Secondary}
         label={strings('card.card_home.add_funds')}
         size={ButtonSize.Lg}
         onPress={addFundsAction}
@@ -540,7 +535,7 @@ const CardHome = () => {
     isSwapEnabledForPriorityToken,
     needToEnableAssets,
     needToEnableCard,
-    styles,
+    tw,
     openOnboardingDelegationAction,
   ]);
 
@@ -670,36 +665,35 @@ const CardHome = () => {
 
     if (isHandlingAuthError || isAuthError) {
       return (
-        <View style={styles.loadingContainer}>
+        <Box twClassName="flex-1 items-center justify-center bg-background-default">
           <ActivityIndicator size="large" />
-        </View>
+        </Box>
       );
     }
 
     return (
-      <View style={styles.errorContainer}>
+      <Box twClassName="flex-1 items-center justify-center bg-background-default gap-2">
         <Icon
           name={IconName.Forest}
           size={IconSize.Xl}
-          color={theme.colors.icon.default}
+          color={IconColor.Default}
         />
         <Text
-          variant={TextVariant.HeadingSM}
-          color={theme.colors.text.alternative}
+          variant={TextVariant.HeadingSm}
+          twClassName="text-text-alternative"
         >
           {strings('card.card_home.error_title')}
         </Text>
         <Text
-          variant={TextVariant.BodyMD}
-          color={theme.colors.text.alternative}
-          style={styles.errorDescription}
+          variant={TextVariant.BodyMd}
+          twClassName="text-text-alternative text-center px-12"
         >
           {strings('card.card_home.error_description')}
         </Text>
         {retries < 3 && !isAuthenticationError(cardError) && (
-          <View style={styles.tryAgainButtonContainer}>
+          <Box twClassName="pt-2">
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariants.Secondary}
               label={strings('card.card_home.try_again')}
               size={ButtonSize.Md}
               onPress={() => {
@@ -708,18 +702,18 @@ const CardHome = () => {
               }}
               testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
             />
-          </View>
+          </Box>
         )}
-      </View>
+      </Box>
     );
   }
 
   return (
     <ScrollView
-      style={styles.wrapper}
+      style={tw.style('flex-1 bg-background-default')}
       showsVerticalScrollIndicator={false}
       alwaysBounceVertical={false}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={tw.style('flex-grow pb-8')}
       testID={CardHomeSelectors.CARD_VIEW_TITLE}
       refreshControl={
         <RefreshControl
@@ -730,6 +724,9 @@ const CardHome = () => {
         />
       }
     >
+      <Text style={tw.style('px-4')} variant={TextVariant.HeadingLg}>
+        {strings('card.card_home.title')}
+      </Text>
       {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
         <CardWarningBox
           warning={CardWarningBoxType.CloseSpendingLimit}
@@ -750,18 +747,17 @@ const CardHome = () => {
       {isAuthenticated && isBaanxLoginEnabled && isKYCPendingOrUnverified && (
         <CardWarningBox warning={CardWarningBoxType.KYCPending} />
       )}
-      <View style={styles.cardBalanceContainer}>
-        <View
-          style={[
-            styles.balanceTextContainer,
-            styles.defaultHorizontalPadding,
-            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
-          ]}
+      <Box twClassName="mt-4 bg-background-muted rounded-lg justify-center items-center mx-4 py-4">
+        <Box
+          style={tw.style(
+            'items-center justify-between flex-row w-full mb-2 px-4',
+            (needToEnableAssets || needToEnableCard) && 'hidden',
+          )}
         >
           <SensitiveText
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
-            variant={TextVariant.HeadingLG}
+            variant={ComponentTextVariant.HeadingLG}
           >
             {isLoading ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
@@ -769,7 +765,7 @@ const CardHome = () => {
               <Skeleton
                 height={28}
                 width={'50%'}
-                style={styles.skeletonRounded}
+                style={tw.style('rounded-xl')}
                 testID={CardHomeSelectors.BALANCE_SKELETON}
               />
             ) : (
@@ -783,49 +779,37 @@ const CardHome = () => {
             <Icon
               name={privacyMode ? IconName.EyeSlash : IconName.Eye}
               size={IconSize.Md}
-              color={theme.colors.icon.alternative}
+              color={IconColor.Alternative}
             />
           </TouchableOpacity>
-        </View>
+        </Box>
         {isAllowanceLimited && (
-          <View
-            style={[
-              styles.limitedAllowanceWarningContainer,
-              styles.defaultHorizontalPadding,
-            ]}
-          >
+          <Box twClassName="w-full px-4">
             <Text>
               <Text
-                variant={TextVariant.BodySM}
-                color={theme.colors.text.alternative}
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative"
               >
                 {strings('card.card_home.limited_spending_warning', {
                   manageCard: '',
                 })}
               </Text>
               <Text
-                variant={TextVariant.BodySM}
-                color={theme.colors.text.alternative}
-                style={styles.limitedAllowanceManageCardText}
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative font-bold"
               >
                 {strings('card.card_home.manage_card_options.manage_card')}
                 {'.'}
               </Text>
             </Text>
-          </View>
+          </Box>
         )}
-        <View
-          style={[
-            styles.cardImageContainer,
-            styles.defaultHorizontalPadding,
-            isAllowanceLimited && styles.defaultMarginTop,
-          ]}
-        >
+        <Box style={tw.style('w-full px-4', isAllowanceLimited && 'mt-4')}>
           {isLoading ? (
             <Skeleton
               height={240}
               width={'100%'}
-              style={styles.skeletonRounded}
+              style={tw.style('rounded-xl')}
             />
           ) : (
             <CardImage
@@ -834,19 +818,18 @@ const CardHome = () => {
               address={priorityToken?.walletAddress}
             />
           )}
-        </View>
-        <View
-          style={[
-            styles.cardAssetItemContainer,
-            styles.defaultHorizontalPadding,
-            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
-          ]}
+        </Box>
+        <Box
+          style={tw.style(
+            'h-20 w-full justify-center items-center px-4',
+            (needToEnableAssets || needToEnableCard) && 'hidden',
+          )}
         >
           {isLoading ? (
             <Skeleton
               height={50}
               width={'100%'}
-              style={styles.skeletonRounded}
+              style={tw.style('rounded-xl')}
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
@@ -856,7 +839,7 @@ const CardHome = () => {
               balanceFormatted={balanceFormatted}
             />
           )}
-        </View>
+        </Box>
 
         {isAuthenticated &&
           isSpendingLimitSupported &&
@@ -870,17 +853,11 @@ const CardHome = () => {
             />
           )}
 
-        <View
-          style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
-        >
-          {ButtonsSection}
-        </View>
-      </View>
+        <Box twClassName="w-full px-4">{ButtonsSection}</Box>
+      </Box>
 
-      <View
-        style={[
-          (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
-        ]}
+      <Box
+        style={tw.style((needToEnableAssets || needToEnableCard) && 'hidden')}
       >
         {isBaanxLoginEnabled &&
           !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
@@ -898,7 +875,7 @@ const CardHome = () => {
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
-      </View>
+      </Box>
       <ManageCardListItem
         title={strings('card.card_home.manage_card_options.manage_card')}
         description={strings(
@@ -917,24 +894,33 @@ const CardHome = () => {
         onPress={navigateToTravelPage}
         testID={CardHomeSelectors.TRAVEL_ITEM}
       />
-
       {isAuthenticated && (
         <>
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.card_tos_title')}
-            description={strings(
-              'card.card_home.manage_card_options.card_tos_description',
-            )}
-            rightIcon={IconName.Export}
+          <Box twClassName="h-px mx-4 bg-border-muted" />
+          <TouchableOpacity
             onPress={navigateToCardTosPage}
             testID={CardHomeSelectors.CARD_TOS_ITEM}
-          />
-          <ManageCardListItem
-            title={strings('card.card_home.logout')}
-            description={strings('card.card_home.logout_description')}
-            rightIcon={IconName.Logout}
+            style={tw.style('py-4 px-4')}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {strings('card.card_home.manage_card_options.card_tos_title')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={logoutAction}
-          />
+            testID={CardHomeSelectors.LOGOUT_ITEM}
+            style={tw.style('py-4 px-4')}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {strings('card.card_home.logout')}
+            </Text>
+          </TouchableOpacity>
         </>
       )}
     </ScrollView>

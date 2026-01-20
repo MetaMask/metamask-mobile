@@ -1470,7 +1470,6 @@ describe('CardHome Component', () => {
 
       // Then: should show logout button
       expect(screen.getByText('Logout')).toBeTruthy();
-      expect(screen.getByText('Logout of your Card account')).toBeTruthy();
     });
 
     it('shows logout confirmation alert when logout button pressed', () => {
@@ -2188,11 +2187,13 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({
             type: 'REPLACE',
-            routeName: Routes.CARD.WELCOME,
+            routeName: Routes.CARD.AUTHENTICATION,
           }),
         );
       });
@@ -2279,11 +2280,13 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({
             type: 'REPLACE',
-            routeName: Routes.CARD.WELCOME,
+            routeName: Routes.CARD.AUTHENTICATION,
           }),
         );
       });
@@ -2423,7 +2426,9 @@ describe('CardHome Component', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/clearAllCache' }),
         );
-        expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
       });
     });
 
