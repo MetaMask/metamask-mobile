@@ -200,7 +200,6 @@ class WalletView {
   }
 
   async tapOnToken(token: string, index = 0): Promise<void> {
-    console.log('tapOnToken', token, index);
     const elem = Matchers.getElementByText(
       token || WalletViewSelectorsText.DEFAULT_TOKEN,
       index,
