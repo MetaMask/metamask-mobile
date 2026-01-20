@@ -34,7 +34,13 @@ export function buildReasoningSection(): string {
 - Think deeply about change impacts
 - Consider direct and indirect effects
 - Reason about risk levels
-- Evaluate change significance`;
+- Evaluate change significance
+- Check if changes can break existing E2E tests by affecting shared components:
+  - Browser/BrowserTab: Snaps, dApp connections, multichain tests
+  - TabBar/Navigation: Most tests navigate between screens
+  - Modals/BottomSheets: Confirmations, permissions, transaction flows
+  - Confirmations: Send, swap, signature tests
+- Investigate thoroughly before finalising - review diffs and trace dependencies`;
 }
 
 export function buildConfidenceGuidanceSection(): string {
