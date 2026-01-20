@@ -179,12 +179,12 @@ export const PopularList = [
   {
     chainId: toHex('4326'),
     nickname: 'MegaEth',
-    rpcUrl: `https://mainnet.megaeth.com/rpc`,
+    rpcUrl: `https://megaeth-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.megaeth.com',
+      blockExplorerUrl: 'https://megaeth.blockscout.com',
       imageUrl: 'MEGAETH',
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
     },
