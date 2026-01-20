@@ -9,7 +9,6 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import QuoteView from '../../pages/swaps/QuoteView';
-import Gestures from '../../framework/Gestures';
 import { testSpecificMock } from './helpers/swap-mocks';
 import WalletView from '../../pages/wallet/WalletView';
 import DeeplinkModal from '../../pages/swaps/Deeplink';
@@ -73,9 +72,7 @@ describe(
           await Assertions.expectElementToBeVisible(
             DeeplinkModal.proceedWithCaution,
           );
-          await Gestures.waitAndTap(DeeplinkModal.continueButton);
-
-          // Wait for bridge view to load after modal is dismissed
+          await DeeplinkModal.tapContinue();
 
           // Check that USDC and USDT tokens are displayed (using text display check
           // since the token area containers have additional text like labels)
@@ -142,7 +139,7 @@ describe(
           await Assertions.expectElementToBeVisible(
             DeeplinkModal.proceedWithCaution,
           );
-          await Gestures.waitAndTap(DeeplinkModal.continueButton);
+          await DeeplinkModal.tapContinue();
 
           // Check that we are on the quote view with default state
           await Assertions.expectElementToBeVisible(
@@ -151,7 +148,7 @@ describe(
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);
-          await QuoteView.tapOnBackButton();
+          await DeeplinkModal.tapContinue();
 
           // Should be back on wallet view
           await Assertions.expectElementToBeVisible(WalletView.container);
@@ -206,7 +203,7 @@ describe(
           await Assertions.expectElementToBeVisible(
             DeeplinkModal.proceedWithCaution,
           );
-          await Gestures.waitAndTap(DeeplinkModal.continueButton);
+          await DeeplinkModal.tapContinue();
 
           // Wait for bridge view to load after modal is dismissed
           await Assertions.expectElementToBeVisible(
