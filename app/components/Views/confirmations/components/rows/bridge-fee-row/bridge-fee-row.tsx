@@ -65,12 +65,12 @@ export function BridgeFeeRow() {
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     if (isLoading) {
-      return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
+      return <InfoRowSkeleton testId="network-fee-row-skeleton" />;
     }
 
     return (
       <AlertRow
-        testID="bridge-fee-row-skeleton"
+        testID="network-fee-row"
         label={strings('confirm.label.network_fee')}
         alertField={RowAlertKey.PayWithFee}
         tooltipTitle={strings('confirm.label.network_fee')}

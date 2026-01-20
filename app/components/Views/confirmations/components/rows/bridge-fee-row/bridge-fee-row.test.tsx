@@ -78,14 +78,27 @@ describe('BridgeFeeRow', () => {
   });
 
   it('renders network fee row when transaction type is musdConversion', () => {
-    const { getByTestId, queryByTestId, queryByText } = render({
+    const { getByTestId, getByText, queryByTestId, queryByText } = render({
       type: TransactionType.musdConversion,
     });
 
     expect(getByTestId(ConfirmationRowComponentIDs.NETWORK_FEE)).toBeDefined();
+    expect(getByText('$0.23')).toBeDefined();
     expect(queryByText('$1.23')).toBeNull();
     expect(queryByTestId('bridge-fee-row')).toBeNull();
     expect(queryByTestId('metamask-fee-row')).toBeNull();
+  });
+
+  it('renders skeleton if musdConversion network fee is loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId, queryByText } = render({
+      type: TransactionType.musdConversion,
+    });
+
+    expect(getByTestId('network-fee-row-skeleton')).toBeDefined();
+    expect(queryByTestId(ConfirmationRowComponentIDs.NETWORK_FEE)).toBeNull();
+    expect(queryByText('$0.23')).toBeNull();
   });
 
   it('renders network fee in tooltip', async () => {
