@@ -325,4 +325,38 @@ describe('CustomAmountInfo', () => {
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeNull();
   });
+
+  it.each([
+    {
+      transactionType: TransactionType.musdConversion,
+      expectedFeeRowTestId: 'network-fee-row',
+      unexpectedFeeRowTestId: 'bridge-fee-row',
+    },
+    {
+      transactionType: TransactionType.contractInteraction,
+      expectedFeeRowTestId: 'bridge-fee-row',
+      unexpectedFeeRowTestId: 'network-fee-row',
+    },
+  ] as const)(
+    'renders correct fee row for %s transaction type',
+    async ({
+      transactionType,
+      expectedFeeRowTestId,
+      unexpectedFeeRowTestId,
+    }) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByText, queryByTestId } = render({ transactionType });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(queryByTestId(expectedFeeRowTestId)).toBeOnTheScreen();
+      expect(queryByTestId(unexpectedFeeRowTestId)).toBeNull();
+    },
+  );
 });
