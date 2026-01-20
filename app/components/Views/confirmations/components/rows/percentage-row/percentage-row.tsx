@@ -17,8 +17,8 @@ function getTxTypeRowConfig(
 ): { label: string; tooltip: string } | undefined {
   if (transactionType === TransactionType.musdConversion) {
     return {
-      label: strings('earn.bonus'),
-      tooltip: strings('earn.bonus_tooltip'),
+      label: strings('earn.claimable_bonus'),
+      tooltip: strings('earn.claimable_bonus_tooltip'),
     };
   }
 

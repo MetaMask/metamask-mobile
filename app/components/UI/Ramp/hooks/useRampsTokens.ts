@@ -61,14 +61,14 @@ export function useRampsTokens(
       state.engine.backgroundState.RampsController?.userRegion,
   );
 
-  const regionToUse = useMemo(
+  const regionCode = useMemo(
     () => region ?? userRegion?.regionCode ?? '',
     [region, userRegion?.regionCode],
   );
 
   const requestSelector = useMemo(
-    () => selectTokensRequest(regionToUse, action, provider),
-    [regionToUse, action, provider],
+    () => selectTokensRequest(regionCode, action, provider),
+    [regionCode, action, provider],
   );
 
   const { isFetching, error } = useSelector(
@@ -84,11 +84,11 @@ export function useRampsTokens(
       },
     ) =>
       await Engine.context.RampsController.getTokens(
-        fetchRegion ?? regionToUse,
+        fetchRegion ?? regionCode,
         fetchAction,
         options,
       ),
-    [action, regionToUse],
+    [action, regionCode],
   );
 
   return {
