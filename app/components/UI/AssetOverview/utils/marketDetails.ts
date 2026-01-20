@@ -22,54 +22,46 @@ export interface MarketDetails {
 interface FormatMarketDetailsOptions {
   locale: string;
   currentCurrency: string;
-  isEvmAssetSelected: boolean;
-  conversionRate: number;
+  /**
+   * Whether the data needs conversion from native units to fiat.
+   * - Cached EVM data (from TokenRatesController) is in native units and needs conversion
+   * - API-fetched data (with vsCurrency param) is already in fiat and doesn't need conversion
+   */
+  needsConversion?: boolean;
+  conversionRate?: number;
 }
 
 /**
- * Formats market details with consistent formatting options
+ * Formats market details with consistent formatting options.
+ * Applies conversion rate only when data is in native units (cached native asset data).
  */
 export const formatMarketDetails = (
   marketData: MarketData,
   options: FormatMarketDetailsOptions,
 ): MarketDetails => {
-  const { locale, currentCurrency, isEvmAssetSelected, conversionRate } =
-    options;
+  const { locale, currentCurrency, needsConversion, conversionRate } = options;
+  const multiplier = needsConversion && conversionRate ? conversionRate : 1;
 
   const marketCap =
     marketData.marketCap && marketData.marketCap > 0
-      ? formatWithThreshold(
-          isEvmAssetSelected
-            ? marketData.marketCap * conversionRate
-            : marketData.marketCap,
-          0.01,
-          locale,
-          {
-            style: 'currency',
-            notation: 'compact',
-            currency: currentCurrency,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        )
+      ? formatWithThreshold(marketData.marketCap * multiplier, 0.01, locale, {
+          style: 'currency',
+          notation: 'compact',
+          currency: currentCurrency,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
       : null;
 
   const totalVolume =
     marketData.totalVolume && marketData.totalVolume > 0
-      ? formatWithThreshold(
-          isEvmAssetSelected
-            ? marketData.totalVolume * conversionRate
-            : marketData.totalVolume,
-          0.01,
-          locale,
-          {
-            style: 'currency',
-            notation: 'compact',
-            currency: currentCurrency,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        )
+      ? formatWithThreshold(marketData.totalVolume * multiplier, 0.01, locale, {
+          style: 'currency',
+          notation: 'compact',
+          currency: currentCurrency,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
       : null;
 
   const volumeToMarketCap =
@@ -98,40 +90,24 @@ export const formatMarketDetails = (
 
   const allTimeHigh =
     marketData.allTimeHigh && marketData.allTimeHigh > 0
-      ? formatWithThreshold(
-          isEvmAssetSelected
-            ? marketData.allTimeHigh * conversionRate
-            : marketData.allTimeHigh,
-          0.01,
-          locale,
-          {
-            style: 'currency',
-            currency: currentCurrency,
-          },
-        )
+      ? formatWithThreshold(marketData.allTimeHigh * multiplier, 0.01, locale, {
+          style: 'currency',
+          currency: currentCurrency,
+        })
       : null;
 
   const allTimeLow =
     marketData.allTimeLow && marketData.allTimeLow > 0
-      ? formatWithThreshold(
-          isEvmAssetSelected
-            ? marketData.allTimeLow * conversionRate
-            : marketData.allTimeLow,
-          0.01,
-          locale,
-          {
-            style: 'currency',
-            currency: currentCurrency,
-          },
-        )
+      ? formatWithThreshold(marketData.allTimeLow * multiplier, 0.01, locale, {
+          style: 'currency',
+          currency: currentCurrency,
+        })
       : null;
 
   const fullyDiluted =
     marketData.dilutedMarketCap && marketData.dilutedMarketCap > 0
       ? formatWithThreshold(
-          isEvmAssetSelected
-            ? marketData.dilutedMarketCap * conversionRate
-            : marketData.dilutedMarketCap,
+          marketData.dilutedMarketCap * multiplier,
           0.01,
           locale,
           {

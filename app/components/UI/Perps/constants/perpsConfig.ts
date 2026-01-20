@@ -493,6 +493,15 @@ export const SUPPORT_CONFIG = {
 } as const;
 
 /**
+ * Feedback survey configuration
+ * External survey for collecting user feedback on Perps trading experience
+ */
+export const FEEDBACK_CONFIG = {
+  URL: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
+  TITLE_KEY: 'perps.feedback.title',
+} as const;
+
+/**
  * Support article URLs
  * Links to specific MetaMask support articles for Perps features
  */

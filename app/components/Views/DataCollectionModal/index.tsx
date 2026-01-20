@@ -22,7 +22,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import createStyles from './styles';
-import { DataCollectionBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DataCollectionBottomSheet.selectors';
+import { DataCollectionBottomSheetSelectorsIDs } from './DataCollectionBottomSheet.testIds';
 
 const DataCollectionModal = () => {
   const styles = createStyles();

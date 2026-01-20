@@ -42,7 +42,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';

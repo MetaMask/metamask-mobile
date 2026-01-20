@@ -1,7 +1,6 @@
 'use strict';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
@@ -79,7 +78,7 @@ describe(RegressionAccounts('Error Boundary Screen'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapInvalidSigButton();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../../../reducers';
 import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';
@@ -86,7 +86,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    expect(getByText('Smart Account')).toBeTruthy();
+    expect(getByText('Smart account')).toBeTruthy();
     expect(getByText('Switch back')).toBeTruthy();
   });
 

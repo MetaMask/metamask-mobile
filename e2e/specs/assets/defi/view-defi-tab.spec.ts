@@ -3,7 +3,7 @@ import WalletView from '../../../pages/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { WalletViewSelectorsText } from '../../../selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsText } from '../../../../app/components/Views/Wallet/WalletView.testIds';
 import { loginToApp } from '../../../viewHelper';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';

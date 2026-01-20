@@ -6,7 +6,7 @@ import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeTrade } from '../../tags';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { loginToApp } from '../../viewHelper';

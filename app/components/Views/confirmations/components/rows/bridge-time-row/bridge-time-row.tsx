@@ -15,7 +15,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
-import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 

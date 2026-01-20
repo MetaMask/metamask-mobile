@@ -40,3 +40,4 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 };
 
 export const MUSD_CURRENCY = 'MUSD';
+export const MUSD_CONVERSION_APY = 3;

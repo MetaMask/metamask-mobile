@@ -8,7 +8,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
-import { TransactionDetailsSelectorIDs } from '../../../../../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
+import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 
 const FALLBACK_TYPES = [
   TransactionType.predictClaim,

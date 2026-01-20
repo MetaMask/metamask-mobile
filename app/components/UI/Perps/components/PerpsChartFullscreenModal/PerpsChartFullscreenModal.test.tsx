@@ -13,7 +13,7 @@ import type { TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../../../../util/Logger');

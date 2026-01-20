@@ -1,4 +1,4 @@
-import { RequestPaymentViewSelectors } from '../../selectors/Receive/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '../../../app/components/UI/ReceiveRequest/RequestPaymentView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

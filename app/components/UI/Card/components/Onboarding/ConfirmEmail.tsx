@@ -148,6 +148,13 @@ const ConfirmEmail = () => {
         dispatch(setOnboardingId(onboardingId));
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (hasAccount) {
+        const navigateToAuthentication = () => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: Routes.CARD.AUTHENTICATION }],
+          });
+        };
+
         navigation.navigate(Routes.CARD.MODALS.ID, {
           screen: Routes.CARD.MODALS.CONFIRM_MODAL,
           params: {
@@ -162,10 +169,9 @@ const ConfirmEmail = () => {
               label: strings(
                 'card.card_onboarding.account_exists.confirm_button',
               ),
-              onPress: () => {
-                navigation.navigate(Routes.CARD.AUTHENTICATION);
-              },
+              onPress: navigateToAuthentication,
             },
+            onClose: navigateToAuthentication,
             icon: IconName.UserCheck,
           },
         });
@@ -324,6 +330,7 @@ const ConfirmEmail = () => {
       })}
       formFields={renderFormFields()}
       actions={renderActions()}
+      stickyActions
     />
   );
 };

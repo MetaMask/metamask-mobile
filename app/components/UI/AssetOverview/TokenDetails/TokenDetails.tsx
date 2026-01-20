@@ -93,14 +93,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     allMultichainAssetsRates[asset.address as CaipAssetId];
 
   const nonEvmMarketData = multichainAssetRates?.marketData;
-  const nonEvmMetadata = {
-    rate: multichainAssetRates?.rate
-      ? Number(multichainAssetRates.rate)
-      : undefined,
-    conversionTime: multichainAssetRates?.conversionTime
-      ? Number(multichainAssetRates.conversionTime)
-      : undefined,
-  };
   ///: END:ONLY_INCLUDE_IF
 
   const evmMarketData = useSelector((state: RootState) =>
@@ -112,13 +104,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       : null,
   ) as EvmMarketData | null;
 
-  const evmConversionRate = isAssetFromSearch(asset)
-    ? 1
-    : conversionRateBySymbol;
-
-  const conversionRate = !isNonEvmAsset
-    ? evmConversionRate
-    : nonEvmMetadata.rate;
+  const conversionRate = isAssetFromSearch(asset) ? 1 : conversionRateBySymbol;
 
   let tokenMetadata;
   let cachedMarketData: MarketDataDetails | undefined;
@@ -187,6 +173,13 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const marketData = cachedMarketData ?? fetchedMarketData;
 
+  // Determine if we're using cached data (which is in native units for ALL EVM assets)
+  const isUsingCachedData = Boolean(cachedMarketData);
+
+  // ALL cached EVM data (native AND ERC20) is in native units and needs conversion
+  // API-fetched data (with vsCurrency param) is already in fiat
+  const needsConversion = isUsingCachedData && !isNonEvmAsset;
+
   const tokenDetails = useMemo(
     () =>
       getTokenDetails(
@@ -201,10 +194,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const marketDetails = useMemo(() => {
     if (!marketData) return;
 
-    // For EVM tokens, we need a valid conversion rate
-    // For non-EVM tokens from search/non-imported, conversion rate may not be available yet
-    if (!isNonEvmAsset && (!conversionRate || conversionRate < 0)) {
-      Logger.log('invalid conversion rate for EVM token');
+    // For cached EVM data, we need a valid conversion rate
+    if (needsConversion && (!conversionRate || conversionRate < 0)) {
+      Logger.log('invalid conversion rate for cached EVM data');
       return;
     }
 
@@ -232,11 +224,11 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       {
         locale: i18n.locale,
         currentCurrency,
-        isEvmAssetSelected: !isNonEvmAsset,
-        conversionRate: conversionRate || 1, // Default to 1 for display if not available
+        needsConversion,
+        conversionRate: conversionRate ?? undefined,
       },
     );
-  }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
+  }, [marketData, currentCurrency, needsConversion, conversionRate]);
 
   const hasAddressAndDecimals =
     tokenDetails.contractAddress && tokenDetails.tokenDecimal;

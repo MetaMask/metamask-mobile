@@ -162,6 +162,20 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
+const INTENT_STATUS = {
+  SUBMITTED: 'SUBMITTED',
+  PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
+};
+
+const TRANSACTION_STATUS = {
+  SUBMITTED: 'submitted',
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  FAILED: 'failed',
+};
 /**
  * View that renders a transaction item part of transactions list
  */
@@ -449,6 +463,24 @@ class TransactionElement extends PureComponent {
     );
   };
 
+  mapIntentStatusToTransactionStatus = (intentStatus) => {
+    if (intentStatus === INTENT_STATUS.PENDING) {
+      return TRANSACTION_STATUS.PENDING;
+    }
+    if (intentStatus === INTENT_STATUS.COMPLETE) {
+      return TRANSACTION_STATUS.CONFIRMED;
+    }
+    if (intentStatus === INTENT_STATUS.FAILED) {
+      return TRANSACTION_STATUS.FAILED;
+    }
+    if (intentStatus === INTENT_STATUS.SUBMITTED) {
+      return TRANSACTION_STATUS.SUBMITTED;
+    }
+
+    // if it is unknown status, default to failed
+    return TRANSACTION_STATUS.FAILED;
+  };
+
   /**
    * Renders an horizontal bar with basic tx information
    *
@@ -456,11 +488,10 @@ class TransactionElement extends PureComponent {
    */
   renderTxElement = (transactionElement) => {
     const {
-      selectedInternalAccount,
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { time, status, isSmartTransaction, chainId, type },
+      tx: { status, isSmartTransaction, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
@@ -468,16 +499,24 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
+    const transactionStatus =
+      bridgeTxHistoryItem?.status && bridgeTxHistoryItem.quote.intent
+        ? this.mapIntentStatusToTransactionStatus(
+            bridgeTxHistoryItem.status.status,
+          )
+        : status;
 
     const renderNormalActions =
-      (status === 'submitted' ||
-        (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+      (transactionStatus === 'submitted' ||
+        (transactionStatus === 'approved' &&
+          !isQRHardwareAccount &&
+          !isLedgerAccount)) &&
       !isSmartTransaction &&
       !isBridgeTransaction;
     const renderUnsignedQRActions =
-      status === 'approved' && isQRHardwareAccount;
-    const renderLedgerActions = status === 'approved' && isLedgerAccount;
-    const accountImportTime = selectedInternalAccount?.metadata.importTime;
+      transactionStatus === 'approved' && isQRHardwareAccount;
+    const renderLedgerActions =
+      transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
     if (isBridgeTransaction && bridgeTxHistoryItem) {
       title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
@@ -496,17 +535,17 @@ class TransactionElement extends PureComponent {
             <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
               {title}
             </ListItem.Title>
-            {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
+            {!FINAL_NON_CONFIRMED_STATUSES.includes(transactionStatus) &&
             isBridgeTransaction &&
             !isBridgeComplete ? (
               <BridgeActivityItemTxSegments
                 bridgeTxHistoryItem={bridgeTxHistoryItem}
-                transactionStatus={this.props.tx.status}
+                transactionStatus={transactionStatus}
               />
             ) : (
               <StatusText
                 testID={`transaction-status-${i}`}
-                status={status}
+                status={transactionStatus}
                 style={styles.listItemStatus}
               />
             )}

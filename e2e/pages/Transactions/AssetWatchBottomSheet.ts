@@ -1,4 +1,4 @@
-import { AssetWatcherSelectorsIDs } from '../../selectors/Transactions/AssetWatcher.selectors';
+import { AssetWatcherSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/WatchAssetRequest/AssetWatcher.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

@@ -173,6 +173,8 @@ import { storageServiceInit } from './controllers/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
+import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
+import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -262,13 +264,13 @@ export class Engine {
   /**
    * Creates a CoreController instance
    */
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
+    analyticsId: string,
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
-    metaMetricsId?: string,
   ) {
-    logEngineCreation(initialState, initialKeyringState);
+    const keyringState = initialKeyringState ?? null;
+    logEngineCreation(initialState, keyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
 
@@ -280,12 +282,11 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
-      metaMetricsId,
-      initialKeyringState,
+      analyticsId,
+      initialKeyringState: keyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
     };
-    // @ts-expect-error - metametrics id is required, this will be addressed on a follow up PR
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
@@ -367,8 +368,10 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
+        ConnectivityController: connectivityControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
+        AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         RampsController: rampsControllerInit,
       },
@@ -377,6 +380,7 @@ export class Engine {
       ...initRequest,
     });
 
+    const analyticsController = controllersByName.AnalyticsController;
     const loggingController = controllersByName.LoggingController;
     const remoteFeatureFlagController =
       controllersByName.RemoteFeatureFlagController;
@@ -403,6 +407,7 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
+    const connectivityController = controllersByName.ConnectivityController;
     const profileMetricsController = controllersByName.ProfileMetricsController;
     const profileMetricsService = controllersByName.ProfileMetricsService;
     const rampsService = controllersByName.RampsService;
@@ -485,11 +490,13 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
+      AnalyticsController: analyticsController,
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,
       AccountTrackerController: accountTrackerController,
       AddressBookController: addressBookController,
       AppMetadataController: controllersByName.AppMetadataController,
+      ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
       NftController: nftController,
       TokensController: tokensController,
@@ -1297,9 +1304,11 @@ export default {
       AccountTreeController,
       AddressBookController,
       AppMetadataController,
+      AnalyticsController,
       ApprovalController,
       BridgeController,
       BridgeStatusController,
+      ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
       DelegationController,
@@ -1362,9 +1371,11 @@ export default {
       AccountTreeController,
       AddressBookController,
       AppMetadataController,
+      AnalyticsController,
       ApprovalController,
       BridgeController,
       BridgeStatusController,
+      ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
       DelegationController,
@@ -1445,12 +1456,11 @@ export default {
   },
 
   init(
-    state: Partial<EngineState> | undefined,
-    keyringState: KeyringControllerState | null = null,
-    metaMetricsId?: string,
+    analyticsId: string,
+    state: Partial<EngineState> | undefined = {},
+    keyringState?: KeyringControllerState | null,
   ) {
-    instance =
-      Engine.instance || new Engine(state, keyringState, metaMetricsId);
+    instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);
     return instance;
   },

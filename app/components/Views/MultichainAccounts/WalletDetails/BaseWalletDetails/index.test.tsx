@@ -7,7 +7,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { BaseWalletDetails } from './index';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import Routes from '../../../../../constants/navigation/Routes';
-import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
+import { WalletDetailsIds } from '../WalletDetails.testIds';
 import { useWalletBalances } from '../hooks/useWalletBalances';
 import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
 import { useWalletInfo } from '../hooks/useWalletInfo';
