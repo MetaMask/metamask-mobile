@@ -2,16 +2,12 @@ import FixtureBuilder from './framework/fixtures/FixtureBuilder';
 import { withFixtures } from './framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
-import WalletView from './pages/wallet/WalletView';
-import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
-import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import { DappVariants } from './framework/Constants';
-import Assertions from './framework/Assertions';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from './api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from './api-mocking/helpers/remoteFeatureFlagsHelper';
 
 export async function withSolanaAccountEnabled(
   {
-    numberOfAccounts = 1,
     solanaAccountPermitted,
     evmAccountPermitted,
     dappVariant,
@@ -23,7 +19,7 @@ export async function withSolanaAccountEnabled(
   },
   test: () => Promise<void>,
 ) {
-  let fixtureBuilder = new FixtureBuilder().withSolanaFixture();
+  let fixtureBuilder = new FixtureBuilder();
 
   if (solanaAccountPermitted) {
     fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
@@ -42,22 +38,16 @@ export async function withSolanaAccountEnabled(
         },
       ],
       restartDevice: true,
+      testSpecificMock: async (mockServer) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          remoteFeatureMultichainAccountsAccountDetailsV2(true),
+        );
+      },
     },
     async () => {
       await TestHelpers.reverseServerPort();
       await loginToApp();
-
-      // Create Solana accounts through the wallet view
-      for (let i = 0; i < numberOfAccounts; i++) {
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapAddSolanaAccount();
-        await AddNewHdAccountComponent.tapConfirm();
-        await Assertions.expectElementToHaveText(
-          WalletView.accountName,
-          `Solana Account ${i + 1}`,
-        );
-      }
 
       await test();
     },

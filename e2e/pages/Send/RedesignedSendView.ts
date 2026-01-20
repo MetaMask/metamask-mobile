@@ -1,7 +1,7 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
-import { Utilities } from '../../framework';
+import { Assertions, Utilities } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class SendView {
@@ -59,6 +59,14 @@ class SendView {
 
   get backButton(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  }
+
+  get insufficientBalanceToCoverFeesError(): DetoxElement {
+    return Matchers.getElementByText('Insufficient balance to cover fees');
+  }
+
+  get invalidValueError(): DetoxElement {
+    return Matchers.getElementByText('Invalid value');
   }
 
   async selectEthereumToken(): Promise<void> {
@@ -144,6 +152,15 @@ class SendView {
       elemDescription: 'Back Button',
     });
   }
-}
 
+  async checkInsufficientBalanceToCoverFeesError(): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      this.insufficientBalanceToCoverFeesError,
+    );
+  }
+
+  async checkInvalidValueError(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.invalidValueError);
+  }
+}
 export default new SendView();

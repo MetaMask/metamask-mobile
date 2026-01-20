@@ -11,7 +11,7 @@ describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
   it('should send solana to an address', async () => {
     await withSolanaAccountEnabled({}, async () => {
       await device.disableSynchronization();
-      await WalletView.tapOnToken('Solana', 1);
+      await WalletView.tapOnToken('Solana');
       await TokenOverview.tapSendButton();
       // using 0 value as balance of SOL is not loaded at times making test flaky
       await SendView.enterZeroAmount();
