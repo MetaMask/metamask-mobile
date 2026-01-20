@@ -156,7 +156,7 @@ describe('SRPList', () => {
           mockKeyring1.metadata.id,
         ),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(
         getTestId(
@@ -164,7 +164,7 @@ describe('SRPList', () => {
           mockKeyring1.metadata.id,
         ),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('calls onActionComplete when the item is clicked', () => {
@@ -251,7 +251,7 @@ describe('SRPList', () => {
           mockKeyring1.metadata.id,
         ),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('displays correct account group count instead of individual accounts', () => {
@@ -268,7 +268,7 @@ describe('SRPList', () => {
 
     // The button label shows 2 account groups (multichain accounts)
     // instead of showing individual chain accounts (EVM, Solana, etc.)
-    expect(getByText(/2 accounts/i)).toBeDefined();
+    expect(getByText(/2 accounts/i)).toBeOnTheScreen();
   });
 
   it('displays account group names when expanded', () => {
@@ -293,7 +293,7 @@ describe('SRPList', () => {
     fireEvent.press(toggle);
 
     // Account group names are displayed (multichain account names)
-    expect(getByText('Account 1')).toBeDefined();
-    expect(getByText('Account 2')).toBeDefined();
+    expect(getByText('Account 1')).toBeOnTheScreen();
+    expect(getByText('Account 2')).toBeOnTheScreen();
   });
 });
