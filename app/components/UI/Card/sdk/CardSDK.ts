@@ -1286,14 +1286,10 @@ export class CardSDK {
     expiresAt: string;
     nonce: string;
   }> => {
-    // The endpoint only accepts linea or solana.
-    // linea-us can be mapped to linea.
-    const mapNetworkPropToEndpointParam =
-      network === 'solana' ? 'solana' : 'linea';
     const response = await this.makeRequest(
-      `/v1/delegation/token?network=${mapNetworkPropToEndpointParam}&address=${address}`,
+      `/v1/delegation/token?network=${network}&address=${address}`,
       { method: 'GET' },
-      true, // authenticated
+      true,
     );
 
     if (!response.ok) {
@@ -1359,7 +1355,7 @@ export class CardSDK {
     }
 
     // Validate network
-    if (!['linea', 'solana', 'base'].includes(params.network)) {
+    if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
       throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
     }
 
@@ -1475,10 +1471,8 @@ export class CardSDK {
       );
     }
 
-    const supportedNetworks = ['linea', 'linea-us', 'solana', 'base'];
-
     for (const network of responseData.networks) {
-      if (!supportedNetworks.includes(network.network)) {
+      if (!SUPPORTED_ASSET_NETWORKS.includes(network.network as CardNetwork)) {
         continue;
       }
 
