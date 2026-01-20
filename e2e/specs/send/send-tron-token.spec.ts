@@ -5,7 +5,7 @@ import { SmokeConfirmationsRedesigned } from '../../tags';
 import { withTronAccountEnabled } from '../../common-tron';
 
 describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
-  it('should show invalid value error', async () => {
+  it('shows invalid value error', async () => {
     await withTronAccountEnabled(async () => {
       await device.disableSynchronization();
       await WalletView.tapOnToken('Tron');
@@ -14,7 +14,7 @@ describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
       await SendView.checkInvalidValueError();
     });
   });
-  it('should show insufficient balance to cover fees error', async () => {
+  it('shows insufficient balance to cover fees error', async () => {
     await withTronAccountEnabled(async () => {
       await device.disableSynchronization();
       await WalletView.tapOnToken('Tron');
