@@ -7,6 +7,28 @@
 /* eslint-disable import/no-commonjs */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
+
+// Mock @metamask/analytics-controller FIRST before any other imports
+// This must be hoisted to the top before any module imports it
+jest.mock('@metamask/analytics-controller', () => ({
+  AnalyticsController: jest.fn(),
+  analyticsControllerSelectors: {
+    getAnalyticsEnabled: jest.fn(() => false),
+  },
+}));
+
+// Also mock the analytics utility that imports it
+jest.mock('../../util/analytics/analytics', () => ({
+  trackEvent: jest.fn(),
+  trackView: jest.fn(),
+  identify: jest.fn(),
+  optIn: jest.fn().mockResolvedValue(undefined),
+  optOut: jest.fn().mockResolvedValue(undefined),
+  getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+  isEnabled: jest.fn(() => false),
+  isOptedIn: jest.fn().mockResolvedValue(false),
+}));
+
 const { NativeModules } = require('react-native');
 // eslint-disable-next-line import/no-nodejs-modules
 const nodeCrypto = require('crypto');
