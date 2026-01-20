@@ -136,6 +136,16 @@ export const initialState = {
                 },
               },
             },
+            chainRanking: [
+              { chainId: formatChainIdToCaip(ethChainId), name: 'Ethereum' },
+              {
+                chainId: formatChainIdToCaip(optimismChainId),
+                name: 'Optimism',
+              },
+              { chainId: SolScope.Mainnet, name: 'Solana' },
+              { chainId: BtcScope.Mainnet, name: 'Bitcoin' },
+              { chainId: TrxScope.Mainnet, name: 'Tron' },
+            ],
           },
         },
       },
