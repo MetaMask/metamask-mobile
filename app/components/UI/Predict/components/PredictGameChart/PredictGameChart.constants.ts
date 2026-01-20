@@ -14,6 +14,7 @@ export const VALUE_TEXT_OFFSET_Y = 16;
 export const TIMESTAMP_Y = 12;
 export const CROSSHAIR_START_Y = 20;
 export const CROSSHAIR_STROKE_WIDTH = 1;
+export const TIMESTAMP_TEXT_HALF_WIDTH = 75;
 
 export interface DotPosition {
   dotY: number;
