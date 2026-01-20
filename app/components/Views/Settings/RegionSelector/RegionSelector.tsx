@@ -663,7 +663,10 @@ function RegionSelector() {
           value={searchString}
           showClearButton={searchString.length > 0}
           onPressClearButton={clearSearchText}
-          clearButtonProps={{ testID: 'region-selector-clear-button' }}
+          clearButtonProps={{
+            iconName: IconName.Close,
+            testID: 'region-selector-clear-button',
+          }}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
           placeholder={strings(
