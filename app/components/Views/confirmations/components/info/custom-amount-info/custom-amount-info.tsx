@@ -49,7 +49,10 @@ import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -84,6 +87,10 @@ export interface CustomAmountInfoProps {
    * Optional token name to display in the confirm button.
    */
   tokenName?: string;
+  /**
+   * Optional callback to be called when the user confirms the transaction.
+   */
+  onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -98,6 +105,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     minimalView = true,
     skipNavigation = false,
     tokenName,
+    onConfirmCallback,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -221,6 +229,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               alertTitle={alertTitle}
               skipNavigation={skipNavigation}
               tokenName={tokenName}
+              onConfirmCallback={onConfirmCallback}
             />
           )}
         </Box>
@@ -304,16 +313,21 @@ function BuySection() {
 function ConfirmButton({
   alertTitle,
   skipNavigation,
-  tokenName,
+  tokenName: _tokenName,
+  onConfirmCallback,
 }: Readonly<{
   alertTitle: string | undefined;
   skipNavigation?: boolean;
   tokenName?: string;
+  onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
 }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useTransactionConfirm({ skipNavigation });
+  const { onConfirm } = useTransactionConfirm({
+    skipNavigation,
+    onConfirmCallback,
+  });
   const disabled = hasBlockingAlerts || isLoading;
   const buttonLabel = useButtonLabel();
   const { payToken } = useTransactionPayToken();

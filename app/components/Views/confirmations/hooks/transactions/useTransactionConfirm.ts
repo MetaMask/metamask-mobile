@@ -27,8 +27,11 @@ export const GO_BACK_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
-  const { skipNavigation = false } = options ?? {};
+export function useTransactionConfirm(options?: {
+  skipNavigation?: boolean;
+  onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
+}) {
+  const { skipNavigation = false, onConfirmCallback } = options ?? {};
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -126,6 +129,11 @@ export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
         },
         { txMeta: updatedMetadata },
       );
+
+      // Call the callback after transaction is confirmed
+      if (onConfirmCallback) {
+        onConfirmCallback(updatedMetadata);
+      }
     } catch (error) {
       log('Error confirming transaction', error);
     }
@@ -181,6 +189,7 @@ export function useTransactionConfirm(options?: { skipNavigation?: boolean }) {
     isGaslessSupportedSTX,
     navigation,
     navigationState,
+    onConfirmCallback,
     onRequestConfirm,
     selectedGasFeeToken,
     skipNavigation,

@@ -16,6 +16,24 @@ import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
 
+// Track transaction IDs that should skip the default toast (handled by PerpsOrderView)
+const skipDefaultToastTransactionIds = new Set<string>();
+
+/**
+ * Mark a transaction ID to skip the default toast
+ * Used by PerpsOrderView to prevent duplicate toasts
+ */
+export const markTransactionSkipDefaultToast = (transactionId: string) => {
+  skipDefaultToastTransactionIds.add(transactionId);
+};
+
+/**
+ * Unmark a transaction ID (cleanup)
+ */
+export const unmarkTransactionSkipDefaultToast = (transactionId: string) => {
+  skipDefaultToastTransactionIds.delete(transactionId);
+};
+
 /**
  * Hook to monitor deposit status and show appropriate toasts
  *
@@ -78,6 +96,11 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.type === TransactionType.perpsDeposit &&
         transactionMeta.status === TransactionStatus.approved
       ) {
+        // Skip showing toast if this transaction is being handled by PerpsOrderView
+        if (skipDefaultToastTransactionIds.has(transactionMeta.id)) {
+          return;
+        }
+
         expectingDepositRef.current = true;
         prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
 
