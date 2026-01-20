@@ -133,6 +133,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
+          path: main
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
