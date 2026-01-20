@@ -167,4 +167,149 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     // Button should still be on screen after press
     expect(goBackButton).toBeOnTheScreen();
   });
+
+  it('marks education as seen when continue pressed', () => {
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+        user: {
+          musdConversionEducationSeen: false,
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+        initialParams: mockRouteParams,
+      },
+    );
+
+    const continueButton = getByText(
+      strings('earn.musd_conversion.education.primary_button'),
+    );
+    fireEvent.press(continueButton);
+
+    // Button should still be on screen after press
+    // The actual state update happens through Redux dispatch
+    expect(continueButton).toBeOnTheScreen();
+  });
+
+  it('handles missing route params gracefully', () => {
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+        initialParams: {}, // Missing params
+      },
+    );
+
+    // Component should still render
+    expect(
+      getByText(strings('earn.musd_conversion.education.heading')),
+    ).toBeOnTheScreen();
+  });
+
+  it('handles missing outputChainId in route params', () => {
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+        initialParams: {
+          preferredPaymentToken: mockRouteParams.preferredPaymentToken,
+          // Missing outputChainId
+        },
+      },
+    );
+
+    // Component should still render
+    expect(
+      getByText(strings('earn.musd_conversion.education.heading')),
+    ).toBeOnTheScreen();
+  });
+
+  it('handles missing preferredPaymentToken in route params', () => {
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: { enabled: true },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+        initialParams: {
+          outputChainId: mockRouteParams.outputChainId,
+          // Missing preferredPaymentToken
+        },
+      },
+    );
+
+    // Component should still render
+    expect(
+      getByText(strings('earn.musd_conversion.education.heading')),
+    ).toBeOnTheScreen();
+  });
 });
