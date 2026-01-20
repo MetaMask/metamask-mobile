@@ -240,6 +240,11 @@ describe('RegionSelector', () => {
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'United');
     expect(searchInput.props.value).toBe('United');
+
+    const clearButton = screen.getByTestId('region-selector-clear-button');
+    fireEvent.press(clearButton);
+
+    expect(searchInput.props.value).toBe('');
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -425,6 +430,11 @@ describe('RegionSelector', () => {
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'United');
     expect(searchInput.props.value).toBe('United');
+
+    const clearButton = screen.getByTestId('region-selector-clear-button');
+    fireEvent.press(clearButton);
+
+    expect(searchInput.props.value).toBe('');
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
