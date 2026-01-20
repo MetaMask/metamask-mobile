@@ -74,6 +74,9 @@ export type InputMethod =
   | 'percentage'
   | 'max';
 
+// Trade action type - differentiates first trade on a market from adding to existing position
+export type TradeAction = 'create_position' | 'increase_exposure';
+
 // Unified tracking data interface for analytics events (never persisted in state)
 // Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
 export interface TrackingData {
@@ -88,6 +91,7 @@ export interface TrackingData {
   // Order-specific (used for trade operations)
   marginUsed?: number; // Margin required for this order (calculated by hooks)
   inputMethod?: InputMethod; // How user set the amount
+  tradeAction?: TradeAction; // 'create_position' for first trade, 'increase_exposure' for adding to existing
 
   // Close-specific (used for position close operations)
   receivedAmount?: number; // Amount user receives after close (calculated by hooks)
@@ -354,7 +358,8 @@ export interface AssetRoute {
   constraints?: {
     minAmount?: string; // Minimum deposit/withdrawal amount
     maxAmount?: string; // Maximum deposit/withdrawal amount
-    estimatedTime?: string; // Estimated processing time
+    estimatedTime?: string; // Estimated processing time (formatted string - deprecated, use estimatedMinutes)
+    estimatedMinutes?: number; // Estimated processing time in minutes (raw value for UI formatting)
     fees?: {
       fixed?: number; // Fixed fee amount (e.g., 1 for 1 token)
       percentage?: number; // Percentage fee (e.g., 0.05 for 0.05%)

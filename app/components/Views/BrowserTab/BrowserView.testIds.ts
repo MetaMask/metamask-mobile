@@ -9,16 +9,16 @@ export const BrowserViewSelectorsIDs = {
   BROWSER_SCREEN_ID: 'browser-screen',
   TABS_NUMBER: 'show-tabs-number',
   BACK_BUTTON: 'back-arrow-button',
-  HOME_BUTTON: 'home-button',
   FORWARD_BUTTON: 'go-forward-button',
-  SEARCH_BUTTON: 'search-button',
-  OPTIONS_BUTTON: 'options-button',
-  TABS_BUTTON: 'show-tabs-button',
+  RELOAD_BUTTON: 'browser-reload-button',
+  BOOKMARK_BUTTON: 'browser-bookmark-button',
+  NEW_TAB_BUTTON: 'browser-new-tab-button',
+  TABS_BUTTON: 'browser-tabs-button',
+  BROWSER_CLOSE_BUTTON: 'browser-tab-close-button',
   ADD_NEW_TAB: 'tabs_add',
   CLOSE_ALL_TABS: 'tabs_close_all',
   NO_TABS_MESSAGE: 'no-tabs-message',
   DONE_BUTTON: 'tabs_done',
-  TOGGLE_FULLSCREEN_BUTTON: 'toggle-fullscreen-button',
 } as const;
 
 export const BrowserViewSelectorsText = {

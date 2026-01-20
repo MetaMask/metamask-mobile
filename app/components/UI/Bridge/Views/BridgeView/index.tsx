@@ -391,7 +391,8 @@ const BridgeView = () => {
       isExpired &&
       !willRefresh &&
       !isSelectingRecipient &&
-      !isSelectingToken
+      !isSelectingToken &&
+      !isSubmittingTx
     ) {
       setIsInputFocused(false);
       // open the quote tooltip modal
@@ -405,6 +406,7 @@ const BridgeView = () => {
     navigation,
     isSelectingRecipient,
     isSelectingToken,
+    isSubmittingTx,
   ]);
 
   const renderBottomContent = (submitDisabled: boolean) => {

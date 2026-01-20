@@ -290,14 +290,7 @@ export const selectEnabledChainRanking = createSelector(
   selectEVMEnabledNetworks,
   selectNonEVMEnabledNetworks,
   (bridgeFeatureFlags, evmEnabledNetworks, nonEvmEnabledNetworks) => {
-    // @ts-expect-error chainRanking is not yet in the type definition
-    const chainRanking = bridgeFeatureFlags.chainRanking as
-      | { chainId: CaipChainId; name: string }[]
-      | undefined;
-
-    if (!chainRanking) {
-      return [];
-    }
+    const { chainRanking } = bridgeFeatureFlags;
 
     const enabledChainIds = new Set([
       ...evmEnabledNetworks,
@@ -659,6 +652,35 @@ export const selectBip44DefaultPair = createSelector(
 
     return { sourceAsset, destAsset };
   },
+);
+
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
+);
+
+export const selectIsBridgeEnabledDest = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+
+    return (
+      bridgeFeatureFlags.support &&
+      bridgeFeatureFlags.chains[caipChainId]?.isActiveDest
+    );
+  },
+);
+
+export const selectIsSwapsLive = createSelector(
+  [
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledSource(state, chainId),
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledDest(state, chainId),
+  ],
+  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
 );
 
 // Actions
