@@ -23,11 +23,18 @@ describe('useTokenWithBalance', () => {
 
     expect(result.current).toStrictEqual({
       address: tokenAddress1Mock,
+      aggregators: [],
       balance: '0.01',
       balanceFiat: '$100',
       balanceRaw: '100',
       chainId: '0x1',
       decimals: 4,
+      rwaData: {
+        address: tokenAddress1Mock,
+        chainId: '0x1',
+        decimals: 4,
+        symbol: 'T1',
+      },
       symbol: 'T1',
       tokenFiatAmount: 100,
     });
@@ -38,11 +45,13 @@ describe('useTokenWithBalance', () => {
 
     expect(result.current).toStrictEqual({
       address: NATIVE_TOKEN_ADDRESS,
+      aggregators: [],
       balance: '2',
       balanceFiat: '$20,000',
       balanceRaw: '2000000000000000000',
       chainId: '0x1',
       decimals: 18,
+      rwaData: undefined,
       symbol: 'ETH',
       tokenFiatAmount: 20000,
     });
