@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { Octokit } from '@octokit/rest';
 
 const RC_BUILD_COMMENT_MARKER = '<!-- metamask-bot-rc-build-announce -->';
