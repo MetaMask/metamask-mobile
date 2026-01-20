@@ -12,6 +12,7 @@ import initialRootState from '../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockPop = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -20,12 +21,12 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       pop: mockPop,
-      setOptions: jest.fn(),
+      setOptions: mockSetOptions,
     }),
   };
 });
 
-const mockGetConversionTransfersFromLogs = jest.fn().mockResolvedValue({
+const mockGetConversionTransfersFromLogs = jest.fn().mockReturnValue({
   input: {
     amount: '1000000',
     tokenContract: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -121,7 +122,7 @@ const createMockState = (tx: TransactionMeta) => ({
 describe('MusdConversionTransactionDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetConversionTransfersFromLogs.mockResolvedValue({
+    mockGetConversionTransfersFromLogs.mockReturnValue({
       input: {
         amount: '1000000',
         tokenContract: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -279,7 +280,7 @@ describe('MusdConversionTransactionDetails', () => {
   });
 
   describe('navigation', () => {
-    it('sets navigation options on mount', () => {
+    it('calls setOptions on mount', () => {
       const mockTx = createMockTransactionMeta();
 
       renderScreen(
@@ -292,8 +293,7 @@ describe('MusdConversionTransactionDetails', () => {
         { state: createMockState(mockTx) },
       );
 
-      // Navigation options are set in useEffect
-      expect(true).toBe(true);
+      expect(mockSetOptions).toHaveBeenCalledTimes(1);
     });
   });
 
