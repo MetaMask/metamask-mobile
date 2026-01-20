@@ -6,7 +6,11 @@ import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import BrowserView from '../Browser/BrowserView';
 import WalletView from './WalletView';
+import TrendingView from '../Trending/TrendingView';
 class TabBarComponent {
+  get tabBarExploreButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
+  }
   get tabBarBrowserButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
@@ -39,7 +43,7 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarBrowserButton);
-        await Assertions.expectElementToBeVisible(BrowserView.homeButton);
+        await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
       },
       {
         timeout: 10000,
@@ -89,6 +93,20 @@ class TabBarComponent {
       {
         timeout: 10000,
         description: 'Tap Settings Button',
+      },
+    );
+  }
+  async tapExploreButton(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabBarExploreButton);
+        await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
+          description: 'Trending view search button should be visible',
+        });
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Explore Button with Validation',
       },
     );
   }

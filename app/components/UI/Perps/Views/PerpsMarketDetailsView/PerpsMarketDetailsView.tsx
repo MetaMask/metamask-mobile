@@ -123,7 +123,7 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
@@ -585,6 +585,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') => {
       if (!isEligible) {
+        // Track geo-block screen viewed
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.TRADE_ACTION,
+        });
         setIsEligibilityModalVisible(true);
         return;
       }
@@ -663,6 +669,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       if (!isEligible) {
+        // Track geo-block screen viewed
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PerpsEventProperties.SOURCE]:
+            PerpsEventValues.SOURCE.ADD_FUNDS_ACTION,
+        });
         setIsEligibilityModalVisible(true);
         return;
       }
@@ -790,12 +803,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       mode: 'add',
     });
 
-    // Track the interaction
+    // Track the interaction - use ADD_MARGIN interaction type for banner clicks
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
+        PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN,
       [PerpsEventProperties.ASSET]: existingPosition.coin,
-      [PerpsEventProperties.ACTION_TYPE]: 'add_margin_from_prompt',
+      [PerpsEventProperties.SOURCE]:
+        PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
     });
   }, [existingPosition, navigation, track]);
 
@@ -809,7 +823,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Build tracking data
       const trackingData: TPSLTrackingData = {
         direction: parseFloat(existingPosition.size) >= 0 ? 'long' : 'short',
-        source: 'stop_loss_prompt_banner',
+        source: PerpsEventValues.RISK_MANAGEMENT_SOURCE.STOP_LOSS_PROMPT_BANNER,
         positionSize: Math.abs(parseFloat(existingPosition.size)),
       };
 
@@ -824,12 +838,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Trigger success state to start fade-out animation
       setIsStopLossSuccess(true);
 
-      // Track the interaction
+      // Track the interaction - use STOP_LOSS_ONE_CLICK_PROMPT for one-click stop loss from banner
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
+          PerpsEventValues.INTERACTION_TYPE.STOP_LOSS_ONE_CLICK_PROMPT,
         [PerpsEventProperties.ASSET]: existingPosition.coin,
-        [PerpsEventProperties.ACTION_TYPE]: 'set_stop_loss_from_prompt',
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
         [PerpsEventProperties.STOP_LOSS_PRICE]: suggestedStopLossPrice,
       });
     } catch (error) {
@@ -862,7 +877,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleFullscreenChartOpen = useCallback(() => {
     setIsFullscreenChartVisible(true);
-  }, []);
+
+    // Track full screen chart interaction
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.FULL_SCREEN_CHART,
+      [PerpsEventProperties.ASSET]: market?.symbol || '',
+    });
+  }, [market?.symbol, track]);
 
   const handleFullscreenChartClose = useCallback(() => {
     setIsFullscreenChartVisible(false);

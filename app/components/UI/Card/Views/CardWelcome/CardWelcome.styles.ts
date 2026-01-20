@@ -83,7 +83,7 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       paddingVertical: scaleVertical(16),
     },
     title: {
-      fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+      fontFamily: 'MMPoly-Regular',
       fontWeight: '400',
       // make it smaller on smaller screens
       fontSize:

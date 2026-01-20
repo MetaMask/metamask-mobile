@@ -2521,6 +2521,7 @@
     "billion_abbreviation": "Mrd.",
     "trillion_abbreviation": "Trill.",
     "million_abbreviation": "Mio.",
+    "thousand_abbreviation": "Tsd.",
     "token_details": "Token-Details",
     "contract_address": "Contract-Adresse",
     "token_list": "Token-Liste",
@@ -5695,9 +5696,7 @@
       },
       "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
-      "earn_rewards_when": "Verdienen Sie Belohnungen, wenn",
-      "you_convert_to": "you convert to"
+      "get_musd": "Get mUSD"
     },
     "rewards": {
       "rewards_tag_label": "Belohnungen",

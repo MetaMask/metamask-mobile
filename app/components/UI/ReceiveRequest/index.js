@@ -197,7 +197,7 @@ class ReceiveRequest extends PureComponent {
             alignItems={BoxAlignItems.Center}
             twClassName="px-4 py-6"
           >
-            <Box twClassName="p-6 border border-muted rounded-2xl">
+            <Box twClassName="p-6 border border-muted rounded-2xl bg-white">
               <QRCode
                 logo={PNG_MM_LOGO_PATH}
                 logoSize={32}

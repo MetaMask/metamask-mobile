@@ -15,6 +15,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -34,15 +35,23 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({ colors: {} }),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn(),
-      addProperties: jest.fn(() => ({ build: jest.fn() })),
-    })),
-  }),
-}));
+const FIXED_NOW_MS = 1730000000000;
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+
+jest.mock('../../../../hooks/useMetrics', () => {
+  const actual = jest.requireActual('../../../../hooks/useMetrics');
+
+  return {
+    ...actual,
+    useMetrics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    }),
+  };
+});
 
 jest.mock('../../hooks/useTokenPricePercentageChange', () => ({
   useTokenPricePercentageChange: jest.fn(),
@@ -54,10 +63,12 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
 }));
 
 const mockInitiateConversion = jest.fn();
+let mockHasSeenConversionEducationScreen = true;
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
     initiateConversion: mockInitiateConversion,
     error: null,
+    hasSeenConversionEducationScreen: mockHasSeenConversionEducationScreen,
   }),
 }));
 
@@ -85,6 +96,10 @@ jest.mock('../../../Earn/hooks/useMusdCtaVisibility', () => ({
   }),
 }));
 
+jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
+  useNetworkName: () => 'Ethereum Mainnet',
+}));
+
 jest.mock('../../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
     selectPrimaryEarnExperienceTypeForAsset: jest.fn(() => 'pooled-staking'),
@@ -98,6 +113,7 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
 }));
 
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
@@ -174,6 +190,7 @@ jest.mock('../../../../../constants/network', () => ({
     BERACHAIN: '0x138d6',
     METACHAIN_ONE: '0x1b6a6',
     MEGAETH_TESTNET: '0x18c6',
+    MEGAETH_TESTNET_V2: '0x18c7',
     SEI: '0x531',
     MONAD_TESTNET: '0x279f',
   },
@@ -208,6 +225,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     typeof formatWithThreshold
   >;
 
+  afterEach(() => {
+    mockHasSeenConversionEducationScreen = true;
+  });
+
   const defaultAsset = {
     decimals: 18,
     address: '0x456',
@@ -237,6 +258,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isTokenWithCta = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
+
+    jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
 
     mockShouldShowTokenListItemCta.mockReturnValue(
       isMusdConversionEnabled && isTokenWithCta,
@@ -484,7 +512,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       jest.clearAllMocks();
     });
 
-    it('displays "Convert to mUSD" CTA when asset is convertible stablecoin with positive balance', () => {
+    it('displays "Get 3% mUSD bonus" CTA when asset is convertible stablecoin with positive balance', () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
@@ -500,7 +528,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(getByText('Convert to mUSD')).toBeOnTheScreen();
+      expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
     });
 
     it('displays percentage change when mUSD conversion flag is disabled', () => {
@@ -521,7 +549,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+2.50%')).toBeOnTheScreen();
-      expect(queryByText('Convert to mUSD')).toBeNull();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
     });
 
     it('displays percentage change when asset is not a convertible stablecoin', () => {
@@ -548,7 +576,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+3.20%')).toBeOnTheScreen();
-      expect(queryByText('Convert to mUSD')).toBeNull();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
     });
 
     it('calls initiateConversion with correct parameters when secondary balance is pressed', async () => {
@@ -581,6 +609,126 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           navigationStack: Routes.EARN.ROOT,
         });
       });
+    });
+
+    it('tracks mUSD conversion CTA clicked event when pressed and education screen has not been seen', async () => {
+      // Arrange
+      mockHasSeenConversionEducationScreen = false;
+      prepareMocks({
+        asset: usdcAsset,
+        isMusdConversionEnabled: true,
+        isTokenWithCta: true,
+      });
+
+      const convertAssetKey: FlashListAssetKey = {
+        address: usdcAsset.address,
+        chainId: usdcAsset.chainId,
+        isStaked: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={convertAssetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'token_list_item',
+        redirects_to: 'conversion_education_screen',
+        cta_type: 'musd_conversion_secondary_cta',
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+        network_chain_id: usdcAsset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: usdcAsset.symbol,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks mUSD conversion CTA clicked event pressed and education screen has been seen', async () => {
+      // Arrange
+      mockHasSeenConversionEducationScreen = true;
+      prepareMocks({
+        asset: usdcAsset,
+        isMusdConversionEnabled: true,
+        isTokenWithCta: true,
+      });
+
+      const convertAssetKey: FlashListAssetKey = {
+        address: usdcAsset.address,
+        chainId: usdcAsset.chainId,
+        isStaked: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={convertAssetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'token_list_item',
+        redirects_to: 'custom_amount_screen',
+        cta_type: 'musd_conversion_secondary_cta',
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+        network_chain_id: usdcAsset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: usdcAsset.symbol,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
   });
 });

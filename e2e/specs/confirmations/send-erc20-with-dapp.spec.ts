@@ -1,5 +1,5 @@
 import { RegressionConfirmations } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import {
@@ -73,7 +73,7 @@ describe(RegressionConfirmations('ERC20 tokens'), () => {
         await loginToApp();
 
         // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
@@ -87,7 +87,7 @@ describe(RegressionConfirmations('ERC20 tokens'), () => {
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
-        // Assert "Sent Tokens" transaction is displayed
+        // Assert "Sent tokens" transaction is displayed
         await Assertions.expectTextDisplayed(
           ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(
             // contractConfiguration is not typed

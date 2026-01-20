@@ -2,7 +2,6 @@ import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
-import { InitializationState } from '../../components/UI/Perps/controllers';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
@@ -29,6 +28,15 @@ jest.mock('react-native-device-info', () => ({
 
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
+}));
+
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  fetch: jest.fn().mockResolvedValue({
+    isConnected: true,
+    isInternetReachable: true,
+  }),
+  addEventListener: jest.fn().mockReturnValue(jest.fn()),
 }));
 jest.unmock('./Engine');
 jest.mock('../../store', () => ({
@@ -147,6 +155,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
+    expect(engine.context).toHaveProperty('ConnectivityController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -211,74 +220,18 @@ describe('Engine', () => {
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
-    // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
-      AccountTrackerController: {
-        ...backgroundState.AccountTrackerController,
-        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
-        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
-        accountsByChainId: {},
-      },
-      AnalyticsController: {
-        analyticsId: TEST_ANALYTICS_ID,
-        optedIn: false,
-      },
+      // Update application version here, so that we don't have to update
+      // `initial-background-state.json` every release
       AppMetadataController: {
         currentAppVersion,
-        previousAppVersion: '', // This will be managed by the controller
-        previousMigrationVersion: 0, // This will be managed by the controller
+        previousAppVersion: '',
+        previousMigrationVersion: 0,
         currentMigrationVersion,
       },
-      PredictController: {
-        eligibility: {},
-        lastError: null,
-        lastUpdateTimestamp: 0,
-        balances: {},
-        claimablePositions: {},
-        pendingDeposits: {},
-        withdrawTransaction: null,
-        accountMeta: {},
-      },
-      GatorPermissionsController: {
-        gatorPermissionsMapSerialized: JSON.stringify({
-          'native-token-stream': {},
-          'native-token-periodic': {},
-          'erc20-token-stream': {},
-          'erc20-token-periodic': {},
-          other: {},
-        }),
-        gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
-        isFetchingGatorPermissions: false,
-        isGatorPermissionsEnabled: false,
-      },
-      PerpsController: {
-        ...backgroundState.PerpsController,
-        depositRequests: [],
-        withdrawalRequests: [],
-        withdrawalProgress: {
-          progress: 0,
-          lastUpdated: 0,
-          activeWithdrawalId: null,
-        },
-        marketFilterPreferences: 'volume',
-        tradeConfigurations: {
-          mainnet: {},
-          testnet: {},
-        },
-        watchlistMarkets: {
-          mainnet: [],
-          testnet: [],
-        },
-        hip3ConfigVersion: 0,
-        initializationState: InitializationState.UNINITIALIZED,
-        initializationError: null,
-        initializationAttempts: 0,
-      },
-      RampsController: {
-        ...backgroundState.RampsController,
-        eligibility: null,
-      },
+      // WARNING: Do not make further changes to expected state here.
+      // Update `initial-background-state.json` instead.
     };
 
     expect(initialBackgroundState).toStrictEqual(expectedState);

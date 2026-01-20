@@ -1,6 +1,5 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
@@ -20,7 +19,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectDialogSnapButton');
