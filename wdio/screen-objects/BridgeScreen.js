@@ -53,10 +53,6 @@ class BridgeScreen {
     }
   }
 
-  get getETHQuotesButton(){
-    return AppwrightSelectors.getElementByText(this._device, QuoteViewSelectorText.GET_QUOTES);
-  }
-
   async isQuoteDisplayed() {
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
@@ -88,14 +84,6 @@ class BridgeScreen {
     }
     const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
     await AppwrightGestures.tap(tokenButton);
-  }
-
-  async tapGetQuotes(network){
-    if (network == 'Ethereum'){
-    const quotesButton = await this.getETHQuotesButton;
-    await appwrightExpect(quotesButton).toBeVisible({ timeout: 10000 });
-    await AppwrightGestures.tap(quotesButton);
-    }
   }
 
   async enterDestinationTokenAmount(amount) {
