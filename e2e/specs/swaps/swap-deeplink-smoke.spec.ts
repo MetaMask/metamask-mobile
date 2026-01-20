@@ -148,7 +148,7 @@ describe(
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);
-          await DeeplinkModal.tapContinue();
+          await QuoteView.tapOnBackButton();
 
           // Should be back on wallet view
           await Assertions.expectElementToBeVisible(WalletView.container);
