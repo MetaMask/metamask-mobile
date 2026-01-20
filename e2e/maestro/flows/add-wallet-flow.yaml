@@ -13,7 +13,20 @@ env:
 # - tapOn:
 #     text: 'Paste'
 #     waitToSettleTimeoutMs: 3000
-- inputText: 'club badge diamond staff object stamp common maze blush food wedding foil'
+
+# inputting SRP one by one was the most reliable way for importing wallet
+- inputText: 'club '
+- inputText: 'badge '
+- inputText: 'diamond '
+- inputText: 'staff '
+- inputText: 'object '
+- inputText: 'stamp '
+- inputText: 'common '
+- inputText: 'maze '
+- inputText: 'blush '
+- inputText: 'food '
+- inputText: 'wedding '
+- inputText: 'foil '
 - doubleTapOn:
     text: ${output.addWallet.continueBtn}
     waitToSettleTimeoutMs: 500
