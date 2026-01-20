@@ -12,7 +12,7 @@ export function createStakedTrxAsset(
 
   return {
     ...base,
-    name: 'Staked TRX',
+    name: 'Staked Tron',
     symbol: 'sTRX',
     ticker: 'sTRX',
     isStaked: true,

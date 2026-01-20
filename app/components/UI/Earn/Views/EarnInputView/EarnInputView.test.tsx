@@ -666,7 +666,58 @@ describe('EarnInputView', () => {
       expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
     });
 
-    it('replaces Max button with Done when non-zero amount is entered', async () => {
+    it('shows Max and Done buttons with Done disabled when no amount entered', async () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '100',
+        balanceFiat: '$100',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...TRX_TOKEN,
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 TRX',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        })),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getByText } = render(EarnInputView, {
+        params: {
+          token: TRX_TOKEN,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      // Both Max and Done should be visible
+      expect(getByText('Max')).toBeTruthy();
+      expect(getByText(strings('onboarding_success.done'))).toBeTruthy();
+
+      // Enter an amount
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      // Both Max and Done should still be visible after entering amount
+      expect(getByText('Max')).toBeTruthy();
+      expect(getByText(strings('onboarding_success.done'))).toBeTruthy();
+    });
+
+    it('shows 25%, 50%, Max, Done quick amounts for TRX staking', async () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
       const TRX_TOKEN = {
@@ -703,15 +754,66 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
+      // Should show 25%, 50%, Max, Done (no 75%)
+      expect(getByText('25%')).toBeTruthy();
+      expect(getByText('50%')).toBeTruthy();
+      expect(queryByText('75%')).toBeNull();
       expect(getByText('Max')).toBeTruthy();
-      expect(queryByText(strings('onboarding_success.done'))).toBeNull();
+      expect(getByText(strings('onboarding_success.done'))).toBeTruthy();
+    });
 
+    it('pressing Done button with amount shows preview and hides keypad', async () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '100',
+        balanceFiat: '$100',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...TRX_TOKEN,
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 TRX',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        })),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getByText, queryByText } = render(EarnInputView, {
+        params: {
+          token: TRX_TOKEN,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      // Enter an amount first
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
+      // Press Done button
+      await act(async () => {
+        fireEvent.press(getByText(strings('onboarding_success.done')));
+      });
+
+      // After pressing Done, the quick amounts and keypad should be hidden
+      // (preview mode is shown instead)
+      expect(queryByText('25%')).toBeNull();
+      expect(queryByText('50%')).toBeNull();
       expect(queryByText('Max')).toBeNull();
-      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
     });
 
     it('does not show MaxInputModal when Max button is pressed for TRX', async () => {

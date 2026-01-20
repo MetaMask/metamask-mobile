@@ -1,29 +1,13 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) =>
+const styleSheet = () =>
   StyleSheet.create({
-    balanceButtonsContainer: {
-      marginTop: 16,
-      padding: 16,
-      borderRadius: 12,
-      backgroundColor: params.theme.colors.background.section,
-    },
-    ctaContent: {
-      alignItems: 'center',
-      marginBottom: 16,
-      gap: 4,
-    },
-    ctaTitle: {
-      textAlign: 'center',
-    },
-    ctaText: {
-      textAlign: 'center',
-    },
-    buttonsRow: {
+    buttonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 16,
+      gap: 12,
+      paddingTop: 16,
+      paddingBottom: 16,
     },
     balanceActionButton: {
       flex: 1,

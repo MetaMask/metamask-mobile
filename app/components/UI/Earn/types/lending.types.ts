@@ -39,6 +39,8 @@ export enum LendingProtocol {
 export interface QuickAmount {
   value: number;
   label: string;
+  isPrimary?: boolean;
   isNative?: boolean;
   isHighlighted?: boolean;
+  disabled?: boolean;
 }

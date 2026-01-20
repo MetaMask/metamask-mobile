@@ -893,7 +893,7 @@ const EarnWithdrawInputView = () => {
               : undefined
           }
         />
-        {isStablecoinLendingEnabled && (
+        {isStablecoinLendingEnabled && !showTronUnstakingUI && (
           <View style={styles.earnTokenSelectorContainer}>
             <View style={styles.spacer} />
             <EarnTokenSelector

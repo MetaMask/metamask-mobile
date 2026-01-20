@@ -99,7 +99,7 @@ import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNaviga
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+import TronResourcesDetails from './TronResourcesDetails/TronResourcesDetails';
 ///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 // Perps Discovery Banner imports
@@ -744,6 +744,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
       : undefined;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  // Calculate staked TRX fiat balance using same rate as native TRX
+  let stakedTrxMainBalance = '';
+  if (stakedTrxAsset && multichainAssetRates?.rate) {
+    const stakedBalanceNumber =
+      (Number(strxEnergy?.balance) || 0) +
+      (Number(strxBandwidth?.balance) || 0);
+    if (stakedBalanceNumber > 0) {
+      const rate = Number(multichainAssetRates.rate);
+      const stakedFiatNumber = stakedBalanceNumber * rate;
+      stakedTrxMainBalance =
+        stakedFiatNumber >= 0.01 || stakedFiatNumber === 0
+          ? addCurrencySymbol(stakedFiatNumber, currentCurrency)
+          : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+    }
+  }
+  ///: END:ONLY_INCLUDE_IF
+
   const { allTokens } = useRampTokens();
 
   const isAssetBuyable = useMemo(() => {
@@ -807,7 +825,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && <TronEnergyBandwidthDetail />
+            isTronNative && <TronResourcesDetails />
             ///: END:ONLY_INCLUDE_IF
           }
           {balance != null && (
@@ -823,10 +841,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             isTronNative && stakedTrxAsset && (
               <Balance
                 asset={stakedTrxAsset}
-                mainBalance={stakedTrxAsset.balance}
+                mainBalance={stakedTrxMainBalance}
                 secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
                 hideTitleHeading
-                hidePercentageChange
               />
             )
             ///: END:ONLY_INCLUDE_IF

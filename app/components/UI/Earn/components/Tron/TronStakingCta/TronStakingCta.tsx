@@ -5,10 +5,14 @@ import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
-import styleSheet from './TronStakingButtons.styles';
+import styleSheet from './TronStakingCta.styles';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
@@ -17,12 +21,14 @@ import { RootState } from '../../../../../../reducers';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
-interface TronStakingButtonsProps {
+interface TronStakingCtaProps {
   asset: TokenI;
+  aprText?: string;
 }
 
-const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
-  const { styles } = useStyles(styleSheet, {});
+const TronStakingCta = ({ asset, aprText }: TronStakingCtaProps) => {
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { isEligible } = useStakingEligibility();
@@ -63,34 +69,29 @@ const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
     );
   };
 
-  const onUnstakePress = () => {
-    trace({ name: TraceName.EarnWithdrawScreen });
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE,
-      params: { token: asset },
-    });
-  };
+  // Block deposits for ineligible users
+  if (!isEligible) {
+    return null;
+  }
 
   return (
-    <View style={styles.buttonsContainer}>
+    <View style={styles.container}>
+      <View style={styles.ctaContent}>
+        <Text style={styles.ctaText}>
+          {strings('stake.stake_your_trx_cta.description_start')}
+          {aprText ? <Text color={TextColor.Success}>{aprText}</Text> : null}
+          {strings('stake.stake_your_trx_cta.description_end')}
+        </Text>
+      </View>
       <Button
-        testID={'unstake-button'}
-        style={styles.balanceActionButton}
+        testID={'stake-button'}
+        style={styles.stakeButton}
         variant={ButtonVariants.Secondary}
-        label={strings('stake.unstake')}
-        onPress={onUnstakePress}
+        label={strings('stake.stake_your_trx_cta.stake_button')}
+        onPress={onStakePress}
       />
-      {isEligible && (
-        <Button
-          testID={'stake-more-button'}
-          style={styles.balanceActionButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('stake.stake_more')}
-          onPress={onStakePress}
-        />
-      )}
     </View>
   );
 };
 
-export default TronStakingButtons;
+export default TronStakingCta;

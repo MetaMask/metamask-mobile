@@ -213,7 +213,7 @@ const Balance = ({
   return (
     <View style={styles.wrapper}>
       {!hideTitleHeading && (
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMD} style={styles.title}>
           {strings('asset_overview.your_balance')}
         </Text>
       )}

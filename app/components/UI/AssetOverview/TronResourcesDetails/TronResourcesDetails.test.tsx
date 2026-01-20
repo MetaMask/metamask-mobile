@@ -1,6 +1,6 @@
 import React from 'react';
 import { cleanup } from '@testing-library/react-native';
-import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail';
+import TronResourcesDetails from './TronResourcesDetails';
 import { IconName } from '@metamask/design-system-react-native';
 import ResourceRing from './ResourceRing';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -74,7 +74,7 @@ describe('TronEnergyBandwidthDetail', () => {
         res('strx-bandwidth', 500),
       ] as unknown as SelectorReturn);
 
-    const { getByText } = renderWithProvider(<TronEnergyBandwidthDetail />, {
+    const { getByText } = renderWithProvider(<TronResourcesDetails />, {
       state: baseState,
     });
 
@@ -107,7 +107,7 @@ describe('TronEnergyBandwidthDetail', () => {
         res('strx-bandwidth', '500'),
       ] as unknown as SelectorReturn);
 
-    const { getByText } = renderWithProvider(<TronEnergyBandwidthDetail />, {
+    const { getByText } = renderWithProvider(<TronResourcesDetails />, {
       state: baseState,
     });
 
@@ -127,7 +127,7 @@ describe('TronEnergyBandwidthDetail', () => {
       .mockReturnValue([] as unknown as SelectorReturn);
 
     const { getAllByText, getByText } = renderWithProvider(
-      <TronEnergyBandwidthDetail />,
+      <TronResourcesDetails />,
       { state: baseState },
     );
 
