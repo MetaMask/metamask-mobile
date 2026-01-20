@@ -127,6 +127,7 @@ const AddAsset = () => {
       {assetType !== 'token' && (
         <View style={styles.infoWrapper} testID="add-asset-nft-banner">
           <Banner
+            style={styles.infoBanner}
             variant={BannerVariant.Alert}
             description={
               !displayNftMedia ? (

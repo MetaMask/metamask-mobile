@@ -25,9 +25,12 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
     },
     infoWrapper: {
-      alignItems: 'center',
       paddingTop: 16,
-      paddingHorizontal: 16,
+    },
+    infoBanner: {
+      alignSelf: 'stretch',
+      marginHorizontal: 16,
+      borderRadius: 4,
     },
     tabContainer: {
       flex: 1,
