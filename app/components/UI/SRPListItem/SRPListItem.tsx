@@ -30,9 +30,6 @@ import { RootState } from '../../../reducers';
 import { selectIconSeedAddressByAccountGroupId } from '../../../selectors/multichainAccounts/accounts';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
 
-/**
- * Component to render an account group item with its avatar and name
- */
 const AccountGroupItem = ({
   accountGroup,
   accountAvatarType,
@@ -74,12 +71,10 @@ const SRPListItem = ({
   const [showAccounts, setShowAccounts] = useState(false);
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  // Get account groups (multichain accounts) for this keyring instead of individual accounts
   const accountGroups = useSelector((state: RootState) =>
     selectAccountGroupsByKeyringId(state, keyring.metadata.id),
   );
 
-  // Number of multichain accounts (account groups) to display
   const accountCount = accountGroups.length;
 
   const handleSRPSelection = () => {
