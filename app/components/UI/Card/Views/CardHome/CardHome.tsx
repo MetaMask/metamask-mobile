@@ -457,7 +457,6 @@ const CardHome = () => {
         return (
           <Button
             variant={ButtonVariants.Secondary}
-            style={tw.style('mt-4')}
             label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
             onPress={openOnboardingDelegationAction}
@@ -473,7 +472,6 @@ const CardHome = () => {
         return (
           <Button
             variant={ButtonVariants.Secondary}
-            style={tw.style('mt-4')}
             label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
             onPress={openOnboardingDelegationAction}
@@ -747,64 +745,8 @@ const CardHome = () => {
       {isAuthenticated && isBaanxLoginEnabled && isKYCPendingOrUnverified && (
         <CardWarningBox warning={CardWarningBoxType.KYCPending} />
       )}
-      <Box twClassName="mt-4 bg-background-muted rounded-lg justify-center items-center mx-4 py-4">
-        <Box
-          style={tw.style(
-            'items-center justify-between flex-row w-full mb-2 px-4',
-            (needToEnableAssets || needToEnableCard) && 'hidden',
-          )}
-        >
-          <SensitiveText
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
-            variant={ComponentTextVariant.HeadingLG}
-          >
-            {isLoading ||
-            balanceAmount === TOKEN_BALANCE_LOADING ||
-            balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-              <Skeleton
-                height={28}
-                width={'50%'}
-                style={tw.style('rounded-xl')}
-                testID={CardHomeSelectors.BALANCE_SKELETON}
-              />
-            ) : (
-              (balanceAmount ?? '0')
-            )}
-          </SensitiveText>
-          <TouchableOpacity
-            onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-            testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
-          >
-            <Icon
-              name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-              size={IconSize.Md}
-              color={IconColor.Alternative}
-            />
-          </TouchableOpacity>
-        </Box>
-        {isAllowanceLimited && (
-          <Box twClassName="w-full px-4">
-            <Text>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-text-alternative"
-              >
-                {strings('card.card_home.limited_spending_warning', {
-                  manageCard: '',
-                })}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-text-alternative font-bold"
-              >
-                {strings('card.card_home.manage_card_options.manage_card')}
-                {'.'}
-              </Text>
-            </Text>
-          </Box>
-        )}
-        <Box style={tw.style('w-full px-4', isAllowanceLimited && 'mt-4')}>
+      <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
+        <Box twClassName="w-full">
           {isLoading ? (
             <Skeleton
               height={240}
@@ -821,15 +763,54 @@ const CardHome = () => {
         </Box>
         <Box
           style={tw.style(
-            'h-20 w-full justify-center items-center px-4',
+            'items-center justify-between flex-row w-full mt-4',
             (needToEnableAssets || needToEnableCard) && 'hidden',
           )}
         >
+          <Box twClassName="flex-col">
+            <Box twClassName="flex-row items-center gap-2">
+              <SensitiveText
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Long}
+                variant={ComponentTextVariant.HeadingMD}
+              >
+                {isLoading ||
+                balanceAmount === TOKEN_BALANCE_LOADING ||
+                balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                  <Skeleton
+                    height={28}
+                    width={100}
+                    style={tw.style('rounded-xl')}
+                    testID={CardHomeSelectors.BALANCE_SKELETON}
+                  />
+                ) : (
+                  (balanceAmount ?? '0')
+                )}
+              </SensitiveText>
+              <TouchableOpacity
+                onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+                testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
+                style={tw.style(isLoading ? 'hidden' : '')}
+              >
+                <Icon
+                  name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                  size={IconSize.Md}
+                  color={IconColor.Default}
+                />
+              </TouchableOpacity>
+            </Box>
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName={`text-text-alternative ${isLoading ? 'hidden' : ''}`}
+            >
+              {strings('card.card_home.available_balance')}
+            </Text>
+          </Box>
           {isLoading ? (
             <Skeleton
-              height={50}
-              width={'100%'}
-              style={tw.style('rounded-xl')}
+              height={40}
+              width={40}
+              style={tw.style('rounded-full')}
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
@@ -840,7 +821,27 @@ const CardHome = () => {
             />
           )}
         </Box>
-
+        {isAllowanceLimited && (
+          <Box twClassName="w-full">
+            <Text>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative"
+              >
+                {strings('card.card_home.limited_spending_warning')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative font-bold"
+              >
+                {strings(
+                  'card.card_home.manage_card_options.manage_spending_limit',
+                )}
+                {'.'}
+              </Text>
+            </Text>
+          </Box>
+        )}
         {isAuthenticated &&
           isSpendingLimitSupported &&
           priorityToken?.allowanceState === AllowanceState.Limited && (
@@ -852,8 +853,7 @@ const CardHome = () => {
               symbol={priorityToken?.symbol ?? ''}
             />
           )}
-
-        <Box twClassName="w-full px-4">{ButtonsSection}</Box>
+        <Box twClassName="w-full mt-4">{ButtonsSection}</Box>
       </Box>
 
       <Box
