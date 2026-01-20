@@ -12,7 +12,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { brandColor, darkTheme } from '@metamask/design-tokens';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
@@ -20,10 +19,6 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  AppThemeKey,
-  Theme as ThemeType,
-} from '../../../../../util/theme/models';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
@@ -33,14 +28,7 @@ import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictSportTeamGradient from '../PredictSportTeamGradient';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
-
-const DARK_THEME_OVERRIDE: ThemeType = {
-  colors: darkTheme.colors,
-  themeAppearance: AppThemeKey.dark,
-  typography: darkTheme.typography,
-  shadows: darkTheme.shadows,
-  brandColors: brandColor,
-};
+import { useTheme } from '../../../../../util/theme';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -53,7 +41,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   isLoading = false,
 }) => {
   const tw = useTailwind();
-  const colors = DARK_THEME_OVERRIDE.colors;
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
   const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
