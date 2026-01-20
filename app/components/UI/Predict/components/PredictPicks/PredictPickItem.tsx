@@ -50,14 +50,14 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             color={
-              currentPosition.cashPnl < 0
+              position.cashPnl < 0
                 ? TextColor.ErrorDefault
                 : TextColor.SuccessDefault
             }
             twClassName="font-medium"
             testID={`predict-picks-pnl-${position.id}`}
           >
-            {formatPrice(currentPosition.cashPnl, { maximumDecimals: 2 })}
+            {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
           </Text>
         )}
       </Box>

@@ -49,17 +49,17 @@ const PredictPicksForCardItem: React.FC<PredictPicksForCardItemProps> = ({
           <>
             <Text
               color={
-                currentPosition.cashPnl < 0
+                position.cashPnl < 0
                   ? TextColor.ErrorDefault
                   : TextColor.SuccessDefault
               }
               variant={TextVariant.BodyMd}
               testID={`predict-picks-for-card-pnl-${position.id}`}
             >
-              {formatPrice(currentPosition.cashPnl, { maximumDecimals: 2 })}
+              {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
             </Text>
             <Text color={TextColor.TextDefault}>
-              {formatPrice(currentPosition.currentValue, {
+              {formatPrice(position.currentValue, {
                 maximumDecimals: 2,
               })}
             </Text>
