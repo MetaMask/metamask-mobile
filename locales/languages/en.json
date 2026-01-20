@@ -5622,9 +5622,9 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
-    "bonus_tooltip": "Daily mUSD bonus added to your wallet as a reward for holding mUSD.",
+    "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
-    "bonus": "Bonus",
+    "claimable_bonus": "Claimable bonus",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
