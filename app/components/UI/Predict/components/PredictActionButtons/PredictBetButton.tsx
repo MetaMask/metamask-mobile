@@ -42,7 +42,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       style={{ backgroundColor: getBackgroundColor() }}
       isFullWidth
     >
-      <Text color={getTextColor()} style={tw.style('font-medium')}>
+      <Text color={getTextColor()} style={tw.style('font-medium text-white')}>
         {label.toUpperCase()} · {price}¢
       </Text>
     </Button>
