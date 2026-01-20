@@ -29,23 +29,16 @@ export function NetworkFeeRow() {
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
 
   const networkFeeUsd = useMemo(() => {
-    if (!totals) {
-      return '';
-    }
+    const sourceNetworkUsd = totals?.fees?.sourceNetwork?.estimate?.usd;
+    const targetNetworkUsd = totals?.fees?.targetNetwork?.usd;
 
-    return formatFiat(
-      new BigNumber(totals.fees.sourceNetwork.estimate.usd).plus(
-        totals.fees.targetNetwork.usd,
-      ),
-    );
+    if (sourceNetworkUsd == null || targetNetworkUsd == null) return '';
+
+    return formatFiat(new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd));
   }, [totals, formatFiat]);
 
   if (isLoading) {
-    return (
-      <>
-        <InfoRowSkeleton testId="network-fee-row-skeleton" />
-      </>
-    );
+    return <InfoRowSkeleton testId="network-fee-row-skeleton" />;
   }
 
   return (
