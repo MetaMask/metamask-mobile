@@ -35,7 +35,6 @@ import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
-import { useRWAToken } from '../../hooks/useRWAToken';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -63,8 +62,6 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
 
-  const { isStockToken, isTokenTradingOpen } = useRWAToken();
-
   const balanceChainIds = useMemo(
     () => (selectedDestChainId ? [selectedDestChainId] : []),
     [selectedDestChainId],
@@ -80,22 +77,13 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
   });
 
   const handleTokenPress = useCallback(
-    async (token: BridgeToken) => {
-      // Check if token is a stock token and market is closed
-      if (isStockToken(token)) {
-        const isTradingOpen = await isTokenTradingOpen(token);
-        if (!isTradingOpen) {
-          // Show market closed bottom sheet
-          navigation.navigate(Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL);
-          return;
-        }
-      }
+    (token: BridgeToken) => {
       // Mark as manually set to prevent auto-updating dest when source chain changes
       dispatch(setDestToken(token));
       dispatch(setIsDestTokenManuallySet(true));
       navigation.goBack();
     },
-    [dispatch, isStockToken, isTokenTradingOpen, navigation],
+    [dispatch, navigation],
   );
 
   const debouncedTokenPress = useMemo(
