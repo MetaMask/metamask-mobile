@@ -786,7 +786,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         return false;
       },
-      [isIpfsGatewayEnabled, isResolvedIpfsUrl, whitelist, handleNotAllowedUrl],
+      [isIpfsGatewayEnabled, isResolvedIpfsUrl],
     );
 
     /**
