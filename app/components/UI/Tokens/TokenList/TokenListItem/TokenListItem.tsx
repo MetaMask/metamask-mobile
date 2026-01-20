@@ -47,6 +47,7 @@ import Logger from '../../../../../util/Logger';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -145,7 +146,12 @@ export const TokenListItem = React.memo(
               location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
               redirects_to: getRedirectLocation(),
               cta_type: MUSD_CTA_TYPES.SECONDARY,
-              cta_text: strings('earn.musd_conversion.convert_to_musd'),
+              cta_text: strings(
+                'earn.musd_conversion.get_a_percentage_musd_bonus',
+                {
+                  percentage: MUSD_CONVERSION_APY,
+                },
+              ),
               network_chain_id: chainId,
               network_name: networkName,
               asset_symbol: asset?.symbol,
@@ -201,7 +207,9 @@ export const TokenListItem = React.memo(
     const secondaryBalanceDisplay = useMemo(() => {
       if (shouldShowConvertToMusdCta) {
         return {
-          text: strings('earn.musd_conversion.convert_to_musd'),
+          text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
           color: TextColor.Primary,
           onPress: handleConvertToMUSD,
         };

@@ -2979,6 +2979,7 @@
       "description": "Region & more...",
       "current_region": "Current region",
       "reset_region": "Reset region",
+      "change_region": "Change region",
       "no_region_selected": "No region selected",
       "sdk_activation_keys": "SDK activation keys",
       "activation_keys_description": "Activation keys will enable specific features or providers.",
@@ -4847,6 +4848,7 @@
       "title": "Select your region",
       "description": "The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.",
       "sell_description": "Cash destination options and tokens may vary depending on your region.",
+      "region_variation_notice": "Payment methods and available tokens may vary based on your region and our providers.",
       "search_by_country": "Search by country",
       "search_by_state": "Search by state",
       "no_region_results": "No region matches",
@@ -5710,6 +5712,7 @@
     },
     "musd_conversion": {
       "convert_to_musd": "Convert to mUSD",
+      "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
