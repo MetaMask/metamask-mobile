@@ -1037,7 +1037,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={3}
+                        handlerTag={53}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -2089,7 +2089,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                         extraData={null}
                         getItem={[Function]}
                         getItemCount={[Function]}
-                        handlerTag={1}
+                        handlerTag={19}
                         handlerType="NativeViewGestureHandler"
                         keyExtractor={[Function]}
                         keyboardDismissMode="none"
@@ -3081,6 +3081,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -3649,6 +3650,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -4446,6 +4448,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -5109,6 +5112,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -9026,6 +9030,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -9883,6 +9888,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -12780,6 +12786,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -14337,6 +14344,7 @@ exports[`RegionSelector limits search results 1`] = `
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
@@ -32049,6 +32057,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                                   "width": 24,
                                 }
                               }
+                              testID="region-selector-clear-button"
                             >
                               <SvgMock
                                 color="#121314"
