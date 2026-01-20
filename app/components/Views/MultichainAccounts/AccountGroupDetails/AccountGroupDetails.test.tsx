@@ -5,7 +5,7 @@ import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountGroupDetails } from './AccountGroupDetails';
 
-import { AccountDetailsIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../AccountDetails.testIds';
 
 import {
   isHDOrFirstPartySnapAccount,

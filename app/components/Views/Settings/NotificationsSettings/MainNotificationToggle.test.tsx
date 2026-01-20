@@ -9,7 +9,7 @@ import {
 } from './MainNotificationToggle';
 // eslint-disable-next-line import/no-namespace
 import * as MainNotificationToggleHookModule from './MainNotificationToggle.hooks';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 const arrangeToggleHook = () => {
   const mockOnToggle = jest.fn();

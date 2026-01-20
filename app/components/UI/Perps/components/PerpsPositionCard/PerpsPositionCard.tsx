@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,

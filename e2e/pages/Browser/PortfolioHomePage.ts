@@ -1,4 +1,4 @@
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
   PortfolioPageSelectorsXpath,
   PortfolioPageSelectorsWebID,

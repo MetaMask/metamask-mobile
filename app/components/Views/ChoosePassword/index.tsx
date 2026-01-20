@@ -58,7 +58,7 @@ import { Authentication } from '../../../core';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext } from '../../../util/theme';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Icon, {

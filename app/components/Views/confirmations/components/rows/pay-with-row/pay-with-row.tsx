@@ -30,13 +30,15 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
-} from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+} from '../../../ConfirmationView.testIds';
+import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const {
     txParams: { from },
@@ -46,9 +48,13 @@ export function PayWithRow() {
 
   const handleClick = useCallback(() => {
     if (!canEdit) return;
-
+    setConfirmationMetric({
+      properties: {
+        mm_pay_token_list_opened: true,
+      },
+    });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation]);
+  }, [canEdit, navigation, setConfirmationMetric]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),

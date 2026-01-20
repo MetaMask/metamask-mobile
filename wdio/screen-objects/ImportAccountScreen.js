@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { ImportAccountFromPrivateKeyIDs } from '../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from '../../app/components/Views/ImportPrivateKey/ImportAccountFromPrivateKey.testIds';
 
 class ImportAccountScreen {
   get importAccountContainer() {

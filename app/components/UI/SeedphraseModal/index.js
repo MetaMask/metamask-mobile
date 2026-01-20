@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -13,29 +13,16 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     modalContainer: {
-      padding: 16,
       flexDirection: 'column',
-      rowGap: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    titleContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
     },
     explanationText: {
-      fontSize: 14,
       marginTop: 16,
-      textAlign: 'left',
-      ...fontStyles.normal,
-      color: colors.text.default,
-      lineHeight: 20,
     },
     list: {
       marginTop: 24,
@@ -46,21 +33,19 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
     },
     bullet: {
-      fontSize: 20,
-      marginRight: 10,
-    },
-    itemText: {
-      fontSize: 16,
+      marginRight: 12,
     },
     listContainer: {
-      marginLeft: 10,
-    },
-    explanationTextContainer: {
-      flexDirection: 'column',
+      marginLeft: 12,
     },
     buttonContainer: {
-      marginTop: 16,
+      paddingTop: 24,
+      paddingHorizontal: 16,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
       width: '100%',
+    },
+    contentContainer: {
+      paddingHorizontal: 16,
     },
   });
 
@@ -83,24 +68,26 @@ const SeedphraseModal = () => {
   return (
     <BottomSheet ref={bottomSheetRef}>
       <View style={styles.modalContainer}>
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('account_backup_step_1.what_is_seedphrase_title')}
-          </Text>
-        </View>
-        <View style={styles.explanationTextContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+        <HeaderCenter
+          title={strings('account_backup_step_1.what_is_seedphrase_title')}
+          onClose={hideWhatIsSeedphrase}
+        />
+        <View style={styles.contentContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('account_backup_step_1.what_is_seedphrase_text_1')}
           </Text>
           <View style={styles.list}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('account_backup_step_1.what_is_seedphrase_text_4')}
             </Text>
             <View style={styles.listContainer}>
               {seedPhrasePoints.map((point) => (
                 <View style={styles.listItem} key={point}>
                   <Text style={styles.bullet}>{'\u2022'}</Text>
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
                     {point}
                   </Text>
                 </View>
@@ -110,7 +97,7 @@ const SeedphraseModal = () => {
         </View>
         <View style={styles.buttonContainer}>
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             onPress={hideWhatIsSeedphrase}

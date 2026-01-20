@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';

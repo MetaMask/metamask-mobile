@@ -1,12 +1,12 @@
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
-} from '../../selectors/wallet/WalletView.selectors';
+} from '../../../app/components/Views/Wallet/WalletView.testIds';
 import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
-} from '../../selectors/Predict/Predict.selectors';
+} from '../../../app/components/UI/Predict/Predict.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';

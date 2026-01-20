@@ -24,7 +24,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
@@ -55,6 +55,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -90,6 +91,8 @@ function TradeWalletActions() {
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
+
+  const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -301,7 +304,7 @@ function TradeWalletActions() {
                     isDisabled={!canSignTransactions}
                   />
                 )}
-                {isEarnWalletActionEnabled && (
+                {isEarnWalletActionEnabled && isEarnEligible && (
                   <ActionListItem
                     label={strings('asset_overview.earn_button')}
                     description={strings('asset_overview.earn_description')}

@@ -13,25 +13,6 @@ import {
 export const NATIVE_SWAPS_TOKEN_ADDRESS: Hex =
   '0x0000000000000000000000000000000000000000';
 
-// TODO read from feature flags
-export const ALLOWED_BRIDGE_CHAIN_IDS = [
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.BSC,
-  CHAIN_IDS.POLYGON,
-  CHAIN_IDS.ZKSYNC_ERA,
-  CHAIN_IDS.AVALANCHE,
-  CHAIN_IDS.OPTIMISM,
-  CHAIN_IDS.ARBITRUM,
-  CHAIN_IDS.LINEA_MAINNET,
-  CHAIN_IDS.BASE,
-  CHAIN_IDS.SEI,
-  CHAIN_IDS.MONAD,
-  SolScope.Mainnet as const,
-  TrxScope.Mainnet as const,
-];
-
-export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
-
 export const ETH_USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<

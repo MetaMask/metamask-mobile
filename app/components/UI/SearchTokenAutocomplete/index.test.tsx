@@ -5,7 +5,7 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { BridgeToken } from '../Bridge/types';
 import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';

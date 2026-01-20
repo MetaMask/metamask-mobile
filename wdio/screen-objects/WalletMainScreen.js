@@ -1,12 +1,12 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
-import { AccountActionsBottomSheetSelectorsIDs } from '../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
-import { ToastSelectorsIDs } from '../../e2e/selectors/wallet/ToastModal.selectors';
-import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../app/components/UI/ProtectYourWalletModal/ProtectWalletModal.testIds';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../app/components/Views/AccountActions/AccountActionsBottomSheet.testIds';
+import { ToastSelectorsIDs } from '../../app/component-library/components/Toast/ToastModal.testIds';
+import { TabBarSelectorIDs } from '../../app/components/Nav/Main/TabBar.testIds';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
-import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';

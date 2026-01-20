@@ -1,11 +1,11 @@
-import { CellComponentSelectorsIDs } from '../../selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
 import {
   AccountListBottomSheetSelectorsIDs,
   AccountListBottomSheetSelectorsText,
-} from '../../selectors/wallet/AccountListBottomSheet.selectors';
-import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
+} from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
+import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

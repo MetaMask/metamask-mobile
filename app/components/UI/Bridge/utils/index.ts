@@ -1,32 +1,20 @@
-import { CaipChainId, SolScope } from '@metamask/keyring-api';
+import { CaipChainId } from '@metamask/keyring-api';
 import AppConstants from '../../../../core/AppConstants';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { isNonEvmChainId } from '@metamask/bridge-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  ALLOWED_BRIDGE_CHAIN_IDS,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 
-const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.OPTIMISM,
-  CHAIN_IDS.BSC,
-  CHAIN_IDS.POLYGON,
-  CHAIN_IDS.ZKSYNC_ERA,
-  CHAIN_IDS.BASE,
-  CHAIN_IDS.ARBITRUM,
-  CHAIN_IDS.AVALANCHE,
-  CHAIN_IDS.LINEA_MAINNET,
-  CHAIN_IDS.SEI,
-  CHAIN_IDS.MONAD,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  SolScope.Mainnet,
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-];
-
-export const isBridgeAllowed = (chainId: Hex | CaipChainId) => {
+export const isBridgeAllowed = (chainId: Hex | CaipChainId | string) => {
   if (!AppConstants.BRIDGE.ACTIVE) {
     return false;
   }
-  return ALLOWED_CHAIN_IDS.includes(chainId);
+
+  return (
+    ALLOWED_BRIDGE_CHAIN_IDS as readonly (Hex | CaipChainId | string)[]
+  ).includes(chainId);
 };
 
 export const wipeBridgeStatus = (

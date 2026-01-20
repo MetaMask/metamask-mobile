@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -82,7 +82,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
+  // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [
@@ -92,7 +92,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     ],
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+        PerpsEventValues.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
       [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
     },
   });

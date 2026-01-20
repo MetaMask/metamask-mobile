@@ -44,7 +44,6 @@ export interface PredefinedRecipient {
 
 export interface SendNavigationParams {
   location: string;
-  isSendRedesignEnabled: boolean;
   asset?: AssetType | Nft;
   predefinedRecipient?: PredefinedRecipient;
 }
@@ -71,10 +70,9 @@ export function isValidPositiveNumericString(str: string) {
   }
 }
 /**
- * Navigates to the appropriate send flow screen based on the redesign flag and asset type.
+ * Navigates to the appropriate send flow screen based on the asset type.
  *
- * This function handles navigation for both the legacy and redesigned send flows. In the redesigned flow,
- * it intelligently determines the starting screen based on whether an asset is provided:
+ * This function intelligently determines the starting screen based on whether an asset is provided:
  * - No asset: starts at asset selection screen
  * - ERC721 NFT: starts at recipient screen (since NFTs are non-divisible)
  * - Other assets: starts at amount screen
@@ -82,7 +80,6 @@ export function isValidPositiveNumericString(str: string) {
  * @param navigate - Navigation function that accepts a screen name and optional params object
  * @param params - Object containing the navigation parameters
  * @param params.location - Analytics identifier for where the send flow was initiated (e.g., 'wallet', 'token_details')
- * @param params.isSendRedesignEnabled - Feature flag indicating whether to use the new send flow or legacy SendFlowView
  * @param params.asset - Optional preselected asset (token or NFT) to send. When provided, skips the asset selection screen.
  * @param params.predefinedRecipient - Optional recipient with chain information. Should be an object containing:
  * - `address`: The recipient's address string
@@ -96,7 +93,6 @@ export function isValidPositiveNumericString(str: string) {
  * ```typescript
  * handleSendPageNavigation(navigation.navigate, {
  *   location: 'QRCode',
- *   isSendRedesignEnabled: true,
  *   predefinedRecipient: {
  *     address: '7W54AwGDYRF7X...',
  *     chainType: 'solana'
@@ -111,30 +107,25 @@ export const handleSendPageNavigation = (
   ) => void,
   params: SendNavigationParams,
 ) => {
-  const { location, isSendRedesignEnabled, asset, predefinedRecipient } =
-    params;
-  if (isSendRedesignEnabled) {
-    captureSendStartedEvent(location);
-    let screen = Routes.SEND.ASSET;
-    if (asset) {
-      if (asset.standard === TokenStandard.ERC721) {
-        screen = Routes.SEND.RECIPIENT;
-      } else {
-        screen = Routes.SEND.AMOUNT;
-      }
+  const { location, asset, predefinedRecipient } = params;
+  captureSendStartedEvent(location);
+  let screen = Routes.SEND.ASSET;
+  if (asset) {
+    if (asset.standard === TokenStandard.ERC721) {
+      screen = Routes.SEND.RECIPIENT;
+    } else {
+      screen = Routes.SEND.AMOUNT;
     }
-
-    navigate(Routes.SEND.DEFAULT, {
-      screen,
-      params: {
-        asset,
-        location,
-        predefinedRecipient,
-      },
-    });
-  } else {
-    navigate('SendFlowView');
   }
+
+  navigate(Routes.SEND.DEFAULT, {
+    screen,
+    params: {
+      asset,
+      location,
+      predefinedRecipient,
+    },
+  });
 };
 
 function generateERC20TransferData({

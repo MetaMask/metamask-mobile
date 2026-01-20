@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect } from 'react';
+import React, { useCallback, useContext, useLayoutEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
+import { AddressListIds } from './AddressList.testIds';
 import {
   useParams,
   createNavigationDetails,
@@ -20,8 +20,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import { strings } from '../../../../../locales/i18n';
 import getHeaderCenterNavbarOptions from '../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { strings } from '../../../../../locales/i18n';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -36,6 +37,7 @@ export const createAddressListNavigationDetails =
 export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { toastRef } = useContext(ToastContext);
 
   const { groupId, title, onLoad } = useParams<AddressListProps>();
 
@@ -56,8 +58,9 @@ export const AddressList = () => {
           networkName={item.networkName}
           address={item.account.address}
           copyParams={{
-            successMessage: strings('multichain_accounts.address_list.copied'),
+            toastMessage: strings('multichain_accounts.address_list.copied'),
             callback: copyAddressToClipboard,
+            toastRef,
           }}
           icons={[
             {
@@ -83,7 +86,7 @@ export const AddressList = () => {
         />
       );
     },
-    [navigation, groupId],
+    [navigation, groupId, toastRef],
   );
 
   useLayoutEffect(() => {
