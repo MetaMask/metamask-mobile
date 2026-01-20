@@ -9,9 +9,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import {
   selectBridgeViewMode,
   setDestToken,
-  selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -126,30 +124,6 @@ describe('useInitialDestToken', () => {
       // Set chainId to Bitcoin to ensure correct bip44 pair selection
       (selectChainId as unknown as jest.Mock).mockReturnValue(BtcScope.Mainnet);
 
-      // Mock selectBip44DefaultPair to return the expected BTC->ETH pair
-      // (The actual selector depends on chainId which we can't properly mock through its internals)
-      const expectedEthDestAsset = {
-        symbol: 'ETH',
-        name: 'Ethereum',
-        address: '0x0000000000000000000000000000000000000000',
-        decimals: 18,
-        image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-        chainId: CHAIN_IDS.MAINNET,
-      };
-      (selectBip44DefaultPair as unknown as jest.Mock).mockReturnValue({
-        sourceAsset: {
-          symbol: 'BTC',
-          name: 'Bitcoin',
-          address: '0x0000000000000000000000000000000000000000',
-          decimals: 8,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
-          chainId: BtcScope.Mainnet,
-        },
-        destAsset: expectedEthDestAsset,
-      });
-
       // Act - Bitcoin source token
       renderHookWithProvider(
         () => useInitialDestToken(mockBitcoinSourceToken),
@@ -158,7 +132,15 @@ describe('useInitialDestToken', () => {
 
       // Assert - Should set Ethereum as destination token based on bip44DefaultPair
       await waitFor(() => {
-        expect(setDestToken).toHaveBeenCalledWith(expectedEthDestAsset);
+        expect(setDestToken).toHaveBeenCalledWith({
+          symbol: 'ETH',
+          name: 'Ethereum',
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+          chainId: '0x1',
+        });
       });
     });
   });
