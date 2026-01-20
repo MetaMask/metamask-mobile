@@ -549,7 +549,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+2.50%')).toBeOnTheScreen();
-      expect(queryByText('Get 3% mUSD Bonus')).toBeNull();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
     });
 
     it('displays percentage change when asset is not a convertible stablecoin', () => {
@@ -576,7 +576,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+3.20%')).toBeOnTheScreen();
-      expect(queryByText('Get 3% mUSD Bonus')).toBeNull();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
     });
 
     it('calls initiateConversion with correct parameters when secondary balance is pressed', async () => {
