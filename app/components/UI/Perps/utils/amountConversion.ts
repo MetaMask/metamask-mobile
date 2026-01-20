@@ -1,17 +1,27 @@
 import { formatPerpsFiat } from '../utils/formatUtils';
 import BN from 'bnjs4';
-import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { IPerpsLogger } from '../controllers/types';
+
+/**
+ * Optional logger for amount conversion functions.
+ * When provided, enables error logging.
+ */
+export type AmountConversionLogger = IPerpsLogger | undefined;
 
 /**
  * Converts various amount formats to USD display string for Perps
  * Uses existing Perps formatting utilities for consistency
  *
  * @param amount - Amount in various formats (USD string, hex wei, or numeric string)
+ * @param logger - Optional logger for error reporting
  * @returns Formatted USD string using Perps formatting standards
  */
-export const convertPerpsAmountToUSD = (amount: string): string => {
+export const convertPerpsAmountToUSD = (
+  amount: string,
+  logger?: AmountConversionLogger,
+): string => {
   if (!amount) {
     return formatPerpsFiat(0);
   }
@@ -48,9 +58,11 @@ export const convertPerpsAmountToUSD = (amount: string): string => {
     // Invalid input - return formatted zero
     return formatPerpsFiat(0);
   } catch (error) {
-    Logger.error(ensureError(error), {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      message: `Error converting Perps amount to USD: ${amount}`,
+    logger?.error(ensureError(error), {
+      context: {
+        name: PERPS_CONSTANTS.FEATURE_NAME,
+        data: { message: `Error converting Perps amount to USD: ${amount}` },
+      },
     });
     return formatPerpsFiat(0);
   }

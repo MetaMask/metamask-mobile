@@ -16,6 +16,7 @@ export class AppStateEventListener {
   // TODO: The AppStateEventListener should be feature agnostic and shouldn't include deeplinks. Abstract this into a deeplink service instead
   public currentDeeplink: string | null = null;
   public pendingDeeplink: string | null = null;
+  public pendingDeeplinkSource: string | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -37,13 +38,15 @@ export class AppStateEventListener {
     this.identifyUserOnAppStart();
   }
 
-  public setCurrentDeeplink(deeplink: string | null) {
+  public setCurrentDeeplink(deeplink: string | null, source?: string) {
     this.currentDeeplink = deeplink;
     this.pendingDeeplink = deeplink;
+    this.pendingDeeplinkSource = source ?? null;
   }
 
   public clearPendingDeeplink() {
     this.pendingDeeplink = null;
+    this.pendingDeeplinkSource = null;
   }
 
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
