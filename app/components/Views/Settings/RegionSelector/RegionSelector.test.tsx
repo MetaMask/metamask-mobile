@@ -277,6 +277,28 @@ describe('RegionSelector', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
+  it('calls setUserRegion with correct format when stateId includes country code', async () => {
+    const countriesWithPrefixedStateId: Country[] = [
+      createMockCountry('US', 'United States', '🇺🇸', [
+        createMockState('US-AL', 'Alabama'),
+        createMockState('US-CA', 'California'),
+      ]),
+    ];
+    mockUseRampsControllerValues = {
+      ...mockUseRampsControllerInitialValues,
+      countries: countriesWithPrefixedStateId,
+    };
+    render(RegionSelector);
+    const countryItem = screen.getByText('United States');
+    fireEvent.press(countryItem);
+    const stateItem = screen.getByText('Alabama');
+    await act(async () => {
+      fireEvent.press(stateItem);
+    });
+    await expect(mockSetUserRegion).toHaveBeenCalledWith('us-al');
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('calls setUserRegion and navigates back when country without states is selected', async () => {
     render(RegionSelector);
     const countryItem = screen.getByText('France');

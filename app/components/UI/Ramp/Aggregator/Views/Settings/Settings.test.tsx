@@ -206,27 +206,82 @@ describe('Settings', () => {
   });
 
   describe('Region', () => {
-    it('renders correctly when region is set', () => {
-      render(Settings);
-      expect(screen.toJSON()).toMatchSnapshot();
+    describe('V2 enabled', () => {
+      beforeEach(() => {
+        mockUseRampsUnifiedV2EnabledValue = true;
+      });
+
+      it('renders correctly when region is set', () => {
+        render(Settings);
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+
+      it('renders correctly when region is not set', () => {
+        mockUseRampsControllerValues = {
+          ...mockUseRampsControllerInitialValues,
+          userRegion: null,
+        };
+        render(Settings);
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+
+      it('renders correctly when region has state', () => {
+        mockUseRampsControllerValues = {
+          ...mockUseRampsControllerInitialValues,
+          userRegion: createMockUserRegion('eu-fr'),
+        };
+        render(Settings);
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+
+      it('renders correctly when region is country only (no state)', () => {
+        mockUseRampsControllerValues = {
+          ...mockUseRampsControllerInitialValues,
+          userRegion: createMockUserRegion('fr'),
+        };
+        render(Settings);
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+
+      it('navigates to region selector when change region button is pressed', () => {
+        render(Settings);
+        const changeRegionButton = screen.getByRole('button', {
+          name: 'Change region',
+        });
+        fireEvent.press(changeRegionButton);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.SETTINGS.REGION_SELECTOR,
+        );
+      });
     });
 
-    it('renders correctly when region is not set', () => {
-      mockUseRampsControllerValues = {
-        ...mockUseRampsControllerInitialValues,
-        userRegion: null,
-      };
-      render(Settings);
-      expect(screen.toJSON()).toMatchSnapshot();
-    });
+    describe('V2 disabled (Original)', () => {
+      beforeEach(() => {
+        mockUseRampsUnifiedV2EnabledValue = false;
+      });
 
-    it('renders correctly when region has state', () => {
-      mockUseRampsControllerValues = {
-        ...mockUseRampsControllerInitialValues,
-        userRegion: createMockUserRegion('eu-fr'),
-      };
-      render(Settings);
-      expect(screen.toJSON()).toMatchSnapshot();
+      it('renders correctly when region is set', () => {
+        render(Settings);
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+
+      it('renders correctly when region is not set', () => {
+        mockUseRampSDKValues = {
+          ...mockuseRampSDKInitialValues,
+          selectedRegion: null,
+        };
+        render(Settings);
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+
+      it('calls reset region when reset button is pressed', () => {
+        render(Settings);
+        const resetRegionButton = screen.getByRole('button', {
+          name: 'Reset region',
+        });
+        fireEvent.press(resetRegionButton);
+        expect(mockSetSelectedRegion).toHaveBeenCalledWith(null);
+      });
     });
   });
 

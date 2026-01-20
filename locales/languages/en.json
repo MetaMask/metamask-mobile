@@ -2974,9 +2974,9 @@
     "manage_sdk_connections_title": "Manage connections",
     "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Buy & Sell crypto",
+      "title": "Buy & sell crypto",
       "description": "Region & more...",
-      "current_region": "Current Region",
+      "current_region": "Current region",
       "reset_region": "Reset region",
       "change_region": "Change region",
       "no_region_selected": "No region selected",

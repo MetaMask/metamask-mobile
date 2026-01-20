@@ -252,7 +252,7 @@ function RegionSelector() {
 
   const isRegionSelected = useCallback(
     (region: RegionItem, parentCountry?: Country): boolean => {
-      if (!userRegion) return false;
+      if (!userRegion?.regionCode) return false;
 
       if (isCountry(region)) {
         const countryCode = region.isoCode.toLowerCase();
@@ -264,7 +264,9 @@ function RegionSelector() {
 
       if (isState(region) && region.stateId) {
         const stateId = region.stateId.toLowerCase();
-        const userCountryCode = userRegion.country.isoCode.toLowerCase();
+        const userCountryCode = userRegion.country?.isoCode?.toLowerCase();
+        if (!userCountryCode) return false;
+
         const parentCountryCode = parentCountry
           ? parentCountry.isoCode.toLowerCase()
           : regionInTransit?.isoCode.toLowerCase();
@@ -273,7 +275,7 @@ function RegionSelector() {
 
         return (
           userRegion.state?.stateId?.toLowerCase() === stateId &&
-          userRegion.country.isoCode.toLowerCase() === expectedCountryCode &&
+          userRegion.country?.isoCode?.toLowerCase() === expectedCountryCode &&
           userRegion.regionCode === `${expectedCountryCode}-${stateId}`
         );
       }
@@ -303,7 +305,13 @@ function RegionSelector() {
             c.states?.some((s) => s.stateId === region.stateId),
           ) as Country | undefined);
         if (countryForState) {
-          regionId = `${countryForState.isoCode.toLowerCase()}-${region.stateId.toLowerCase()}`;
+          const stateIdLower = region.stateId.toLowerCase();
+          const countryCodeLower = countryForState.isoCode.toLowerCase();
+          let stateCodeOnly = stateIdLower;
+          if (stateIdLower.startsWith(`${countryCodeLower}-`)) {
+            stateCodeOnly = stateIdLower.split('-').slice(1).join('-');
+          }
+          regionId = `${countryCodeLower}-${stateCodeOnly}`;
         }
       }
 
