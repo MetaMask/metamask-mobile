@@ -38,16 +38,16 @@ describe('PriceChart', () => {
       );
 
       // Should show title
-      expect(getByText('No chart data')).toBeTruthy();
+      expect(getByText('No chart data')).toBeOnTheScreen();
 
       // Should show description
       expect(
         getByText('We could not fetch any data for this token'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
 
       // Should render no data overlay with icon
-      expect(getByTestId('price-chart-no-data')).toBeTruthy();
-      expect(getByTestId('price-chart-no-data-icon')).toBeTruthy();
+      expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
+      expect(getByTestId('price-chart-no-data-icon')).toBeOnTheScreen();
     });
 
     it('shows simplified message when there is only 1 data point', () => {
@@ -58,20 +58,20 @@ describe('PriceChart', () => {
       );
 
       // Should show insufficient data overlay
-      expect(getByTestId('price-chart-insufficient-data')).toBeTruthy();
+      expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
 
       // Should show insufficient data message
       expect(
         getByText('Data is not available for this time period'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
 
       // Should NOT show full description
       expect(
         queryByText('We could not fetch any data for this token'),
-      ).toBeFalsy();
+      ).not.toBeOnTheScreen();
 
       // Should NOT show title as a Title component
-      expect(queryByText('No chart data')).toBeFalsy();
+      expect(queryByText('No chart data')).not.toBeOnTheScreen();
     });
 
     it('does not show overlay when there are 2 data points', () => {
@@ -85,13 +85,13 @@ describe('PriceChart', () => {
       );
 
       // Should NOT show any overlay messages
-      expect(queryByText('No chart data')).toBeFalsy();
+      expect(queryByText('No chart data')).not.toBeOnTheScreen();
       expect(
         queryByText('We could not fetch any data for this token'),
-      ).toBeFalsy();
+      ).not.toBeOnTheScreen();
       expect(
         queryByText('Data is not available for this time period'),
-      ).toBeFalsy();
+      ).not.toBeOnTheScreen();
     });
 
     it('does not show overlay when there are multiple data points', () => {
@@ -107,13 +107,13 @@ describe('PriceChart', () => {
       );
 
       // Should NOT show any overlay messages
-      expect(queryByText('No chart data')).toBeFalsy();
+      expect(queryByText('No chart data')).not.toBeOnTheScreen();
       expect(
         queryByText('We could not fetch any data for this token'),
-      ).toBeFalsy();
+      ).not.toBeOnTheScreen();
       expect(
         queryByText('Data is not available for this time period'),
-      ).toBeFalsy();
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -124,7 +124,7 @@ describe('PriceChart', () => {
       );
 
       // Should render loading overlay
-      expect(getByTestId('price-chart-loading')).toBeTruthy();
+      expect(getByTestId('price-chart-loading')).toBeOnTheScreen();
     });
 
     it('does not show no data overlay when loading', () => {
@@ -133,10 +133,10 @@ describe('PriceChart', () => {
       );
 
       // Should NOT show no data messages when loading
-      expect(queryByText('No chart data')).toBeFalsy();
+      expect(queryByText('No chart data')).not.toBeOnTheScreen();
       expect(
         queryByText('We could not fetch any data for this token'),
-      ).toBeFalsy();
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -152,7 +152,7 @@ describe('PriceChart', () => {
       );
 
       // Should render AreaChart
-      expect(getByTestId('price-chart-area')).toBeTruthy();
+      expect(getByTestId('price-chart-area')).toBeOnTheScreen();
     });
 
     it('renders chart with negative price difference', () => {
@@ -166,7 +166,7 @@ describe('PriceChart', () => {
       );
 
       // Should render AreaChart
-      expect(getByTestId('price-chart-area')).toBeTruthy();
+      expect(getByTestId('price-chart-area')).toBeOnTheScreen();
     });
   });
 });
