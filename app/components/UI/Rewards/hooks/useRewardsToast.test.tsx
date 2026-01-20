@@ -2,9 +2,11 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import useRewardsToast, { RewardsToastOptions } from './useRewardsToast';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import {
+  ToastVariants,
+  ButtonIconVariant,
+} from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 // Mock dependencies
 jest.mock('react', () => ({
@@ -39,6 +41,9 @@ jest.mock('../../../../util/theme', () => ({
       },
       background: {
         muted: '#3c4d9d0f',
+      },
+      success: {
+        default: '#457a39',
       },
       error: {
         default: '#ca3542',
@@ -102,18 +107,17 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: '#4459ff',
-        backgroundColor: '#4459ff1a',
+        iconColor: '#457a39',
+        backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Test Title', isBold: true },
+        { label: 'Test Title', isBold: false },
       ]);
       expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonVariants.Primary,
-        endIconName: IconName.CircleX,
-        label: 'Dismiss',
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
       });
     });
 
@@ -127,20 +131,19 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: '#4459ff',
-        backgroundColor: '#4459ff1a',
+        iconColor: '#457a39',
+        backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Test Title', isBold: true },
+        { label: 'Test Title', isBold: false },
         { label: '\n', isBold: false },
         { label: 'Test Subtitle', isBold: false },
       ]);
       expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonVariants.Primary,
-        endIconName: IconName.CircleX,
-        label: 'Dismiss',
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
       });
     });
 
@@ -150,19 +153,18 @@ describe('useRewardsToast', () => {
 
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
-        iconName: IconName.Error,
-        iconColor: '#3c4d9d0f',
-        backgroundColor: '#ca3542',
+        iconName: IconName.Danger,
+        iconColor: '#ca3542',
+        backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Error Title', isBold: true },
+        { label: 'Error Title', isBold: false },
       ]);
       expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonVariants.Primary,
-        endIconName: IconName.CircleX,
-        label: 'Dismiss',
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
       });
     });
 
@@ -175,21 +177,20 @@ describe('useRewardsToast', () => {
 
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
-        iconName: IconName.Error,
-        iconColor: '#3c4d9d0f',
-        backgroundColor: '#ca3542',
+        iconName: IconName.Danger,
+        iconColor: '#ca3542',
+        backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
       });
       expect(config.labelOptions).toEqual([
-        { label: 'Error Title', isBold: true },
+        { label: 'Error Title', isBold: false },
         { label: '\n', isBold: false },
         { label: 'Error Subtitle', isBold: false },
       ]);
       expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonVariants.Primary,
-        endIconName: IconName.CircleX,
-        label: 'Dismiss',
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
       });
     });
 
@@ -282,14 +283,14 @@ describe('useRewardsToast', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('');
 
-      expect(config.labelOptions).toEqual([{ label: '', isBold: true }]);
+      expect(config.labelOptions).toEqual([{ label: '', isBold: false }]);
     });
 
     it('handles only whitespace title', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('   ');
 
-      expect(config.labelOptions).toEqual([{ label: '   ', isBold: true }]);
+      expect(config.labelOptions).toEqual([{ label: '   ', isBold: false }]);
     });
   });
 
@@ -344,7 +345,7 @@ describe('useRewardsToast', () => {
       expect(config.labelOptions).toHaveLength(1);
       expect(config.labelOptions[0]).toEqual({
         label: 'Test Title',
-        isBold: true,
+        isBold: false,
       });
     });
 
@@ -358,7 +359,7 @@ describe('useRewardsToast', () => {
       expect(config.labelOptions).toHaveLength(3);
       expect(config.labelOptions[0]).toEqual({
         label: 'Test Title',
-        isBold: true,
+        isBold: false,
       });
       expect(config.labelOptions[1]).toEqual({
         label: '\n',
@@ -377,7 +378,7 @@ describe('useRewardsToast', () => {
       expect(config.labelOptions).toHaveLength(1);
       expect(config.labelOptions[0]).toEqual({
         label: 'Error Title',
-        isBold: true,
+        isBold: false,
       });
     });
 
@@ -391,7 +392,7 @@ describe('useRewardsToast', () => {
       expect(config.labelOptions).toHaveLength(3);
       expect(config.labelOptions[0]).toEqual({
         label: 'Error Title',
-        isBold: true,
+        isBold: false,
       });
       expect(config.labelOptions[1]).toEqual({
         label: '\n',
