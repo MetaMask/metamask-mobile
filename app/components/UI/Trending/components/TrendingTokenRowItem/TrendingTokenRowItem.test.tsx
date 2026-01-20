@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -11,6 +11,7 @@ jest.mock('../../utils/trendingNetworksList', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockAddPopularNetwork = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -172,35 +173,11 @@ jest.mock('../../../../../constants/popular-networks', () => ({
   POPULAR_NETWORK_CHAIN_IDS_CAIP: new Set(['eip155:1']),
 }));
 
-jest.mock('../../../NetworkModal', () => {
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      isVisible,
-      onClose,
-      networkConfiguration,
-    }: {
-      isVisible: boolean;
-      onClose: () => void;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      networkConfiguration: any;
-    }) => {
-      if (!isVisible) return null;
-      return (
-        <View testID="network-modal">
-          <Text testID="network-modal-network-name">
-            {networkConfiguration?.nickname || 'Network'}
-          </Text>
-          <TouchableOpacity
-            testID="network-modal-close-button"
-            onPress={onClose}
-          />
-        </View>
-      );
-    },
-  };
-});
+jest.mock('../../../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: () => ({
+    addPopularNetwork: mockAddPopularNetwork,
+  }),
+}));
 
 jest.mock('@metamask/utils', () => {
   const actual = jest.requireActual('@metamask/utils');
@@ -935,13 +912,15 @@ describe('TrendingTokenRowItem', () => {
       });
     });
 
-    it('shows network modal when network is not added', () => {
+    it('adds network directly when network is not added and navigates to asset', async () => {
       const token = createMockToken({
         assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
         name: 'USD Coin',
         decimals: 6,
       });
+
+      mockAddPopularNetwork.mockResolvedValue(undefined);
 
       // Mock networkConfigurations to include Linea and Ethereum, but NOT Base
       const networkNotAddedState = {
@@ -970,39 +949,50 @@ describe('TrendingTokenRowItem', () => {
         },
       };
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
         { state: networkNotAddedState },
         false,
       );
-
-      // Modal should not be visible initially
-      expect(queryByTestId('network-modal')).toBeNull();
 
       const tokenRow = getByTestId(
         'trending-token-row-item-eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       );
       fireEvent.press(tokenRow);
 
-      // Modal should be visible after pressing
-      const networkModal = getByTestId('network-modal');
-      expect(networkModal).toBeDefined();
+      // Wait for addPopularNetwork to be called
+      await waitFor(() => {
+        expect(mockAddPopularNetwork).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: '0x2105',
+            nickname: 'Base',
+          }),
+        );
+      });
 
-      // Verify modal shows the network name
-      const networkName = getByTestId('network-modal-network-name');
-      expect(networkName.props.children).toBe('Base');
-
-      // Navigation should NOT be called since modal is shown instead
-      expect(mockNavigate).not.toHaveBeenCalled();
+      // Wait for the async navigation call
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.any(Object));
+      });
     });
 
-    it('closes network modal when cancel button is pressed', () => {
+    it('does not navigate when network addition fails', async () => {
       const token = createMockToken({
         assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
         name: 'USD Coin',
         decimals: 6,
       });
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {
+          // Suppress error output in test
+        });
+
+      mockAddPopularNetwork.mockRejectedValue(
+        new Error('Failed to add network'),
+      );
 
       const networkNotAddedState = {
         ...mockState,
@@ -1024,7 +1014,7 @@ describe('TrendingTokenRowItem', () => {
         },
       };
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
         { state: networkNotAddedState },
         false,
@@ -1033,13 +1023,17 @@ describe('TrendingTokenRowItem', () => {
       const tokenRow = getByTestId(
         'trending-token-row-item-eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       );
-      fireEvent.press(tokenRow);
+      await fireEvent.press(tokenRow);
 
-      const closeButton = getByTestId('network-modal-close-button');
-      fireEvent.press(closeButton);
+      // Wait for async operation to complete
+      await waitFor(() => {
+        expect(mockAddPopularNetwork).toHaveBeenCalled();
+      });
 
-      expect(queryByTestId('network-modal')).toBeNull();
+      // Navigation should NOT be called when network addition fails
       expect(mockNavigate).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('does not navigate when assetParams is null', () => {
