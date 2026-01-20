@@ -7,7 +7,6 @@ export const QuoteViewSelectorText = {
   CONFIRM_SWAP: enContent.bridge.confirm_swap,
   SELECT_AMOUNT: enContent.bridge.select_amount,
   SELECT_ALL: enContent.bridge.see_all,
-  CANCEL: 'Cancel',
   FEE_DISCLAIMER: enContent.bridge.fee_disclaimer,
   MAX: enContent.bridge.max,
   INCLUDED: enContent.bridge.included,
@@ -24,4 +23,5 @@ export const QuoteViewSelectorIDs = {
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
   CONFIRM_BUTTON: 'bridge-confirm-button',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  BACK_BUTTON: 'button-icon',
 };
