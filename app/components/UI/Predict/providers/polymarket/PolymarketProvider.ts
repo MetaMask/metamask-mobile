@@ -1195,41 +1195,41 @@ export class PolymarketProvider implements PredictProvider {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
 
         // Create optimistic position update
-        try {
-          const spentAmount =
-            parseFloat(response.makingAmount || '') || maxAmountSpent;
-          const receivedAmount =
-            parseFloat(response.takingAmount || '') || minAmountReceived;
+        if (response.makingAmount && response.takingAmount) {
+          try {
+            const spentAmount = parseFloat(response.makingAmount);
+            const receivedAmount = parseFloat(response.takingAmount);
 
-          await this.createOrUpdateOptimisticPosition({
-            address: signer.address,
-            type: existingPosition
-              ? OptimisticUpdateType.UPDATE
-              : OptimisticUpdateType.CREATE,
-            marketId: preview.marketId,
-            outcomeId: preview.outcomeId,
-            outcomeTokenId,
-            spentAmount,
-            receivedAmount,
-            existingPosition,
-            preview,
-          });
-        } catch (optimisticError) {
-          // Log but don't fail the order
-          DevLogger.log(
-            'PolymarketProvider: Failed to create optimistic position update',
-            optimisticError,
-          );
-          Logger.error(
-            optimisticError instanceof Error
-              ? optimisticError
-              : new Error(String(optimisticError)),
-            this.getErrorContext('placeOrder:optimisticUpdate', {
-              operation: 'optimistic_position_update',
+            await this.createOrUpdateOptimisticPosition({
+              address: signer.address,
+              type: existingPosition
+                ? OptimisticUpdateType.UPDATE
+                : OptimisticUpdateType.CREATE,
+              marketId: preview.marketId,
+              outcomeId: preview.outcomeId,
               outcomeTokenId,
-              side,
-            }),
-          );
+              spentAmount,
+              receivedAmount,
+              existingPosition,
+              preview,
+            });
+          } catch (optimisticError) {
+            // Log but don't fail the order
+            DevLogger.log(
+              'PolymarketProvider: Failed to create optimistic position update',
+              optimisticError,
+            );
+            Logger.error(
+              optimisticError instanceof Error
+                ? optimisticError
+                : new Error(String(optimisticError)),
+              this.getErrorContext('placeOrder:optimisticUpdate', {
+                operation: 'optimistic_position_update',
+                outcomeTokenId,
+                side,
+              }),
+            );
+          }
         }
       } else if (positionId) {
         // SELL order - mark position for optimistic removal
