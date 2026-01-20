@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ToastContext,
   ToastVariants,
@@ -34,6 +35,7 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
 import { TraceName, endTrace, trace } from '../../../util/trace';
+import { toSentenceCase } from '../../../util/string';
 import {
   IconColor,
   IconName,
@@ -140,9 +142,13 @@ const AddCustomCollectible = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const styles = createStyles(colors);
+  const buttonContainerStyle = {
+    paddingBottom: Math.max(bottomInset, 16),
+  };
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -314,13 +320,18 @@ const AddCustomCollectible = ({
   return (
     <View style={styles.wrapper} testID={NFTImportScreenSelectorsIDs.CONTAINER}>
       <ActionView
-        cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
-        confirmText={strings('add_asset.collectibles.add_collectible')}
+        cancelText={toSentenceCase(
+          strings('add_asset.collectibles.cancel_add_collectible'),
+        )}
+        confirmText={toSentenceCase(
+          strings('add_asset.collectibles.add_collectible'),
+        )}
         onCancelPress={cancelAddCollectible}
         onConfirmPress={addNft}
         confirmDisabled={!address || !tokenId || !selectedNetwork}
         loading={loading}
         confirmTestID={'add-collectible-button'}
+        buttonContainerStyle={buttonContainerStyle}
       >
         <View>
           <View style={styles.rowWrapper}>

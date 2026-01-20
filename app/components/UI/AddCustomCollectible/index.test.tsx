@@ -9,6 +9,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as utilsTransactions from '../../../util/transactions';
+import { toSentenceCase } from '../../../util/string';
 
 /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 jest.mock('../../../core/Engine', () => ({
@@ -551,7 +552,7 @@ describe('AddCustomCollectible', () => {
       );
 
       const cancelButton = getByText(
-        'add_asset.collectibles.cancel_add_collectible',
+        toSentenceCase('add_asset.collectibles.cancel_add_collectible'),
       );
       fireEvent.press(cancelButton);
 

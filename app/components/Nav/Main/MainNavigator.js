@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useNavigationState } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -512,6 +513,11 @@ const HomeTabs = () => {
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
   );
+  const rootState = useNavigationState((state) => state);
+  const currentRootRoute = rootState?.routes?.[rootState.index];
+  const isImportNftScreen =
+    currentRootRoute?.name === 'AddAsset' &&
+    currentRootRoute?.params?.assetType === 'collectible';
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -626,6 +632,10 @@ const HomeTabs = () => {
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
+
+    if (isImportNftScreen) {
+      return null;
+    }
 
     // Hide tab bar for rewards onboarding splash screen
     if (currentRoute.name?.startsWith('Rewards') && !rewardsSubscription) {
