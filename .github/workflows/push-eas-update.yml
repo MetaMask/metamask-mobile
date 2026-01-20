@@ -127,6 +127,7 @@ jobs:
           echo "🔧 Restoring executable permissions..."
           find node_modules/.bin -type f -exec chmod +x {} \; 2>/dev/null || true
           find node_modules -type f -name "*.node" -exec chmod +x {} \; 2>/dev/null || true
+          find node_modules -path "*/bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
           echo "✅ Permissions restored"
 
       - name: Verify downloaded artifacts
@@ -182,6 +183,7 @@ jobs:
           echo "🔧 Restoring executable permissions..."
           find node_modules/.bin -type f -exec chmod +x {} \; 2>/dev/null || true
           find node_modules -type f -name "*.node" -exec chmod +x {} \; 2>/dev/null || true
+          find node_modules -path "*/bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
           echo "✅ Permissions restored"
 
       - name: Generate fingerprint (base branch)
@@ -370,6 +372,7 @@ jobs:
           echo "🔧 Restoring executable permissions..."
           find node_modules/.bin -type f -exec chmod +x {} \; 2>/dev/null || true
           find node_modules -type f -name "*.node" -exec chmod +x {} \; 2>/dev/null || true
+          find node_modules -path "*/bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
           echo "✅ Permissions restored"
 
       - name: Verify downloaded artifacts
