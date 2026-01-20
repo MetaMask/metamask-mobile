@@ -219,7 +219,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     RowItem: ({ item }) => (
       <Box twClassName="py-2">
-        <PredictMarket market={item as PredictMarketType} isCarousel />
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          testID={`predict-market-list-trending-card-${
+            (item as PredictMarketType).id
+          }`}
+        />
       </Box>
     ),
     OverrideRowItemSearch: ({ item }) => (
