@@ -177,11 +177,14 @@ export function* handleDeeplinkSaga() {
 
     if (AppStateEventProcessor.pendingDeeplink) {
       const url = new UrlParser(AppStateEventProcessor.pendingDeeplink);
+      const storedSource =
+        AppStateEventProcessor.pendingDeeplinkSource ??
+        AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
         setTimeout(() => {
           SharedDeeplinkManager.parse(url.href, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            origin: storedSource,
           });
         }, 200);
         AppStateEventProcessor.clearPendingDeeplink();
@@ -204,12 +207,15 @@ export function* handleDeeplinkSaga() {
     }
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
+    const deeplinkSource =
+      AppStateEventProcessor.pendingDeeplinkSource ??
+      AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
         SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          origin: deeplinkSource,
         });
       }, 200);
       AppStateEventProcessor.clearPendingDeeplink();
