@@ -159,7 +159,10 @@ jest.mock('./useDepositSdkMethod', () => ({
 }));
 
 const mockLogoutFromProvider = jest.fn();
-let mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
+let mockSelectedRegion: DepositRegion | null = {
+  isoCode: 'US',
+  currency: 'USD',
+} as DepositRegion;
 let mockSelectedPaymentMethod = {
   isManualBankTransfer: false,
   id: 'credit_debit_card',
@@ -223,7 +226,7 @@ describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
+    mockSelectedRegion = { isoCode: 'US', currency: 'USD' } as DepositRegion;
     mockSelectedPaymentMethod = {
       isManualBankTransfer: false,
       id: 'credit_debit_card',
@@ -1241,7 +1244,7 @@ describe('useDepositRouting', () => {
 
       mockSelectedRegion = {
         currency: 'USD',
-      } as Partial<DepositRegion> as DepositRegion | null;
+      } as unknown as DepositRegion;
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
