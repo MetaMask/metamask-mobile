@@ -1,5 +1,10 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { GameUpdate, PriceUpdate, PredictGameStatus } from '../../types';
+import {
+  GameUpdate,
+  PredictGamePeriod,
+  PredictGameStatus,
+  PriceUpdate,
+} from '../../types';
 import { GameCache } from './GameCache';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
@@ -97,10 +102,10 @@ export class WebSocketManager {
     this.ensureSportsConnection();
 
     return () => {
-      const callbacks = this.gameSubscriptions.get(gameId);
-      if (callbacks) {
-        callbacks.delete(callback);
-        if (callbacks.size === 0) {
+      const _callbacks = this.gameSubscriptions.get(gameId);
+      if (_callbacks) {
+        _callbacks.delete(callback);
+        if (_callbacks.size === 0) {
           this.gameSubscriptions.delete(gameId);
         }
       }
@@ -160,7 +165,7 @@ export class WebSocketManager {
         gameId,
         score: data.score,
         elapsed: data.elapsed,
-        period: data.period,
+        period: data.period as PredictGamePeriod,
         status: this.deriveGameStatus(data),
         turn: data.turn,
       };

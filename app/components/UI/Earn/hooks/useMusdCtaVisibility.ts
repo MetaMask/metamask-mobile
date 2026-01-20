@@ -1,37 +1,97 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import {
   MUSD_BUYABLE_CHAIN_IDS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../constants/musd';
-import { useHasMusdBalance } from './useHasMusdBalance';
+import { useMusdBalance } from './useMusdBalance';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
   useNetworksByCustomNamespace,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
-import { selectIsMusdCtaEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectIsMusdConversionAssetOverviewEnabledFlag,
+  selectIsMusdConversionTokenListItemCtaEnabledFlag,
+  selectIsMusdGetBuyCtaEnabledFlag,
+  selectMusdConversionCTATokens,
+} from '../selectors/featureFlags';
 import { toLowerCaseEquals } from '../../../../util/general';
+import { TokenI } from '../../Tokens/types';
+import { toHex } from '@metamask/controller-utils';
+import { AssetType } from '../../../Views/confirmations/types/token';
+import { useMusdConversionTokens } from './useMusdConversionTokens';
+import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 /**
- * Hook to determine visibility and network icon display for the MUSD CTA.
+ * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
+ *
+ * Centralizes CTA visibility logic for:
+ * - Buy/Get mUSD CTA (includes network badge info when exactly one chain is selected)
+ * - Token list item mUSD conversion CTA
+ * - Asset overview mUSD conversion CTA
+ *
+ * Decisions are driven by feature flags, selected network(s), mUSD balance, Ramp buyability by chain,
+ * and the configured wildcard token list for conversion CTAs.
  *
  * @returns Object containing:
- * - shouldShowCta: false if non-MUSD chain selected OR user has MUSD balance OR MUSD not buyable in region
- * - showNetworkIcon: true only when a single MUSD-supported chain is selected
- * - selectedChainId: the selected chain ID for the network badge (null if all networks)
+ * - shouldShowBuyGetMusdCta(): { shouldShowCta, showNetworkIcon, selectedChainId }
+ * - shouldShowTokenListItemCta(asset?): boolean
+ * - shouldShowAssetOverviewCta(asset?): boolean
  */
 export const useMusdCtaVisibility = () => {
-  const isMusdCtaEnabled = useSelector(selectIsMusdCtaEnabledFlag);
+  // mUSD CTA feature flag selectors
+  const isMusdGetBuyCtaEnabled = useSelector(selectIsMusdGetBuyCtaEnabledFlag);
+  const musdConversionCTATokens = useSelector(selectMusdConversionCTATokens);
+  const isMusdConversionTokenListItemCtaEnabled = useSelector(
+    selectIsMusdConversionTokenListItemCtaEnabledFlag,
+  );
+  const isMusdConversionAssetOverviewEnabled = useSelector(
+    selectIsMusdConversionAssetOverviewEnabledFlag,
+  );
+
   const { enabledNetworks } = useCurrentNetworkInfo();
   const { areAllNetworksSelected } = useNetworksByCustomNamespace({
     networkType: NetworkType.Popular,
     namespace: KnownCaipNamespace.Eip155,
   });
-  const { hasMusdBalance, balancesByChain } = useHasMusdBalance();
+  const { hasMusdBalanceOnAnyChain, hasMusdBalanceOnChain } = useMusdBalance();
   const { allTokens } = useRampTokens();
+
+  const { tokens: conversionTokens } = useMusdConversionTokens();
+
+  const getConversionTokensWithCtas = useCallback(
+    (tokens: AssetType[]) =>
+      tokens.filter((token) =>
+        isTokenInWildcardList(
+          token.symbol,
+          musdConversionCTATokens,
+          token.chainId,
+        ),
+      ),
+    [musdConversionCTATokens],
+  );
+
+  const tokensWithCTAs = useMemo(
+    () => getConversionTokensWithCtas(conversionTokens),
+    [getConversionTokensWithCtas, conversionTokens],
+  );
+
+  const isTokenWithCta = useCallback(
+    (token?: AssetType | TokenI) => {
+      if (!token?.address || !token?.chainId) return false;
+
+      return tokensWithCTAs.some(
+        (musdToken) =>
+          token.address.toLowerCase() === musdToken.address.toLowerCase() &&
+          token.chainId === musdToken.chainId,
+      );
+    },
+    [tokensWithCTAs],
+  );
 
   // Check if mUSD is buyable on a specific chain based on ramp availability
   const isMusdBuyableOnChain = useMemo(() => {
@@ -66,9 +126,26 @@ export const useMusdCtaVisibility = () => {
     [isMusdBuyableOnChain],
   );
 
-  const { shouldShowCta, showNetworkIcon, selectedChainId } = useMemo(() => {
-    // If the mUSD CTA feature flag is disabled, don't show the CTA
-    if (!isMusdCtaEnabled) {
+  // Get selected chains from enabled networks
+  const selectedChains = useMemo(
+    () =>
+      enabledNetworks
+        .filter((network) => network.enabled)
+        .map((network) => network.chainId as Hex),
+    [enabledNetworks],
+  );
+
+  const isPopularNetworksFilterSelected = useMemo(
+    () => areAllNetworksSelected || selectedChains.length > 1,
+    [areAllNetworksSelected, selectedChains.length],
+  );
+
+  /**
+   * Note: shouldShowBuyGetMusdCta depends on MM_RAMPS_UNIFIED_BUY_V1_ENABLED flag being enabled.
+   */
+  const shouldShowBuyGetMusdCta = useCallback(() => {
+    // If the buy/get mUSD CTA feature flag is disabled, don't show the buy/get mUSD CTA
+    if (!isMusdGetBuyCtaEnabled) {
       return {
         shouldShowCta: false,
         showNetworkIcon: false,
@@ -76,30 +153,24 @@ export const useMusdCtaVisibility = () => {
       };
     }
 
-    // Get selected chains from enabled networks
-    const selectedChains = enabledNetworks
-      .filter((network) => network.enabled)
-      .map((network) => network.chainId as Hex);
-
-    // If all networks are selected (popular networks filter)
-    if (areAllNetworksSelected || selectedChains.length > 1) {
-      // Show CTA without network icon if:
+    // If all networks are selected
+    if (isPopularNetworksFilterSelected) {
+      // Show the buy/get mUSD CTA without network icon if:
       // - User doesn't have MUSD on any chain
       // - AND mUSD is buyable on at least one chain in user's region
       return {
-        shouldShowCta: !hasMusdBalance && isMusdBuyableOnAnyChain,
+        shouldShowCta: !hasMusdBalanceOnAnyChain && isMusdBuyableOnAnyChain,
         showNetworkIcon: false,
         selectedChainId: null,
       };
     }
 
     // If exactly one chain is selected
-
     const chainId = selectedChains[0];
     const isBuyableChain = MUSD_BUYABLE_CHAIN_IDS.includes(chainId);
 
     if (!isBuyableChain) {
-      // Chain doesn't have buy routes available (e.g., BSC) - hide CTA
+      // Chain doesn't have buy routes available (e.g., BSC) - hide the buy/get mUSD CTA
       return {
         shouldShowCta: false,
         showNetworkIcon: false,
@@ -111,7 +182,7 @@ export const useMusdCtaVisibility = () => {
     const isMusdBuyableInRegion = isMusdBuyableOnChain[chainId] ?? false;
 
     if (!isMusdBuyableInRegion) {
-      // mUSD not buyable in user's region for this chain - hide CTA
+      // mUSD not buyable in user's region for this chain - hide the buy/get mUSD CTA
       return {
         shouldShowCta: false,
         showNetworkIcon: false,
@@ -120,7 +191,7 @@ export const useMusdCtaVisibility = () => {
     }
 
     // Supported chain selected - check if user has MUSD on this specific chain
-    const hasMusdOnSelectedChain = Boolean(balancesByChain[chainId]);
+    const hasMusdOnSelectedChain = hasMusdBalanceOnChain(chainId);
 
     return {
       shouldShowCta: !hasMusdOnSelectedChain,
@@ -128,18 +199,58 @@ export const useMusdCtaVisibility = () => {
       selectedChainId: chainId,
     };
   }, [
-    isMusdCtaEnabled,
-    areAllNetworksSelected,
-    enabledNetworks,
-    hasMusdBalance,
-    balancesByChain,
-    isMusdBuyableOnChain,
+    hasMusdBalanceOnAnyChain,
+    hasMusdBalanceOnChain,
     isMusdBuyableOnAnyChain,
+    isMusdBuyableOnChain,
+    isMusdGetBuyCtaEnabled,
+    isPopularNetworksFilterSelected,
+    selectedChains,
   ]);
 
+  const shouldShowTokenListItemCta = useCallback(
+    (asset?: TokenI) => {
+      if (!isMusdConversionTokenListItemCtaEnabled || !asset?.chainId) {
+        return false;
+      }
+
+      // mUSD needs to be available only on EVM chains
+      if (isNonEvmChainId(asset.chainId)) {
+        return false;
+      }
+
+      if (isPopularNetworksFilterSelected) {
+        return hasMusdBalanceOnAnyChain && isTokenWithCta(asset);
+      }
+
+      // Specific chain selected
+      return (
+        hasMusdBalanceOnChain(toHex(asset.chainId)) && isTokenWithCta(asset)
+      );
+    },
+    [
+      hasMusdBalanceOnAnyChain,
+      hasMusdBalanceOnChain,
+      isMusdConversionTokenListItemCtaEnabled,
+      isPopularNetworksFilterSelected,
+      isTokenWithCta,
+    ],
+  );
+
+  const shouldShowAssetOverviewCta = useCallback(
+    (asset?: TokenI) => {
+      if (!isMusdConversionAssetOverviewEnabled || !asset) {
+        return false;
+      }
+
+      return isTokenWithCta(asset);
+    },
+    [isMusdConversionAssetOverviewEnabled, isTokenWithCta],
+  );
+
   return {
-    shouldShowCta,
-    showNetworkIcon,
-    selectedChainId,
+    shouldShowBuyGetMusdCta,
+    shouldShowTokenListItemCta,
+    shouldShowAssetOverviewCta,
   };
 };

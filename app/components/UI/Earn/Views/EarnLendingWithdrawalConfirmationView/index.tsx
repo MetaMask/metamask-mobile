@@ -35,7 +35,10 @@ import { getStakingNavbar } from '../../../Navbar';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
 import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { TokenI } from '../../../Tokens/types';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { EarnTokenDetails } from '../../types/lending.types';

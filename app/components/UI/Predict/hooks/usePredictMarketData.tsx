@@ -109,7 +109,7 @@ export const usePredictMarketData = (
               return;
             }
 
-            const hasMoreData = markets.length === pageSize;
+            const hasMoreData = markets.length >= pageSize;
             setHasMore(hasMoreData);
 
             if (isLoadMore) {

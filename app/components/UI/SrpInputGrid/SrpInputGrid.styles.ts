@@ -12,6 +12,7 @@ export const createStyles = (colors: Colors) =>
     seedPhraseRoot: {
       flexDirection: 'column' as const,
       gap: 4,
+      marginTop: 8,
       marginBottom: 24,
     },
     seedPhraseContainer: {
