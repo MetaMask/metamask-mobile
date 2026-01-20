@@ -329,7 +329,7 @@ class WalletConnect {
       persistSessions();
     }
 
-    const rawUrl = approveData.peerMeta?.url;
+    const rawUrl = sessionData.peerMeta.url;
     const normalizedUrl = normalizeDappUrl(rawUrl);
     if (!normalizedUrl) {
       Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
