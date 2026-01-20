@@ -1003,3 +1003,67 @@ describe('getMusdConversionTransactionDetailsNavbar', () => {
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('getNavigationOptionsTitle', () => {
+  const Stack = createStackNavigator();
+  const analyticsMocks = jest.requireMock('../../../core/Analytics');
+
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+
+  const renderNavigatorWithOptions = (options) => {
+    const TestNavigator = () => (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="TestScreen"
+          component={() => null}
+          options={options}
+        />
+      </Stack.Navigator>
+    );
+    return renderWithProvider(<TestNavigator />);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls trackEvent when navigationPopEvent is provided and close button pressed', () => {
+    const mockEvent = { category: 'test' };
+    const options = getNavigationOptionsTitle(
+      'Test Title',
+      mockNavigation,
+      true,
+      mockTheme.colors,
+      mockEvent,
+    );
+
+    const { getByTestId } = renderNavigatorWithOptions(options);
+
+    fireEvent.press(getByTestId('close-network-icon'));
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
+    expect(mockBuildEvent).toHaveBeenCalled();
+    expect(analyticsMocks.__mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('does not call trackEvent when navigationPopEvent is null', () => {
+    const options = getNavigationOptionsTitle(
+      'Test Title',
+      mockNavigation,
+      false,
+      mockTheme.colors,
+      null,
+    );
+
+    const { getByTestId } = renderNavigatorWithOptions(options);
+
+    fireEvent.press(getByTestId('back-arrow-button'));
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    expect(analyticsMocks.__mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+});
