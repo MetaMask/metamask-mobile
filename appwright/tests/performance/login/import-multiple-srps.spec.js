@@ -13,7 +13,7 @@ import {
   dissmissPredictionsModal,
   importSRPFlow,
   login,
-} from '../../../utils/flows/Flows.js';
+} from '../../../utils/Flows.js';
 
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
 test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({

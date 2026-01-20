@@ -1,11 +1,11 @@
 import { test } from 'appwright';
 
-import { login } from '../../utils/flows/Flows.js';
+import { login } from '../../utils/Flows.js';
 import {
   launchMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
-} from '../../utils/flows/MobileBrowser.js';
+} from '../../utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import MultiChainEvmTestDapp from '../../../wdio/screen-objects/MultiChainEvmTestDapp.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';

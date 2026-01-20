@@ -8,7 +8,7 @@ import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletA
 import PredictMarketListScreen from '../../../../../wdio/screen-objects/PredictMarketListScreen.js';
 import PredictDepositScreen from '../../../../../wdio/screen-objects/PredictDepositScreen.js';
 import PredictConfirmationScreen from '../../../../../wdio/screen-objects/PredictConfirmationScreen.js';
-import { login } from '../../../../utils/flows/Flows.js';
+import { login } from '../../../../utils/Flows.js';
 
 /*
  * Scenario: Predict Deposit Performance Test

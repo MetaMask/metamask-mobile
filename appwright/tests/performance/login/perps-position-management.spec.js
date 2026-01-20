@@ -15,7 +15,7 @@ import PerpsOrderView from '../../../../wdio/screen-objects/PerpsOrderView.js';
 import PerpsClosePositionView from '../../../../wdio/screen-objects/PerpsClosePositionView.js';
 import PerpsPositionDetailsView from '../../../../wdio/screen-objects/PerpsPositionDetailsView.js';
 import PerpsPositionsView from '../../../../wdio/screen-objects/PerpsPositionsView.js';
-import { login, selectAccountDevice } from '../../../utils/flows/Flows.js';
+import { login, selectAccountDevice } from '../../../utils/Flows.js';
 
 async function screensSetup(device) {
   const screens = [

@@ -4,7 +4,7 @@ import TimerHelper from '../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
-import { login } from '../../../utils/flows/Flows.js';
+import { login } from '../../../utils/Flows.js';
 
 /* Scenario: Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3 */
 test('Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3', async ({

@@ -6,7 +6,7 @@ import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScree
 import TabBarModal from '../../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import PredictMarketListScreen from '../../../../../wdio/screen-objects/PredictMarketListScreen.js';
-import { login } from '../../../../utils/flows/Flows.js';
+import { login } from '../../../../utils/Flows.js';
 
 /*
  * Scenario: Predict Available Balance Performance Test

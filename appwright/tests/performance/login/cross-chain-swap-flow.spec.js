@@ -12,7 +12,7 @@ import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import NetworkEducationModal from '../../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
 import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import BridgeScreen from '../../../../wdio/screen-objects/BridgeScreen.js';
-import { login } from '../../../utils/flows/Flows.js';
+import { login } from '../../../utils/Flows.js';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
 test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({

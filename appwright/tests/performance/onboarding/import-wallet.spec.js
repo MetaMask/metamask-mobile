@@ -17,7 +17,7 @@ import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 import {
   dissmissPredictionsModal,
   checkPredictionsModalIsVisible,
-} from '../../../utils/flows/Flows.js';
+} from '../../../utils/Flows.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.setTimeout(180000);

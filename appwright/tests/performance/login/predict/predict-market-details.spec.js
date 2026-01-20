@@ -7,7 +7,7 @@ import TabBarModal from '../../../../../wdio/screen-objects/Modals/TabBarModal.j
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import PredictMarketListScreen from '../../../../../wdio/screen-objects/PredictMarketListScreen.js';
 import PredictDetailsScreen from '../../../../../wdio/screen-objects/PredictDetailsScreen.js';
-import { login } from '../../../../utils/flows/Flows.js';
+import { login } from '../../../../utils/Flows.js';
 
 /*
  * Scenario: Predict Market Details Performance Test

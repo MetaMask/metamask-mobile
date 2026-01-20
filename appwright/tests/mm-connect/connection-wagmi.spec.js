@@ -1,11 +1,11 @@
 import { test } from 'appwright';
 
-import { login } from '../../utils/flows/Flows.js';
+import { login } from '../../utils/Flows.js';
 import {
   launchMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
-} from '../../utils/flows/MobileBrowser.js';
+} from '../../utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import WagmiTestDapp from '../../../wdio/screen-objects/WagmiTestDapp.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';

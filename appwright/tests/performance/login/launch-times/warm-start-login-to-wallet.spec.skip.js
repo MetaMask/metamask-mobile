@@ -1,7 +1,7 @@
 import { test } from '../../../../fixtures/performance-test.js';
 import TimerHelper from '../../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
-import { login } from '../../../../utils/flows/Flows.js';
+import { login } from '../../../../utils/Flows.js';
 
 import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures.js';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';

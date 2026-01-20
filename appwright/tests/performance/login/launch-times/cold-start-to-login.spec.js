@@ -14,7 +14,7 @@ import CreatePasswordScreen from '../../../../../wdio/screen-objects/Onboarding/
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import { login } from '../../../../utils/flows/Flows.js';
+import { login } from '../../../../utils/Flows.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';

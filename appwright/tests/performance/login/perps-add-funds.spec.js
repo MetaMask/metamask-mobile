@@ -9,7 +9,7 @@ import PerpsTutorialScreen from '../../../../wdio/screen-objects/PerpsTutorialSc
 import PerpsMarketListView from '../../../../wdio/screen-objects/PerpsMarketListView.js';
 import PerpsTabView from '../../../../wdio/screen-objects/PerpsTabView.js';
 import PerpsDepositScreen from '../../../../wdio/screen-objects/PerpsDepositScreen.js';
-import { login } from '../../../utils/flows/Flows.js';
+import { login } from '../../../utils/Flows.js';
 
 async function screensSetup(device) {
   const screens = [
