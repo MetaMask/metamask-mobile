@@ -280,7 +280,7 @@
     "@metamask/selected-network-controller": "^25.0.0",
     "@metamask/signature-controller": "^35.0.0",
     "@metamask/slip44": "^4.2.0",
-    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A21.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.0.0-a475dcb52a.patch",
+    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch",
     "@metamask/snaps-controllers": "^17.2.0",
     "@metamask/snaps-execution-environments": "^10.3.0",
     "@metamask/snaps-rpc-methods": "^14.1.1",

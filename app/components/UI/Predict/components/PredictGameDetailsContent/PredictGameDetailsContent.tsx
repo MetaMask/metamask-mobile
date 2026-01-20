@@ -55,10 +55,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
-  const tokenIds = useMemo(
-    () => (outcome?.tokens ?? []).map((t) => t.id),
-    [outcome?.tokens],
-  );
 
   if (!outcome || !game) {
     return null;
@@ -122,24 +118,9 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             <PredictSportScoreboard game={game} testID="game-scoreboard" />
           </Box>
 
-          {tokenIds.length === 2 && (
-            <Box twClassName="mt-4">
-              <PredictGameChart
-                tokenIds={tokenIds as [string, string]}
-                seriesConfig={[
-                  {
-                    label: game.awayTeam.abbreviation,
-                    color: game.awayTeam.color,
-                  },
-                  {
-                    label: game.homeTeam.abbreviation,
-                    color: game.homeTeam.color,
-                  },
-                ]}
-                testID="game-chart"
-              />
-            </Box>
-          )}
+          <Box twClassName="mt-4">
+            <PredictGameChart market={market} testID="game-chart" />
+          </Box>
 
           <Box twClassName="px-4 py-2">
             <PredictPicks market={market} testID="game-picks" />
