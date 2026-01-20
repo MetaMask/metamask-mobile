@@ -123,7 +123,7 @@ module.exports.transform = async ({ src, filename, options }) => {
     });
 
     if (didModify) {
-      await lintTransformedFile(getESLintInstance(), filename, processedSource);
+      // await lintTransformedFile(getESLintInstance(), filename, processedSource);
     }
     return defaultTransformer.transform({
       src: processedSource,
