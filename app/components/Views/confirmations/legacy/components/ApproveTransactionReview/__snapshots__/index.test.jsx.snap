@@ -491,7 +491,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                               }
                                             }
                                           >
-                                            Verify third party details
+                                            Verify third-party details
                                           </Text>
                                         </Text>
                                         <View

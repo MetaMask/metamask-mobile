@@ -40,7 +40,7 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
-import WarningMessage from '../confirmations/legacy/SendFlow/WarningMessage';
+import WarningMessage from '../confirmations/legacy/components/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback, useState } from 'react';
-import { PanResponder, View } from 'react-native';
+import { ActivityIndicator, PanResponder, View } from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -32,6 +32,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   onRetry,
   timeframe = 'live',
   onTimeframeChange,
+  disabledTimeframeSelector = false,
   testID,
 }) => {
   const tw = useTailwind();
@@ -139,13 +140,15 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
     return (
       <Box twClassName="flex-1" testID={testID}>
         <Box
-          twClassName={`h-[${CHART_HEIGHT}px] bg-background-alternative rounded-lg`}
-        />
+          twClassName={`h-[${CHART_HEIGHT}px] bg-transparent rounded-lg items-center justify-center`}
+        >
+          <ActivityIndicator color={colors.primary.default} />
+        </Box>
         {onTimeframeChange && (
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
-            disabled
+            disabled={disabledTimeframeSelector || isLoading}
           />
         )}
       </Box>
@@ -183,6 +186,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -201,6 +205,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -330,7 +335,11 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
       </View>
 
       {onTimeframeChange && (
-        <TimeframeSelector selected={timeframe} onSelect={onTimeframeChange} />
+        <TimeframeSelector
+          selected={timeframe}
+          onSelect={onTimeframeChange}
+          disabled={disabledTimeframeSelector}
+        />
       )}
     </Box>
   );

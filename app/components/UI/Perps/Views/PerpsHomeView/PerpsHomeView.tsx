@@ -45,7 +45,7 @@ import {
   FEEDBACK_CONFIG,
   PERPS_CONSTANTS,
 } from '../../constants/perpsConfig';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
