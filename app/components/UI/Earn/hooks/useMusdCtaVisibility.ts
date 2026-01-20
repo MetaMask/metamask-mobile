@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { Hex, KnownCaipNamespace, add0x } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import {
   MUSD_BUYABLE_CHAIN_IDS,
@@ -18,9 +18,10 @@ import {
   selectIsMusdGetBuyCtaEnabledFlag,
   selectMusdConversionCTATokens,
 } from '../selectors/featureFlags';
+import { selectMusdConversionAssetDetailCtasSeen } from '../../../../reducers/user/selectors';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { TokenI } from '../../Tokens/types';
-import { toHex } from '@metamask/controller-utils';
+import { toHexadecimal } from '../../../../util/number';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
@@ -51,6 +52,9 @@ export const useMusdCtaVisibility = () => {
   );
   const isMusdConversionAssetOverviewEnabled = useSelector(
     selectIsMusdConversionAssetOverviewEnabledFlag,
+  );
+  const musdConversionAssetDetailCtasSeen = useSelector(
+    selectMusdConversionAssetDetailCtasSeen,
   );
 
   const { enabledNetworks } = useCurrentNetworkInfo();
@@ -225,7 +229,8 @@ export const useMusdCtaVisibility = () => {
 
       // Specific chain selected
       return (
-        hasMusdBalanceOnChain(toHex(asset.chainId)) && isTokenWithCta(asset)
+        hasMusdBalanceOnChain(add0x(toHexadecimal(asset.chainId))) &&
+        isTokenWithCta(asset)
       );
     },
     [
@@ -239,13 +244,27 @@ export const useMusdCtaVisibility = () => {
 
   const shouldShowAssetOverviewCta = useCallback(
     (asset?: TokenI) => {
-      if (!isMusdConversionAssetOverviewEnabled || !asset) {
+      if (
+        !isMusdConversionAssetOverviewEnabled ||
+        !asset?.address ||
+        !asset?.chainId
+      ) {
+        return false;
+      }
+
+      // Check if user has already dismissed this CTA for this specific token
+      const ctaKey = `${add0x(toHexadecimal(asset.chainId))}-${asset.address.toLowerCase()}`;
+      if (musdConversionAssetDetailCtasSeen[ctaKey]) {
         return false;
       }
 
       return isTokenWithCta(asset);
     },
-    [isMusdConversionAssetOverviewEnabled, isTokenWithCta],
+    [
+      isMusdConversionAssetOverviewEnabled,
+      isTokenWithCta,
+      musdConversionAssetDetailCtasSeen,
+    ],
   );
 
   return {
