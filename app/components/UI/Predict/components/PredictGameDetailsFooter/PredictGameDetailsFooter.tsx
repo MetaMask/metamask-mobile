@@ -37,7 +37,8 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
     [market.volume],
   );
 
-  const isMarketClosed = market.status !== 'open';
+  const isMarketClosed =
+    market.status !== 'open' || market.game?.status === 'ended';
   const hasClaimableWinnings = claimableAmount > 0;
   const showClaimButton = hasClaimableWinnings && onClaimPress;
 

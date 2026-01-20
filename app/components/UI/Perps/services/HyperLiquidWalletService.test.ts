@@ -12,13 +12,6 @@ jest.mock('@metamask/keyring-api', () => ({
 }));
 
 // Mock keyring controller to avoid import issues
-enum SignTypedDataVersion {
-  V1 = 'V1',
-  V2 = 'V2',
-  V3 = 'V3',
-  V4 = 'V4',
-}
-
 jest.mock('@metamask/keyring-controller', () => ({
   SignTypedDataVersion: {
     V1: 'V1',
@@ -121,16 +114,17 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 import type { CaipAccountId } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { HyperLiquidWalletService } from './HyperLiquidWalletService';
+import { createMockInfrastructure } from '../__mocks__/serviceMocks';
 
 describe('HyperLiquidWalletService', () => {
   let service: HyperLiquidWalletService;
+  let mockDeps: ReturnType<typeof createMockInfrastructure>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new HyperLiquidWalletService();
+    mockDeps = createMockInfrastructure();
+    service = new HyperLiquidWalletService(mockDeps);
   });
 
   describe('Constructor and Configuration', () => {
@@ -139,7 +133,9 @@ describe('HyperLiquidWalletService', () => {
     });
 
     it('should initialize with testnet when specified', () => {
-      const testnetService = new HyperLiquidWalletService({ isTestnet: true });
+      const testnetService = new HyperLiquidWalletService(mockDeps, {
+        isTestnet: true,
+      });
 
       expect(testnetService.isTestnetMode()).toBe(true);
     });
@@ -192,7 +188,7 @@ describe('HyperLiquidWalletService', () => {
       });
 
       it('should return testnet chain ID when in testnet mode', async () => {
-        const testnetService = new HyperLiquidWalletService({
+        const testnetService = new HyperLiquidWalletService(mockDeps, {
           isTestnet: true,
         });
         const testnetAdapter = testnetService.createWalletAdapter();
@@ -238,19 +234,19 @@ describe('HyperLiquidWalletService', () => {
         const result = await walletAdapter.signTypedData(mockTypedDataParams);
 
         expect(result).toBe('0xSignatureResult');
-        expect(DevLogger.log).toHaveBeenCalledWith(
+        expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
           'HyperLiquidWalletService: Signing typed data',
           {
-            address: '0x1234567890123456789012345678901234567890',
+            address: '0x1234567890abcdef1234567890abcdef12345678',
             primaryType: 'Order',
             domain: mockTypedDataParams.domain,
           },
         );
         expect(
-          Engine.context.KeyringController.signTypedMessage,
+          mockDeps.controllers.keyring.signTypedMessage,
         ).toHaveBeenCalledWith(
           {
-            from: '0x1234567890123456789012345678901234567890',
+            from: '0x1234567890abcdef1234567890abcdef12345678',
             data: {
               domain: mockTypedDataParams.domain,
               types: mockTypedDataParams.types,
@@ -258,26 +254,25 @@ describe('HyperLiquidWalletService', () => {
               message: mockTypedDataParams.message,
             },
           },
-          SignTypedDataVersion.V4,
+          'V4',
         );
       });
 
       it('should throw error when no account selected', async () => {
-        // Mock AccountTreeController to return empty array (no accounts)
+        // Mock controllers.accounts to return null (no account selected)
         (
-          Engine.context.AccountTreeController
-            .getAccountsFromSelectedAccountGroup as jest.Mock
-        ).mockReturnValueOnce([]);
+          mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+        ).mockReturnValueOnce(null);
 
         // Creating wallet adapter should throw when no account
         expect(() => service.createWalletAdapter()).toThrow(
-          'No account selected',
+          'NO_ACCOUNT_SELECTED',
         );
       });
 
       it('should handle keyring controller errors', async () => {
         (
-          Engine.context.KeyringController.signTypedMessage as jest.Mock
+          mockDeps.controllers.keyring.signTypedMessage as jest.Mock
         ).mockRejectedValueOnce(new Error('Signing failed'));
 
         await expect(
@@ -291,8 +286,9 @@ describe('HyperLiquidWalletService', () => {
     it('should get current account ID for mainnet', async () => {
       const accountId = await service.getCurrentAccountId();
 
+      // Uses address from mockDeps.accountUtils.getSelectedEvmAccount()
       expect(accountId).toBe(
-        'eip155:42161:0x1234567890123456789012345678901234567890',
+        'eip155:42161:0x1234567890abcdef1234567890abcdef12345678',
       );
     });
 
@@ -302,19 +298,18 @@ describe('HyperLiquidWalletService', () => {
       const accountId = await service.getCurrentAccountId();
 
       expect(accountId).toBe(
-        'eip155:421614:0x1234567890123456789012345678901234567890',
+        'eip155:421614:0x1234567890abcdef1234567890abcdef12345678',
       );
     });
 
     it('should throw error when getting account ID with no selected account', async () => {
-      // Mock AccountTreeController to return empty array (no accounts)
+      // Mock controllers.accounts to return null (no account selected)
       (
-        Engine.context.AccountTreeController
-          .getAccountsFromSelectedAccountGroup as jest.Mock
-      ).mockReturnValueOnce([]);
+        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
+      ).mockReturnValueOnce(null);
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
-        'No account selected',
+        'NO_ACCOUNT_SELECTED',
       );
     });
 
@@ -335,7 +330,7 @@ describe('HyperLiquidWalletService', () => {
       const accountId = 'eip155:42161:invalid-address' as CaipAccountId;
 
       expect(() => service.getUserAddress(accountId)).toThrow(
-        'Invalid address format: invalid-address',
+        'INVALID_ADDRESS_FORMAT',
       );
     });
 
@@ -351,7 +346,8 @@ describe('HyperLiquidWalletService', () => {
     it('should get user address with default fallback', async () => {
       const address = await service.getUserAddressWithDefault();
 
-      expect(address).toBe('0x1234567890123456789012345678901234567890');
+      // Uses address from mockDeps.accountUtils.getSelectedEvmAccount()
+      expect(address).toBe('0x1234567890abcdef1234567890abcdef12345678');
     });
   });
 
@@ -381,10 +377,9 @@ describe('HyperLiquidWalletService', () => {
 
   describe('Error Handling', () => {
     it('should handle store state errors gracefully', async () => {
-      // Mock AccountTreeController to throw an error
+      // Mock controllers.accounts to throw an error
       (
-        Engine.context.AccountTreeController
-          .getAccountsFromSelectedAccountGroup as jest.Mock
+        mockDeps.controllers.accounts.getSelectedEvmAccount as jest.Mock
       ).mockImplementationOnce(() => {
         throw new Error('Store error');
       });
@@ -411,7 +406,7 @@ describe('HyperLiquidWalletService', () => {
     it('should handle keyring controller initialization errors', async () => {
       const walletAdapter = service.createWalletAdapter();
       (
-        Engine.context.KeyringController.signTypedMessage as jest.Mock
+        mockDeps.controllers.keyring.signTypedMessage as jest.Mock
       ).mockRejectedValueOnce(new Error('Keyring not initialized'));
 
       const mockTypedData = {

@@ -86,6 +86,7 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/feat
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
+import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -142,6 +143,9 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+
+  // Fetch STX liveness for the source chain
+  useRefreshSmartTransactionsLiveness(sourceToken?.chainId);
 
   // Update isGasIncludedSTXSendBundleSupported state based on source chain capabilities
   useIsGasIncludedSTXSendBundleSupported(sourceToken?.chainId);
