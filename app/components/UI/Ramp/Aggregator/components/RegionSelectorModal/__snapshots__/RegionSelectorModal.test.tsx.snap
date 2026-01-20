@@ -13105,7 +13105,6 @@ exports[`RegionSelectorModal searches within state list when in state view 1`] =
                                     [
                                       {
                                         "detected": false,
-                                        "emoji": "🇺🇸",
                                         "id": "/regions/us-ca",
                                         "name": "California",
                                         "recommended": true,
@@ -13217,9 +13216,7 @@ exports[`RegionSelectorModal searches within state list when in state view 1`] =
                                                         "lineHeight": 24,
                                                       }
                                                     }
-                                                  >
-                                                    🇺🇸
-                                                  </Text>
+                                                  />
                                                 </View>
                                                 <View>
                                                   <Text
@@ -13261,7 +13258,6 @@ exports[`RegionSelectorModal searches within state list when in state view 1`] =
                                     [
                                       {
                                         "detected": false,
-                                        "emoji": "🇺🇸",
                                         "id": "/regions/us-ca",
                                         "name": "California",
                                         "recommended": true,
@@ -13373,9 +13369,7 @@ exports[`RegionSelectorModal searches within state list when in state view 1`] =
                                                         "lineHeight": 24,
                                                       }
                                                     }
-                                                  >
-                                                    🇺🇸
-                                                  </Text>
+                                                  />
                                                 </View>
                                                 <View>
                                                   <Text
@@ -15202,7 +15196,6 @@ exports[`RegionSelectorModal sorts states by recommended when displaying state l
                                         "states": [
                                           {
                                             "detected": false,
-                                            "emoji": "🇺🇸",
                                             "id": "/regions/us-ny",
                                             "name": "New York",
                                             "recommended": false,
@@ -15215,7 +15208,6 @@ exports[`RegionSelectorModal sorts states by recommended when displaying state l
                                           },
                                           {
                                             "detected": false,
-                                            "emoji": "🇺🇸",
                                             "id": "/regions/us-ca",
                                             "name": "California",
                                             "recommended": true,
@@ -15409,7 +15401,6 @@ exports[`RegionSelectorModal sorts states by recommended when displaying state l
                                     [
                                       {
                                         "detected": false,
-                                        "emoji": "🇺🇸",
                                         "id": "/regions/us-ca",
                                         "name": "California",
                                         "recommended": true,
@@ -15422,7 +15413,6 @@ exports[`RegionSelectorModal sorts states by recommended when displaying state l
                                       },
                                       {
                                         "detected": false,
-                                        "emoji": "🇺🇸",
                                         "id": "/regions/us-ny",
                                         "name": "New York",
                                         "recommended": false,
@@ -15534,9 +15524,7 @@ exports[`RegionSelectorModal sorts states by recommended when displaying state l
                                                         "lineHeight": 24,
                                                       }
                                                     }
-                                                  >
-                                                    🇺🇸
-                                                  </Text>
+                                                  />
                                                 </View>
                                                 <View>
                                                   <Text
@@ -15630,9 +15618,7 @@ exports[`RegionSelectorModal sorts states by recommended when displaying state l
                                                         "lineHeight": 24,
                                                       }
                                                     }
-                                                  >
-                                                    🇺🇸
-                                                  </Text>
+                                                  />
                                                 </View>
                                                 <View>
                                                   <Text

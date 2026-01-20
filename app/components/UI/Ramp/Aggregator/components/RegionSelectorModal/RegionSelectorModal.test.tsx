@@ -231,7 +231,6 @@ describe('RegionSelectorModal', () => {
       name: 'United States of America',
       states: [
         {
-          emoji: '🇺🇸',
           id: '/regions/us-ca',
           name: 'California',
           stateId: 'ca',
@@ -241,7 +240,6 @@ describe('RegionSelectorModal', () => {
           recommended: true,
         },
         {
-          emoji: '🇺🇸',
           id: '/regions/us-ny',
           name: 'New York',
           stateId: 'ny',
@@ -281,7 +279,6 @@ describe('RegionSelectorModal', () => {
       name: 'United States of America',
       states: [
         {
-          emoji: '🇺🇸',
           id: '/regions/us-ny',
           name: 'New York',
           stateId: 'ny',
@@ -291,7 +288,6 @@ describe('RegionSelectorModal', () => {
           recommended: false,
         },
         {
-          emoji: '🇺🇸',
           id: '/regions/us-ca',
           name: 'California',
           stateId: 'ca',
