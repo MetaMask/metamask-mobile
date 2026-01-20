@@ -34,6 +34,7 @@
     "start:android:qa": "./scripts/build.sh android qa dev --local",
     "start:android:flask": "./scripts/build.sh android flask dev --local",
     "start:api-logging-server": "node -r @babel/register scripts/start-api-logging-server.js",
+    "install:ios:runway": "./scripts/install-ios-runway-app.sh",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:main:prod": "./scripts/build.sh android main production",
     "build:android:main:beta": "./scripts/build.sh android main beta",
