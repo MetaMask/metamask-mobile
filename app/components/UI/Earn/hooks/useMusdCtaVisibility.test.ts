@@ -850,6 +850,20 @@ describe('useMusdCtaVisibility', () => {
           balancesByChain: {},
           hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
         });
+        // Provide tokens with chainId so canConvert is true
+        mockUseMusdConversionTokens.mockReturnValue({
+          tokens: [
+            createMockToken({
+              name: 'USDC',
+              symbol: 'USDC',
+              chainId: CHAIN_IDS.MAINNET,
+            }) as TokenI,
+          ],
+          filterAllowedTokens: jest.fn(),
+          isConversionToken: jest.fn().mockReturnValue(true),
+          isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+          getMusdOutputChainId: jest.fn().mockReturnValue(CHAIN_IDS.MAINNET),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
