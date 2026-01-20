@@ -290,14 +290,7 @@ export const selectEnabledChainRanking = createSelector(
   selectEVMEnabledNetworks,
   selectNonEVMEnabledNetworks,
   (bridgeFeatureFlags, evmEnabledNetworks, nonEvmEnabledNetworks) => {
-    // @ts-expect-error chainRanking is not yet in the type definition
-    const chainRanking = bridgeFeatureFlags.chainRanking as
-      | { chainId: CaipChainId; name: string }[]
-      | undefined;
-
-    if (!chainRanking) {
-      return [];
-    }
+    const { chainRanking } = bridgeFeatureFlags;
 
     const enabledChainIds = new Set([
       ...evmEnabledNetworks,
