@@ -13,8 +13,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
   <View
     style={
       {
-        "alignItems": "center",
-        "paddingHorizontal": 16,
         "paddingTop": 16,
       }
     }
@@ -23,11 +21,13 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
     <View
       style={
         {
+          "alignSelf": "stretch",
           "backgroundColor": "#9a63001a",
           "borderColor": "#9a6300",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
+          "marginHorizontal": 16,
           "padding": 12,
           "paddingLeft": 8,
         }
