@@ -6,6 +6,10 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  fetchMerklRewardsForAsset,
+  getClaimedAmountFromContract,
+} from '../merkl-client';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -15,6 +19,11 @@ jest.mock('../../../../../../util/number', () => ({
   renderFromTokenMinimalUnit: jest.fn(),
 }));
 
+jest.mock('../merkl-client', () => ({
+  fetchMerklRewardsForAsset: jest.fn(),
+  getClaimedAmountFromContract: jest.fn(),
+}));
+
 // Mock fetch globally
 global.fetch = jest.fn();
 
@@ -22,6 +31,14 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockRenderFromTokenMinimalUnit =
   renderFromTokenMinimalUnit as jest.MockedFunction<
     typeof renderFromTokenMinimalUnit
+  >;
+const mockFetchMerklRewardsForAsset =
+  fetchMerklRewardsForAsset as jest.MockedFunction<
+    typeof fetchMerklRewardsForAsset
+  >;
+const mockGetClaimedAmountFromContract =
+  getClaimedAmountFromContract as jest.MockedFunction<
+    typeof getClaimedAmountFromContract
   >;
 
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
@@ -132,6 +149,9 @@ describe('useMerklRewards', () => {
         return result.toFixed(2);
       },
     );
+
+    // Default mock for getClaimedAmountFromContract
+    mockGetClaimedAmountFromContract.mockResolvedValue('0');
   });
 
   it('initializes with null claimableReward', () => {
@@ -175,34 +195,25 @@ describe('useMerklRewards', () => {
   });
 
   it('fetches and sets claimableReward when eligible', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1500000000000000000', // 1.5 tokens in wei
-            pending: '0',
-            proofs: [],
-            amount: '1500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '1500000000000000000', // 1.5 tokens in wei
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
-
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
     mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
@@ -214,13 +225,11 @@ describe('useMerklRewards', () => {
       { timeout: 3000 },
     );
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(
-        `${mockSelectedAddress}/rewards?chainId=${Number(CHAIN_IDS.MAINNET)}&test=true`,
-      ),
-      expect.objectContaining({
-        signal: expect.any(AbortSignal),
-      }),
+    expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    expect(mockGetClaimedAmountFromContract).toHaveBeenCalledWith(
+      mockSelectedAddress,
+      mockAsset.address,
+      mockAsset.chainId,
     );
 
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
