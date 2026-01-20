@@ -4,10 +4,19 @@ import {
   getSupportedAssets,
   TRADING_DEFAULTS,
 } from '../constants/hyperLiquidConfig';
-import type { GetSupportedPathsParams } from '../controllers/types';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import type {
+  GetSupportedPathsParams,
+  IPerpsDebugLogger,
+} from '../controllers/types';
 import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
+
+/**
+ * Optional debug logger for validation functions.
+ * When provided, enables detailed logging for debugging.
+ * When omitted, validation runs silently.
+ */
+export type ValidationDebugLogger = IPerpsDebugLogger | undefined;
 
 /**
  * Validation utilities for HyperLiquid operations
@@ -29,13 +38,18 @@ export function createErrorResult<
 
 /**
  * Validate withdrawal parameters
+ * @param params - Withdrawal parameters to validate
+ * @param debugLogger - Optional debug logger for detailed logging
  */
-export function validateWithdrawalParams(params: {
-  assetId?: CaipAssetId;
-  amount?: string;
-  destination?: Hex;
-}): { isValid: boolean; error?: string } {
-  DevLogger.log('validateWithdrawalParams: Starting validation', {
+export function validateWithdrawalParams(
+  params: {
+    assetId?: CaipAssetId;
+    amount?: string;
+    destination?: Hex;
+  },
+  debugLogger?: ValidationDebugLogger,
+): { isValid: boolean; error?: string } {
+  debugLogger?.log('validateWithdrawalParams: Starting validation', {
     params,
     hasAssetId: !!params.assetId,
     hasAmount: !!params.amount,
@@ -44,7 +58,7 @@ export function validateWithdrawalParams(params: {
 
   // Validate required parameters
   if (!params.assetId) {
-    DevLogger.log('validateWithdrawalParams: Missing assetId', {
+    debugLogger?.log('validateWithdrawalParams: Missing assetId', {
       error: PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED,
       params,
     });
@@ -56,7 +70,7 @@ export function validateWithdrawalParams(params: {
 
   // Validate amount
   if (!params.amount) {
-    DevLogger.log('validateWithdrawalParams: Missing amount', {
+    debugLogger?.log('validateWithdrawalParams: Missing amount', {
       error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_REQUIRED,
       params,
     });
@@ -68,7 +82,7 @@ export function validateWithdrawalParams(params: {
 
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
-    DevLogger.log('validateWithdrawalParams: Invalid amount', {
+    debugLogger?.log('validateWithdrawalParams: Invalid amount', {
       error: PERPS_ERROR_CODES.WITHDRAW_AMOUNT_POSITIVE,
       amount: params.amount,
       parsedAmount: amount,
@@ -82,7 +96,7 @@ export function validateWithdrawalParams(params: {
 
   // Validate destination address if provided
   if (params.destination && !isValidHexAddress(params.destination)) {
-    DevLogger.log('validateWithdrawalParams: Invalid destination address', {
+    debugLogger?.log('validateWithdrawalParams: Invalid destination address', {
       error: PERPS_ERROR_CODES.WITHDRAW_INVALID_DESTINATION,
       destination: params.destination,
       isValidHex: isValidHexAddress(params.destination),
@@ -93,7 +107,7 @@ export function validateWithdrawalParams(params: {
     };
   }
 
-  DevLogger.log('validateWithdrawalParams: All validations passed', {
+  debugLogger?.log('validateWithdrawalParams: All validations passed', {
     assetId: params.assetId,
     amount: params.amount,
     destination: params.destination || 'will use user wallet',
@@ -104,13 +118,18 @@ export function validateWithdrawalParams(params: {
 
 /**
  * Validate deposit parameters
+ * @param params - Deposit parameters to validate
+ * @param debugLogger - Optional debug logger for detailed logging
  */
-export function validateDepositParams(params: {
-  assetId?: CaipAssetId;
-  amount?: string;
-  isTestnet?: boolean;
-}): { isValid: boolean; error?: string } {
-  DevLogger.log('validateDepositParams: Starting validation', {
+export function validateDepositParams(
+  params: {
+    assetId?: CaipAssetId;
+    amount?: string;
+    isTestnet?: boolean;
+  },
+  debugLogger?: ValidationDebugLogger,
+): { isValid: boolean; error?: string } {
+  debugLogger?.log('validateDepositParams: Starting validation', {
     params,
     hasAssetId: !!params.assetId,
     hasAmount: !!params.amount,
@@ -119,7 +138,7 @@ export function validateDepositParams(params: {
 
   // Validate required parameters
   if (!params.assetId) {
-    DevLogger.log('validateDepositParams: Missing assetId', {
+    debugLogger?.log('validateDepositParams: Missing assetId', {
       error: PERPS_ERROR_CODES.DEPOSIT_ASSET_ID_REQUIRED,
       params,
     });
@@ -131,7 +150,7 @@ export function validateDepositParams(params: {
 
   // Validate amount
   if (!params.amount) {
-    DevLogger.log('validateDepositParams: Missing amount', {
+    debugLogger?.log('validateDepositParams: Missing amount', {
       error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_REQUIRED,
       params,
     });
@@ -143,7 +162,7 @@ export function validateDepositParams(params: {
 
   const amount = parseFloat(params.amount);
   if (isNaN(amount) || amount <= 0) {
-    DevLogger.log('validateDepositParams: Invalid amount', {
+    debugLogger?.log('validateDepositParams: Invalid amount', {
       error: PERPS_ERROR_CODES.DEPOSIT_AMOUNT_POSITIVE,
       amount: params.amount,
       parsedAmount: amount,
@@ -160,7 +179,7 @@ export function validateDepositParams(params: {
     ? TRADING_DEFAULTS.amount.testnet
     : TRADING_DEFAULTS.amount.mainnet;
 
-  DevLogger.log('validateDepositParams: Checking minimum amount', {
+  debugLogger?.log('validateDepositParams: Checking minimum amount', {
     amount,
     minimumAmount,
     isTestnet: params.isTestnet,
@@ -168,7 +187,7 @@ export function validateDepositParams(params: {
   });
 
   if (amount < minimumAmount) {
-    DevLogger.log('validateDepositParams: Below minimum deposit', {
+    debugLogger?.log('validateDepositParams: Below minimum deposit', {
       error: PERPS_ERROR_CODES.DEPOSIT_MINIMUM_AMOUNT,
       amount,
       minimumAmount,
@@ -180,7 +199,7 @@ export function validateDepositParams(params: {
     };
   }
 
-  DevLogger.log('validateDepositParams: All validations passed', {
+  debugLogger?.log('validateDepositParams: All validations passed', {
     assetId: params.assetId,
     amount: params.amount,
     parsedAmount: amount,
@@ -193,12 +212,16 @@ export function validateDepositParams(params: {
 
 /**
  * Validate asset support for withdrawals using AssetRoute arrays
+ * @param assetId - Asset ID to validate
+ * @param supportedRoutes - Supported asset routes
+ * @param debugLogger - Optional debug logger for detailed logging
  */
 export function validateAssetSupport(
   assetId: CaipAssetId,
   supportedRoutes: { assetId: CaipAssetId }[],
+  debugLogger?: ValidationDebugLogger,
 ): { isValid: boolean; error?: string } {
-  DevLogger.log('validateAssetSupport: Checking asset support', {
+  debugLogger?.log('validateAssetSupport: Checking asset support', {
     assetId,
     supportedRoutesCount: supportedRoutes.length,
   });
@@ -215,7 +238,7 @@ export function validateAssetSupport(
     );
 
     if (!isSupportedCaseInsensitive) {
-      DevLogger.log('validateAssetSupport: Asset not supported', {
+      debugLogger?.log('validateAssetSupport: Asset not supported', {
         error: PERPS_ERROR_CODES.WITHDRAW_ASSET_NOT_SUPPORTED,
         assetId,
         supportedAssetIds,
@@ -228,7 +251,7 @@ export function validateAssetSupport(
       };
     }
 
-    DevLogger.log(
+    debugLogger?.log(
       '⚠️ validateAssetSupport: Asset supported with case mismatch',
       {
         providedAssetId: assetId,
@@ -239,7 +262,7 @@ export function validateAssetSupport(
     );
   }
 
-  DevLogger.log('validateAssetSupport: Asset is supported', {
+  debugLogger?.log('validateAssetSupport: Asset is supported', {
     assetId,
   });
 
@@ -248,12 +271,16 @@ export function validateAssetSupport(
 
 /**
  * Validate balance against withdrawal amount
+ * @param withdrawAmount - Amount to withdraw
+ * @param availableBalance - Available balance
+ * @param debugLogger - Optional debug logger for detailed logging
  */
 export function validateBalance(
   withdrawAmount: number,
   availableBalance: number,
+  debugLogger?: ValidationDebugLogger,
 ): { isValid: boolean; error?: string } {
-  DevLogger.log('validateBalance: Checking balance sufficiency', {
+  debugLogger?.log('validateBalance: Checking balance sufficiency', {
     withdrawAmount,
     availableBalance,
     difference: availableBalance - withdrawAmount,
@@ -262,7 +289,7 @@ export function validateBalance(
   if (withdrawAmount > availableBalance) {
     const shortfall = withdrawAmount - availableBalance;
 
-    DevLogger.log('validateBalance: Insufficient balance', {
+    debugLogger?.log('validateBalance: Insufficient balance', {
       error: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
       withdrawAmount,
       availableBalance,
@@ -278,7 +305,7 @@ export function validateBalance(
   }
 
   const remainingBalance = availableBalance - withdrawAmount;
-  DevLogger.log('validateBalance: Balance is sufficient', {
+  debugLogger?.log('validateBalance: Balance is sufficient', {
     withdrawAmount,
     availableBalance,
     remainingBalance,
@@ -291,13 +318,17 @@ export function validateBalance(
 
 /**
  * Apply filters to asset paths with comprehensive logging
+ * @param assets - Assets to filter
+ * @param params - Filter parameters
+ * @param debugLogger - Optional debug logger for detailed logging
  */
 export function applyPathFilters(
   assets: CaipAssetId[],
   params?: GetSupportedPathsParams,
+  debugLogger?: ValidationDebugLogger,
 ): CaipAssetId[] {
   if (!params) {
-    DevLogger.log(
+    debugLogger?.log(
       'HyperLiquid: applyPathFilters - no params, returning all assets',
       { assets },
     );
@@ -306,7 +337,7 @@ export function applyPathFilters(
 
   let filtered = assets;
 
-  DevLogger.log('HyperLiquid: applyPathFilters - starting filter', {
+  debugLogger?.log('HyperLiquid: applyPathFilters - starting filter', {
     initialAssets: assets,
     filterParams: params,
   });
@@ -316,7 +347,7 @@ export function applyPathFilters(
     filtered = filtered.filter((asset) =>
       asset.startsWith(params.chainId as string),
     );
-    DevLogger.log('HyperLiquid: applyPathFilters - chainId filter', {
+    debugLogger?.log('HyperLiquid: applyPathFilters - chainId filter', {
       chainId: params.chainId,
       before,
       after: filtered,
@@ -332,7 +363,7 @@ export function applyPathFilters(
     const selectedAsset = isTestnet ? config.testnet : config.mainnet;
     const before = filtered;
     filtered = [selectedAsset];
-    DevLogger.log('HyperLiquid: applyPathFilters - symbol filter', {
+    debugLogger?.log('HyperLiquid: applyPathFilters - symbol filter', {
       symbol: params.symbol,
       isTestnet,
       config,
@@ -348,7 +379,7 @@ export function applyPathFilters(
     filtered = filtered.filter(
       (asset) => asset.toLowerCase() === params.assetId?.toLowerCase(),
     );
-    DevLogger.log('HyperLiquid: applyPathFilters - assetId filter', {
+    debugLogger?.log('HyperLiquid: applyPathFilters - assetId filter', {
       assetId: params.assetId,
       before,
       after: filtered,
@@ -359,7 +390,7 @@ export function applyPathFilters(
     });
   }
 
-  DevLogger.log('HyperLiquid: applyPathFilters - final result', {
+  debugLogger?.log('HyperLiquid: applyPathFilters - final result', {
     initialAssets: assets,
     finalFiltered: filtered,
     filterParams: params,
@@ -370,15 +401,18 @@ export function applyPathFilters(
 
 /**
  * Get supported deposit/withdrawal paths with filtering
+ * @param params - Filter parameters
+ * @param debugLogger - Optional debug logger for detailed logging
  */
 export function getSupportedPaths(
   params?: GetSupportedPathsParams,
+  debugLogger?: ValidationDebugLogger,
 ): CaipAssetId[] {
   const isTestnet = params?.isTestnet ?? false;
   const assets = getSupportedAssets(isTestnet);
-  const filteredAssets = applyPathFilters(assets, params);
+  const filteredAssets = applyPathFilters(assets, params, debugLogger);
 
-  DevLogger.log('HyperLiquid: getSupportedPaths', {
+  debugLogger?.log('HyperLiquid: getSupportedPaths', {
     isTestnet,
     requestedParams: params,
     allAssets: assets,

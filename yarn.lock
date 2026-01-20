@@ -5441,6 +5441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@google/generative-ai@npm:^0.24.1":
+  version: 0.24.1
+  resolution: "@google/generative-ai@npm:0.24.1"
+  checksum: 10/992a82e2d4a58d6eb0545254fe05e2da074c08560a9d51fb29c6f2a44db8c66ba44d87bc04e61b3676f5adc9ab94e527f171ee1395edf4ccbead3472fd8efff8
+  languageName: node
+  linkType: hard
+
 "@graphql-tools/merge@npm:8.3.1":
   version: 8.3.1
   resolution: "@graphql-tools/merge@npm:8.3.1"
@@ -7240,10 +7247,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:^1.8.0":
-  version: 1.8.0
-  resolution: "@metamask/bitcoin-wallet-snap@npm:1.8.0"
-  checksum: 10/4a437b4efef2669970b60b8b8d579ed34ef677ca207313430924f4424aeb1e58a5601bae75a54744ba466fc1394f0d478e29fcbcf2cb7a5e73124316fb9a260a
+"@metamask/bitcoin-wallet-snap@npm:^1.9.0":
+  version: 1.9.0
+  resolution: "@metamask/bitcoin-wallet-snap@npm:1.9.0"
+  checksum: 10/cfcd2da23ccccddeb981d2e81576995e6ee9ad4e16023d238219c29feecf9e5ac9a49baeadc79013d2001b6aa20170897f082ae9c18c91ae124e17688aa4f973
   languageName: node
   linkType: hard
 
@@ -8339,7 +8346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-controller@npm:^27.0.0, @metamask/network-controller@npm:^27.1.0, @metamask/network-controller@npm:^27.2.0":
+"@metamask/network-controller@npm:^27.0.0, @metamask/network-controller@npm:^27.2.0":
   version: 27.2.0
   resolution: "@metamask/network-controller@npm:27.2.0"
   dependencies:
@@ -8735,14 +8742,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/ramps-controller@npm:3.0.0"
+"@metamask/ramps-controller@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@metamask/ramps-controller@npm:4.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/00e3a8532d19a50e719b95f13b9404abf24e79651d2410845d041d55887473cbdcd306ad5e294ce43e4b740465d7bcf96ceff8389026b06e9ba63cf4a67f8fff
+  checksum: 10/53a134aa86675a5204027b4d836e37338721f6e8f6617abde43ce21c4621e7c8d346f08692926b395f8538165e705a10c18e163a3602bb90eca9d4beecc35e77
   languageName: node
   linkType: hard
 
@@ -8972,9 +8979,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:21.0.0":
-  version: 21.0.0
-  resolution: "@metamask/smart-transactions-controller@npm:21.0.0"
+"@metamask/smart-transactions-controller@npm:21.1.0":
+  version: 21.1.0
+  resolution: "@metamask/smart-transactions-controller@npm:21.1.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.1"
     "@ethereumjs/tx": "npm:^5.2.1"
@@ -9005,13 +9012,13 @@ __metadata:
       optional: true
     "@metamask/remote-feature-flag-controller":
       optional: true
-  checksum: 10/a0d5c58f3671368a9f6649eef5c0ffe9b82c562662adf0641c898c32299577ead9f40514b2f44e805b8a0641335eaa36f14a3bf33eae037b6f063c338138f360
+  checksum: 10/85d51b140fd535cf129eed062d687f66d308a11315f433f60bf8484a447a00419af3939f6bf59d43bc3b8b9f0a8ee91a480937e1caef40984bde829cbce2d6eb
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.0.0-a475dcb52a.patch":
-  version: 21.0.0
-  resolution: "@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.0.0-a475dcb52a.patch::version=21.0.0&hash=6e1e96"
+"@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch":
+  version: 21.1.0
+  resolution: "@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch::version=21.1.0&hash=8eaed6"
   dependencies:
     "@babel/runtime": "npm:^7.24.1"
     "@ethereumjs/tx": "npm:^5.2.1"
@@ -9042,7 +9049,7 @@ __metadata:
       optional: true
     "@metamask/remote-feature-flag-controller":
       optional: true
-  checksum: 10/d23a80f946a30ae1bb433acfc87f3a6a59fbd105a4e9c758535e64c47732790786d0ad40280b80f7ec311ade34bd20c99429b4a728d4f11b16faf0fd76197abb
+  checksum: 10/8ee3d4378e9f52e484b69a875a2e2ead1d554e6272c911e9ec401575176d3d9ca13166ee000c207eb97121e9caf025e9be34f292b02fe945c092b4a5a415f69a
   languageName: node
   linkType: hard
 
@@ -34038,6 +34045,7 @@ __metadata:
     "@ethersproject/providers": "npm:^5.7.2"
     "@expo/fingerprint": "npm:^0.15.0"
     "@expo/repack-app": "npm:^0.2.9"
+    "@google/generative-ai": "npm:^0.24.1"
     "@img/sharp-darwin-arm64": "npm:^0.34.3"
     "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
     "@img/sharp-libvips-linux-x64": "npm:^1.2.1"
@@ -34059,13 +34067,14 @@ __metadata:
     "@metamask/assets-controllers": "npm:^95.3.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/bitcoin-wallet-snap": "npm:^1.8.0"
+    "@metamask/bitcoin-wallet-snap": "npm:^1.9.0"
     "@metamask/bridge-controller": "npm:^64.5.0"
     "@metamask/bridge-status-controller": "npm:^64.4.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.3.0"
     "@metamask/composable-controller": "npm:^12.0.0"
+    "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/core-backend": "npm:^5.0.0"
     "@metamask/delegation-controller": "npm:^1.0.0"
@@ -34095,7 +34104,7 @@ __metadata:
     "@metamask/foundryup": "npm:1.0.0"
     "@metamask/gas-fee-controller": "npm:^25.0.0"
     "@metamask/gator-permissions-controller": "npm:^0.3.0"
-    "@metamask/json-rpc-engine": "npm:^10.2.0"
+    "@metamask/json-rpc-engine": "npm:^10.2.1"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
     "@metamask/keyring-api": "npm:^21.3.0"
@@ -34115,7 +34124,7 @@ __metadata:
     "@metamask/multichain-network-controller": "npm:^2.0.0"
     "@metamask/multichain-transactions-controller": "npm:^6.0.0"
     "@metamask/native-utils": "npm:^0.8.0"
-    "@metamask/network-controller": "npm:^27.1.0"
+    "@metamask/network-controller": "npm:^29.0.0"
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch"
     "@metamask/notification-services-controller": "npm:^21.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
@@ -34127,7 +34136,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^3.0.0"
+    "@metamask/ramps-controller": "npm:^4.0.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -34144,7 +34153,7 @@ __metadata:
     "@metamask/selected-network-controller": "npm:^25.0.0"
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
-    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A21.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.0.0-a475dcb52a.patch"
+    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch"
     "@metamask/snaps-controllers": "npm:^17.2.0"
     "@metamask/snaps-execution-environments": "npm:^10.3.0"
     "@metamask/snaps-rpc-methods": "npm:^14.1.1"
@@ -34351,6 +34360,7 @@ __metadata:
     multihashes: "npm:0.4.14"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
+    openai: "npm:^4.77.0"
     pako: "npm:^2.1.0"
     patch-package: "npm:^6.2.2"
     path: "npm:0.12.7"
@@ -36452,7 +36462,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:4.104.0":
+"openai@npm:4.104.0, openai@npm:^4.77.0":
   version: 4.104.0
   resolution: "openai@npm:4.104.0"
   dependencies:

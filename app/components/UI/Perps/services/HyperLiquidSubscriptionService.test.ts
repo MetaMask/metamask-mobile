@@ -14,6 +14,7 @@ import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
+import { createMockInfrastructure } from '../__mocks__/serviceMocks';
 
 // Mock HyperLiquid SDK types
 interface MockSubscription {
@@ -96,10 +97,12 @@ describe('HyperLiquidSubscriptionService', () => {
   let mockWalletService: jest.Mocked<HyperLiquidWalletService>;
   let mockSubscriptionClient: any;
   let mockWalletAdapter: any;
+  let mockDeps: ReturnType<typeof createMockInfrastructure>;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockDeps = createMockInfrastructure();
 
     // Mock subscription client
     const mockSubscription: MockSubscription = {
@@ -355,6 +358,7 @@ describe('HyperLiquidSubscriptionService', () => {
     service = new HyperLiquidSubscriptionService(
       mockClientService,
       mockWalletService,
+      mockDeps,
       true, // hip3Enabled - test expects webData3
     );
   });
@@ -915,6 +919,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const serviceWithoutHip3 = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         false, // hip3Enabled = false
         [], // enabledDexs
       );
@@ -2176,6 +2181,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true, // hip3Enabled
         [], // enabledDexs - empty but we'll call updateFeatureFlags
       );
@@ -2932,6 +2938,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true, // hip3Enabled
         ['dex1', 'dex2'], // enabledDexs
       );
@@ -2943,6 +2950,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const subscriptionService = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         false, // hip3Enabled
         [],
       );
@@ -3238,6 +3246,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true,
         ['failingdex'],
       );
@@ -3284,6 +3293,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true,
         ['testdex'],
       );

@@ -1615,7 +1615,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               }
             }
           >
-            IPFS Gateway
+            IPFS gateway
           </Text>
           <View
             style={

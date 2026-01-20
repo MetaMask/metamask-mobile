@@ -22,8 +22,19 @@ import type {
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { findEvmAccount } from '../utils/accountUtils';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
+
+/**
+ * Gets the EVM account from the selected account group.
+ * Mobile-specific helper using Engine context.
+ * @returns EVM account or null if not found
+ */
+function getEvmAccountFromSelectedAccountGroup() {
+  const { AccountTreeController } = Engine.context;
+  const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
+  return findEvmAccount(accounts);
+}
 
 // Generic subscription parameters
 interface StreamSubscription<T> {

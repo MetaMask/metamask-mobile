@@ -115,21 +115,24 @@ const MusdConversionAssetListCta = () => {
       return;
     }
 
-    const { address, chainId: paymentTokenChainId } = tokens[0];
+    // Respect network filter if specific chain selected.
+    const preferredTokenOnSelectedChain = selectedChainId
+      ? tokens.find((token) => token.chainId === selectedChainId)
+      : undefined;
 
-    if (!paymentTokenChainId) {
+    const paymentToken = preferredTokenOnSelectedChain ?? tokens[0];
+
+    if (!paymentToken.chainId) {
       throw new Error('[mUSD Conversion] payment token chainID missing');
     }
-
-    const paymentTokenAddress = toChecksumAddress(address);
 
     try {
       await initiateConversion({
         preferredPaymentToken: {
-          address: paymentTokenAddress,
-          chainId: toHex(paymentTokenChainId),
+          address: toChecksumAddress(paymentToken.address),
+          chainId: toHex(paymentToken.chainId),
         },
-        outputChainId: getMusdOutputChainId(paymentTokenChainId),
+        outputChainId: getMusdOutputChainId(paymentToken.chainId),
       });
     } catch (error) {
       Logger.error(
