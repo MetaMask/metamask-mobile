@@ -79,8 +79,8 @@ const ManualBackupStep1 = () => {
   const dispatch = useDispatch();
 
   const saveOnboardingEvent = useCallback(
-    (...eventArgs: [ITrackingEvent]) => {
-      dispatch(saveEvent(eventArgs));
+    (event: ITrackingEvent) => {
+      dispatch(saveEvent([event]));
     },
     [dispatch],
   );
@@ -94,7 +94,6 @@ const ManualBackupStep1 = () => {
   const [view, setView] = useState(SEED_PHRASE);
   const [words, setWords] = useState<string[]>([]);
   const [hasFunds, setHasFunds] = useState(false);
-  const hasInitialized = useRef(false);
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { isEnabled: isMetricsEnabled } = useMetrics();
@@ -133,6 +132,8 @@ const ManualBackupStep1 = () => {
           route,
           {
             headerLeft,
+            // Explicitly set headerRight to undefined to prevent any default
+            // header right component from appearing in backup flows
             headerRight: undefined,
           },
           colors,
@@ -155,44 +156,68 @@ const ManualBackupStep1 = () => {
 
   const showWhatIsSeedphrase = useCallback(() => {
     showSeedphraseDefinition({
-      navigation: navigation as never,
+      navigation: navigation as unknown as Parameters<
+        typeof showSeedphraseDefinition
+      >[0]['navigation'],
       track,
       location: 'manual_backup_step_1',
     });
   }, [navigation, track]);
 
   useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
+    let cancelled = false;
 
-    const getSeedphrase = async () => {
-      if (!words.length) {
-        try {
-          const credentials = await Authentication.getPassword();
-          if (credentials) {
-            setWords(await tryExportSeedPhrase(credentials.password));
-          } else {
-            setView(CONFIRM_PASSWORD);
+    const initializeSeedPhrase = async () => {
+      if (seedPhrase) {
+        if (!cancelled) {
+          setWords(seedPhrase);
+          setReady(true);
+        }
+        return;
+      }
+
+      const wordsFromParams = route.params?.words;
+      if (wordsFromParams && wordsFromParams.length > 0) {
+        if (!cancelled) {
+          setWords(wordsFromParams);
+          setReady(true);
+        }
+        return;
+      }
+
+      try {
+        const credentials = await Authentication.getPassword();
+        if (cancelled) return;
+
+        if (credentials && !cancelled) {
+          const exportedWords = await tryExportSeedPhrase(credentials.password);
+          if (!cancelled) {
+            setWords(exportedWords);
+            setReady(true);
           }
-        } catch (e) {
-          const srpRecoveryError = new Error(
-            'Error trying to recover SRP from keyring-controller',
-          );
-          Logger.error(srpRecoveryError);
+        } else if (!cancelled) {
           setView(CONFIRM_PASSWORD);
+          setReady(true);
+        }
+      } catch (e) {
+        const srpRecoveryError = new Error(
+          'Error trying to recover SRP from keyring-controller',
+        );
+        Logger.error(srpRecoveryError);
+        if (!cancelled) {
+          setView(CONFIRM_PASSWORD);
+          setReady(true);
         }
       }
     };
 
-    if (seedPhrase) {
-      setWords(seedPhrase);
-    } else {
-      getSeedphrase();
-      setWords(route.params?.words ?? []);
-    }
+    initializeSeedPhrase();
 
-    setReady(true);
-  }, [seedPhrase, route.params?.words, words.length]);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     updateNavBar();
@@ -218,7 +243,9 @@ const ManualBackupStep1 = () => {
 
   const skip = useCallback(async () => {
     await handleSkipBackup({
-      navigation: navigation as never,
+      navigation: navigation as unknown as Parameters<
+        typeof handleSkipBackup
+      >[0]['navigation'],
       routeParams: route.params,
       isMetricsEnabled,
       track,
@@ -239,18 +266,33 @@ const ManualBackupStep1 = () => {
     track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED, {});
   };
 
+  const isMountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
   const tryUnlockWithPassword = async (pwd: string) => {
     setReady(false);
     try {
       const exportedSeedPhrase = await tryExportSeedPhrase(pwd);
+      if (!isMountedRef.current) return;
       setWords(exportedSeedPhrase);
       setView(SEED_PHRASE);
       setReady(true);
     } catch (e) {
-      let msg = strings('reveal_credential.warning_incorrect_password');
-      if (String(e).toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
-        msg = strings('reveal_credential.unknown_error');
-      }
+      if (!isMountedRef.current) return;
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      const wrongPasswordMessage = WRONG_PASSWORD_ERROR.replace('Error: ', '');
+
+      const msg =
+        errorMessage.toLowerCase() === wrongPasswordMessage.toLowerCase()
+          ? strings('reveal_credential.warning_incorrect_password')
+          : strings('reveal_credential.unknown_error');
+
       setWarningIncorrectPassword(msg);
       setReady(true);
     }
