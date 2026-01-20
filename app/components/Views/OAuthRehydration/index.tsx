@@ -425,7 +425,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return;
       }
 
-      if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      const isPasscodeNotSet = loginErrorMessage === PASSCODE_NOT_SET_ERROR;
+
+      if (isPasscodeNotSet) {
         Alert.alert(
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
@@ -438,7 +440,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
           account_type: 'social',
           failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
+          error_type: isPasscodeNotSet ? 'passcode_not_set' : 'unknown_error',
         });
       }
 
