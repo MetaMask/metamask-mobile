@@ -13,7 +13,7 @@ describe(
     });
 
     it('Should sign a message', async () => {
-      await withSolanaAccountEnabled({}, async () => {
+      await withSolanaAccountEnabled({ numberOfAccounts: 0 }, async () => {
         await navigateToSolanaTestDApp();
 
         await connectSolanaTestDapp();

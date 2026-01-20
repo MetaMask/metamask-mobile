@@ -15,93 +15,87 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
-const isMultichainAccountsState2Enabled =
-  process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
-
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
 
-  (isMultichainAccountsState2Enabled ? it : it.skip)(
-    'should filter by Solana',
-    async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withSolanaFixture()
-            .withTokensForAllPopularNetworks([
+  it('should filter by Solana', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withSolanaFixture()
+          .withTokensForAllPopularNetworks([
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              symbol: 'ETH',
+              decimals: 18,
+              name: 'Ethereum',
+            },
+            {
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              symbol: 'USDC',
+              decimals: 6,
+              name: 'USD Coin',
+            },
+            {
+              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+              symbol: 'DAI',
+              decimals: 18,
+              name: 'Dai Stablecoin',
+            },
+          ])
+          .withTokens(
+            [
               {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                decimals: 18,
-                name: 'Ethereum',
+                address: 'So11111111111111111111111111111111111111112',
+                symbol: 'SOL',
+                decimals: 9,
+                name: 'SOL',
               },
-              {
-                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-                symbol: 'USDC',
-                decimals: 6,
-                name: 'USD Coin',
-              },
-              {
-                address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-                symbol: 'DAI',
-                decimals: 18,
-                name: 'Dai Stablecoin',
-              },
-            ])
-            .withTokens(
-              [
-                {
-                  address: 'So11111111111111111111111111111111111111112',
-                  symbol: 'SOL',
-                  decimals: 9,
-                  name: 'SOL',
-                },
-              ],
-              '1151111081099710', // Solana chain ID
-            )
-            .build(),
-          restartDevice: true,
-        },
-        async () => {
-          await loginToApp();
+            ],
+            '1151111081099710', // Solana chain ID
+          )
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
 
-          // Open network manager and verify initial state
-          await NetworkManager.openNetworkManager();
-          await NetworkManager.waitForNetworkManagerToLoad();
-          await NetworkManager.checkPopularNetworksContainerIsVisible();
-          await NetworkManager.checkTabIsSelected('Popular');
+        // Open network manager and verify initial state
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.waitForNetworkManagerToLoad();
+        await NetworkManager.checkPopularNetworksContainerIsVisible();
+        await NetworkManager.checkTabIsSelected('Popular');
 
-          // Select Solana network
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
+        // Select Solana network
+        await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
 
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.SOLANA,
-          );
+        await NetworkManager.checkBaseControlBarText(
+          NetworkToCaipChainId.SOLANA,
+        );
 
-          // Verify tokens that should be visible on Solana
-          const expectedVisibleTokens = ['SOL'];
-          for (const token of expectedVisibleTokens) {
-            await NetworkManager.checkTokenIsVisible(token);
-          }
+        // Verify tokens that should be visible on Solana
+        const expectedVisibleTokens = ['SOL'];
+        for (const token of expectedVisibleTokens) {
+          await NetworkManager.checkTokenIsVisible(token);
+        }
 
-          // Verify EVM tokens that should not be visible (from other networks)
-          const expectedHiddenTokens = [
-            'PALM',
-            'AVAX',
-            'BNB',
-            'ETH',
-            'USDC',
-            'DAI',
-          ];
-          for (const token of expectedHiddenTokens) {
-            await NetworkManager.checkTokenIsNotVisible(token);
-          }
-        },
-      );
-    },
-  );
+        // Verify EVM tokens that should not be visible (from other networks)
+        const expectedHiddenTokens = [
+          'PALM',
+          'AVAX',
+          'BNB',
+          'ETH',
+          'USDC',
+          'DAI',
+        ];
+        for (const token of expectedHiddenTokens) {
+          await NetworkManager.checkTokenIsNotVisible(token);
+        }
+      },
+    );
+  });
 
   it('should filter tokens by selected network from list of enabled popular networks', async () => {
     await withFixtures(
