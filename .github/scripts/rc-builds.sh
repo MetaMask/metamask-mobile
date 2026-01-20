@@ -110,7 +110,7 @@ fi
 ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts")
 
-ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data | .[] | select(.is_public_page_enabled==true) | .slug')
+ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '[.data[] | select(.is_public_page_enabled==true)] | first | .slug // empty')
 
 if [[ -z "$ANDROID_ARTIFACT_ID" || "$ANDROID_ARTIFACT_ID" == "null" ]]; then
   echo "Warning: No public Android artifact found"
@@ -125,7 +125,7 @@ fi
 IOS_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_WORKFLOW_ID/artifacts")
 
-IOS_ARTIFACT_ID=$(echo "$IOS_ARTIFACTS" | jq -r '.data | .[] | select(.is_public_page_enabled==true) | .slug')
+IOS_ARTIFACT_ID=$(echo "$IOS_ARTIFACTS" | jq -r '[.data[] | select(.is_public_page_enabled==true)] | first | .slug // empty')
 
 if [[ -z "$IOS_ARTIFACT_ID" || "$IOS_ARTIFACT_ID" == "null" ]]; then
   echo "Warning: No public iOS artifact found"

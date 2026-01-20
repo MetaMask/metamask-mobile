@@ -2,42 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Octokit } from '@octokit/rest';
+import { minimizeComment } from './lib/github-utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
-
-/**
- * Minimizes (hides) a comment using GitHub GraphQL API
- * @param {Octokit} octokit - Octokit instance
- * @param {string} nodeId - The GraphQL node ID of the comment
- * @returns {Promise<boolean>} Whether the operation was successful
- */
-async function minimizeComment(octokit, nodeId) {
-  try {
-    await octokit.graphql(
-      `
-      mutation MinimizeComment($id: ID!, $classifier: ReportedContentClassifiers!) {
-        minimizeComment(input: { subjectId: $id, classifier: $classifier }) {
-          minimizedComment {
-            isMinimized
-            minimizedReason
-          }
-        }
-      }
-      `,
-      {
-        id: nodeId,
-        classifier: 'OUTDATED',
-      },
-    );
-    return true;
-  } catch (error) {
-    console.error(`Failed to minimize comment ${nodeId}:`, error.message);
-    return false;
-  }
-}
 
 /**
  * Fetches job IDs from GitHub Actions API for a given workflow run

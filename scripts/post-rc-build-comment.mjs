@@ -1,37 +1,7 @@
 import { Octokit } from '@octokit/rest';
+import { minimizeComment, isValidUrl } from './lib/github-utils.mjs';
 
 const RC_BUILD_COMMENT_MARKER = '<!-- metamask-bot-rc-build-announce -->';
-
-/**
- * Minimizes (hides) a comment using GitHub GraphQL API
- * @param {Octokit} octokit - Octokit instance
- * @param {string} nodeId - The GraphQL node ID of the comment
- * @returns {Promise<boolean>} Whether the operation was successful
- */
-async function minimizeComment(octokit, nodeId) {
-  try {
-    await octokit.graphql(
-      `
-      mutation MinimizeComment($id: ID!, $classifier: ReportedContentClassifiers!) {
-        minimizeComment(input: { subjectId: $id, classifier: $classifier }) {
-          minimizedComment {
-            isMinimized
-            minimizedReason
-          }
-        }
-      }
-      `,
-      {
-        id: nodeId,
-        classifier: 'OUTDATED',
-      },
-    );
-    return true;
-  } catch (error) {
-    console.error(`Failed to minimize comment ${nodeId}:`, error.message);
-    return false;
-  }
-}
 
 /**
  * Posts a new PR comment with RC build links from Bitrise and minimizes older RC build comments.
@@ -83,21 +53,25 @@ async function start() {
   const buildNum = BUILD_NUMBER || 'Unknown';
 
   // Add iOS row if public URL is available
-  if (IOS_PUBLIC_URL && IOS_PUBLIC_URL !== 'N/A' && IOS_PUBLIC_URL !== 'null') {
+  if (isValidUrl(IOS_PUBLIC_URL)) {
     rows.push(`| **iOS** | [Install](${IOS_PUBLIC_URL}) | RC ${version} (${buildNum}) |`);
   }
 
   // Add Android row if public URL is available
-  if (ANDROID_PUBLIC_URL && ANDROID_PUBLIC_URL !== 'N/A' && ANDROID_PUBLIC_URL !== 'null') {
+  if (isValidUrl(ANDROID_PUBLIC_URL)) {
     rows.push(`| **Android** | [Install](${ANDROID_PUBLIC_URL}) | RC ${version} (${buildNum}) |`);
   }
 
   if (rows.length === 0) {
-    console.log('No public install URLs available to report');
-    process.exit(0);
+    console.error('ERROR: No public install URLs available to report.');
+    console.error(`  ANDROID_PUBLIC_URL: ${ANDROID_PUBLIC_URL || '(not set)'}`);
+    console.error(`  IOS_PUBLIC_URL: ${IOS_PUBLIC_URL || '(not set)'}`);
+    console.error('This may indicate a Bitrise configuration issue - artifacts may not have public pages enabled.');
+    // Exit with error to make the issue visible in CI
+    process.exit(1);
   }
 
-  const pipelineLink = BITRISE_PIPELINE_URL && BITRISE_PIPELINE_URL !== 'N/A'
+  const pipelineLink = isValidUrl(BITRISE_PIPELINE_URL)
     ? `[View Pipeline](${BITRISE_PIPELINE_URL})`
     : 'Not available';
 
