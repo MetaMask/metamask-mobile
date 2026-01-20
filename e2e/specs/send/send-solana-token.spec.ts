@@ -7,21 +7,23 @@ import { withSolanaAccountEnabled } from '../../common-solana';
 
 const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
 
-// TODO: Update test to be BIP-44 compatible
-// https://github.com/MetaMask/metamask-mobile/issues/24153
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip(SmokeConfirmationsRedesigned('Send SOL token'), () => {
+describe(SmokeConfirmationsRedesigned('Send SOL token'), () => {
   it('should send solana to an address', async () => {
-    await withSolanaAccountEnabled({}, async () => {
-      await device.disableSynchronization();
-      await WalletView.tapOnToken('Solana', 1);
-      await TokenOverview.tapSendButton();
-      // using 0 value as balance of SOL is not loaded at times making test flaky
-      await SendView.enterZeroAmount();
-      await SendView.pressContinueButton();
-      await SendView.inputRecipientAddress(RECIPIENT);
-      await SendView.pressReviewButton();
-      await SolanaTestDApp.tapCancelButton();
-    });
+    await withSolanaAccountEnabled(
+      {
+        numberOfAccounts: 0,
+      },
+      async () => {
+        await device.disableSynchronization();
+        await WalletView.tapOnToken('Solana', 1);
+        await TokenOverview.tapSendButton();
+        // using 0 value as balance of SOL is not loaded at times making test flaky
+        await SendView.enterZeroAmount();
+        await SendView.pressContinueButton();
+        await SendView.inputRecipientAddress(RECIPIENT);
+        await SendView.pressReviewButton();
+        await SolanaTestDApp.tapCancelButton();
+      },
+    );
   });
 });
