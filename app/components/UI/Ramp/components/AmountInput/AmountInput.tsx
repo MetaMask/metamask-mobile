@@ -28,7 +28,10 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { useSelector } from 'react-redux';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import { selectUserRegion } from '../../../../../selectors/rampsController';
+import {
+  selectUserRegion,
+  selectPreferredProvider,
+} from '../../../../../selectors/rampsController';
 
 interface AmountInputParams {
   assetId?: string;
@@ -47,11 +50,15 @@ function AmountInput() {
 
   // Get user region data from RampsController (via Redux selector)
   const userRegion = useSelector(selectUserRegion);
+  const preferredProvider = useSelector(selectPreferredProvider);
 
   // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
   const hasQuickAmounts = quickAmounts && quickAmounts.length > 0;
+
+  // Get provider name - only show if user has a preferred provider set
+  const providerName = preferredProvider?.name;
 
   // Get token and network info for the navbar
   const { allTokens } = useRampTokens();
@@ -138,11 +145,13 @@ function AmountInput() {
           </View>
 
           <View style={styles.actionSection}>
-            <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
-              {strings('fiat_on_ramp.powered_by_provider', {
-                provider: 'Transak',
-              })}
-            </Text>
+            {providerName && (
+              <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
+                {strings('fiat_on_ramp.powered_by_provider', {
+                  provider: providerName,
+                })}
+              </Text>
+            )}
             {hasAmount ? (
               <Button
                 variant={ButtonVariant.Primary}

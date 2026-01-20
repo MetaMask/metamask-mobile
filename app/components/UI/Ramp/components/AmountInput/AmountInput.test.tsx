@@ -94,16 +94,24 @@ const defaultUserRegion: MockUserRegion = {
 };
 
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
+let mockPreferredProvider: unknown = null;
 
 jest.mock('../../../../../selectors/rampsController', () => ({
-  selectUserRegion: jest.fn(),
+  selectUserRegion: 'selectUserRegion',
+  selectPreferredProvider: 'selectPreferredProvider',
 }));
-
-const mockUseSelector = jest.fn();
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: (selector: unknown) => mockUseSelector(selector),
+  useSelector: (selector: unknown) => {
+    if (selector === 'selectUserRegion') {
+      return mockUserRegion;
+    }
+    if (selector === 'selectPreferredProvider') {
+      return mockPreferredProvider;
+    }
+    return null;
+  },
 }));
 
 const renderWithTheme = (component: React.ReactElement) =>
@@ -117,7 +125,7 @@ describe('AmountInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUserRegion = defaultUserRegion;
-    mockUseSelector.mockReturnValue(mockUserRegion);
+    mockPreferredProvider = null;
     mockUseRampTokens.mockReturnValue({
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -246,7 +254,7 @@ describe('AmountInput', () => {
   });
 
   it('does not render quick amount buttons when no quick amounts are available', () => {
-    const emptyQuickAmountsRegion = {
+    mockUserRegion = {
       country: {
         currency: 'USD',
         quickAmounts: [],
@@ -254,7 +262,6 @@ describe('AmountInput', () => {
       state: null,
       regionCode: 'us',
     };
-    mockUseSelector.mockReturnValue(emptyQuickAmountsRegion);
 
     const { queryByTestId } = renderWithTheme(<AmountInput />);
 
@@ -287,11 +294,28 @@ describe('AmountInput', () => {
     expect(getByTestId('amount-input-continue-button')).toBeOnTheScreen();
   });
 
-  it('displays powered by provider text always', () => {
+  it('displays powered by provider text when preferred provider is set', () => {
+    mockPreferredProvider = {
+      id: '/providers/transak',
+      name: 'Transak',
+      environmentType: 'PRODUCTION',
+      description: 'Test Provider',
+      hqAddress: '123 Test St',
+      links: [],
+      logos: { light: '', dark: '', height: 24, width: 79 },
+    };
+
     const { getByText } = renderWithTheme(<AmountInput />);
 
-    // Powered by text is visible even without entering an amount
     expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
+  });
+
+  it('does not display powered by text when no preferred provider is set', () => {
+    mockPreferredProvider = null;
+
+    const { queryByText } = renderWithTheme(<AmountInput />);
+
+    expect(queryByText('fiat_on_ramp.powered_by_provider')).toBeNull();
   });
 
   it('matches snapshot', () => {

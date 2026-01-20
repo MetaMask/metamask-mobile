@@ -35,6 +35,7 @@ import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import {
   getRampRoutingDecision,
   getDetectedGeolocation,
@@ -57,6 +58,10 @@ function TokenSelection() {
   const { topTokens, allTokens, isLoading, error } = useRampTokens();
   const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
+
+  // Initialize user region from RampsController (fetches on mount)
+  // todo: remove this when implementing ramps controller initialization
+  useRampsUserRegion();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
 
