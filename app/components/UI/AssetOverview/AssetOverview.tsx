@@ -118,8 +118,8 @@ import {
 } from '../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
 ///: END:ONLY_INCLUDE_IF
-import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import { useRampsController } from '../Ramp/hooks/useRampsController';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
 
@@ -229,7 +229,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
 
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { userRegion } = useRampsController();
+  const rampGeodetectedRegion = userRegion?.regionCode;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 

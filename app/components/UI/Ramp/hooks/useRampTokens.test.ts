@@ -5,6 +5,7 @@ import { handleFetch } from '@metamask/controller-utils';
 import { useRampTokens, RampsToken } from './useRampTokens';
 import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
+import type { Country } from '@metamask/ramps-controller';
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -13,6 +14,11 @@ jest.mock('@metamask/controller-utils', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+const mockUseRampsController = jest.fn();
+jest.mock('./useRampsController', () => ({
+  useRampsController: () => mockUseRampsController(),
 }));
 
 // Mock network configurations for the selector
@@ -80,13 +86,11 @@ const createMockResponse = (
 
 const createMockState = (
   rampRoutingDecision: UnifiedRampRoutingType | null = null,
-  detectedGeolocation?: string,
 ) => ({
   ...initialRootState,
   fiatOrders: {
     ...initialRootState.fiatOrders,
     rampRoutingDecision,
-    detectedGeolocation,
   },
 });
 
@@ -96,6 +100,27 @@ describe('useRampTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.METAMASK_ENVIRONMENT = 'dev';
+    mockUseRampsController.mockReturnValue({
+      userRegion: { regionCode: 'us-ca', country: {} as Country, state: null },
+      userRegionLoading: false,
+      userRegionError: null,
+      fetchUserRegion: jest.fn(),
+      setUserRegion: jest.fn(),
+      preferredProvider: null,
+      setPreferredProvider: jest.fn(),
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      fetchProviders: jest.fn(),
+      tokens: null,
+      tokensLoading: false,
+      tokensError: null,
+      fetchTokens: jest.fn(),
+      countries: null,
+      countriesLoading: false,
+      countriesError: null,
+      fetchCountries: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -122,7 +147,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -138,6 +163,27 @@ describe('useRampTokens', () => {
     });
 
     it('fetches tokens for DEPOSIT routing decision', async () => {
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: { regionCode: 'uk', country: {} as Country, state: null },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       const mockTopTokens = [createMockToken()];
       const mockAllTokens = [
         ...mockTopTokens,
@@ -147,7 +193,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'uk'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -170,7 +216,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -192,7 +238,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -211,7 +257,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -230,7 +276,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -249,7 +295,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -268,7 +314,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -287,7 +333,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -306,7 +352,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -331,7 +377,7 @@ describe('useRampTokens', () => {
 
     it('returns null for UNSUPPORTED routing decision', () => {
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.UNSUPPORTED, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.UNSUPPORTED),
       });
 
       expect(result.current.topTokens).toBeNull();
@@ -342,7 +388,7 @@ describe('useRampTokens', () => {
 
     it('returns null for ERROR routing decision', () => {
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.ERROR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.ERROR),
       });
 
       expect(result.current.topTokens).toBeNull();
@@ -353,7 +399,7 @@ describe('useRampTokens', () => {
 
     it('returns null for null routing decision', () => {
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(null, 'us-ca'),
+        state: createMockState(null),
       });
 
       expect(result.current.topTokens).toBeNull();
@@ -369,7 +415,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockRejectedValueOnce(mockError);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -386,7 +432,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockRejectedValueOnce(mockError);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -405,7 +451,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -432,7 +478,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -448,7 +494,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockRejectedValueOnce(mockError);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -479,7 +525,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {
@@ -517,7 +563,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT),
       });
 
       await waitFor(() => {
@@ -544,7 +590,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
       await waitFor(() => {

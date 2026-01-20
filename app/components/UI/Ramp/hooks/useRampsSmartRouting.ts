@@ -4,7 +4,6 @@ import { Order } from '@consensys/on-ramp-sdk';
 import {
   setRampRoutingDecision,
   UnifiedRampRoutingType,
-  getDetectedGeolocation,
 } from '../../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import type { RootState } from '../../../../reducers';
@@ -13,6 +12,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
+import { useRampsController } from './useRampsController';
 import Logger from '../../../../util/Logger';
 
 /**
@@ -65,7 +65,9 @@ export default function useRampsSmartRouting() {
   const unifiedV1Enabled = useRampsUnifiedV1Enabled();
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.fiatOrders.orders);
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { userRegion } = useRampsController();
+
+  const regionCode = userRegion?.regionCode;
 
   useEffect(() => {
     if (!unifiedV1Enabled) {
@@ -73,7 +75,7 @@ export default function useRampsSmartRouting() {
     }
 
     const initializeRampRoutingDecision = async () => {
-      if (!rampGeodetectedRegion) {
+      if (!regionCode) {
         dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
         return;
       }
@@ -81,7 +83,7 @@ export default function useRampsSmartRouting() {
       try {
         const baseUrl = getBaseUrl();
         const url = new URL(
-          `/regions/countries/${rampGeodetectedRegion}`,
+          `/regions/countries/${regionCode}`,
           baseUrl,
         ).toString();
         const response = await fetch(url);
@@ -132,5 +134,5 @@ export default function useRampsSmartRouting() {
     };
 
     initializeRampRoutingDecision();
-  }, [rampGeodetectedRegion, orders, unifiedV1Enabled, dispatch]);
+  }, [regionCode, orders, unifiedV1Enabled, dispatch]);
 }

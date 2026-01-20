@@ -11,6 +11,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import { RootState } from '../../../../reducers';
+import type { Country } from '@metamask/ramps-controller';
 
 const mockDispatch = jest.fn();
 const mockUseSelector = jest.fn();
@@ -33,8 +34,12 @@ jest.mock('./useRampsUnifiedV1Enabled', () => ({
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
+const mockUseRampsController = jest.fn();
+jest.mock('./useRampsController', () => ({
+  useRampsController: () => mockUseRampsController(),
+}));
+
 let mockOrders: FiatOrder[] = [];
-let mockDetectedGeolocation: string | undefined;
 
 interface CreateMockOrderOptions {
   provider: FIAT_ORDER_PROVIDERS;
@@ -83,11 +88,11 @@ const createAggregatorOrder = (
 const mockApiResponse = ({
   deposit,
   aggregator,
-  global,
+  global: isGlobal,
 }: RampEligibilityAPIResponse) => {
   mockFetch.mockImplementation(async () => ({
     ok: true,
-    json: async () => ({ deposit, aggregator, global }),
+    json: async () => ({ deposit, aggregator, global: isGlobal }),
   }));
 };
 
@@ -95,7 +100,6 @@ describe('useRampsSmartRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOrders = [];
-    mockDetectedGeolocation = 'us-ca';
     process.env.METAMASK_ENVIRONMENT = 'dev';
     mockApiResponse({
       deposit: true,
@@ -103,12 +107,32 @@ describe('useRampsSmartRouting', () => {
       global: true,
     });
     mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+    mockUseRampsController.mockReturnValue({
+      userRegion: { regionCode: 'us-ca', country: {} as Country, state: null },
+      userRegionLoading: false,
+      userRegionError: null,
+      fetchUserRegion: jest.fn(),
+      setUserRegion: jest.fn(),
+      preferredProvider: null,
+      setPreferredProvider: jest.fn(),
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      fetchProviders: jest.fn(),
+      tokens: null,
+      tokensLoading: false,
+      tokensError: null,
+      fetchTokens: jest.fn(),
+      countries: null,
+      countriesLoading: false,
+      countriesError: null,
+      fetchCountries: jest.fn(),
+    });
 
     mockUseSelector.mockImplementation((selector) => {
       const state = {
         fiatOrders: {
           orders: mockOrders,
-          detectedGeolocation: mockDetectedGeolocation,
         },
       };
       return selector(state);
@@ -161,7 +185,31 @@ describe('useRampsSmartRouting', () => {
   describe('API endpoint selection', () => {
     it('calls production URL for production environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
-      mockDetectedGeolocation = 'us-ca';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: {
+          regionCode: 'us-ca',
+          country: {} as Country,
+          state: null,
+        },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -175,7 +223,31 @@ describe('useRampsSmartRouting', () => {
 
     it('calls production URL for beta environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'beta';
-      mockDetectedGeolocation = 'us-ca';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: {
+          regionCode: 'us-ca',
+          country: {} as Country,
+          state: null,
+        },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -189,7 +261,31 @@ describe('useRampsSmartRouting', () => {
 
     it('calls production URL for rc environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'rc';
-      mockDetectedGeolocation = 'us-ca';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: {
+          regionCode: 'us-ca',
+          country: {} as Country,
+          state: null,
+        },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -203,7 +299,31 @@ describe('useRampsSmartRouting', () => {
 
     it('calls staging URL for dev environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
-      mockDetectedGeolocation = 'us-ca';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: {
+          regionCode: 'us-ca',
+          country: {} as Country,
+          state: null,
+        },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -217,7 +337,31 @@ describe('useRampsSmartRouting', () => {
 
     it('calls staging URL for exp environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'exp';
-      mockDetectedGeolocation = 'us-ca';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: {
+          regionCode: 'us-ca',
+          country: {} as Country,
+          state: null,
+        },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -231,7 +375,31 @@ describe('useRampsSmartRouting', () => {
 
     it('calls staging URL for test environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'test';
-      mockDetectedGeolocation = 'us-ca';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: {
+          regionCode: 'us-ca',
+          country: {} as Country,
+          state: null,
+        },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -245,7 +413,31 @@ describe('useRampsSmartRouting', () => {
 
     it('calls staging URL for e2e environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'e2e';
-      mockDetectedGeolocation = 'us-ca';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: {
+          regionCode: 'us-ca',
+          country: {} as Country,
+          state: null,
+        },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -354,7 +546,27 @@ describe('useRampsSmartRouting', () => {
     });
 
     it('routes to ERROR when geolocation is not detected', async () => {
-      mockDetectedGeolocation = undefined;
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: null,
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -890,7 +1102,27 @@ describe('useRampsSmartRouting', () => {
         aggregator: false,
         global: true,
       });
-      mockDetectedGeolocation = 'UK';
+      mockUseRampsController.mockReturnValueOnce({
+        userRegion: { regionCode: 'uk', country: {} as Country, state: null },
+        userRegionLoading: false,
+        userRegionError: null,
+        fetchUserRegion: jest.fn(),
+        setUserRegion: jest.fn(),
+        preferredProvider: null,
+        setPreferredProvider: jest.fn(),
+        providers: [],
+        providersLoading: false,
+        providersError: null,
+        fetchProviders: jest.fn(),
+        tokens: null,
+        tokensLoading: false,
+        tokensError: null,
+        fetchTokens: jest.fn(),
+        countries: null,
+        countriesLoading: false,
+        countriesError: null,
+        fetchCountries: jest.fn(),
+      });
 
       rerender({});
 

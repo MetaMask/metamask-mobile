@@ -4,10 +4,10 @@ import { handleFetch } from '@metamask/controller-utils';
 import type { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import {
   getRampRoutingDecision,
-  getDetectedGeolocation,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
+import { useRampsController } from './useRampsController';
 import Logger from '../../../../util/Logger';
 
 const SDK_VERSION = '2.1.5';
@@ -60,14 +60,16 @@ export function useRampTokens(): UseRampTokensResult {
   const [error, setError] = useState<Error | null>(null);
 
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const detectedGeolocation = useSelector(getDetectedGeolocation);
+  const { userRegion } = useRampsController();
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
 
+  const regionCode = userRegion?.regionCode;
+
   const fetchTokens = useCallback(async () => {
     // Don't fetch if no region detected
-    if (!detectedGeolocation) {
+    if (!regionCode) {
       setRawTopTokens(null);
       setRawAllTokens(null);
       setIsLoading(false);
@@ -102,10 +104,7 @@ export function useRampTokens(): UseRampTokensResult {
           : 'deposit';
 
       // Build URL using URL and searchParams
-      const url = new URL(
-        `/regions/${detectedGeolocation.toLowerCase()}/tokens`,
-        baseUrl,
-      );
+      const url = new URL(`/regions/${regionCode}/tokens`, baseUrl);
       url.searchParams.set('action', action);
       url.searchParams.set('sdk', SDK_VERSION);
 
@@ -123,7 +122,7 @@ export function useRampTokens(): UseRampTokensResult {
     } finally {
       setIsLoading(false);
     }
-  }, [detectedGeolocation, rampRoutingDecision]);
+  }, [regionCode, rampRoutingDecision]);
 
   useEffect(() => {
     fetchTokens();

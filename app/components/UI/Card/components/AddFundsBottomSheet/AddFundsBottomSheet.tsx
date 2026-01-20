@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -32,8 +31,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
-import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
+import { useRampsController } from '../../../Ramp/hooks/useRampsController';
 import {
   createNavigationDetails,
   useParams,
@@ -62,7 +61,8 @@ const AddFundsBottomSheet: React.FC = () => {
     priorityToken,
   });
   const { trackEvent, createEventBuilder } = useMetrics();
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { userRegion } = useRampsController();
+  const rampGeodetectedRegion = userRegion?.regionCode;
   const { goToDeposit } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
 

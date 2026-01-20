@@ -29,8 +29,8 @@ import type {
   FundActionMenuRouteProp,
   ActionConfig,
 } from './FundActionMenu.types';
-import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
+import { useRampsController } from '../Ramp/hooks/useRampsController';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 const FundActionMenu = () => {
@@ -46,7 +46,8 @@ const FundActionMenu = () => {
   const { isDepositEnabled } = useDepositEnabled();
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { userRegion } = useRampsController();
+  const rampGeodetectedRegion = userRegion?.regionCode;
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { goToBuy, goToAggregator, goToSell, goToDeposit } =
     useRampNavigation();

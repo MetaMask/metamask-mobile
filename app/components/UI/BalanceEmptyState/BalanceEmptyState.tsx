@@ -23,8 +23,8 @@ import { trace, TraceName } from '../../../util/trace';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
-import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import { useRampsController } from '../Ramp/hooks/useRampsController';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 
 /**
@@ -38,7 +38,8 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { userRegion } = useRampsController();
+  const rampGeodetectedRegion = userRegion?.regionCode;
   const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();

@@ -34,10 +34,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
 import useAnalytics from '../../hooks/useAnalytics';
-import {
-  getRampRoutingDecision,
-  getDetectedGeolocation,
-} from '../../../../../reducers/fiatOrders';
+import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
+import { useRampsController } from '../../hooks/useRampsController';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -57,7 +55,7 @@ function TokenSelection() {
   const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const detectedGeolocation = useSelector(getDetectedGeolocation);
+  const { userRegion } = useRampsController();
 
   // Use topTokens for initial display, allTokens when searching
   const supportedTokens = useMemo(() => {
@@ -81,7 +79,7 @@ function TokenSelection() {
       if (selectedToken) {
         trackEvent('RAMPS_TOKEN_SELECTED', {
           ramp_type: 'UNIFIED BUY',
-          region: detectedGeolocation || '',
+          region: userRegion?.regionCode || '',
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
           currency_destination_symbol: selectedToken.symbol,
@@ -100,7 +98,7 @@ function TokenSelection() {
       supportedTokens,
       trackEvent,
       getNetworkName,
-      detectedGeolocation,
+      userRegion?.regionCode,
       rampRoutingDecision,
       goToBuy,
       navigation,

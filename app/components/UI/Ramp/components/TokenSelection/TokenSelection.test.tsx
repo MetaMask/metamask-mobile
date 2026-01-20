@@ -8,6 +8,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
+import type { Country } from '@metamask/ramps-controller';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -46,7 +47,6 @@ function renderWithProvider(
           backgroundState,
         },
         fiatOrders: {
-          detectedGeolocation: 'US',
           rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
           ...customState?.fiatOrders,
         },
@@ -67,6 +67,11 @@ jest.mock('../../hooks/useRampNavigation', () => ({
 
 jest.mock('../../hooks/useRampTokens', () => ({
   useRampTokens: jest.fn(),
+}));
+
+const mockUseRampsController = jest.fn();
+jest.mock('../../hooks/useRampsController', () => ({
+  useRampsController: () => mockUseRampsController(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -94,6 +99,27 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockUseRampsController.mockReturnValue({
+      userRegion: { regionCode: 'us', country: {} as Country, state: null },
+      userRegionLoading: false,
+      userRegionError: null,
+      fetchUserRegion: jest.fn(),
+      setUserRegion: jest.fn(),
+      preferredProvider: null,
+      setPreferredProvider: jest.fn(),
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      fetchProviders: jest.fn(),
+      tokens: null,
+      tokensLoading: false,
+      tokensError: null,
+      fetchTokens: jest.fn(),
+      countries: null,
+      countriesLoading: false,
+      countriesError: null,
+      fetchCountries: jest.fn(),
+    });
 
     const rampsTokens = convertToRampsTokens(mockTokens);
     mockUseRampTokens.mockReturnValue({

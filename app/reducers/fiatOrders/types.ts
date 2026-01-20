@@ -34,7 +34,6 @@ import {
   updateOnRampNetworks,
   setFiatSellTxHash,
   removeFiatSellTxHash,
-  setDetectedGeolocation,
   setRampRoutingDecision,
 } from '.';
 import {
@@ -105,7 +104,6 @@ export interface FiatOrdersState {
   getStartedDeposit: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
-  detectedGeolocation?: string;
   rampRoutingDecision: UnifiedRampRoutingType | null;
 }
 
@@ -135,7 +133,6 @@ export const ACTIONS = {
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
   FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
-  FIAT_SET_DETECTED_GEOLOCATION: 'FIAT_SET_DETECTED_GEOLOCATION',
   FIAT_SET_RAMP_ROUTING_DECISION: 'FIAT_SET_RAMP_ROUTING_DECISION',
 } as const;
 
@@ -163,7 +160,6 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
   | ReturnType<typeof removeFiatSellTxHash>
-  | ReturnType<typeof setDetectedGeolocation>
   | ReturnType<typeof setRampRoutingDecision>;
 
 export type Region = Country & State;
