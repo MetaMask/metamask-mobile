@@ -505,14 +505,15 @@ const Onboarding = () => {
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError ||
-          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature
+          error.code === OAuthErrorType.AppleLoginError
         ) {
           // QA: do not show error sheet if user cancelled
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
-          error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+          error.code === OAuthErrorType.GoogleLoginNoMatchingCredential ||
+          error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
+          error.code === OAuthErrorType.GoogleLoginOneTapFailure
         ) {
           // For Android Google, try browser fallback instead of showing error
           if (Platform.OS === 'android' && socialConnectionType === 'google') {

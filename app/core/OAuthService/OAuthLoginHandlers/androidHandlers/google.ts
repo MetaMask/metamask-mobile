@@ -14,6 +14,7 @@ const ACM_ERRORS_REGEX = {
   NO_CREDENTIAL: /no credential/i,
   NO_MATCHING_CREDENTIAL: /matching credential/i,
   USER_DISABLED_FEATURE: /user disabled the feature/i,
+  ONE_TAP_FAILURE: /failure response from one tap/i,
 };
 
 /**
@@ -111,6 +112,11 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
           throw new OAuthError(
             'handleGoogleLogin: Google login has no matching credential',
             OAuthErrorType.GoogleLoginNoMatchingCredential,
+          );
+        } else if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(error.message)) {
+          throw new OAuthError(
+            'handleGoogleLogin: One tap failure',
+            OAuthErrorType.GoogleLoginOneTapFailure,
           );
         } else {
           throw new OAuthError(error, OAuthErrorType.UnknownError);
