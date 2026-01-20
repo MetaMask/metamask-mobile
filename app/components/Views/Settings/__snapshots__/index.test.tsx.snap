@@ -823,7 +823,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   }
                 }
               >
-                Buy & Sell crypto
+                Buy & sell crypto
               </Text>
               <Text
                 accessibilityRole="text"
