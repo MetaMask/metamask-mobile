@@ -512,10 +512,18 @@ const Onboarding = () => {
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
           error.code === OAuthErrorType.GoogleLoginNoMatchingCredential ||
+          // GoogleLoginUserDisabledOneTapFeature: User has disabled One Tap in their Google
+          // account settings. While this is a user preference, we still offer browser-based
+          // login as an alternative since the user's intent is to sign in - they just prefer
+          // not to use the One Tap UI. Browser OAuth provides a familiar login experience.
           error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
           error.code === OAuthErrorType.GoogleLoginOneTapFailure
         ) {
-          // For Android Google, try browser fallback instead of showing error
+          // For Android Google, try browser fallback instead of showing error.
+          // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
+          // fallback catch block to prevent nested fallback attempts. The browser-based
+          // fallback handler won't throw ACM-specific errors, but this pattern ensures
+          // we don't accidentally create infinite fallback loops if the code is refactored.
           if (Platform.OS === 'android' && socialConnectionType === 'google') {
             try {
               setLoading();
@@ -548,9 +556,20 @@ const Onboarding = () => {
               ) {
                 return;
               }
+              // Handle both OAuthError and unexpected errors from browser fallback
               if (fallbackError instanceof OAuthError) {
                 handleOAuthLoginError(fallbackError);
+              } else {
+                // Wrap unexpected errors as OAuthError to ensure they're properly handled
+                const wrappedError = new OAuthError(
+                  fallbackError instanceof Error
+                    ? fallbackError.message
+                    : 'Browser fallback failed with unknown error',
+                  OAuthErrorType.UnknownError,
+                );
+                handleOAuthLoginError(wrappedError);
               }
+              return;
             }
           }
           return;

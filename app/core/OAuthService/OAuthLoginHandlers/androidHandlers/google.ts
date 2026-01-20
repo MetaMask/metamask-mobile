@@ -9,6 +9,24 @@ import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 import Logger from '../../../../util/Logger';
 
+/**
+ * Regex patterns for Android Credential Manager (ACM) error messages.
+ *
+ * IMPORTANT: The order of checks in the login() catch block matters!
+ * Some error messages contain multiple matching patterns. For example:
+ * "During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error"
+ * matches both ONE_TAP_FAILURE and NO_MATCHING_CREDENTIAL.
+ *
+ * Current priority order (more specific patterns first):
+ * 1. CANCEL - user explicitly cancelled
+ * 2. USER_DISABLED_FEATURE - user disabled One Tap
+ * 3. NO_CREDENTIAL - no Google account available
+ * 4. NO_MATCHING_CREDENTIAL - account exists but doesn't match (contains "matching credential")
+ * 5. ONE_TAP_FAILURE - generic One Tap failure (catch-all for other One Tap issues)
+ *
+ * If you modify these patterns or add new ones, ensure the check order in login()
+ * handles overlapping matches correctly.
+ */
 const ACM_ERRORS_REGEX = {
   CANCEL: /cancel/i,
   NO_CREDENTIAL: /no credential/i,
@@ -114,8 +132,12 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             OAuthErrorType.GoogleLoginNoMatchingCredential,
           );
         } else if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(error.message)) {
+          if (!this.retried) {
+            this.retried = true;
+            return await this.login();
+          }
           throw new OAuthError(
-            'handleGoogleLogin: One tap failure',
+            `handleGoogleLogin: One tap failure - ${error.message}`,
             OAuthErrorType.GoogleLoginOneTapFailure,
           );
         } else {
