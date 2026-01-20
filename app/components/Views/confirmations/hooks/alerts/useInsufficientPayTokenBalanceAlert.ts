@@ -7,6 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayIsMaxAmount,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -27,6 +28,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const isLoading = useIsTransactionPayLoading();
   const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
   const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
+  const isMax = useTransactionPayIsMaxAmount();
 
   const sourceChainId = payToken?.chainId ?? '0x0';
 
@@ -47,15 +49,17 @@ export function useInsufficientPayTokenBalanceAlert({
 
   const totalAmountUsd = useMemo(
     () =>
-      pendingAmountUsd
-        ? new BigNumber(pendingAmountUsd)
-        : requiredTokens
-            .filter((t) => !t.skipIfBalance)
-            .reduce(
-              (acc, t) => acc.plus(new BigNumber(t.amountUsd)),
-              new BigNumber(0),
-            ),
-    [pendingAmountUsd, requiredTokens],
+      isMax
+        ? new BigNumber(balanceUsd ?? '0')
+        : pendingAmountUsd
+          ? new BigNumber(pendingAmountUsd)
+          : requiredTokens
+              .filter((t) => !t.skipIfBalance)
+              .reduce(
+                (acc, t) => acc.plus(new BigNumber(t.amountUsd)),
+                new BigNumber(0),
+              ),
+    [balanceUsd, isMax, pendingAmountUsd, requiredTokens],
   );
 
   const totalSourceAmountRaw = useMemo(() => {

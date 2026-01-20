@@ -1,4 +1,4 @@
-# Version: 0.3.0
+# Version: 0.4.0
 name: Cursor Issue Analysis
 
 on:
@@ -42,40 +42,23 @@ jobs:
         if: steps.check-comment.outputs.exists != 'true'
         uses: actions/checkout@v4
 
-      - name: Configure Cursor permissions
+      - name: Setup Cursor CLI
         if: steps.check-comment.outputs.exists != 'true'
-        run: |
-          # Strict allowlist: only read source code, deny everything else
-          mkdir -p .cursor
-          printf '%s\n' '{"permissions":{"allow":["Read(app/**/*)","Read(src/**/*)","Read(e2e/**/*)","Read(docs/**/*)","Read(*.md)","Read(*.json)","Read(*.ts)","Read(*.tsx)","Read(*.js)"],"deny":["Shell(*)","Write(*)","Read(.env*)","Read(**/.env*)","Read(**/secrets/**)","Read(**/*.pem)","Read(**/*.key)","Read(**/*.secret)","Read(.git/**)","Read(node_modules/**)"]}}' > .cursor/permissions.json
-
-      - name: Install Cursor CLI
-        if: steps.check-comment.outputs.exists != 'true'
-        run: |
-          curl https://cursor.com/install -fsS | bash
-          echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
-
-      - name: Fetch issue details
-        if: steps.check-comment.outputs.exists != 'true'
-        id: issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          # Use env vars to prevent shell injection
-          ISSUE_CONTENT=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json title,body,comments,labels)
-
-          # Base64 encode to safely pass through GitHub Actions outputs
-          ENCODED=$(printf '%s' "$ISSUE_CONTENT" | base64 -w 0)
-          echo "content=$ENCODED" >> "$GITHUB_OUTPUT"
+        id: cursor-setup
+        uses: ./.github/actions/cursor-cli-setup
+        with:
+          cursor-api-key: ${{ secrets.CURSOR_API_KEY }}
+          issue-number: ${{ github.event.issue.number }}
+          repository: ${{ github.repository }}
+          github-token: ${{ github.token }}
+          read-only: 'true'
 
       - name: Run Cursor Analysis
         if: steps.check-comment.outputs.exists != 'true'
         id: analysis
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
-          ISSUE_CONTENT_B64: ${{ steps.issue.outputs.content }}
+          ISSUE_CONTENT_B64: ${{ steps.cursor-setup.outputs.issue-content }}
         run: |
           # Decode issue content from base64
           # Note: Variable expansion in double quotes does NOT execute command substitutions

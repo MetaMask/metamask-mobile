@@ -21,7 +21,10 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { TokenI } from '../../../Tokens/types';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { parseFloatSafe } from '../../utils/number';
 import styleSheet from './EmptyStateCta.styles';

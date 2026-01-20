@@ -5,8 +5,17 @@ inputs:
     description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
     required: true
   claude-api-key:
-    description: 'Claude API key for AI analysis'
-    required: true
+    description: 'Anthropic Claude API key for AI analysis (primary provider)'
+    required: false
+    default: ''
+  openai-api-key:
+    description: 'OpenAI API key for AI analysis (fallback provider)'
+    required: false
+    default: ''
+  google-api-key:
+    description: 'Google Gemini API key for AI analysis (fallback provider)'
+    required: false
+    default: ''
   github-token:
     description: 'GitHub token for PR comments'
     required: true
@@ -68,7 +77,7 @@ runs:
         mkdir -p /tmp/ai-deps
         cd /tmp/ai-deps
         npm init -y
-        npm install @anthropic-ai/sdk@0.68.0 esbuild-register@3.6.0 --no-audit --no-fund
+        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.24.1 esbuild-register@3.6.0 --no-audit --no-fund
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
@@ -99,6 +108,8 @@ runs:
       shell: bash
       env:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
+        E2E_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        E2E_GEMINI_API_KEY: ${{ inputs.google-api-key }}
         EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
         GH_TOKEN: ${{ inputs.github-token }}
