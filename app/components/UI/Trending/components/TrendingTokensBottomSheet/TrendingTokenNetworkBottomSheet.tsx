@@ -7,9 +7,7 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   AvatarSize,
   AvatarVariant,

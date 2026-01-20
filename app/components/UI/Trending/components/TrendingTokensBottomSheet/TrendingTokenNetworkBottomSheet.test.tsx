@@ -179,7 +179,11 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
 });
 
 jest.mock('../../../../../component-library/components/Cells/Cell', () => {
-  const { TouchableOpacity, View: RNView, Text } = jest.requireActual('react-native');
+  const {
+    TouchableOpacity,
+    View: RNView,
+    Text,
+  } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: function MockCell({
@@ -191,14 +195,23 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
       title: string;
       isSelected: boolean;
       onPress: () => void;
-      avatarProps: { variant: string; name?: string; imageSource?: { uri: string } };
+      avatarProps: {
+        variant: string;
+        name?: string;
+        imageSource?: { uri: string };
+      };
     }) {
       return (
         <TouchableOpacity onPress={onPress} testID={`cell-${title}`}>
           {avatarProps.variant === 'Icon' ? (
-            <RNView testID={`icon-${avatarProps.name}`}>{avatarProps.name}</RNView>
+            <RNView testID={`icon-${avatarProps.name}`}>
+              {avatarProps.name}
+            </RNView>
           ) : (
-            <RNView testID={`avatar-${avatarProps.name}`} data-image-source={avatarProps.imageSource}>
+            <RNView
+              testID={`avatar-${avatarProps.name}`}
+              data-image-source={avatarProps.imageSource}
+            >
               {avatarProps.name}
             </RNView>
           )}
