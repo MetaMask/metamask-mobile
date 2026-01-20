@@ -71,7 +71,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     },
     (state: RootState) =>
       state.engine.backgroundState.SmartTransactionsController
-        .smartTransactionsState?.liveness,
+        .smartTransactionsState?.livenessByChainId,
   ],
   (
     selectedAddress,
@@ -80,7 +80,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     providerConfigRpcUrl,
     smartTransactionsFeatureFlagEnabled,
     swapsChainFeatureFlags,
-    smartTransactionsLiveness,
+    smartTransactionsLivenessByChainId,
   ) => {
     const effectiveChainId = transactionChainId || globalChainId;
     const addressIsHardwareAccount = selectedAddress
@@ -97,7 +97,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
         getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
         isNetworkAllowedWithFeatureFlags &&
         smartTransactionsFeatureFlagEnabled &&
-        smartTransactionsLiveness,
+        smartTransactionsLivenessByChainId?.[effectiveChainId],
     );
   },
 );
