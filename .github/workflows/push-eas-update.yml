@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       base_branch:
-        description: 'Base branch ref to compare fingerprints against (e.g., main)'
+        description: 'Base ref to compare fingerprints against (branch name like "main" or tag name like "release/7.61.6"). If both a branch and tag exist with the same name, use full ref path: "refs/tags/release/7.61.6" or "refs/heads/main"'
         required: true
         type: string
       message:
