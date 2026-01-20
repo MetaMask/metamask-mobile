@@ -4,10 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Hex,
+  isCaipAssetType,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
   CaipChainId,
-  isCaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
