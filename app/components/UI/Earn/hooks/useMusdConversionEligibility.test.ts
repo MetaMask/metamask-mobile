@@ -21,13 +21,13 @@ jest.mock('react-redux', () => ({
 describe('useMusdConversionEligibility', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetDetectedGeolocation.mockReturnValue(null);
+    mockGetDetectedGeolocation.mockReturnValue(undefined);
     mockSelectMusdConversionBlockedCountries.mockReturnValue([]);
   });
 
   describe('isEligible', () => {
-    it('returns false when geolocation is null (blocks by default for compliance)', () => {
-      mockGetDetectedGeolocation.mockReturnValue(null);
+    it('returns false when geolocation is undefined (blocks by default for compliance)', () => {
+      mockGetDetectedGeolocation.mockReturnValue(undefined);
       mockSelectMusdConversionBlockedCountries.mockReturnValue(['GB']);
 
       const { result } = renderHook(() => useMusdConversionEligibility());
@@ -35,8 +35,8 @@ describe('useMusdConversionEligibility', () => {
       expect(result.current.isEligible).toBe(false);
     });
 
-    it('returns false when geolocation is null even with empty blocked list', () => {
-      mockGetDetectedGeolocation.mockReturnValue(null);
+    it('returns false when geolocation is undefined even with empty blocked list', () => {
+      mockGetDetectedGeolocation.mockReturnValue(undefined);
       mockSelectMusdConversionBlockedCountries.mockReturnValue([]);
 
       const { result } = renderHook(() => useMusdConversionEligibility());
@@ -132,8 +132,8 @@ describe('useMusdConversionEligibility', () => {
   });
 
   describe('isLoading', () => {
-    it('returns true when geolocation is null', () => {
-      mockGetDetectedGeolocation.mockReturnValue(null);
+    it('returns true when geolocation is undefined', () => {
+      mockGetDetectedGeolocation.mockReturnValue(undefined);
       mockSelectMusdConversionBlockedCountries.mockReturnValue([]);
 
       const { result } = renderHook(() => useMusdConversionEligibility());

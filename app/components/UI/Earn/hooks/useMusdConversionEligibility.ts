@@ -22,7 +22,7 @@ import { selectMusdConversionBlockedCountries } from '../selectors/featureFlags'
 export const useMusdConversionEligibility = () => {
   const geolocation = useSelector(getDetectedGeolocation);
   const blockedCountries = useSelector(selectMusdConversionBlockedCountries);
-  const isLoading = geolocation === null;
+  const isLoading = geolocation === undefined;
 
   const userCountry = useMemo(() => {
     if (geolocation) return geolocation?.toUpperCase().split('-')[0];
