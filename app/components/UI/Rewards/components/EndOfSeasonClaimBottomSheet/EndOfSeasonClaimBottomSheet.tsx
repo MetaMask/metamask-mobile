@@ -327,7 +327,10 @@ const EndOfSeasonClaimBottomSheet = ({
           value={email}
           isError={emailValidationError}
           size={TextFieldSize.Lg}
-          style={tw.style('bg-background-pressed')}
+          style={tw.style(
+            'bg-background-pressed',
+            emailValidationError && 'border-error-default',
+          )}
           keyboardType="email-address"
           autoCapitalize="none"
           isDisabled={isClaimingReward}
@@ -450,13 +453,13 @@ const EndOfSeasonClaimBottomSheet = ({
 
     return (
       <Box
-        twClassName="w-full"
+        twClassName="w-full mb-2"
         testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ACCOUNT_SELECTOR}
       >
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative mb-2"
+          twClassName="text-text-alternative mb-6"
         >
           {strings('rewards.end_of_season_rewards.select_account_description')}
         </Text>

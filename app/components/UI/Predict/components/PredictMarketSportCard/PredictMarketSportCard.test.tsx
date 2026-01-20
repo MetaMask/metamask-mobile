@@ -7,7 +7,6 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketSportCard from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// Mock navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -16,7 +15,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Mock TrendingFeedSessionManager
 const mockIsFromTrending = jest.fn();
 jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   __esModule: true,
@@ -29,27 +27,53 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-// Mock formatGameStartTime for consistent test results across locales
-jest.mock('../../utils/format', () => ({
-  ...jest.requireActual('../../utils/format'),
-  formatGameStartTime: jest.fn((startTime: string | undefined) => {
-    if (!startTime) {
-      return { date: 'TBD', time: '' };
-    }
-    // Return predictable values for tests
-    return { date: 'Sun, Feb 8', time: '3:30 PM' };
-  }),
-}));
+jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockPredictSportScoreboard({
+      game,
+      testID,
+    }: {
+      game: {
+        awayTeam: { abbreviation: string };
+        homeTeam: { abbreviation: string };
+      };
+      testID?: string;
+    }) {
+      return (
+        <View testID={testID ?? 'mock-scoreboard'}>
+          <Text>Sun, Feb 8</Text>
+          <Text>3:30 PM</Text>
+          <Text>{game?.awayTeam?.abbreviation}</Text>
+          <Text>{game?.homeTeam?.abbreviation}</Text>
+        </View>
+      );
+    },
+  };
+});
 
-// Mock usePredictActionGuard
-const mockExecuteGuardedAction = jest.fn((action: () => void) => action());
-jest.mock('../../hooks/usePredictActionGuard', () => ({
-  usePredictActionGuard: () => ({
-    executeGuardedAction: mockExecuteGuardedAction,
-    isEligible: true,
-    hasNoBalance: false,
-  }),
-}));
+jest.mock('../PredictSportCardFooter', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    PredictSportCardFooter: function MockPredictSportCardFooter({
+      market,
+      entryPoint,
+      testID,
+    }: {
+      market: { id: string };
+      entryPoint?: string;
+      testID?: string;
+    }) {
+      return (
+        <View testID={testID ?? 'mock-footer'}>
+          <Text testID="mock-footer-market-id">{market.id}</Text>
+          <Text testID="mock-footer-entry-point">{entryPoint}</Text>
+        </View>
+      );
+    },
+  };
+});
 
 const mockMarket: PredictMarketType = {
   id: 'test-market-sport-1',
@@ -118,9 +142,6 @@ describe('PredictMarketSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFromTrending.mockReturnValue(false);
-    mockExecuteGuardedAction.mockImplementation((action: () => void) =>
-      action(),
-    );
   });
 
   afterEach(() => {
@@ -138,61 +159,6 @@ describe('PredictMarketSportCard', () => {
     expect(getAllByText('DEN')[0]).toBeOnTheScreen();
     expect(getByText('Sun, Feb 8')).toBeOnTheScreen();
     expect(getByText('3:30 PM')).toBeOnTheScreen();
-  });
-
-  it('renders team buttons with prices', () => {
-    const { getByText } = renderWithProvider(
-      <PredictMarketSportCard market={mockMarket} />,
-      { state: initialState },
-    );
-
-    expect(getByText('SEA · 77¢')).toBeOnTheScreen();
-    expect(getByText('DEN · 23¢')).toBeOnTheScreen();
-  });
-
-  it('calls executeGuardedAction and navigates to buy preview when team button is pressed', () => {
-    const { getByText } = renderWithProvider(
-      <PredictMarketSportCard market={mockMarket} />,
-      { state: initialState },
-    );
-
-    fireEvent.press(getByText('SEA · 77¢'));
-
-    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
-      expect.any(Function),
-      {
-        checkBalance: true,
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-      },
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      {
-        market: mockMarket,
-        outcome: mockMarket.outcomes[0],
-        outcomeToken: expect.objectContaining({
-          id: 'token-away',
-          title: 'SEA',
-        }),
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      },
-    );
-  });
-
-  it('hides action buttons when game has ended', () => {
-    const endedMarket: PredictMarketType = {
-      ...mockMarket,
-      game: mockMarket.game
-        ? { ...mockMarket.game, status: 'ended' }
-        : undefined,
-    };
-
-    const { queryByTestId } = renderWithProvider(
-      <PredictMarketSportCard market={endedMarket} testID="sport-card" />,
-      { state: initialState },
-    );
-
-    expect(queryByTestId('sport-card-action-buttons')).toBeNull();
   });
 
   it('navigates to market details when pressed', () => {
@@ -394,5 +360,68 @@ describe('PredictMarketSportCard', () => {
 
     // Should render without crashing
     expect(getByTestId('sport-market-card')).toBeOnTheScreen();
+  });
+
+  describe('footer integration', () => {
+    it('renders PredictSportCardFooter with correct market', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('mock-footer-market-id').props.children).toBe(
+        'test-market-sport-1',
+      );
+    });
+
+    it('renders PredictSportCardFooter with correct testID', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('sport-card-footer')).toBeOnTheScreen();
+    });
+
+    it('renders PredictSportCardFooter with default testID when no testID provided', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('mock-footer')).toBeOnTheScreen();
+    });
+
+    it('passes resolved entry point to footer', () => {
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('mock-footer-entry-point').props.children).toBe(
+        PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      );
+    });
+
+    it('passes trending entry point to footer when from trending', () => {
+      mockIsFromTrending.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('mock-footer-entry-point').props.children).toBe(
+        PredictEventValues.ENTRY_POINT.TRENDING,
+      );
+    });
   });
 });

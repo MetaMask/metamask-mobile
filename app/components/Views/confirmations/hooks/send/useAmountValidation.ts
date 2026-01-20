@@ -141,6 +141,8 @@ function mapSnapErrorCodeIntoTranslation(errorCode: string): string {
   switch (errorCode) {
     case 'InsufficientBalance':
       return strings('send.insufficient_funds');
+    case 'InsufficientBalanceToCoverFee':
+      return strings('send.insufficient_balance_to_cover_fee');
     case 'Invalid':
     default:
       return strings('send.invalid_value');

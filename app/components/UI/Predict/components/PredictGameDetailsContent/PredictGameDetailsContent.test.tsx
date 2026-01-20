@@ -96,32 +96,31 @@ jest.mock('../PredictSportScoreboard', () => {
     __esModule: true,
     default: function MockPredictSportScoreboard({
       testID,
-      gameStatus,
-      period,
-      awayTeam,
-      homeTeam,
+      game,
     }: {
       testID?: string;
-      gameStatus?: string;
-      period?: string | null;
-      awayTeam?: { abbreviation: string };
-      homeTeam?: { abbreviation: string };
+      game?: {
+        status: string;
+        period: string | null;
+        awayTeam: { abbreviation: string };
+        homeTeam: { abbreviation: string };
+      };
     }) {
-      // Derive UI state label from gameStatus + period (same logic as real component)
+      // Derive UI state label from game.status + game.period (same logic as real component)
       let stateLabel = 'undefined';
-      if (gameStatus === 'scheduled') {
+      if (game?.status === 'scheduled') {
         stateLabel = 'PreGame';
-      } else if (gameStatus === 'ended') {
+      } else if (game?.status === 'ended') {
         stateLabel = 'Final';
-      } else if (gameStatus === 'ongoing' && period === 'HT') {
+      } else if (game?.status === 'ongoing' && game?.period === 'HT') {
         stateLabel = 'Halftime';
-      } else if (gameStatus === 'ongoing') {
+      } else if (game?.status === 'ongoing') {
         stateLabel = 'InProgress';
       }
       return (
         <View
           testID={testID}
-          accessibilityHint={`state:${stateLabel},away:${awayTeam?.abbreviation ?? 'undefined'},home:${homeTeam?.abbreviation ?? 'undefined'}`}
+          accessibilityHint={`state:${stateLabel},away:${game?.awayTeam?.abbreviation ?? 'undefined'},home:${game?.homeTeam?.abbreviation ?? 'undefined'}`}
         />
       );
     },
@@ -132,15 +131,15 @@ jest.mock('../PredictGameChart', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPredictGameChart({
     testID,
-    tokenIds,
+    market,
   }: {
     testID?: string;
-    tokenIds?: string[];
+    market?: { id: string };
   }) {
     return (
       <View
         testID={testID}
-        accessibilityHint={`tokens:${tokenIds?.join(',') ?? 'none'}`}
+        accessibilityHint={`marketId:${market?.id ?? 'undefined'}`}
       />
     );
   };
@@ -602,7 +601,7 @@ describe('PredictGameDetailsContent', () => {
   });
 
   describe('Chart Integration', () => {
-    it('renders chart with token IDs when two tokens exist', () => {
+    it('renders chart with market', () => {
       const market = createMockMarket();
 
       const { getByTestId } = render(
@@ -618,38 +617,7 @@ describe('PredictGameDetailsContent', () => {
       const chart = getByTestId('game-chart');
 
       expect(chart).toBeOnTheScreen();
-      expect(chart.props.accessibilityHint).toBe('tokens:token-1,token-2');
-    });
-
-    it('does not render chart when fewer than two tokens exist', () => {
-      const market = createMockMarket({
-        outcomes: [
-          {
-            id: 'outcome-1',
-            marketId: 'test-market-id',
-            title: 'Team A',
-            groupItemTitle: 'Team A',
-            status: 'open',
-            volume: 1000,
-            providerId: 'polymarket',
-            description: '',
-            image: '',
-            tokens: [{ id: 'token-1', title: 'Team A', price: 0.65 }],
-          },
-        ],
-      });
-
-      const { queryByTestId } = render(
-        <PredictGameDetailsContent
-          market={market}
-          onBack={mockOnBack}
-          onRefresh={mockOnRefresh}
-          onBetPress={mockOnBetPress}
-          refreshing={false}
-        />,
-      );
-
-      expect(queryByTestId('game-chart')).toBeNull();
+      expect(chart.props.accessibilityHint).toBe('marketId:test-market-id');
     });
   });
 

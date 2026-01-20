@@ -91,8 +91,6 @@ const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
           </Text>
         </Box>
       </Box>
-
-      {/* Horizontal divider line */}
     </Box>
   );
 };
