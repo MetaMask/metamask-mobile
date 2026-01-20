@@ -42,6 +42,10 @@ export interface AccountSelectorParams {
    * Only show EVM accounts.
    */
   isEvmOnly?: boolean;
+  /**
+   * Optional boolean to hide the add account button.
+   */
+  disableAddAccountButton?: boolean;
 }
 
 /**

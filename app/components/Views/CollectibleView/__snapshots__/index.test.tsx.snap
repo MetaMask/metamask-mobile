@@ -77,14 +77,14 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "Geist Bold",
+                        "fontFamily": "Geist-Bold",
                       },
                       undefined,
                       undefined,
@@ -122,7 +122,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
@@ -215,7 +215,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 30,
                           "marginVertical": 2,
                         },
@@ -297,14 +297,14 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "Geist Bold",
+                        "fontFamily": "Geist-Bold",
                       },
                       undefined,
                       {
@@ -350,7 +350,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
                       },
@@ -440,7 +440,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 15,
             "marginLeft": 8,
           }

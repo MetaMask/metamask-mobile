@@ -1,9 +1,9 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback } from 'react';
-import { Alert, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -18,65 +18,56 @@ import {
   selectNetworkConfigurationByChainId,
 } from '../../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
+  selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
-  selectIsMusdConversionFlowEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../components/hooks/useFeatureFlag';
-import createStyles from '../../../Tokens/styles';
-import { BrowserTab, TokenI } from '../../../Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
 import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
+import useTronStakeApy from '../../../Earn/hooks/useTronStakeApy';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 ///: END:ONLY_INCLUDE_IF
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
-import Logger from '../../../../../util/Logger';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
+const styles = StyleSheet.create({
+  stakeButton: {
+    flexDirection: 'row',
+  },
+  dot: {
+    marginLeft: 2,
+    marginRight: 2,
+  },
+});
 interface StakeButtonProps {
   asset: TokenI;
 }
 
 // TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
-  const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
-  const isPooledStakingEnabled = useFeatureFlag(
-    FeatureFlagNames.earnPooledStakingEnabled,
-  );
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
-  );
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const isTronNative =
-    asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -89,26 +80,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion } = useMusdConversion();
-  const { isConversionToken } = useMusdConversionTokens();
-
-  const isConvertibleStablecoin =
-    isMusdConversionFlowEnabled && isConversionToken(asset);
-
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled) {
-      trace({ name: TraceName.EarnDepositScreen });
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: asset,
-        },
-      });
-
+      // Track analytics before eligibility check to preserve behavior
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
           .addProperties({
@@ -122,6 +100,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           })
           .build(),
       );
+      trace({ name: TraceName.EarnDepositScreen });
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: asset,
+        },
+      });
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -131,35 +116,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         'mainnet',
       );
     }
-    if (isEligible) {
-      trace({ name: TraceName.EarnDepositScreen });
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: asset,
-        },
-      });
-    } else {
-      const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.includes(AppConstants.STAKE.URL),
-      );
-      let existingTabId;
-      let newTabUrl;
-      if (existingStakeTab) {
-        existingTabId = existingStakeTab.id;
-      } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
-      }
-      const params = {
-        ...(newTabUrl && { newTabUrl }),
-        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
-        timestamp: Date.now(),
-      };
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
-    }
+    // Track analytics before eligibility check to preserve behavior
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({
@@ -174,6 +131,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         })
         .build(),
     );
+    trace({ name: TraceName.EarnDepositScreen });
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+      },
+    });
   };
 
   const handleLendingRedirect = async () => {
@@ -215,41 +179,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     });
   };
 
-  const handleConvertToMUSD = useCallback(async () => {
-    try {
-      if (!asset?.address || !asset?.chainId) {
-        throw new Error('Asset address or chain ID is not set');
-      }
-
-      await initiateConversion({
-        outputChainId: CHAIN_IDS.MAINNET,
-        preferredPaymentToken: {
-          address: toHex(asset.address),
-          chainId: toHex(asset.chainId),
-        },
-        navigationStack: Routes.EARN.ROOT,
-      });
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        '[mUSD Conversion] Failed to initiate conversion',
-      );
-
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error occurred';
-      Alert.alert(
-        'Conversion Failed',
-        `Unable to start mUSD conversion: ${errorMessage}`,
-        [{ text: 'OK' }],
-      );
-    }
-  }, [asset.address, asset.chainId, initiateConversion]);
-
   const onEarnButtonPress = async () => {
-    if (isConvertibleStablecoin) {
-      return handleConvertToMUSD();
-    }
-
     if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
@@ -261,12 +191,27 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   if (
     areEarnExperiencesDisabled ||
-    (!isConvertibleStablecoin && // Show for convertible stablecoins even with 0 balance
+    (primaryExperienceType !== EARN_EXPERIENCES.STABLECOIN_LENDING &&
       !earnToken?.isETH &&
       earnToken?.balanceMinimalUnit === '0') ||
     (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
+
+  const renderEarnButtonText = () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTronNative && isTrxStakingEnabled && tronApyPercent) {
+      return `${strings('stake.earn')} ${tronApyPercent}`;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    const aprNumber = Number(earnToken?.experience?.apr);
+    const aprText =
+      Number.isFinite(aprNumber) && aprNumber > 0
+        ? ` ${aprNumber.toFixed(1)}%`
+        : '';
+    return `${strings('stake.earn')}${aprText}`;
+  };
 
   return (
     <TouchableOpacity
@@ -278,28 +223,23 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         {' • '}
       </Text>
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
-        {(() => {
-          if (isConvertibleStablecoin) {
-            return strings('asset_overview.convert');
-          }
-
-          const aprNumber = Number(earnToken?.experience?.apr);
-          const aprText =
-            Number.isFinite(aprNumber) && aprNumber > 0
-              ? ` ${aprNumber.toFixed(1)}%`
-              : '';
-          return `${strings('stake.earn')}${aprText}`;
-        })()}
+        {renderEarnButtonText()}
       </Text>
     </TouchableOpacity>
   );
 };
 
-// TODO: Rename to EarnButton and make component more generic to support lending.
-export const StakeButton = (props: StakeButtonProps) => (
-  <StakeSDKProvider>
-    <StakeButtonContent {...props} />
-  </StakeSDKProvider>
-);
+export const StakeButton = (props: StakeButtonProps) => {
+  const { isEligible } = useStakingEligibility();
+
+  if (!isEligible) {
+    return null;
+  }
+  return (
+    <StakeSDKProvider>
+      <StakeButtonContent {...props} />
+    </StakeSDKProvider>
+  );
+};
 
 export default StakeButton;

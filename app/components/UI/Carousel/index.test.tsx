@@ -7,10 +7,10 @@ import {
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import Carousel, { useFetchCarouselSlides } from './';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
 import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';
@@ -67,9 +67,21 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  parse: jest.fn(() => Promise.resolve()),
-}));
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
+  const mockParse = jest.fn().mockResolvedValue(true);
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn(),
+      start: jest.fn(),
+      getInstance: jest.fn(() => ({ parse: mockParse })),
+      parse: mockParse,
+      setDeeplink: jest.fn(),
+      getPendingDeeplink: jest.fn(),
+      expireDeeplink: jest.fn(),
+    },
+  };
+});
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),

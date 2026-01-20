@@ -1445,4 +1445,200 @@ describe('WC2Manager', () => {
       expect(result).toBeDefined();
     });
   });
+
+  describe('Origin Rejection', () => {
+    let rejectSessionSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      rejectSessionSpy = jest
+        .spyOn(web3Wallet, 'rejectSession')
+        .mockResolvedValue(undefined);
+    });
+
+    it('should reject session proposal with "metamask" origin', async () => {
+      const proposal = {
+        id: 999,
+        params: {
+          id: 999,
+          pairingTopic: 'test-pairing-999',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              url: 'metamask',
+              name: 'Malicious App',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'metamask',
+            validation: 'VALID' as const,
+            origin: 'metamask',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      expect(rejectSessionSpy).toHaveBeenCalledWith({
+        id: 999,
+        reason: expect.objectContaining({
+          code: expect.any(Number),
+          message: expect.any(String),
+        }),
+      });
+    });
+
+    it('should NOT reject session with valid URL containing metamask as subdomain', async () => {
+      rejectSessionSpy.mockClear();
+
+      const proposal = {
+        id: 997,
+        params: {
+          id: 997,
+          pairingTopic: 'test-pairing-997',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              url: 'https://metamask.example.com',
+              name: 'Legitimate App',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://metamask.example.com',
+            validation: 'VALID' as const,
+            origin: 'https://metamask.example.com',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      const rejectionCalls = rejectSessionSpy.mock.calls;
+      const originRejection = rejectionCalls.find(
+        (call: any) =>
+          call[0]?.id === 997 && call[0]?.reason?.message?.includes('METHOD'),
+      );
+
+      expect(originRejection).toBeUndefined();
+    });
+
+    it('should NOT reject session with legitimate https://example.com URL', async () => {
+      rejectSessionSpy.mockClear();
+
+      const proposal = {
+        id: 996,
+        params: {
+          id: 996,
+          pairingTopic: 'test-pairing-996',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              url: 'https://example.com',
+              name: 'Example App',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://example.com',
+            validation: 'VALID' as const,
+            origin: 'https://example.com',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      const rejectionCalls = rejectSessionSpy.mock.calls;
+      const originRejection = rejectionCalls.find(
+        (call: any) =>
+          call[0]?.id === 996 && call[0]?.reason?.message?.includes('METHOD'),
+      );
+
+      expect(originRejection).toBeUndefined();
+    });
+
+    it('should NOT reject session with https://metamask.io URL', async () => {
+      rejectSessionSpy.mockClear();
+
+      const proposal = {
+        id: 995,
+        params: {
+          id: 995,
+          pairingTopic: 'test-pairing-995',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              url: 'https://metamask.io',
+              name: 'MetaMask Website',
+              description: 'Test',
+              icons: [],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://metamask.io',
+            validation: 'VALID' as const,
+            origin: 'https://metamask.io',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(proposal);
+
+      const rejectionCalls = rejectSessionSpy.mock.calls;
+      const originRejection = rejectionCalls.find(
+        (call: any) =>
+          call[0]?.id === 995 && call[0]?.reason?.message?.includes('METHOD'),
+      );
+
+      expect(originRejection).toBeUndefined();
+    });
+  });
 });

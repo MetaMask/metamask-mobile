@@ -28,7 +28,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
 import { formatNumber } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
-import RewardItem from './RewardItem';
+import RewardItem from '../../RewardItem/RewardItem';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';

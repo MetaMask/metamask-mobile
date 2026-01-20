@@ -13,18 +13,19 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import HeaderWithTitleLeft from '../../../../component-library/components-temp/HeaderWithTitleLeft';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { fontStyles } from '../../../../styles/common';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '../../../../util/theme';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
+import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,23 +34,14 @@ const createStyle = (colors: any) =>
     screen: { justifyContent: 'center' },
     container: {
       flex: 1,
-      marginHorizontal: '5%',
-      justifyContent: 'center',
-    },
-    textContainer: {
-      flex: 1,
-      width: '100%',
-      alignItems: 'center',
       justifyContent: 'center',
     },
     buttonsContainer: {
-      flex: 7,
       width: '100%',
-      alignItems: 'center',
-    },
-    text: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
+      flex: 1,
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      gap: 12,
     },
     image: {
       width: 150,
@@ -57,17 +49,17 @@ const createStyle = (colors: any) =>
     },
     hardwareButton: {
       height: 125,
-      width: 200,
-      margin: 10,
-      borderWidth: 1,
-      borderRadius: 5,
+      flex: 1,
+      borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
-      borderColor: colors.border.default,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
     },
     button: {
       width: '100%',
+    },
+    subtitle: {
+      marginTop: 4,
     },
   });
 
@@ -92,43 +84,67 @@ const SelectHardwareWallet = () => {
   const styles = createStyle(colors);
 
   useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('connect_hardware.title_select_hardware'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [navigation, colors]);
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
-  const navigateToConnectQRWallet = () => {
+  const navigateToConnectQRWallet = async () => {
+    try {
+      const connectedDeviceCount = await getConnectedDevicesCount();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+          .addProperties({
+            device_type: HardwareDeviceTypes.QR,
+            connected_device_count: connectedDeviceCount.toString(),
+          })
+          .build(),
+      );
+    } catch (error) {
+      // [SelectHardware] Analytics error should not block navigation
+      console.error('[SelectHardware] Failed to track analytics:', error);
+    }
     navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
   };
 
   const navigateToConnectLedger = async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONNECT_LEDGER)
-        .addProperties({
-          device_type: HardwareDeviceTypes.LEDGER,
-        })
-        .build(),
-    );
+    try {
+      const connectedDeviceCount = await getConnectedDevicesCount();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+          .addProperties({
+            device_type: HardwareDeviceTypes.LEDGER,
+            connected_device_count: connectedDeviceCount.toString(),
+          })
+          .build(),
+      );
+    } catch (error) {
+      // [SelectHardware] Analytics error should not block navigation
+      console.error('[SelectHardware] Failed to track analytics:', error);
+    }
 
     navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderHardwareButton = (image: any, onPress: any) => (
-    <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
+  const renderHardwareButton = (image: any, onPress: any, testID?: string) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.hardwareButton}
+      testID={testID}
+    >
       <Image style={styles.image} source={image} resizeMode={'contain'} />
     </TouchableOpacity>
   );
 
   const LedgerButton = () => {
     const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
-    return renderHardwareButton(ledgerLogo, navigateToConnectLedger);
+    return renderHardwareButton(
+      ledgerLogo,
+      navigateToConnectLedger,
+      'ledger-hardware-button',
+    );
   };
 
   const QRButton = () => {
@@ -136,16 +152,30 @@ const SelectHardwareWallet = () => {
       qrHardwareLogoLight,
       qrHardwareLogoDark,
     );
-    return renderHardwareButton(qrHardwareLogo, navigateToConnectQRWallet);
+    return renderHardwareButton(
+      qrHardwareLogo,
+      navigateToConnectQRWallet,
+      'qr-hardware-button',
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.textContainer}>
-        <Text variant={TextVariant.BodyMD}>
-          {strings('connect_hardware.select_hardware')}
-        </Text>
-      </View>
+      <HeaderWithTitleLeft
+        onBack={navigation.goBack}
+        titleLeftProps={{
+          title: strings('connect_hardware.title_select_hardware'),
+          bottomAccessory: (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.subtitle}
+            >
+              {strings('connect_hardware.select_hardware')}
+            </Text>
+          ),
+        }}
+      />
       <View style={styles.buttonsContainer}>
         <LedgerButton />
         <QRButton />

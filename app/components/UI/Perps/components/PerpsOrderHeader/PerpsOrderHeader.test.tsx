@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import PerpsOrderHeader from './PerpsOrderHeader';
-import { PerpsHomeViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -20,7 +20,7 @@ jest.mock('../../../../../util/theme', () => ({
   })),
 }));
 
-jest.mock('../../../Swaps/components/TokenIcon', () => 'TokenIcon');
+jest.mock('../../../../Base/TokenIcon', () => 'TokenIcon');
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {

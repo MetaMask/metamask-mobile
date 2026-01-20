@@ -43,27 +43,15 @@ jest.mock('../../hooks/usePerpsMarginAdjustment', () => ({
     mockUsePerpsMarginAdjustment(opts),
 }));
 
-const mockUsePerpsLiveAccount = jest.fn();
-const mockUsePerpsLivePrices = jest.fn();
+const mockUsePerpsAdjustMarginData = jest.fn();
 
-jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveAccount: () => mockUsePerpsLiveAccount(),
-  usePerpsLivePrices: () => mockUsePerpsLivePrices(),
-}));
-
-const mockUsePerpsMarkets = jest.fn();
-
-jest.mock('../../hooks/usePerpsMarkets', () => ({
-  usePerpsMarkets: () => mockUsePerpsMarkets(),
+jest.mock('../../hooks/usePerpsAdjustMarginData', () => ({
+  usePerpsAdjustMarginData: (opts: unknown) =>
+    mockUsePerpsAdjustMarginData(opts),
 }));
 
 jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
-}));
-
-jest.mock('../../utils/marginUtils', () => ({
-  calculateMaxRemovableMargin: jest.fn(() => 200),
-  calculateNewLiquidationPrice: jest.fn(() => 1800),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -167,16 +155,21 @@ describe('PerpsAdjustMarginView', () => {
       isAdjusting: false,
     });
 
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: { availableBalance: '1000' },
-    });
-
-    mockUsePerpsLivePrices.mockReturnValue({
-      ETH: { price: '2000', markPrice: '2000', percentChange24h: '2.5' },
-    });
-
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: [{ coin: 'ETH', maxLeverage: 50 }],
+    // Default mock for add mode - will be overridden in specific tests
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      position: mockPosition,
+      isLoading: false,
+      currentMargin: 500,
+      positionValue: 5000,
+      maxAmount: 1000, // Available balance for add mode
+      currentLiquidationPrice: 1900,
+      newLiquidationPrice: 1900,
+      currentLiquidationDistance: 5,
+      newLiquidationDistance: 5,
+      availableBalance: 1000,
+      currentPrice: 2000,
+      isAddMode: true,
+      positionLeverage: 10,
     });
   });
 
@@ -200,11 +193,15 @@ describe('PerpsAdjustMarginView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays perps balance available to add', () => {
+    it('displays current margin and margin available to add', () => {
       render(<PerpsAdjustMarginView />);
 
       expect(
-        screen.getByText('perps.adjust_margin.perps_balance'),
+        screen.getByText('perps.adjust_margin.margin_in_position'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('$500.00')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.adjust_margin.margin_available_to_add'),
       ).toBeOnTheScreen();
       expect(screen.getByText('$1000.00')).toBeOnTheScreen();
     });
@@ -240,6 +237,23 @@ describe('PerpsAdjustMarginView', () => {
         position: mockPosition,
         mode: 'remove',
       };
+
+      // Override mock for remove mode
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 200, // Max removable margin
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        availableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
     });
 
     it('renders remove margin title', () => {
@@ -250,13 +264,17 @@ describe('PerpsAdjustMarginView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays current position margin', () => {
+    it('displays current margin and margin available to remove', () => {
       render(<PerpsAdjustMarginView />);
 
       expect(
         screen.getByText('perps.adjust_margin.margin_in_position'),
       ).toBeOnTheScreen();
       expect(screen.getByText('$500.00')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.adjust_margin.margin_available_to_remove'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('$200.00')).toBeOnTheScreen();
     });
 
     it('displays reduce margin button label', () => {
@@ -281,6 +299,123 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.adjust_margin.add_title'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders error message when position is missing', () => {
+      mockRouteParams = {
+        mode: 'add',
+      };
+
+      // Hook returns null position when position not found
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: null,
+        isLoading: false,
+        currentMargin: 0,
+        positionValue: 0,
+        maxAmount: 0,
+        currentLiquidationPrice: 0,
+        newLiquidationPrice: 0,
+        currentLiquidationDistance: 0,
+        newLiquidationDistance: 0,
+        availableBalance: 0,
+        currentPrice: 0,
+        isAddMode: true,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.errors.position_not_found'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders error message when mode is missing', () => {
+      mockRouteParams = {
+        position: mockPosition,
+      };
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.errors.position_not_found'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('loading states', () => {
+    it('does not display button text when isAdjusting is true', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      mockUsePerpsMarginAdjustment.mockReturnValue({
+        handleAddMargin: mockHandleAddMargin,
+        handleRemoveMargin: mockHandleRemoveMargin,
+        isAdjusting: true,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      // When loading, button text is not rendered
+      expect(
+        screen.queryByText('perps.adjust_margin.add_margin'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('displays button text when not adjusting', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      mockUsePerpsMarginAdjustment.mockReturnValue({
+        handleAddMargin: mockHandleAddMargin,
+        handleRemoveMargin: mockHandleRemoveMargin,
+        isAdjusting: false,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.adjust_margin.add_margin'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('remove mode calculations', () => {
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'remove',
+      };
+
+      // Override mock for remove mode
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 200, // Max removable margin
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        availableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+    });
+
+    it('displays margin available to remove', () => {
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByText('perps.adjust_margin.margin_available_to_remove'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('$200.00')).toBeOnTheScreen();
     });
   });
 });

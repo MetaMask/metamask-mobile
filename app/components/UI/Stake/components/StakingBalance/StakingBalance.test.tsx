@@ -21,11 +21,9 @@ import {
   getMockUseEarnTokens,
 } from '../../../Earn/__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../components/hooks/useFeatureFlag';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
@@ -52,8 +50,8 @@ jest.mock('../../../../../selectors/earnController', () => ({
   },
 }));
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
+type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
+  typeof selectPooledStakingEnabledFlag
 >;
 
 const MOCK_ADDRESS_1 = '0x0';
@@ -136,13 +134,12 @@ jest.mock('../../hooks/usePooledStakes', () => ({
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
-  default: () => ({
-    isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
-  }),
+  default: jest.fn(),
 }));
+
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
 
 jest.mock('../../hooks/useVaultMetadata', () => ({
   __esModule: true,
@@ -180,22 +177,12 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
 }));
-
-jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual(
-    '../../../../../components/hooks/useFeatureFlag',
-  );
-  return {
-    ...actual,
-    useFeatureFlag: jest.fn(),
-  };
-});
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -204,12 +191,15 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-        return true;
-      }
-      return false;
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
     });
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(true);
     (earnSelectors.selectEarnToken as unknown as jest.Mock).mockImplementation(
       (_token: TokenI) => {
         const experienceType =
@@ -241,6 +231,30 @@ describe('StakingBalance', () => {
     (
       earnSelectors.selectEarnOutputToken as unknown as jest.Mock
     ).mockImplementation((_token: TokenI) => mockEarnTokenPair.outputToken);
+  });
+
+  it('renders claim and unstake banners when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+
+    // Assert: component renders
+    expect(getByTestId('staking-balance-container')).toBeDefined();
+
+    // Assert: claim/unstake banners remain visible even if ineligible
+    expect(getByTestId('unstaking-banner')).toBeDefined();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+
+    // Assert: deposit action is gated off when ineligible
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
   });
 
   it('render matches snapshot', () => {
@@ -312,12 +326,9 @@ describe('StakingBalance', () => {
   });
 
   it('should not render stake cta if pooled staking is disabled', () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-        return false;
-      }
-      return false;
-    });
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
@@ -363,12 +374,9 @@ describe('StakingBalance', () => {
 
   // We don't want to prevent users from withdrawing their ETH regardless of feature flags.
   it('should render unstake and claim buttons even if pooled-staking feature flag is disabled', () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
-        return false;
-      }
-      return false;
-    });
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,

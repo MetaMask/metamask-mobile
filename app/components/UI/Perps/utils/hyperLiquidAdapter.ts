@@ -17,6 +17,10 @@ import type {
 } from '../controllers/types';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
+import {
+  countSignificantFigures,
+  roundToSignificantFigures,
+} from './formatUtils';
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -167,7 +171,8 @@ export function adaptOrderFromSDK(
   // TODO: We assume that there can only be 1 TP and 1 SL as children but there can be several TPSLs as children
   // We need to handle this properly in the future
   if (rawOrder.children && rawOrder.children.length > 0) {
-    rawOrder.children.forEach((child: FrontendOrder) => {
+    rawOrder.children.forEach((childUnknown) => {
+      const child = childUnknown as FrontendOrder;
       if (child.isTrigger && child.orderType) {
         if (child.orderType.includes('Take Profit')) {
           takeProfitPrice = child.triggerPx || child.limitPx;
@@ -206,6 +211,10 @@ export function adaptOrderFromSDK(
   if (stopLossPrice) {
     order.stopLossPrice = stopLossPrice;
     order.stopLossOrderId = stopLossOrderId;
+  }
+  // Store trigger condition price for trigger orders (used for TP/SL display)
+  if (rawOrder.triggerPx) {
+    order.triggerPrice = rawOrder.triggerPx;
   }
 
   return order;
@@ -344,7 +353,7 @@ export function buildAssetMapping(params: {
 
 /**
  * Format price according to HyperLiquid validation rules
- * - Max 5 significant figures
+ * - Max 5 significant figures (uses MAX_SIGNIFICANT_FIGURES from config)
  * - Max (MAX_PRICE_DECIMALS - szDecimals) decimal places for perps
  * - Integer prices always allowed
  * @param params - Price formatting parameters
@@ -372,21 +381,12 @@ export function formatHyperLiquidPrice(params: {
   // Remove trailing zeros
   formattedPrice = parseFloat(formattedPrice).toString();
 
-  // Check significant figures (max 5)
-  const [integerPart, decimalPart = ''] = formattedPrice.split('.');
-  const significantDigits =
-    integerPart.replace(/^0+/, '').length + decimalPart.length;
+  // Check and enforce max significant figures using shared utility
+  const significantDigits = countSignificantFigures(formattedPrice);
 
-  if (significantDigits > 5) {
-    // Need to reduce precision to maintain max 5 significant figures
-    const totalDigits = integerPart.length + decimalPart.length;
-    const digitsToRemove = totalDigits - 5;
-
-    if (digitsToRemove > 0 && decimalPart.length > 0) {
-      const newDecimalPlaces = Math.max(0, decimalPart.length - digitsToRemove);
-      formattedPrice = priceNum.toFixed(newDecimalPlaces);
-      formattedPrice = parseFloat(formattedPrice).toString();
-    }
+  if (significantDigits > DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES) {
+    // Use shared utility to round to max significant figures
+    formattedPrice = roundToSignificantFigures(formattedPrice);
   }
 
   return formattedPrice;
@@ -505,7 +505,7 @@ export interface RawHyperLiquidLedgerUpdate {
 
 /**
  * Transform raw HyperLiquid ledger updates to UserHistoryItem format
- * Filters for deposits and withdrawals only, extracting amount and asset information
+ * Filters for deposits, withdrawals, and internal transfers only, extracting amount and asset information
  * @param rawLedgerUpdates - Array of raw ledger updates from HyperLiquid SDK
  * @returns Array of UserHistoryItem objects
  */
@@ -513,10 +513,18 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
   rawLedgerUpdates: RawHyperLiquidLedgerUpdate[],
 ): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
-    .filter(
-      (update) =>
-        // Only include deposits and withdrawals, skip other types
-        update.delta.type === 'deposit' || update.delta.type === 'withdraw',
+    .filter((update) =>
+      // Only include deposits, withdrawals, and positive internal transfers, skip other types
+      {
+        if (update.delta.type === 'deposit') return true;
+        if (update.delta.type === 'withdraw') return true;
+        if (update.delta.type === 'internalTransfer') {
+          const usdc = Number.parseFloat(update.delta.usdc ?? '0');
+          if (Number.isNaN(usdc)) return false;
+          return usdc > 0;
+        }
+        return false;
+      },
     )
     .map((update) => {
       // Extract amount and asset based on delta type

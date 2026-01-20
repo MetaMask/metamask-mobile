@@ -24,15 +24,53 @@ const mockPermission = {
   requestPermission: jest.fn().mockResolvedValue('granted'),
 };
 
-const mockCodeScanner = {
-  codeTypes: ['qr'],
-  onCodeScanned: jest.fn(),
+let capturedOnCodeScanned:
+  | ((codes: { value: string; type: string }[]) => Promise<void> | void)
+  | null = null;
+let capturedOnError: ((error: Error) => Promise<void> | void) | null = null;
+
+export const resetCapturedCallbacks = () => {
+  capturedOnCodeScanned = null;
+  capturedOnError = null;
 };
 
-const Camera = React.forwardRef(() => null);
+export const getCapturedCallbacks = () => ({
+  onCodeScanned: capturedOnCodeScanned,
+  onError: capturedOnError,
+});
+
+const Camera = React.forwardRef(
+  (
+    props: {
+      onError?: (error: Error) => Promise<void> | void;
+      codeScanner?: {
+        onCodeScanned: (
+          codes: { value: string; type: string }[],
+        ) => Promise<void> | void;
+      };
+    },
+    _ref: unknown,
+  ) => {
+    if (props.onError) {
+      capturedOnError = props.onError;
+    }
+    if (props.codeScanner?.onCodeScanned) {
+      capturedOnCodeScanned = props.codeScanner.onCodeScanned;
+    }
+    return React.createElement('View', { testID: 'camera-mock' });
+  },
+);
 
 const useCameraDevice = jest.fn(() => mockDevice);
 const useCameraPermission = jest.fn(() => mockPermission);
-const useCodeScanner = jest.fn(() => mockCodeScanner);
+const useCodeScanner = jest.fn((config) => {
+  if (config?.onCodeScanned) {
+    capturedOnCodeScanned = config.onCodeScanned;
+  }
+  return {
+    codeTypes: ['qr'],
+    onCodeScanned: config?.onCodeScanned || jest.fn(),
+  };
+});
 
 export { Camera, useCameraDevice, useCameraPermission, useCodeScanner };

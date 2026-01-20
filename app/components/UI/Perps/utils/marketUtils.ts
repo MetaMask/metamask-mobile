@@ -3,7 +3,7 @@ import type { PerpsMarketData } from '../controllers/types';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
-  HIP3_ASSET_ICONS_BASE_URL,
+  METAMASK_PERPS_ICONS_BASE_URL,
 } from '../constants/hyperLiquidConfig';
 
 /**
@@ -393,6 +393,37 @@ export const getMarketBadgeType = (
   market.marketType || (market.marketSource ? 'experimental' : undefined);
 
 /**
+ * Filter markets by search query
+ * Searches through both symbol and name fields (case-insensitive)
+ *
+ * @param markets - Array of markets to filter
+ * @param searchQuery - Search query string
+ * @returns Filtered array of markets matching the query
+ *
+ * @example
+ * filterMarketsByQuery([{ symbol: 'BTC', name: 'Bitcoin' }], 'btc') // → [{ symbol: 'BTC', name: 'Bitcoin' }]
+ * filterMarketsByQuery([{ symbol: 'BTC', name: 'Bitcoin' }], 'coin') // → [{ symbol: 'BTC', name: 'Bitcoin' }]
+ * filterMarketsByQuery([{ symbol: 'BTC', name: 'Bitcoin' }], '') // → [{ symbol: 'BTC', name: 'Bitcoin' }]
+ */
+export const filterMarketsByQuery = (
+  markets: PerpsMarketData[],
+  searchQuery: string,
+): PerpsMarketData[] => {
+  // Return all markets if query is empty
+  if (!searchQuery?.trim()) {
+    return markets;
+  }
+
+  const lowerQuery = searchQuery.toLowerCase().trim();
+
+  return markets.filter(
+    (market) =>
+      market.symbol?.toLowerCase().includes(lowerQuery) ||
+      market.name?.toLowerCase().includes(lowerQuery),
+  );
+};
+
+/**
  * Generate the appropriate icon URL for an asset symbol
  * Handles both regular assets and HIP-3 assets (dex:symbol format)
  *
@@ -418,9 +449,7 @@ export const getAssetIconUrl = (
   // Check for HIP-3 asset (contains colon) BEFORE uppercasing
   if (symbol.includes(':')) {
     const [dex, assetSymbol] = symbol.split(':');
-    // Keep DEX lowercase, uppercase asset: xyz:XYZ100 -> xyz_XYZ100
-    const hip3Symbol = `${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
-    return `${HIP3_ASSET_ICONS_BASE_URL}hip3%3A${hip3Symbol}.svg`;
+    return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${dex.toLowerCase()}:${assetSymbol.toUpperCase()}.svg`;
   }
 
   // For regular assets, uppercase the entire symbol
@@ -433,4 +462,68 @@ export const getAssetIconUrl = (
 
   // Regular asset
   return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${processedSymbol}.svg`;
+};
+
+/**
+ * Icon URLs with primary (MetaMask-hosted) and fallback (HyperLiquid) sources
+ */
+export interface AssetIconUrls {
+  /** MetaMask contract-metadata repo (preferred source) */
+  primary: string;
+  /** HyperLiquid CDN (fallback source) */
+  fallback: string;
+}
+
+/**
+ * Generate icon URLs for an asset symbol with fallback support
+ *
+ * Resolution order:
+ * 1. Primary: MetaMask contract-metadata repo (manually curated)
+ * 2. Fallback: HyperLiquid CDN (always available)
+ *
+ * @param symbol - Asset symbol (e.g., "BTC" or "xyz:TSLA")
+ * @param kPrefixAssets - Optional set of assets that have a 'k' prefix to remove
+ * @returns Object with primary and fallback URLs, or null if no symbol
+ *
+ * @example Regular asset
+ * getAssetIconUrls('BTC')
+ * // → { primary: 'https://raw.githubusercontent.com/.../BTC.svg',
+ * //     fallback: 'https://app.hyperliquid.xyz/coins/BTC.svg' }
+ *
+ * @example HIP-3 asset
+ * getAssetIconUrls('xyz:TSLA')
+ * // → { primary: 'https://raw.githubusercontent.com/.../hip3:xyz_TSLA.svg',
+ * //     fallback: 'https://app.hyperliquid.xyz/coins/xyz:TSLA.svg' }
+ */
+export const getAssetIconUrls = (
+  symbol: string,
+  kPrefixAssets?: Set<string>,
+): AssetIconUrls | null => {
+  if (!symbol) return null;
+
+  // Check for HIP-3 asset (contains colon) BEFORE uppercasing
+  if (symbol.includes(':')) {
+    const [dex, assetSymbol] = symbol.split(':');
+    // HyperLiquid uses dex:SYMBOL format
+    const hyperliquidFormat = `${dex.toLowerCase()}:${assetSymbol.toUpperCase()}`;
+    // MetaMask contract-metadata uses hip3:dex_SYMBOL format
+    const metamaskFormat = `hip3:${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
+    return {
+      primary: `${METAMASK_PERPS_ICONS_BASE_URL}${metamaskFormat}.svg`,
+      fallback: `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${hyperliquidFormat}.svg`,
+    };
+  }
+
+  // For regular assets, uppercase the entire symbol
+  let processedSymbol = symbol.toUpperCase();
+
+  // Remove 'k' prefix only for specific assets if provided
+  if (kPrefixAssets?.has(processedSymbol)) {
+    processedSymbol = processedSymbol.substring(1);
+  }
+
+  return {
+    primary: `${METAMASK_PERPS_ICONS_BASE_URL}${processedSymbol}.svg`,
+    fallback: `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${processedSymbol}.svg`,
+  };
 };

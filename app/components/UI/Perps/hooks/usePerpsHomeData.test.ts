@@ -124,7 +124,7 @@ const createMockOrderFill = (
   price: '3000',
   size: '1.0',
   pnl: '0',
-  direction: 'open_long',
+  direction: 'Open Long', // Format expected by transformFillsToTransactions
   timestamp: 1234567890,
   fee: '10',
   feeToken: 'USDC',
@@ -167,21 +167,32 @@ describe('usePerpsHomeData', () => {
       createMockOrder({ symbol: 'SOL' }),
     ];
 
+    // Create mock fills that will be transformed to transactions
+    // Note: orderId is used as the transaction id, and timestamp must differ for sorting
     mockFills = [
-      createMockOrderFill({ symbol: 'ETH' }),
-      createMockOrderFill({ symbol: 'BTC' }),
+      createMockOrderFill({
+        orderId: 'fill-eth-1',
+        symbol: 'ETH',
+        timestamp: 1234567890,
+      }),
+      createMockOrderFill({
+        orderId: 'fill-btc-1',
+        symbol: 'BTC',
+        timestamp: 1234567891,
+      }),
     ];
 
-    // Create mock transactions (type: 'trade') that correspond to the fills
+    // Create expected mock transactions that match transformFillsToTransactions output
+    // These are used for assertions in tests that still check mockTransactions
     mockTransactions = [
       {
-        id: 'fill-eth-1',
+        id: 'fill-btc-1', // Sorted by timestamp desc, so BTC (newer) comes first
         type: 'trade' as const,
         category: 'position_open' as const,
         title: 'Opened long',
-        subtitle: '1.0 ETH',
-        timestamp: 1234567890,
-        asset: 'ETH',
+        subtitle: '1.0 BTC',
+        timestamp: 1234567891,
+        asset: 'BTC',
         fill: {
           shortTitle: 'Opened long',
           amount: '-$10.00',
@@ -198,20 +209,20 @@ describe('usePerpsHomeData', () => {
         },
       },
       {
-        id: 'fill-btc-1',
+        id: 'fill-eth-1',
         type: 'trade' as const,
         category: 'position_open' as const,
         title: 'Opened long',
-        subtitle: '0.5 BTC',
-        timestamp: 1234567891,
-        asset: 'BTC',
+        subtitle: '1.0 ETH',
+        timestamp: 1234567890,
+        asset: 'ETH',
         fill: {
           shortTitle: 'Opened long',
           amount: '-$10.00',
           amountNumber: -10,
           isPositive: false,
-          size: '0.5',
-          entryPrice: '45000',
+          size: '1.0',
+          entryPrice: '3000',
           pnl: '0',
           fee: '10',
           points: '0',
@@ -301,7 +312,11 @@ describe('usePerpsHomeData', () => {
 
       expect(result.current.positions).toEqual(mockPositions);
       expect(result.current.orders).toEqual(mockOrders);
-      expect(result.current.recentActivity).toEqual(mockTransactions);
+      // recentActivity now comes from WebSocket fills (transformed to transactions)
+      expect(result.current.recentActivity).toHaveLength(mockFills.length);
+      expect(
+        result.current.recentActivity.every((tx) => tx.type === 'trade'),
+      ).toBe(true);
       expect(result.current.perpsMarkets).toEqual(mockMarkets);
       expect(result.current.watchlistMarkets).toEqual([
         mockMarkets[0],
@@ -599,7 +614,8 @@ describe('usePerpsHomeData', () => {
 
       expect(result.current.positions).toEqual(mockPositions);
       expect(result.current.orders).toEqual(mockOrders);
-      expect(result.current.recentActivity).toEqual(mockTransactions);
+      // recentActivity now comes from WebSocket fills (transformed to transactions)
+      expect(result.current.recentActivity).toHaveLength(mockFills.length);
     });
 
     it('returns all data when search query is only whitespace', () => {
@@ -691,12 +707,11 @@ describe('usePerpsHomeData', () => {
       expect(result.current.orders).toEqual([]);
     });
 
-    it('handles empty transactions array', () => {
-      mockUsePerpsTransactionHistory.mockReturnValue({
-        transactions: [],
-        isLoading: false,
-        error: null,
-        refetch: jest.fn().mockResolvedValue(undefined),
+    it('handles empty fills array', () => {
+      // Activity now comes from WebSocket fills, not usePerpsTransactionHistory
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
       });
 
       const { result } = renderHook(() => usePerpsHomeData());
@@ -784,7 +799,8 @@ describe('usePerpsHomeData', () => {
       expect(result.current.positions).toEqual(mockPositions);
       expect(result.current.orders).toEqual(mockOrders);
       expect(result.current.perpsMarkets).toEqual(mockMarkets);
-      expect(result.current.recentActivity).toEqual(mockTransactions);
+      // recentActivity now comes from WebSocket fills (transformed to transactions)
+      expect(result.current.recentActivity).toHaveLength(mockFills.length);
     });
 
     it('handles special characters in search query', () => {

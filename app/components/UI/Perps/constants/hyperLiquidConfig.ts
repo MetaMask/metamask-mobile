@@ -54,13 +54,16 @@ export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
   testnet: 'wss://api.hyperliquid-testnet.xyz/ws',
 };
 
-// Asset icons base URL
+// Asset icons base URL (HyperLiquid CDN - fallback source)
 export const HYPERLIQUID_ASSET_ICONS_BASE_URL =
   'https://app.hyperliquid.xyz/coins/';
 
-// HIP-3 asset icons base URL (for assets with dex:symbol format)
-export const HIP3_ASSET_ICONS_BASE_URL =
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/';
+// MetaMask-hosted Perps asset icons (primary source)
+// Assets uploaded to: https://github.com/MetaMask/contract-metadata/tree/master/icons/eip155:999
+// HIP-3 assets use format: hip3:dex_SYMBOL.svg (e.g., hip3:xyz_AAPL.svg)
+// Regular assets use format: SYMBOL.svg (e.g., BTC.svg)
+export const METAMASK_PERPS_ICONS_BASE_URL =
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/';
 
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
@@ -328,6 +331,30 @@ export const HIP3_ASSET_MARKET_TYPES: Record<
 } as const;
 
 /**
+ * Testnet-specific HIP-3 DEX configuration
+ *
+ * On testnet, there are many HIP-3 DEXs (test deployments from various builders).
+ * Subscribing to all of them causes connection/subscription overload and instability.
+ * This configuration limits which DEXs are discovered and subscribed to on testnet.
+ *
+ * On mainnet, full DEX discovery continues unchanged.
+ */
+export const TESTNET_HIP3_CONFIG = {
+  /**
+   * Allowed DEX names for testnet
+   * Empty array = main DEX only (no HIP-3 DEXs)
+   * Add specific DEX names to test with particular HIP-3 DEXs: ['testdex1', 'testdex2']
+   */
+  ENABLED_DEXS: ['xyz'] as string[],
+
+  /**
+   * Set to true to enable full HIP-3 discovery on testnet (not recommended)
+   * When false, only DEXs in ENABLED_DEXS are used
+   */
+  AUTO_DISCOVER_ALL: false,
+} as const;
+
+/**
  * HIP-3 margin management configuration
  * Controls margin buffers and auto-rebalance behavior for HIP-3 DEXes with isolated margin
  *
@@ -353,6 +380,24 @@ export const HIP3_MARGIN_CONFIG = {
    * Prevents unnecessary transfers for tiny amounts
    */
   REBALANCE_MIN_THRESHOLD: 0.1,
+} as const;
+
+/**
+ * Configuration for USDH collateral handling on HIP-3 DEXs
+ * Per HyperLiquid docs: USDH DEXs pull collateral from spot balance automatically
+ *
+ * USDH is HyperLiquid's native stablecoin pegged 1:1 to USDC
+ */
+export const USDH_CONFIG = {
+  /** Token name for USDH collateral */
+  TOKEN_NAME: 'USDH',
+
+  /**
+   * Maximum slippage for USDC→USDH spot swap in basis points
+   * USDH is pegged 1:1 to USDC so slippage should be minimal
+   * 10 bps (0.1%) provides small buffer for spread
+   */
+  SWAP_SLIPPAGE_BPS: 10,
 } as const;
 
 // Progress bar constants

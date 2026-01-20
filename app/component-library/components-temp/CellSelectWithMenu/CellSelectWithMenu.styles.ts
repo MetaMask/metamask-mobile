@@ -33,6 +33,7 @@ const styleSheet = (params: {
     cellBase: Object.assign(
       {
         flexDirection: 'row',
+        alignItems: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,

@@ -17,7 +17,7 @@ import { loginToApp } from '../viewHelper';
 import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
-import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { DappVariants } from '../framework/Constants';
 import { setupMockRequest } from '../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper';

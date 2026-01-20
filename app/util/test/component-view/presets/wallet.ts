@@ -14,7 +14,7 @@ interface InitialStateWalletOptions {
  * Use chainable calls on the returned builder to customize per-test needs.
  */
 export const initialStateWallet = (options?: InitialStateWalletOptions) => {
-  const builder = createStateFixture({ base: 'empty' })
+  const builder = createStateFixture()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
     .withMinimalMultichainNetwork(true)

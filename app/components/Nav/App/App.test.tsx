@@ -28,10 +28,9 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../Views/MultichainAccounts/AccountDetails.testIds';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -57,9 +56,14 @@ jest.mock('expo-sensors', () => ({
   },
 }));
 
-jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  init: jest.fn(),
-  parse: jest.fn(),
+jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  SharedDeeplinkManager: {
+    getInstance: jest.fn(() => ({
+      parse: jest.fn(),
+    })),
+  },
+  default: jest.fn(),
 }));
 
 const mockIsWC2Enabled = true;
@@ -77,16 +81,6 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
     getMetaMetricsId: jest.fn(),
   }),
 }));
-
-jest.mock('../../hooks/useOTAUpdates', () => ({
-  useOTAUpdates: jest.fn().mockReturnValue({
-    isCheckingUpdates: false,
-  }),
-}));
-
-const mockUseOTAUpdates = useOTAUpdates as jest.MockedFunction<
-  typeof useOTAUpdates
->;
 
 jest.mock(
   '../../UI/FoxLoader',
@@ -116,6 +110,10 @@ jest.mock('../../../core/NavigationService', () => ({
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
+}));
+
+jest.mock('../../hooks/useOTAUpdates', () => ({
+  useOTAUpdates: jest.fn(),
 }));
 
 // Mock the navigation hook
@@ -160,6 +158,7 @@ jest.mock('../../../core/Analytics/MetaMetrics');
 const mockMetrics = {
   configure: jest.fn(),
   addTraitsToUser: jest.fn(),
+  updateDataRecordingFlag: jest.fn(),
 };
 
 const mockAuthType = AUTHENTICATION_TYPE.BIOMETRIC;
@@ -264,9 +263,6 @@ describe('App', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: false,
-    });
     mockNavigate.mockClear();
   });
 
@@ -277,20 +273,6 @@ describe('App', () => {
 
   afterAll(() => {
     jest.useRealTimers();
-  });
-
-  it('renders FoxLoader when OTA update check runs', () => {
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: true,
-    });
-
-    const { getByTestId } = renderScreen(
-      App,
-      { name: 'App' },
-      { state: initialState },
-    );
-
-    expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
@@ -677,6 +659,15 @@ describe('App', () => {
   });
 
   describe('Renders multichain account details', () => {
+    const mockAccountGroupId = 'keyring:test-hd/ethereum' as const;
+    const mockAccountGroup = {
+      id: mockAccountGroupId,
+      accounts: [mockAccount.id],
+      metadata: {
+        name: 'Account Group',
+      },
+    };
+
     const mockLoggedInState = {
       ...initialState,
       user: {
@@ -701,6 +692,21 @@ describe('App', () => {
                 accounts: [mockAccount.address],
               },
             ],
+          },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'test-hd': {
+                  id: 'test-hd',
+                  metadata: {
+                    name: 'Test Keyring',
+                  },
+                  groups: {
+                    [mockAccountGroupId]: mockAccountGroup,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -792,11 +798,11 @@ describe('App', () => {
         index: 0,
         routes: [
           {
-            name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+            name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS,
             params: {
               screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
               params: {
-                account: mockAccount,
+                accountGroup: mockAccountGroup,
               },
             },
           },
@@ -830,7 +836,7 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share Address')).toBeTruthy();
+        expect(getByText('Share address')).toBeTruthy();
       });
     });
   });

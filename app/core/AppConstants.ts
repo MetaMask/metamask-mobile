@@ -39,6 +39,8 @@ export default {
   },
   CARD: {
     URL: 'https://card.metamask.io',
+    TRAVEL_URL: 'https://travel.metamask.io/access',
+    CARD_TOS_URL: 'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
   },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
@@ -78,6 +80,7 @@ export default {
     ORIGIN_QR_CODE: 'qr-code',
     ORIGIN_NOTIFICATION: 'notifications',
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
+    ORIGIN_PUSH_NOTIFICATION: 'push-notification',
   },
   WALLET_CONNECT: {
     //One day in hours

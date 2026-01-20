@@ -9,6 +9,7 @@ import {
   NEXT_BUTTON,
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
+import { splitAmountIntoDigits } from 'appwright/utils/Utils';
 
 class AmountScreen {
 
@@ -48,14 +49,6 @@ class AmountScreen {
       return AppwrightSelectors.getElementByCatchAll(this._device, 'Continue');
     }
   }
-  // Helper method to split amount into digits
-  splitAmountIntoDigits(amount) {
-    // Convert to string and split into array of digits
-    return amount.toString().split('').map(char => {
-      // Return only numeric digits, filter out decimal points, commas, etc.
-      return /\d/.test(char) ? parseInt(char, 10) : char;
-    });
-  }
 
   async tapNumberKey(digit) {
     console.log(`tapNumberKey called with digit: "${digit}"`);
@@ -92,7 +85,7 @@ class AmountScreen {
     } else {
         console.log('Direct input failed, falling back to digit tapping');
         // Fallback to digit tapping if direct input fails
-        const digits = this.splitAmountIntoDigits(text);
+        const digits = splitAmountIntoDigits(text);
         for (const digit of digits) {
           console.log('Tapping digit:', digit);
           await this.tapNumberKey(digit);
@@ -116,7 +109,7 @@ class AmountScreen {
   }
 
   async tapOnNextButton() {
-    await AppwrightGestures.tap(this.nextButton);
+    await AppwrightGestures.tap(await this.nextButton);
   }
 
   async isVisible() {

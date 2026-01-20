@@ -91,7 +91,7 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'perps.available_balance': 'Available Balance',
+      'perps.total_balance': 'Total Balance',
       'perps.position.account.unrealized_pnl': 'Unrealized P&L',
     };
     return translations[key] || key;
@@ -132,9 +132,9 @@ jest.mock('react-native', () => {
 describe('PerpsTabControlBar', () => {
   // Helper function to get TouchableOpacity
   const getTouchableOpacity = () => {
-    const balanceText = screen.queryByText('Available Balance');
+    const balanceText = screen.queryByText('Total Balance');
     if (!balanceText) {
-      throw new Error('Available Balance text not found');
+      throw new Error('Total Balance text not found');
     }
     const touchableOpacity = balanceText.parent?.parent;
     if (!touchableOpacity) {
@@ -225,15 +225,14 @@ describe('PerpsTabControlBar', () => {
 
       render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
-      expect(screen.getByText('$800.25')).toBeOnTheScreen();
+      expect(screen.getByText('Total Balance')).toBeOnTheScreen();
+      expect(screen.getByText('$1000.50')).toBeOnTheScreen();
 
       // PnL pill should not be rendered when no positions or orders
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
 
       // Find TouchableOpacity by its content
-      const touchableOpacity =
-        screen.getByText('Available Balance').parent?.parent;
+      const touchableOpacity = screen.getByText('Total Balance').parent?.parent;
       expect(touchableOpacity).toBeTruthy();
     });
 
@@ -247,9 +246,9 @@ describe('PerpsTabControlBar', () => {
 
       render(<PerpsTabControlBar hasPositions hasOrders={false} />);
 
-      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
+      expect(screen.getByText('Total Balance')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('$800.25')).toBeOnTheScreen();
+      expect(screen.getByText('$1000.50')).toBeOnTheScreen();
       expect(screen.getByText('+$50.75 (0.00%)')).toBeOnTheScreen(); // Formatted PnL
     });
 
@@ -263,7 +262,7 @@ describe('PerpsTabControlBar', () => {
 
       render(<PerpsTabControlBar hasPositions={false} hasOrders />);
 
-      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
+      expect(screen.getByText('Total Balance')).toBeOnTheScreen();
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
@@ -271,13 +270,13 @@ describe('PerpsTabControlBar', () => {
       jest
         .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
         .mockReturnValue({
-          account: { ...defaultAccountState, availableBalance: '0.00' },
+          account: { ...defaultAccountState, totalBalance: '0.00' },
           isInitialLoading: false,
         });
 
       render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Total Balance')).not.toBeOnTheScreen();
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
@@ -285,13 +284,13 @@ describe('PerpsTabControlBar', () => {
       jest
         .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
         .mockReturnValue({
-          account: { ...defaultAccountState, availableBalance: '0.00' },
+          account: { ...defaultAccountState, totalBalance: '0.00' },
           isInitialLoading: false,
         });
 
       render(<PerpsTabControlBar hasPositions hasOrders={false} />);
 
-      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
+      expect(screen.getByText('Total Balance')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
@@ -307,8 +306,8 @@ describe('PerpsTabControlBar', () => {
 
       render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      // Should display the available balance from account state
-      expect(screen.getByText('$800.25')).toBeOnTheScreen();
+      // Should display the total balance from account state
+      expect(screen.getByText('$1000.50')).toBeOnTheScreen();
     });
 
     it('renders without onManageBalancePress prop', async () => {
@@ -368,7 +367,7 @@ describe('PerpsTabControlBar', () => {
 
       // First render with initial balance - this sets the previousBalanceRef
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '900.00' },
+        account: { ...defaultAccountState, totalBalance: '900.00' },
         isInitialLoading: false,
       });
 
@@ -382,7 +381,7 @@ describe('PerpsTabControlBar', () => {
 
       // Now change the balance - this should trigger animation
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        account: { ...defaultAccountState, totalBalance: '1000.50' },
         isInitialLoading: false,
       });
 
@@ -403,7 +402,7 @@ describe('PerpsTabControlBar', () => {
 
       // First render with higher balance - sets previousBalanceRef
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '1200.00' },
+        account: { ...defaultAccountState, totalBalance: '1200.00' },
         isInitialLoading: false,
       });
 
@@ -418,7 +417,7 @@ describe('PerpsTabControlBar', () => {
 
       // Now render with lower balance
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '800.00' },
+        account: { ...defaultAccountState, totalBalance: '800.00' },
         isInitialLoading: false,
       });
 
@@ -436,7 +435,7 @@ describe('PerpsTabControlBar', () => {
 
       // Render with initial balance
       mockUsePerpsLiveAccount.mockReturnValue({
-        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        account: { ...defaultAccountState, totalBalance: '1000.50' },
         isInitialLoading: false,
       });
 
@@ -450,7 +449,7 @@ describe('PerpsTabControlBar', () => {
 
       // Render again with same balance
       mockUsePerpsLiveAccount.mockReturnValue({
-        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        account: { ...defaultAccountState, totalBalance: '1000.50' },
         isInitialLoading: false,
       });
 
@@ -511,7 +510,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       // With null account and no positions/orders, balance pill should be hidden
-      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Total Balance')).not.toBeOnTheScreen();
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
@@ -535,7 +534,7 @@ describe('PerpsTabControlBar', () => {
 
       // Update with account data
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '800.25' },
+        account: { ...defaultAccountState, totalBalance: '800.25' },
         isInitialLoading: false,
       });
 
@@ -559,7 +558,7 @@ describe('PerpsTabControlBar', () => {
 
       // First render to set previousBalanceRef
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '500.00' },
+        account: { ...defaultAccountState, totalBalance: '500.00' },
         isInitialLoading: false,
       });
 
@@ -572,7 +571,7 @@ describe('PerpsTabControlBar', () => {
 
       // Change balance to trigger animation
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '600.00' },
+        account: { ...defaultAccountState, totalBalance: '600.00' },
         isInitialLoading: false,
       });
 
@@ -595,7 +594,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       // During loading with no positions/orders, balance pill should be hidden
-      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Total Balance')).not.toBeOnTheScreen();
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
   });
@@ -621,7 +620,7 @@ describe('PerpsTabControlBar', () => {
         .mockReturnValue({
           account: {
             ...defaultAccountState,
-            availableBalance: '',
+            totalBalance: '',
           },
           isInitialLoading: false,
         });
@@ -629,7 +628,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       // With empty balance and no positions/orders, pills should be hidden
-      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Total Balance')).not.toBeOnTheScreen();
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
@@ -639,7 +638,7 @@ describe('PerpsTabControlBar', () => {
         .mockReturnValue({
           account: {
             ...defaultAccountState,
-            availableBalance: null as unknown as string,
+            totalBalance: null as unknown as string,
           },
           isInitialLoading: false,
         });
@@ -647,7 +646,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       // With null balance and no positions/orders, pills should be hidden
-      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Total Balance')).not.toBeOnTheScreen();
       expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
@@ -696,7 +695,7 @@ describe('PerpsTabControlBar', () => {
 
       // First render with initial balance - sets previousBalanceRef
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '900.00' },
+        account: { ...defaultAccountState, totalBalance: '900.00' },
         isInitialLoading: false,
       });
 
@@ -710,7 +709,7 @@ describe('PerpsTabControlBar', () => {
 
       // Now mock with changed balance
       mockUsePerpsLiveAccount.mockReturnValueOnce({
-        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        account: { ...defaultAccountState, totalBalance: '1000.50' },
         isInitialLoading: false,
       });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import useNetworkConnectionBanner from './useNetworkConnectionBanner';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
+import { selectIsDeviceOffline } from '../../../selectors/connectivityController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import Routes from '../../../constants/navigation/Routes';
 import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
@@ -24,6 +25,18 @@ jest.mock('../../../core/Engine');
 jest.mock('../../../selectors/networkEnablementController');
 jest.mock('../useMetrics');
 jest.mock('../../../selectors/networkConnectionBanner');
+jest.mock('../../../selectors/connectivityController');
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useSelector: jest.fn(
+      // Call the selector function directly to get the mocked return value
+      // This ensures selectors are called on every render, not just when store changes
+      (selector) => selector({} as unknown),
+    ),
+  };
+});
 jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
   ...jest.requireActual(
     '../../../core/Engine/controllers/network-controller/utils',
@@ -108,6 +121,10 @@ const mockNetworkController = {
 
 const mockEngine = {
   lookupEnabledNetworks: jest.fn(),
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
   context: {
     NetworkController: mockNetworkController,
   },
@@ -130,9 +147,13 @@ describe('useNetworkConnectionBanner', () => {
     jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
       visible: false,
     });
+    // Default to online
+    jest.mocked(selectIsDeviceOffline).mockReturnValue(false);
 
     // Mock Engine methods directly (safer than spyOn after jest.mock)
     Engine.lookupEnabledNetworks = mockEngine.lookupEnabledNetworks;
+    // @ts-expect-error - Mocking Engine for testing
+    Engine.controllerMessenger = mockEngine.controllerMessenger;
     // @ts-expect-error - Mocking Engine for testing
     Engine.context = mockEngine.context;
 
@@ -156,6 +177,13 @@ describe('useNetworkConnectionBanner', () => {
       networkConnectionBanner: {
         visible: false,
         chainId: undefined,
+      },
+      engine: {
+        backgroundState: {
+          ConnectivityController: {
+            connectivityStatus: 'online',
+          },
+        },
       },
     });
   };
@@ -898,6 +926,324 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(0);
+    });
+  });
+
+  describe('NetworkController:rpcEndpointChainAvailable event subscription', () => {
+    it('subscribes to rpcEndpointChainAvailable event on mount', () => {
+      renderHookWithProvider();
+
+      expect(mockEngine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+        'NetworkController:rpcEndpointChainAvailable',
+        expect.any(Function),
+      );
+    });
+
+    it('unsubscribes from rpcEndpointChainAvailable event on unmount', () => {
+      const { unmount } = renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      unmount();
+
+      expect(mockEngine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
+        'NetworkController:rpcEndpointChainAvailable',
+        subscribedHandler,
+      );
+    });
+
+    it('hides banner when rpcEndpointChainAvailable event fires for matching chain', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      act(() => {
+        subscribedHandler({ chainId: '0x89' });
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0]).toStrictEqual({
+        type: 'HIDE_NETWORK_CONNECTION_BANNER',
+      });
+    });
+
+    it('does not hide banner when rpcEndpointChainAvailable event fires for different chain', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      act(() => {
+        subscribedHandler({ chainId: '0x1' }); // Different chain
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(0);
+    });
+
+    it('does not hide banner when banner is not visible', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      renderHookWithProvider();
+
+      const subscribeCall = (
+        mockEngine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        (call) => call[0] === 'NetworkController:rpcEndpointChainAvailable',
+      );
+      const subscribedHandler = subscribeCall?.[1];
+
+      act(() => {
+        subscribedHandler({ chainId: '0x89' });
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(0);
+    });
+  });
+
+  describe('when device is offline', () => {
+    beforeEach(() => {
+      // Mock selector to return offline
+      jest.mocked(selectIsDeviceOffline).mockReturnValue(true);
+    });
+
+    it('hides banner when device is offline even if network is unavailable', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      renderHookWithProvider();
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0]).toStrictEqual({
+        type: 'HIDE_NETWORK_CONNECTION_BANNER',
+      });
+    });
+
+    it('does not show degraded banner when device is offline', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      // Should not show degraded banner when offline
+      expect(actions).not.toContainEqual(
+        expect.objectContaining({
+          type: 'SHOW_NETWORK_CONNECTION_BANNER',
+          status: 'degraded',
+        }),
+      );
+    });
+
+    it('does not show unavailable banner when device is offline', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(30000);
+      });
+
+      const actions = store.getActions();
+      // Should not show unavailable banner when offline
+      expect(actions).not.toContainEqual(
+        expect.objectContaining({
+          type: 'SHOW_NETWORK_CONNECTION_BANNER',
+          status: 'unavailable',
+        }),
+      );
+    });
+
+    it('does not progress from degraded to unavailable when device goes offline', () => {
+      // Device is offline with degraded banner showing
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      renderHookWithProvider();
+
+      // Clear any calls from initial render (hiding banner)
+      store.clearActions();
+
+      // Wait for what would have been the unavailable timeout
+      act(() => {
+        jest.advanceTimersByTime(30000);
+      });
+
+      const actions = store.getActions();
+      // Should NOT progress to unavailable since device is offline
+      expect(actions).not.toContainEqual(
+        expect.objectContaining({
+          type: 'SHOW_NETWORK_CONNECTION_BANNER',
+          status: 'unavailable',
+        }),
+      );
+    });
+
+    it('does not update banner if already hidden when offline', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      renderHookWithProvider();
+
+      const actions = store.getActions();
+      // Should not dispatch any actions when banner is already hidden
+      expect(actions).toHaveLength(0);
+    });
+
+    it('resumes normal behavior when device comes back online', async () => {
+      // Start offline
+      jest.mocked(selectIsDeviceOffline).mockReturnValue(true);
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      const { rerender } = renderHookWithProvider();
+
+      // Clear any calls from initial render
+      store.clearActions();
+
+      // Device comes back online - update selector mock
+      jest.mocked(selectIsDeviceOffline).mockReturnValue(false);
+
+      await act(async () => {
+        rerender({});
+      });
+
+      // Advance timer to trigger degraded
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      // Should now show degraded banner
+      expect(actions).toContainEqual(
+        expect.objectContaining({
+          type: 'SHOW_NETWORK_CONNECTION_BANNER',
+          status: 'degraded',
+          chainId: '0x89',
+        }),
+      );
+    });
+
+    it('hides banner immediately when device goes offline while showing degraded', async () => {
+      // Start online with degraded banner
+      jest.mocked(selectIsDeviceOffline).mockReturnValue(false);
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      const { rerender } = renderHookWithProvider();
+
+      // Clear any calls from initial render
+      store.clearActions();
+
+      // Device goes offline - update selector mock
+      jest.mocked(selectIsDeviceOffline).mockReturnValue(true);
+
+      await act(async () => {
+        rerender({});
+      });
+
+      await waitFor(() => {
+        const actions = store.getActions();
+        expect(actions).toContainEqual({
+          type: 'HIDE_NETWORK_CONNECTION_BANNER',
+        });
+      });
+    });
+
+    it('hides banner immediately when device goes offline while showing unavailable', async () => {
+      // Start online with unavailable banner
+      jest.mocked(selectIsDeviceOffline).mockReturnValue(false);
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'unavailable',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+      });
+
+      const { rerender } = renderHookWithProvider();
+
+      // Clear any calls from initial render
+      store.clearActions();
+
+      // Device goes offline - update selector mock
+      jest.mocked(selectIsDeviceOffline).mockReturnValue(true);
+
+      await act(async () => {
+        rerender({});
+      });
+
+      await waitFor(() => {
+        const actions = store.getActions();
+        expect(actions).toContainEqual({
+          type: 'HIDE_NETWORK_CONNECTION_BANNER',
+        });
+      });
     });
   });
 });

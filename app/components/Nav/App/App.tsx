@@ -38,9 +38,8 @@ import Toast, {
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
-import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
+import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
-import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
@@ -57,6 +56,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -104,7 +104,6 @@ import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-import TokenInsightsSheet from '../../UI/Bridge/components/TokenInsightsSheet';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
@@ -143,13 +142,13 @@ import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import Pna25BottomSheet from '../../Views/Pna25BottomSheet';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -161,6 +160,7 @@ import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hoo
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -485,10 +485,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={TokenSortBottomSheet}
     />
     <Stack.Screen
-      name={Routes.SHEET.TOKEN_FILTER}
-      component={TokenFilterBottomSheet}
-    />
-    <Stack.Screen
       name={Routes.SHEET.NETWORK_MANAGER}
       component={NetworkManager}
     />
@@ -520,6 +516,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
+    <Stack.Screen
+      name={Routes.MODAL.OTA_UPDATES_MODAL}
+      component={OTAUpdatesModal}
+    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -572,10 +572,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
-      name={Routes.SHEET.TOKEN_INSIGHTS}
-      component={TokenInsightsSheet}
-    />
-    <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
     />
@@ -588,6 +584,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET}
+      component={Pna25BottomSheet}
     />
     <Stack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
@@ -735,6 +735,14 @@ const MultichainAccountGroupDetails = () => {
           animationEnabled: true,
         }}
       />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={EditMultichainAccountName}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -763,12 +771,6 @@ const MultichainAccountDetailsActions = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
         component={MultichainAccountActions}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={EditMultichainAccountName}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -1088,7 +1090,7 @@ const AppFlow = () => {
   );
 };
 
-const AppContent: React.FC = () => {
+const App: React.FC = () => {
   const navigation = useNavigation();
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
@@ -1097,6 +1099,8 @@ const AppContent: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
+
+  useOTAUpdates();
 
   if (isFirstRender.current) {
     trace({
@@ -1278,16 +1282,6 @@ const AppContent: React.FC = () => {
       <ProfilerManager />
     </>
   );
-};
-
-const App: React.FC = () => {
-  const { isCheckingUpdates } = useOTAUpdates();
-
-  if (isCheckingUpdates) {
-    return <FoxLoader />;
-  }
-
-  return <AppContent />;
 };
 
 export default App;

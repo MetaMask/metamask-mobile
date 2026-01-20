@@ -17,7 +17,7 @@ import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
-import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
+import { SwapsViewSelectorsIDs } from '../Swaps/SwapsView.testIds';
 
 /* eslint-disable import/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');

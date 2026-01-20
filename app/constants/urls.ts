@@ -27,7 +27,7 @@ export const CONNECTING_TO_DEPRECATED_NETWORK =
   'https://support.metamask.io/networks-and-sidechains/eth-on-testnets/';
 
 export const HOWTO_MANAGE_METAMETRICS =
-  'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
+  'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
@@ -61,9 +61,7 @@ export const LINEA_DEFAULT_RPC_URL = `https://linea-mainnet.infura.io/v3/${infur
 export const MM_PHISH_DETECT_URL =
   'https://github.com/metamask/eth-phishing-detect';
 export const MM_BLOCKLIST_ISSUE_URL =
-  'https://github.com/metamask/eth-phishing-detect/issues/new';
-export const PHISHFORT_BLOCKLIST_ISSUE_URL =
-  'https://github.com/phishfort/phishfort-lists/issues/new';
+  'https://github.com/metamask/eth-phishing-detect/issues';
 
 // https://github.com/MetaMask/metamask-mobile/tree/gh-pages
 export const MM_APP_CONFIG_URL =

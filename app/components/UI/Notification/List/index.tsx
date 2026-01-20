@@ -3,10 +3,11 @@ import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
+import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
 import {
   hasNotificationComponents,
   hasNotificationModal,
+  isValidNotificationComponent,
   NotificationComponentState,
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
@@ -21,7 +22,7 @@ import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
-import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/NotificationMenuView.testIds';
 
 export const TEST_IDS = {
   loadingContainer: 'notification-list-loading',
@@ -116,6 +117,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
   const menuItemState = useMemo(() => {
     const notificationState =
       props.notification?.type &&
+      isValidNotificationComponent(props.notification) &&
       hasNotificationComponents(props.notification.type)
         ? NotificationComponentState[props.notification.type]
         : undefined;
@@ -123,7 +125,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
     return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 
-  if (!hasNotificationComponents(props.notification.type) || !menuItemState) {
+  if (!isValidNotificationComponent(props.notification) || !menuItemState) {
     return null;
   }
 

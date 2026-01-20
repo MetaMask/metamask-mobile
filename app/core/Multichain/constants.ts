@@ -147,6 +147,11 @@ export const TRON_RESOURCE = {
   STRX_BANDWIDTH: 'strx-bandwidth',
 } as const;
 
+export enum TronResourceType {
+  ENERGY = 'ENERGY',
+  BANDWIDTH = 'BANDWIDTH',
+}
+
 export type TronResourceSymbol =
   (typeof TRON_RESOURCE)[keyof typeof TRON_RESOURCE];
 

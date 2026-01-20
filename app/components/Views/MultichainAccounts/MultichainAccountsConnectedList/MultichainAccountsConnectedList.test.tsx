@@ -4,7 +4,7 @@ import configureStore from 'redux-mock-store';
 import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {
@@ -72,7 +72,7 @@ jest.mock('../../../../core/SDKConnectV2', () => ({
   },
 }));
 
-jest.mock('../../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+jest.mock('../../../../core/DeeplinkManager/DeeplinkManager', () => ({
   default: {
     init: jest.fn(),
   },

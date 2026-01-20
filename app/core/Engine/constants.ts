@@ -1,5 +1,4 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SWAPS_TESTNET_CHAIN_ID } from '../../constants/bridge';
 
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
@@ -10,11 +9,14 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ExecutionService',
   'NftDetectionController',
   'RewardsDataService',
+  'StorageService',
   'TokenDetectionController',
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
   'MultichainAccountService',
+  'ProfileMetricsService',
+  'RampsService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -22,7 +24,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountTreeController:stateChange',
   'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
+  'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
+  'ConnectivityController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
@@ -34,6 +38,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PhishingController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
+  'RampsController:stateChange',
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
@@ -78,12 +83,12 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'DelegationController:stateChange',
+  'ProfileMetricsController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.BSC,
-  SWAPS_TESTNET_CHAIN_ID,
   CHAIN_IDS.POLYGON,
   CHAIN_IDS.AVALANCHE,
   CHAIN_IDS.ARBITRUM,

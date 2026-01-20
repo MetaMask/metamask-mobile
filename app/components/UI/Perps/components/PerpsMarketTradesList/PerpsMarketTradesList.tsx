@@ -10,13 +10,15 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
+import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -30,28 +32,20 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  // Memoize params to prevent infinite refetch loop
-  const orderFillsParams = useMemo(() => ({ aggregateByTime: false }), []);
+  // Fetch order fills via WebSocket + REST API for complete history
+  // WebSocket provides instant updates, REST provides complete historical data
+  const { fills: marketFills, isInitialLoading: isLoading } =
+    usePerpsMarketFills({
+      symbol,
+      throttleMs: 0, // Instant updates for real-time activity
+    });
 
-  // Fetch all order fills using existing hook
-  const { orderFills, isLoading } = usePerpsOrderFills({
-    params: orderFillsParams,
-  });
-
-  // Filter by symbol, transform, and limit to 3
+  // Transform fills to transactions and limit to 3
+  // Note: marketFills is already filtered by symbol and sorted by the hook
   const trades = useMemo(() => {
-    // Filter fills for this market
-    const marketFills = orderFills.filter((fill) => fill.symbol === symbol);
-
-    // Sort by timestamp descending (newest first)
-    marketFills.sort((a, b) => b.timestamp - a.timestamp);
-
-    // Transform to transactions
     const transactions = transformFillsToTransactions(marketFills);
-
-    // Limit to 3
     return transactions.slice(0, PERPS_CONSTANTS.RECENT_ACTIVITY_LIMIT);
-  }, [orderFills, symbol]);
+  }, [marketFills]);
 
   const handleSeeAll = useCallback(() => {
     // Navigate to Activity > Trades tab
@@ -110,13 +104,19 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
               />
             </View>
             <View style={styles.tradeInfo}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                style={styles.tradeType}
-              >
-                {item.title}
-              </Text>
+              <View style={styles.tradeTitleRow}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  style={styles.tradeType}
+                >
+                  {item.title}
+                </Text>
+                <PerpsFillTag
+                  transaction={item}
+                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_MARKET_DETAILS}
+                />
+              </View>
               {!!item.subtitle && (
                 <Text
                   variant={TextVariant.BodySM}
@@ -140,8 +140,8 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {strings('perps.market.recent_trades')}
       </Text>
-      {!isLoading && trades.length > 0 && (
-        <TouchableOpacity onPress={handleSeeAll}>
+      {!isLoading && (
+        <TouchableOpacity testID="see-all-button" onPress={handleSeeAll}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.home.see_all')}
           </Text>

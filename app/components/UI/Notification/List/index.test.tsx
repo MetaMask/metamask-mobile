@@ -1,6 +1,16 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { type INotification } from '@metamask/notification-services-controller/notification-services';
+import {
+  TRIGGER_TYPES,
+  processNotification,
+  type INotification,
+} from '@metamask/notification-services-controller/notification-services';
+import {
+  createMockNotificationERC20Received,
+  createMockNotificationERC20Sent,
+  createMockNotificationEthReceived,
+  createMockNotificationEthSent,
+} from '@metamask/notification-services-controller/notification-services/mocks';
 import NotificationsList, {
   NotificationsListItem,
   TEST_IDS,
@@ -9,8 +19,8 @@ import NotificationsList, {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockNotificationsWithMetaData } from '../__mocks__/mock_notifications';
 import { createNavigationProps } from '../../../../util/testUtils';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
-import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
+import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/NotificationMenuView.testIds';
 // eslint-disable-next-line import/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 
@@ -108,6 +118,52 @@ describe('NotificationsListItem', () => {
       />,
     );
     expect(root).toBeUndefined();
+  });
+
+  it('returns null on unsupported eth_sent and eth_received notifications', () => {
+    const invalidNotifications = [
+      processNotification(createMockNotificationEthSent()),
+      processNotification(createMockNotificationEthReceived()),
+    ].map((n) => {
+      if (
+        n.type === TRIGGER_TYPES.ETH_SENT ||
+        n.type === TRIGGER_TYPES.ETH_RECEIVED
+      ) {
+        n.payload.chain_id = 123; // unsupported chainId
+      }
+
+      return n;
+    });
+
+    invalidNotifications.forEach((n) => {
+      const { root } = renderWithProvider(
+        <NotificationsListItem navigation={mockNavigation} notification={n} />,
+      );
+      expect(root).toBeUndefined();
+    });
+  });
+
+  it('returns null on unsupported erc20_sent and erc20_received notifications', () => {
+    const invalidNotifications = [
+      processNotification(createMockNotificationERC20Sent()),
+      processNotification(createMockNotificationERC20Received()),
+    ].map((n) => {
+      if (
+        n.type === TRIGGER_TYPES.ERC20_SENT ||
+        n.type === TRIGGER_TYPES.ERC20_RECEIVED
+      ) {
+        n.payload.chain_id = 123; // unsupported chainId
+      }
+
+      return n;
+    });
+
+    invalidNotifications.forEach((n) => {
+      const { root } = renderWithProvider(
+        <NotificationsListItem navigation={mockNavigation} notification={n} />,
+      );
+      expect(root).toBeUndefined();
+    });
   });
 
   it.each(mockNotificationsWithMetaData)(

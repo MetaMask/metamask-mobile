@@ -1,13 +1,13 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
-import * as reactRedux from 'react-redux';
 import TokenDetailsList from './';
+import { ToastContext } from '../../../../../component-library/components/Toast';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(),
-}));
+const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: mockCloseToast },
+};
 
 const mockTokenDetails = {
   contractAddress: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
@@ -15,17 +15,20 @@ const mockTokenDetails = {
   tokenList: 'Metamask, Coinmarketcap',
 };
 
+const renderComponent = () =>
+  render(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <TokenDetailsList tokenDetails={mockTokenDetails} />
+    </ToastContext.Provider>,
+  );
+
 describe('TokenDetails', () => {
   beforeAll(() => {
     jest.resetAllMocks();
   });
 
-  it('should render correctly', () => {
-    const useDispatchSpy = jest.spyOn(reactRedux, 'useDispatch');
-    useDispatchSpy.mockImplementation(() => jest.fn());
-    const { toJSON, getByText } = render(
-      <TokenDetailsList tokenDetails={mockTokenDetails} />,
-    );
+  it('renders correctly', () => {
+    const { toJSON, getByText } = renderComponent();
 
     expect(getByText('Token details')).toBeDefined();
     expect(getByText('Contract address')).toBeDefined();

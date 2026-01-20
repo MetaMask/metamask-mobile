@@ -13,6 +13,7 @@ import {
   getFeatureFlagAppEnvironment,
   isRemoteFeatureFlagOverrideActivated,
 } from './remote-feature-flag-controller';
+import { getBaseSemVerVersion } from '../../../util/version';
 
 /**
  * Initialize the remote feature flag controller.
@@ -24,14 +25,15 @@ import {
 export const remoteFeatureFlagControllerInit: ControllerInitFunction<
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerMessenger
-> = ({ controllerMessenger, persistedState, getState, metaMetricsId }) => {
+> = ({ controllerMessenger, persistedState, getState, analyticsId }) => {
   const disabled = !selectBasicFunctionalityEnabled(getState());
 
   const controller = new RemoteFeatureFlagController({
     messenger: controllerMessenger,
     state: persistedState.RemoteFeatureFlagController,
     disabled,
-    getMetaMetricsId: () => metaMetricsId,
+    getMetaMetricsId: () => analyticsId,
+    clientVersion: getBaseSemVerVersion(),
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {
@@ -40,7 +42,9 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
         distribution: getFeatureFlagAppDistribution(),
       },
     }),
-    fetchInterval: AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
+    fetchInterval: __DEV__
+      ? 1000
+      : AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
   });
 
   if (disabled) {

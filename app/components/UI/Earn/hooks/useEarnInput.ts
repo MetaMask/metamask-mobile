@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   fromTokenMinimalUnit,
   limitToMaximumDecimalPlaces,
@@ -12,6 +12,7 @@ import { EarnTokenDetails } from '../types/lending.types';
 import useEarnDepositGasFee from './useEarnGasFee';
 import { useEarnMetadata } from './useEarnMetadata';
 import useInputHandler from './useInput';
+import useMultichainInputHandlers from './useMultichainInputHandlers';
 
 export interface EarnInputProps {
   earnToken: EarnTokenDetails;
@@ -34,18 +35,18 @@ const useEarnInputHandlers = ({
 
   const {
     isFiat,
-    currencyToggleValue,
+    currencyToggleValue: evmCurrencyToggleValue,
     isNonZeroAmount,
-    handleKeypadChange,
-    handleCurrencySwitch,
+    handleKeypadChange: evmHandleKeypadChange,
+    handleCurrencySwitch: evmHandleCurrencySwitch,
     percentageOptions,
-    handleQuickAmountPress,
+    handleQuickAmountPress: evmHandleQuickAmountPress,
     currentCurrency,
-    handleTokenInput,
-    handleFiatInput,
+    handleTokenInput: evmHandleTokenInput,
+    handleFiatInput: evmHandleFiatInput,
     amountToken,
     amountTokenMinimalUnit,
-    amountFiatNumber,
+    amountFiatNumber: evmAmountFiatNumber,
     handleMaxInput,
   } = useInputHandler({
     balance: earnToken?.balanceMinimalUnit ?? '0',
@@ -53,6 +54,33 @@ const useEarnInputHandlers = ({
     ticker: earnToken?.ticker ?? earnToken?.symbol,
     conversionRate,
     exchangeRate,
+  });
+
+  const {
+    isNonEvm,
+    nonEvmFiatRate,
+    currencyToggleValue,
+    handleKeypadChange,
+    handleCurrencySwitch,
+    handleQuickAmountPress,
+    handleTokenInput,
+    handleFiatInput,
+    amountFiatNumber,
+    clearNonEvmTypedFiatValue,
+  } = useMultichainInputHandlers({
+    earnToken,
+    evmHandlers: {
+      isFiat,
+      currencyToggleValue: evmCurrencyToggleValue,
+      handleKeypadChange: evmHandleKeypadChange,
+      handleCurrencySwitch: evmHandleCurrencySwitch,
+      handleQuickAmountPress: evmHandleQuickAmountPress,
+      handleTokenInput: evmHandleTokenInput,
+      handleFiatInput: evmHandleFiatInput,
+      amountToken,
+      amountFiatNumber: evmAmountFiatNumber,
+      currentCurrency,
+    },
   });
 
   const earnGasFee = useEarnDepositGasFee(
@@ -94,37 +122,56 @@ const useEarnInputHandlers = ({
     [balanceWei, estimatedGasFeeWei, isEarnGasFeeError, isLoadingEarnGasFee],
   );
 
-  const isOverMaximum = useMemo(() => {
-    let isOverMaximumEth = false;
-    if (earnToken.isETH && isNonZeroAmount && !isLoadingEarnGasFee) {
-      isOverMaximumEth = amountTokenMinimalUnit
-        .sub(maxStakeableAmountWei)
-        .gt(new BN4(0));
-    }
-    let isOverMaximumToken = false;
-    if (!earnToken.isETH && isNonZeroAmount && !isLoadingEarnGasFee) {
-      isOverMaximumToken = amountTokenMinimalUnit
-        .sub(balanceMinimalUnit)
-        .gt(new BN4(0));
-    }
-
-    return {
-      isOverMaximumEth,
-      isOverMaximumToken,
-    };
+  // For non-ETH tokens, isOverMaximum doesn't depend on gas fees, so no loading check needed.
+  // For ETH, we only update the check when gas fee estimation completes (not during loading)
+  // to prevent the error message from flickering during re-estimation.
+  const isOverMaximumToken = useMemo(() => {
+    if (earnToken.isETH || !isNonZeroAmount) return false;
+    return amountTokenMinimalUnit.sub(balanceMinimalUnit).gt(new BN4(0));
   }, [
-    amountTokenMinimalUnit,
-    isNonZeroAmount,
-    maxStakeableAmountWei,
     earnToken.isETH,
+    isNonZeroAmount,
+    amountTokenMinimalUnit,
     balanceMinimalUnit,
-    isLoadingEarnGasFee,
   ]);
+
+  const isOverMaximumEth = useMemo(() => {
+    // Skip calculation during loading to prevent flickering - keep previous value
+    if (!earnToken.isETH || !isNonZeroAmount || isLoadingEarnGasFee)
+      return false;
+    return amountTokenMinimalUnit.sub(maxStakeableAmountWei).gt(new BN4(0));
+  }, [
+    earnToken.isETH,
+    isNonZeroAmount,
+    isLoadingEarnGasFee,
+    amountTokenMinimalUnit,
+    maxStakeableAmountWei,
+  ]);
+
+  // Use ref to preserve the last known ETH over-maximum state during loading
+  const lastIsOverMaximumEthRef = useRef(false);
+  if (!isLoadingEarnGasFee) {
+    lastIsOverMaximumEthRef.current = isOverMaximumEth;
+  }
+
+  const isOverMaximum = useMemo(
+    () => ({
+      // Use last known value during loading to prevent flickering
+      isOverMaximumEth: isLoadingEarnGasFee
+        ? lastIsOverMaximumEthRef.current
+        : isOverMaximumEth,
+      isOverMaximumToken,
+    }),
+    [isLoadingEarnGasFee, isOverMaximumEth, isOverMaximumToken],
+  );
 
   const { annualRewardRate, annualRewardRateDecimal, isLoadingEarnMetadata } =
     useEarnMetadata(earnToken);
   const handleMax = useCallback(async () => {
     if (!balanceMinimalUnit) return;
+
+    // Clear typed fiat value so amountFiatNumber recalculates from the new max token amount
+    clearNonEvmTypedFiatValue();
 
     let maxMinimalUnit;
 
@@ -144,6 +191,7 @@ const useEarnInputHandlers = ({
     earnToken.isETH,
     getEstimatedEarnGasFee,
     balanceWei,
+    clearNonEvmTypedFiatValue,
   ]);
 
   const annualRewardsToken = useMemo(
@@ -162,15 +210,10 @@ const useEarnInputHandlers = ({
     ],
   );
 
-  const annualRewardsFiat = useMemo(
-    () =>
-      renderFiat(
-        parseFloat(amountFiatNumber) * annualRewardRateDecimal,
-        currentCurrency,
-        2,
-      ),
-    [amountFiatNumber, annualRewardRateDecimal, currentCurrency],
-  );
+  const annualRewardsFiat = useMemo(() => {
+    const fiatAmount = parseFloat(amountFiatNumber) || 0;
+    return renderFiat(fiatAmount * annualRewardRateDecimal, currentCurrency, 2);
+  }, [amountFiatNumber, annualRewardRateDecimal, currentCurrency]);
 
   const calculateEstimatedAnnualRewards = useCallback(() => {
     if (isNonZeroAmount) {
@@ -190,9 +233,22 @@ const useEarnInputHandlers = ({
     annualRewardRate,
   ]);
 
-  const tokenBalanceFiat = earnToken.isETH
-    ? balanceFiatNumber?.toString()
-    : earnToken.balanceFiat;
+  const tokenBalanceFiat = useMemo(() => {
+    if (isNonEvm && nonEvmFiatRate && nonEvmFiatRate > 0) {
+      const balanceNumber = parseFloat(earnToken?.balanceFormatted ?? '0') || 0;
+      return (balanceNumber * nonEvmFiatRate).toFixed(2);
+    }
+    return earnToken.isETH
+      ? balanceFiatNumber?.toString()
+      : earnToken.balanceFiat;
+  }, [
+    isNonEvm,
+    nonEvmFiatRate,
+    earnToken?.balanceFormatted,
+    earnToken.isETH,
+    earnToken.balanceFiat,
+    balanceFiatNumber,
+  ]);
 
   const tokenBalance = earnToken.isETH
     ? `${balanceETH} ETH`

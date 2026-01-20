@@ -45,6 +45,18 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     );
   }
 
+  showConfirmationRejectionError(conninfo?: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo?.id || Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_rejection.title'),
+        description: strings('sdk_connect_v2.show_rejection.description'),
+        status: 'error',
+      }),
+    );
+  }
+
   showReturnToApp(conninfo: ConnectionInfo): void {
     store.dispatch(
       showSimpleNotification({
@@ -53,6 +65,18 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
         title: strings('sdk_connect_v2.show_return_to_app.title'),
         description: strings('sdk_connect_v2.show_return_to_app.description'),
         status: 'success',
+      }),
+    );
+  }
+
+  showNotFoundError(): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_not_found.title'),
+        description: strings('sdk_connect_v2.show_not_found.description'),
+        status: 'error',
       }),
     );
   }

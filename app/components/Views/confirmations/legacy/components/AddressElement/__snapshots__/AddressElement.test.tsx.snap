@@ -1,0 +1,116 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddressElement should render correctly 1`] = `
+<TouchableOpacity
+  onLongPress={[Function]}
+  onPress={[Function]}
+  style={
+    {
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+  testID="address-element"
+>
+  <View
+    style={
+      {
+        "paddingRight": 16,
+      }
+    }
+  >
+    <View
+      placeholderStyle={
+        {
+          "backgroundColor": "#f3f5f9",
+        }
+      }
+      useNativeDriver={true}
+    >
+      <View
+        onLoadEnd={[Function]}
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 8,
+            "height": 32,
+            "overflow": "hidden",
+            "width": 32,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "height": 32,
+              "width": 32,
+            }
+          }
+        />
+      </View>
+      <View
+        collapsable={false}
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "opacity": 1,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {},
+              {
+                "backgroundColor": "#eee",
+              },
+              {
+                "backgroundColor": "#f3f5f9",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+        "flexDirection": "column",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "flex": 1,
+            "fontFamily": "Geist-Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        0xd0185...a78E7
+      </Text>
+    </View>
+  </View>
+</TouchableOpacity>
+`;

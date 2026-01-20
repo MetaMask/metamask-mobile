@@ -13,15 +13,13 @@ import { RootState } from '../../../../../../reducers';
 import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../../components/hooks/useFeatureFlag';
+import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import styleSheet from './StakingButtons.styles';
 import { trace, TraceName } from '../../../../../../util/trace';
+import useStakingEligibility from '../../../hooks/useStakingEligibility';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -41,13 +39,12 @@ const StakingButtons = ({
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  const { isEligible } = useStakingEligibility();
+
   const chainId = useSelector(selectEvmChainId);
-  const isPooledStakingEnabled = useFeatureFlag(
-    FeatureFlagNames.earnPooledStakingEnabled,
-  ) as boolean;
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { isStakingSupportedChain } = useStakingChain();
-
   const { MultichainNetworkController } = Engine.context;
 
   const handleIsStakingSupportedChain = async () => {
@@ -113,7 +110,7 @@ const StakingButtons = ({
           onPress={onUnstakePress}
         />
       )}
-      {isPooledStakingEnabled && (
+      {isPooledStakingEnabled && isEligible && (
         <Button
           testID={'stake-more-button'}
           style={styles.balanceActionButton}

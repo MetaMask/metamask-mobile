@@ -378,7 +378,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -550,7 +550,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -722,7 +722,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -781,7 +781,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -931,7 +931,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -945,7 +945,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -978,7 +978,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -994,7 +994,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -1047,7 +1047,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -1197,7 +1197,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1211,7 +1211,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -1244,7 +1244,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1260,7 +1260,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -1313,7 +1313,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -1463,7 +1463,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1477,7 +1477,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -1510,7 +1510,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1526,7 +1526,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -1579,7 +1579,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -1729,7 +1729,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1743,7 +1743,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -1776,7 +1776,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1792,7 +1792,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -1845,7 +1845,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -1995,7 +1995,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2009,7 +2009,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -2042,7 +2042,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2058,7 +2058,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -2477,7 +2477,7 @@ exports[`OrdersList renders correctly 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -2649,7 +2649,7 @@ exports[`OrdersList renders correctly 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -2821,7 +2821,7 @@ exports[`OrdersList renders correctly 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -2880,7 +2880,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -3030,7 +3030,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3044,7 +3044,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3077,7 +3077,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3093,7 +3093,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3146,7 +3146,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -3296,7 +3296,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3310,7 +3310,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3343,7 +3343,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3359,7 +3359,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3412,7 +3412,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -3562,7 +3562,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3576,7 +3576,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3609,7 +3609,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3625,7 +3625,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3678,7 +3678,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -3828,7 +3828,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3842,7 +3842,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3875,7 +3875,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3891,7 +3891,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -3944,7 +3944,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -4094,7 +4094,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -4108,7 +4108,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -4141,7 +4141,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -4157,7 +4157,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -4210,7 +4210,7 @@ exports[`OrdersList renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -4360,7 +4360,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -4374,7 +4374,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -4407,7 +4407,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -4423,7 +4423,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -4702,7 +4702,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -4874,7 +4874,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -5046,7 +5046,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -5103,7 +5103,7 @@ exports[`OrdersList renders empty buy message 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -5383,7 +5383,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -5555,7 +5555,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -5727,7 +5727,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -5784,7 +5784,7 @@ exports[`OrdersList renders empty sell message 1`] = `
             [
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -6090,7 +6090,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -6262,7 +6262,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -6434,7 +6434,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -6493,7 +6493,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -6643,7 +6643,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -6657,7 +6657,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -6690,7 +6690,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -6706,7 +6706,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -7011,7 +7011,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -7183,7 +7183,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -7355,7 +7355,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -7414,7 +7414,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -7564,7 +7564,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -7578,7 +7578,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -7611,7 +7611,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -7627,7 +7627,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -8046,7 +8046,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -8218,7 +8218,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -8390,7 +8390,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                           "flexGrow": 0,
                           "flexShrink": 1,
                           "flexWrap": "wrap",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "fontWeight": 400,
                           "letterSpacing": 0,
@@ -8449,7 +8449,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -8599,7 +8599,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -8613,7 +8613,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -8646,7 +8646,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -8662,7 +8662,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -8715,7 +8715,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -8865,7 +8865,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -8879,7 +8879,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -8912,7 +8912,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -8928,7 +8928,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -8981,7 +8981,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -9131,7 +9131,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9145,7 +9145,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -9178,7 +9178,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9194,7 +9194,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -9247,7 +9247,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -9397,7 +9397,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9411,7 +9411,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -9444,7 +9444,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9460,7 +9460,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -9513,7 +9513,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -9663,7 +9663,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9677,7 +9677,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -9710,7 +9710,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9726,7 +9726,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -9779,7 +9779,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
                   "lineHeight": 22,
@@ -9929,7 +9929,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9943,7 +9943,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -9976,7 +9976,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -9992,7 +9992,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,

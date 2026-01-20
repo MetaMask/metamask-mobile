@@ -25,7 +25,10 @@ const mockTrackEvent = jest.fn().mockImplementation();
 jest.mock('../../../../../core/Analytics', () => ({
   ...jest.requireActual('../../../../../core/Analytics'),
   MetaMetrics: {
-    getInstance: () => ({ trackEvent: mockTrackEvent }),
+    getInstance: () => ({
+      trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
+    }),
   },
 }));
 
@@ -49,7 +52,7 @@ const SignatureMetrics = {
   security_alert_response: 'Malicious',
   security_alert_source: 'api',
   signature_type: 'eth_signTypedData',
-  ui_customizations: ['redesigned_confirmation', 'flagged_as_malicious'],
+  ui_customizations: ['flagged_as_malicious'],
   version: 'V4',
 };
 
@@ -74,7 +77,7 @@ const SignatureMetricsLoading = {
   security_alert_response: 'loading',
   security_alert_source: 'api',
   signature_type: 'eth_signTypedData',
-  ui_customizations: ['redesigned_confirmation', 'security_alert_loading'],
+  ui_customizations: ['security_alert_loading'],
   version: 'V4',
   ppom_eth_call_count: 5,
   ppom_eth_getCode_count: 3,
@@ -89,7 +92,6 @@ const SignatureMetricsUndefined = {
   eip712_primary_type: 'Permit',
   request_source: 'In-App-Browser',
   signature_type: 'eth_signTypedData',
-  ui_customizations: ['redesigned_confirmation'],
   version: 'V4',
 };
 

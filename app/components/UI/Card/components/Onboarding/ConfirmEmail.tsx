@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useContext } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -6,7 +6,9 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Label from '../../../../../component-library/components/Form/Label';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -24,23 +26,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
-import { useStyles } from '../../../../hooks/useStyles';
-import { createOTPStyles } from './ConfirmPhoneNumber';
-import { Platform, TextInput, TextInputProps, View } from 'react-native';
-import {
-  CodeField,
-  Cursor,
-  useBlurOnFulfill,
-  useClearByFocusCell,
-} from 'react-native-confirmation-code-field';
 
-const CELL_COUNT = 6;
+import { Platform, TextInputProps } from 'react-native';
+
+const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
   android: 'sms-otp',
   default: 'one-time-code',
@@ -54,13 +44,9 @@ const ConfirmEmail = () => {
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { toastRef } = useContext(ToastContext);
-  const { styles } = useStyles(createOTPStyles, {});
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-
-  const theme = useTheme();
 
   const { email, password } = useParams<{
     email: string;
@@ -85,7 +71,9 @@ const ConfirmEmail = () => {
   const handleConfirmCodeChange = useCallback(
     (text: string) => {
       resetVerifyEmailVerification();
-      setConfirmCode(text);
+      // Filter to only allow numeric input and limit to CODE_LENGTH digits
+      const cleanedText = text.replace(/\D/g, '').slice(0, CODE_LENGTH);
+      setConfirmCode(cleanedText);
       setLatestValueSubmitted(null);
     },
     [resetVerifyEmailVerification],
@@ -151,7 +139,7 @@ const ConfirmEmail = () => {
         password,
         verificationCode: confirmCode,
         contactVerificationId,
-        countryOfResidence: selectedCountry,
+        countryOfResidence: selectedCountry?.key || '',
         allowMarketing: true,
         allowSms: true,
       });
@@ -160,20 +148,32 @@ const ConfirmEmail = () => {
         dispatch(setOnboardingId(onboardingId));
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (hasAccount) {
-        navigation.navigate(Routes.CARD.AUTHENTICATION);
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          hasNoTimeout: false,
-          iconName: IconName.Info,
-          iconColor: theme.colors.info.default,
-          labelOptions: [
-            {
+        const navigateToAuthentication = () => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: Routes.CARD.AUTHENTICATION }],
+          });
+        };
+
+        navigation.navigate(Routes.CARD.MODALS.ID, {
+          screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+          params: {
+            title: strings('card.card_onboarding.account_exists.title'),
+            description: strings(
+              'card.card_onboarding.account_exists.description',
+              {
+                email,
+              },
+            ),
+            confirmAction: {
               label: strings(
-                'card.card_onboarding.confirm_email.account_exists',
+                'card.card_onboarding.account_exists.confirm_button',
               ),
-              isBold: true,
+              onPress: navigateToAuthentication,
             },
-          ],
+            onClose: navigateToAuthentication,
+            icon: IconName.UserCheck,
+          },
         });
         dispatch(resetOnboardingState());
       }
@@ -193,13 +193,11 @@ const ConfirmEmail = () => {
     dispatch,
     email,
     navigation,
-    theme,
     password,
     selectedCountry,
     verifyEmailVerification,
     trackEvent,
     createEventBuilder,
-    toastRef,
   ]);
 
   // Cooldown timer effect
@@ -213,32 +211,16 @@ const ConfirmEmail = () => {
     }
   }, [resendCooldown]);
 
-  const inputRef =
-    useBlurOnFulfill({
-      value: confirmCode,
-      cellCount: CELL_COUNT,
-    }) || null;
-
-  // Focus management
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, [inputRef]);
-
   // Auto-submit when all digits are entered
   useEffect(() => {
     if (
-      confirmCode.length === CELL_COUNT &&
+      confirmCode.length === CODE_LENGTH &&
       latestValueSubmitted !== confirmCode
     ) {
       setLatestValueSubmitted(confirmCode);
       handleContinue();
     }
   }, [confirmCode, handleContinue, latestValueSubmitted]);
-
-  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
-    value: confirmCode,
-    setValue: handleConfirmCodeChange,
-  });
 
   const isDisabled =
     verifyLoading ||
@@ -252,34 +234,22 @@ const ConfirmEmail = () => {
   const renderFormFields = () => (
     <>
       <Box>
-        <Label>
-          {strings('card.card_onboarding.confirm_email.confirm_code_label')}
-        </Label>
-        <CodeField
-          ref={inputRef as React.RefObject<TextInput>}
-          {...props}
-          value={confirmCode}
+        <TextField
+          autoCapitalize={'none'}
           onChangeText={handleConfirmCodeChange}
-          cellCount={CELL_COUNT}
-          rootStyle={styles.codeFieldRoot}
+          numberOfLines={1}
+          size={TextFieldSize.Lg}
+          value={confirmCode}
           keyboardType="number-pad"
           textContentType="oneTimeCode"
           autoComplete={autoComplete}
-          renderCell={({ index, symbol, isFocused }) => (
-            <View
-              onLayout={getCellOnLayoutHandler(index)}
-              key={index}
-              style={[styles.cellRoot, isFocused && styles.focusCell]}
-            >
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="text-text-default font-bold text-center"
-              >
-                {symbol || (isFocused ? <Cursor /> : null)}
-              </Text>
-            </View>
+          maxLength={CODE_LENGTH}
+          accessibilityLabel={strings(
+            'card.card_onboarding.confirm_email.code_label',
           )}
+          isError={verifyIsError}
           testID="confirm-email-code-field"
+          autoFocus
         />
         {verifyIsError && (
           <Text
@@ -293,28 +263,38 @@ const ConfirmEmail = () => {
       </Box>
 
       {/* Resend verification */}
-      <Box twClassName="mt-4 items-center">
+      <Box twClassName="mt-2">
         <Text
-          variant={TextVariant.BodyMd}
-          twClassName={`${
-            resendCooldown > 0
-              ? 'text-text-alternative'
-              : 'text-primary-default cursor-pointer'
-          }`}
-          onPress={resendCooldown > 0 ? undefined : handleResendVerification}
-          disabled={
-            resendCooldown > 0 ||
-            !email ||
-            !selectedCountry ||
-            emailVerificationIsLoading
-          }
+          variant={TextVariant.BodySm}
+          twClassName="text-text-alternative"
           testID="confirm-email-resend-verification"
         >
-          {resendCooldown > 0
-            ? strings('card.card_onboarding.confirm_email.resend_cooldown', {
-                seconds: resendCooldown,
-              })
-            : strings('card.card_onboarding.confirm_email.resend_verification')}
+          {resendCooldown > 0 ? (
+            strings('card.card_onboarding.confirm_email.resend_cooldown', {
+              seconds: resendCooldown,
+            })
+          ) : (
+            <>
+              {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative underline"
+                onPress={
+                  resendCooldown > 0 ? undefined : handleResendVerification
+                }
+                disabled={
+                  resendCooldown > 0 ||
+                  !email ||
+                  !selectedCountry ||
+                  emailVerificationIsLoading
+                }
+              >
+                {strings(
+                  'card.card_onboarding.confirm_email.resend_verification',
+                )}
+              </Text>
+            </>
+          )}
         </Text>
         {emailVerificationIsError && (
           <Text
@@ -337,6 +317,7 @@ const ConfirmEmail = () => {
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
       isDisabled={isDisabled}
+      loading={verifyLoading}
       testID="confirm-email-continue-button"
     />
   );
@@ -349,6 +330,7 @@ const ConfirmEmail = () => {
       })}
       formFields={renderFormFields()}
       actions={renderActions()}
+      stickyActions
     />
   );
 };

@@ -46,10 +46,13 @@ const EarnTokenSelector = ({
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
 
-  const tokenToRender = (earnToken || outputToken || someEarnToken) as
-    | EarnTokenDetails
-    | TokenI
-    | undefined;
+  // For withdrawal flows we want to display the output token (e.g. sTRX, stETH),
+  // for staking flows we want to display the earn token (e.g. TRX, ETH).
+  const tokenToRender = (
+    action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
+      ? outputToken || someEarnToken
+      : earnToken || outputToken || someEarnToken
+  ) as EarnTokenDetails | TokenI | undefined;
 
   const rawApr =
     (tokenToRender as EarnTokenDetails | undefined)?.experience?.apr ?? '';

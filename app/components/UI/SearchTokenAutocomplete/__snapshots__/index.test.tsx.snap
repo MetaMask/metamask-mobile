@@ -329,7 +329,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                         <View
                           style={
                             {
-                              "paddingTop": 16,
+                              "margin": 16,
                             }
                           }
                         >
@@ -353,7 +353,8 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                               style={
                                 {
                                   "color": "#686e7d",
-                                  "paddingLeft": 20,
+                                  "left": 16,
+                                  "position": "absolute",
                                 }
                               }
                             >
@@ -376,9 +377,8 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                 {
                                   "borderColor": "#2c3dc5",
                                   "color": "#686e7d",
-                                  "paddingHorizontal": 12,
-                                  "paddingVertical": 12,
-                                  "width": "80%",
+                                  "paddingHorizontal": 42,
+                                  "width": "100%",
                                 }
                               }
                             >
@@ -387,59 +387,18 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                 onBlur={[Function]}
                                 onChangeText={[Function]}
                                 onFocus={[Function]}
-                                placeholder="Search Tokens"
+                                placeholder="Search tokens"
                                 placeholderTextColor="#b7bbc8"
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
+                                    "height": 42,
                                   }
                                 }
                                 testID="input-search-asset"
                                 value=""
                               />
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "color": "#686e7d",
-                                  "paddingRight": 20,
-                                }
-                              }
-                            >
-                              <TouchableOpacity
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={false}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "borderRadius": 8,
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                    "opacity": 1,
-                                    "width": 24,
-                                  }
-                                }
-                                testID="clear-search-bar"
-                              >
-                                <SvgMock
-                                  color="#121314"
-                                  fill="currentColor"
-                                  height={16}
-                                  name="Close"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
@@ -566,7 +525,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "#ffffff",
-                                                  "borderColor": "#121314",
+                                                  "borderColor": "#b7bbc8",
                                                   "borderRadius": 4,
                                                   "borderWidth": 2,
                                                   "height": 20,
@@ -710,7 +669,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -724,7 +683,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -808,7 +767,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "#ffffff",
-                                                  "borderColor": "#121314",
+                                                  "borderColor": "#b7bbc8",
                                                   "borderRadius": 4,
                                                   "borderWidth": 2,
                                                   "height": 20,
@@ -952,7 +911,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -966,7 +925,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Regular",
+                                                "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -988,7 +947,9 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                       <View
                         style={
                           {
-                            "paddingVertical": 16,
+                            "paddingBottom": 16,
+                            "paddingHorizontal": 16,
+                            "paddingTop": 24,
                           }
                         }
                       >
@@ -1021,7 +982,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "Geist Medium",
+                                "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,

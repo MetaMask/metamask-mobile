@@ -13,9 +13,10 @@ import type { TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 
 jest.mock('expo-screen-orientation');
+jest.mock('../../../../../util/Logger');
 
 const mockLockAsync = lockAsync as jest.MockedFunction<typeof lockAsync>;
 const mockUnlockAsync = unlockAsync as jest.MockedFunction<typeof unlockAsync>;
@@ -254,7 +255,7 @@ describe('PerpsChartFullscreenModal', () => {
       });
     });
 
-    it('locks orientation when close button is pressed', async () => {
+    it('calls onClose when close button is pressed (orientation locked via visibility change)', async () => {
       const { getByTestId } = render(
         <PerpsChartFullscreenModal {...defaultProps} isVisible />,
       );
@@ -265,8 +266,10 @@ describe('PerpsChartFullscreenModal', () => {
         );
       });
 
+      // onClose is called, which triggers isVisible to become false,
+      // which causes the hook to lock orientation
       await waitFor(() => {
-        expect(mockLockAsync).toHaveBeenCalledWith(OrientationLock.PORTRAIT_UP);
+        expect(mockOnClose).toHaveBeenCalled();
       });
     });
 
@@ -274,6 +277,11 @@ describe('PerpsChartFullscreenModal', () => {
       const { unmount } = render(
         <PerpsChartFullscreenModal {...defaultProps} isVisible />,
       );
+
+      // Wait for the initial effect to complete before unmounting
+      await waitFor(() => {
+        expect(mockUnlockAsync).toHaveBeenCalled();
+      });
 
       unmount();
 
@@ -369,7 +377,7 @@ describe('PerpsChartFullscreenModal', () => {
       });
     });
 
-    it('locks orientation before calling onClose', async () => {
+    it('calls onClose immediately when pressed (orientation managed by hook)', async () => {
       const { getByTestId } = render(
         <PerpsChartFullscreenModal {...defaultProps} isVisible />,
       );
@@ -380,8 +388,9 @@ describe('PerpsChartFullscreenModal', () => {
         );
       });
 
+      // onClose is called immediately; orientation locking happens
+      // via the useScreenOrientation hook when isVisible changes
       await waitFor(() => {
-        expect(mockLockAsync).toHaveBeenCalledWith(OrientationLock.PORTRAIT_UP);
         expect(mockOnClose).toHaveBeenCalled();
       });
     });
@@ -458,38 +467,9 @@ describe('PerpsChartFullscreenModal', () => {
         mockOnError();
       });
 
+      // onClose is called on error; orientation is restored via hook when isVisible changes
       await waitFor(() => {
-        expect(mockLockAsync).toHaveBeenCalledWith(OrientationLock.PORTRAIT_UP);
         expect(mockOnClose).toHaveBeenCalled();
-      });
-    });
-
-    it('restores orientation lock when chart error occurs', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const ComponentErrorBoundary = require('../../../ComponentErrorBoundary');
-      const mockOnError = jest.fn();
-
-      ComponentErrorBoundary.mockImplementationOnce(
-        ({
-          onError,
-          children,
-        }: {
-          onError: () => void;
-          children: React.ReactNode;
-        }) => {
-          mockOnError.mockImplementation(onError);
-          return children;
-        },
-      );
-
-      render(<PerpsChartFullscreenModal {...defaultProps} isVisible />);
-
-      await act(async () => {
-        mockOnError();
-      });
-
-      await waitFor(() => {
-        expect(mockLockAsync).toHaveBeenCalledWith(OrientationLock.PORTRAIT_UP);
       });
     });
   });

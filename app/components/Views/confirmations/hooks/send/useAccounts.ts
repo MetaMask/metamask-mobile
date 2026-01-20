@@ -85,6 +85,7 @@ export const useAccounts = (): RecipientType[] => {
       if (!account) return null;
 
       return {
+        accountGroupId: accountGroup.id,
         accountGroupName: accountGroup.metadata.name,
         accountName: account.metadata.name,
         accountType: account.type,

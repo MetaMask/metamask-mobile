@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
-import { getNativeTokenAddress } from '../../utils/asset';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -70,10 +70,13 @@ export function useInsufficientPayTokenBalanceAlert({
     );
   }, [isLoading, isPayTokenNative, isSourceGasFeeToken, totals]);
 
-  const totalSourceNetworkFeeRaw = useMemo(
-    () => new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0'),
-    [totals],
-  );
+  const totalSourceNetworkFeeRaw = useMemo(() => {
+    if (isLoading) {
+      return new BigNumber(0);
+    }
+
+    return new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0');
+  }, [isLoading, totals]);
 
   const isInsufficientForInput = useMemo(
     () => payToken && totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),

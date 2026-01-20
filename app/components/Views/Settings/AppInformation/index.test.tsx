@@ -1,8 +1,12 @@
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
-import { renderScreen } from '../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../util/test/renderWithProvider';
 import AppInformation from './';
-import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
+import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
+import { RootState } from '../../../../reducers';
 
 // Mock device info
 const mockGetApplicationName = jest.fn();
@@ -32,6 +36,38 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../constants/ota', () => {
+  const actual = jest.requireActual('../../../../constants/ota');
+
+  return {
+    ...actual,
+    // Make getFullVersion a pass-through so tests don't depend on OTA_VERSION
+    getFullVersion: (appVersion: string) => appVersion,
+  };
+});
+
+const MOCK_STATE = {
+  engine: {
+    backgroundState: {
+      SnapController: {
+        snaps: {
+          'npm:@metamask/solana-snap': {
+            id: 'npm:@metamask/solana-snap',
+            enabled: true,
+            version: '1.7.0',
+            status: 'running',
+            manifest: {
+              proposedName: 'Solana',
+              description: 'Manage Solana using MetaMask',
+            },
+            preinstalled: true,
+          },
+        },
+      },
+    },
+  },
+} as DeepPartial<RootState>;
+
 describe('AppInformation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,7 +83,7 @@ describe('AppInformation', () => {
     const { toJSON } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
-      { state: {} },
+      { state: MOCK_STATE },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -56,7 +92,7 @@ describe('AppInformation', () => {
     const { getByTestId } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
-      { state: {} },
+      { state: MOCK_STATE },
     );
 
     expect(getByTestId(AboutMetaMaskSelectorsIDs.CONTAINER)).toBeTruthy();
@@ -66,7 +102,7 @@ describe('AppInformation', () => {
     const { getByText } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
-      { state: {} },
+      { state: MOCK_STATE },
     );
 
     // Given the device info is mocked
@@ -82,7 +118,7 @@ describe('AppInformation', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // Given the component is rendered
@@ -91,16 +127,16 @@ describe('AppInformation', () => {
       expect(getByText(/Privacy Policy/)).toBeTruthy();
       expect(getByText(/Terms of use/)).toBeTruthy();
       expect(getByText(/Attributions/)).toBeTruthy();
-      expect(getByText(/Visit our Support Center/)).toBeTruthy();
-      expect(getByText(/Visit our Website/)).toBeTruthy();
-      expect(getByText(/Contact Us/)).toBeTruthy();
+      expect(getByText(/Visit our support center/)).toBeTruthy();
+      expect(getByText(/Visit our website/)).toBeTruthy();
+      expect(getByText(/Contact us/)).toBeTruthy();
     });
 
     it('renders the links section title', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       expect(getByText(/Links/)).toBeTruthy();
@@ -109,7 +145,11 @@ describe('AppInformation', () => {
 
   describe('Component Lifecycle', () => {
     it('fetches device info on mount', async () => {
-      renderScreen(AppInformation, { name: 'AppInformation' }, { state: {} });
+      renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
 
       // Given the component is mounted
       // When the componentDidMount lifecycle method runs
@@ -129,7 +169,7 @@ describe('AppInformation', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // Given device info returns specific values
@@ -146,7 +186,7 @@ describe('AppInformation', () => {
       const { UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // Given the component is rendered
@@ -173,7 +213,7 @@ describe('AppInformation', () => {
       const { queryByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // When the component renders
@@ -192,7 +232,7 @@ describe('AppInformation', () => {
       const { getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // When the user long-presses the fox icon
@@ -213,6 +253,7 @@ describe('AppInformation', () => {
         expect(
           getByText('Remote Feature Flag Distribution: main'),
         ).toBeTruthy();
+        expect(getByText('Solana: 1.7.0 (running)')).toBeTruthy();
       });
     });
 
@@ -225,7 +266,7 @@ describe('AppInformation', () => {
       const { queryByText, getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // When initially rendered
@@ -262,7 +303,7 @@ describe('AppInformation', () => {
       const { getByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // When the component renders
@@ -284,7 +325,7 @@ describe('AppInformation', () => {
       const { UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // Given the component is rendered
@@ -308,7 +349,7 @@ describe('AppInformation', () => {
       const { queryByText, getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // Given environment info is initially hidden
@@ -342,7 +383,7 @@ describe('AppInformation', () => {
       const { getByText, queryByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // Given environment info is initially hidden
@@ -384,7 +425,7 @@ describe('AppInformation', () => {
       const { getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       // When the fox icon is long-pressed
@@ -412,14 +453,12 @@ describe('AppInformation', () => {
       const { queryByText } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
-      expect(queryByText(/Expo Project ID:/)).toBeNull();
       expect(queryByText(/Update ID:/)).toBeNull();
       expect(queryByText(/OTA Update Channel:/)).toBeNull();
       expect(queryByText(/OTA Update runtime version:/)).toBeNull();
-      expect(queryByText(/OTA Update URL:/)).toBeNull();
       expect(queryByText(/Check Automatically:/)).toBeNull();
       expect(queryByText(/OTA Update status:/)).toBeNull();
     });
@@ -428,7 +467,7 @@ describe('AppInformation', () => {
       const { getByText, UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
-        { state: {} },
+        { state: MOCK_STATE },
       );
 
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
@@ -444,7 +483,6 @@ describe('AppInformation', () => {
         expect(getByText(/Update ID: mock-update-id/)).toBeTruthy();
         expect(getByText(/OTA Update Channel: test-channel/)).toBeTruthy();
         expect(getByText(/OTA Update runtime version: 1.0.0/)).toBeTruthy();
-        expect(getByText(/OTA Update URL: https:\/\/example.com/)).toBeTruthy();
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
       });

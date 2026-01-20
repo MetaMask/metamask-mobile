@@ -637,7 +637,13 @@ describe('OnboardingStep4', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       expect(
+        screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_1'),
+      ).toBeDefined();
+      expect(
         screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_2'),
+      ).toBeDefined();
+      expect(
+        screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_3'),
       ).toBeDefined();
       expect(
         screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer_4'),

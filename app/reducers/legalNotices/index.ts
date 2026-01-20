@@ -1,68 +1,33 @@
-import { RootState } from '..';
-import { Action } from 'redux';
-import ACTIONS from './types';
-
-const currentDate = new Date(Date.now());
-const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
-export const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
+import {
+  STORE_PRIVACY_POLICY_SHOWN_DATE,
+  STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED,
+  STORE_PNA25_ACKNOWLEDGED,
+  LegalNoticesActionTypes,
+} from '../../actions/legalNotices';
 
 export interface LegalNoticesState {
+  isPna25Acknowledged: boolean;
   newPrivacyPolicyToastClickedOrClosed: boolean;
   newPrivacyPolicyToastShownDate: number | null;
 }
 
+const currentDate = new Date(Date.now());
+export const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
+export const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
+
 const initialState: LegalNoticesState = {
+  isPna25Acknowledged: false,
   newPrivacyPolicyToastClickedOrClosed: false,
   newPrivacyPolicyToastShownDate: null,
 };
 
-export const storePrivacyPolicyShownDate = (timestamp: number) => ({
-  type: ACTIONS.STORE_PRIVACY_POLICY_SHOWN_DATE,
-  payload: timestamp,
-});
-
-export const storePrivacyPolicyClickedOrClosed = () => ({
-  type: ACTIONS.STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED,
-});
-
-export const shouldShowNewPrivacyToastSelector = (
-  state: RootState,
-): boolean => {
-  const {
-    newPrivacyPolicyToastShownDate,
-    newPrivacyPolicyToastClickedOrClosed,
-  } = state.legalNotices;
-
-  if (newPrivacyPolicyToastClickedOrClosed) return false;
-
-  const shownDate = new Date(newPrivacyPolicyToastShownDate || 0);
-
-  const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
-  const isRecent =
-    currentDate.getTime() - shownDate.getTime() < oneDayInMilliseconds;
-
-  return (
-    currentDate.getTime() >= newPrivacyPolicyDate.getTime() &&
-    (!newPrivacyPolicyToastShownDate ||
-      (isRecent && !newPrivacyPolicyToastClickedOrClosed))
-  );
-};
-
-export interface LegalNoticesAction extends Action {
-  newPrivacyPolicyToastShownDate: boolean;
-  payload: number;
-}
-
 const legalNoticesReducer = (
+  // eslint-disable-next-line @typescript-eslint/default-param-last
   state = initialState,
-  action: LegalNoticesAction = {
-    type: '',
-    newPrivacyPolicyToastShownDate: false,
-    payload: 0,
-  },
-) => {
+  action: LegalNoticesActionTypes,
+): LegalNoticesState => {
   switch (action.type) {
-    case ACTIONS.STORE_PRIVACY_POLICY_SHOWN_DATE: {
+    case STORE_PRIVACY_POLICY_SHOWN_DATE: {
       if (state.newPrivacyPolicyToastShownDate !== null) {
         return state;
       }
@@ -73,12 +38,17 @@ const legalNoticesReducer = (
       };
     }
 
-    case ACTIONS.STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED: {
+    case STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED: {
       return { ...state, newPrivacyPolicyToastClickedOrClosed: true };
+    }
+
+    case STORE_PNA25_ACKNOWLEDGED: {
+      return { ...state, isPna25Acknowledged: true };
     }
 
     default:
       return state;
   }
 };
+
 export default legalNoticesReducer;

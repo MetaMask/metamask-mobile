@@ -31,6 +31,8 @@ import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import {
+  ButtonIconVariant,
+  ToastCloseButtonOptions,
   ToastDescriptionOptions,
   ToastLabelOptions,
   ToastLinkButtonOptions,
@@ -39,14 +41,14 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styleSheet from './Toast.styles';
-import { ToastSelectorsIDs } from '../../../../e2e/selectors/wallet/ToastModal.selectors';
-import { ButtonProps } from '../Buttons/Button/Button.types';
+import { ToastSelectorsIDs } from './ToastModal.testIds';
 import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
 import { useStyles } from '../../hooks';
+import ButtonIcon from '../Buttons/ButtonIcon';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
-const bottomPadding = 16;
+const bottomPadding = 36;
 const screenHeight = Dimensions.get('window').height;
 
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
@@ -165,15 +167,25 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       />
     );
 
-  const renderCloseButton = (closeButtonOptions?: ButtonProps) => (
-    <Button
-      variant={ButtonVariants.Primary}
-      onPress={() => closeButtonOptions?.onPress()}
-      label={closeButtonOptions?.label}
-      endIconName={closeButtonOptions?.endIconName}
-      style={closeButtonOptions?.style}
-    />
-  );
+  const renderCloseButton = (closeButtonOptions?: ToastCloseButtonOptions) => {
+    if (closeButtonOptions?.variant === ButtonIconVariant.Icon) {
+      return (
+        <ButtonIcon
+          onPress={() => closeButtonOptions?.onPress?.()}
+          iconName={closeButtonOptions?.iconName}
+        />
+      );
+    }
+    return (
+      <Button
+        variant={ButtonVariants.Primary}
+        onPress={() => closeButtonOptions?.onPress()}
+        label={closeButtonOptions?.label}
+        endIconName={closeButtonOptions?.endIconName}
+        style={closeButtonOptions?.style}
+      />
+    );
+  };
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {

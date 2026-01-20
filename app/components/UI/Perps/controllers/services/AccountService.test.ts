@@ -1,32 +1,20 @@
 import { AccountService } from './AccountService';
-import { createMockServiceContext } from '../../__mocks__/serviceMocks';
+import {
+  createMockServiceContext,
+  createMockInfrastructure,
+} from '../../__mocks__/serviceMocks';
 import { createMockHyperLiquidProvider } from '../../__mocks__/providerMocks';
-import Logger from '../../../../../util/Logger';
-import { trace, endTrace } from '../../../../../util/trace';
 import type { ServiceContext } from './ServiceContext';
-import type { IPerpsProvider, WithdrawParams, WithdrawResult } from '../types';
+import {
+  PerpsAnalyticsEvent,
+  type IPerpsProvider,
+  type WithdrawParams,
+  type WithdrawResult,
+  type IPerpsPlatformDependencies,
+} from '../types';
 import type { PerpsControllerState } from '../PerpsController';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 
-jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../util/trace');
 jest.mock('uuid', () => ({ v4: () => 'mock-withdrawal-trace-id' }));
-jest.mock('react-native-performance', () => ({
-  now: jest.fn(() => 1000),
-}));
-jest.mock('../../../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({ event: 'mock-event' }),
-    })),
-  },
-}));
-jest.mock('../../../../../core/Analytics', () => ({
-  MetaMetricsEvents: {
-    PERPS_WITHDRAWAL_TRANSACTION: 'PERPS_WITHDRAWAL_TRANSACTION',
-  },
-}));
 jest.mock('../../constants/eventNames', () => ({
   PerpsEventProperties: {
     STATUS: 'status',
@@ -49,16 +37,15 @@ jest.mock('../perpsErrorCodes', () => ({
     WITHDRAW_FAILED: 'WITHDRAW_FAILED',
   },
 }));
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: {
-    log: jest.fn(),
-  },
-}));
+// Note: EVM account is now retrieved via dependency injection (deps.controllers.accounts.getSelectedEvmAccount)
+// The mock is set up via createMockInfrastructure() in serviceMocks.ts
 
 describe('AccountService', () => {
   let mockProvider: jest.Mocked<IPerpsProvider>;
   let mockContext: ServiceContext;
   let mockRefreshAccountState: jest.Mock;
+  let mockDeps: IPerpsPlatformDependencies;
+  let accountService: AccountService;
 
   const mockWithdrawParams: WithdrawParams = {
     assetId: 'eip155:42161/erc20:0xTokenAddress/default',
@@ -74,18 +61,14 @@ describe('AccountService', () => {
     });
     mockRefreshAccountState = jest.fn().mockResolvedValue(undefined);
 
+    // Create mock dependencies and service instance
+    mockDeps = createMockInfrastructure();
+    accountService = new AccountService(mockDeps);
+
     jest.clearAllMocks();
 
     // Mock Date.now() to return a stable timestamp
     jest.spyOn(Date, 'now').mockReturnValue(1234567890000);
-
-    // Reinitialize MetricsEventBuilder mock after clearAllMocks
-    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
-      () => ({
-        addProperties: jest.fn().mockReturnThis(),
-        build: jest.fn().mockReturnValue({ event: 'mock-event' }),
-      }),
-    );
   });
 
   afterEach(() => {
@@ -101,7 +84,7 @@ describe('AccountService', () => {
       };
       mockProvider.withdraw.mockResolvedValue(mockResult);
 
-      const result = await AccountService.withdraw({
+      const result = await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -118,21 +101,21 @@ describe('AccountService', () => {
         txHash: '0xHash',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
         refreshAccountState: mockRefreshAccountState,
       });
 
-      expect(trace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Perps Withdraw',
           id: 'mock-withdrawal-trace-id',
           tags: expect.objectContaining({
             assetId: mockWithdrawParams.assetId,
             provider: 'hyperliquid',
-            isTestnet: false,
+            isTestnet: 'false',
           }),
         }),
       );
@@ -145,14 +128,14 @@ describe('AccountService', () => {
         withdrawalId: 'withdrawal-123',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
         refreshAccountState: mockRefreshAccountState,
       });
 
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Perps Withdraw',
           id: 'mock-withdrawal-trace-id',
@@ -171,7 +154,7 @@ describe('AccountService', () => {
         txHash: '0xHash',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -187,7 +170,7 @@ describe('AccountService', () => {
         txHash: '0xHash',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: { ...mockWithdrawParams, amount: '100' },
         context: mockContext,
@@ -221,7 +204,7 @@ describe('AccountService', () => {
         txHash: '0xHash',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -256,7 +239,7 @@ describe('AccountService', () => {
         withdrawalId: 'withdrawal-123',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -293,7 +276,7 @@ describe('AccountService', () => {
         withdrawalId: 'withdrawal-123',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -311,7 +294,7 @@ describe('AccountService', () => {
         txHash: '0xHash',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -327,16 +310,17 @@ describe('AccountService', () => {
         txHash: '0xHash',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
         refreshAccountState: mockRefreshAccountState,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
         expect.objectContaining({
-          event: 'mock-event',
+          status: 'executed',
         }),
       );
     });
@@ -348,7 +332,7 @@ describe('AccountService', () => {
       };
       mockProvider.withdraw.mockResolvedValue(mockResult);
 
-      const result = await AccountService.withdraw({
+      const result = await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -366,7 +350,7 @@ describe('AccountService', () => {
         error: 'Insufficient balance',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -392,6 +376,7 @@ describe('AccountService', () => {
             success: false,
             amount: '100',
             asset: 'USDC',
+            accountAddress: expect.any(String) as string,
             timestamp: Date.now(),
           },
         ],
@@ -413,14 +398,19 @@ describe('AccountService', () => {
         error: 'Insufficient balance',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
         refreshAccountState: mockRefreshAccountState,
       });
 
-      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+        expect.objectContaining({
+          status: 'failed',
+        }),
+      );
     });
 
     it('does not trigger account refresh on failure', async () => {
@@ -429,7 +419,7 @@ describe('AccountService', () => {
         error: 'Insufficient balance',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -443,7 +433,7 @@ describe('AccountService', () => {
       const error = new Error('Network error');
       mockProvider.withdraw.mockRejectedValue(error);
 
-      const result = await AccountService.withdraw({
+      const result = await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -458,20 +448,20 @@ describe('AccountService', () => {
       const error = new Error('Network error');
       mockProvider.withdraw.mockRejectedValue(error);
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
         refreshAccountState: mockRefreshAccountState,
       });
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
 
     it('updates state with error on exception', async () => {
       mockProvider.withdraw.mockRejectedValue(new Error('Network error'));
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -500,14 +490,14 @@ describe('AccountService', () => {
     it('ends trace with error data on exception', async () => {
       mockProvider.withdraw.mockRejectedValue(new Error('Network error'));
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
         refreshAccountState: mockRefreshAccountState,
       });
 
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockDeps.tracer.endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Perps Withdraw',
           id: 'mock-withdrawal-trace-id',
@@ -526,7 +516,7 @@ describe('AccountService', () => {
       });
       mockRefreshAccountState.mockRejectedValue(new Error('Refresh failed'));
 
-      const result = await AccountService.withdraw({
+      const result = await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -542,7 +532,7 @@ describe('AccountService', () => {
         txHash: '0xHash',
       });
 
-      await AccountService.withdraw({
+      await accountService.withdraw({
         provider: mockProvider,
         params: mockWithdrawParams,
         context: mockContext,
@@ -578,7 +568,7 @@ describe('AccountService', () => {
       const mockValidation = { isValid: true };
       mockProvider.validateWithdrawal.mockResolvedValue(mockValidation);
 
-      const result = await AccountService.validateWithdrawal({
+      const result = await accountService.validateWithdrawal({
         provider: mockProvider,
         params: mockWithdrawParams,
       });
@@ -596,7 +586,7 @@ describe('AccountService', () => {
       };
       mockProvider.validateWithdrawal.mockResolvedValue(mockValidation);
 
-      const result = await AccountService.validateWithdrawal({
+      const result = await accountService.validateWithdrawal({
         provider: mockProvider,
         params: mockWithdrawParams,
       });
@@ -610,7 +600,7 @@ describe('AccountService', () => {
       mockProvider.validateWithdrawal.mockRejectedValue(error);
 
       await expect(
-        AccountService.validateWithdrawal({
+        accountService.validateWithdrawal({
           provider: mockProvider,
           params: mockWithdrawParams,
         }),
@@ -622,13 +612,13 @@ describe('AccountService', () => {
       mockProvider.validateWithdrawal.mockRejectedValue(error);
 
       await expect(
-        AccountService.validateWithdrawal({
+        accountService.validateWithdrawal({
           provider: mockProvider,
           params: mockWithdrawParams,
         }),
       ).rejects.toThrow();
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 });

@@ -13,10 +13,8 @@ import SentryTest from './SentryTest';
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../hooks/useFeatureFlag';
+import { useSelector } from 'react-redux';
+import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
 
 const DeveloperOptions = () => {
@@ -28,25 +26,19 @@ const DeveloperOptions = () => {
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, { theme });
 
-  const isPerpsEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  ) as boolean;
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.developer_options.title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
-  );
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.developer_options.title'),
+        navigation,
+        isFullScreenModal,
+        colors,
+        null,
+      ),
+    );
+  }, [navigation, isFullScreenModal, colors]);
 
   return (
     <ScrollView style={styles.wrapper}>

@@ -19,7 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import createStyles from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip/content/contentRegistry';
-import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import { View } from 'react-native';
 
 interface PerpsTooltipViewRouteParams {

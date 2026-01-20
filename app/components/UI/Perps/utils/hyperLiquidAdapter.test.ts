@@ -12,6 +12,8 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
   calculatePositionSize,
+  adaptHyperLiquidLedgerUpdateToUserHistoryItem,
+  type RawHyperLiquidLedgerUpdate,
 } from './hyperLiquidAdapter';
 import type { OrderParams } from '../controllers/types';
 import type {
@@ -285,6 +287,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Stop Market',
         isTrigger: true,
         reduceOnly: true,
+        triggerPrice: '25.50',
       });
     });
 
@@ -614,6 +617,94 @@ describe('hyperLiquidAdapter', () => {
       expect(result.takeProfitOrderId).toBeUndefined();
       expect(result.stopLossPrice).toBe('0.4');
       expect(result.stopLossOrderId).toBe('88889');
+    });
+
+    it('sets triggerPrice for trigger orders with both limitPx and triggerPx', () => {
+      // Take Profit Limit order: triggerPx is the condition price, limitPx is the execution price
+      const frontendOrder: FrontendOrder = {
+        oid: 99999,
+        coin: 'ETH',
+        side: 'A', // Sell (close long position)
+        sz: '1',
+        origSz: '1',
+        limitPx: '3500', // Execution price (different from trigger)
+        triggerPx: '3450', // Trigger condition price
+        orderType: 'Take Profit Limit',
+        timestamp: 1234567890000,
+        isTrigger: true,
+        reduceOnly: true,
+        triggerCondition: 'tp',
+        isPositionTpsl: true,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      // price should use limitPx (execution price) when available
+      expect(result.price).toBe('3500');
+      // triggerPrice should always be the trigger condition price
+      expect(result.triggerPrice).toBe('3450');
+      expect(result.isTrigger).toBe(true);
+      expect(result.detailedOrderType).toBe('Take Profit Limit');
+    });
+
+    it('sets triggerPrice for trigger orders with only triggerPx (market style)', () => {
+      // Take Profit Market order: only triggerPx is set
+      const frontendOrder: FrontendOrder = {
+        oid: 100000,
+        coin: 'BTC',
+        side: 'A', // Sell (close long position)
+        sz: '0.5',
+        origSz: '0.5',
+        limitPx: '', // No limit price for market-style trigger
+        triggerPx: '70000', // Trigger condition price
+        orderType: 'Take Profit Market',
+        timestamp: 1234567890000,
+        isTrigger: true,
+        reduceOnly: true,
+        triggerCondition: 'tp',
+        isPositionTpsl: true,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      // price should fall back to triggerPx when limitPx is empty
+      expect(result.price).toBe('70000');
+      // triggerPrice should be set to triggerPx
+      expect(result.triggerPrice).toBe('70000');
+      expect(result.isTrigger).toBe(true);
+    });
+
+    it('does not set triggerPrice for non-trigger orders', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 100001,
+        coin: 'ETH',
+        side: 'B',
+        sz: '1',
+        origSz: '1',
+        limitPx: '3000',
+        triggerPx: '', // No trigger price for regular limit order
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.price).toBe('3000');
+      expect(result.triggerPrice).toBeUndefined();
+      expect(result.isTrigger).toBe(false);
     });
   });
 
@@ -971,8 +1062,9 @@ describe('hyperLiquidAdapter', () => {
       );
 
       // Small decimal with many significant figures
+      // 0.123456 has 6 decimal digits, rounds to 5 sig figs = 0.12346
       expect(formatHyperLiquidPrice({ price: 0.123456, szDecimals: 0 })).toBe(
-        '0.1235',
+        '0.12346',
       );
     });
 
@@ -1112,6 +1204,204 @@ describe('hyperLiquidAdapter', () => {
       });
 
       expect(result).toBe(100000000000); // (1000000 * 100) / 0.001
+    });
+  });
+
+  describe('adaptHyperLiquidLedgerUpdateToUserHistoryItem', () => {
+    // Helper function to create test ledger updates
+    const createLedgerUpdate = (
+      type: string,
+      hash = '0x123',
+    ): RawHyperLiquidLedgerUpdate => ({
+      hash,
+      time: 1000,
+      delta: { type, usdc: '100' },
+    });
+
+    describe('filtering by delta type', () => {
+      it('includes deposit type', () => {
+        const updates = [createLedgerUpdate('deposit')];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('includes withdraw type', () => {
+        const updates = [createLedgerUpdate('withdraw')];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('includes internalTransfer type', () => {
+        const updates = [createLedgerUpdate('internalTransfer')];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('excludes unsupported types', () => {
+        const updates = [
+          createLedgerUpdate('trade', '0x001'),
+          createLedgerUpdate('liquidation', '0x002'),
+          createLedgerUpdate('funding', '0x003'),
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('filters mixed array keeping only supported types', () => {
+        const updates = [
+          createLedgerUpdate('deposit', '0x001'),
+          createLedgerUpdate('trade', '0x002'),
+          createLedgerUpdate('withdraw', '0x003'),
+          createLedgerUpdate('liquidation', '0x004'),
+          createLedgerUpdate('internalTransfer', '0x005'),
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(3);
+      });
+    });
+
+    describe('internalTransfer USDC amount validation', () => {
+      it('includes internalTransfer with positive USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x001',
+            time: 1000,
+            delta: { type: 'internalTransfer', usdc: '100.50' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('excludes internalTransfer with zero USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x002',
+            time: 2000,
+            delta: { type: 'internalTransfer', usdc: '0' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with negative USDC amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x003',
+            time: 3000,
+            delta: { type: 'internalTransfer', usdc: '-50.25' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with invalid USDC value', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x004',
+            time: 4000,
+            delta: { type: 'internalTransfer', usdc: 'invalid' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with missing USDC field', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x005',
+            time: 5000,
+            delta: { type: 'internalTransfer' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('excludes internalTransfer with undefined USDC value', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x006',
+            time: 6000,
+            delta: { type: 'internalTransfer', usdc: undefined },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it('includes internalTransfer with small positive decimal amount', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x007',
+            time: 7000,
+            delta: { type: 'internalTransfer', usdc: '0.01' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('filters mixed internalTransfer entries keeping only valid positive amounts', () => {
+        const updates: RawHyperLiquidLedgerUpdate[] = [
+          {
+            hash: '0x008',
+            time: 8000,
+            delta: { type: 'internalTransfer', usdc: '100' },
+          },
+          {
+            hash: '0x009',
+            time: 9000,
+            delta: { type: 'internalTransfer', usdc: '0' },
+          },
+          {
+            hash: '0x010',
+            time: 10000,
+            delta: { type: 'internalTransfer', usdc: '-50' },
+          },
+          {
+            hash: '0x011',
+            time: 11000,
+            delta: { type: 'internalTransfer', usdc: 'invalid' },
+          },
+          {
+            hash: '0x012',
+            time: 12000,
+            delta: { type: 'internalTransfer', usdc: '25.50' },
+          },
+        ];
+
+        const result = adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates);
+
+        expect(result).toHaveLength(2);
+      });
     });
   });
 });

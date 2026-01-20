@@ -50,7 +50,8 @@ import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -78,8 +79,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled: ({ type }) =>
-          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType),
+        isAutomaticGasFeeUpdateEnabled,
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
@@ -95,7 +95,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         getGasFeeEstimates: (...args) =>
           gasFeeController.fetchGasFeeEstimates(...args),
         getNetworkClientRegistry: (...args) =>
-          // @ts-expect-error - NetworkController registry type mismatch between peer dependencies
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
         hooks: {
@@ -358,6 +357,23 @@ function beforeSign(
 ) {
   const predictController = request.getController('PredictController');
   return predictController.beforeSign(hookRequest);
+}
+
+function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
+  if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+    return false;
+  }
+
+  if (
+    transaction.origin === ORIGIN_METAMASK &&
+    transaction.type === TransactionType.tokenMethodApprove
+  ) {
+    return false;
+  }
+
+  return REDESIGNED_TRANSACTION_TYPES.includes(
+    transaction.type as TransactionType,
+  );
 }
 
 function addTransactionControllerListeners(

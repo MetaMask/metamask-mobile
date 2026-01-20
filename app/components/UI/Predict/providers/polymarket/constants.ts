@@ -2,17 +2,13 @@ import { ContractConfig, RoundConfig, TickSize } from './types';
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
-export const FEE_PERCENTAGE = 4; // 4%
-export const FEE_COLLECTOR_ADDRESS =
-  process.env.METAMASK_ENVIRONMENT === 'dev'
-    ? '0xe6a2026d58eaff3c7ad7ba9386fb143388002382'
-    : '0x100c7b833bbd604a77890783439bbb9d65e31de7';
+export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
 /**
  * Default slippage for market orders.
  */
-export const SLIPPAGE_BUY = 0.015; // 1.5%
-export const SLIPPAGE_SELL = 0.03; // 3%
+export const SLIPPAGE_BUY = 0.03; // 3%
+export const SLIPPAGE_SELL = 0.05; // 5%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 

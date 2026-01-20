@@ -1,29 +1,33 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
+import { LOWER_CASED_BURN_ADDRESSES } from '../../../../../constants/address';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { type RecipientType } from '../../components/UI/recipient';
-import { LOWER_CASED_BURN_ADDRESSES } from '../../utils/send-address-validations';
+import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 
 export const useContacts = () => {
   const addressBook = useSelector(selectAddressBook);
   const { isEvmSendType, isNonEvmSendType } = useSendType();
+  const { chainId } = useSendContext();
 
   const contacts = useMemo(() => {
     const flattenedContacts: RecipientType[] = [];
     const seenAddresses = new Set<string>();
 
-    Object.values(addressBook).forEach((chainContacts) => {
-      Object.values(chainContacts).forEach((contact) => {
-        if (!seenAddresses.has(contact.address)) {
-          seenAddresses.add(contact.address);
-          flattenedContacts.push({
-            contactName: contact.name,
-            address: contact.address,
-          });
-        }
-      });
+    const chainContacts = addressBook[chainId as keyof typeof addressBook];
+    if (!chainContacts) {
+      return [];
+    }
+    Object.values(chainContacts).forEach((contact) => {
+      if (!seenAddresses.has(contact.address)) {
+        seenAddresses.add(contact.address);
+        flattenedContacts.push({
+          contactName: contact.name,
+          address: contact.address,
+        });
+      }
     });
 
     return flattenedContacts.filter((contact) => {
@@ -36,7 +40,7 @@ export const useContacts = () => {
       }
       return true;
     });
-  }, [addressBook, isEvmSendType]);
+  }, [addressBook, chainId, isEvmSendType]);
 
   if (isNonEvmSendType) {
     return [];

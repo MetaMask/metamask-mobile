@@ -13,16 +13,18 @@ import {
   type PerpsControllerMessenger,
 } from './PerpsController';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
-import type { IPerpsProvider } from './types';
+import {
+  GasFeeEstimateLevel,
+  GasFeeEstimateType,
+} from '@metamask/transaction-controller';
+import type { IPerpsProvider, IPerpsPlatformDependencies } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
-import Logger from '../../../../util/Logger';
-import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
-import { DepositService } from './services/DepositService';
-import { MarketDataService } from './services/MarketDataService';
-import { TradingService } from './services/TradingService';
-import { AccountService } from './services/AccountService';
-import { DataLakeService } from './services/DataLakeService';
+import { createMockInfrastructure } from '../__mocks__/serviceMocks';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+} from '../constants/hyperLiquidConfig';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -45,44 +47,6 @@ jest.mock('../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: jest.fn(() => mockStreamManager),
 }));
 
-// Mock Logger
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-    log: jest.fn(),
-  },
-}));
-
-// Create a shared mock for MetaMetrics instance
-const mockTrackEvent = jest.fn();
-const mockMetaMetricsInstance = {
-  trackEvent: mockTrackEvent,
-};
-
-// Mock MetaMetrics
-jest.mock('../../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => mockMetaMetricsInstance),
-  },
-  MetaMetricsEvents: {
-    PERPS_TRADE_TRANSACTION: 'PERPS_TRADE_TRANSACTION',
-    PERPS_ORDER_CANCEL_TRANSACTION: 'PERPS_ORDER_CANCEL_TRANSACTION',
-    PERPS_RISK_MANAGEMENT: 'PERPS_RISK_MANAGEMENT',
-  },
-}));
-
-// Mock MetricsEventBuilder
-jest.mock('../../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      addSensitiveProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    })),
-  },
-}));
-
 // Create persistent mock controllers INSIDE jest.mock factory
 jest.mock('../../../../core/Engine', () => {
   const mockRewardsController = {
@@ -95,10 +59,32 @@ jest.mock('../../../../core/Engine', () => {
     }),
   };
 
+  const mockAccountTreeController = {
+    getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:eoa',
+      },
+    ]),
+  };
+
+  const mockTransactionController = {
+    estimateGasFee: jest.fn(),
+    estimateGas: jest.fn(),
+  };
+
+  const mockAccountTrackerController = {
+    state: {
+      accountsByChainId: {},
+    },
+  };
+
   const mockEngineContext = {
     RewardsController: mockRewardsController,
     NetworkController: mockNetworkController,
-    TransactionController: {},
+    AccountTreeController: mockAccountTreeController,
+    TransactionController: mockTransactionController,
+    AccountTrackerController: mockAccountTrackerController,
   };
 
   // Return as default export to match the actual Engine import
@@ -110,12 +96,6 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-jest.mock('../../../../util/accounts', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
-    address: '0x1234567890123456789012345678901234567890',
-  }),
-}));
-
 jest.mock('@metamask/utils', () => ({
   ...jest.requireActual('@metamask/utils'),
   formatAccountToCaipAccountId: jest
@@ -123,136 +103,153 @@ jest.mock('@metamask/utils', () => ({
     .mockReturnValue('eip155:1:0x1234567890123456789012345678901234567890'),
 }));
 
-// Mock EligibilityService to prevent actual geo-location fetching in tests
+// Mock EligibilityService as a class with instance methods
+const mockEligibilityServiceInstance = {
+  checkEligibility: jest.fn().mockResolvedValue(true),
+  fetchGeoLocation: jest.fn().mockResolvedValue('UNKNOWN'),
+  clearCache: jest.fn(),
+};
 jest.mock('./services/EligibilityService', () => ({
-  EligibilityService: {
-    checkEligibility: jest.fn().mockResolvedValue(true),
-    fetchGeoLocation: jest.fn().mockResolvedValue('UNKNOWN'),
-    clearCache: jest.fn(),
-  },
+  EligibilityService: jest
+    .fn()
+    .mockImplementation(() => mockEligibilityServiceInstance),
 }));
 
-// Mock DepositService
+// Mock DepositService as a class with instance methods
+const mockDepositServiceInstance = {
+  prepareTransaction: jest.fn(),
+};
 jest.mock('./services/DepositService', () => ({
-  DepositService: {
-    prepareTransaction: jest.fn(),
-  },
+  DepositService: jest
+    .fn()
+    .mockImplementation(() => mockDepositServiceInstance),
 }));
 
-// Mock MarketDataService
+// Mock MarketDataService as a class with instance methods
+const mockMarketDataServiceInstance = {
+  getPositions: jest.fn(),
+  getAccountState: jest.fn(),
+  getMarkets: jest.fn(),
+  getWithdrawalRoutes: jest.fn().mockReturnValue([]),
+  validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
+  validateOrder: jest.fn(),
+  calculateMaintenanceMargin: jest.fn().mockResolvedValue(0),
+  calculateLiquidationPrice: jest.fn(),
+  getMaxLeverage: jest.fn(),
+  calculateFees: jest.fn().mockResolvedValue({ totalFee: 0 }),
+  getAvailableDexs: jest.fn().mockResolvedValue([]),
+  getBlockExplorerUrl: jest.fn(),
+  getOrderFills: jest.fn(),
+  getOrders: jest.fn(),
+  getFunding: jest.fn(),
+};
 jest.mock('./services/MarketDataService', () => ({
-  MarketDataService: {
-    getPositions: jest.fn(),
-    getAccountState: jest.fn(),
-    getMarkets: jest.fn(),
-    getWithdrawalRoutes: jest.fn().mockReturnValue([]),
-    validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
-    validateOrder: jest.fn(),
-    calculateMaintenanceMargin: jest.fn().mockResolvedValue(0),
-    calculateLiquidationPrice: jest.fn(),
-    getMaxLeverage: jest.fn(),
-    calculateFees: jest.fn().mockResolvedValue({ totalFee: 0 }),
-    getAvailableDexs: jest.fn().mockResolvedValue([]),
-    getBlockExplorerUrl: jest.fn(),
-    getOrderFills: jest.fn(),
-    getOrders: jest.fn(),
-    getFunding: jest.fn(),
-  },
+  MarketDataService: jest
+    .fn()
+    .mockImplementation(() => mockMarketDataServiceInstance),
 }));
 
-// Mock TradingService
+// Mock TradingService as a class with instance methods
+const mockTradingServiceInstance = {
+  placeOrder: jest.fn(),
+  editOrder: jest.fn(),
+  cancelOrder: jest.fn(),
+  cancelOrders: jest.fn(),
+  closePosition: jest.fn(),
+  closePositions: jest.fn(),
+  updatePositionTPSL: jest.fn(),
+  updateMargin: jest.fn(),
+  flipPosition: jest.fn(),
+  setControllerDependencies: jest.fn(),
+};
 jest.mock('./services/TradingService', () => ({
-  TradingService: {
-    placeOrder: jest.fn(),
-    editOrder: jest.fn(),
-    cancelOrder: jest.fn(),
-    cancelOrders: jest.fn(),
-    closePosition: jest.fn(),
-    closePositions: jest.fn(),
-    updatePositionTPSL: jest.fn(),
-    updateMargin: jest.fn(),
-    flipPosition: jest.fn(),
-  },
+  TradingService: jest
+    .fn()
+    .mockImplementation(() => mockTradingServiceInstance),
 }));
 
-// Mock AccountService
+// Mock AccountService as a class with instance methods
+const mockAccountServiceInstance = {
+  withdraw: jest.fn(),
+  validateWithdrawal: jest.fn(),
+};
 jest.mock('./services/AccountService', () => ({
-  AccountService: {
-    withdraw: jest.fn(),
-    validateWithdrawal: jest.fn(),
-  },
+  AccountService: jest
+    .fn()
+    .mockImplementation(() => mockAccountServiceInstance),
 }));
 
-// Mock DataLakeService
+// Mock DataLakeService as a class with instance methods
+const mockDataLakeServiceInstance = {
+  reportOrder: jest.fn(),
+};
 jest.mock('./services/DataLakeService', () => ({
-  DataLakeService: {
-    reportOrder: jest.fn(),
-  },
+  DataLakeService: jest
+    .fn()
+    .mockImplementation(() => mockDataLakeServiceInstance),
 }));
 
-// Mock FeatureFlagConfigurationService
+// Mock FeatureFlagConfigurationService as a class with instance methods
+const mockFeatureFlagConfigurationServiceInstance = {
+  refreshEligibility: jest.fn((options: any) => {
+    // Simulate the service's behavior: extract blocked regions from remote flags
+    const remoteFlags =
+      options.remoteFeatureFlagControllerState.remoteFeatureFlags;
+    const perpsGeoBlockedRegionsFeatureFlag =
+      remoteFlags?.perpsPerpTradingGeoBlockedCountriesV2;
+    const remoteBlockedRegions =
+      perpsGeoBlockedRegionsFeatureFlag?.blockedRegions;
+
+    if (
+      Array.isArray(remoteBlockedRegions) &&
+      options.context.setBlockedRegionList
+    ) {
+      const currentList = options.context.getBlockedRegionList?.();
+      // Never downgrade from remote to fallback
+      if (!currentList || currentList.source !== 'remote') {
+        options.context.setBlockedRegionList(remoteBlockedRegions, 'remote');
+      }
+    }
+
+    // Call refreshEligibility callback if available
+    if (options.context.refreshEligibility) {
+      options.context.refreshEligibility().catch(() => {
+        // Ignore errors in mock
+      });
+    }
+
+    // Also call refreshHip3Config if available
+    if (remoteFlags) {
+      mockFeatureFlagConfigurationServiceInstance.refreshHip3Config(options);
+    }
+  }),
+  refreshHip3Config: jest.fn(),
+  setBlockedRegions: jest.fn((options: any) => {
+    // Simulate setBlockedRegions behavior
+    const { list, source, context } = options;
+    if (context.setBlockedRegionList && context.getBlockedRegionList) {
+      const currentList = context.getBlockedRegionList();
+      // Never downgrade from remote to fallback
+      if (source === 'fallback' && currentList.source === 'remote') {
+        return;
+      }
+      if (Array.isArray(list)) {
+        context.setBlockedRegionList(list, source);
+      }
+    }
+
+    // Call refreshEligibility callback if available
+    if (context.refreshEligibility) {
+      context.refreshEligibility().catch(() => {
+        // Ignore errors in mock
+      });
+    }
+  }),
+};
 jest.mock('./services/FeatureFlagConfigurationService', () => ({
-  FeatureFlagConfigurationService: {
-    refreshEligibility: jest.fn((options) => {
-      // Simulate the service's behavior: extract blocked regions from remote flags
-      const remoteFlags =
-        options.remoteFeatureFlagControllerState.remoteFeatureFlags;
-      const perpsGeoBlockedRegionsFeatureFlag =
-        remoteFlags?.perpsPerpTradingGeoBlockedCountriesV2;
-      const remoteBlockedRegions =
-        perpsGeoBlockedRegionsFeatureFlag?.blockedRegions;
-
-      if (
-        Array.isArray(remoteBlockedRegions) &&
-        options.context.setBlockedRegionList
-      ) {
-        const currentList = options.context.getBlockedRegionList?.();
-        // Never downgrade from remote to fallback
-        if (!currentList || currentList.source !== 'remote') {
-          options.context.setBlockedRegionList(remoteBlockedRegions, 'remote');
-        }
-      }
-
-      // Call refreshEligibility callback if available
-      if (options.context.refreshEligibility) {
-        options.context.refreshEligibility().catch(() => {
-          // Ignore errors in mock
-        });
-      }
-
-      // Also call refreshHip3Config if available
-      if (remoteFlags) {
-        const mockRefreshHip3Config = jest.requireMock(
-          './services/FeatureFlagConfigurationService',
-        ).FeatureFlagConfigurationService.refreshHip3Config;
-        if (typeof mockRefreshHip3Config === 'function') {
-          mockRefreshHip3Config(options);
-        }
-      }
-    }),
-    refreshHip3Config: jest.fn(),
-    setBlockedRegions: jest.fn((options) => {
-      // Simulate setBlockedRegions behavior
-      const { list, source, context } = options;
-      if (context.setBlockedRegionList && context.getBlockedRegionList) {
-        const currentList = context.getBlockedRegionList();
-        // Never downgrade from remote to fallback
-        if (source === 'fallback' && currentList.source === 'remote') {
-          return;
-        }
-        if (Array.isArray(list)) {
-          context.setBlockedRegionList(list, source);
-        }
-      }
-
-      // Call refreshEligibility callback if available
-      if (context.refreshEligibility) {
-        context.refreshEligibility().catch(() => {
-          // Ignore errors in mock
-        });
-      }
-    }),
-  },
+  FeatureFlagConfigurationService: jest
+    .fn()
+    .mockImplementation(() => mockFeatureFlagConfigurationServiceInstance),
 }));
 
 /**
@@ -384,6 +381,7 @@ function createMockMessenger(
 describe('PerpsController', () => {
   let controller: TestablePerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
+  let mockInfrastructure: jest.Mocked<IPerpsPlatformDependencies>;
 
   // Helper to mark controller as initialized for tests
   const markControllerAsInitialized = () => {
@@ -444,9 +442,11 @@ describe('PerpsController', () => {
       return undefined;
     });
 
+    mockInfrastructure = createMockInfrastructure();
     controller = new TestablePerpsController({
       messenger: createMockMessenger({ call: mockCall }),
       state: getDefaultPerpsControllerState(),
+      infrastructure: mockInfrastructure,
     });
   });
 
@@ -464,18 +464,16 @@ describe('PerpsController', () => {
         }
       });
     }
-    mockTrackEvent.mockClear();
-    (Logger.error as jest.Mock).mockClear();
-    (Logger.log as jest.Mock).mockClear();
+    (mockInfrastructure.metrics.trackPerpsEvent as jest.Mock).mockClear();
+    (mockInfrastructure.logger.error as jest.Mock).mockClear();
+    (mockInfrastructure.debugLogger.log as jest.Mock).mockClear();
   });
 
   describe('constructor', () => {
     it('initializes with default state', () => {
       // Constructor no longer auto-starts initialization (moved to Engine.ts)
       expect(controller.state.activeProvider).toBe('hyperliquid');
-      expect(controller.state.positions).toEqual([]);
       expect(controller.state.accountState).toBeNull();
-      expect(controller.state.connectionStatus).toBe('disconnected');
       expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
       expect(controller.state.initializationError).toBeNull();
       expect(controller.state.initializationAttempts).toBe(0); // Not started yet
@@ -504,6 +502,7 @@ describe('PerpsController', () => {
       const testController = new TestablePerpsController({
         messenger: createMockMessenger({ call: mockCall }),
         state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
       });
 
       // Then: Should have called to get RemoteFeatureFlagController state
@@ -532,6 +531,7 @@ describe('PerpsController', () => {
       const testController = new TestablePerpsController({
         messenger: createMockMessenger({ call: mockCall }),
         state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-REGION'],
         },
@@ -559,6 +559,7 @@ describe('PerpsController', () => {
       const testController = new TestablePerpsController({
         messenger: createMockMessenger({ call: mockCall }),
         state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
         },
@@ -589,6 +590,7 @@ describe('PerpsController', () => {
       const testController = new TestablePerpsController({
         messenger: createMockMessenger({ call: mockCall }),
         state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-US'],
         },
@@ -615,11 +617,12 @@ describe('PerpsController', () => {
         }
         return undefined;
       });
-      const mockLoggerError = jest.spyOn(Logger, 'error');
+      const testInfrastructure = createMockInfrastructure();
 
       const testController = new TestablePerpsController({
         messenger: createMockMessenger({ call: mockCall }),
         state: getDefaultPerpsControllerState(),
+        infrastructure: testInfrastructure,
         clientConfig: {
           fallbackBlockedRegions: ['FALLBACK-US', 'FALLBACK-CA'],
         },
@@ -629,7 +632,7 @@ describe('PerpsController', () => {
       const blockedRegionList = testController.testGetBlockedRegionList();
       expect(blockedRegionList.source).toBe('fallback');
       expect(blockedRegionList.list).toEqual(['FALLBACK-US', 'FALLBACK-CA']);
-      expect(mockLoggerError).toHaveBeenCalledWith(
+      expect(testInfrastructure.logger.error).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
           tags: expect.objectContaining({
@@ -644,8 +647,6 @@ describe('PerpsController', () => {
           }),
         }),
       );
-
-      mockLoggerError.mockRestore();
     });
   });
 
@@ -661,7 +662,7 @@ describe('PerpsController', () => {
       controller.testRefreshEligibilityOnFeatureFlagChange(remoteFlags);
 
       expect(
-        FeatureFlagConfigurationService.refreshEligibility,
+        mockFeatureFlagConfigurationServiceInstance.refreshEligibility,
       ).toHaveBeenCalledWith({
         remoteFeatureFlagControllerState: remoteFlags,
         context: expect.objectContaining({
@@ -746,6 +747,7 @@ describe('PerpsController', () => {
       const testController = new TestablePerpsController({
         messenger: createMockMessenger({ call: mockCall }),
         state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
       });
 
       // Explicitly start initialization (no longer auto-starts in constructor)
@@ -804,13 +806,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getPositions')
+        .spyOn(mockMarketDataServiceInstance, 'getPositions')
         .mockResolvedValue(mockPositions);
 
       const result = await controller.getPositions();
 
       expect(result).toEqual(mockPositions);
-      expect(MarketDataService.getPositions).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.getPositions).toHaveBeenCalledWith({
         provider: mockProvider,
         params: undefined,
         context: expect.any(Object),
@@ -823,11 +825,11 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getPositions')
+        .spyOn(mockMarketDataServiceInstance, 'getPositions')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.getPositions()).rejects.toThrow(errorMessage);
-      expect(MarketDataService.getPositions).toHaveBeenCalled();
+      expect(mockMarketDataServiceInstance.getPositions).toHaveBeenCalled();
     });
   });
 
@@ -844,13 +846,15 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getAccountState')
+        .spyOn(mockMarketDataServiceInstance, 'getAccountState')
         .mockResolvedValue(mockAccountState);
 
       const result = await controller.getAccountState();
 
       expect(result).toEqual(mockAccountState);
-      expect(MarketDataService.getAccountState).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.getAccountState,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
         params: undefined,
         context: expect.any(Object),
@@ -877,13 +881,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'placeOrder')
+        .spyOn(mockTradingServiceInstance, 'placeOrder')
         .mockResolvedValue(mockOrderResult);
 
       const result = await controller.placeOrder(orderParams);
 
       expect(result).toEqual(mockOrderResult);
-      expect(TradingService.placeOrder).toHaveBeenCalledWith(
+      expect(mockTradingServiceInstance.placeOrder).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           params: orderParams,
@@ -905,13 +909,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'placeOrder')
+        .spyOn(mockTradingServiceInstance, 'placeOrder')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.placeOrder(orderParams)).rejects.toThrow(
         errorMessage,
       );
-      expect(TradingService.placeOrder).toHaveBeenCalled();
+      expect(mockTradingServiceInstance.placeOrder).toHaveBeenCalled();
     });
   });
 
@@ -935,13 +939,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getMarkets')
+        .spyOn(mockMarketDataServiceInstance, 'getMarkets')
         .mockResolvedValue(mockMarkets);
 
       const result = await controller.getMarkets();
 
       expect(result).toEqual(mockMarkets);
-      expect(MarketDataService.getMarkets).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.getMarkets).toHaveBeenCalledWith({
         provider: mockProvider,
         params: undefined,
         context: expect.any(Object),
@@ -964,13 +968,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'cancelOrder')
+        .spyOn(mockTradingServiceInstance, 'cancelOrder')
         .mockResolvedValue(mockCancelResult);
 
       const result = await controller.cancelOrder(cancelParams);
 
       expect(result).toEqual(mockCancelResult);
-      expect(TradingService.cancelOrder).toHaveBeenCalledWith(
+      expect(mockTradingServiceInstance.cancelOrder).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           params: cancelParams,
@@ -1006,14 +1010,18 @@ describe('PerpsController', () => {
       });
 
       jest
-        .spyOn(TradingService, 'cancelOrders')
+        .spyOn(mockTradingServiceInstance, 'cancelOrders')
         .mockImplementation(mockImplementation);
 
       await controller.cancelOrders({ cancelAll: true });
 
-      expect(mockStreamManager.orders.pause).toHaveBeenCalled();
-      expect(mockStreamManager.orders.resume).toHaveBeenCalled();
-      expect(TradingService.cancelOrders).toHaveBeenCalledWith(
+      expect(
+        mockInfrastructure.streamManager.pauseChannel,
+      ).toHaveBeenCalledWith('orders');
+      expect(
+        mockInfrastructure.streamManager.resumeChannel,
+      ).toHaveBeenCalledWith('orders');
+      expect(mockTradingServiceInstance.cancelOrders).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           params: { cancelAll: true },
@@ -1035,15 +1043,19 @@ describe('PerpsController', () => {
       );
 
       jest
-        .spyOn(TradingService, 'cancelOrders')
+        .spyOn(mockTradingServiceInstance, 'cancelOrders')
         .mockImplementation(mockImplementation);
 
       await expect(
         controller.cancelOrders({ cancelAll: true }),
       ).rejects.toThrow('Network error');
 
-      expect(mockStreamManager.orders.pause).toHaveBeenCalled();
-      expect(mockStreamManager.orders.resume).toHaveBeenCalled();
+      expect(
+        mockInfrastructure.streamManager.pauseChannel,
+      ).toHaveBeenCalledWith('orders');
+      expect(
+        mockInfrastructure.streamManager.resumeChannel,
+      ).toHaveBeenCalledWith('orders');
     });
   });
 
@@ -1065,13 +1077,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'closePosition')
+        .spyOn(mockTradingServiceInstance, 'closePosition')
         .mockResolvedValue(mockCloseResult);
 
       const result = await controller.closePosition(closeParams);
 
       expect(result).toEqual(mockCloseResult);
-      expect(TradingService.closePosition).toHaveBeenCalledWith(
+      expect(mockTradingServiceInstance.closePosition).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           params: closeParams,
@@ -1086,18 +1098,20 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
 
-      jest.spyOn(TradingService, 'closePositions').mockResolvedValue({
-        success: true,
-        successCount: 1,
-        failureCount: 0,
-        results: [{ coin: 'BTC', success: true }],
-      });
+      jest
+        .spyOn(mockTradingServiceInstance, 'closePositions')
+        .mockResolvedValue({
+          success: true,
+          successCount: 1,
+          failureCount: 0,
+          results: [{ coin: 'BTC', success: true }],
+        });
 
       const result = await controller.closePositions({ closeAll: true });
 
       expect(result.success).toBe(true);
       expect(result.successCount).toBe(1);
-      expect(TradingService.closePositions).toHaveBeenCalledWith(
+      expect(mockTradingServiceInstance.closePositions).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           params: { closeAll: true },
@@ -1123,15 +1137,16 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'validateOrder')
+        .spyOn(mockMarketDataServiceInstance, 'validateOrder')
         .mockResolvedValue(mockValidationResult);
 
       const result = await controller.validateOrder(orderParams);
 
       expect(result).toEqual(mockValidationResult);
-      expect(MarketDataService.validateOrder).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.validateOrder).toHaveBeenCalledWith({
         provider: mockProvider,
         params: orderParams,
+        context: expect.any(Object),
       });
     });
   });
@@ -1156,13 +1171,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getOrderFills')
+        .spyOn(mockMarketDataServiceInstance, 'getOrderFills')
         .mockResolvedValue(mockOrderFills);
 
       const result = await controller.getOrderFills();
 
       expect(result).toEqual(mockOrderFills);
-      expect(MarketDataService.getOrderFills).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.getOrderFills).toHaveBeenCalledWith({
         provider: mockProvider,
         params: undefined,
         context: expect.any(Object),
@@ -1190,12 +1205,14 @@ describe('PerpsController', () => {
 
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      jest.spyOn(MarketDataService, 'getOrders').mockResolvedValue(mockOrders);
+      jest
+        .spyOn(mockMarketDataServiceInstance, 'getOrders')
+        .mockResolvedValue(mockOrders);
 
       const result = await controller.getOrders();
 
       expect(result).toEqual(mockOrders);
-      expect(MarketDataService.getOrders).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.getOrders).toHaveBeenCalledWith({
         provider: mockProvider,
         params: undefined,
         context: expect.any(Object),
@@ -1259,18 +1276,17 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(AccountService, 'withdraw')
+        .spyOn(mockAccountServiceInstance, 'withdraw')
         .mockResolvedValue(mockWithdrawResult);
 
       const result = await controller.withdraw(withdrawParams);
 
       expect(result).toEqual(mockWithdrawResult);
-      expect(AccountService.withdraw).toHaveBeenCalledWith({
+      expect(mockAccountServiceInstance.withdraw).toHaveBeenCalledWith({
         provider: mockProvider,
         params: withdrawParams,
         context: expect.objectContaining({
           tracingContext: expect.any(Object),
-          analytics: expect.any(Object),
           errorContext: expect.objectContaining({ method: 'withdraw' }),
           stateManager: expect.any(Object),
         }),
@@ -1295,16 +1311,19 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'calculateLiquidationPrice')
+        .spyOn(mockMarketDataServiceInstance, 'calculateLiquidationPrice')
         .mockResolvedValue(mockLiquidationPrice);
 
       const result =
         await controller.calculateLiquidationPrice(liquidationParams);
 
       expect(result).toBe(mockLiquidationPrice);
-      expect(MarketDataService.calculateLiquidationPrice).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.calculateLiquidationPrice,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
         params: liquidationParams,
+        context: expect.any(Object),
       });
     });
   });
@@ -1317,16 +1336,19 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getMaxLeverage')
+        .spyOn(mockMarketDataServiceInstance, 'getMaxLeverage')
         .mockResolvedValue(mockMaxLeverage);
 
       const result = await controller.getMaxLeverage(asset);
 
       expect(result).toBe(mockMaxLeverage);
-      expect(MarketDataService.getMaxLeverage).toHaveBeenCalledWith({
-        provider: mockProvider,
-        asset,
-      });
+      expect(mockMarketDataServiceInstance.getMaxLeverage).toHaveBeenCalledWith(
+        {
+          provider: mockProvider,
+          asset,
+          context: expect.any(Object),
+        },
+      );
     });
   });
 
@@ -1349,13 +1371,15 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getWithdrawalRoutes')
+        .spyOn(mockMarketDataServiceInstance, 'getWithdrawalRoutes')
         .mockReturnValue(mockRoutes);
 
       const result = controller.getWithdrawalRoutes();
 
       expect(result).toEqual(mockRoutes);
-      expect(MarketDataService.getWithdrawalRoutes).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.getWithdrawalRoutes,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
       });
     });
@@ -1370,13 +1394,15 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getBlockExplorerUrl')
+        .spyOn(mockMarketDataServiceInstance, 'getBlockExplorerUrl')
         .mockReturnValue(mockUrl);
 
       const result = controller.getBlockExplorerUrl(address);
 
       expect(result).toBe(mockUrl);
-      expect(MarketDataService.getBlockExplorerUrl).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.getBlockExplorerUrl,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
         address,
       });
@@ -1390,11 +1416,11 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getPositions')
+        .spyOn(mockMarketDataServiceInstance, 'getPositions')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.getPositions()).rejects.toThrow(errorMessage);
-      expect(MarketDataService.getPositions).toHaveBeenCalled();
+      expect(mockMarketDataServiceInstance.getPositions).toHaveBeenCalled();
     });
 
     it('handles network errors', async () => {
@@ -1403,11 +1429,11 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getAccountState')
+        .spyOn(mockMarketDataServiceInstance, 'getAccountState')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.getAccountState()).rejects.toThrow(errorMessage);
-      expect(MarketDataService.getAccountState).toHaveBeenCalled();
+      expect(mockMarketDataServiceInstance.getAccountState).toHaveBeenCalled();
     });
   });
 
@@ -1438,13 +1464,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getPositions')
+        .spyOn(mockMarketDataServiceInstance, 'getPositions')
         .mockResolvedValue(mockPositions);
 
       const result = await controller.getPositions();
 
       expect(result).toEqual(mockPositions);
-      expect(MarketDataService.getPositions).toHaveBeenCalled();
+      expect(mockMarketDataServiceInstance.getPositions).toHaveBeenCalled();
     });
 
     it('handles errors without updating state', async () => {
@@ -1453,11 +1479,11 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getPositions')
+        .spyOn(mockMarketDataServiceInstance, 'getPositions')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.getPositions()).rejects.toThrow(errorMessage);
-      expect(MarketDataService.getPositions).toHaveBeenCalled();
+      expect(mockMarketDataServiceInstance.getPositions).toHaveBeenCalled();
     });
   });
 
@@ -1470,18 +1496,6 @@ describe('PerpsController', () => {
       await controller.disconnect();
 
       expect(mockProvider.disconnect).toHaveBeenCalled();
-      expect(controller.state.connectionStatus).toBe('disconnected');
-    });
-
-    it('handles connection status from state', () => {
-      // Test that we can access connection status from controller state
-      expect(controller.state.connectionStatus).toBe('disconnected');
-
-      // Test that the state is accessible and has the expected default value
-      expect(typeof controller.state.connectionStatus).toBe('string');
-      expect(['connected', 'disconnected', 'connecting']).toContain(
-        controller.state.connectionStatus,
-      );
     });
   });
 
@@ -1500,13 +1514,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getFunding')
+        .spyOn(mockMarketDataServiceInstance, 'getFunding')
         .mockResolvedValue(mockFunding);
 
       const result = await controller.getFunding();
 
       expect(result).toEqual(mockFunding);
-      expect(MarketDataService.getFunding).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.getFunding).toHaveBeenCalledWith({
         provider: mockProvider,
         params: undefined,
         context: expect.any(Object),
@@ -1533,13 +1547,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getOrderFills')
+        .spyOn(mockMarketDataServiceInstance, 'getOrderFills')
         .mockResolvedValue(mockOrderFills);
 
       const result = await controller.getOrderFills(params);
 
       expect(result).toEqual(mockOrderFills);
-      expect(MarketDataService.getOrderFills).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.getOrderFills).toHaveBeenCalledWith({
         provider: mockProvider,
         params,
         context: expect.any(Object),
@@ -1568,12 +1582,14 @@ describe('PerpsController', () => {
 
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      jest.spyOn(TradingService, 'editOrder').mockResolvedValue(mockEditResult);
+      jest
+        .spyOn(mockTradingServiceInstance, 'editOrder')
+        .mockResolvedValue(mockEditResult);
 
       const result = await controller.editOrder(editParams);
 
       expect(result).toEqual(mockEditResult);
-      expect(TradingService.editOrder).toHaveBeenCalledWith(
+      expect(mockTradingServiceInstance.editOrder).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           params: editParams,
@@ -1599,13 +1615,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'editOrder')
+        .spyOn(mockTradingServiceInstance, 'editOrder')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.editOrder(editParams)).rejects.toThrow(
         errorMessage,
       );
-      expect(TradingService.editOrder).toHaveBeenCalled();
+      expect(mockTradingServiceInstance.editOrder).toHaveBeenCalled();
     });
   });
 
@@ -1706,13 +1722,15 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'getWithdrawalRoutes')
+        .spyOn(mockMarketDataServiceInstance, 'getWithdrawalRoutes')
         .mockReturnValue(mockRoutes);
 
       const result = controller.getWithdrawalRoutes();
 
       expect(result).toEqual(mockRoutes);
-      expect(MarketDataService.getWithdrawalRoutes).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.getWithdrawalRoutes,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
       });
     });
@@ -1850,15 +1868,18 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'validateClosePosition')
+        .spyOn(mockMarketDataServiceInstance, 'validateClosePosition')
         .mockResolvedValue(mockValidationResult);
 
       const result = await controller.validateClosePosition(closeParams);
 
       expect(result).toEqual(mockValidationResult);
-      expect(MarketDataService.validateClosePosition).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.validateClosePosition,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
         params: closeParams,
+        context: expect.any(Object),
       });
     });
 
@@ -1877,13 +1898,15 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(AccountService, 'validateWithdrawal')
+        .spyOn(mockAccountServiceInstance, 'validateWithdrawal')
         .mockResolvedValue(mockValidationResult);
 
       const result = await controller.validateWithdrawal(withdrawParams);
 
       expect(result).toEqual(mockValidationResult);
-      expect(AccountService.validateWithdrawal).toHaveBeenCalledWith({
+      expect(
+        mockAccountServiceInstance.validateWithdrawal,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
         params: withdrawParams,
       });
@@ -1906,13 +1929,15 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'updatePositionTPSL')
+        .spyOn(mockTradingServiceInstance, 'updatePositionTPSL')
         .mockResolvedValue(mockUpdateResult);
 
       const result = await controller.updatePositionTPSL(updateParams);
 
       expect(result).toEqual(mockUpdateResult);
-      expect(TradingService.updatePositionTPSL).toHaveBeenCalledWith(
+      expect(
+        mockTradingServiceInstance.updatePositionTPSL,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           params: updateParams,
@@ -1934,18 +1959,19 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'calculateMaintenanceMargin')
+        .spyOn(mockMarketDataServiceInstance, 'calculateMaintenanceMargin')
         .mockResolvedValue(mockMargin);
 
       const result = await controller.calculateMaintenanceMargin(marginParams);
 
       expect(result).toBe(mockMargin);
-      expect(MarketDataService.calculateMaintenanceMargin).toHaveBeenCalledWith(
-        {
-          provider: mockProvider,
-          params: marginParams,
-        },
-      );
+      expect(
+        mockMarketDataServiceInstance.calculateMaintenanceMargin,
+      ).toHaveBeenCalledWith({
+        provider: mockProvider,
+        params: marginParams,
+        context: expect.any(Object),
+      });
     });
 
     it('updates margin successfully', async () => {
@@ -1961,13 +1987,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'updateMargin')
+        .spyOn(mockTradingServiceInstance, 'updateMargin')
         .mockResolvedValue(mockUpdateResult);
 
       const result = await controller.updateMargin(updateMarginParams);
 
       expect(result).toEqual(mockUpdateResult);
-      expect(TradingService.updateMargin).toHaveBeenCalledWith(
+      expect(mockTradingServiceInstance.updateMargin).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           coin: updateMarginParams.coin,
@@ -1988,13 +2014,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'updateMargin')
+        .spyOn(mockTradingServiceInstance, 'updateMargin')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.updateMargin(updateMarginParams)).rejects.toThrow(
         errorMessage,
       );
-      expect(TradingService.updateMargin).toHaveBeenCalled();
+      expect(mockTradingServiceInstance.updateMargin).toHaveBeenCalled();
     });
 
     it('flips position successfully', async () => {
@@ -2029,13 +2055,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'flipPosition')
+        .spyOn(mockTradingServiceInstance, 'flipPosition')
         .mockResolvedValue(mockFlipResult);
 
       const result = await controller.flipPosition(flipPositionParams);
 
       expect(result).toEqual(mockFlipResult);
-      expect(TradingService.flipPosition).toHaveBeenCalledWith(
+      expect(mockTradingServiceInstance.flipPosition).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
           position: mockPosition,
@@ -2071,13 +2097,13 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(TradingService, 'flipPosition')
+        .spyOn(mockTradingServiceInstance, 'flipPosition')
         .mockRejectedValue(new Error(errorMessage));
 
       await expect(controller.flipPosition(flipPositionParams)).rejects.toThrow(
         errorMessage,
       );
-      expect(TradingService.flipPosition).toHaveBeenCalled();
+      expect(mockTradingServiceInstance.flipPosition).toHaveBeenCalled();
     });
   });
 
@@ -2104,15 +2130,16 @@ describe('PerpsController', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       jest
-        .spyOn(MarketDataService, 'calculateFees')
+        .spyOn(mockMarketDataServiceInstance, 'calculateFees')
         .mockResolvedValue(mockFees);
 
       const result = await controller.calculateFees(feeParams);
 
       expect(result).toEqual(mockFees);
-      expect(MarketDataService.calculateFees).toHaveBeenCalledWith({
+      expect(mockMarketDataServiceInstance.calculateFees).toHaveBeenCalledWith({
         provider: mockProvider,
         params: feeParams,
+        context: expect.any(Object),
       });
     });
   });
@@ -2130,7 +2157,7 @@ describe('PerpsController', () => {
       };
 
       jest
-        .spyOn(DataLakeService, 'reportOrder')
+        .spyOn(mockDataLakeServiceInstance, 'reportOrder')
         .mockResolvedValue(mockReportResult);
 
       const orderParams = {
@@ -2143,7 +2170,7 @@ describe('PerpsController', () => {
       const result = await controller.testReportOrderToDataLake(orderParams);
 
       expect(result).toEqual(mockReportResult);
-      expect(DataLakeService.reportOrder).toHaveBeenCalledWith({
+      expect(mockDataLakeServiceInstance.reportOrder).toHaveBeenCalledWith({
         action: orderParams.action,
         coin: orderParams.coin,
         sl_price: orderParams.sl_price,
@@ -2151,7 +2178,6 @@ describe('PerpsController', () => {
         isTestnet: controller.state.isTestnet,
         context: expect.objectContaining({
           tracingContext: expect.any(Object),
-          analytics: expect.any(Object),
           errorContext: expect.objectContaining({
             method: 'reportOrderToDataLake',
           }),
@@ -2172,15 +2198,18 @@ describe('PerpsController', () => {
     it('returns available HIP-3 DEXs from provider', async () => {
       const mockDexs = ['dex1', 'dex2', 'dex3'];
       jest
-        .spyOn(MarketDataService, 'getAvailableDexs')
+        .spyOn(mockMarketDataServiceInstance, 'getAvailableDexs')
         .mockResolvedValue(mockDexs);
 
       const result = await controller.getAvailableDexs();
 
       expect(result).toEqual(mockDexs);
-      expect(MarketDataService.getAvailableDexs).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.getAvailableDexs,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
         params: undefined,
+        context: expect.any(Object),
       });
     });
 
@@ -2188,21 +2217,24 @@ describe('PerpsController', () => {
       const mockDexs = ['dex1'];
       const filterParams = { validated: true };
       jest
-        .spyOn(MarketDataService, 'getAvailableDexs')
+        .spyOn(mockMarketDataServiceInstance, 'getAvailableDexs')
         .mockResolvedValue(mockDexs);
 
       const result = await controller.getAvailableDexs(filterParams);
 
       expect(result).toEqual(mockDexs);
-      expect(MarketDataService.getAvailableDexs).toHaveBeenCalledWith({
+      expect(
+        mockMarketDataServiceInstance.getAvailableDexs,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
         params: filterParams,
+        context: expect.any(Object),
       });
     });
 
     it('throws error when provider does not support HIP-3', async () => {
       jest
-        .spyOn(MarketDataService, 'getAvailableDexs')
+        .spyOn(mockMarketDataServiceInstance, 'getAvailableDexs')
         .mockRejectedValue(new Error('Provider does not support HIP-3 DEXs'));
 
       await expect(controller.getAvailableDexs()).rejects.toThrow(
@@ -2217,6 +2249,7 @@ describe('PerpsController', () => {
       to: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       value: '0x0',
       data: '0x',
+      gas: '0x186a0',
     };
 
     const mockDepositId = 'deposit-123';
@@ -2227,18 +2260,62 @@ describe('PerpsController', () => {
 
     beforeEach(() => {
       // Mock DepositService
-      jest.spyOn(DepositService, 'prepareTransaction').mockResolvedValue({
-        transaction: mockTransaction,
-        assetChainId: mockAssetChainId,
-        currentDepositId: mockDepositId,
-      });
+      jest
+        .spyOn(mockDepositServiceInstance, 'prepareTransaction')
+        .mockResolvedValue({
+          transaction: mockTransaction,
+          assetChainId: mockAssetChainId,
+          currentDepositId: mockDepositId,
+        });
 
-      // Mock NetworkController
+      // Mock controllers.network via infrastructure (consolidated pattern for core migration)
+      (
+        mockInfrastructure.controllers.network
+          .findNetworkClientIdForChain as jest.Mock
+      ).mockReturnValue(mockNetworkClientId);
+
+      // Also mock on Engine.context for backwards compatibility with tests that check the mock calls
       Engine.context.NetworkController.findNetworkClientIdByChainId = jest
         .fn()
         .mockReturnValue(mockNetworkClientId);
 
-      // Mock TransactionController with promise-based result
+      Engine.context.TransactionController.estimateGasFee = jest
+        .fn()
+        .mockResolvedValue({
+          estimates: {
+            type: GasFeeEstimateType.FeeMarket,
+            [GasFeeEstimateLevel.Low]: {
+              maxFeePerGas: '0x3b9aca00',
+              maxPriorityFeePerGas: '0x1',
+            },
+            [GasFeeEstimateLevel.Medium]: {
+              maxFeePerGas: '0x3b9aca00',
+              maxPriorityFeePerGas: '0x1',
+            },
+            [GasFeeEstimateLevel.High]: {
+              maxFeePerGas: '0x3b9aca00',
+              maxPriorityFeePerGas: '0x1',
+            },
+          },
+        });
+
+      Engine.context.AccountTrackerController.state.accountsByChainId = {
+        [mockAssetChainId]: {
+          [mockTransaction.from.toLowerCase()]: {
+            balance: '0xde0b6b3a7640000',
+          },
+        },
+      };
+
+      // Mock controllers.transaction.submit via infrastructure (consolidated pattern for core migration)
+      (
+        mockInfrastructure.controllers.transaction.submit as jest.Mock
+      ).mockResolvedValue({
+        result: Promise.resolve(mockTxHash),
+        transactionMeta: mockTransactionMeta,
+      });
+
+      // Also mock on Engine.context for backwards compatibility with tests that check the mock calls
       Engine.context.TransactionController.addTransaction = jest
         .fn()
         .mockResolvedValue({
@@ -2252,6 +2329,7 @@ describe('PerpsController', () => {
       delete (Engine.context.NetworkController as any)
         .findNetworkClientIdByChainId;
       delete (Engine.context.TransactionController as any).addTransaction;
+      delete (Engine.context.TransactionController as any).estimateGasFee;
       jest.clearAllMocks();
     });
 
@@ -2272,36 +2350,81 @@ describe('PerpsController', () => {
 
       await controller.depositWithConfirmation('100');
 
-      expect(DepositService.prepareTransaction).toHaveBeenCalledWith({
+      expect(
+        mockDepositServiceInstance.prepareTransaction,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
       });
     });
 
-    it('calls NetworkController.findNetworkClientIdByChainId with correct chainId', async () => {
+    it('calls controllers.network.findNetworkClientIdForChain with correct chainId', async () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
 
       await controller.depositWithConfirmation('100');
 
       expect(
-        Engine.context.NetworkController.findNetworkClientIdByChainId,
+        mockInfrastructure.controllers.network.findNetworkClientIdForChain,
       ).toHaveBeenCalledWith(mockAssetChainId);
     });
 
-    it('calls TransactionController.addTransaction with prepared transaction', async () => {
+    it('calls controllers.transaction.submit with prepared transaction', async () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
 
       await controller.depositWithConfirmation('100');
 
       expect(
-        Engine.context.TransactionController.addTransaction,
+        mockInfrastructure.controllers.transaction.submit,
       ).toHaveBeenCalledWith(mockTransaction, {
         networkClientId: mockNetworkClientId,
         origin: 'metamask',
         type: 'perpsDeposit',
         skipInitialGasEstimate: true,
+        gasFeeToken: undefined,
       });
+    });
+
+    it('adds gasFeeToken for Arbitrum USDC deposits', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+
+      Engine.context.AccountTrackerController.state.accountsByChainId = {
+        [ARBITRUM_MAINNET_CHAIN_ID_HEX]: {
+          [mockTransaction.from.toLowerCase()]: {
+            balance: '0x0',
+          },
+        },
+      };
+
+      jest
+        .spyOn(mockDepositServiceInstance, 'prepareTransaction')
+        .mockResolvedValueOnce({
+          transaction: {
+            ...mockTransaction,
+            to: USDC_ARBITRUM_MAINNET_ADDRESS,
+          },
+          assetChainId: ARBITRUM_MAINNET_CHAIN_ID_HEX,
+          currentDepositId: mockDepositId,
+        });
+
+      await controller.depositWithConfirmation('100');
+
+      expect(
+        mockInfrastructure.controllers.transaction.submit,
+      ).toHaveBeenCalledWith(
+        {
+          ...mockTransaction,
+          to: USDC_ARBITRUM_MAINNET_ADDRESS,
+        },
+        {
+          networkClientId: mockNetworkClientId,
+          origin: 'metamask',
+          type: 'perpsDeposit',
+          skipInitialGasEstimate: true,
+          gasFeeToken: USDC_ARBITRUM_MAINNET_ADDRESS,
+        },
+      );
     });
 
     it('throws error when controller not initialized', async () => {
@@ -2324,7 +2447,7 @@ describe('PerpsController', () => {
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       const mockError = new Error('Deposit service failed');
       jest
-        .spyOn(DepositService, 'prepareTransaction')
+        .spyOn(mockDepositServiceInstance, 'prepareTransaction')
         .mockRejectedValue(mockError);
 
       await expect(controller.depositWithConfirmation('100')).rejects.toThrow(
@@ -2332,28 +2455,29 @@ describe('PerpsController', () => {
       );
     });
 
-    it('propagates NetworkController errors', async () => {
+    it('propagates controllers.network.findNetworkClientIdForChain errors', async () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       const mockError = new Error('Network client not found');
-      Engine.context.NetworkController.findNetworkClientIdByChainId = jest
-        .fn()
-        .mockImplementation(() => {
-          throw mockError;
-        });
+      (
+        mockInfrastructure.controllers.network
+          .findNetworkClientIdForChain as jest.Mock
+      ).mockImplementation(() => {
+        throw mockError;
+      });
 
       await expect(controller.depositWithConfirmation('100')).rejects.toThrow(
         'Network client not found',
       );
     });
 
-    it('propagates TransactionController errors', async () => {
+    it('propagates controllers.transaction.submit errors', async () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       const mockError = new Error('Transaction failed');
-      Engine.context.TransactionController.addTransaction = jest
-        .fn()
-        .mockRejectedValue(mockError);
+      (
+        mockInfrastructure.controllers.transaction.submit as jest.Mock
+      ).mockRejectedValue(mockError);
 
       await expect(controller.depositWithConfirmation('100')).rejects.toThrow(
         'Transaction failed',
@@ -2367,9 +2491,9 @@ describe('PerpsController', () => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('Network error');
-      Engine.context.TransactionController.addTransaction = jest
-        .fn()
-        .mockRejectedValue(mockError);
+      (
+        mockInfrastructure.controllers.transaction.submit as jest.Mock
+      ).mockRejectedValue(mockError);
 
       await expect(controller.depositWithConfirmation('100')).rejects.toThrow(
         'Network error',
@@ -2385,9 +2509,9 @@ describe('PerpsController', () => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('User denied transaction signature');
-      Engine.context.TransactionController.addTransaction = jest
-        .fn()
-        .mockRejectedValue(mockError);
+      (
+        mockInfrastructure.controllers.transaction.submit as jest.Mock
+      ).mockRejectedValue(mockError);
 
       await expect(controller.depositWithConfirmation('100')).rejects.toThrow(
         'User denied',
@@ -2444,7 +2568,9 @@ describe('PerpsController', () => {
 
       await controller.depositWithConfirmation('100');
 
-      expect(DepositService.prepareTransaction).toHaveBeenCalledWith({
+      expect(
+        mockDepositServiceInstance.prepareTransaction,
+      ).toHaveBeenCalledWith({
         provider: mockProvider,
       });
     });
@@ -2513,6 +2639,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
             amount: '50',
             asset: 'USDC',
+            accountAddress: '0x1234567890123456789012345678901234567890',
             success: false,
             status: 'pending',
             source: 'hyperliquid',
@@ -2583,6 +2710,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '75',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',
@@ -2618,6 +2746,7 @@ describe('PerpsController', () => {
           timestamp: Date.now(),
           amount: '100',
           asset: 'USDC',
+          accountAddress: '0x1234567890123456789012345678901234567890',
           success: false,
           status: 'pending',
           source: 'hyperliquid',
@@ -2714,7 +2843,7 @@ describe('PerpsController', () => {
     it('logs error in getWithdrawalRoutes when provider throws', () => {
       const mockError = new Error('Provider error');
       jest
-        .spyOn(MarketDataService, 'getWithdrawalRoutes')
+        .spyOn(mockMarketDataServiceInstance, 'getWithdrawalRoutes')
         .mockImplementation(() => {
           throw mockError;
         });
@@ -2722,7 +2851,7 @@ describe('PerpsController', () => {
       const result = controller.getWithdrawalRoutes();
 
       expect(result).toEqual([]);
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
         mockError,
         expect.objectContaining({
           context: expect.objectContaining({
@@ -2737,7 +2866,7 @@ describe('PerpsController', () => {
 
     it('returns empty array from getWithdrawalRoutes on error', () => {
       jest
-        .spyOn(MarketDataService, 'getWithdrawalRoutes')
+        .spyOn(mockMarketDataServiceInstance, 'getWithdrawalRoutes')
         .mockImplementation(() => {
           throw new Error('Service failure');
         });
@@ -2818,6 +2947,131 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('clearPendingTransactionRequests', () => {
+    it('removes pending and bridging withdrawal requests', () => {
+      // Arrange: Add withdrawal requests with different statuses
+      controller.testUpdate((state) => {
+        state.withdrawalRequests = [
+          {
+            id: 'withdrawal-1',
+            amount: '100',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'pending',
+          },
+          {
+            id: 'withdrawal-2',
+            amount: '200',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'bridging',
+          },
+          {
+            id: 'withdrawal-3',
+            amount: '300',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: true,
+            status: 'completed',
+            txHash: '0xabc',
+          },
+          {
+            id: 'withdrawal-4',
+            amount: '50',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'failed',
+          },
+        ];
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.withdrawalRequests).toHaveLength(2);
+      expect(controller.state.withdrawalRequests.map((w) => w.id)).toEqual([
+        'withdrawal-3',
+        'withdrawal-4',
+      ]);
+    });
+
+    it('removes pending and bridging deposit requests', () => {
+      // Arrange: Add deposit requests with different statuses
+      controller.testUpdate((state) => {
+        state.depositRequests = [
+          {
+            id: 'deposit-1',
+            amount: '100',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'pending',
+          },
+          {
+            id: 'deposit-2',
+            amount: '200',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: false,
+            status: 'bridging',
+          },
+          {
+            id: 'deposit-3',
+            amount: '300',
+            asset: 'USDC',
+            accountAddress: '0x123',
+            timestamp: Date.now(),
+            success: true,
+            status: 'completed',
+            txHash: '0xdef',
+          },
+        ];
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.depositRequests).toHaveLength(1);
+      expect(controller.state.depositRequests[0].id).toBe('deposit-3');
+    });
+
+    it('resets withdrawal progress', () => {
+      // Arrange: Set some withdrawal progress
+      controller.testUpdate((state) => {
+        state.withdrawalProgress = {
+          progress: 50,
+          lastUpdated: Date.now() - 10000,
+          activeWithdrawalId: 'withdrawal-1',
+        };
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.withdrawalProgress.progress).toBe(0);
+      expect(controller.state.withdrawalProgress.activeWithdrawalId).toBeNull();
+    });
+
+    it('handles empty arrays gracefully', () => {
+      // Arrange: Ensure arrays are empty
+      controller.testUpdate((state) => {
+        state.withdrawalRequests = [];
+        state.depositRequests = [];
+      });
+
+      controller.clearPendingTransactionRequests();
+
+      expect(controller.state.withdrawalRequests).toHaveLength(0);
+      expect(controller.state.depositRequests).toHaveLength(0);
+    });
+  });
+
   describe('trade configuration', () => {
     it('returns undefined for unsaved configuration', () => {
       const result = controller.getTradeConfiguration('ETH');
@@ -2831,6 +3085,214 @@ describe('PerpsController', () => {
       const result = controller.getTradeConfiguration('BTC');
 
       expect(result?.leverage).toBe(10);
+    });
+  });
+
+  describe('pending trade configuration', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('saves pending trade configuration', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+        takeProfitPrice: '50000',
+        stopLossPrice: '40000',
+        limitPrice: '45000',
+        orderType: 'limit' as const,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toEqual(config);
+    });
+
+    it('returns undefined for non-existent pending configuration', () => {
+      const result = controller.getPendingTradeConfiguration('ETH');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for expired pending configuration (more than 5 minutes)', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 6 minutes (more than 5 minutes)
+      jest.advanceTimersByTime(6 * 60 * 1000);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns configuration for valid pending configuration (less than 5 minutes)', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+        takeProfitPrice: '50000',
+        orderType: 'market' as const,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 4 minutes (less than 5 minutes)
+      jest.advanceTimersByTime(4 * 60 * 1000);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+
+      expect(result).toEqual(config);
+    });
+
+    it('clears expired pending configuration automatically', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 6 minutes
+      jest.advanceTimersByTime(6 * 60 * 1000);
+
+      // First call should clear expired config
+      controller.getPendingTradeConfiguration('BTC');
+
+      // Second call should return undefined
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toBeUndefined();
+
+      // Verify state was cleaned up
+      const network = controller.state.isTestnet ? 'testnet' : 'mainnet';
+      expect(
+        controller.state.tradeConfigurations[network]?.BTC?.pendingConfig,
+      ).toBeUndefined();
+    });
+
+    it('clears pending trade configuration explicitly', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(config);
+
+      controller.clearPendingTradeConfiguration('BTC');
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toBeUndefined();
+    });
+
+    it('saves pending config per network (testnet vs mainnet)', () => {
+      const configMainnet = {
+        amount: '100',
+        leverage: 5,
+      };
+      const configTestnet = {
+        amount: '200',
+        leverage: 10,
+      };
+
+      // Save on mainnet (default is mainnet)
+      controller.savePendingTradeConfiguration('BTC', configMainnet);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configMainnet,
+      );
+
+      // Switch to testnet using update method
+      controller.testUpdate((state) => {
+        state.isTestnet = true;
+      });
+      controller.savePendingTradeConfiguration('BTC', configTestnet);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configTestnet,
+      );
+
+      // Switch back to mainnet
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configMainnet,
+      );
+    });
+
+    it('preserves existing leverage when saving pending config', () => {
+      // First save leverage
+      controller.saveTradeConfiguration('BTC', 10);
+
+      // Then save pending config
+      const pendingConfig = {
+        amount: '100',
+        leverage: 5,
+      };
+      controller.savePendingTradeConfiguration('BTC', pendingConfig);
+
+      // Leverage should still be saved
+      const savedConfig = controller.getTradeConfiguration('BTC');
+      expect(savedConfig?.leverage).toBe(10);
+
+      // Pending config should also be available
+      const pending = controller.getPendingTradeConfiguration('BTC');
+      expect(pending).toEqual(pendingConfig);
+    });
+  });
+
+  describe('order book grouping', () => {
+    it('saves order book grouping for mainnet', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+
+      controller.saveOrderBookGrouping('BTC', 10);
+
+      const result = controller.getOrderBookGrouping('BTC');
+      expect(result).toBe(10);
+    });
+
+    it('saves order book grouping for testnet', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = true;
+      });
+
+      controller.saveOrderBookGrouping('ETH', 0.01);
+
+      const result = controller.getOrderBookGrouping('ETH');
+      expect(result).toBe(0.01);
+    });
+
+    it('returns undefined when no grouping is saved', () => {
+      const result = controller.getOrderBookGrouping('SOL');
+      expect(result).toBeUndefined();
+    });
+
+    it('preserves existing config when saving grouping', () => {
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+
+      // First save leverage
+      controller.saveTradeConfiguration('BTC', 5);
+
+      // Then save grouping
+      controller.saveOrderBookGrouping('BTC', 100);
+
+      // Both should be preserved
+      const savedConfig = controller.getTradeConfiguration('BTC');
+      expect(savedConfig?.leverage).toBe(5);
+
+      const savedGrouping = controller.getOrderBookGrouping('BTC');
+      expect(savedGrouping).toBe(100);
     });
   });
 });

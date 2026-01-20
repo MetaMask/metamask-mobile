@@ -18,6 +18,7 @@ import { getTokenTransferData } from '../../../utils/transaction-pay';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { PERPS_CURRENCY } from '../../../constants/perps';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { BigNumber } from 'bignumber.js';
 
 const SUPPORTED_TYPES = [
   TransactionType.perpsDeposit,
@@ -28,14 +29,51 @@ const SUPPORTED_TYPES = [
 export function TransactionDetailsHero() {
   const formatFiat = useFiatFormatter({ currency: PERPS_CURRENCY });
   const { styles } = useStyles(styleSheet, {});
+  const decodedAmount = useDecodedAmount();
+  const targetFiat = useTargetFiat();
   const { transactionMeta } = useTransactionDetails();
-  const { chainId } = transactionMeta;
-  const { data, to } = getTokenTransferData(transactionMeta) ?? {};
-  const token = useTokenWithBalance(to ?? '0x0', chainId);
 
   if (!hasTransactionType(transactionMeta, SUPPORTED_TYPES)) {
     return null;
   }
+
+  const amount = targetFiat ?? decodedAmount;
+
+  if (!amount) {
+    return null;
+  }
+
+  const formattedAmount = formatFiat(amount);
+
+  return (
+    <Box
+      testID="transaction-details-hero"
+      alignItems={AlignItems.center}
+      gap={12}
+      style={styles.container}
+    >
+      <Text variant={TextVariant.DisplayLG}>{formattedAmount}</Text>
+    </Box>
+  );
+}
+
+function useTargetFiat() {
+  const { transactionMeta } = useTransactionDetails();
+  const { metamaskPay } = transactionMeta;
+  const { targetFiat } = metamaskPay ?? {};
+
+  if (!targetFiat || targetFiat === '0') {
+    return null;
+  }
+
+  return new BigNumber(targetFiat);
+}
+
+function useDecodedAmount() {
+  const { transactionMeta } = useTransactionDetails();
+  const { chainId } = transactionMeta;
+  const { data, to } = getTokenTransferData(transactionMeta) ?? {};
+  const token = useTokenWithBalance(to ?? '0x0', chainId);
 
   if (!to || !data) {
     return null;
@@ -50,16 +88,5 @@ export function TransactionDetailsHero() {
     return null;
   }
 
-  const formattedAmount = formatFiat(calcTokenAmount(amount, decimals));
-
-  return (
-    <Box
-      testID="transaction-details-hero"
-      alignItems={AlignItems.center}
-      gap={12}
-      style={styles.container}
-    >
-      <Text variant={TextVariant.DisplayLG}>{formattedAmount}</Text>
-    </Box>
-  );
+  return calcTokenAmount(amount, decimals);
 }

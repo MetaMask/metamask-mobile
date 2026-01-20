@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Linking } from 'react-native';
-import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import AppConstants from '../../../../../core/AppConstants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -143,14 +143,14 @@ describe('Footer', () => {
     });
   });
 
-  it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
+  it('renders confirm button text "Get signature" if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Get Signature')).toBeTruthy();
+    expect(getByText('Get signature')).toBeTruthy();
   });
 
   it('confirm button is disabled if `needsCameraPermission` is true', () => {
@@ -181,7 +181,7 @@ describe('Footer', () => {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Risk Disclosure'));
+    fireEvent.press(getByText('Risk disclosure'));
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.STAKING_RISK_DISCLOSURE,
     );

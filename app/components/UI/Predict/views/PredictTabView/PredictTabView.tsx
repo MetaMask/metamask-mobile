@@ -12,7 +12,7 @@ import PredictAddFundsSheet from '../../components/PredictAddFundsSheet/PredictA
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictDepositToasts } from '../../hooks/usePredictDepositToasts';
 import { usePredictClaimToasts } from '../../hooks/usePredictClaimToasts';
-import { PredictTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictWithdrawToasts } from '../../hooks/usePredictWithdrawToasts';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
@@ -104,6 +104,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
       style={tw.style(
         isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
       )}
+      testID={
+        isHomepageRedesignV1Enabled
+          ? PredictTabViewSelectorsIDs.SCROLL_VIEW
+          : undefined
+      }
     >
       {hasError ? (
         <PredictOffline onRetry={handleRefresh} />

@@ -31,8 +31,8 @@ import { USER_INTENT } from '../../../../constants/permissions';
 import styleSheet from './AccountConnectSingle.styles';
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../ConnectAccountBottomSheet.testIds';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const AccountConnectSingle = ({

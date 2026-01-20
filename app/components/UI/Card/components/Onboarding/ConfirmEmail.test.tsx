@@ -306,7 +306,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
           'Resend verification code',
         'card.card_onboarding.confirm_email.resend_cooldown':
           'Resend in {seconds}s',
+        'card.card_onboarding.confirm_email.didnt_receive_code':
+          "Didn't receive a code? ",
         'card.card_onboarding.continue_button': 'Continue',
+        'card.card_onboarding.account_exists.title':
+          'You already have an account',
+        'card.card_onboarding.account_exists.description':
+          'The email address {email} is already associated with a Card account.',
+        'card.card_onboarding.account_exists.confirm_button': 'Log in',
       };
 
       let result = mockStrings[key] || key;
@@ -380,6 +387,7 @@ const createTestStore = (initialState = {}) =>
 
 describe('ConfirmEmail Component', () => {
   const mockNavigate = jest.fn();
+  const mockReset = jest.fn();
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
@@ -397,6 +405,7 @@ describe('ConfirmEmail Component', () => {
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
     } as never);
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
@@ -478,7 +487,7 @@ describe('ConfirmEmail Component', () => {
   });
 
   describe('Form Fields', () => {
-    it('should render confirmation code field with correct properties', () => {
+    it('renders confirmation code field with correct properties', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -488,13 +497,9 @@ describe('ConfirmEmail Component', () => {
 
       const codeField = getByTestId('confirm-email-code-field');
       expect(codeField).toBeTruthy();
-      expect(codeField.props.keyboardType).toBe('number-pad');
-      expect(codeField.props.textContentType).toBe('oneTimeCode');
-      expect(codeField.props.autoComplete).toBe('one-time-code');
-      expect(codeField.props.maxLength).toBe(6);
     });
 
-    it('should render confirmation code label', () => {
+    it('renders code field input element', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -502,23 +507,6 @@ describe('ConfirmEmail Component', () => {
         </Provider>,
       );
 
-      const label = getByTestId('label');
-      expect(label).toBeTruthy();
-      expect(label).toHaveTextContent('Confirmation code');
-    });
-
-    it('should render code field cells', () => {
-      const store = createTestStore();
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <ConfirmEmail />
-        </Provider>,
-      );
-
-      const codeField = getByTestId('code-field');
-      expect(codeField).toBeTruthy();
-
-      // The code field should be present - cells are rendered internally
       const codeFieldInput = getByTestId('confirm-email-code-field');
       expect(codeFieldInput).toBeTruthy();
     });
@@ -795,9 +783,11 @@ describe('ConfirmEmail Component', () => {
     });
 
     it('calls sendEmailVerification when resend is pressed', async () => {
-      const mockSendEmailVerification = jest.fn().mockResolvedValue({});
+      const mockSendEmailVerificationLocal = jest.fn().mockResolvedValue({
+        contactVerificationId: 'new-contact-123',
+      });
       mockUseEmailVerificationSend.mockReturnValue({
-        sendEmailVerification: mockSendEmailVerification,
+        sendEmailVerification: mockSendEmailVerificationLocal,
         isLoading: false,
         isError: false,
         error: null,
@@ -805,13 +795,11 @@ describe('ConfirmEmail Component', () => {
       });
 
       const store = createTestStore();
-      const { getByTestId } = render(
+      const { getByText } = render(
         <Provider store={store}>
           <ConfirmEmail />
         </Provider>,
       );
-
-      const resendElement = getByTestId('confirm-email-resend-verification');
 
       // First, advance timer to end initial cooldown
       for (let i = 0; i < 60; i++) {
@@ -820,11 +808,13 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
+      // Press the resend link (inner Text element with onPress)
+      const resendLink = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendElement);
+        fireEvent.press(resendLink);
       });
 
-      expect(mockSendEmailVerification).toHaveBeenCalledWith(
+      expect(mockSendEmailVerificationLocal).toHaveBeenCalledWith(
         'test@example.com',
       );
     });
@@ -855,7 +845,7 @@ describe('ConfirmEmail Component', () => {
 
       const resendElement = getByTestId('confirm-email-resend-verification');
 
-      // Should start with cooldown
+      // During cooldown, shows countdown text
       expect(resendElement).toHaveTextContent('Resend in 60s');
 
       // Advance timer by 60 seconds, one second at a time to trigger all timer callbacks
@@ -865,12 +855,14 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
-      expect(resendElement).toHaveTextContent('Resend verification code');
+      // After cooldown, shows both "Didn't receive a code?" and "Resend verification code"
+      expect(resendElement).toHaveTextContent(/receive a code/i);
+      expect(resendElement).toHaveTextContent(/Resend verification code/i);
     });
 
     it('allows resend after initial cooldown expires', async () => {
       const store = createTestStore();
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <Provider store={store}>
           <ConfirmEmail />
         </Provider>,
@@ -885,12 +877,14 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
-      // Should be able to resend now
-      expect(resendElement).toHaveTextContent('Resend verification code');
+      // After cooldown, shows both texts
+      expect(resendElement).toHaveTextContent(/receive a code/i);
+      expect(resendElement).toHaveTextContent(/Resend verification code/i);
 
-      // Press resend
+      // Press the resend link (inner Text element with onPress)
+      const resendLink = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendElement);
+        fireEvent.press(resendLink);
         // Allow the async sendEmailVerification to complete
         await Promise.resolve();
         // Allow one timer tick to process
@@ -909,10 +903,14 @@ describe('ConfirmEmail Component', () => {
         });
       }
 
-      // Should be able to resend again
-      expect(resendElement).toHaveTextContent('Resend verification code');
+      // After cooldown, shows both texts again
+      expect(resendElement).toHaveTextContent(/receive a code/i);
+      expect(resendElement).toHaveTextContent(/Resend verification code/i);
+
+      // Press resend again
+      const resendLinkAgain = getByText('Resend verification code');
       await act(async () => {
-        fireEvent.press(resendElement);
+        fireEvent.press(resendLinkAgain);
         // Allow the async sendEmailVerification to complete
         await Promise.resolve();
         // Allow one timer tick to process
@@ -989,6 +987,221 @@ describe('ConfirmEmail Component', () => {
       );
 
       expect(getByTestId('confirm-email-error-text')).toBeTruthy();
+    });
+  });
+
+  describe('Confirm Modal Navigation', () => {
+    it('navigates to confirm modal when account already exists', async () => {
+      const store = createTestStore();
+
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: null,
+        hasAccount: true,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+        params: expect.objectContaining({
+          title: 'You already have an account',
+          description:
+            'The email address test@example.com is already associated with a Card account.',
+          confirmAction: expect.objectContaining({
+            label: 'Log in',
+          }),
+          onClose: expect.any(Function),
+        }),
+      });
+    });
+
+    it('passes correct icon to confirm modal when account exists', async () => {
+      const store = createTestStore();
+
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: null,
+        hasAccount: true,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.objectContaining({
+          params: expect.objectContaining({
+            icon: 'UserCheck',
+          }),
+        }),
+      );
+    });
+
+    it('navigates to authentication screen when confirm action is pressed', async () => {
+      const store = createTestStore();
+
+      let capturedOnPress: (() => void) | undefined;
+
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: null,
+        hasAccount: true,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      mockNavigate.mockImplementation((_route, params) => {
+        if (params?.params?.confirmAction?.onPress) {
+          capturedOnPress = params.params.confirmAction.onPress;
+        }
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(capturedOnPress).toEqual(expect.any(Function));
+
+      mockReset.mockClear();
+
+      capturedOnPress?.();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      });
+    });
+
+    it('navigates to authentication screen when modal is closed', async () => {
+      const store = createTestStore();
+
+      let capturedOnClose: (() => void) | undefined;
+
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: null,
+        hasAccount: true,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      mockNavigate.mockImplementation((_route, params) => {
+        if (params?.params?.onClose) {
+          capturedOnClose = params.params.onClose;
+        }
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(capturedOnClose).toEqual(expect.any(Function));
+
+      mockReset.mockClear();
+
+      capturedOnClose?.();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      });
+    });
+
+    it('does not navigate to confirm modal when onboardingId is returned', async () => {
+      const store = createTestStore();
+
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: 'new-onboarding-123',
+        hasAccount: false,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+      );
     });
   });
 });

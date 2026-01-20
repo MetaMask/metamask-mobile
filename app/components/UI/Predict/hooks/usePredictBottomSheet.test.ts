@@ -65,7 +65,7 @@ describe('usePredictBottomSheet', () => {
         expect(result.current.isVisible).toBe(true);
       });
 
-      it('calls sheetRef.current.onOpenBottomSheet when sheet is already visible', () => {
+      it('does nothing when sheet is already visible', () => {
         const { result } = renderHook(() => usePredictBottomSheet());
         setRefCurrent(result.current.sheetRef, mockBottomSheetRef);
 
@@ -79,7 +79,8 @@ describe('usePredictBottomSheet', () => {
           handlers.onOpenBottomSheet();
         });
 
-        expect(mockBottomSheetRef.onOpenBottomSheet).toHaveBeenCalledTimes(2);
+        expect(result.current.isVisible).toBe(true);
+        expect(mockBottomSheetRef.onOpenBottomSheet).not.toHaveBeenCalled();
       });
 
       it('does not call sheetRef.current.onOpenBottomSheet when ref is null', () => {
@@ -237,8 +238,8 @@ describe('usePredictBottomSheet', () => {
     });
   });
 
-  describe('useEffect behavior', () => {
-    it('calls sheetRef.current.onOpenBottomSheet when isVisible becomes true', () => {
+  describe('visibility state', () => {
+    it('does not call sheetRef methods when opening (BottomSheet auto-opens on mount)', () => {
       const { result } = renderHook(() => usePredictBottomSheet());
       setRefCurrent(result.current.sheetRef, mockBottomSheetRef);
 
@@ -247,7 +248,8 @@ describe('usePredictBottomSheet', () => {
         handlers.onOpenBottomSheet();
       });
 
-      expect(mockBottomSheetRef.onOpenBottomSheet).toHaveBeenCalledTimes(1);
+      expect(result.current.isVisible).toBe(true);
+      expect(mockBottomSheetRef.onOpenBottomSheet).not.toHaveBeenCalled();
     });
 
     it('does not call sheetRef.current.onOpenBottomSheet when isVisible is false', () => {

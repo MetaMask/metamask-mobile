@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		09D9851F119C43FBB54ED59C /* Geist Medium Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6E7939D848B5467AA6602966 /* Geist Medium Italic.otf */; };
-		124C1456DB6348928E0536A8 /* Geist Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4BFDB3B860044F1A9CF3CFEB /* Geist Medium.otf */; };
+		09D9851F119C43FBB54ED59C /* Geist-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6E7939D848B5467AA6602966 /* Geist-MediumItalic.otf */; };
+		124C1456DB6348928E0536A8 /* Geist-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4BFDB3B860044F1A9CF3CFEB /* Geist-Medium.otf */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
@@ -48,15 +48,15 @@
 		2EF283382B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */; };
 		2EF283392B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */; };
 		3466654F43654D36B5D478CA /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = 2679C48F8CD642C68116DD24 /* config.json */; };
-		3F123FD0EA9146FEBC864879 /* MM Sans Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4A64F1985EEA45C0B027E517 /* MM Sans Medium.otf */; };
+		3F123FD0EA9146FEBC864879 /* MMSans-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */; };
 		49D8E62C506F4A63889EEC7F /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
 		650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		654378B0243E2ADC00571B9C /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		7696E77F73B5ADD7EE8190E0 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EEA32C976A46B991D55FD4 /* ExpoModulesProvider.swift */; };
-		8C3986ED969040AEBC7A3856 /* MM Poly Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F10E7EBF946A4F6D8E229143 /* MM Poly Regular.otf */; };
-		8DE564ACA9934796B5E7B1EB /* MM Sans Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F3C919D8F42C47389FF643E7 /* MM Sans Regular.otf */; };
-		98DA5101D5C341F5A5412C04 /* Geist Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = DCB5FECA5557491AB06DBCBE /* Geist Bold.otf */; };
-		9D9E53F67A884FDEBE9A4D3C /* Geist Regular Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 978781C44CFB4434873EDB69 /* Geist Regular Italic.otf */; };
+		8C3986ED969040AEBC7A3856 /* MMPoly-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */; };
+		8DE564ACA9934796B5E7B1EB /* MMSans-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */; };
+		98DA5101D5C341F5A5412C04 /* Geist-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = DCB5FECA5557491AB06DBCBE /* Geist-Bold.otf */; };
+		9D9E53F67A884FDEBE9A4D3C /* Geist-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 978781C44CFB4434873EDB69 /* Geist-RegularItalic.otf */; };
 		A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 683865D794CE6007E46CAD3A /* ExpoModulesProvider.swift */; };
 		A9A253A9A4C55258DD932254 /* libPods-MetaMask-QA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B6C7C9864634E61C13A07C28 /* libPods-MetaMask-QA.a */; };
 		A9AB7F6A09E06325C0A71FA4 /* libPods-MetaMask-Flask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */; };
@@ -78,9 +78,9 @@
 		B339FF23289ABD70001B89FB /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
 		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF3C289ABF2C001B89FB /* MetaMask-QA-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */; };
-		B8B9B88C931A45F59B13181F /* Geist Bold Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5914F547268E4F7BB337A3DF /* Geist Bold Italic.otf */; };
-		BAB8A7C7328F48B6AC38DCE9 /* Geist Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = B848D40B87744D32949BDC25 /* Geist Regular.otf */; };
-		C7B6D2EC4EBB469F9E0658BE /* MM Sans Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D3350113F0764105B1E60002 /* MM Sans Bold.otf */; };
+		B8B9B88C931A45F59B13181F /* Geist-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5914F547268E4F7BB337A3DF /* Geist-BoldItalic.otf */; };
+		BAB8A7C7328F48B6AC38DCE9 /* Geist-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = B848D40B87744D32949BDC25 /* Geist-Regular.otf */; };
+		C7B6D2EC4EBB469F9E0658BE /* MMSans-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D3350113F0764105B1E60002 /* MMSans-Bold.otf */; };
 		C8424AE42CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
@@ -205,24 +205,24 @@
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		4444176409EB42CB93AB03C5 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
 		4A2D27104599412CA00C35EF /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
-		4A64F1985EEA45C0B027E517 /* MM Sans Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MM Sans Medium.otf"; path = "../app/fonts/MM Sans Medium.otf"; sourceTree = "<group>"; };
-		4BFDB3B860044F1A9CF3CFEB /* Geist Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist Medium.otf"; path = "../app/fonts/Geist Medium.otf"; sourceTree = "<group>"; };
+		4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Medium.otf"; path = "../app/fonts/MMSans-Medium.otf"; sourceTree = "<group>"; };
+		4BFDB3B860044F1A9CF3CFEB /* Geist-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Medium.otf"; path = "../app/fonts/Geist-Medium.otf"; sourceTree = "<group>"; };
 		4C81CC9BCD86AC7F96BA8CAD /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
 		51AB7231D0E692F5EF71FACB /* Pods-MetaMask-QA.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-QA.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA.debug.xcconfig"; sourceTree = "<group>"; };
 		57C103F40F394637B5A886FC /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
-		5914F547268E4F7BB337A3DF /* Geist Bold Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist Bold Italic.otf"; path = "../app/fonts/Geist Bold Italic.otf"; sourceTree = "<group>"; };
+		5914F547268E4F7BB337A3DF /* Geist-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-BoldItalic.otf"; path = "../app/fonts/Geist-BoldItalic.otf"; sourceTree = "<group>"; };
 		5E32A09A7BDC431FA403BA73 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAesForked.xcodeproj; path = "../node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj"; sourceTree = "<group>"; };
 		654378AE243E2ADB00571B9C /* MetaMask-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MetaMask-Bridging-Header.h"; sourceTree = "<group>"; };
 		654378AF243E2ADC00571B9C /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		683865D794CE6007E46CAD3A /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		6E7939D848B5467AA6602966 /* Geist Medium Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist Medium Italic.otf"; path = "../app/fonts/Geist Medium Italic.otf"; sourceTree = "<group>"; };
+		6E7939D848B5467AA6602966 /* Geist-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-MediumItalic.otf"; path = "../app/fonts/Geist-MediumItalic.otf"; sourceTree = "<group>"; };
 		7D2A2666F9BADDF2418B01A1 /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
 		7FF1597C0ACA4902B86140B2 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
 		8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTSearchApi.a; sourceTree = "<group>"; };
 		8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask-Flask/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		91B348F39D8AD3220320E89D /* Pods-MetaMask-Flask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.debug.xcconfig"; sourceTree = "<group>"; };
-		978781C44CFB4434873EDB69 /* Geist Regular Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist Regular Italic.otf"; path = "../app/fonts/Geist Regular Italic.otf"; sourceTree = "<group>"; };
+		978781C44CFB4434873EDB69 /* Geist-RegularItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-RegularItalic.otf"; path = "../app/fonts/Geist-RegularItalic.otf"; sourceTree = "<group>"; };
 		9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask-Flask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A498EA4CD2F8488DB666B94C /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
 		A98DB430A7DA47EFB97EDF8B /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
@@ -231,7 +231,7 @@
 		B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "MetaMask-QA-Info.plist"; path = "MetaMask/MetaMask-QA-Info.plist"; sourceTree = "<group>"; };
 		B339FF39289ABD70001B89FB /* MetaMask-QA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MetaMask-QA.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B6C7C9864634E61C13A07C28 /* libPods-MetaMask-QA.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask-QA.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B848D40B87744D32949BDC25 /* Geist Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist Regular.otf"; path = "../app/fonts/Geist Regular.otf"; sourceTree = "<group>"; };
+		B848D40B87744D32949BDC25 /* Geist-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Regular.otf"; path = "../app/fonts/Geist-Regular.otf"; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
 		C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CF014205BB8964CFE74D4D8E /* Pods-MetaMask-QA.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-QA.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA.release.xcconfig"; sourceTree = "<group>"; };
@@ -241,16 +241,16 @@
 		CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RCTScreenshotDetect.m; sourceTree = "<group>"; };
 		D0CBAE789660472DB719C765 /* libLottie.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libLottie.a; sourceTree = "<group>"; };
 		D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D3350113F0764105B1E60002 /* MM Sans Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MM Sans Bold.otf"; path = "../app/fonts/MM Sans Bold.otf"; sourceTree = "<group>"; };
-		DCB5FECA5557491AB06DBCBE /* Geist Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist Bold.otf"; path = "../app/fonts/Geist Bold.otf"; sourceTree = "<group>"; };
+		D3350113F0764105B1E60002 /* MMSans-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; };
+		DCB5FECA5557491AB06DBCBE /* Geist-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Bold.otf"; path = "../app/fonts/Geist-Bold.otf"; sourceTree = "<group>"; };
 		E4B580712E32F462008165E1 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		E7EEA32C976A46B991D55FD4 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask-QA/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
-		F10E7EBF946A4F6D8E229143 /* MM Poly Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MM Poly Regular.otf"; path = "../app/fonts/MM Poly Regular.otf"; sourceTree = "<group>"; };
+		F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MMPoly-Regular.otf"; path = "../app/fonts/MMPoly-Regular.otf"; sourceTree = "<group>"; };
 		F1CCBB0591B4D16C1710A05D /* Pods-MetaMask-Flask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.release.xcconfig"; sourceTree = "<group>"; };
-		F3C919D8F42C47389FF643E7 /* MM Sans Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MM Sans Regular.otf"; path = "../app/fonts/MM Sans Regular.otf"; sourceTree = "<group>"; };
+		F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Regular.otf"; path = "../app/fonts/MMSans-Regular.otf"; sourceTree = "<group>"; };
 		F562CA6B28AA4A67AA29B61C /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		F961A36A28105CF9007442B5 /* LinkPresentation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LinkPresentation.framework; path = System/Library/Frameworks/LinkPresentation.framework; sourceTree = SDKROOT; };
 		F9DFF7AC557B46B6BEFAA1C1 /* libRNShakeEvent.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNShakeEvent.a; sourceTree = "<group>"; };
@@ -423,16 +423,16 @@
 				EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */,
 				A98DB430A7DA47EFB97EDF8B /* FontAwesome5_Solid.ttf */,
 				2679C48F8CD642C68116DD24 /* config.json */,
-				F10E7EBF946A4F6D8E229143 /* MM Poly Regular.otf */,
-				D3350113F0764105B1E60002 /* MM Sans Bold.otf */,
-				4A64F1985EEA45C0B027E517 /* MM Sans Medium.otf */,
-				F3C919D8F42C47389FF643E7 /* MM Sans Regular.otf */,
-				5914F547268E4F7BB337A3DF /* Geist Bold Italic.otf */,
-				DCB5FECA5557491AB06DBCBE /* Geist Bold.otf */,
-				6E7939D848B5467AA6602966 /* Geist Medium Italic.otf */,
-				4BFDB3B860044F1A9CF3CFEB /* Geist Medium.otf */,
-				978781C44CFB4434873EDB69 /* Geist Regular Italic.otf */,
-				B848D40B87744D32949BDC25 /* Geist Regular.otf */,
+				F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */,
+				D3350113F0764105B1E60002 /* MMSans-Bold.otf */,
+				4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */,
+				F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */,
+				5914F547268E4F7BB337A3DF /* Geist-BoldItalic.otf */,
+				DCB5FECA5557491AB06DBCBE /* Geist-Bold.otf */,
+				6E7939D848B5467AA6602966 /* Geist-MediumItalic.otf */,
+				4BFDB3B860044F1A9CF3CFEB /* Geist-Medium.otf */,
+				978781C44CFB4434873EDB69 /* Geist-RegularItalic.otf */,
+				B848D40B87744D32949BDC25 /* Geist-Regular.otf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -710,16 +710,16 @@
 				15ACC9FB226555820063978B /* LaunchScreen.xib in Resources */,
 				49D8E62C506F4A63889EEC7F /* branch.json in Resources */,
 				3466654F43654D36B5D478CA /* config.json in Resources */,
-				8C3986ED969040AEBC7A3856 /* MM Poly Regular.otf in Resources */,
-				C7B6D2EC4EBB469F9E0658BE /* MM Sans Bold.otf in Resources */,
-				3F123FD0EA9146FEBC864879 /* MM Sans Medium.otf in Resources */,
-				8DE564ACA9934796B5E7B1EB /* MM Sans Regular.otf in Resources */,
-				B8B9B88C931A45F59B13181F /* Geist Bold Italic.otf in Resources */,
-				98DA5101D5C341F5A5412C04 /* Geist Bold.otf in Resources */,
-				09D9851F119C43FBB54ED59C /* Geist Medium Italic.otf in Resources */,
-				124C1456DB6348928E0536A8 /* Geist Medium.otf in Resources */,
-				9D9E53F67A884FDEBE9A4D3C /* Geist Regular Italic.otf in Resources */,
-				BAB8A7C7328F48B6AC38DCE9 /* Geist Regular.otf in Resources */,
+				8C3986ED969040AEBC7A3856 /* MMPoly-Regular.otf in Resources */,
+				C7B6D2EC4EBB469F9E0658BE /* MMSans-Bold.otf in Resources */,
+				3F123FD0EA9146FEBC864879 /* MMSans-Medium.otf in Resources */,
+				8DE564ACA9934796B5E7B1EB /* MMSans-Regular.otf in Resources */,
+				B8B9B88C931A45F59B13181F /* Geist-BoldItalic.otf in Resources */,
+				98DA5101D5C341F5A5412C04 /* Geist-Bold.otf in Resources */,
+				09D9851F119C43FBB54ED59C /* Geist-MediumItalic.otf in Resources */,
+				124C1456DB6348928E0536A8 /* Geist-Medium.otf in Resources */,
+				9D9E53F67A884FDEBE9A4D3C /* Geist-RegularItalic.otf in Resources */,
+				BAB8A7C7328F48B6AC38DCE9 /* Geist-Regular.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1281,7 +1281,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3092;
+				CURRENT_PROJECT_VERSION = 3418;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1319,7 +1319,7 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.61.0;
+				MARKETING_VERSION = 7.63.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1350,7 +1350,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3092;
+				CURRENT_PROJECT_VERSION = 3418;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1385,7 +1385,7 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.61.0;
+				MARKETING_VERSION = 7.63.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1416,7 +1416,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3092;
+				CURRENT_PROJECT_VERSION = 3418;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1454,7 +1454,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.61.0;
+				MARKETING_VERSION = 7.63.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1483,7 +1483,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3092;
+				CURRENT_PROJECT_VERSION = 3418;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1518,7 +1518,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.61.0;
+				MARKETING_VERSION = 7.63.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1646,7 +1646,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3092;
+				CURRENT_PROJECT_VERSION = 3418;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1684,7 +1684,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.61.0;
+				MARKETING_VERSION = 7.63.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1716,7 +1716,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3092;
+				CURRENT_PROJECT_VERSION = 3418;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1751,7 +1751,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.61.0;
+				MARKETING_VERSION = 7.63.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",

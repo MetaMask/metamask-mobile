@@ -1,7 +1,8 @@
+/* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { EditGasViewSelectorsIDs } from '../../../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
+import { EditGasViewSelectorsIDs } from '../../EditGasView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../../core/AppConstants';
 import { useGasTransaction } from '../../../../../../../core/GasPolling/GasPolling';
@@ -15,7 +16,7 @@ import useModalHandler from '../../../../../../Base/hooks/useModalHandler';
 import Summary from '../../../../../../Base/Summary';
 import Text from '../../../../../../Base/Text';
 import FadeAnimationView from '../../../../../../UI/FadeAnimationView';
-import InfoModal from '../../../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../../../Base/InfoModal';
 import TimeEstimateInfoModal from '../../../../../../UI/TimeEstimateInfoModal';
 import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';

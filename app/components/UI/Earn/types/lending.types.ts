@@ -35,3 +35,10 @@ export type EarnTokenDetails = TokenI & {
 export enum LendingProtocol {
   AAVE = 'aave',
 }
+
+export interface QuickAmount {
+  value: number;
+  label: string;
+  isNative?: boolean;
+  isHighlighted?: boolean;
+}

@@ -24,6 +24,7 @@ export interface InfoRowProps {
   label?: string;
   children?: ReactNode | string;
   onTooltipPress?: () => void;
+  onLabelClick?: () => void;
   tooltip?: ReactNode;
   tooltipTitle?: string;
   tooltipColor?: IconColor;
@@ -45,6 +46,7 @@ const InfoRow = ({
   label,
   children,
   onTooltipPress,
+  onLabelClick,
   style = {},
   labelChildren = null,
   tooltip,
@@ -80,7 +82,7 @@ const InfoRow = ({
       >
         {Boolean(label) && (
           <View style={styles.labelContainer}>
-            <Text variant={labelVariant} color={variant}>
+            <Text variant={labelVariant} color={variant} onPress={onLabelClick}>
               {label}
             </Text>
             {labelChildren}

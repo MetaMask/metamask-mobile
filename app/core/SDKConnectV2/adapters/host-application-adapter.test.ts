@@ -136,6 +136,40 @@ describe('HostApplicationAdapter', () => {
     });
   });
 
+  describe('showConfirmationRejectionError', () => {
+    it('dispatches a rejection error notification with connection info', () => {
+      adapter.showConfirmationRejectionError(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: 'session-123',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_rejection.title',
+        description: 'sdk_connect_v2.show_rejection.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('dispatches a rejection error notification without connection info', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+
+      adapter.showConfirmationRejectionError();
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: '1234567890',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_rejection.title',
+        description: 'sdk_connect_v2.show_rejection.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('showReturnToApp', () => {
     it('dispatches a success notification prompting user to return to app', () => {
       adapter.showReturnToApp(

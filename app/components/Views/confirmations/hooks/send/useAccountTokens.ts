@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 
-import { selectFilteredAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -17,7 +17,7 @@ export function useAccountTokens({
 }: {
   includeNoBalance?: boolean;
 } = {}): AssetType[] {
-  const assets = useSelector(selectFilteredAssetsBySelectedAccountGroup);
+  const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return useMemo(() => {

@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  LayoutChangeEvent,
-  ActivityIndicator,
-} from 'react-native';
+import { View, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Animated, {
   Easing,
@@ -18,7 +13,6 @@ import { QuoteResponse, SellQuoteResponse } from '@consensys/on-ramp-sdk';
 import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Box from '../Box';
 import Title from '../../../../../Base/Title';
-import StyledButton from '../../../../StyledButton';
 import {
   renderFiat,
   renderFromTokenMinimalUnit,
@@ -41,6 +35,11 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 
 interface Props {
   quote: QuoteResponse | SellQuoteResponse;
@@ -70,7 +69,7 @@ const Quote: React.FC<Props> = ({
 }: Props) => {
   const {
     styles,
-    theme: { colors, themeAppearance },
+    theme: { themeAppearance },
   } = useStyles(styleSheet, {});
   const {
     networkFee = 0,
@@ -197,23 +196,17 @@ const Quote: React.FC<Props> = ({
                     }${strings('fiat_on_ramp_aggregator.pay_with')}`}
                   />
                 ) : (
-                  <StyledButton
-                    type={'blue'}
-                    onPress={onPressCTA}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator
-                        testID="buy-button-loading"
-                        size={'small'}
-                        color={colors.primary.inverse}
-                      />
-                    ) : (
-                      strings('fiat_on_ramp_aggregator.continue_with', {
-                        provider: provider.name,
-                      })
-                    )}
-                  </StyledButton>
+                  <Button
+                    size={ButtonSize.Lg}
+                    onPress={() => onPressCTA?.()}
+                    label={strings('fiat_on_ramp_aggregator.continue_with', {
+                      provider: provider.name,
+                    })}
+                    variant={ButtonVariants.Primary}
+                    width={ButtonWidthTypes.Full}
+                    isDisabled={isLoading}
+                    loading={isLoading}
+                  />
                 )}
               </View>
             </Animated.View>

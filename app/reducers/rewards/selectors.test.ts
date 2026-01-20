@@ -37,6 +37,7 @@ import {
   selectUnlockedRewardError,
   selectSeasonRewardById,
   selectPointsEvents,
+  selectSeasonShouldInstallNewVersion,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
@@ -2382,6 +2383,46 @@ describe('Rewards selectors', () => {
 
       expect(result1).toBe(result2); // Same reference
       expect(result1).toEqual(result2); // Same value
+    });
+  });
+
+  describe('selectSeasonShouldInstallNewVersion', () => {
+    it('returns null when season should install new version is not set', () => {
+      const mockState = { rewards: { seasonShouldInstallNewVersion: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonShouldInstallNewVersion),
+      );
+      expect(result.current).toBeNull();
+    });
+
+    it('returns version string when set', () => {
+      const mockState = {
+        rewards: { seasonShouldInstallNewVersion: '1.2.3' },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonShouldInstallNewVersion),
+      );
+      expect(result.current).toBe('1.2.3');
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns null when season should install new version is null', () => {
+        const state = createMockRootState({
+          seasonShouldInstallNewVersion: null,
+        });
+        expect(selectSeasonShouldInstallNewVersion(state)).toBeNull();
+      });
+
+      it('returns version string when set', () => {
+        const state = createMockRootState({
+          seasonShouldInstallNewVersion: '2.0.0',
+        });
+        expect(selectSeasonShouldInstallNewVersion(state)).toBe('2.0.0');
+      });
     });
   });
 });

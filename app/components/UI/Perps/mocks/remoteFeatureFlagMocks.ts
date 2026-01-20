@@ -11,4 +11,6 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
 > = {
   perpsPerpTradingEnabled: mockEnabledPerpsLDFlag,
   perpsPerpTradingServiceInterruptionBannerEnabled: mockEnabledPerpsLDFlag,
+  perpsOrderBookEnabled: mockEnabledPerpsLDFlag,
+  perpsFeedbackEnabled: mockEnabledPerpsLDFlag,
 };

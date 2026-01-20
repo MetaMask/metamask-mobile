@@ -15,6 +15,9 @@ import logger from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
+import Engine from '../../Engine';
+import { rpcErrors } from '@metamask/rpc-errors';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -80,8 +83,66 @@ export class ConnectionRegistry {
    * @param url - The url to check
    * @returns - True if the deeplink is a connect deeplink
    */
-  public isConnectDeeplink(url: unknown): url is string {
+  public isMwpDeeplink(url: unknown): url is string {
     return typeof url === 'string' && url.startsWith(this.DEEPLINK_PREFIX);
+  }
+
+  public async handleMwpDeeplink(url: string): Promise<void> {
+    if (!this.isMwpDeeplink(url)) {
+      throw new Error(`Invalid MWP deeplink: ${url}`);
+    }
+
+    try {
+      const parsed = new URL(url);
+
+      const id = parsed.searchParams.get('id');
+
+      if (id) {
+        await this.handleSimpleDeeplink(id);
+      } else {
+        await this.handleConnectDeeplink(url);
+      }
+    } catch (error) {
+      logger.error('Failed to handle MWP deeplink:', error);
+    }
+  }
+
+  public async handleSimpleDeeplink(id: string): Promise<void> {
+    logger.debug('Handling simple deeplink with id:', id);
+
+    const conn = await this.store.get(id);
+
+    if (conn) {
+      return;
+    }
+
+    logger.error(
+      'Failed to find connection in store for simple deeplink with id:',
+      id,
+    );
+
+    if (!Engine.context.KeyringController.isUnlocked()) {
+      await new Promise<void>((resolve) => {
+        const handler = () => {
+          Engine.controllerMessenger.unsubscribe(
+            'KeyringController:unlock',
+            handler,
+          );
+          resolve();
+        };
+        Engine.controllerMessenger.subscribe(
+          'KeyringController:unlock',
+          handler,
+        );
+      });
+    }
+
+    await whenStoreReady();
+
+    // Not sure what else must be initialized before this toast will show correctly
+    setTimeout(() => {
+      this.hostapp.showNotFoundError();
+    }, 1000);
   }
 
   /**
@@ -110,7 +171,18 @@ export class ConnectionRegistry {
 
     try {
       const connReq = this.parseConnectionRequest(url);
+      // Prevent external connections from using internal origins
+      // This is an external connection (SDK V2), so block any internal origin
+      if (
+        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.url) ||
+        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.name)
+      ) {
+        throw rpcErrors.invalidParams({
+          message: 'External transactions cannot use internal origins',
+        });
+      }
       connInfo = this.toConnectionInfo(connReq);
+
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,

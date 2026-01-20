@@ -26,10 +26,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     infoWrapper: {
       alignItems: 'center',
-      marginTop: 10,
+      paddingTop: 16,
+      paddingHorizontal: 16,
     },
     tabContainer: {
-      paddingHorizontal: 16,
       flex: 1,
     },
     networkImageContainer: {
@@ -66,6 +66,9 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 16,
+    },
+    networkSelectorAvatarContainer: {
+      marginRight: 8,
     },
   });
 };

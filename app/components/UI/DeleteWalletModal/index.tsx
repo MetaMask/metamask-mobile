@@ -7,14 +7,13 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { createStyles } from './styles';
-import { useDeleteWallet } from '../../hooks/DeleteWallet';
+import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
+import { ForgotPasswordModalSelectorsIDs } from '../../../util/ForgotPasswordModal.testIds';
 import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
@@ -38,8 +37,6 @@ import { useMetrics } from '../../hooks/useMetrics';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -62,7 +59,6 @@ const DeleteWalletModal: React.FC = () => {
 
   const [isResetWallet, setIsResetWallet] = useState<boolean>(false);
 
-  const [resetWalletState, deleteUser] = useDeleteWallet();
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -115,10 +111,7 @@ const DeleteWalletModal: React.FC = () => {
       dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
       signOut();
       await CookieManager.clearAll(true);
-      await resetWalletState();
-      await deleteUser();
-      await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-      dispatch(setCompletedOnboarding(false));
+      await Authentication.deleteWallet();
       // Track analytics for successful deletion
       track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
       InteractionManager.runAfterInteractions(() => {

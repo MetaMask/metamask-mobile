@@ -3,9 +3,10 @@ import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import {
+  PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
+} from '../../../app/components/UI/Perps/Perps.testIds';
 import { element as detoxElement, by as detoxBy } from 'detox';
 
 class PerpsOrderView {
@@ -18,6 +19,12 @@ class PerpsOrderView {
   get takeProfitButton() {
     return Matchers.getElementByID(
       PerpsOrderViewSelectorsIDs.TAKE_PROFIT_BUTTON,
+    );
+  }
+
+  get turnNotificationsOnButton() {
+    return Matchers.getElementByID(
+      PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON,
     );
   }
 
@@ -42,6 +49,12 @@ class PerpsOrderView {
 
   async tapTakeProfitButton() {
     await Gestures.waitAndTap(this.takeProfitButton);
+  }
+
+  async tapTurnOnNotificationsButton() {
+    await Gestures.waitAndTap(this.turnNotificationsOnButton, {
+      elemDescription: 'Turn on Notifications Button',
+    });
   }
 
   async selectLeverage(leverageX: number) {
@@ -136,21 +149,17 @@ class PerpsOrderView {
     return Matchers.getElementByText('Market');
   }
 
+  private get orderTypeSelector(): DetoxElement {
+    return Matchers.getElementByID(
+      PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
+    );
+  }
   private get orderTypeLimit(): DetoxElement {
     return Matchers.getElementByText('Limit');
   }
 
   async openOrderTypeSelector(): Promise<void> {
-    // Tap whichever order type label is currently visible (no try/catch)
-    const marketVisible = await Utilities.isElementVisible(
-      this.orderTypeMarket,
-      300,
-    );
-    const target = marketVisible ? this.orderTypeMarket : this.orderTypeLimit;
-    const desc = marketVisible
-      ? 'Open order type selector (Market)'
-      : 'Open order type selector (Limit)';
-    await Gestures.waitAndTap(target, { elemDescription: desc });
+    await Gestures.waitAndTap(this.orderTypeSelector);
   }
 
   async selectLimitOrderType() {
@@ -159,12 +168,10 @@ class PerpsOrderView {
     });
   }
 
-  async setLimitPricePresetLong(percentage: number) {
-    // For long orders, presets are negative values: -1, -2, -5, -10
-    const label = `${percentage > 0 ? '+' : ''}${percentage}%`;
-    const preset = Matchers.getElementByText(label) as DetoxElement;
-    await Gestures.waitAndTap(preset, {
-      elemDescription: `Select limit price preset ${label}`,
+  async setLimitPricePresetLong(preset: string) {
+    const presetButton = Matchers.getElementByText(preset) as DetoxElement;
+    await Gestures.waitAndTap(presetButton, {
+      elemDescription: `Select limit price preset ${preset}`,
     });
   }
 

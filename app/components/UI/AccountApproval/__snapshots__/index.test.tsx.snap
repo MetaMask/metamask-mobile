@@ -127,7 +127,7 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 14,
             "textAlign": "center",
           }
@@ -161,7 +161,7 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 12,
             "padding": 5,
             "textAlign": "center",
@@ -178,7 +178,7 @@ exports[`AccountApproval should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -196,7 +196,7 @@ exports[`AccountApproval should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -208,7 +208,7 @@ exports[`AccountApproval should render correctly 1`] = `
       }
     }
   >
-    By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
+    By clicking connect, you allow this site to view your public address. This is an important security step to protect your data from potential phishing risks.
   </Text>
   <View
     style={
@@ -315,14 +315,14 @@ exports[`AccountApproval should render correctly 1`] = `
               {
                 "0": {
                   "color": "#121314",
-                  "fontFamily": "Geist Bold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "marginRight": 2,
                   "maxWidth": "45%",
                 },
                 "1": undefined,
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -351,12 +351,12 @@ exports[`AccountApproval should render correctly 1`] = `
                 "0": {
                   "color": "#121314",
                   "flexGrow": 1,
-                  "fontFamily": "Geist Bold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                 },
                 "1": undefined,
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -384,12 +384,12 @@ exports[`AccountApproval should render correctly 1`] = `
                 "0": {
                   "alignSelf": "flex-start",
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                 },
                 "1": undefined,
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -458,7 +458,7 @@ exports[`AccountApproval should render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -519,7 +519,7 @@ exports[`AccountApproval should render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },

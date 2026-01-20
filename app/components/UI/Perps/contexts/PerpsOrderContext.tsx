@@ -34,7 +34,7 @@ export const PerpsOrderProvider = ({
     initialAsset,
     initialDirection,
     initialAmount,
-    initialLeverage,
+    initialLeverage: initialLeverage ?? existingPosition?.leverage?.value,
     initialType,
   });
 

@@ -14,7 +14,7 @@ interface InitialStateBridgeOptions {
  * Use chainable calls on the returned builder to customize per-test needs.
  */
 export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
-  const builder = createStateFixture({ base: 'empty' })
+  const builder = createStateFixture()
     .withMinimalBridgeController()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()

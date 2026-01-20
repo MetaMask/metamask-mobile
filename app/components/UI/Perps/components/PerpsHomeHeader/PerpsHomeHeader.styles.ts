@@ -17,16 +17,25 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
       backgroundColor: theme.colors.background.default,
     },
+    backButton: {
+      padding: 4,
+    },
     headerContainerWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingTop: 16,
     },
-    headerTitle: {
+    headerTitleContainer: {
       flex: 1,
+      paddingLeft: 4,
+      paddingRight: 12,
+    },
+    headerTitle: {
       textAlign: 'left',
-      marginLeft: 4,
-      marginRight: 12,
+    },
+    titleButtonsRightContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     searchButton: {
       padding: 4,

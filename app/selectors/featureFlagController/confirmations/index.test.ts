@@ -2,8 +2,6 @@ import { cloneDeep } from 'lodash';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-  SendRedesignFlags,
-  selectSendRedesignFlags,
   selectMetaMaskPayFlags,
   BUFFER_STEP_DEFAULT,
   BUFFER_INITIAL_DEFAULT,
@@ -11,9 +9,12 @@ import {
   SLIPPAGE_DEFAULT,
   BUFFER_SUBSEQUENT_DEFAULT,
   selectNonZeroUnusedApprovalsAllowList,
+  selectGasFeeTokenFlags,
+  GasFeeTokenFlags,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
@@ -181,103 +182,6 @@ describe('Confirmation Redesign Feature Flags', () => {
   });
 });
 
-describe('Send Redesign Feature Flags', () => {
-  const sendRedesignFlagsDefaultValues: SendRedesignFlags = {
-    enabled: true,
-  };
-
-  const mockedSendRedesignFlags: SendRedesignFlags = {
-    enabled: false,
-  };
-
-  const mockedStateWithSendFlags = {
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            sendRedesign: mockedSendRedesignFlags,
-          },
-          cacheTimestamp: 0,
-        },
-      },
-    },
-  };
-
-  const testSendFlagValues = (result: unknown, expected: SendRedesignFlags) => {
-    const { enabled } = result as SendRedesignFlags;
-    const { enabled: expectedEnabled } = expected;
-
-    expect(enabled).toEqual(expectedEnabled);
-  };
-
-  it('returns default values (enabled: true) when empty feature flag state', () => {
-    testSendFlagValues(
-      selectSendRedesignFlags(mockedEmptyFlagsState),
-      sendRedesignFlagsDefaultValues,
-    );
-  });
-
-  it('returns default values (enabled: true) when undefined RemoteFeatureFlagController state', () => {
-    testSendFlagValues(
-      selectSendRedesignFlags(mockedUndefinedFlagsState),
-      sendRedesignFlagsDefaultValues,
-    );
-  });
-
-  it('returns remote flag values when sendRedesign flags are set', () => {
-    testSendFlagValues(
-      selectSendRedesignFlags(mockedStateWithSendFlags),
-      mockedSendRedesignFlags,
-    );
-  });
-
-  it('handles kill switch behavior - remote false overrides default true', () => {
-    const killSwitchState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              sendRedesign: {
-                enabled: false,
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    const expectedKillSwitchValues: SendRedesignFlags = {
-      enabled: false,
-    };
-
-    testSendFlagValues(
-      selectSendRedesignFlags(killSwitchState),
-      expectedKillSwitchValues,
-    );
-  });
-
-  it('returns default when sendRedesign object exists but enabled property is undefined', () => {
-    const stateWithUndefinedEnabled = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              sendRedesign: {},
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    testSendFlagValues(
-      selectSendRedesignFlags(stateWithUndefinedEnabled),
-      sendRedesignFlagsDefaultValues,
-    );
-  });
-});
-
 describe('MetaMask Pay Feature Flags', () => {
   it('returns default buffer step if not in feature flags', () => {
     expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferStep).toEqual(
@@ -435,5 +339,83 @@ describe('Non-Zero Unused Approvals Allow List', () => {
       undefinedFeatureFlagState,
     );
     expect(result).toEqual([]);
+  });
+});
+
+describe('Gas Fee Token Flags', () => {
+  const chainIdMock = '0x1' as Hex;
+
+  const mockedGasFeeTokenFlags: GasFeeTokenFlags = {
+    gasFeeTokens: {
+      [chainIdMock]: {
+        name: 'Ethereum',
+        tokens: [
+          {
+            name: 'USDC',
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
+          },
+          {
+            name: 'DAI',
+            address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
+          },
+        ],
+      },
+      '0x89': {
+        name: 'Polygon',
+        tokens: [{ name: 'USDC.e', address: '0xusdce' as Hex }],
+      },
+    },
+  };
+
+  const mockedStateWithGasFeeTokenFlags = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            confirmations_gas_fee_tokens: mockedGasFeeTokenFlags,
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  };
+
+  it('returns empty gasFeeTokens when empty feature flag state', () => {
+    const result = selectGasFeeTokenFlags(mockedEmptyFlagsState);
+
+    expect(result).toEqual({ gasFeeTokens: {} });
+  });
+
+  it('returns empty gasFeeTokens when undefined RemoteFeatureFlagController state', () => {
+    const result = selectGasFeeTokenFlags(mockedUndefinedFlagsState);
+
+    expect(result).toEqual({ gasFeeTokens: {} });
+  });
+
+  it('returns gas fee tokens from feature flag', () => {
+    const result = selectGasFeeTokenFlags(
+      mockedStateWithGasFeeTokenFlags as never,
+    );
+
+    expect(result).toEqual(mockedGasFeeTokenFlags);
+  });
+
+  it('returns empty gasFeeTokens when confirmations_gas_fee_tokens exists but gasFeeTokens is undefined', () => {
+    const stateWithUndefinedGasFeeTokens = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              confirmations_gas_fee_tokens: {},
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
+
+    expect(result).toEqual({ gasFeeTokens: {} });
   });
 });

@@ -1,4 +1,4 @@
-import { Side } from '../../types';
+import { PredictGamePeriod, Side } from '../../types';
 import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
@@ -130,8 +130,11 @@ export interface PolymarketApiMarket {
   icon: string;
   image: string;
   groupItemTitle: string;
+  groupItemThreshold?: number;
+  sportsMarketType?: string;
   status: 'open' | 'closed' | 'resolved';
   volumeNum: number;
+  liquidity: number;
   negRisk: boolean;
   clobTokenIds: string;
   outcomes: string;
@@ -142,6 +145,7 @@ export interface PolymarketApiMarket {
   orderPriceMinTickSize: number;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
+  line?: number;
 }
 
 export interface PolymarketApiSeries {
@@ -174,6 +178,15 @@ export interface PolymarketApiEvent {
   tags: PolymarketApiTag[];
   liquidity: number;
   volume: number;
+  sortBy?: 'price' | 'ascending' | 'descending';
+  gameId?: string;
+  startTime?: string;
+  finishedTimestamp?: string;
+  score?: string;
+  elapsed?: string;
+  period?: PredictGamePeriod;
+  live?: boolean;
+  ended?: boolean;
 }
 
 export interface PolymarketApiActivity {
@@ -336,4 +349,25 @@ export interface OrderBook {
   min_order_size: string;
   tick_size: string;
   neg_risk: boolean;
+}
+
+export interface PolymarketApiTeam {
+  id: string;
+  name: string;
+  logo: string;
+  abbreviation: string;
+  color: string;
+  alias: string;
+}
+
+export interface PolymarketApiGameEvent {
+  gameId?: string;
+  startTime?: string;
+  finishedTimestamp?: string;
+  score?: string;
+  elapsed?: string;
+  period?: PredictGamePeriod;
+  live?: boolean;
+  ended?: boolean;
+  closed?: boolean;
 }

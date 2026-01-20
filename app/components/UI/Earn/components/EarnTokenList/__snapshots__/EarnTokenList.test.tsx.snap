@@ -133,22 +133,31 @@ exports[`EarnTokenList render matches snapshot 1`] = `
           style={
             [
               {
-                "backgroundColor": "#ffffff",
+                "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "padding": 16,
+                "height": 56,
               },
               false,
+              {
+                "paddingHorizontal": 16,
+              },
             ]
           }
           testID="header"
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
             }
           >
             <Text
@@ -156,7 +165,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Bold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -417,7 +426,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Bold",
+                        "fontFamily": "Geist-Bold",
                         "fontSize": 18,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -431,7 +440,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#457a39",
-                        "fontFamily": "Geist Bold",
+                        "fontFamily": "Geist-Bold",
                         "fontSize": 32,
                         "letterSpacing": 0,
                         "lineHeight": 40,
@@ -445,7 +454,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -643,7 +652,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -668,21 +677,21 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         style={
                           {
                             "color": "#457a39",
-                            "fontFamily": "Geist Medium",
+                            "fontFamily": "Geist-Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
                         }
                       >
-                        2.3% APR
+                        2.29% APR
                       </Text>
                       <Text
                         accessibilityRole="text"
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "Geist Medium",
+                            "fontFamily": "Geist-Medium",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
@@ -849,7 +858,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -874,21 +883,21 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         style={
                           {
                             "color": "#457a39",
-                            "fontFamily": "Geist Medium",
+                            "fontFamily": "Geist-Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
                         }
                       >
-                        4.0% APR
+                        4% APR
                       </Text>
                       <Text
                         accessibilityRole="text"
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "Geist Medium",
+                            "fontFamily": "Geist-Medium",
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,

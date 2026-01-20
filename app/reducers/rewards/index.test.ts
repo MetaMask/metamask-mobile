@@ -50,6 +50,7 @@ describe('rewardsReducer', () => {
     seasonEndDate: null,
     seasonTiers: [],
     seasonActivityTypes: [],
+    seasonShouldInstallNewVersion: null,
 
     referralDetailsLoading: false,
     referralDetailsError: false,
@@ -212,6 +213,7 @@ describe('rewardsReducer', () => {
       expect(state.currentTier?.id).toBe('tier-bronze');
       expect(state.nextTier?.id).toBe('tier-silver');
       expect(state.nextTierPointsNeeded).toBe(1000);
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should set fields to null when season status is null', () => {
@@ -236,6 +238,7 @@ describe('rewardsReducer', () => {
         ],
         balanceTotal: 1000,
         balanceRefereePortion: 200,
+        seasonShouldInstallNewVersion: '1.0.0',
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -265,6 +268,7 @@ describe('rewardsReducer', () => {
       expect(state.currentTier).toBe(null);
       expect(state.nextTier).toBe(null);
       expect(state.nextTierPointsNeeded).toBe(null);
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should handle season status with invalid balance types', () => {
@@ -426,6 +430,96 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithActivities, action);
 
       expect(state.seasonActivityTypes).toEqual([]);
+    });
+
+    it('should set seasonShouldInstallNewVersion when provided', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-with-version',
+          name: 'Season With Version',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+          shouldInstallNewVersion: '2.0.0',
+        },
+        balance: {
+          total: 100,
+        },
+        tier: {
+          currentTier: null,
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonShouldInstallNewVersion).toBe('2.0.0');
+    });
+
+    it('should set seasonShouldInstallNewVersion to null when not provided', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-without-version',
+          name: 'Season Without Version',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+        },
+        balance: {
+          total: 100,
+        },
+        tier: {
+          currentTier: null,
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
+    });
+
+    it('should set seasonShouldInstallNewVersion to null when undefined', () => {
+      // Arrange
+      const stateWithVersion = {
+        ...initialState,
+        seasonShouldInstallNewVersion: '1.0.0',
+      };
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-undefined-version',
+          name: 'Season Undefined Version',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+          shouldInstallNewVersion: undefined,
+        },
+        balance: {
+          total: 100,
+        },
+        tier: {
+          currentTier: null,
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(stateWithVersion, action);
+
+      // Assert
+      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
   });
 
@@ -1398,6 +1492,7 @@ describe('rewardsReducer', () => {
               icon: 'Speedometer',
             },
           ],
+          seasonShouldInstallNewVersion: null,
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -1427,9 +1522,6 @@ describe('rewardsReducer', () => {
         expect(state.activeBoosts).toBe(initialState.activeBoosts);
         expect(state.pointsEvents).toBe(initialState.pointsEvents);
         expect(state.unlockedRewards).toBe(initialState.unlockedRewards);
-        expect(state.seasonActivityTypes).toEqual(
-          initialState.seasonActivityTypes,
-        );
         // Onboarding state should NOT be reset
         expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
         expect(state.onboardingReferralCode).toBe('ONBOARDING_REF');
@@ -1996,6 +2088,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
+        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
         candidateSubscriptionId: 'some-id',
@@ -2084,6 +2177,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
+        seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
         candidateSubscriptionId: 'some-id',

@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
-import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   createMockInternalAccount,
@@ -19,6 +19,7 @@ import {
 import { BITCOIN_WALLET_SNAP_ID } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { SOLANA_WALLET_SNAP_ID } from '../../../core/SnapKeyring/SolanaWalletSnap';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
@@ -226,6 +227,11 @@ jest.mock('@react-navigation/native', () => {
 import { useRoute } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { forgetLedger } from '../../../core/Ledger/Ledger';
+import {
+  forgetQrDevice,
+  withQrKeyring,
+} from '../../../core/QrKeyring/QrKeyring';
 
 // Set the implementation after the mock is defined
 const mockedUseRoute = jest.mocked(useRoute);
@@ -323,6 +329,15 @@ const customRpcState = {
 
 jest.mock('../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn(() => false),
+}));
+
+jest.mock('../../../core/Ledger/Ledger', () => ({
+  forgetLedger: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
+  forgetQrDevice: jest.fn().mockResolvedValue(undefined),
+  withQrKeyring: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('AccountActions', () => {
@@ -504,11 +519,9 @@ describe('AccountActions', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
       {
-        credentialName: 'private_key',
-        shouldUpdateNav: true,
-        selectedAccount: MOCK_ACCOUNT,
+        account: MOCK_ACCOUNT,
       },
     );
   });
@@ -656,7 +669,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(getByText('Switch to Smart account')).toBeTruthy();
+      expect(getByText('Switch to smart account')).toBeTruthy();
     });
 
     it('calls navigate function when option to switch account type is clicked', () => {
@@ -664,7 +677,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      fireEvent.press(getByText('Switch to Smart account'));
+      fireEvent.press(getByText('Switch to smart account'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'ConfirmationSwitchAccountType',
@@ -699,6 +712,210 @@ describe('AccountActions', () => {
       });
 
       expect(queryByText('Switch to Smart account')).toBeNull();
+    });
+  });
+
+  describe('forgetDeviceIfRequired', () => {
+    const MOCK_LEDGER_ACCOUNT = {
+      address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+      id: '123',
+      metadata: {
+        name: 'Ledger Account',
+        importTime: 1684232000456,
+        keyring: {
+          type: ExtendedKeyringTypes.ledger,
+        },
+      },
+      options: {
+        entropySource: 'mock-id',
+      },
+      methods: [
+        'personal_sign',
+        'eth_signTransaction',
+        'eth_signTypedData_v1',
+        'eth_signTypedData_v3',
+        'eth_signTypedData_v4',
+      ],
+      type: 'eoa',
+      scopes: ['eip155:1'],
+    };
+
+    const MOCK_QR_ACCOUNT = {
+      address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+      id: '124',
+      metadata: {
+        name: 'QR Account',
+        importTime: 1684232000456,
+        keyring: {
+          type: ExtendedKeyringTypes.qr,
+        },
+      },
+      options: {
+        entropySource: 'mock-id',
+      },
+      methods: [
+        'personal_sign',
+        'eth_signTransaction',
+        'eth_signTypedData_v1',
+        'eth_signTypedData_v3',
+        'eth_signTypedData_v4',
+      ],
+      type: 'eoa',
+      scopes: ['eip155:1'],
+    };
+
+    beforeEach(() => {
+      (forgetLedger as jest.Mock).mockClear();
+      (forgetQrDevice as jest.Mock).mockClear();
+      (withQrKeyring as jest.Mock).mockClear();
+    });
+
+    it('triggers blocking modal when remove hardware account is confirmed for Ledger', async () => {
+      jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
+
+      mockedUseRoute.mockImplementationOnce(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          selectedAccount: MOCK_LEDGER_ACCOUNT,
+        },
+      }));
+
+      Object.assign(mockKeyringController.state, {
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.ledger,
+            accounts: [],
+          },
+        ],
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <AccountActions />,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT,
+        ),
+      );
+
+      const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;
+      expect(alertFnMock).toHaveBeenCalledWith(
+        strings('accounts.remove_hardware_account'),
+        strings('accounts.remove_hw_account_alert_description'),
+        expect.any(Array),
+      );
+
+      await act(async () => {
+        const alertButtons = alertFnMock.mock.calls[0][2] as AlertButton[];
+        if (alertButtons[1].onPress !== undefined) {
+          alertButtons[1].onPress();
+        }
+      });
+
+      await waitFor(() => {
+        expect(getByText(strings('common.please_wait'))).toBeDefined();
+      });
+    });
+
+    it('triggers blocking modal when remove hardware account is confirmed for QR', async () => {
+      jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
+
+      mockedUseRoute.mockImplementationOnce(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          selectedAccount: MOCK_QR_ACCOUNT,
+        },
+      }));
+
+      Object.assign(mockKeyringController.state, {
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.qr,
+            accounts: [],
+          },
+        ],
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <AccountActions />,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT,
+        ),
+      );
+
+      const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;
+
+      await act(async () => {
+        const alertButtons = alertFnMock.mock.calls[0][2] as AlertButton[];
+        if (alertButtons[1].onPress !== undefined) {
+          alertButtons[1].onPress();
+        }
+      });
+
+      await waitFor(() => {
+        expect(getByText(strings('common.please_wait'))).toBeDefined();
+      });
+    });
+
+    it('sets blockingModalVisible to true when removing hardware account', async () => {
+      jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
+
+      mockedUseRoute.mockImplementationOnce(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          selectedAccount: MOCK_LEDGER_ACCOUNT,
+        },
+      }));
+
+      Object.assign(mockKeyringController.state, {
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.ledger,
+            accounts: [],
+          },
+        ],
+      });
+
+      const { getByTestId } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      fireEvent.press(
+        getByTestId(
+          AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT,
+        ),
+      );
+
+      const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;
+
+      await act(async () => {
+        const alertButtons = alertFnMock.mock.calls[0][2] as AlertButton[];
+        if (alertButtons[1].onPress !== undefined) {
+          alertButtons[1].onPress();
+        }
+      });
+
+      await waitFor(() => {
+        expect(mockKeyringController.state.keyrings).toEqual([
+          {
+            type: ExtendedKeyringTypes.ledger,
+            accounts: [],
+          },
+        ]);
+      });
     });
   });
 });

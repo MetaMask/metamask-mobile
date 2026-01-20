@@ -67,6 +67,7 @@ describe('remoteFeatureFlagControllerInit', () => {
       getMetaMetricsId: expect.any(Function),
       clientConfigApiService: expect.any(ClientConfigApiService),
       fetchInterval: 900_000,
+      clientVersion: expect.any(String),
     });
   });
 

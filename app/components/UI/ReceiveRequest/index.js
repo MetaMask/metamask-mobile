@@ -28,13 +28,9 @@ import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
 import { withRampNavigation } from '../Ramp/hooks/withRampNavigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import {
-  getDetectedGeolocation,
-  getRampNetworks,
-} from '../../../reducers/fiatOrders';
-import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
+import { RequestPaymentModalSelectorsIDs } from './RequestPaymentModal.testIds';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
 import { isEthAddress } from '../../../util/address';
@@ -110,10 +106,6 @@ class ReceiveRequest extends PureComponent {
      * Boolean that indicates if the evm network is selected
      */
     isEvmNetworkSelected: PropTypes.bool,
-    /**
-     * Geodetected region for ramp
-     */
-    rampGeodetectedRegion: PropTypes.string,
   };
 
   state = {
@@ -156,18 +148,8 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       goToBuy();
-
-      this.props.metrics.trackEvent(
-        this.props.metrics
-          .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Buy Native Token',
-            location: 'Receive Modal',
-            chain_id_destination: getDecimalChainId(this.props.chainId),
-            region: this.props.rampGeodetectedRegion,
-          })
-          .build(),
-      );
+      // TODO: Add RAMPS_BUTTON_CLICKED analytics tracking when this component is refactored to a functional component
+      // This will allow access to the useRampsButtonClickData hook for the expanded analytics payload
     }
   };
 
@@ -215,7 +197,7 @@ class ReceiveRequest extends PureComponent {
             alignItems={BoxAlignItems.Center}
             twClassName="px-4 py-6"
           >
-            <Box twClassName="p-6 border border-muted rounded-2xl">
+            <Box twClassName="p-6 border border-muted rounded-2xl bg-white">
               <QRCode
                 logo={PNG_MM_LOGO_PATH}
                 logoSize={32}
@@ -263,7 +245,6 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   isEvmNetworkSelected: selectIsEvmNetworkSelected(state),
-  rampGeodetectedRegion: getDetectedGeolocation(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

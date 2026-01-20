@@ -31,7 +31,6 @@ import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddress
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
-import StyledButton from '../../../../StyledButton';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -92,7 +91,12 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
@@ -1101,15 +1105,15 @@ const BuildQuote = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <Row style={styles.cta}>
-            <StyledButton
-              type="confirm"
+            <Button
+              size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
+              label={strings('fiat_on_ramp_aggregator.get_quotes')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+              isDisabled={amountNumber <= 0 || isFetching}
               accessibilityRole="button"
-              accessible
-              disabled={amountNumber <= 0 || isFetching}
-            >
-              {strings('fiat_on_ramp_aggregator.get_quotes')}
-            </StyledButton>
+            />
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
@@ -1137,14 +1141,14 @@ const BuildQuote = () => {
           }
         />
         <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
+          <Button
+            size={ButtonSize.Lg}
             onPress={handleKeypadDone}
+            label={strings('fiat_on_ramp_aggregator.done')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
             accessibilityRole="button"
-            accessible
-          >
-            {strings('fiat_on_ramp_aggregator.done')}
-          </StyledButton>
+          />
         </ScreenLayout.Content>
       </Animated.View>
     </ScreenLayout>

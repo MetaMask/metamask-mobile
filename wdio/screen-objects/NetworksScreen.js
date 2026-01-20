@@ -12,7 +12,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
-import { NetworksViewSelectorsIDs } from '../../e2e/selectors/Settings/NetworksView.selectors';
+import { NetworksViewSelectorsIDs } from '../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 
 class NetworksScreen {
 
@@ -191,29 +191,29 @@ class NetworksScreen {
   }
 
   async tapAddNetworkButton() {
-    const element = await this.addNetworkButton;
     if (!this._device) {
+      const element = await this.addNetworkButton;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.addNetworkButton); // Use static tap method with retry logic
     }
   }
 
   async tapPopularNetworksTab() {
-    const element = await this.getPopularNetworksTab;
     if (!this._device) {
+      const element = await this.getPopularNetworksTab;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.getPopularNetworksTab); // Use static tap method with retry logic
     }
   }
 
   async tapCustomNetworksTab() {
-    const element = await this.getCustomNetworks;
     if (!this._device) {
+      const element = await this.getCustomNetworks;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.getCustomNetworks); // Use static tap method with retry logic
     }
   }
 
@@ -308,11 +308,11 @@ class NetworksScreen {
   }
 
   async tapCustomAddButton() {
-    const element = await this.addCustomNetworkButton;
     if (!this._device) {
+      const element = await this.addCustomNetworkButton;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.addCustomNetworkButton); // Use static tap method with retry logic
     }
   }
 
@@ -325,20 +325,20 @@ class NetworksScreen {
   }
 
   async tapDeleteNetworkButton() {
-    const element = await this.removeNetworkButton;
     if (!this._device) {
+      const element = await this.removeNetworkButton;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.removeNetworkButton); // Use static tap method with retry logic
     }
   }
 
   async tapSaveNetworkButton() {
-    const element = await this.saveNetworkButton;
     if (!this._device) {
+      const element = await this.saveNetworkButton;
       await Gestures.tap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.saveNetworkButton); // Use static tap method with retry logic
     }
   }
 
@@ -426,38 +426,38 @@ class NetworksScreen {
   }
 
   async tapBackButtonInNewScreen() {
-    const element = await this.networkScreenBackButton;
     if (!this._device) {
+      const element = await this.networkScreenBackButton;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.networkScreenBackButton); // Use static tap method with retry logic
     }
   }
 
   async tapBackButtonInSettingsScreen() {
-    const element = await this.settingsPageAndroidBackButton;
     if (!this._device) {
+      const element = await this.settingsPageAndroidBackButton;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.settingsPageAndroidBackButton); // Use static tap method with retry logic
     }
   }
 
   async tapCloseNetworkScreen() {
-    const element = await this.closeNetworkScreen;
     if (!this._device) {
+      const element = await this.closeNetworkScreen;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.closeNetworkScreen); // Use static tap method with retry logic
     }
   }
 
   async tapBackButton() {
-    const element = await this.networkScreenBackButton;
     if (!this._device) {
+      const element = await this.networkScreenBackButton;
       await Gestures.waitAndTap(element);
     } else {
-      await AppwrightGestures.tap(element); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.networkScreenBackButton); // Use static tap method with retry logic
     }
   }
 }

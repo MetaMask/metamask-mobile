@@ -1,7 +1,7 @@
 import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
-} from '../../selectors/Transactions/ActivitiesView.selectors';
+} from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 
@@ -10,8 +10,14 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
   get predictionsTab(): DetoxElement {
-    return Matchers.getElementByText(
+    return Matchers.getElementByLabel(
       ActivitiesViewSelectorsText.PREDICTIONS_TAB,
+    );
+  }
+
+  get tabsBar(): DetoxElement {
+    return Matchers.getElementByID(
+      `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
     );
   }
 
@@ -44,6 +50,12 @@ class ActivitiesView {
 
   get approveActivity(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
+  }
+
+  get predictDeposit(): DetoxElement {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
+    );
   }
 
   transactionStatus(row: number): DetoxElement {
@@ -105,21 +117,34 @@ class ActivitiesView {
     const el = this.swapActivityTitle(sourceToken, destinationToken);
     await Gestures.waitAndTap(el);
   }
+
   async tapConfirmedTransaction(): Promise<void> {
     await Gestures.waitAndTap(this.confirmedLabel);
   }
+
   async swipeDown(): Promise<void> {
     await Gestures.swipe(this.container, 'down', {
       speed: 'slow',
       percentage: 0.5,
     });
   }
+
   async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
   }
+
   async tapOnPredictionsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.predictionsTab);
+    // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
+    await Gestures.swipe(this.tabsBar, 'left', {
+      percentage: 0.5,
+      speed: 'slow',
+      elemDescription: 'Activity View Tabs Bar',
+    });
+    await Gestures.waitAndTap(this.predictionsTab, {
+      elemDescription: 'Predictions Tab in Activity View',
+    });
   }
+
   async tapPredictPosition(positionName: string): Promise<void> {
     const el = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(el, {

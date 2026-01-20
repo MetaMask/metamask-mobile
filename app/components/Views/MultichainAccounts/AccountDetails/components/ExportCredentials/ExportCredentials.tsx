@@ -27,7 +27,7 @@ import {
   AlignItems,
 } from '../../../../../UI/Box/box.types';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { ExportCredentialsIds } from '../../ExportCredentials.testIds';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { RootState } from '../../../../../../reducers';
 

@@ -4,7 +4,13 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
 import {
   Image,
   InteractionManager,
@@ -30,7 +36,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume, estimateLineCount } from '../../utils/format';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import Engine from '../../../../../core/Engine';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import {
   Box,
   BoxFlexDirection,
@@ -74,6 +80,7 @@ import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderS
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
+import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -114,9 +121,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketDetails'>>();
   const tw = useTailwind();
   const [selectedTimeframe, setSelectedTimeframe] =
-    useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
+    useState<PredictPriceHistoryInterval>(
+      PredictPriceHistoryInterval.ONE_MONTH,
+    );
   const [maxIntervalAdaptiveFidelity, setMaxIntervalAdaptiveFidelity] =
     useState<number | null>(null);
+  const maxFidelityLockedRef = useRef<boolean>(false);
+  const prevTimeframeRef = useRef<PredictPriceHistoryInterval | null>(null);
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
@@ -350,49 +361,75 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     enabled: chartOutcomeTokenIds.length > 0,
   });
 
-  const maxIntervalRangeMs = useMemo(() => {
+  const primaryMaxIntervalRangeMs = useMemo(() => {
     if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
       return null;
     }
 
-    const timestamps = priceHistories.flatMap((history) =>
-      history.map((point) => getTimestampInMs(point.timestamp)),
-    );
-
-    if (!timestamps.length) {
+    const primaryHistory = priceHistories[0] ?? [];
+    if (primaryHistory.length === 0) {
       return null;
     }
+
+    const timestamps = primaryHistory.map((point) =>
+      getTimestampInMs(point.timestamp),
+    );
 
     return Math.max(...timestamps) - Math.min(...timestamps);
   }, [priceHistories, selectedTimeframe]);
 
   useEffect(() => {
+    const prevTimeframe = prevTimeframeRef.current;
+    const justSwitchedToMax =
+      selectedTimeframe === PredictPriceHistoryInterval.MAX &&
+      prevTimeframe !== PredictPriceHistoryInterval.MAX;
+
+    // update the ref for next render
+    prevTimeframeRef.current = selectedTimeframe;
+
+    // when switching away from MAX, reset the fidelity and unlock for next MAX selection
     if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
       if (maxIntervalAdaptiveFidelity !== null) {
         setMaxIntervalAdaptiveFidelity(null);
       }
+      maxFidelityLockedRef.current = false;
       return;
     }
 
-    if (
-      typeof maxIntervalRangeMs === 'number' &&
-      maxIntervalRangeMs > 0 &&
-      maxIntervalRangeMs < MAX_INTERVAL_SHORT_RANGE_MS
-    ) {
-      if (maxIntervalAdaptiveFidelity !== MAX_INTERVAL_SHORT_RANGE_FIDELITY) {
-        setMaxIntervalAdaptiveFidelity(MAX_INTERVAL_SHORT_RANGE_FIDELITY);
-      }
+    // skip if already locked to prevent feedback loop
+    if (maxFidelityLockedRef.current) {
       return;
     }
 
-    if (
-      maxIntervalAdaptiveFidelity !== null &&
-      (maxIntervalRangeMs === null ||
-        maxIntervalRangeMs >= MAX_INTERVAL_SHORT_RANGE_MS)
-    ) {
-      setMaxIntervalAdaptiveFidelity(null);
+    // wait for fetch to complete before making decisions
+    if (isPriceHistoryFetching) {
+      return;
     }
-  }, [maxIntervalRangeMs, maxIntervalAdaptiveFidelity, selectedTimeframe]);
+
+    // skip if just switched to MAX - data is still from previous timeframe
+    if (justSwitchedToMax) {
+      return;
+    }
+
+    // wait for valid range data before making a decision
+    if (
+      typeof primaryMaxIntervalRangeMs !== 'number' ||
+      primaryMaxIntervalRangeMs <= 0
+    ) {
+      return;
+    }
+
+    // make one-shot fidelity decision and lock to prevent re-evaluation
+    if (primaryMaxIntervalRangeMs < MAX_INTERVAL_SHORT_RANGE_MS) {
+      setMaxIntervalAdaptiveFidelity(MAX_INTERVAL_SHORT_RANGE_FIDELITY);
+    }
+    maxFidelityLockedRef.current = true;
+  }, [
+    primaryMaxIntervalRangeMs,
+    maxIntervalAdaptiveFidelity,
+    selectedTimeframe,
+    isPriceHistoryFetching,
+  ]);
 
   const chartData: ChartSeries[] = useMemo(() => {
     const palette = [
@@ -526,7 +563,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           market,
           outcome: firstOpenOutcome ?? market?.outcomes?.[0],
           outcomeToken: token,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          entryPoint:
+            entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },
       {
@@ -698,8 +736,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const renderHeader = () => {
-    // Show skeleton header if no title/market data available
-    if (!title && !market?.title) {
+    if (isMarketFetching && !market) {
       return <PredictDetailsHeaderSkeleton />;
     }
 
@@ -986,6 +1023,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {market?.description}
       </Text>
+      <Box twClassName="w-full border-t border-muted" />
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        {strings('predict.market_details.disclaimer')}
+      </Text>
     </Box>
   );
 
@@ -997,12 +1038,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const renderActionButtons = () => (
     <>
       {(() => {
-        if (market?.status === PredictMarketStatus.CLOSED && hasPositivePnl) {
+        if (!isClaimablePositionsLoading && hasPositivePnl) {
           return (
             <ButtonHero
               size={ButtonSizeHero.Lg}
               style={tw.style('w-full')}
               onPress={handleClaimPress}
+              testID={PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON}
             >
               <Text
                 variant={TextVariant.BodyMd}
@@ -1127,6 +1169,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               key={outcome.id}
               market={market}
               outcome={outcome}
+              entryPoint={entryPoint}
             />
           ))}
           <Pressable
@@ -1204,6 +1247,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               }
               market={market}
               outcome={outcome}
+              entryPoint={entryPoint}
             />
           ))}
       </Box>
@@ -1247,6 +1291,24 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
     return null;
   };
+
+  if (market?.game) {
+    return (
+      <PredictGameDetailsContent
+        market={market}
+        onBack={handleBackPress}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+        onBetPress={handleBuyPress}
+        onClaimPress={handleClaimPress}
+        claimableAmount={claimablePositions.reduce(
+          (sum, p) => sum + (p.currentValue ?? 0),
+          0,
+        )}
+        isLoading={isClaimablePositionsLoading}
+      />
+    );
+  }
 
   return (
     <SafeAreaView

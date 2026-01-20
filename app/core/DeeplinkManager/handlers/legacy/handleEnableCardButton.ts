@@ -1,6 +1,6 @@
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import { store } from '../../../../store';
+import ReduxService from '../../../redux';
 import { setAlwaysShowCardButton } from '../../../redux/slices/card';
 import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
 import NavigationService from '../../../NavigationService';
@@ -23,7 +23,7 @@ export const handleEnableCardButton = () => {
   );
 
   try {
-    const state = store.getState();
+    const state = ReduxService.store.getState();
     const cardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
 
     DevLogger.log(
@@ -32,7 +32,7 @@ export const handleEnableCardButton = () => {
     );
 
     if (cardExperimentalSwitchEnabled) {
-      store.dispatch(setAlwaysShowCardButton(true));
+      ReduxService.store.dispatch(setAlwaysShowCardButton(true));
       DevLogger.log(
         '[handleEnableCardButton] Successfully enabled card button',
       );

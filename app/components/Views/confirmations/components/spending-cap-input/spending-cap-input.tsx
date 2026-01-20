@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { ApproveComponentIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ApproveComponentIDs } from '../../ConfirmationView.testIds';
 import { ApproveMethod } from '../../types/approve';
 import { validateSpendingCap } from '../../utils/validations/approve';
 import { TextFieldWithLabel } from '../UI/text-field-with-label';

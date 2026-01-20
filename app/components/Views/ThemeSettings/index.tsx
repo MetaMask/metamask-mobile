@@ -1,5 +1,11 @@
 import React, { useCallback, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Appearance,
+} from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useTheme } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import { analytics } from '../../../util/analytics/analytics';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,6 +92,14 @@ const ThemeSettings = () => {
               <TouchableOpacity
                 onPress={() => {
                   triggerSetAppTheme(selectedThemeKey);
+                  // Identify user with updated theme trait
+                  const themeStyle =
+                    selectedThemeKey === 'os'
+                      ? Appearance.getColorScheme()
+                      : selectedThemeKey;
+                  analytics.identify({
+                    [UserProfileProperty.THEME]: themeStyle ?? null,
+                  });
                   modalRef.current?.dismissModal();
                 }}
                 style={styles.optionButton}

@@ -9,9 +9,6 @@ on:
       apk-uploaded:
         description: 'Whether the APK was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.apk-uploaded }}
-      aab-uploaded:
-        description: 'Whether the AAB was successfully uploaded'
-        value: ${{ jobs.build-android-apks.outputs.aab-uploaded }}
     inputs:
       build_type:
         description: 'The type of build to perform'
@@ -32,17 +29,16 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # Optimized for lg runner (48GB) with conservative memory settings
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
+      YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
-      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
-      aab-target-path: ${{ steps.determine-target-paths.outputs.aab-target-path }}
       artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
 
     steps:
@@ -56,7 +52,8 @@ jobs:
           echo "✅ System images installed"
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
         with:
           platform: android
           setup-simulator: false
@@ -73,13 +70,13 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
-      # - name: Generate current fingerprint
-      #   id: generate-fingerprint
-      #   run: |
-      #     FINGERPRINT=$(yarn fingerprint:generate)
-      #     echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-      #     echo "Current fingerprint: ${FINGERPRINT}"
+      # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
+      - name: Generate current fingerprint
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
 
       - name: Determine target paths and Artifact Names
         id: determine-target-paths
@@ -88,14 +85,12 @@ jobs:
             {
               echo "apk-target-path=android/app/build/outputs/apk/flask/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
-              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
               echo "artifact_name=app-flask-release"
             } >> "$GITHUB_OUTPUT"
           elif [[ "${{ inputs.build_type }}" == "main" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/prod/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
-              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
               echo "artifact_name=app-prod-release"
             } >> "$GITHUB_OUTPUT"
           else
@@ -103,40 +98,81 @@ jobs:
             exit 1
           fi
 
-      # - name: Check and restore cached APKs if Fingerprint is found
-      #   id: apk-cache-restore
-      #   uses: cirruslabs/cache@v4
-      #   with:
-      #     path: |
-      #       ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-      #       ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-      #       ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-      #     # Include Gradle properties in key to force rebuild when properties change
-      #     # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-      #     # - "Cache Gradle dependencies"
-      #     # - "Cache build artifacts"
-      #     key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-      #     restore-keys: |
-      #       android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-
-      #       android-apk-
+      - name: Restore APKs matching fingerprint from branch cache
+        id: apk-cache-restore
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          # Include Gradle properties in key to force rebuild when properties change
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      - name: Cache Gradle dependencies
-        uses: cirruslabs/cache@v4
+      - name: Restore APKs matching fingerprint from main cache
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        id: apk-cache-restore-main
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          # Include Gradle properties in key to force rebuild when properties change
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Restore Gradle dependencies from branch cache
+        id: gradle-cache-restore
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
           path: |
             ~/_work/.gradle/caches
             ~/_work/.gradle/wrapper
+          # Include Gradle properties in key to force rebuild when properties change
           # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Check and restore cached APKs if Fingerprint is found"
-          # - "Cache build artifacts"
-          key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Restore Gradle dependencies from main cache
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        env:
+          GRADLE_CACHE_VERSION: 1
+        with:
+          path: |
+            ~/_work/.gradle/caches
+            ~/_work/.gradle/wrapper
+          # Include Gradle properties in key to force rebuild when properties change
+          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+          # - "Restore APKs matching fingerprint from branch cache"
+          # - "Restore APKs matching fingerprint from main cache"
+          # - "Restore Gradle dependencies from branch cache"
+          # - "Restore Gradle dependencies from main cache"
+          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
+          export NODE_OPTIONS="--max-old-space-size=4096"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
@@ -149,13 +185,66 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          # Limit Metro workers to prevent OOM (each worker uses ~3GB)
+          METRO_MAX_WORKERS: '4'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          MM_POOLED_STAKING_ENABLED: 'true'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          MM_PREDICT_GTM_MODAL_ENABLED: 'false'
+
+      - name: Repack APK with JS updates using @expo/repack-app
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' || steps.apk-cache-restore-main.outputs.cache-hit == 'true' }}
+        run: |
+          echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
+          # Use the optimized repack script which uses @expo/repack-app
+          yarn build:repack:android
+          echo "📦 Final APK size: $(du -h "${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk" | cut -f1)"
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          IS_TEST: true
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          METRO_MAX_WORKERS: '4'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_POOLED_STAKING_ENABLED: 'true'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -182,69 +271,6 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      # - name: Repack APK with JS updates using @expo/repack-app
-      #   if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
-      #   run: |
-      #     echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
-      #     # Use the optimized repack script which uses @expo/repack-app
-      #     yarn build:repack:android
-      #     echo "📦 Final APK size: $(du -h "${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk" | cut -f1)"
-      #   env:
-      #     PLATFORM: android
-      #     METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
-      #     METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-      #     IS_TEST: true
-      #     E2E: 'true'
-      #     IGNORE_BOXLOGS_DEVELOPMENT: true
-      #     GITHUB_CI: 'true'
-      #     CI: 'true'
-      #     NODE_OPTIONS: '--max-old-space-size=8192'
-      #     BRIDGE_USE_DEV_APIS: 'true'
-      #     RAMP_INTERNAL_BUILD: 'true'
-      #     SEEDLESS_ONBOARDING_ENABLED: 'true'
-      #     MM_NOTIFICATIONS_UI_ENABLED: 'true'
-      #     MM_SECURITY_ALERTS_API_ENABLED: 'true'
-      #     MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
-      #     FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
-      #     FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-      #     SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-      #     SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
-      #     SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-      #     SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
-      #     SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      #     SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
-      #     SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-      #     SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
-      #     MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-      #     MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-      #     MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      #     FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
-      #     MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      #     FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
-      #     MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      #     FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
-      #     MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      #     FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
-      #     MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
-      #     FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
-      #     GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-      #     GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-      #     MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-
-      # Cache build artifacts with the pre-build fingerprint
-      # - name: Cache build artifacts
-      #   if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
-      #   uses: cirruslabs/cache@v4
-      #   with:
-      #     path: |
-      #       ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-      #       ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-      #       ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-      #     # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-      #     # - "Check and restore cached APKs if Fingerprint is found"
-      #     # - "Cache Gradle dependencies"
-      #     key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
       - name: Upload Android APK
         id: upload-apk
         uses: actions/upload-artifact@v4
@@ -262,13 +288,3 @@ jobs:
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
-
-      - name: Upload Android AAB
-        id: upload-aab
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab
-          path: ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true

@@ -63,6 +63,36 @@ const defaultCardFeatureFlag: CardFeatureFlag = {
         },
       ],
     },
+    'eip155:8453': {
+      enabled: true,
+      foxConnectAddresses: {
+        global: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
+        us: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
+      },
+      tokens: [
+        {
+          address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          decimals: 6,
+          enabled: true,
+          name: 'USD Coin',
+          symbol: 'USDC',
+        },
+        {
+          address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
+          decimals: 6,
+          enabled: true,
+          name: 'Tether USD',
+          symbol: 'USDT',
+        },
+        {
+          address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
+          decimals: 6,
+          enabled: true,
+          name: 'Aave Base USDC',
+          symbol: 'aUSDC',
+        },
+      ],
+    },
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
       enabled: true,
       tokens: [
@@ -209,6 +239,8 @@ export const selectCardFeatureFlag = createSelector(
   (remoteFeatureFlags) => {
     const cardFeatureFlag = remoteFeatureFlags?.cardFeature;
 
-    return cardFeatureFlag ?? defaultCardFeatureFlag;
+    return Object.keys(cardFeatureFlag ?? {}).length > 0
+      ? cardFeatureFlag
+      : defaultCardFeatureFlag;
   },
 );

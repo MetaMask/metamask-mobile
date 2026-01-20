@@ -7,36 +7,11 @@ import {
 } from '@metamask/bridge-controller';
 
 /**
- * Swaps testnet chain ID (1337 in decimal)
- * Used for testing swaps functionality on local/test networks
- */
-export const SWAPS_TESTNET_CHAIN_ID: Hex = '0x539';
-
-/**
  * Native token address (zero address)
  * Used to represent native tokens (ETH, BNB, MATIC, etc.) across all EVM chains
  */
 export const NATIVE_SWAPS_TOKEN_ADDRESS: Hex =
   '0x0000000000000000000000000000000000000000';
-
-// TODO read from feature flags
-export const ALLOWED_BRIDGE_CHAIN_IDS = [
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.BSC,
-  CHAIN_IDS.POLYGON,
-  CHAIN_IDS.ZKSYNC_ERA,
-  CHAIN_IDS.AVALANCHE,
-  CHAIN_IDS.OPTIMISM,
-  CHAIN_IDS.ARBITRUM,
-  CHAIN_IDS.LINEA_MAINNET,
-  CHAIN_IDS.BASE,
-  CHAIN_IDS.SEI,
-  CHAIN_IDS.MONAD,
-  SolScope.Mainnet as const,
-  TrxScope.Mainnet as const,
-];
-
-export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
 
 export const ETH_USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
@@ -48,10 +23,10 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [CHAIN_IDS.LINEA_MAINNET]: 'Linea',
   [CHAIN_IDS.POLYGON]: 'Polygon',
   [CHAIN_IDS.AVALANCHE]: 'Avalanche',
-  [CHAIN_IDS.BSC]: 'Binance Smart Chain',
+  [CHAIN_IDS.BSC]: 'BNB',
   [CHAIN_IDS.ARBITRUM]: 'Arbitrum',
   [CHAIN_IDS.OPTIMISM]: 'Optimism',
-  [CHAIN_IDS.ZKSYNC_ERA]: 'ZkSync Era',
+  [CHAIN_IDS.ZKSYNC_ERA]: 'zkSync',
   [CHAIN_IDS.BASE]: 'Base',
   [CHAIN_IDS.SEI]: 'Sei',
   [CHAIN_IDS.MONAD]: 'Monad',

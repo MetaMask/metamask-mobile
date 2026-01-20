@@ -69,6 +69,7 @@ describe('Scan', () => {
     const selectedDevice = {
       id: 'device1',
       name: 'Device 1',
+      serviceUUIDs: ['service1'],
     };
 
     jest.mocked(useBluetoothDevices).mockReturnValue({
@@ -192,10 +193,12 @@ describe('Scan', () => {
     const device1 = {
       id: 'device1',
       name: 'Device 1',
+      serviceUUIDs: ['service1'],
     };
     const device2 = {
       id: 'device2',
       name: 'Device 2',
+      serviceUUIDs: ['service2'],
     };
 
     const onDeviceSelected = jest.fn();
@@ -224,5 +227,92 @@ describe('Scan', () => {
     fireEvent.press(getByTestId(SELECT_DROP_DOWN));
 
     expect(onDeviceSelected).toHaveBeenCalledWith(device2);
+  });
+
+  it('clears error state when all errors are resolved', () => {
+    const onScanningErrorStateChanged = jest.fn();
+
+    jest.mocked(useBluetoothPermissions).mockReturnValue({
+      hasBluetoothPermissions: true,
+      bluetoothPermissionError: undefined,
+      checkPermissions: jest.fn(),
+    });
+
+    jest.mocked(useBluetooth).mockReturnValue({
+      bluetoothOn: true,
+      bluetoothConnectionError: false,
+    });
+
+    jest.mocked(useBluetoothDevices).mockReturnValue({
+      devices: [],
+      deviceScanError: false,
+    });
+
+    renderWithProvider(
+      <Scan
+        onDeviceSelected={jest.fn()}
+        onScanningErrorStateChanged={onScanningErrorStateChanged}
+        ledgerError={undefined}
+      />,
+    );
+
+    expect(onScanningErrorStateChanged).toHaveBeenCalledWith(undefined);
+  });
+
+  it('does not display devices when bluetooth is off', () => {
+    const bluetoothDevice = {
+      id: 'device1',
+      name: 'Device 1',
+      serviceUUIDs: ['service1'],
+    };
+
+    jest.mocked(useBluetooth).mockReturnValue({
+      bluetoothOn: false,
+      bluetoothConnectionError: false,
+    });
+
+    jest.mocked(useBluetoothDevices).mockReturnValue({
+      devices: [bluetoothDevice],
+      deviceScanError: false,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <Scan
+        onDeviceSelected={jest.fn()}
+        onScanningErrorStateChanged={jest.fn()}
+        ledgerError={undefined}
+      />,
+    );
+
+    expect(queryByTestId(SELECT_DROP_DOWN)).toBeNull();
+  });
+
+  it('does not display devices when permissions are not granted', () => {
+    const bluetoothDevice = {
+      id: 'device1',
+      name: 'Device 1',
+      serviceUUIDs: ['service1'],
+    };
+
+    jest.mocked(useBluetoothPermissions).mockReturnValue({
+      hasBluetoothPermissions: false,
+      bluetoothPermissionError: undefined,
+      checkPermissions: jest.fn(),
+    });
+
+    jest.mocked(useBluetoothDevices).mockReturnValue({
+      devices: [bluetoothDevice],
+      deviceScanError: false,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <Scan
+        onDeviceSelected={jest.fn()}
+        onScanningErrorStateChanged={jest.fn()}
+        ledgerError={undefined}
+      />,
+    );
+
+    expect(queryByTestId(SELECT_DROP_DOWN)).toBeNull();
   });
 });

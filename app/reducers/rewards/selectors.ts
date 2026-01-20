@@ -109,3 +109,6 @@ export const selectSeasonRewardById =
 
 export const selectPointsEvents = (state: RootState) =>
   state.rewards.pointsEvents;
+
+export const selectSeasonShouldInstallNewVersion = (state: RootState) =>
+  state.rewards.seasonShouldInstallNewVersion;

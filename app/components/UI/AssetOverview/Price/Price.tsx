@@ -5,7 +5,6 @@ import {
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import Icon from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
@@ -17,7 +16,7 @@ import Text, {
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
-import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 
 interface PriceProps {
@@ -121,7 +120,7 @@ const Price = ({
             )}
           </Text>
         )}
-        <Text>
+        <Text allowFontScaling={false}>
           {isLoading ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
@@ -136,20 +135,12 @@ const Price = ({
               </SkeletonPlaceholder>
             </View>
           ) : distributedPriceData.length > 0 ? (
-            <Text style={styles.priceDiff} variant={TextVariant.BodyMDMedium}>
-              {
-                <Icon
-                  name={
-                    diff > 0
-                      ? 'trending-up'
-                      : diff < 0
-                        ? 'trending-down'
-                        : 'minus'
-                  }
-                  size={16}
-                  style={styles.priceDiffIcon}
-                />
-              }{' '}
+            <Text
+              style={styles.priceDiff}
+              variant={TextVariant.BodyMDMedium}
+              allowFontScaling={false}
+            >
+              {diff > 0 ? '+' : ''}
               {addCurrencySymbol(diff, currentCurrency, true)} (
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
@@ -158,6 +149,7 @@ const Price = ({
                 testID="price-label"
                 color={TextColor.Alternative}
                 variant={TextVariant.BodyMDMedium}
+                allowFontScaling={false}
               >
                 {date}
               </Text>

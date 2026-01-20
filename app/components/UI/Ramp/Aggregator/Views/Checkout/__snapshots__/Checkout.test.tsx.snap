@@ -434,43 +434,40 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -978,43 +975,40 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -1159,7 +1153,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -1183,7 +1177,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -1675,43 +1669,40 @@ exports[`Checkout displays sdkError when present 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -1856,7 +1847,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -1880,7 +1871,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -1928,52 +1919,37 @@ exports[`Checkout displays sdkError when present 1`] = `
                                       <TouchableOpacity
                                         accessibilityRole="button"
                                         accessible={true}
-                                        activeOpacity={0.2}
+                                        activeOpacity={1}
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
                                         style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 12,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#4459ff",
-                                                "minHeight": 50,
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "stretch",
+                                            "backgroundColor": "#121314",
+                                            "borderRadius": 12,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "Geist Bold",
-                                                  "fontSize": 14,
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#ffffff",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
+                                            {
+                                              "color": "#ffffff",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
                                         >
-                                          Return to Home Screen
+                                          Return to home screen
                                         </Text>
                                       </TouchableOpacity>
                                     </View>
@@ -2431,43 +2407,40 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -2975,43 +2948,40 @@ exports[`Checkout handles get order error gracefully 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -3156,7 +3126,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -3180,7 +3150,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -3228,49 +3198,34 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                       <TouchableOpacity
                                         accessibilityRole="button"
                                         accessible={true}
-                                        activeOpacity={0.2}
+                                        activeOpacity={1}
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
                                         style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 12,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#4459ff",
-                                                "minHeight": 50,
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "stretch",
+                                            "backgroundColor": "#121314",
+                                            "borderRadius": 12,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "Geist Bold",
-                                                  "fontSize": 14,
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#ffffff",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
+                                            {
+                                              "color": "#ffffff",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
                                         >
                                           Try again
@@ -3731,43 +3686,40 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -3912,7 +3864,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -3936,7 +3888,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -3984,49 +3936,34 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                       <TouchableOpacity
                                         accessibilityRole="button"
                                         accessible={true}
-                                        activeOpacity={0.2}
+                                        activeOpacity={1}
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
                                         style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 12,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#4459ff",
-                                                "minHeight": 50,
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "stretch",
+                                            "backgroundColor": "#121314",
+                                            "borderRadius": 12,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "Geist Bold",
-                                                  "fontSize": 14,
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#ffffff",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
+                                            {
+                                              "color": "#ffffff",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
                                         >
                                           Try again
@@ -4487,43 +4424,40 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -5031,43 +4965,40 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -5212,7 +5143,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -5236,7 +5167,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -5284,49 +5215,34 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                       <TouchableOpacity
                                         accessibilityRole="button"
                                         accessible={true}
-                                        activeOpacity={0.2}
+                                        activeOpacity={1}
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
                                         style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 12,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#4459ff",
-                                                "minHeight": 50,
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "stretch",
+                                            "backgroundColor": "#121314",
+                                            "borderRadius": 12,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "Geist Bold",
-                                                  "fontSize": 14,
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#ffffff",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
+                                            {
+                                              "color": "#ffffff",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
                                         >
                                           Try again
@@ -5787,43 +5703,40 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -5968,7 +5881,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -5992,7 +5905,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -6040,49 +5953,34 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                       <TouchableOpacity
                                         accessibilityRole="button"
                                         accessible={true}
-                                        activeOpacity={0.2}
+                                        activeOpacity={1}
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
                                         style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 12,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#4459ff",
-                                                "minHeight": 50,
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "stretch",
+                                            "backgroundColor": "#121314",
+                                            "borderRadius": 12,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "Geist Bold",
-                                                  "fontSize": 14,
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#ffffff",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
+                                            {
+                                              "color": "#ffffff",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
                                         >
                                           Try again
@@ -6543,43 +6441,40 @@ exports[`Checkout sets error when handling url navigation state change and selec
                             style={
                               [
                                 {
-                                  "backgroundColor": "#ffffff",
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                  "paddingVertical": 0,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -6724,7 +6619,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -6748,7 +6643,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
                                             },
@@ -6796,49 +6691,34 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                       <TouchableOpacity
                                         accessibilityRole="button"
                                         accessible={true}
-                                        activeOpacity={0.2}
+                                        activeOpacity={1}
                                         onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
                                         style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 12,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#4459ff",
-                                                "minHeight": 50,
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "stretch",
+                                            "backgroundColor": "#121314",
+                                            "borderRadius": 12,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "Geist Bold",
-                                                  "fontSize": 14,
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#ffffff",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
+                                            {
+                                              "color": "#ffffff",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
                                         >
                                           Try again

@@ -22,21 +22,6 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
   testID="multichain-address-row"
 >
   <View
-    collapsable={false}
-    pointerEvents="none"
-    style={
-      {
-        "backgroundColor": "#457a391a",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 0,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
-  <View
     style={
       {
         "alignItems": "center",
@@ -88,7 +73,7 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -107,7 +92,7 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
         [
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 14,
             "fontWeight": 400,
             "letterSpacing": 0,

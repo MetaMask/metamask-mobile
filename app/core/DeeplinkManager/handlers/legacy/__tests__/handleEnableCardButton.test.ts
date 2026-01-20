@@ -1,11 +1,19 @@
 import { handleEnableCardButton } from '../handleEnableCardButton';
-import { store } from '../../../../../store';
+import ReduxService from '../../../../redux';
 import { setAlwaysShowCardButton } from '../../../../redux/slices/card';
 import { selectCardExperimentalSwitch } from '../../../../../selectors/featureFlagController/card';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 
-jest.mock('../../../../../store');
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(),
+      dispatch: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/featureFlagController/card');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
@@ -21,8 +29,8 @@ describe('handleEnableCardButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (store.getState as jest.Mock) = mockGetState;
-    (store.dispatch as jest.Mock) = mockDispatch;
+    (ReduxService.store.getState as jest.Mock) = mockGetState;
+    (ReduxService.store.dispatch as jest.Mock) = mockDispatch;
   });
 
   afterEach(() => {

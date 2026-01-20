@@ -8,9 +8,6 @@ import { TokenI } from '../../../Tokens/types';
 // Mock dependencies
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../../util/networks/customNetworks');
-jest.mock(
-  '../../../Tokens/TokenList/TokenListItem/CustomNetworkNativeImgMapping',
-);
 jest.mock('../../../../Base/RemoteImage', () => 'RemoteImage');
 
 import {

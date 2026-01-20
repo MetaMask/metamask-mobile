@@ -17,16 +17,20 @@ import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet.testIds';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
@@ -38,14 +42,13 @@ import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
-  const isPooledStakingEnabled = useFeatureFlag(
-    FeatureFlagNames.earnPooledStakingEnabled,
-  );
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
@@ -56,12 +59,8 @@ const WalletActions = () => {
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const isPerpsEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  ) as boolean;
-  const isPredictEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  ) as boolean;
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -69,6 +68,7 @@ const WalletActions = () => {
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
+  const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -159,6 +159,7 @@ const WalletActions = () => {
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
+      !isEarnEligible ||
       !isStablecoinLendingEnabled ||
       (earnTokens.length <= 1 &&
         earnTokens[0]?.isETH &&
@@ -167,7 +168,13 @@ const WalletActions = () => {
       return false;
     }
     return true;
-  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
+  }, [
+    isEarnEligible,
+    isStablecoinLendingEnabled,
+    earnTokens,
+    isPooledStakingEnabled,
+  ]);
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>

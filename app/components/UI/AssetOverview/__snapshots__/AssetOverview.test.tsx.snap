@@ -22,7 +22,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -39,7 +39,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
             "fontSize": 24,
             "letterSpacing": 0,
             "lineHeight": 32,
@@ -51,10 +51,11 @@ exports[`AssetOverview should render native balances when non evm network is sel
       </Text>
       <Text
         accessibilityRole="text"
+        allowFontScaling={false}
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -63,40 +64,18 @@ exports[`AssetOverview should render native balances when non evm network is sel
       >
         <Text
           accessibilityRole="text"
+          allowFontScaling={false}
           style={
             {
               "color": "#457a39",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
           }
         >
-          <Text
-            allowFontScaling={false}
-            selectable={false}
-            style={
-              [
-                {
-                  "color": undefined,
-                  "fontSize": 16,
-                },
-                {
-                  "marginTop": 10,
-                },
-                {
-                  "fontFamily": "Feather",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                {},
-              ]
-            }
-          >
-            
-          </Text>
-           
+          +
           $151.23
            (
           +
@@ -105,10 +84,11 @@ exports[`AssetOverview should render native balances when non evm network is sel
            
           <Text
             accessibilityRole="text"
+            allowFontScaling={false}
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -151,6 +131,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "flex": 1,
           }
         }
+        testID="price-chart-area"
       >
         <View
           style={
@@ -201,7 +182,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 3,
               "lineHeight": 22,
@@ -231,7 +212,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 3,
               "lineHeight": 22,
@@ -261,7 +242,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 3,
               "lineHeight": 22,
@@ -291,7 +272,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 3,
               "lineHeight": 22,
@@ -321,7 +302,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 3,
               "lineHeight": 22,
@@ -351,7 +332,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 3,
               "lineHeight": 22,
@@ -469,7 +450,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   {
                     "color": "#121314",
                     "flexShrink": 0,
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -582,7 +563,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   {
                     "color": "#121314",
                     "flexShrink": 0,
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -695,7 +676,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   {
                     "color": "#121314",
                     "flexShrink": 0,
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -808,7 +789,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   {
                     "color": "#121314",
                     "flexShrink": 0,
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -860,7 +841,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "gap": 24,
-            "marginTop": 24,
+            "marginTop": 16,
           }
         }
       >
@@ -870,11 +851,12 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
-                "paddingVertical": 8,
+                "paddingBottom": 8,
+                "paddingTop": 8,
               }
             }
           >
@@ -902,7 +884,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -916,7 +898,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,

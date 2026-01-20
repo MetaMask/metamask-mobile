@@ -3,7 +3,7 @@ import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from "../../../e2e/framework/AppwrightGestures";
 import { expect } from 'appwright';
-import { PerpsGTMModalSelectorsIDs } from '../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsGTMModalSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
 class PerpsGTMModal {
 
@@ -55,7 +55,7 @@ class PerpsGTMModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.notNowButton);
     } else {
-      await AppwrightGestures.tap(this.notNowButton);
+      await AppwrightGestures.tap(await this.notNowButton);
     }
   }
 
@@ -63,7 +63,7 @@ class PerpsGTMModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.getStartedButton);
     } else {
-      await AppwrightGestures.tap(this.getStartedButton);
+      await AppwrightGestures.tap(await this.getStartedButton);
     }
   }
 }

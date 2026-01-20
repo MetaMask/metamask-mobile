@@ -153,4 +153,27 @@ describe('MultipleAlertModal', () => {
     const { queryByText } = render(<MultipleAlertModal />);
     expect(queryByText('Test Alert')).toBeNull();
   });
+
+  it('syncs selectedIndex with alertKey when alertKey changes', () => {
+    const setAlertKey = jest.fn();
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      setAlertKey,
+      alertKey: 'alert2',
+    });
+
+    const { getByText, rerender } = render(<MultipleAlertModal />);
+
+    expect(getByText('Test Alert 2')).toBeOnTheScreen();
+
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      setAlertKey,
+      alertKey: 'alert1',
+    });
+
+    rerender(<MultipleAlertModal />);
+
+    expect(getByText('Test Alert')).toBeOnTheScreen();
+  });
 });

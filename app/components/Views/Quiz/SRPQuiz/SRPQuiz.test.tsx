@@ -2,18 +2,24 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   SrpQuizGetStartedSelectorsIDs,
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
-} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+} from './SrpQuizModal.testIds';
 import SRPQuiz, { SRPQuizProps } from './SRPQuiz';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { Linking } from 'react-native';
 
 const mockNavigate = jest.fn();
+
+const initialMetrics: Metrics = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -43,11 +49,13 @@ const renderSRPQuiz = (
   const store = mockStore(initialState);
 
   const renderResult = render(
-    <Provider store={store}>
-      <ThemeContext.Provider value={mockTheme}>
-        <SRPQuiz {...props} />
-      </ThemeContext.Provider>
-    </Provider>,
+    <SafeAreaProvider initialMetrics={initialMetrics}>
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SRPQuiz {...props} />
+        </ThemeContext.Provider>
+      </Provider>
+    </SafeAreaProvider>,
   );
 
   if (completeQuiz) {
@@ -95,7 +103,6 @@ describe('SRPQuiz', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         {
-          credentialName: 'seed_phrase',
           shouldUpdateNav: true,
           keyringId,
         },

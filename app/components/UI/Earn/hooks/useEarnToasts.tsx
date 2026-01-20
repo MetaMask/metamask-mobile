@@ -1,19 +1,20 @@
-import {
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
-} from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
+  ButtonIconVariant,
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { IconSize as ReactNativeDsIconSize } from '@metamask/design-system-react-native';
 
 export type EarnToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
@@ -27,22 +28,33 @@ export type EarnToastOptions = Omit<
   }[];
 };
 
+export interface MusdConversionInProgressParams {
+  tokenSymbol: string;
+}
+
 export interface EarnToastOptionsConfig {
   mUsdConversion: {
-    inProgress: EarnToastOptions;
+    inProgress: (params: MusdConversionInProgressParams) => EarnToastOptions;
     success: EarnToastOptions;
     failed: EarnToastOptions;
   };
 }
 
-const getEarnToastLabels = (
-  primary: string | React.ReactNode,
-  secondary?: string | React.ReactNode,
-) => {
+interface EarnToastLabelOptions {
+  primary: string | React.ReactNode;
+  secondary?: string | React.ReactNode;
+  primaryIsBold?: boolean;
+}
+
+const getEarnToastLabels = ({
+  primary,
+  secondary,
+  primaryIsBold = false,
+}: EarnToastLabelOptions) => {
   const labels = [
     {
       label: primary,
-      isBold: true,
+      isBold: primaryIsBold,
     },
   ];
 
@@ -67,11 +79,8 @@ const EARN_TOASTS_DEFAULT_OPTIONS: Partial<EarnToastOptions> = {
 };
 
 const toastStyles = StyleSheet.create({
-  spinnerContainer: {
-    paddingRight: 12,
-    alignContent: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconWrapper: {
+    marginRight: 16,
   },
 });
 
@@ -82,40 +91,64 @@ const useEarnToasts = (): {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
 
+  const closeToast = useCallback(() => {
+    toastRef?.current?.closeToast();
+  }, [toastRef]);
+
+  const closeButtonOptions = useMemo(
+    () => ({
+      variant: ButtonIconVariant.Icon,
+      iconName: IconName.Close,
+      onPress: closeToast,
+    }),
+    [closeToast],
+  );
+
   const earnBaseToastOptions: Record<string, EarnToastOptions> = useMemo(
     () => ({
       success: {
         ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
-        iconColor: theme.colors.accent03.dark,
-        backgroundColor: theme.colors.accent03.normal,
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
         hapticsType: NotificationFeedbackType.Success,
+        startAccessory: (
+          <View style={toastStyles.iconWrapper}>
+            <Icon
+              name={IconName.Confirmation}
+              color={theme.colors.success.default}
+              size={IconSize.Lg}
+            />
+          </View>
+        ),
       },
-      // Intentional duplication for now to avoid coupling with success options.
       inProgress: {
         ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
-        iconColor: theme.colors.accent04.dark,
-        backgroundColor: theme.colors.accent04.normal,
         hapticsType: NotificationFeedbackType.Warning,
+        hasNoTimeout: true,
         startAccessory: (
-          <View style={toastStyles.spinnerContainer}>
-            <Spinner
-              color={ReactNativeDsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
-            />
+          <View style={toastStyles.iconWrapper}>
+            <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
           </View>
         ),
       },
       error: {
         ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: theme.colors.accent01.dark,
-        backgroundColor: theme.colors.accent01.light,
+        iconName: IconName.CircleX,
+        iconColor: theme.colors.error.default,
         hapticsType: NotificationFeedbackType.Error,
+        startAccessory: (
+          <View style={toastStyles.iconWrapper}>
+            <Icon
+              name={IconName.CircleX}
+              color={theme.colors.error.default}
+              size={IconSize.Xl}
+            />
+          </View>
+        ),
       },
     }),
     [theme],
@@ -134,27 +167,33 @@ const useEarnToasts = (): {
   const EarnToastOptions: EarnToastOptionsConfig = useMemo(
     () => ({
       mUsdConversion: {
-        inProgress: {
+        inProgress: ({ tokenSymbol }: MusdConversionInProgressParams) => ({
           ...earnBaseToastOptions.inProgress,
-          labelOptions: getEarnToastLabels(
-            strings('earn.musd_conversion.toasts.in_progress'),
-          ),
-        },
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.musd_conversion.toasts.converting', {
+              token: tokenSymbol,
+            }),
+          }),
+          closeButtonOptions,
+        }),
         success: {
           ...earnBaseToastOptions.success,
-          labelOptions: getEarnToastLabels(
-            strings('earn.musd_conversion.toasts.success'),
-          ),
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.musd_conversion.toasts.delivered'),
+          }),
+          closeButtonOptions,
         },
         failed: {
           ...earnBaseToastOptions.error,
-          labelOptions: getEarnToastLabels(
-            strings('earn.musd_conversion.toasts.failed'),
-          ),
+          labelOptions: getEarnToastLabels({
+            primary: strings('earn.musd_conversion.toasts.failed'),
+          }),
+          closeButtonOptions,
         },
       },
     }),
     [
+      closeButtonOptions,
       earnBaseToastOptions.error,
       earnBaseToastOptions.inProgress,
       earnBaseToastOptions.success,

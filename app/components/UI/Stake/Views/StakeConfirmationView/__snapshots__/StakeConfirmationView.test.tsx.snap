@@ -44,7 +44,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 24,
                 "letterSpacing": 0,
                 "lineHeight": 32,
@@ -60,7 +60,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -141,7 +141,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -229,7 +229,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -337,7 +337,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -404,7 +404,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Regular",
+                            "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -478,7 +478,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -555,7 +555,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#457a39",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -614,7 +614,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -665,7 +665,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#686e7d",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -679,7 +679,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Regular",
+                          "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -738,7 +738,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -815,7 +815,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -888,7 +888,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -965,7 +965,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "Geist Regular",
+                        "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1011,7 +1011,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1035,7 +1035,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1089,7 +1089,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1131,7 +1131,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,

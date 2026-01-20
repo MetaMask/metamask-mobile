@@ -12,7 +12,7 @@ import { connect, useSelector } from 'react-redux';
 import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../BrowserTab/BrowserView.testIds';
 import {
   closeAllTabs,
   closeTab,
@@ -40,10 +40,8 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  appendURLParams,
-  isTokenDiscoveryBrowserEnabled,
-} from '../../../util/browser';
+import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -78,7 +76,7 @@ export const Browser = (props) => {
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
-  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
@@ -89,25 +87,34 @@ export const Browser = (props) => {
 
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state) => state.security.dataCollectionForMarketing,
-  );
   const permittedAccountsList = useSelector(selectPermissionControllerState);
 
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
+
   const homePageUrl = useCallback(
-    () =>
-      appendURLParams(AppConstants.HOMEPAGE_URL, {
-        metricsEnabled: isEnabled(),
-        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-      }).href,
-    [isEnabled, isDataCollectionForMarketingEnabled],
+    () => buildPortfolioUrlWithMetrics(AppConstants.HOMEPAGE_URL).href,
+    [buildPortfolioUrlWithMetrics],
   );
 
+  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
+
   const newTab = useCallback(
-    (url, linkType) => {
-      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    (url, linkType, { replaceActiveIfMax = false } = {}) => {
+      // if tabs.length > MAX_BROWSER_TABS, do not open a new tab
       if (tabs.length >= MAX_BROWSER_TABS) {
-        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+        const activeTab = tabs.find((tab) => tab.id === activeTabId);
+        if (url && replaceActiveIfMax && activeTab) {
+          // If replaceActiveIfMax is true and a URL was provided, open it in the active tab
+          updateTab(activeTab.id, {
+            url,
+            isArchived: false,
+          });
+          setCurrentUrl(url);
+          setShouldShowTabs(false);
+        } else {
+          // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
+          navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+        }
       } else {
         const newTabUrl = isTokenDiscoveryBrowserEnabled()
           ? undefined
@@ -116,11 +123,17 @@ export const Browser = (props) => {
         createNewTab(newTabUrl, linkType);
       }
     },
-    [tabs, navigation, createNewTab, homePageUrl],
+    [
+      tabs,
+      navigation,
+      createNewTab,
+      homePageUrl,
+      activeTabId,
+      updateTab,
+      setCurrentUrl,
+      setShouldShowTabs,
+    ],
   );
-
-  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
-
   const updateTabInfo = useCallback(
     (tabID, info) => {
       updateTab(tabID, info);
@@ -248,17 +261,26 @@ export const Browser = (props) => {
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const existingTabId = route.params?.existingTabId;
+      const shouldShowTabsView = route.params?.showTabsView;
       if (!newTabUrl && !existingTabId) {
         // Nothing from deeplink, carry on.
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (activeTab) {
           // Resume where last left off.
           switchToTab(activeTab);
+          // If showTabsView param is passed and tabs exist, show the tabs view directly
+          if (shouldShowTabsView && tabs.length) {
+            setShouldShowTabs(true);
+          }
         } else {
           /* eslint-disable-next-line */
           if (tabs.length) {
             // Tabs exists but no active set. Show first tab.
             switchToTab(tabs[0]);
+            // If showTabsView param is passed, show the tabs view directly
+            if (shouldShowTabsView) {
+              setShouldShowTabs(true);
+            }
           } else {
             // No tabs. Create a new one.
             newTab();
@@ -292,14 +314,22 @@ export const Browser = (props) => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
+      const shouldShowTabsView = route.params?.showTabsView;
+      const fromTrending = route.params?.fromTrending;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from link.
-        newTab(newTabUrl, linkType);
+        // If coming from Explore (trending), replace active tab when at max capacity
+        newTab(newTabUrl, linkType, {
+          replaceActiveIfMax: fromTrending,
+        });
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
           switchToTab(existingTab);
         }
+      } else if (shouldShowTabsView && tabs.length) {
+        // Show tabs view directly when showTabsView param is passed
+        setShouldShowTabs(true);
       }
     },
     /* eslint-disable-next-line */
@@ -307,6 +337,7 @@ export const Browser = (props) => {
       route.params?.timestamp,
       route.params?.newTabUrl,
       route.params?.existingTabId,
+      route.params?.showTabsView,
     ],
   );
 
@@ -378,8 +409,10 @@ export const Browser = (props) => {
   };
 
   const closeTabsView = () => {
-    if (tabs.length) {
-      setShouldShowTabs(false);
+    setShouldShowTabs(false);
+    // If no tabs left, navigate away from browser
+    if (tabs.length === 0) {
+      navigation.goBack();
     }
   };
 
@@ -421,6 +454,7 @@ export const Browser = (props) => {
               isInTabsView={shouldShowTabs}
               homePageUrl={homePageUrl()}
               fromTrending={route.params?.fromTrending}
+              fromPerps={route.params?.fromPerps}
             />
           ) : (
             <DiscoveryTab
@@ -441,6 +475,7 @@ export const Browser = (props) => {
       showTabsView,
       activeTabId,
       route.params?.fromTrending,
+      route.params?.fromPerps,
     ],
   );
 

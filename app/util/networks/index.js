@@ -9,6 +9,7 @@ import {
   LINEA_MAINNET,
   LINEA_SEPOLIA,
   MEGAETH_TESTNET,
+  MEGAETH_TESTNET_V2,
   MONAD_TESTNET,
   BASE_MAINNET,
 } from '../../../app/constants/network';
@@ -151,6 +152,20 @@ export const NetworkList = {
     blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
     isTestNet: true,
   },
+  [MEGAETH_TESTNET_V2]: {
+    name: 'MegaETH Testnet',
+    shortName: 'MegaETH Testnet',
+    networkId: 6343,
+    chainId: toHex('6343'),
+    ticker: 'MegaETH',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#61dfff',
+    networkType: 'megaeth-testnet-v2',
+    imageSource: networksWithImages['MEGAETH-TESTNET-V2'],
+    blockExplorerUrl: 'https://megaeth-testnet-v2.blockscout.com',
+    isTestNet: true,
+  },
   [MONAD_TESTNET]: {
     name: 'Monad Testnet',
     shortName: 'Monad Testnet',
@@ -287,6 +302,9 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.MEGAETH_TESTNET === chainId) {
     return networksWithImages?.['MEGAETH-TESTNET'];
   }
+  if (NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2 === chainId) {
+    return networksWithImages?.['MEGAETH-TESTNET-V2'];
+  }
   if (NETWORKS_CHAIN_ID.MONAD_TESTNET === chainId) {
     return networksWithImages?.['MONAD-TESTNET'];
   }
@@ -301,6 +319,7 @@ export const TESTNET_CHAIN_IDS = [
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
   ChainId[NetworkType['megaeth-testnet']],
+  NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2,
   ChainId[NetworkType['monad-testnet']],
 ];
 
@@ -677,18 +696,23 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId.mainnet]: 'Mainnet',
   [ChainId['linea-mainnet']]: 'Linea Mainnet',
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
+  [NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2]: 'MegaETH Testnet',
   [ChainId['monad-testnet']]: 'Monad Testnet',
   [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HyperEVM',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'MegaEth',
 };
 
 // Whitelisted symbols for specific chain IDs to prevent showing warnings on Network Settings.
 export const WHITELIST_SYMBOL = {
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HYPE',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'ETH',
 };
 
 export const WHITELIST_NETWORK_RPC_URL = {
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'https://mainnet.megaeth.com/rpc',
+  [NETWORKS_CHAIN_ID.MEGAETH_TESTNET_V2]: 'https://carrot.megaeth.com/rpc',
 };
 
 /**

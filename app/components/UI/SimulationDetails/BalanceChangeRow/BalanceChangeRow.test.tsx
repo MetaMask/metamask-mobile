@@ -10,6 +10,16 @@ jest.mock('../AssetPill/AssetPill', () => 'AssetPill');
 jest.mock('../FiatDisplay/FiatDisplay', () => ({
   IndividualFiatDisplay: 'IndividualFiatDisplay',
 }));
+jest.mock(
+  '../../../Views/confirmations/hooks/metrics/useConfirmationAlertMetrics',
+  () => ({
+    useConfirmationAlertMetrics: () => ({
+      trackInlineAlertClicked: jest.fn(),
+      trackAlertActionClicked: jest.fn(),
+      trackAlertRendered: jest.fn(),
+    }),
+  }),
+);
 
 const CHAIN_ID_MOCK = '0x123';
 

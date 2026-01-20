@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   GestureResponderEvent,
@@ -81,6 +81,48 @@ const PriceChart = ({
   };
 
   const priceList = prices.map((_: TokenPrice) => _[1]);
+
+  // Detect if this is a stablecoin and calculate appropriate Y-axis range
+  const { isStablecoin, yMin, yMax } = useMemo(() => {
+    if (priceList.length === 0) {
+      return { isStablecoin: false, yMin: undefined, yMax: undefined };
+    }
+
+    // Use median for better outlier resistance
+    const sortedPrices = [...priceList].sort((a, b) => a - b);
+    const medianPrice = sortedPrices[Math.floor(sortedPrices.length / 2)];
+    const minPrice = sortedPrices[0];
+    const maxPrice = sortedPrices[sortedPrices.length - 1];
+
+    // Detect stablecoin: median price between $0.90 and $1.10
+    const isStablecoinPrice = medianPrice >= 0.9 && medianPrice <= 1.1;
+
+    if (!isStablecoinPrice) {
+      return { isStablecoin: false, yMin: undefined, yMax: undefined };
+    }
+
+    // For stablecoins, create an intelligently zoomed view
+    const priceRange = maxPrice - minPrice;
+
+    // Ensure minimum range of 2% of median price for meaningful visualization
+    // This prevents over-zooming on very stable prices (e.g., all $1.000)
+    const minRange = medianPrice * 0.02; // 2% range minimum
+
+    // Use larger of actual range or minimum range
+    const effectiveRange = Math.max(priceRange, minRange);
+
+    // Add 20% padding to the effective range for visual breathing room
+    const padding = effectiveRange * 0.2;
+
+    // Center the range around the median for balanced visualization
+    const halfRange = effectiveRange / 2;
+
+    return {
+      isStablecoin: true,
+      yMin: Math.max(0, medianPrice - halfRange - padding),
+      yMax: medianPrice + halfRange + padding,
+    };
+  }, [priceList]);
 
   const onActiveIndexChange = (index: number) => {
     setPositionX(index);
@@ -212,23 +254,49 @@ const PriceChart = ({
     );
   };
 
-  const NoDataOverlay = () => (
-    <View style={styles.noDataOverlay}>
-      <Text>
-        <Icon
-          name={IconName.Warning}
-          color={IconColor.Muted}
-          size={IconSize.Xl}
-        />
-      </Text>
-      <Title style={styles.noDataOverlayTitle}>
-        {strings('asset_overview.no_chart_data.title')}
-      </Title>
-      <Text variant={TextVariant.BodyLGMedium} style={styles.noDataOverlayText}>
-        {strings('asset_overview.no_chart_data.description')}
-      </Text>
-    </View>
-  );
+  const NoDataOverlay = () => {
+    const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
+
+    if (hasInsufficientData) {
+      // Show simplified message for 1 data point
+      return (
+        <View
+          style={styles.noDataOverlay}
+          testID="price-chart-insufficient-data"
+        >
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            style={styles.noDataOverlayText}
+          >
+            {strings('asset_overview.no_chart_data.insufficient_data')}
+          </Text>
+        </View>
+      );
+    }
+
+    // Show full overlay for no data
+    return (
+      <View style={styles.noDataOverlay} testID="price-chart-no-data">
+        <Text>
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.Muted}
+            size={IconSize.Xl}
+            testID="price-chart-no-data-icon"
+          />
+        </Text>
+        <Title style={styles.noDataOverlayTitle}>
+          {strings('asset_overview.no_chart_data.title')}
+        </Title>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          style={styles.noDataOverlayText}
+        >
+          {strings('asset_overview.no_chart_data.description')}
+        </Text>
+      </View>
+    );
+  };
 
   const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
     if (positionX < 0) {
@@ -262,7 +330,7 @@ const PriceChart = ({
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay}>
+    <View style={styles.noDataOverlay} testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
@@ -276,11 +344,15 @@ const PriceChart = ({
     </View>
   );
 
-  const chartHasData = priceList.length > 0;
+  const chartHasData = priceList.length > 1;
 
   return (
     <View style={styles.chart}>
-      <View style={styles.chartArea} {...panResponder.current.panHandlers}>
+      <View
+        style={styles.chartArea}
+        testID={chartHasData ? 'price-chart-area' : undefined}
+        {...panResponder.current.panHandlers}
+      >
         {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
         {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart
@@ -292,6 +364,8 @@ const PriceChart = ({
               ? { fill: `url(#dataGradient)` }
               : undefined
           }
+          yMin={isStablecoin && chartHasData ? yMin : undefined}
+          yMax={isStablecoin && chartHasData ? yMax : undefined}
         >
           {!isLoading && <Line chartHasData={chartHasData} />}
           {chartHasData ? <Tooltip /> : <NoDataGradient />}

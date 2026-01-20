@@ -5,6 +5,7 @@ import {
 } from '@metamask/messenger';
 import { RootMessenger } from '../types';
 import { SmartTransactionsControllerMessenger } from '@metamask/smart-transactions-controller';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 
 /**
  * Get the messenger for the smart transactions controller. This is scoped to the
@@ -30,12 +31,52 @@ export function getSmartTransactionsControllerMessenger(
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'TransactionController:getNonceLock',
-      'TransactionController:confirmExternalTransaction',
       'TransactionController:getTransactions',
       'TransactionController:updateTransaction',
     ],
     events: ['NetworkController:stateChange'],
     messenger,
   });
+  return messenger;
+}
+
+type SmartTransactionsControllerInitMessengerActions =
+  AnalyticsControllerActions;
+
+/**
+ * Get the SmartTransactionsControllerInitMessenger for the SmartTransactionsController.
+ * This messenger is used during controller initialization to call other controllers.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The SmartTransactionsControllerInitMessenger.
+ */
+export type SmartTransactionsControllerInitMessenger = ReturnType<
+  typeof getSmartTransactionsControllerInitMessenger
+>;
+
+export function getSmartTransactionsControllerInitMessenger(
+  rootMessenger: RootMessenger,
+): Messenger<
+  'SmartTransactionsControllerInit',
+  SmartTransactionsControllerInitMessengerActions,
+  never,
+  RootMessenger
+> {
+  const messenger = new Messenger<
+    'SmartTransactionsControllerInit',
+    SmartTransactionsControllerInitMessengerActions,
+    never,
+    RootMessenger
+  >({
+    namespace: 'SmartTransactionsControllerInit',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    actions: ['AnalyticsController:trackEvent'],
+    events: [],
+    messenger,
+  });
+
   return messenger;
 }

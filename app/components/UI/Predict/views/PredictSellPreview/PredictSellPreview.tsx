@@ -16,7 +16,7 @@ import {
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -55,16 +55,14 @@ const PredictSellPreview = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;
 
-  const {
-    icon,
-    title,
-    outcome: outcomeSideText,
-    initialValue,
-    size,
-  } = position;
+  const { icon, title, initialValue, size } = position;
 
   const outcomeGroupTitle = outcome?.groupItemTitle ?? '';
   const outcomeTitle = title;
+  const outcomeToken = outcome?.tokens.find(
+    (t) => t.id === position.outcomeTokenId,
+  );
+  const outcomeSideText = outcomeToken?.title ?? position.outcome;
 
   // Prepare analytics properties for sell/cash-out action
   const analyticsProperties = useMemo(
@@ -97,7 +95,11 @@ const PredictSellPreview = () => {
     error: placeOrderError,
   } = usePredictPlaceOrder();
 
-  const { preview } = usePredictOrderPreview({
+  const {
+    preview,
+    error: previewError,
+    isLoading: isPreviewLoading,
+  } = usePredictOrderPreview({
     providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -141,7 +143,10 @@ const PredictSellPreview = () => {
     }
   }, [dispatch, result]);
 
-  const currentValue = preview?.minAmountReceived ?? 0;
+  // Use preview data if available, fallback to position data on error or when preview is unavailable
+  const currentValue = preview
+    ? preview.minAmountReceived
+    : position.currentValue;
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 
@@ -232,7 +237,7 @@ const PredictSellPreview = () => {
         style={styles.container}
       >
         <View style={styles.cashOutContainer}>
-          {!preview ? (
+          {isPreviewLoading ? (
             <Box twClassName="items-center gap-2">
               <Skeleton
                 width={200}
@@ -300,6 +305,15 @@ const PredictSellPreview = () => {
               style={tw.style('text-center')}
             >
               {placeOrderError}
+            </Text>
+          )}
+          {previewError && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={tw.style('text-center')}
+            >
+              {previewError}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">

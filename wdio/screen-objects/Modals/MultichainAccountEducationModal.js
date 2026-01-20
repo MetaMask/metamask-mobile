@@ -37,7 +37,7 @@ class MultichainAccountEducationModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.closeButton);
     } else {
-      await AppwrightGestures.tap(this.closeButton);
+      await AppwrightGestures.tap(await this.closeButton);
     }
   }
 }

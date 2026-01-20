@@ -17,7 +17,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { formatAddress, getAddressAccountType } from '../../../util/address';
-import { EditAccountNameSelectorIDs } from '../../../../e2e/selectors/wallet/EditAccountName.selectors';
+import { EditAccountNameSelectorIDs } from './EditAccountName.testIds';
 
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
@@ -114,7 +114,7 @@ const EditAccountName = () => {
           const analyticsProperties = async () => {
             const accountType = getAddressAccountType(selectedAccount?.address);
             const account_type =
-              accountType === 'QR' ? 'hardware' : accountType;
+              accountType === 'QR Hardware' ? 'hardware' : accountType;
             return { account_type, chain_id: getDecimalChainId(chainId) };
           };
           const analyticsProps = await analyticsProperties();

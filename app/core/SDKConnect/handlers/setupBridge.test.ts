@@ -123,4 +123,43 @@ describe('setupBridge', () => {
       }),
     );
   });
+
+  it('should throw error when originatorInfo.url is "metamask"', () => {
+    connection.backgroundBridge = undefined;
+    originatorInfo.url = 'metamask';
+
+    expect(() => setupBridge({ originatorInfo, connection })).toThrow(
+      'Connections from metamask origin are not allowed',
+    );
+    expect(BackgroundBridge).not.toHaveBeenCalled();
+  });
+
+  it('should throw error when originatorInfo.title is "metamask"', () => {
+    connection.backgroundBridge = undefined;
+    originatorInfo.url = 'https://example.com';
+    originatorInfo.title = 'metamask';
+
+    expect(() => setupBridge({ originatorInfo, connection })).toThrow(
+      'Connections from metamask origin are not allowed',
+    );
+    expect(BackgroundBridge).not.toHaveBeenCalled();
+  });
+
+  it('should allow connection when originatorInfo contains "metamask" as substring', () => {
+    connection.backgroundBridge = undefined;
+    originatorInfo.url = 'https://my-metamask-dapp.com';
+    originatorInfo.title = 'My MetaMask App';
+
+    expect(() => setupBridge({ originatorInfo, connection })).not.toThrow();
+    expect(BackgroundBridge).toHaveBeenCalled();
+  });
+
+  it('should allow connection when originatorInfo has valid url and title', () => {
+    connection.backgroundBridge = undefined;
+    originatorInfo.url = 'https://example.com';
+    originatorInfo.title = 'Example Dapp';
+
+    expect(() => setupBridge({ originatorInfo, connection })).not.toThrow();
+    expect(BackgroundBridge).toHaveBeenCalled();
+  });
 });

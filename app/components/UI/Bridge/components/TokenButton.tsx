@@ -17,7 +17,7 @@ import BadgeWrapper, {
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
-import TokenIcon from '../../Swaps/components/TokenIcon';
+import TokenIcon from '../../../Base/TokenIcon';
 
 interface TokenProps {
   symbol?: string;

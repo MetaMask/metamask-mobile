@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
@@ -16,7 +16,13 @@ export type PredictEligibilityState = ReturnType<
 >;
 
 // Minimum time between automatic eligibility refreshes (1 minute)
-const DEBOUNCE_INTERVAL_MS = 60000;
+const DEBOUNCE_INTERVAL_MS = 100;
+
+// Polling interval for auto-refresh when country is missing (2 seconds)
+const MISSING_COUNTRY_POLLING_INTERVAL_MS = 2000;
+
+// Maximum number of retry attempts when country is missing
+const MISSING_COUNTRY_MAX_RETRIES = 3;
 
 /**
  * Singleton manager to coordinate eligibility refreshes across multiple hook instances.
@@ -182,6 +188,10 @@ export const getRefreshManagerForTesting = (): EligibilityRefreshManager =>
  * Hook to access Predict eligibility state and trigger refreshes via the controller.
  * Automatically refreshes eligibility when the app comes to foreground.
  * Multiple components can safely use this hook without causing duplicate refreshes.
+ *
+ * When no country is returned in the eligibility response, the hook will automatically
+ * poll for updates using a sequential loading pattern (wait for response → wait interval → poll again)
+ * until a country is returned or the component unmounts.
  */
 export const usePredictEligibility = ({
   providerId,
@@ -189,11 +199,16 @@ export const usePredictEligibility = ({
   providerId: string;
 }) => {
   const eligibility = useSelector(selectPredictEligibility);
+  const country = eligibility[providerId]?.country;
 
   // Manual refresh - bypasses debounce (force = true)
   const refreshEligibility = useCallback(async () => {
     await refreshManager.refresh(true);
   }, []);
+
+  // Store refreshEligibility in a ref to avoid effect restarts when its identity changes
+  const refreshEligibilityRef = useRef(refreshEligibility);
+  refreshEligibilityRef.current = refreshEligibility;
 
   // Register this hook instance with the singleton manager
   useEffect(() => {
@@ -211,9 +226,71 @@ export const usePredictEligibility = ({
     };
   }, [providerId]);
 
+  // Auto-refresh when country is missing - sequential loading pattern
+  // Similar to usePredictOptimisticPositionRefresh
+  // Retries up to MISSING_COUNTRY_MAX_RETRIES times, resets on unmount
+  useEffect(() => {
+    // Skip if we already have a country
+    if (country) return;
+
+    let shouldContinue = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let retryCount = 0;
+
+    const pollForCountry = async () => {
+      if (!shouldContinue) return;
+
+      retryCount += 1;
+
+      DevLogger.log(
+        'PredictController: Country missing, auto-refreshing eligibility',
+        { providerId, retryCount, maxRetries: MISSING_COUNTRY_MAX_RETRIES },
+      );
+
+      try {
+        await refreshEligibilityRef.current();
+      } catch (error) {
+        // Continue polling even if an individual request fails
+        // This ensures we keep trying to get country data
+        DevLogger.log(
+          'PredictController: Auto-refresh for missing country failed',
+          {
+            error: error instanceof Error ? error.message : 'Unknown',
+            retryCount,
+          },
+        );
+      }
+
+      // After the response (or error), schedule next poll if still active
+      // and we haven't reached max retries
+      // Note: The effect will re-run if country becomes available,
+      // which will stop the polling due to the early return
+      if (shouldContinue && retryCount < MISSING_COUNTRY_MAX_RETRIES) {
+        timeoutId = setTimeout(() => {
+          pollForCountry();
+        }, MISSING_COUNTRY_POLLING_INTERVAL_MS);
+      } else if (shouldContinue && retryCount >= MISSING_COUNTRY_MAX_RETRIES) {
+        DevLogger.log(
+          'PredictController: Max retries reached for missing country',
+          { providerId, retryCount },
+        );
+      }
+    };
+
+    pollForCountry();
+
+    return () => {
+      // Reset retry count on unmount (retryCount is local to this effect instance)
+      shouldContinue = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [country, providerId]);
+
   return {
     isEligible: eligibility[providerId]?.eligible ?? false,
-    country: eligibility[providerId]?.country,
+    country,
     refreshEligibility,
   };
 };

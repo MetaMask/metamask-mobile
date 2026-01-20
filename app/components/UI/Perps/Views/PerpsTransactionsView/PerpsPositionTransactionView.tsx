@@ -3,7 +3,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -20,20 +20,25 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import Routes from '../../../../../constants/navigation/Routes';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import type { PerpsMarketData } from '../../controllers/types';
 import {
   PerpsPositionTransactionRouteProp,
   PerpsTransaction,
 } from '../../types/transactionHistory';
 import {
+  formatPerpsFiat,
   formatPositiveFiat,
   formatTransactionDate,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -46,6 +51,16 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
+
+  // Create a minimal market object from transaction asset for navigation
+  // PerpsMarketDetailsView will enrich this with full market data from usePerpsMarkets
+  const market = useMemo<Partial<PerpsMarketData> | undefined>(
+    () =>
+      transaction?.asset
+        ? { symbol: transaction.asset, name: transaction.asset }
+        : undefined,
+    [transaction?.asset],
+  );
 
   navigation.setOptions(
     getPerpsTransactionsDetailsNavbar(
@@ -81,6 +96,19 @@ const PerpsPositionTransactionView: React.FC = () => {
     });
   };
 
+  const handleTradeAgain = () => {
+    if (!market) {
+      return;
+    }
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market,
+        source: PerpsEventValues.SOURCE.TRADE_DETAILS,
+      },
+    });
+  };
+
   // Main detail rows - only show if values exist
   const mainDetailRows = [
     {
@@ -103,7 +131,9 @@ const PerpsPositionTransactionView: React.FC = () => {
           transaction.fill?.action === 'Closed'
             ? strings('perps.transactions.position.close_price')
             : strings('perps.transactions.position.entry_price'),
-        value: formatPositiveFiat(transaction.fill.entryPrice),
+        value: formatPerpsFiat(transaction.fill.entryPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
       },
   ].filter(Boolean);
 
@@ -211,6 +241,16 @@ const PerpsPositionTransactionView: React.FC = () => {
           </View>
 
           <View style={styles.buttonsContainer}>
+            {/* Trade again button */}
+            {market && (
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.transactions.trade_again')}
+                onPress={handleTradeAgain}
+              />
+            )}
             {/* Block explorer button */}
             <Button
               variant={ButtonVariants.Secondary}

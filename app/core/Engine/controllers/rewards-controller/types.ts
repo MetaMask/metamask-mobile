@@ -440,6 +440,27 @@ export interface SeasonRewardDto {
   claimUrl?: string;
   iconName: string;
   rewardType: SeasonRewardType;
+  isEndOfSeasonReward?: boolean;
+  endOfSeasonName?: string;
+  endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
+}
+
+/**
+ * DTO for Linea token reward from Season 1
+ */
+export interface LineaTokenRewardDto {
+  /**
+   * The subscription ID
+   * @example 'example-uuid'
+   */
+  subscriptionId: string;
+
+  /**
+   * The amount of Linea tokens as a string
+   * @example '1000'
+   */
+  amount: string;
 }
 
 export enum SeasonRewardType {
@@ -447,6 +468,10 @@ export enum SeasonRewardType {
   PERPS_DISCOUNT = 'PERPS_DISCOUNT',
   POINTS_BOOST = 'POINTS_BOOST',
   ALPHA_FOX_INVITE = 'ALPHA_FOX_INVITE',
+  METAL_CARD = 'METAL_CARD',
+  LINEA_TOKENS = 'LINEA_TOKENS',
+  NANSEN = 'NANSEN',
+  OTHERSIDE = 'OTHERSIDE',
 }
 
 export interface SeasonDto {
@@ -456,6 +481,7 @@ export interface SeasonDto {
   endDate: Date;
   tiers: SeasonTierDto[];
   activityTypes: SeasonActivityTypeDto[];
+  shouldInstallNewVersion?: string | undefined;
 }
 
 export interface SeasonStatusBalanceDto {
@@ -496,11 +522,13 @@ export interface RewardDto {
   seasonRewardId: string;
   claimStatus: RewardClaimStatus;
   claim?: RewardClaim;
+  createdAt?: string;
 }
 
 export type RewardClaimData =
   | PointsBoostRewardData
   | AlphaFoxInviteRewardData
+  | EndOfSeasonUrlData
   | null;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -513,6 +541,11 @@ export type PointsBoostRewardData = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AlphaFoxInviteRewardData = {
   telegramHandle: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EndOfSeasonUrlData = {
+  url: string;
 };
 
 export interface RewardClaim {
@@ -556,6 +589,10 @@ export type SeasonRewardDtoState = {
   claimUrl?: string;
   iconName: string;
   rewardType: SeasonRewardType;
+  isEndOfSeasonReward?: boolean;
+  endOfSeasonName?: string;
+  endOfSeasonShortDescription?: string;
+  claimEndDate?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -580,6 +617,7 @@ export type SeasonDtoState = {
   tiers: SeasonTierDtoState[];
   activityTypes: SeasonActivityTypeDto[];
   lastFetched?: number;
+  shouldInstallNewVersion?: string | undefined;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -863,7 +901,7 @@ export interface RewardsControllerHasActiveSeasonAction {
  */
 export interface RewardsControllerGetSeasonMetadataAction {
   type: 'RewardsController:getSeasonMetadata';
-  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState | null>;
+  handler: (type?: 'current' | 'previous') => Promise<SeasonDtoState | null>;
 }
 
 /**
@@ -1002,6 +1040,14 @@ export interface RewardsControllerClaimRewardAction {
 }
 
 /**
+ * Action for getting Season 1 Linea token reward
+ */
+export interface RewardsControllerGetSeasonOneLineaRewardTokensAction {
+  type: 'RewardsController:getSeasonOneLineaRewardTokens';
+  handler: (subscriptionId: string) => Promise<LineaTokenRewardDto | null>;
+}
+
+/**
  * Action for resetting controller state
  */
 export interface RewardsControllerResetAllAction {
@@ -1038,6 +1084,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction
+  | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction;
 
 /**
@@ -1111,6 +1158,11 @@ export interface SeasonInfoDto {
  */
 export interface DiscoverSeasonsDto {
   /**
+   * Previous season information
+   */
+  previous: SeasonInfoDto | null;
+
+  /**
    * Current season information
    */
   current: SeasonInfoDto | null;
@@ -1158,6 +1210,14 @@ export interface SeasonMetadataDto {
    * Activity types for the season
    */
   activityTypes: SeasonActivityTypeDto[];
+
+  /**
+   * Optional version requirements for mobile and extension
+   */
+  shouldInstallNewVersion?: {
+    mobile: string | undefined;
+    extension: string | undefined;
+  };
 }
 
 /**

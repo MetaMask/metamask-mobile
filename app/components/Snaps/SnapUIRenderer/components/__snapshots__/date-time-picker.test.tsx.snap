@@ -1,0 +1,871 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnapUIDateTimePicker can show an error 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+              testID="snap-ui-renderer__date-time-picker"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="label"
+              >
+                Select date and time
+              </Text>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": 48,
+                    "maxHeight": 58,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={[Function]}
+                    testID="snap-ui-renderer__date-time-picker--datetime-touchable"
+                  >
+                    <TextInput
+                      autoFocus={true}
+                      editable={true}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      pointerEvents="none"
+                      readOnly={true}
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 24,
+                          "letterSpacing": 0,
+                          "opacity": 1,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="snap-ui-renderer__date-time-picker--datetime-input"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ca3542",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="helptext"
+              >
+                This is an error
+              </Text>
+            </View>
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIDateTimePicker renders a date picker 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+              testID="snap-ui-renderer__date-time-picker"
+            >
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": 48,
+                    "maxHeight": 58,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={[Function]}
+                    testID="snap-ui-renderer__date-time-picker--date-touchable"
+                  >
+                    <TextInput
+                      autoFocus={true}
+                      editable={true}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      pointerEvents="none"
+                      readOnly={true}
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 24,
+                          "letterSpacing": 0,
+                          "opacity": 1,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="snap-ui-renderer__date-time-picker--date-input"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View />
+            </View>
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+              testID="snap-ui-renderer__date-time-picker"
+            >
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": 48,
+                    "maxHeight": 58,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={[Function]}
+                    testID="snap-ui-renderer__date-time-picker--datetime-touchable"
+                  >
+                    <TextInput
+                      autoFocus={true}
+                      editable={true}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      pointerEvents="none"
+                      readOnly={true}
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 24,
+                          "letterSpacing": 0,
+                          "opacity": 1,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="snap-ui-renderer__date-time-picker--datetime-input"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View />
+            </View>
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIDateTimePicker renders a time picker 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+              testID="snap-ui-renderer__date-time-picker"
+            >
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": 48,
+                    "maxHeight": 58,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={[Function]}
+                    testID="snap-ui-renderer__date-time-picker--time-touchable"
+                  >
+                    <TextInput
+                      autoFocus={true}
+                      editable={true}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      pointerEvents="none"
+                      readOnly={true}
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 24,
+                          "letterSpacing": 0,
+                          "opacity": 1,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="snap-ui-renderer__date-time-picker--time-input"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View />
+            </View>
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIDateTimePicker renders inside a field 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+      testID="snap-ui-renderer__scrollview"
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+              testID="snap-ui-renderer__date-time-picker"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="label"
+              >
+                Select date and time
+              </Text>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": 48,
+                    "maxHeight": 58,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={[Function]}
+                    testID="snap-ui-renderer__date-time-picker--datetime-touchable"
+                  >
+                    <TextInput
+                      autoFocus={true}
+                      editable={true}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      pointerEvents="none"
+                      readOnly={true}
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 24,
+                          "letterSpacing": 0,
+                          "opacity": 1,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="snap-ui-renderer__date-time-picker--datetime-input"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View />
+            </View>
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;

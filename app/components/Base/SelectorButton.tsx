@@ -6,7 +6,11 @@ import {
   TouchableOpacityProps,
   GestureResponderEvent,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../component-library/components/Icons/Icon';
 import { useTheme } from '../../util/theme';
 import { Theme } from '@metamask/design-tokens';
 
@@ -19,7 +23,7 @@ interface SelectorButtonProps {
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.muted,
       paddingVertical: 8,
       paddingHorizontal: 10,
       borderRadius: 100,
@@ -28,10 +32,7 @@ const createStyles = (colors: Theme['colors']) =>
       justifyContent: 'center',
     },
     caretDown: {
-      textAlign: 'right',
-      color: colors.text.alternative,
-      marginLeft: 10,
-      marginRight: 5,
+      marginHorizontal: 5,
     },
   });
 
@@ -48,7 +49,12 @@ const SelectorButton: React.FC<SelectorButtonProps & TouchableOpacityProps> = ({
     <TouchableOpacity onPress={onPress} disabled={disabled} {...props}>
       <View style={styles.container}>
         <>{children}</>
-        <Icon name="caret-down" size={18} style={styles.caretDown} />
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Sm}
+          color={IconColor.Alternative}
+          style={styles.caretDown}
+        />
       </View>
     </TouchableOpacity>
   );

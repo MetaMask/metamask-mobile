@@ -9,12 +9,24 @@ export enum AllowanceState {
   NotEnabled = 'not_enabled',
 }
 
-export enum CardWarning {
+/**
+ * Card state warnings - used for internal logic in hooks
+ * These represent states returned from the API or derived conditions
+ */
+export enum CardStateWarning {
+  NoCard = 'no_card',
   NeedDelegation = 'need_delegation',
-  CloseSpendingLimit = 'close_spending_limit',
   Frozen = 'frozen',
   Blocked = 'blocked',
-  NoCard = 'no_card',
+}
+
+/**
+ * Card warning box types - used for UI display in CardWarningBox component
+ * These are user-facing warnings that render as visual warning boxes
+ */
+export enum CardWarningBoxType {
+  CloseSpendingLimit = 'close_spending_limit',
+  KYCPending = 'kyc_pending',
 }
 
 export type CardUserPhase =
@@ -73,7 +85,12 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'linea-us' | 'solana';
+export type CardNetwork = 'linea' | 'linea-us' | 'solana' | 'base';
+
+export interface CardNetworkInfo {
+  caipChainId: CaipChainId;
+  rpcUrl?: string;
+}
 
 export interface CardLoginResponse {
   phase: CardUserPhase | null;
@@ -163,6 +180,7 @@ export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
 
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  INVALID_OTP_CODE = 'INVALID_OTP_CODE',
   OTP_REQUIRED = 'OTP_REQUIRED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',

@@ -28,6 +28,7 @@ export interface RewardsState {
   seasonEndDate: Date | null;
   seasonTiers: SeasonTierDto[];
   seasonActivityTypes: SeasonActivityTypeDto[];
+  seasonShouldInstallNewVersion: string | null;
 
   // Subscription Referral state
   referralDetailsLoading: boolean;
@@ -101,6 +102,9 @@ export const initialState: RewardsState = {
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
 
+  // Should install new version state
+  seasonShouldInstallNewVersion: null,
+
   onboardingActiveStep: OnboardingStep.INTRO,
   onboardingReferralCode: null,
   candidateSubscriptionId: 'pending',
@@ -157,6 +161,8 @@ const rewardsSlice = createSlice({
         : null;
       state.seasonTiers = action.payload?.season.tiers || [];
       state.seasonActivityTypes = action.payload?.season.activityTypes || [];
+      state.seasonShouldInstallNewVersion =
+        action.payload?.season?.shouldInstallNewVersion || null;
 
       // Season Balance state
       state.balanceTotal =
@@ -270,6 +276,8 @@ const rewardsSlice = createSlice({
         state.balanceTotal = initialState.balanceTotal;
         state.balanceRefereePortion = initialState.balanceRefereePortion;
         state.balanceUpdatedAt = initialState.balanceUpdatedAt;
+        state.seasonShouldInstallNewVersion =
+          initialState.seasonShouldInstallNewVersion;
         state.activeBoosts = initialState.activeBoosts;
         state.pointsEvents = initialState.pointsEvents;
         state.unlockedRewards = initialState.unlockedRewards;
@@ -376,6 +384,8 @@ const rewardsSlice = createSlice({
           seasonEndDate: action.payload.rewards.seasonEndDate,
           seasonTiers: action.payload.rewards.seasonTiers,
           seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
+          seasonShouldInstallNewVersion:
+            action.payload.rewards.seasonShouldInstallNewVersion,
           referralCode: action.payload.rewards.referralCode,
           refereeCount: action.payload.rewards.refereeCount,
           currentTier: action.payload.rewards.currentTier,

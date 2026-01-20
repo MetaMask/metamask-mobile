@@ -3,7 +3,8 @@ import { fireEvent } from '@testing-library/react-native';
 import CardButton from './CardButton';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+
 jest.mock('../../../../hooks/useMetrics', () => {
   const actual = jest.requireActual('../../../../hooks/useMetrics');
   return {
@@ -19,14 +20,7 @@ jest.mock('../../../../hooks/useMetrics', () => {
   };
 });
 
-interface PartialCardState {
-  hasViewedCardButton?: boolean;
-}
-
-function renderWithProvider(
-  component: React.ComponentType,
-  stateOverride: PartialCardState = {},
-) {
+function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
     component,
     { name: 'CardButton' },
@@ -39,7 +33,6 @@ function renderWithProvider(
           lastFetchedByAddress: {},
           hasViewedCardButton: false,
           isLoaded: false,
-          ...stateOverride,
         },
       },
     },
@@ -53,7 +46,7 @@ describe('CardButton Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders with badge (not yet viewed) and matches snapshot', () => {
+  it('renders and matches snapshot', () => {
     const { toJSON, getByTestId } = renderWithProvider(() => (
       <CardButton
         onPress={mockOnPress}
@@ -61,12 +54,12 @@ describe('CardButton Component', () => {
       />
     ));
 
-    expect(getByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeTruthy();
+    expect(getByTestId(WalletViewSelectorsIDs.CARD_BUTTON)).toBeTruthy();
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('dispatches setHasViewedCardButton(true) and hides badge on first press', () => {
-    const { getByTestId, store, queryByTestId } = renderWithProvider(() => (
+  it('calls onPress when button is pressed', () => {
+    const { getByTestId } = renderWithProvider(() => (
       <CardButton
         onPress={mockOnPress}
         touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
@@ -77,40 +70,5 @@ describe('CardButton Component', () => {
     fireEvent.press(button);
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
-    expect(store.getState().card.hasViewedCardButton).toBe(true);
-    expect(queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeNull();
-  });
-
-  it('does not dispatch setHasViewedCardButton again if already viewed', () => {
-    const { getByTestId, store } = renderWithProvider(
-      () => (
-        <CardButton
-          onPress={mockOnPress}
-          touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
-        />
-      ),
-      { hasViewedCardButton: true },
-    );
-
-    const button = getByTestId(WalletViewSelectorsIDs.CARD_BUTTON);
-    fireEvent.press(button);
-
-    expect(mockOnPress).toHaveBeenCalledTimes(1);
-    expect(store.getState().card.hasViewedCardButton).toBe(true);
-  });
-
-  it('renders without badge when already viewed', () => {
-    const { toJSON, queryByTestId } = renderWithProvider(
-      () => (
-        <CardButton
-          onPress={mockOnPress}
-          touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
-        />
-      ),
-      { hasViewedCardButton: true },
-    );
-
-    expect(queryByTestId(WalletViewSelectorsIDs.CARD_BUTTON_BADGE)).toBeNull();
-    expect(toJSON()).toMatchSnapshot();
   });
 });

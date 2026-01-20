@@ -226,6 +226,15 @@ const createStyles = (colors: any) =>
         default: 16,
       }),
     },
+    animatedContainer: {
+      flex: 1,
+    },
+    keyboardStickyView: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
   });
 
 export default createStyles;

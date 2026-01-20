@@ -184,6 +184,7 @@ class FixtureBuilder {
     this.fixture = {
       state: {
         legalNotices: {
+          isPna25Acknowledged: true,
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: Date.now(),
         },
@@ -813,6 +814,7 @@ class FixtureBuilder {
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
         '@MetaMask:solanaFeatureModalShownV2': 'true',
+        '@MetaMask:predictGTMModalShown': 'true',
       },
     };
     return this;
@@ -1808,7 +1810,8 @@ class FixtureBuilder {
   }
 
   /**
-   * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState.
+   * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState
+   * and enables the AnalyticsController.
    * This indicates that the user has agreed to MetaMetrics data collection.
    *
    * @returns {this} The current instance for method chaining.
@@ -1818,6 +1821,12 @@ class FixtureBuilder {
       this.fixture.asyncState = {};
     }
     this.fixture.asyncState['@MetaMask:metricsOptIn'] = 'agreed';
+
+    // Also set up AnalyticsController state so analytics.isEnabled() returns true
+    this.fixture.state.engine.backgroundState.AnalyticsController = {
+      optedIn: true,
+      analyticsId: 'a5f3c2e1-7b4d-4e9a-8c6f-1d2e3f4a5b6c',
+    };
     return this;
   }
 
@@ -2260,6 +2269,21 @@ class FixtureBuilder {
         },
       },
     });
+  }
+
+  withTokenRates(chainId: string, tokenAddress: string, price: number) {
+    merge(this.fixture.state.engine.backgroundState.TokenRatesController, {
+      marketData: {
+        [chainId]: {
+          [tokenAddress]: {
+            tokenAddress,
+            price,
+          },
+        },
+      },
+    });
+
+    return this;
   }
 
   /**

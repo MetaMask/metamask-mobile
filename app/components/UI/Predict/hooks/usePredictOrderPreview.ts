@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Logger from '../../../../util/Logger';
 import { OrderPreview, PreviewOrderParams } from '../providers/types';
 import { usePredictTrading } from './usePredictTrading';
@@ -8,6 +8,7 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 interface OrderPreviewResult {
   preview?: OrderPreview | null;
   isCalculating: boolean;
+  isLoading: boolean;
   error: string | null;
 }
 
@@ -23,6 +24,8 @@ export function usePredictOrderPreview(
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { previewOrder } = usePredictTrading();
+
+  const isLoading = useMemo(() => preview === null && !error, [preview, error]);
 
   // Destructure params for stable dependencies
   const {
@@ -172,6 +175,7 @@ export function usePredictOrderPreview(
 
   return {
     preview,
+    isLoading,
     isCalculating,
     error,
   };

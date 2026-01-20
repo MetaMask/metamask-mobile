@@ -93,7 +93,7 @@ describe('PerpsMarketTypeSection', () => {
       expect(getByText('Crypto Markets')).toBeTruthy();
     });
 
-    it('renders "See All" link', () => {
+    it('renders pressable header with arrow icon', () => {
       const { getByText } = render(
         <PerpsMarketTypeSection
           title="Crypto Markets"
@@ -102,7 +102,8 @@ describe('PerpsMarketTypeSection', () => {
         />,
       );
 
-      expect(getByText('See All')).toBeTruthy();
+      // Header is pressable with arrow icon (no "See All" text)
+      expect(getByText('Crypto Markets')).toBeTruthy();
     });
 
     it('renders market list when markets are available', () => {
@@ -156,7 +157,7 @@ describe('PerpsMarketTypeSection', () => {
       );
 
       expect(getByText('Crypto Markets')).toBeTruthy();
-      expect(getByText('See All')).toBeTruthy();
+      // Header is pressable with arrow icon (no "See All" text)
     });
 
     it('does not render market list when loading', () => {
@@ -228,7 +229,7 @@ describe('PerpsMarketTypeSection', () => {
   });
 
   describe('navigation', () => {
-    it('navigates to market list when "See All" is pressed', () => {
+    it('navigates to market list when header is pressed', () => {
       const { getByText } = render(
         <PerpsMarketTypeSection
           title="Crypto Markets"
@@ -237,7 +238,7 @@ describe('PerpsMarketTypeSection', () => {
         />,
       );
 
-      fireEvent.press(getByText('See All'));
+      fireEvent.press(getByText('Crypto Markets'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
@@ -256,7 +257,7 @@ describe('PerpsMarketTypeSection', () => {
         />,
       );
 
-      fireEvent.press(getByText('See All'));
+      fireEvent.press(getByText('Stock Markets'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
@@ -275,7 +276,7 @@ describe('PerpsMarketTypeSection', () => {
         />,
       );
 
-      fireEvent.press(getByText('See All'));
+      fireEvent.press(getByText('Commodity Markets'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
@@ -304,7 +305,7 @@ describe('PerpsMarketTypeSection', () => {
       });
     });
 
-    it('handles multiple "See All" presses', () => {
+    it('handles multiple header presses', () => {
       const { getByText } = render(
         <PerpsMarketTypeSection
           title="Crypto Markets"
@@ -313,10 +314,10 @@ describe('PerpsMarketTypeSection', () => {
         />,
       );
 
-      const seeAllButton = getByText('See All');
+      const headerTitle = getByText('Crypto Markets');
 
-      fireEvent.press(seeAllButton);
-      fireEvent.press(seeAllButton);
+      fireEvent.press(headerTitle);
+      fireEvent.press(headerTitle);
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
     });

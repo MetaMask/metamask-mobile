@@ -14,6 +14,7 @@ import {
   POLYMARKET_EVENT_DETAILS_BLUE_JAYS_MARINERS_RESPONSE,
   POLYMARKET_EVENT_DETAILS_SPURS_PELICANS_RESPONSE,
   POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
+  POLYMARKET_EVENT_DETAILS_COWBOYS_COMMANDERS_RESPONSE,
 } from './polymarket-event-details-response';
 import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import {
@@ -51,6 +52,7 @@ import {
   EIP7702_CODE_FORMAT,
 } from './polymarket-constants';
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response';
+import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -59,6 +61,9 @@ import { createTransactionSentinelResponse } from './polymarket-transaction-sent
 
 // Global variable to track current USDC balance
 let currentUSDCBalance = MOCK_RPC_RESPONSES.USDC_BALANCE_RESULT;
+
+// Global variable to track current block number (to invalidate NetworkController block cache)
+let currentBlockNumber = 0x1000000; // Start at block 16777216
 
 // Global Set to track when Celtics vs Nets orders have been submitted
 const celticsOrderSubmitted = new Set<string>();
@@ -142,13 +147,14 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 /**
  * Mock for Polymarket geoblock endpoint
  * This simulates the user being in a geo-restricted region
+ * Uses a country from GEO_BLOCKED_COUNTRIES for consistency with app logic
  */
 export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: 'https://polymarket.com/api/geoblock',
     responseCode: 200,
-    response: { blocked: true },
+    response: { blocked: true, country: GEO_BLOCKED_COUNTRIES[0].country },
   });
 };
 
@@ -181,6 +187,13 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
         return {
           statusCode: 200,
           json: POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
+        };
+      }
+      if (eventId === '58319') {
+        // Return Celtics vs Nets event details from mock response file
+        return {
+          statusCode: 200,
+          json: POLYMARKET_EVENT_DETAILS_COWBOYS_COMMANDERS_RESPONSE,
         };
       }
 
@@ -736,6 +749,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
             // This indicates full allowance is granted
             result =
               '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else if (callData?.toLowerCase()?.startsWith('0x6352211e')) {
+            // ownerOf(uint256) selector - return owner of the token
+            result = '0x';
           } else {
             // Other USDC contract calls - return current global balance as fallback
             result = currentUSDCBalance;
@@ -768,7 +784,8 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
         }
       } else if (body?.method === 'eth_blockNumber') {
-        result = MOCK_RPC_RESPONSES.BLOCK_NUMBER_RESULT;
+        // Return current block number (dynamically updated to invalidate cache)
+        result = `0x${currentBlockNumber.toString(16)}`;
       } else if (body?.method === 'eth_getBalance') {
         result = MOCK_RPC_RESPONSES.ETH_BALANCE_RESULT;
       } else if (body?.method === 'eth_getTransactionCount') {
@@ -799,6 +816,12 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         // This is critical for TransactionController to mark transactions as confirmed
         // TransactionController polls for receipts to determine transaction status
         result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT;
+      } else if (body?.method === 'eth_getBlockByNumber') {
+        // Return block details to enable EIP-1559 transactions
+        result = {
+          baseFeePerGas: '0x123',
+          number: currentBlockNumber,
+        };
       }
       // Note: We don't mock eth_gasPrice for Polygon - the app should use the gas API
       // (already mocked in DEFAULT_GAS_API_MOCKS) which provides EIP-1559 fields.
@@ -1111,72 +1134,61 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
   positionType: string,
 ) => {
   // Update global balance based on position type (similar to POLYMARKET_USDC_BALANCE_MOCKS pattern)
-  let balance: string;
   if (positionType === 'claim') {
-    balance = POST_CLAIM_USDC_BALANCE_WEI; // 48.16 USDC
+    currentUSDCBalance = POST_CLAIM_USDC_BALANCE_WEI; // 48.16 USDC
   } else if (positionType === 'cash-out') {
-    balance = POST_CASH_OUT_USDC_BALANCE_WEI; // 58.66 USDC
+    currentUSDCBalance = POST_CASH_OUT_USDC_BALANCE_WEI; // 58.66 USDC
   } else if (positionType === 'open-position') {
-    balance = POST_OPEN_POSITION_USDC_BALANCE_WEI; // 17.76 USDC
+    currentUSDCBalance = POST_OPEN_POSITION_USDC_BALANCE_WEI; // 17.76 USDC
   } else {
     throw new Error(`Unknown positionType: ${positionType}`);
   }
 
+  // Increment block number to invalidate NetworkController's block cache
+  // This forces eth_call requests to fetch fresh data instead of using cached responses
+  currentBlockNumber++;
+
   await mockServer
     .forPost('/proxy')
-    .matching((request) => {
+    .matching(async (request) => {
       const urlParam = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        urlParam?.includes('polygon') || urlParam?.includes('infura'),
-      );
+
+      if (!urlParam?.includes('polygon') && !urlParam?.includes('infura')) {
+        return false;
+      }
+
+      // Parse body to ensure this is a USDC balance call
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+        if (body?.method !== 'eth_call') {
+          return false;
+        }
+        const toAddress = body?.params?.[0]?.to?.toLowerCase();
+        const callData = body?.params?.[0]?.data;
+        const isMatch =
+          toAddress === USDC_CONTRACT_ADDRESS.toLowerCase() &&
+          callData?.toLowerCase()?.startsWith('0x70a08231');
+        // Only match USDC balanceOf calls
+        return isMatch;
+      } catch (error) {
+        return false;
+      }
     })
     .asPriority(PRIORITY.BALANCE_REFRESH_PROXY) // Higher priority (1005) to catch balance refresh calls before base mocks
     .thenCallback(async (request) => {
       const bodyText = await request.body.getText();
       const body = bodyText ? JSON.parse(bodyText) : undefined;
 
-      let result: string | object = '0x';
-
-      // Handle USDC balance calls
-      if (body?.method === 'eth_call') {
-        const toAddress = body?.params?.[0]?.to?.toLowerCase();
-        const callData = body?.params?.[0]?.data;
-        if (toAddress === USDC_CONTRACT_ADDRESS.toLowerCase()) {
-          // USDC contract call - check function selector
-          if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
-            // balanceOf(address) selector - return updated balance
-            result = balance;
-          } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
-            // allowance(address,address) selector - return max allowance (uint256 max)
-            result =
-              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-          } else {
-            // Other USDC contract calls - return updated balance as fallback
-            result = balance;
-          }
-        } else {
-          // For other eth_call, return empty result (let base mocks handle if needed)
-          result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
-        }
-      } else if (body?.method === 'eth_getTransactionCount') {
-        // Return a valid nonce (transaction count) - needed for claim flow
-        // This is critical for transaction construction, must be a valid hex number
-        result = MOCK_RPC_RESPONSES.TRANSACTION_COUNT_RESULT;
-      } else if (body?.method === 'eth_getTransactionReceipt') {
-        // Return a mock transaction receipt indicating the transaction is confirmed
-        // This is CRITICAL for TransactionController to mark transactions as confirmed
-        // TransactionController polls for receipts to determine transaction status
-        // Without this, transactions will remain in "pending" status
-        result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT;
-      }
-      // For other methods, return empty result (base mocks will handle them)
+      // Return the current global balance (not a captured value)
+      // This ensures the mock always returns the latest balance after updates
 
       return {
         statusCode: 200,
         json: {
           id: body?.id ?? 50,
           jsonrpc: '2.0',
-          result,
+          result: currentUSDCBalance,
         },
       };
     });
@@ -1516,9 +1528,6 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
     });
   await POLYMARKET_ADD_CELTICS_POSITION_MOCKS(mockServer);
   await POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS(mockServer);
-
-  // Update balance after opening position
-  // await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
 };
 
 /**

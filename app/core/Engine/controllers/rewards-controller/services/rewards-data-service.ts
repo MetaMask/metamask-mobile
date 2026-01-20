@@ -22,6 +22,7 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   SeasonStateDto,
+  LineaTokenRewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -178,6 +179,11 @@ export interface RewardsDataServiceGetSeasonMetadataAction {
   handler: RewardsDataService['getSeasonMetadata'];
 }
 
+export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
+  type: `${typeof SERVICE_NAME}:getSeasonOneLineaRewardTokens`;
+  handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -197,7 +203,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetUnlockedRewardsAction
   | RewardsDataServiceClaimRewardAction
   | RewardsDataServiceGetDiscoverSeasonsAction
-  | RewardsDataServiceGetSeasonMetadataAction;
+  | RewardsDataServiceGetSeasonMetadataAction
+  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -315,6 +322,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonMetadata`,
       this.getSeasonMetadata.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
+      this.getSeasonOneLineaRewardTokens.bind(this),
     );
   }
 
@@ -908,8 +919,8 @@ export class RewardsDataService {
   }
 
   /**
-   * Get discover seasons information (current and next season).
-   * @returns The discover seasons DTO with current and next season information.
+   * Get discover seasons information (previous, current and next season).
+   * @returns The discover seasons DTO with previous, current and next season information.
    */
   async getDiscoverSeasons(): Promise<DiscoverSeasonsDto> {
     const response = await this.makeRequest('/public/seasons/status', {
@@ -921,6 +932,16 @@ export class RewardsDataService {
     }
 
     const data = await response.json();
+
+    // Convert date strings to Date objects for previous season
+    if (data.previous) {
+      if (data.previous.startDate) {
+        data.previous.startDate = new Date(data.previous.startDate);
+      }
+      if (data.previous.endDate) {
+        data.previous.endDate = new Date(data.previous.endDate);
+      }
+    }
 
     // Convert date strings to Date objects for current season
     if (data.current) {
@@ -939,6 +960,20 @@ export class RewardsDataService {
       }
       if (data.next.endDate) {
         data.next.endDate = new Date(data.next.endDate);
+      }
+    }
+
+    // Coerce: if current season exists but end date has passed, set it as previous
+    if (data.current?.endDate) {
+      const now = new Date();
+      const endDate =
+        data.current.endDate instanceof Date
+          ? data.current.endDate
+          : new Date(data.current.endDate);
+
+      if (endDate <= now) {
+        data.previous = data.current;
+        data.current = null;
       }
     }
 
@@ -978,5 +1013,36 @@ export class RewardsDataService {
     }
 
     return data as SeasonMetadataDto;
+  }
+
+  /**
+   * Get Season 1 Linea token reward for the subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The Linea token reward DTO or null if not found.
+   */
+  async getSeasonOneLineaRewardTokens(
+    subscriptionId: string,
+  ): Promise<LineaTokenRewardDto | null> {
+    const response = await this.makeRequest(
+      '/rewards/season-1/linea-tokens',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok || response.status === 404) {
+      throw new Error(
+        `Failed to get Season 1 Linea reward tokens: ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+
+    // Convert bigint to string if backend sends it as a number
+    return {
+      subscriptionId: data.subscriptionId,
+      amount: String(data.amount),
+    } as LineaTokenRewardDto;
   }
 }

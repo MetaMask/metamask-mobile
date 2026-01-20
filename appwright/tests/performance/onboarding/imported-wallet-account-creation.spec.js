@@ -27,7 +27,6 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   AddNewHdAccountComponent.device = device;
-
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
@@ -36,29 +35,19 @@ test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   const screen1Timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
   );
-  const screen2Timer = new TimerHelper(
-    'Time since the user clicks on "Create account" button until the account is in the account list',
-  );
+
   const screen3Timer = new TimerHelper(
     'Time since the user clicks on new account created until the Token list is visible',
   );
 
-  screen1Timer.start();
   await WalletMainScreen.tapIdenticon();
-  await AccountListComponent.isComponentDisplayed();
-  screen1Timer.stop();
-  screen2Timer.start();
+  await screen1Timer.measure(() => AccountListComponent.isComponentDisplayed());
+
   await AccountListComponent.tapCreateAccountButton();
-  screen2Timer.stop();
-  //await AccountListComponent.tapOnAccountByName('Account 4');
+  await screen3Timer.measure(async () => {
+    await WalletMainScreen.isTokenVisible('SOL');
+  });
 
-  screen3Timer.start();
-  await WalletMainScreen.isTokenVisible('ETH');
-  screen3Timer.stop();
-
-  performanceTracker.addTimer(screen1Timer);
-  performanceTracker.addTimer(screen2Timer);
-  performanceTracker.addTimer(screen3Timer);
-
+  performanceTracker.addTimers(screen1Timer, screen3Timer);
   await performanceTracker.attachToTest(testInfo);
 });

@@ -12,10 +12,6 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -33,7 +29,6 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import useBalance from '../../hooks/useBalance';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 import useVaultApyAverages from '../../hooks/useVaultApyAverages';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
@@ -49,10 +44,7 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../components/hooks/useFeatureFlag';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
@@ -74,11 +66,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const isPooledStakingEnabled = useFeatureFlag(
-    FeatureFlagNames.earnPooledStakingEnabled,
-  );
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
-  const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
   const { styles } = useStyles(styleSheet, { theme });
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
@@ -148,7 +137,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   ]);
 
   if (!isStakingSupportedChain) {
-    return <></>;
+    return null;
   }
 
   const renderStakingContent = () => {
@@ -157,17 +146,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         <SkeletonPlaceholder>
           <SkeletonPlaceholder.Item height={50} borderRadius={6} />
         </SkeletonPlaceholder>
-      );
-    }
-
-    if (!isEligibleForPooledStaking) {
-      return (
-        <Banner
-          variant={BannerVariant.Alert}
-          severity={BannerAlertSeverity.Info}
-          description={strings('stake.banner_text.geo_blocked')}
-          style={styles.bannerStyles}
-        />
       );
     }
 

@@ -26,13 +26,15 @@ import { NetworkRow } from '../NetworkRow';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import { BridgeSourceNetworkSelectorSelectorsIDs } from './BridgeSourceNetworkSelector.testIds';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import { useAutoUpdateDestToken } from '../../hooks/useAutoUpdateDestToken';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -95,6 +97,7 @@ export const BridgeSourceNetworkSelector: React.FC<
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
   );
+  const { autoUpdateDestToken } = useAutoUpdateDestToken();
 
   // Local state for candidate network selections
   const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<
@@ -140,14 +143,16 @@ export const BridgeSourceNetworkSelector: React.FC<
 
     // If there's only 1 network selected, set the source token to native token of that chain and switch chains
     if (newSelectedSourceChainids.length === 1) {
+      const newSourceChainId = newSelectedSourceChainids[0] as
+        | Hex
+        | CaipChainId;
+      const newSourceToken = getNativeSourceToken(newSourceChainId);
+
       // Reset the source token
-      dispatch(
-        setSourceToken(
-          getNativeSourceToken(
-            newSelectedSourceChainids[0] as Hex | CaipChainId,
-          ),
-        ),
-      );
+      dispatch(setSourceToken(newSourceToken));
+
+      // Auto-update destination token when source chain changes AND dest wasn't manually set
+      autoUpdateDestToken(newSourceToken);
 
       const evmNetworkConfiguration =
         evmNetworkConfigurations[newSelectedSourceChainids[0] as Hex];
@@ -170,6 +175,7 @@ export const BridgeSourceNetworkSelector: React.FC<
     enabledSourceChainIds,
     evmNetworkConfigurations,
     onSetRpcTarget,
+    autoUpdateDestToken,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
     ///: END:ONLY_INCLUDE_IF
@@ -235,7 +241,9 @@ export const BridgeSourceNetworkSelector: React.FC<
               />
               <NetworkRow
                 chainId={chain.chainId}
-                chainName={chain.name}
+                chainName={
+                  NETWORK_TO_SHORT_NETWORK_NAME_MAP[chain.chainId] ?? chain.name
+                }
                 showNoNetworkFeeLabel={isGasFeesSponsoredNetworkEnabled(
                   chain.chainId as Hex,
                 )}
