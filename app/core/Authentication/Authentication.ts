@@ -351,7 +351,8 @@ class AuthenticationService {
 
     const isBiometryDisabled =
       (await StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED)) === TRUE;
-    const isPasscodeDisabled = await StorageWrapper.getItem(PASSCODE_DISABLED);
+    const isPasscodeDisabled =
+      (await StorageWrapper.getItem(PASSCODE_DISABLED)) === TRUE;
 
     // Remember me should take priority over biometric/passcode
     const existingUser = selectExistingUser(ReduxService.store.getState());
