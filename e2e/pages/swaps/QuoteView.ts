@@ -4,7 +4,7 @@ import Gestures from '../../../tests/framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../../app/components/UI/Swaps/QuoteView.testIds';
+} from '../../selectors/Bridge/QuoteView.selectors';
 
 const TOKEN_LIST_MATCHER = by.id(QuoteViewSelectorIDs.TOKEN_LIST);
 

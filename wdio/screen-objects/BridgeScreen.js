@@ -3,7 +3,7 @@ import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
-import { QuoteViewSelectorText } from '../../app/components/UI/Swaps/QuoteView.testIds';
+import { QuoteViewSelectorText } from '../../e2e/selectors/Bridge/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
