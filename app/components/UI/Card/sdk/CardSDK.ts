@@ -1021,25 +1021,73 @@ export class CardSDK {
     delegationSettings: DelegationSettingsNetwork[],
   ) => {
     const { network, currency } = cardWalletExternal;
+    const caipChainId = cardNetworkInfos[network]?.caipChainId;
+
+    // Get supported tokens for this network (used for fallback token details)
+    const supportedTokens = caipChainId
+      ? this.getSupportedTokensByChainId(caipChainId)
+      : [];
+
     const delegationSettingNetwork = delegationSettings.find(
       (delegationSetting) =>
         delegationSetting.network?.toLowerCase() === network?.toLowerCase(),
     );
 
+    // Fallback: Network not in delegation settings
+    // Use supported tokens for display, but disable delegation (empty contract)
     if (!delegationSettingNetwork) {
-      return null;
+      if (!caipChainId) {
+        return null;
+      }
+
+      const matchingToken = supportedTokens.find(
+        (token) => token.symbol?.toLowerCase() === currency?.toLowerCase(),
+      );
+
+      if (!matchingToken) {
+        return null;
+      }
+
+      const tokenDetails = this.mapSupportedTokenToCardToken(matchingToken);
+
+      return {
+        symbol: tokenDetails.symbol,
+        address: tokenDetails.address,
+        decimals: tokenDetails.decimals ?? 18,
+        decimalChainId: parseInt(caipChainId.split(':')[1], 10),
+        name: tokenDetails.name,
+        delegationContractAddress: '', // Empty - delegation disabled for this network
+        stagingTokenAddress: null,
+      };
     }
 
     const delegationSettingToken =
       delegationSettingNetwork.tokens[currency?.toLowerCase() ?? ''];
 
+    // Fallback: Token not in delegation settings for this network
+    // Use supported tokens for display, but disable delegation (empty contract)
     if (!delegationSettingToken) {
-      return null;
+      const matchingToken = supportedTokens.find(
+        (token) => token.symbol?.toLowerCase() === currency?.toLowerCase(),
+      );
+
+      if (!matchingToken) {
+        return null;
+      }
+
+      const tokenDetails = this.mapSupportedTokenToCardToken(matchingToken);
+
+      return {
+        symbol: tokenDetails.symbol,
+        address: tokenDetails.address,
+        decimals: tokenDetails.decimals ?? 18,
+        decimalChainId: delegationSettingNetwork.chainId,
+        name: tokenDetails.name,
+        delegationContractAddress: '',
+        stagingTokenAddress: null,
+      };
     }
 
-    const supportedTokens = this.getSupportedTokensByChainId(
-      cardNetworkInfos[cardWalletExternal.network].caipChainId,
-    );
     const tokenDetails = this.mapSupportedTokenToCardToken(
       supportedTokens.find(
         (token) =>
