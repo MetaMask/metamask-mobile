@@ -147,12 +147,12 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
         <RefreshControlMock
           colors={
             [
-              "#8b99ff",
+              "#4459ff",
             ]
           }
           onRefresh={[MockFunction]}
           refreshing={false}
-          tintColor="#8b99ff"
+          tintColor="#4459ff"
         />
       }
       style={
