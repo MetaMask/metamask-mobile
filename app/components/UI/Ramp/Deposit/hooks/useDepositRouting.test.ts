@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { BuyQuote, DepositRegion } from '@consensys/native-ramps-sdk';
 import { KycStatus, REDIRECTION_URL } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
@@ -159,7 +159,7 @@ jest.mock('./useDepositSdkMethod', () => ({
 }));
 
 const mockLogoutFromProvider = jest.fn();
-const mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
+let mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
 let mockSelectedPaymentMethod = {
   isManualBankTransfer: false,
   id: 'credit_debit_card',
@@ -223,6 +223,7 @@ describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockSelectedRegion = { isoCode: 'US', currency: 'USD' };
     mockSelectedPaymentMethod = {
       isManualBankTransfer: false,
       id: 'credit_debit_card',
@@ -1146,6 +1147,29 @@ describe('useDepositRouting', () => {
       });
     });
 
+    it('tracks RAMPS_KYC_STARTED event with empty region when selectedRegion is missing for NOT_SUBMITTED status', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockSelectedRegion = null;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+        region: '',
+      });
+    });
+
     it('tracks RAMPS_KYC_STARTED event with kyc_type STANDARD when Level 2 KYC (IDPROOF) is required', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
@@ -1175,6 +1199,76 @@ describe('useDepositRouting', () => {
         ramp_type: 'DEPOSIT',
         kyc_type: 'STANDARD',
         region: 'US',
+      });
+    });
+
+    it('tracks RAMPS_KYC_STARTED event with empty region when selectedRegion is missing', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockSelectedRegion = null;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'test-kyc-url',
+              workFlowRunId: 'test-workflow-run-id',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'STANDARD',
+        region: '',
+      });
+    });
+
+    it('tracks RAMPS_KYC_STARTED event with empty region when selectedRegion.isoCode is missing', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockSelectedRegion = {
+        currency: 'USD',
+      } as Partial<DepositRegion> as DepositRegion | null;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'test-kyc-url',
+              workFlowRunId: 'test-workflow-run-id',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'STANDARD',
+        region: '',
       });
     });
 
