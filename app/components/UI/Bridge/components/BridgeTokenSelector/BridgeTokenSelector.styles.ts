@@ -30,18 +30,9 @@ export const createStyles = (params: { theme: Theme }) => {
     emptyStateContainer: {
       flex: 1,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       paddingHorizontal: 32,
-      paddingVertical: 48,
-    },
-    emptyStateTitle: {
-      marginTop: 16,
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    emptyStateDescription: {
-      textAlign: 'center',
-      marginBottom: 16,
+      paddingTop: 100,
     },
   });
 };

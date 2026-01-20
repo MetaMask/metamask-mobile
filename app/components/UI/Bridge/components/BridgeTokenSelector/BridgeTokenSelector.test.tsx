@@ -154,9 +154,12 @@ jest.mock('../../hooks/useTokenSelection', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-jest.mock('../../../Navbar', () => ({
-  getBridgeTokenSelectorNavbar: jest.fn(() => ({})),
-}));
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderCenter',
+  () => ({
+    getHeaderCenterNavbarOptions: jest.fn(() => ({})),
+  }),
+);
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({

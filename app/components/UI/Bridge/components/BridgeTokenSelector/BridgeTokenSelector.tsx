@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
+import { getHeaderCenterNavbarOptions } from '../../../../../component-library/components-temp/HeaderCenter';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
@@ -43,6 +43,7 @@ import { useAssetFromTheme } from '../../../../../util/theme';
 import NoSearchResultsLight from '../../../../../images/predictions-no-search-results-light.svg';
 import NoSearchResultsDark from '../../../../../images/predictions-no-search-results-dark.svg';
 import { SkeletonItem } from '../BridgeTokenSelectorBase';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { BridgeToken } from '../../types';
@@ -98,7 +99,13 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Set navigation options for header
   useEffect(() => {
-    navigation.setOptions(getBridgeTokenSelectorNavbar(navigation));
+    navigation.setOptions(
+      getHeaderCenterNavbarOptions({
+        title: strings('bridge.select_token'),
+        onBack: () => navigation.goBack(),
+        includesTopInset: true,
+      }),
+    );
   }, [navigation]);
 
   // Use custom hook for token selection
@@ -454,33 +461,31 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     return (
-      <Box
+      <TabEmptyState
         testID="bridge-token-selector-empty-state"
+        icon={<NoSearchResultsIcon width={72} height={78} />}
+        description={strings('bridge.no_tokens_found')}
+        descriptionProps={{
+          variant: TextVariant.HeadingMd,
+          color: TextColor.TextDefault,
+          twClassName: 'text-center',
+        }}
         style={styles.emptyStateContainer}
+        twClassName="self-center"
       >
-        <NoSearchResultsIcon width={72} height={78} />
-        <Text
-          variant={TextVariant.HeadingMd}
-          color={TextColor.TextDefault}
-          style={styles.emptyStateTitle}
-        >
-          {strings('bridge.no_tokens_found')}
-        </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          style={styles.emptyStateDescription}
+          twClassName="text-center -mt-1"
         >
           {strings('bridge.no_tokens_found_description')}
         </Text>
-      </Box>
+      </TabEmptyState>
     );
   }, [
     isValidSearch,
     isSearchLoading,
     styles.emptyStateContainer,
-    styles.emptyStateTitle,
-    styles.emptyStateDescription,
     NoSearchResultsIcon,
   ]);
 

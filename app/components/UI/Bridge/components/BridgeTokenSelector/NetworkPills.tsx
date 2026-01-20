@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Pressable } from 'react-native';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectEnabledChainRanking } from '../../../../../core/redux/slices/bridge';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
+import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
+import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 
 const PILL_WIDTH = 90; // Average pill width including gap
 
@@ -57,21 +57,13 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       const isSelected = selectedChainId === chain.chainId;
 
       return (
-        <Pressable
+        <ButtonToggle
           key={chain.chainId}
-          style={tw.style(
-            'rounded-lg border border-border-muted px-3 py-1.5',
-            isSelected ? 'bg-icon-default' : 'bg-background-default',
-          )}
+          label={chain.name}
+          isActive={isSelected}
           onPress={() => handleChainPress(chain.chainId)}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName={isSelected ? 'text-icon-inverse' : undefined}
-          >
-            {chain.name}
-          </Text>
-        </Pressable>
+          size={ButtonSize.Sm}
+        />
       );
     });
 
@@ -85,20 +77,12 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       onContentSizeChange={handleContentSizeChange}
     >
       {/* All CTA - First pill */}
-      <Pressable
-        style={tw.style(
-          'rounded-lg border border-border-muted px-3 py-1.5',
-          !selectedChainId ? 'bg-icon-default' : 'bg-background-default',
-        )}
+      <ButtonToggle
+        label={strings('bridge.all')}
+        isActive={!selectedChainId}
         onPress={handleAllPress}
-      >
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName={!selectedChainId ? 'text-icon-inverse' : undefined}
-        >
-          {strings('bridge.all')}
-        </Text>
-      </Pressable>
+        size={ButtonSize.Sm}
+      />
       {renderChainPills()}
     </ScrollView>
   );
