@@ -597,6 +597,10 @@ export class CardSDK {
         );
       }
 
+      if (response.status === 400 && !!otpCode) {
+        throw new CardError(CardErrorType.INVALID_OTP_CODE, 'Invalid OTP code');
+      }
+
       // Handle specific HTTP status codes
       if (
         response.status === 401 ||

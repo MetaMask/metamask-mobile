@@ -314,53 +314,6 @@ const ExploreHome = () => (
       component={ExploreFeed}
       options={{ headerShown: false }}
     />
-    <Stack.Screen
-      name={Routes.EXPLORE_SEARCH}
-      component={ExploreSearchScreen}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
-    <Stack.Screen
-      name={Routes.SITES_FULL_VIEW}
-      component={SitesFullView}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
-
-    {/* Trending Browser Stack (uses existing browser flow) */}
-    <Stack.Screen
-      name={Routes.BROWSER.HOME}
-      component={BrowserFlow}
-      options={{ headerShown: false }}
-    />
   </Stack.Navigator>
 );
 
@@ -921,6 +874,10 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
+  // Get feature flag state for conditional Trending Tokens screen registration
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
+  );
 
   return (
     <Stack.Navigator
@@ -1233,6 +1190,70 @@ const MainNavigator = () => {
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
             options={clearStackNavigatorOptions}
+          />
+        </>
+      )}
+      {isAssetsTrendingTokensEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.EXPLORE_SEARCH}
+            component={ExploreSearchScreen}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
+          />
+          <Stack.Screen
+            name={Routes.SITES_FULL_VIEW}
+            component={SitesFullView}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
+          />
+          <Stack.Screen
+            name={Routes.BROWSER.HOME}
+            component={BrowserFlow}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
           />
         </>
       )}
