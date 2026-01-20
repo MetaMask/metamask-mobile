@@ -20,6 +20,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { useNetInfo } from '@react-native-community/netinfo';
 import Logger from '../../../util/Logger';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const mockEngine = jest.mocked(Engine);
 
@@ -747,6 +748,7 @@ describe('OAuthRehydration', () => {
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Error: Cancel'),
       );
+      mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -760,6 +762,12 @@ describe('OAuthRehydration', () => {
 
       // Assert
       expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
     });
 
     it('does not track REHYDRATION_PASSWORD_FAILED when iOS biometric is cancelled', async () => {
@@ -767,6 +775,7 @@ describe('OAuthRehydration', () => {
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
       );
+      mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -780,6 +789,12 @@ describe('OAuthRehydration', () => {
 
       // Assert
       expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
     });
   });
 });
