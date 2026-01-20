@@ -139,6 +139,7 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
+        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -169,6 +170,7 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
+        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -193,6 +195,7 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
+        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -225,6 +228,7 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
+        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -256,6 +260,7 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
+        // @ts-expect-error - initialState is not typed entirely correct
         state: initialState,
       },
     );
@@ -273,6 +278,8 @@ describe('SRPList', () => {
         onActionComplete={mockOnKeyringSelect}
       />,
       {
+        // @ts-expect-error - initialState is not typed entirely correct
+
         state: initialState,
       },
     );
