@@ -325,3 +325,21 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
     return remoteValue ?? localValue ?? FALLBACK_MIN_ASSET_BALANCE_REQUIRED;
   },
 );
+
+/**
+ * Selector for Merkl campaign claiming feature flag
+ * Controls visibility of Merkl rewards claiming functionality in the UI
+ *
+ * @returns boolean - true if Merkl campaign claiming should be shown, false otherwise
+ */
+export const selectMerklCampaignClaimingEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
