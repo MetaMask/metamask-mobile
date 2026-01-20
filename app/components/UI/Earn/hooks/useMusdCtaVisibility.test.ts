@@ -871,14 +871,12 @@ describe('useMusdCtaVisibility', () => {
         expect(isEmptyWallet).toBe(false);
       });
 
-      it('returns isEmptyWallet true when accountBalance is null', () => {
+      it('returns isEmptyWallet false when accountBalance is null', () => {
         mockAccountBalance = null;
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { isEmptyWallet } = result.current.shouldShowBuyGetMusdCta();
 
-        // totalBalanceInUserCurrency === 0 is false when accountBalance is null
-        // so isEmptyWallet should be false
         expect(isEmptyWallet).toBe(false);
       });
 
