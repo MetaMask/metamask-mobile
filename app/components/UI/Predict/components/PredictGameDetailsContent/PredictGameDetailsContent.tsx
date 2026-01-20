@@ -1,51 +1,34 @@
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Text,
-  TextVariant,
-  TextColor,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
-import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
-import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
-import PredictSportTeamGradient from '../PredictSportTeamGradient';
-import PredictSportScoreboard from '../PredictSportScoreboard';
-import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
-
-const formatGameDateTime = (
-  startTime: string,
-): { date: string; time: string } => {
-  const dateObj = new Date(startTime);
-  const date = dateObj.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-  const time = dateObj.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  });
-  return { date, time };
-};
+import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import PredictSportScoreboard from '../PredictSportScoreboard';
+import PredictSportTeamGradient from '../PredictSportTeamGradient';
+import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
+import { useTheme } from '../../../../../util/theme';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -72,15 +55,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
-  const tokenIds = useMemo(
-    () => (outcome?.tokens ?? []).map((t) => t.id),
-    [outcome?.tokens],
-  );
-
-  const gameDateTime = useMemo(
-    () => (game ? formatGameDateTime(game.startTime) : null),
-    [game],
-  );
 
   if (!outcome || !game) {
     return null;
@@ -140,45 +114,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             />
           }
         >
-          <PredictSportScoreboard
-            awayTeam={{
-              abbreviation: game.awayTeam.abbreviation,
-              color: game.awayTeam.color,
-            }}
-            homeTeam={{
-              abbreviation: game.homeTeam.abbreviation,
-              color: game.homeTeam.color,
-            }}
-            awayScore={game.score?.away}
-            homeScore={game.score?.home}
-            gameStatus={game.status}
-            period={game.period}
-            eventTitle={market.title}
-            date={gameDateTime?.date}
-            time={gameDateTime?.time}
-            quarter={game.period ?? undefined}
-            turn={game.turn}
-            testID="game-scoreboard"
-          />
+          <Box twClassName="px-4 py-2">
+            <PredictSportScoreboard game={game} testID="game-scoreboard" />
+          </Box>
 
-          {tokenIds.length === 2 && (
-            <Box twClassName="mt-4">
-              <PredictGameChart
-                tokenIds={tokenIds as [string, string]}
-                seriesConfig={[
-                  {
-                    label: game.awayTeam.abbreviation,
-                    color: game.awayTeam.color,
-                  },
-                  {
-                    label: game.homeTeam.abbreviation,
-                    color: game.homeTeam.color,
-                  },
-                ]}
-                testID="game-chart"
-              />
-            </Box>
-          )}
+          <Box twClassName="mt-4">
+            <PredictGameChart market={market} testID="game-chart" />
+          </Box>
 
           <Box twClassName="px-4 py-2">
             <PredictPicks market={market} testID="game-picks" />

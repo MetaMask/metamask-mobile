@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SECTIONS_ARRAY, SectionId } from '../../sections.config';
+import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
 interface QuickActionsProps {
   /** Set of section IDs that have empty data and should be hidden */
@@ -32,7 +33,11 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
 
   return (
     <Box twClassName="mt-1 mb-4">
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        testID={TrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW}
+      >
         <Box twClassName="flex-row gap-2">
           {visibleSections.map((section) => (
             <TouchableOpacity

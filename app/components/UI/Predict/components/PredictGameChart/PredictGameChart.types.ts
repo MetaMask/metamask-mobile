@@ -1,24 +1,17 @@
-/**
- * Data point for game chart series
- */
+import { PredictMarket } from '../../types';
+
 export interface GameChartDataPoint {
   timestamp: number;
   value: number;
 }
 
-/**
- * Series configuration for game chart
- */
 export interface GameChartSeries {
   label: string;
   color: string;
   data: GameChartDataPoint[];
 }
 
-/**
- * Available chart timeframes
- */
-export type ChartTimeframe = 'live' | '6h' | '1d' | 'max';
+export type ChartTimeframe = 'live' | '1h' | '6h' | '1d' | 'max';
 
 export interface GameChartSeriesConfig {
   label: string;
@@ -32,12 +25,12 @@ export interface PredictGameChartContentProps {
   onRetry?: () => void;
   timeframe?: ChartTimeframe;
   onTimeframeChange?: (timeframe: ChartTimeframe) => void;
+  disabledTimeframeSelector?: boolean;
   testID?: string;
 }
 
 export interface PredictGameChartProps {
-  tokenIds: [string, string];
-  seriesConfig: [GameChartSeriesConfig, GameChartSeriesConfig];
+  market: PredictMarket;
   providerId?: string;
   testID?: string;
 }
