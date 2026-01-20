@@ -64,14 +64,14 @@ export function useRampsProviders(
       state.engine.backgroundState.RampsController?.userRegion,
   );
 
-  const regionToUse = useMemo(
+  const regionCode = useMemo(
     () => region ?? userRegion?.regionCode ?? '',
     [region, userRegion?.regionCode],
   );
 
   const requestSelector = useMemo(
-    () => selectProvidersRequest(regionToUse, filterOptions),
-    [regionToUse, filterOptions],
+    () => selectProvidersRequest(regionCode, filterOptions),
+    [regionCode, filterOptions],
   );
 
   const { isFetching, error } = useSelector(
@@ -89,10 +89,10 @@ export function useRampsProviders(
       },
     ) =>
       await Engine.context.RampsController.getProviders(
-        fetchRegion ?? regionToUse,
+        fetchRegion ?? regionCode,
         options,
       ),
-    [regionToUse],
+    [regionCode],
   );
 
   return {
