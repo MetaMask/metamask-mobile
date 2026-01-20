@@ -24,6 +24,7 @@ import { toHex } from '@metamask/controller-utils';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 /**
  * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
@@ -140,8 +141,7 @@ export const useMusdCtaVisibility = () => {
   );
 
   /**
-   * Buy/Get mUSD CTA depends on MM_RAMPS_UNIFIED_BUY_V1_ENABLED flag being enabled.
-   * If the flag is enabled, the buy/get mUSD CTA is shown.
+   * Note: shouldShowBuyGetMusdCta depends on MM_RAMPS_UNIFIED_BUY_V1_ENABLED flag being enabled.
    */
   const shouldShowBuyGetMusdCta = useCallback(() => {
     // If the buy/get mUSD CTA feature flag is disabled, don't show the buy/get mUSD CTA
@@ -211,6 +211,11 @@ export const useMusdCtaVisibility = () => {
   const shouldShowTokenListItemCta = useCallback(
     (asset?: TokenI) => {
       if (!isMusdConversionTokenListItemCtaEnabled || !asset?.chainId) {
+        return false;
+      }
+
+      // mUSD needs to be available only on EVM chains
+      if (isNonEvmChainId(asset.chainId)) {
         return false;
       }
 

@@ -54,6 +54,7 @@ import { getCardBaanxToken } from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -594,6 +595,10 @@ export class CardSDK {
           CardErrorType.ACCOUNT_DISABLED,
           responseBody?.message,
         );
+      }
+
+      if (response.status === 400 && !!otpCode) {
+        throw new CardError(CardErrorType.INVALID_OTP_CODE, 'Invalid OTP code');
       }
 
       // Handle specific HTTP status codes
@@ -1149,9 +1154,15 @@ export class CardSDK {
     );
 
     if (!response.ok) {
+      let errorMessage = strings('card.card_home.enable_card_error');
+
       try {
         const errorResponse = await response.json();
         Logger.log(errorResponse, 'Failed to provision card.');
+
+        if (errorResponse?.message) {
+          errorMessage = errorResponse.message;
+        }
       } catch (error) {
         Logger.error(
           error as Error,
@@ -1159,10 +1170,7 @@ export class CardSDK {
         );
       }
 
-      throw new CardError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to provision card. Please try again.',
-      );
+      throw new CardError(CardErrorType.SERVER_ERROR, errorMessage);
     }
 
     return (await response.json()) as { success: boolean };

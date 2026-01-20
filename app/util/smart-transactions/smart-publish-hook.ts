@@ -5,6 +5,7 @@ import {
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
+  SignedTransactionWithMetadata,
   SmartTransactionsController,
   SmartTransactionsControllerSmartTransactionEvent,
   SmartTransactionStatuses,
@@ -26,7 +27,7 @@ import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
 import { Messenger } from '@metamask/messenger';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
-import { isLegacyTransaction } from '../transactions';
+import { getTransactionById, isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 type AllowedActions = never;
@@ -443,6 +444,7 @@ class SmartTransactionHook {
   }: {
     getFeesResponse?: Fees;
   } = {}) => {
+    let signedTransactionsWithMetadata: SignedTransactionWithMetadata[] = [];
     let signedTransactions: string[] = [];
     if (
       this.#transactions &&
@@ -450,20 +452,41 @@ class SmartTransactionHook {
       this.#transactions.length > 0
     ) {
       // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
-      signedTransactions = this.#transactions
+      signedTransactionsWithMetadata = this.#transactions
         .filter((tx) => tx?.signedTx)
-        .map((tx) => tx.signedTx);
+        .map((tx) => {
+          const transactionMeta = getTransactionById(
+            tx.id ?? '',
+            this.#transactionController,
+          );
+          const signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx };
+          if (transactionMeta) {
+            signedTx.metadata = { txType: transactionMeta.type };
+          }
+          return signedTx;
+        });
     } else if (this.#signedTransactionInHex) {
       // Single transaction mode with pre-signed transaction
-      signedTransactions = [this.#signedTransactionInHex];
+      signedTransactionsWithMetadata = [
+        {
+          tx: this.#signedTransactionInHex,
+          metadata: { txType: this.#transactionMeta.type },
+        },
+      ];
     } else if (getFeesResponse) {
-      signedTransactions = await this.#createSignedTransactions(
+      const signed = await this.#createSignedTransactions(
         getFeesResponse.tradeTxFees?.fees ?? [],
         false,
       );
+      signedTransactionsWithMetadata = signed.map((signedTx) => ({
+        tx: signedTx,
+        metadata: { txType: this.#transactionMeta.type },
+      }));
     }
+    signedTransactions = signedTransactionsWithMetadata.map((tx) => tx.tx);
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
+      signedTransactionsWithMetadata,
       signedCanceledTransactions: [],
       txParams: this.#txParams,
       transactionMeta: this.#transactionMeta,

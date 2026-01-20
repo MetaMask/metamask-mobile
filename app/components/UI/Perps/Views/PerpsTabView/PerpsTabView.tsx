@@ -82,7 +82,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
+  // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [
