@@ -348,11 +348,10 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await StorageWrapper.getItem(
-      BIOMETRY_CHOICE_DISABLED,
-    );
-    const passcodePreviouslyDisabled =
-      await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    const isBiometryDisabled =
+      (await StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED)) === TRUE;
+    const isPasscodeDisabled = await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     // Remember me should take priority over biometric/passcode
     const existingUser = selectExistingUser(ReduxService.store.getState());
@@ -368,20 +367,14 @@ class AuthenticationService {
       }
     }
 
-    if (
-      availableBiometryType &&
-      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
-    ) {
+    if (availableBiometryType && !isBiometryDisabled) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType,
       };
     }
     // Then check passcode
-    if (
-      availableBiometryType &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
-    ) {
+    if (availableBiometryType && !isPasscodeDisabled) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType,
