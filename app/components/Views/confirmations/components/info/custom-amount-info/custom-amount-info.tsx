@@ -1,8 +1,7 @@
-import React, { ReactNode, memo, useCallback, useMemo, useState } from 'react';
+import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
-import { NetworkFeeRow } from '../../rows/network-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
 import { PercentageRow } from '../../rows/percentage-row';
@@ -86,7 +85,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
 
-    const transactionMeta = useTransactionMetadataRequest();
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
@@ -124,15 +122,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible(true);
     }, []);
 
-    const feeRow = useMemo(() => {
-      if (
-        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-      ) {
-        return <NetworkFeeRow />;
-      }
-      return <BridgeFeeRow />;
-    }, [transactionMeta]);
-
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
@@ -162,7 +151,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <AlertMessage alertMessage={alertMessage} />
           {isResultReady && (
             <Box>
-              {feeRow}
+              <BridgeFeeRow />
               <BridgeTimeRow />
               <TotalRow />
               <PercentageRow />
