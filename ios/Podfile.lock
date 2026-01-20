@@ -2939,7 +2939,7 @@ PODS:
   - SDWebImage (5.19.7):
     - SDWebImage/Core (= 5.19.7)
   - SDWebImage/Core (5.19.7)
-  - SDWebImageAVIFCoder (0.11.1):
+  - SDWebImageAVIFCoder (0.11.0):
     - libavif/core (>= 0.11.0)
     - SDWebImage (~> 5.10)
   - SDWebImageSVGCoder (1.7.0):
@@ -3640,7 +3640,7 @@ SPEC CHECKSUMS:
   RNSVG: 3a1cce2e940268a7d3554e3cf2bbd2195871f4fe
   RNVectorIcons: 3bf5f38dcb1aaf587c4101e9f3fcad5c8f5a88b2
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
-  SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
+  SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   segment-analytics-react-native: 6f98edf18246782ee7428c5380c6519a3d2acf5e
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
