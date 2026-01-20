@@ -29,11 +29,9 @@ loadJSEnv(){
 # Load JS env variables
 loadJSEnv
 
-if [ "$PLATFORM" != "watcher" ]; then
-	# Use the values from the environment variables when platform is watcher
-	export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
-	export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
-fi
+# Always apply ENVIRONMENT arg if provided (overrides .js.env)
+export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 
 # Enable Sentry to auto upload source maps and debug symbols
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}

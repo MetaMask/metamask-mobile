@@ -21,7 +21,6 @@ import { Mockttp } from 'mockttp';
 import {
   AuthServer,
   AUTH_SERVICE_BASE_URL,
-  MetadataService,
   E2E_EMAILS,
   E2EScenario,
   E2ELoginProvider,
@@ -252,76 +251,102 @@ export class OAuthMockttpService {
   }
 
   /**
+   * Helper to decode the proxied URL from /proxy?url=<encoded_url>
+   */
+  private getDecodedProxiedURL(url: string): string {
+    try {
+      return decodeURIComponent(String(new URL(url).searchParams.get('url')));
+    } catch {
+      return '';
+    }
+  }
+
+  /**
    * Proxy Auth Server token requests to backend QA mock
    *
    * This is the key integration point:
-   * - App calls: https://auth-service.uat-api.cx.metamask.io/api/v1/oauth/token
-   * - We proxy to: /api/v1/qa/mock/oauth/token
+   * - App calls: /proxy?url=https://auth-service.../api/v1/oauth/token
+   * - We intercept and proxy to: /api/v1/qa/mock/oauth/token
    * - Backend returns valid tokens
    */
   private async setupAuthServerProxy(server: Mockttp): Promise<void> {
     // Proxy token requests to backend QA mock
-    // Use full URL pattern to match external auth server requests
+    // Use /proxy pattern to match mobile proxy requests
     const tokenEndpoint = `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/token`;
     console.log(`[E2E MockServer] Registering mock for: ${tokenEndpoint}`);
 
-    await server.forPost(tokenEndpoint).thenCallback(async (request) => {
-      console.log(`[E2E MockServer] ✅ INTERCEPTED: POST ${tokenEndpoint}`);
-      try {
-        const requestBody = (await request.body.getText()) || '{}';
-        const body = JSON.parse(requestBody);
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/api/v1/oauth/token');
+      })
+      .asPriority(1000) // High priority to override default handlers
+      .thenCallback(async (request) => {
+        const decodedUrl = this.getDecodedProxiedURL(request.url);
         console.log(
-          `[E2E MockServer] Request body:`,
-          JSON.stringify(body, null, 2),
+          `[E2E MockServer] ✅ INTERCEPTED via /proxy: POST ${decodedUrl}`,
         );
+        try {
+          const requestBody = (await request.body.getText()) || '{}';
+          const body = JSON.parse(requestBody);
+          console.log(
+            `[E2E MockServer] Request body:`,
+            JSON.stringify(body, null, 2),
+          );
 
-        // Override email with E2E email for scenario selection
-        body.email = this.config.email;
-        body.login_provider = this.config.loginProvider;
+          // Override email with E2E email for scenario selection
+          body.email = this.config.email;
+          body.login_provider = this.config.loginProvider;
 
-        console.log(
-          `[E2E] Proxying OAuth token request for: ${this.config.email}`,
-        );
-        console.log(`[E2E] Proxying to: ${AuthServer.MockRequestToken}`);
+          console.log(
+            `[E2E] Proxying OAuth token request for: ${this.config.email}`,
+          );
+          console.log(`[E2E] Proxying to: ${AuthServer.MockRequestToken}`);
 
-        // Call backend QA mock endpoint
-        const response = await fetch(AuthServer.MockRequestToken, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add internal secret header if required by backend
-            'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
-          },
-          body: JSON.stringify(body),
-        });
+          // Call backend QA mock endpoint
+          const response = await fetch(AuthServer.MockRequestToken, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // Add internal secret header if required by backend
+              'X-Internal-Secret': process.env.E2E_INTERNAL_SECRET || '',
+            },
+            body: JSON.stringify(body),
+          });
 
-        if (!response.ok) {
-          console.error(`[E2E] Backend QA mock error: ${response.status}`);
+          if (!response.ok) {
+            console.error(`[E2E] Backend QA mock error: ${response.status}`);
+            return {
+              statusCode: response.status,
+              json: { error: 'Backend QA mock error' },
+            };
+          }
+
+          const tokens = await response.json();
+          console.log('[E2E] Received valid tokens from backend QA mock');
+
           return {
-            statusCode: response.status,
-            json: { error: 'Backend QA mock error' },
+            statusCode: 200,
+            json: tokens,
+          };
+        } catch (error) {
+          console.error('[E2E] Error proxying to backend QA mock:', error);
+          return {
+            statusCode: 500,
+            json: { error: 'Failed to proxy to backend QA mock' },
           };
         }
-
-        const tokens = await response.json();
-        console.log('[E2E] Received valid tokens from backend QA mock');
-
-        return {
-          statusCode: 200,
-          json: tokens,
-        };
-      } catch (error) {
-        console.error('[E2E] Error proxying to backend QA mock:', error);
-        return {
-          statusCode: 500,
-          json: { error: 'Failed to proxy to backend QA mock' },
-        };
-      }
-    });
+      });
 
     // Handle Apple login id_token endpoint
     await server
-      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v1/oauth/id_token`)
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/api/v1/oauth/id_token');
+      })
+      .asPriority(1000)
       .thenCallback(async (request) => {
         try {
           const requestBody = (await request.body.getText()) || '{}';
@@ -378,7 +403,12 @@ export class OAuthMockttpService {
 
     // Also handle token renewal
     await server
-      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v2/oauth/renew_refresh_token`)
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/api/v2/oauth/renew_refresh_token');
+      })
+      .asPriority(1000)
       .thenCallback(async (request) => {
         try {
           const requestBody = await request.body.getText();
@@ -402,7 +432,12 @@ export class OAuthMockttpService {
 
     // Handle token revocation
     await server
-      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v2/oauth/revoke`)
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/api/v2/oauth/revoke');
+      })
+      .asPriority(1000)
       .thenCallback(async () =>
         // Just return success for revocation
         ({ statusCode: 200, json: { success: true } }),
@@ -415,12 +450,22 @@ export class OAuthMockttpService {
   private async setupMarketingOptInMock(server: Mockttp): Promise<void> {
     // GET request
     await server
-      .forGet(`${AUTH_SERVICE_BASE_URL}/api/v1/oauth/marketing_opt_in_status`)
+      .forGet('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/api/v1/oauth/marketing_opt_in_status');
+      })
+      .asPriority(1000)
       .thenJson(200, { is_opt_in: true });
 
     // POST request
     await server
-      .forPost(`${AUTH_SERVICE_BASE_URL}/api/v1/oauth/marketing_opt_in_status`)
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/api/v1/oauth/marketing_opt_in_status');
+      })
+      .asPriority(1000)
       .thenJson(200, { is_opt_in: true });
   }
 
@@ -432,36 +477,71 @@ export class OAuthMockttpService {
     const encryptedSecretData = this.generateMockEncryptedSecretData();
 
     // Set metadata
-    await server.forPost(MetadataService.Set).thenJson(200, {
-      success: true,
-      message: 'Metadata set successfully',
-    });
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/metadata/enc_account_data/set');
+      })
+      .asPriority(1000)
+      .thenJson(200, {
+        success: true,
+        message: 'Metadata set successfully',
+      });
 
     // Get metadata - returns encrypted SRP for existing users
-    await server.forPost(MetadataService.Get).thenJson(200, {
-      success: true,
-      data: this.isExistingUser() ? encryptedSecretData : [],
-      ids: this.isExistingUser() ? ['', PasswordChangeItemId] : [],
-    });
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/metadata/enc_account_data/get');
+      })
+      .asPriority(1000)
+      .thenJson(200, {
+        success: true,
+        data: this.isExistingUser() ? encryptedSecretData : [],
+        ids: this.isExistingUser() ? ['', PasswordChangeItemId] : [],
+      });
 
     // Acquire lock
-    await server.forPost(MetadataService.AcquireLock).thenJson(200, {
-      success: true,
-      status: 1,
-      id: 'E2E_MOCK_LOCK_ID',
-    });
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/metadata/acquireLock');
+      })
+      .asPriority(1000)
+      .thenJson(200, {
+        success: true,
+        status: 1,
+        id: 'E2E_MOCK_LOCK_ID',
+      });
 
     // Release lock
-    await server.forPost(MetadataService.ReleaseLock).thenJson(200, {
-      success: true,
-      status: 1,
-    });
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/metadata/releaseLock');
+      })
+      .asPriority(1000)
+      .thenJson(200, {
+        success: true,
+        status: 1,
+      });
 
     // Batch set
-    await server.forPost(MetadataService.BatchSet).thenJson(200, {
-      success: true,
-      message: 'Metadata set successfully',
-    });
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/metadata/enc_account_data/batch_set');
+      })
+      .asPriority(1000)
+      .thenJson(200, {
+        success: true,
+        message: 'Metadata set successfully',
+      });
   }
 
   /**
