@@ -7,6 +7,7 @@ import EarnLendingBalance from '../EarnLendingBalance';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import TronStakingButtons from '../Tron/TronStakingButtons';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
 
 /**
  * We mock underlying components because we only care about the conditional rendering.
@@ -83,16 +84,49 @@ jest.mock('../EarnLendingBalance', () => ({
   default: jest.fn(),
 }));
 
+import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
+
 jest.mock('../../hooks/useMusdConversionTokens', () => ({
   __esModule: true,
   useMusdConversionTokens: jest.fn().mockReturnValue({
     isConversionToken: jest.fn().mockReturnValue(false),
-    tokenFilter: jest.fn(),
+    filterAllowedTokens: jest.fn(),
     tokens: [],
     isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
     getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
   }),
 }));
+
+const mockUseMusdConversionTokens =
+  useMusdConversionTokens as jest.MockedFunction<
+    typeof useMusdConversionTokens
+  >;
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectIsMusdConversionFlowEnabledFlag: jest.fn().mockReturnValue(false),
+}));
+
+const mockSelectIsMusdConversionFlowEnabledFlag =
+  selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
+    typeof selectIsMusdConversionFlowEnabledFlag
+  >;
+
+import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligibility';
+
+jest.mock('../../hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: jest.fn().mockReturnValue({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
+  }),
+}));
+
+const mockUseMusdConversionEligibility =
+  useMusdConversionEligibility as jest.MockedFunction<
+    typeof useMusdConversionEligibility
+  >;
 
 jest.mock('../../hooks/useTronStakeApy', () => ({
   __esModule: true,
@@ -250,6 +284,68 @@ describe('EarnBalance', () => {
       expect(props.asset).toBe(strx);
       expect(props.showUnstake).toBe(true);
       expect(props.hasStakedPositions).toBe(true);
+    });
+  });
+
+  describe('Geo-blocking', () => {
+    it('does not render EarnLendingBalance for convertible stablecoin when user is geo-blocked', () => {
+      mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+
+      mockUseMusdConversionTokens.mockReturnValue({
+        isConversionToken: jest.fn().mockReturnValue(true),
+        filterAllowedTokens: jest.fn(),
+        tokens: [],
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
+      });
+
+      mockUseMusdConversionEligibility.mockReturnValue({
+        isEligible: false,
+        isLoading: false,
+        geolocation: 'GB',
+        blockedCountries: ['GB'],
+      });
+
+      const mockDai = {
+        isETH: false,
+        symbol: 'DAI',
+        chainId: '0x1',
+      };
+
+      renderWithProvider(<EarnBalance asset={mockDai as unknown as TokenI} />);
+
+      // EarnLendingBalance should not be called because geo-blocking is active
+      expect(EarnLendingBalance).not.toHaveBeenCalled();
+    });
+
+    it('renders EarnLendingBalance for convertible stablecoin when user is geo-eligible', () => {
+      mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+
+      mockUseMusdConversionTokens.mockReturnValue({
+        isConversionToken: jest.fn().mockReturnValue(true),
+        filterAllowedTokens: jest.fn(),
+        tokens: [],
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
+      });
+
+      mockUseMusdConversionEligibility.mockReturnValue({
+        isEligible: true,
+        isLoading: false,
+        geolocation: 'US',
+        blockedCountries: [],
+      });
+
+      const mockDai = {
+        isETH: false,
+        symbol: 'DAI',
+        chainId: '0x1',
+      };
+
+      renderWithProvider(<EarnBalance asset={mockDai as unknown as TokenI} />);
+
+      // EarnLendingBalance should be called because user is geo-eligible
+      expect(EarnLendingBalance).toHaveBeenCalled();
     });
   });
 });
