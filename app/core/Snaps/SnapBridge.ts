@@ -13,7 +13,10 @@ import {
   createSelectedNetworkMiddleware,
   SelectedNetworkControllerMessenger,
 } from '@metamask/selected-network-controller';
-import { createPreinstalledSnapsMiddleware } from '@metamask/snaps-rpc-methods';
+import {
+  createPreinstalledSnapsMiddleware,
+  SnapEndowments,
+} from '@metamask/snaps-rpc-methods';
 import {
   RequestedPermissions,
   SubjectType,
@@ -210,8 +213,12 @@ export default class SnapBridge {
     );
 
     engine.push((req, _res, next, end) => {
-      // TODO: Check multichain-provider perm
+      const hasPermission = PermissionController.hasPermission(
+        this.#snapId,
+        SnapEndowments.MultichainProvider,
+      );
       if (
+        !hasPermission ||
         ![
           MESSAGE_TYPE.WALLET_CREATE_SESSION,
           MESSAGE_TYPE.WALLET_INVOKE_METHOD,
