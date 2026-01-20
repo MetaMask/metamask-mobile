@@ -3333,7 +3333,8 @@
     },
     "no_chart_data": {
       "title": "No chart data",
-      "description": "We could not fetch any data for this token"
+      "description": "We could not fetch any data for this token",
+      "insufficient_data": "Data is not available for this time period"
     },
     "your_balance": "Your balance",
     "perps_position": "Perps position",

@@ -254,23 +254,45 @@ const PriceChart = ({
     );
   };
 
-  const NoDataOverlay = () => (
-    <View style={styles.noDataOverlay}>
-      <Text>
-        <Icon
-          name={IconName.Warning}
-          color={IconColor.Muted}
-          size={IconSize.Xl}
-        />
-      </Text>
-      <Title style={styles.noDataOverlayTitle}>
-        {strings('asset_overview.no_chart_data.title')}
-      </Title>
-      <Text variant={TextVariant.BodyLGMedium} style={styles.noDataOverlayText}>
-        {strings('asset_overview.no_chart_data.description')}
-      </Text>
-    </View>
-  );
+  const NoDataOverlay = () => {
+    const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
+
+    if (hasInsufficientData) {
+      // Show simplified message for 1 data point
+      return (
+        <View style={styles.noDataOverlay}>
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            style={styles.noDataOverlayText}
+          >
+            {strings('asset_overview.no_chart_data.insufficient_data')}
+          </Text>
+        </View>
+      );
+    }
+
+    // Show full overlay for no data
+    return (
+      <View style={styles.noDataOverlay}>
+        <Text>
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.Muted}
+            size={IconSize.Xl}
+          />
+        </Text>
+        <Title style={styles.noDataOverlayTitle}>
+          {strings('asset_overview.no_chart_data.title')}
+        </Title>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          style={styles.noDataOverlayText}
+        >
+          {strings('asset_overview.no_chart_data.description')}
+        </Text>
+      </View>
+    );
+  };
 
   const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
     if (positionX < 0) {
@@ -318,7 +340,7 @@ const PriceChart = ({
     </View>
   );
 
-  const chartHasData = priceList.length > 0;
+  const chartHasData = priceList.length > 1;
 
   return (
     <View style={styles.chart}>
