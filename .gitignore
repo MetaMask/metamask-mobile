@@ -171,3 +171,6 @@ temp/
 .reassure/
 
 tests/coverage-systems/
+
+# Personal Jest ignore patterns config (user-specific, not to be committed)
+jest.config.personal-*.js
