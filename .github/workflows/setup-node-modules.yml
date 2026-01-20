@@ -109,7 +109,7 @@ jobs:
 
       - name: Upload node_modules artifact
         if: inputs.upload-artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: |
