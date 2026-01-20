@@ -56,7 +56,7 @@ async function start() {
   const buildNum = BUILD_NUMBER || 'Unknown';
 
   // iOS always uses TestFlight link with build number reference
-  rows.push(`| **iOS** | [TestFlight](${TESTFLIGHT_URL}) | Download build \`${buildNum}\` |`);
+  rows.push(`| **iOS** | [TestFlight](${TESTFLIGHT_URL}) | Go to TestFlight and download build \`${buildNum}\` |`);
 
   // Add Android row if public URL is available
   if (isValidUrl(ANDROID_PUBLIC_URL)) {

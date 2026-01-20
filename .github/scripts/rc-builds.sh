@@ -106,11 +106,10 @@ if [[ -z "$IOS_WORKFLOW_ID" || "$IOS_WORKFLOW_ID" == "null" ]]; then
   echo "Error: Failed to get iOS workflow ID"
   exit 1
 fi
-# Fetch Android artifacts and public URL
 ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts")
 
-ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '[.data[] | select(.is_public_page_enabled==true)] | first | .slug // empty')
+ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data | .[] | select(.is_public_page_enabled==true) | .slug')
 
 if [[ -z "$ANDROID_ARTIFACT_ID" || "$ANDROID_ARTIFACT_ID" == "null" ]]; then
   echo "Warning: No public Android artifact found"
@@ -120,40 +119,15 @@ else
     "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts/$ANDROID_ARTIFACT_ID")
   ANDROID_PUBLIC_URL=$(echo "$ANDROID_APK" | jq -r '.data.public_install_page_url')
 fi
-
-# Fetch iOS artifacts and public URL
-IOS_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-  "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_WORKFLOW_ID/artifacts")
-
-IOS_ARTIFACT_ID=$(echo "$IOS_ARTIFACTS" | jq -r '[.data[] | select(.is_public_page_enabled==true)] | first | .slug // empty')
-
-if [[ -z "$IOS_ARTIFACT_ID" || "$IOS_ARTIFACT_ID" == "null" ]]; then
-  echo "Warning: No public iOS artifact found"
-  IOS_PUBLIC_URL="N/A"
-else
-  IOS_IPA=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-    "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_WORKFLOW_ID/artifacts/$IOS_ARTIFACT_ID")
-  IOS_PUBLIC_URL=$(echo "$IOS_IPA" | jq -r '.data.public_install_page_url')
-fi
-
-# Construct Bitrise pipeline URL
-BITRISE_PIPELINE_URL="https://app.bitrise.io/app/$BITRISE_APP_ID/pipelines/$BUILD_SLUG"
-
 echo "Pipeline ID: $BUILD_SLUG"
 echo "Android build ID: $ANDROID_WORKFLOW_ID"
 echo "iOS Build ID: $IOS_WORKFLOW_ID"
 echo "Android public link: $ANDROID_PUBLIC_URL"
-echo "iOS public link: $IOS_PUBLIC_URL"
-echo "Bitrise pipeline URL: $BITRISE_PIPELINE_URL"
 echo "Build number: $BUILD_NUMBER"
 
 # Export outputs to GITHUB_OUTPUT for use in subsequent jobs
-if [[ -n "$GITHUB_OUTPUT" ]]; then
-  echo "pipeline-id=$BUILD_SLUG" >> "$GITHUB_OUTPUT"
-  echo "android-build-id=$ANDROID_WORKFLOW_ID" >> "$GITHUB_OUTPUT"
-  echo "ios-build-id=$IOS_WORKFLOW_ID" >> "$GITHUB_OUTPUT"
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   echo "android-public-url=$ANDROID_PUBLIC_URL" >> "$GITHUB_OUTPUT"
-  echo "ios-public-url=$IOS_PUBLIC_URL" >> "$GITHUB_OUTPUT"
-  echo "bitrise-pipeline-url=$BITRISE_PIPELINE_URL" >> "$GITHUB_OUTPUT"
+  echo "bitrise-pipeline-url=https://app.bitrise.io/app/$BITRISE_APP_ID/pipelines/$BUILD_SLUG" >> "$GITHUB_OUTPUT"
   echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 fi

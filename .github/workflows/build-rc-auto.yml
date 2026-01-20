@@ -97,11 +97,7 @@ jobs:
       - bump-version
     if: needs.validate-and-check-label.outputs.has-label == 'true'
     outputs:
-      pipeline-id: ${{ steps.rc-build.outputs.pipeline-id }}
-      android-build-id: ${{ steps.rc-build.outputs.android-build-id }}
-      ios-build-id: ${{ steps.rc-build.outputs.ios-build-id }}
       android-public-url: ${{ steps.rc-build.outputs.android-public-url }}
-      ios-public-url: ${{ steps.rc-build.outputs.ios-public-url }}
       bitrise-pipeline-url: ${{ steps.rc-build.outputs.bitrise-pipeline-url }}
       build-number: ${{ steps.rc-build.outputs.build-number }}
     steps:
