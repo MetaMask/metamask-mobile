@@ -12,7 +12,6 @@ export async function withSolanaAccountEnabled(
     evmAccountPermitted,
     dappVariant,
   }: {
-    numberOfAccounts?: number;
     solanaAccountPermitted?: boolean;
     evmAccountPermitted?: boolean;
     dappVariant?: DappVariants;
