@@ -1,16 +1,13 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
+import Button, {
   ButtonSize,
+  ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
+import { colors as staticColors } from '../../../../styles/common';
 import type { QuickAmount } from '../../Earn/types/lending.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
@@ -26,25 +23,12 @@ const createStyles = (colors: Colors) =>
       gap: 8,
       padding: 16,
     },
-    amount: {
-      flex: 1,
-      backgroundColor: colors.background.muted,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      borderRadius: 20,
-    },
-    amountHighlighted: {
+    // Transparent border prevents layout shift when switching between ButtonVariants.Secondary
+    // (which has borderWidth: 1) and ButtonVariants.Primary (which has no border)
+    button: {
       flex: 1,
       borderWidth: 1,
-      borderColor: colors.primary.default,
-      backgroundColor: colors.primary.muted,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      borderRadius: 20,
+      borderColor: staticColors.transparent,
     },
   });
 
@@ -52,11 +36,10 @@ interface AmountProps {
   amount: QuickAmount;
   onPress: (amount: QuickAmount) => void;
   onMaxPress?: () => void;
-  disabled?: boolean;
 }
 
 const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
-  const { value, label, isHighlighted } = amount;
+  const { value, label, isHighlighted, disabled } = amount;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -72,21 +55,21 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
     onPress(amount);
   }, [value, onMaxPress, amount, onPress]);
 
+  const showSparkleIcon = value === 1 && !isStablecoinLendingEnabled;
+
   return (
-    <>
-      <ButtonBase
-        onPress={handlePress}
-        size={ButtonSize.Md}
-        width={ButtonWidthTypes.Full}
-        label={label}
-        labelColor={isHighlighted ? TextColor.Primary : TextColor.Default}
-        labelTextVariant={TextVariant.BodyMDMedium}
-        {...(value === 1 && !isStablecoinLendingEnabled
-          ? { startIconName: IconName.Sparkle }
-          : {})}
-        style={isHighlighted ? styles.amountHighlighted : styles.amount}
-      />
-    </>
+    <Button
+      variant={
+        isHighlighted ? ButtonVariants.Primary : ButtonVariants.Secondary
+      }
+      size={ButtonSize.Md}
+      width={ButtonWidthTypes.Full}
+      label={label}
+      onPress={handlePress}
+      isDisabled={disabled}
+      startIconName={showSparkleIcon ? IconName.Sparkle : undefined}
+      style={styles.button}
+    />
   );
 };
 

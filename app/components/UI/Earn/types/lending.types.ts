@@ -41,4 +41,5 @@ export interface QuickAmount {
   label: string;
   isNative?: boolean;
   isHighlighted?: boolean;
+  disabled?: boolean;
 }

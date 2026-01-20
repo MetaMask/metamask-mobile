@@ -3282,10 +3282,10 @@
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
       "transactions": "transactions",
-      "daily_resource": "Daily resource",
+      "daily_resources": "Daily resources",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
-      "daily_resource_description": "This is your daily allowance based on your staked TRX. Hold TRX to get 600 bandwidth daily.",
+      "daily_resources_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
       "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
       "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
       "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
@@ -3345,7 +3345,7 @@
       "description": "We could not fetch any data for this token",
       "insufficient_data": "Data is not available for this time period"
     },
-    "your_balance": "Your balance",
+    "your_balance": "Balance",
     "perps_position": "Perps position",
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
@@ -5814,11 +5814,10 @@
       "learn_more_with_period": "Learn more."
     },
     "stake_your_trx_cta": {
-      "title": "Lend Tron and earn",
-      "description_start": "Stake your Tron and earn ",
+      "description_start": "Stake your TRX and earn ",
       "description_end": " annually.",
       "learn_more": "Learn more.",
-      "earn_button": "Earn"
+      "stake_button": "Stake"
     },
     "trx_learn_more": {
       "title": "Stake TRX and earn",

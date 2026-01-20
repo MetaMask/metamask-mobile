@@ -196,18 +196,22 @@ const EarnWithdrawInputView = () => {
   // Preview visibility: when true, hide keypad/quick amounts and show the Tron preview box
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
-  // Build quick-amounts list, replacing the last "Max" with "Done" when editing and a value is entered (TRON only)
+  // Build quick-amounts list for Tron: "25%, 50%, Max, Done"
+  // Done is disabled when input is empty, highlighted when there's a value
   const quickAmounts = useMemo(() => {
-    if (isTronEnabled && !isPreviewVisible && isNonZeroAmount) {
-      const modified = [...percentageOptions];
-      modified[modified.length - 1] = {
-        ...modified[modified.length - 1],
-        label: strings('onboarding_success.done'),
-        isHighlighted: true,
-      };
-      return modified;
+    if (isTronEnabled && !isPreviewVisible) {
+      return [
+        { value: 0.25, label: '25%' },
+        { value: 0.5, label: '50%' },
+        { value: 1, label: strings('stake.max') },
+        {
+          value: -1, // sentinel value for Done button
+          label: strings('onboarding_success.done'),
+          disabled: !isNonZeroAmount,
+          isHighlighted: isNonZeroAmount,
+        },
+      ];
     }
-
     return percentageOptions;
   }, [isTronEnabled, isPreviewVisible, isNonZeroAmount, percentageOptions]);
   useEffect(() => {
@@ -893,7 +897,7 @@ const EarnWithdrawInputView = () => {
               : undefined
           }
         />
-        {isStablecoinLendingEnabled && (
+        {isStablecoinLendingEnabled && !showTronUnstakingUI && (
           <View style={styles.earnTokenSelectorContainer}>
             <View style={styles.spacer} />
             <EarnTokenSelector

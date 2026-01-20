@@ -8,6 +8,7 @@ import EarnLendingBalance from '../EarnLendingBalance';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronStakingButtons from '../Tron/TronStakingButtons';
+import TronStakingCta from '../Tron/TronStakingCta';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { hasStakedTrxPositions as hasStakedTrxPositionsUtil } from '../../utils/tron';
@@ -38,12 +39,17 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
 
   const { isConversionToken } = useMusdConversionTokens();
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
+
+  // For Tron
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
   const isTron = asset?.chainId?.startsWith('tron:');
   const isStakedTrxAsset =
     isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
+  const isNativeTrx =
+    isTron && (asset?.ticker === 'TRX' || asset?.symbol === 'TRX');
 
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
   const hasStakedTrxPositions = React.useMemo(
@@ -55,19 +61,14 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
 
   if (isTron && isTrxStakingEnabled) {
     if (hasStakedTrxPositions && isStakedTrxAsset) {
-      // sTRX row: show Unstake + Stake more
-      return (
-        <TronStakingButtons asset={asset} showUnstake hasStakedPositions />
-      );
+      // sTRX row: show Unstake + Stake more buttons (no background container)
+      return <TronStakingButtons asset={asset} />;
     }
 
-    if (!hasStakedTrxPositions && !isStakedTrxAsset) {
-      // TRX native row: show CTA + single Stake button
+    if (!hasStakedTrxPositions && isNativeTrx) {
+      // TRX native row: show CTA with background container + single Stake button
       return (
-        <TronStakingButtons
-          asset={asset}
-          aprText={tronApyPercent ?? undefined}
-        />
+        <TronStakingCta asset={asset} aprText={tronApyPercent ?? undefined} />
       );
     }
 

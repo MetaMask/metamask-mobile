@@ -28,12 +28,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {
-      balanceButtonsContainer: {},
+      buttonsContainer: {},
       balanceActionButton: {},
-      ctaContent: {},
-      ctaTitle: {},
-      ctaText: {},
-      buttonsRow: {},
     },
   }),
 }));
@@ -71,10 +67,6 @@ jest.mock('../../../../Stake/hooks/useStakingEligibility', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
-      'stake.stake_your_trx_cta.title': 'Stake your TRX',
-      'stake.stake_your_trx_cta.description_start': 'Earn up to ',
-      'stake.stake_your_trx_cta.description_end': ' annually',
-      'stake.stake_your_trx_cta.earn_button': 'Stake',
       'stake.stake_more': 'Stake more',
       'stake.unstake': 'Unstake',
     };
@@ -101,52 +93,43 @@ describe('TronStakingButtons', () => {
     });
   });
 
-  const baseAsset = {
+  const stakedAsset = {
     address: '0xtron',
     chainId: 'tron:111',
-    symbol: 'TRX',
-    ticker: 'TRX',
-    name: 'Tron',
-    isStaked: false,
+    symbol: 'sTRX',
+    ticker: 'sTRX',
+    name: 'Staked TRX',
+    isStaked: true,
   } as TokenI;
 
-  it('navigates to stake screen with base asset TRX when not staked and uses default hasStakedPositions', () => {
+  it('renders both Unstake and Stake more buttons when eligible', () => {
     const { getByTestId, getByText } = render(
-      <TronStakingButtons asset={baseAsset} showUnstake={false} />,
+      <TronStakingButtons asset={stakedAsset} />,
     );
 
-    expect(getByText('Stake')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId('stake-more-button'));
-
-    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: { token: baseAsset },
-    });
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(getByText('Unstake')).toBeOnTheScreen();
+    expect(getByText('Stake more')).toBeOnTheScreen();
+    expect(getByTestId('unstake-button')).toBeOnTheScreen();
+    expect(getByTestId('stake-more-button')).toBeOnTheScreen();
   });
 
-  it('navigates to stake with synthesized TRX when asset is staked TRX without nativeAsset', () => {
-    const stakedTrx = {
-      ...baseAsset,
-      symbol: 'sTRX',
-      ticker: 'sTRX',
-      isStaked: true,
-      nativeAsset: undefined,
+  it('navigates to stake screen with base TRX when pressing Stake more', () => {
+    const baseAsset = {
+      address: '0xtron',
+      chainId: 'tron:111',
+      symbol: 'TRX',
+      ticker: 'TRX',
+      name: 'Tron',
+      isStaked: false,
     } as TokenI;
 
-    mockSelectAsset.mockReturnValue({
-      ...baseAsset,
-      isStaked: false,
-    } as TokenI);
+    mockSelectAsset.mockReturnValue(baseAsset);
 
     mockUseSelector.mockImplementation((selector) =>
       selector({} as unknown as ReturnType<typeof Object>),
     );
 
-    const { getByTestId } = render(
-      <TronStakingButtons asset={stakedTrx} hasStakedPositions />,
-    );
+    const { getByTestId } = render(<TronStakingButtons asset={stakedAsset} />);
     fireEvent.press(getByTestId('stake-more-button'));
 
     expect(mockNavigate).toHaveBeenCalled();
@@ -154,24 +137,21 @@ describe('TronStakingButtons', () => {
     expect(call?.[1]?.screen).toBe(Routes.STAKING.STAKE);
     const tokenArg = call?.[1]?.params?.token;
     expect(tokenArg.symbol).toBe('TRX');
-    expect(tokenArg.ticker).toBe('TRX');
     expect(tokenArg.isStaked).toBe(false);
   });
 
-  it('shows Unstake button when showUnstake is true and navigates on press', () => {
-    const { getByTestId } = render(
-      <TronStakingButtons asset={baseAsset} showUnstake hasStakedPositions />,
-    );
+  it('navigates to unstake screen when pressing Unstake', () => {
+    const { getByTestId } = render(<TronStakingButtons asset={stakedAsset} />);
 
     fireEvent.press(getByTestId('unstake-button'));
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
-      params: { token: baseAsset },
+      params: { token: stakedAsset },
     });
   });
 
-  it('does not render stake button when user is not eligible', () => {
+  it('does not render Stake more button when user is not eligible', () => {
     mockUseStakingEligibility.mockReturnValue({
       isEligible: false,
       isLoadingEligibility: false,
@@ -179,90 +159,19 @@ describe('TronStakingButtons', () => {
       refreshPooledStakingEligibility: jest.fn(),
     });
 
-    const { queryByTestId } = render(<TronStakingButtons asset={baseAsset} />);
+    const { queryByTestId, getByTestId } = render(
+      <TronStakingButtons asset={stakedAsset} />,
+    );
 
     expect(queryByTestId('stake-more-button')).toBeNull();
+    expect(getByTestId('unstake-button')).toBeOnTheScreen();
   });
 
-  it('renders unstake button when user is not eligible and has active staked position', () => {
-    mockUseStakingEligibility.mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      error: null,
-      refreshPooledStakingEligibility: jest.fn(),
-    });
+  it('tracks analytics when pressing Stake more', () => {
+    const { getByTestId } = render(<TronStakingButtons asset={stakedAsset} />);
 
-    const { queryByTestId } = render(
-      <TronStakingButtons asset={baseAsset} showUnstake hasStakedPositions />,
-    );
+    fireEvent.press(getByTestId('stake-more-button'));
 
-    expect(queryByTestId('unstake-button')).toBeOnTheScreen();
-  });
-
-  describe('CTA section', () => {
-    it('renders CTA title and description without aprText when hasStakedPositions is false', () => {
-      const { getByText } = render(
-        <TronStakingButtons asset={baseAsset} hasStakedPositions={false} />,
-      );
-
-      expect(getByText('Stake your TRX')).toBeOnTheScreen();
-      expect(getByText(/Earn up to/)).toBeOnTheScreen();
-      expect(getByText(/annually/)).toBeOnTheScreen();
-    });
-
-    it('renders CTA with APR value when aprText is provided', () => {
-      const { getByText } = render(
-        <TronStakingButtons
-          asset={baseAsset}
-          hasStakedPositions={false}
-          aprText="4.5%"
-        />,
-      );
-
-      expect(getByText('Stake your TRX')).toBeOnTheScreen();
-      expect(getByText('4.5%')).toBeOnTheScreen();
-    });
-
-    it('does not render CTA section when hasStakedPositions is true', () => {
-      const { queryByText } = render(
-        <TronStakingButtons
-          asset={baseAsset}
-          hasStakedPositions
-          aprText="4.5%"
-        />,
-      );
-
-      expect(queryByText('Stake your TRX')).toBeNull();
-    });
-
-    it('does not render CTA section when user is not eligible', () => {
-      mockUseStakingEligibility.mockReturnValue({
-        isEligible: false,
-        isLoadingEligibility: false,
-        error: null,
-        refreshPooledStakingEligibility: jest.fn(),
-      });
-
-      const { queryByText } = render(
-        <TronStakingButtons asset={baseAsset} hasStakedPositions={false} />,
-      );
-
-      expect(queryByText('Stake your TRX')).toBeNull();
-    });
-  });
-
-  it('renders nothing when user is not eligible and has no active positions', () => {
-    mockUseStakingEligibility.mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      error: null,
-      refreshPooledStakingEligibility: jest.fn(),
-    });
-
-    const { toJSON } = render(
-      <TronStakingButtons asset={baseAsset} hasStakedPositions={false} />,
-    );
-
-    expect(toJSON()).toBeNull();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 });
