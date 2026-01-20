@@ -74,7 +74,6 @@ import {
   clearAllCache,
   resetAuthenticatedData,
 } from '../../../../../core/redux/slices/card';
-import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { isAuthenticationError } from '../../util/isAuthenticationError';
@@ -122,7 +121,6 @@ const CardHome = () => {
   const hasHandledAuthErrorRef = useRef(false);
   const isComponentUnmountedRef = useRef(false);
   const hasShownDeeplinkToast = useRef(false);
-  const hasTriggeredAutoProvision = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
     setIsCloseSpendingLimitWarningShown,
@@ -147,10 +145,7 @@ const CardHome = () => {
     warning,
     isAuthenticated,
     isBaanxLoginEnabled,
-    fetchPriorityToken,
     fetchAllData,
-    pollCardStatusUntilProvisioned,
-    isLoadingPollCardStatusUntilProvisioned,
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
@@ -171,8 +166,6 @@ const CardHome = () => {
     rawTokenBalance,
   } = assetBalance ?? {};
 
-  const { provisionCard, isLoading: isLoadingProvisionCard } =
-    useCardProvision();
   const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
     useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
@@ -423,12 +416,13 @@ const CardHome = () => {
     () => warning === CardStateWarning.NeedDelegation,
     [warning],
   );
+
   const canEnableCard = useMemo(() => {
-    if (!isAuthenticated || !isBaanxLoginEnabled) {
+    if (!isBaanxLoginEnabled) {
       return true;
     }
 
-    if (!kycStatus || isLoading) {
+    if (!isAuthenticated || !kycStatus || isLoading) {
       return false;
     }
 
@@ -445,39 +439,6 @@ const CardHome = () => {
     );
   }, [isAuthenticated, isBaanxLoginEnabled, kycStatus]);
 
-  const enableCardAction = useCallback(async () => {
-    try {
-      await provisionCard();
-      const isProvisioned = await pollCardStatusUntilProvisioned();
-
-      if (isProvisioned) {
-        fetchPriorityToken();
-        changeAssetAction();
-      }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error && error.message
-          ? error.message
-          : strings('card.card_home.enable_card_error');
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: errorMessage }],
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.error.muted,
-        hasNoTimeout: false,
-      });
-    }
-  }, [
-    provisionCard,
-    pollCardStatusUntilProvisioned,
-    fetchPriorityToken,
-    changeAssetAction,
-    toastRef,
-    theme,
-  ]);
-
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
       return (
@@ -492,37 +453,21 @@ const CardHome = () => {
 
     if (isBaanxLoginEnabled) {
       if (needToEnableCard) {
-        // KYC pending/unverified users need to set up delegation first
-        if (isKYCPendingOrUnverified) {
-          return (
-            <Button
-              variant={ButtonVariants.Primary}
-              style={styles.defaultMarginTop}
-              label={strings('card.card_home.enable_card_button_label')}
-              size={ButtonSize.Lg}
-              onPress={openOnboardingDelegationAction}
-              width={ButtonWidthTypes.Full}
-              disabled={isLoading}
-              loading={isLoading}
-              testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
-            />
-          );
+        if (!canEnableCard) {
+          return null;
         }
 
-        // KYC verified users can provision card directly
+        // KYC verified users - delegation will automatically provision the card
         return (
           <Button
             variant={ButtonVariants.Primary}
             style={styles.defaultMarginTop}
             label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
-            onPress={enableCardAction}
+            onPress={openOnboardingDelegationAction}
             width={ButtonWidthTypes.Full}
-            loading={
-              isLoading ||
-              isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard
-            }
+            disabled={isLoading}
+            loading={isLoading}
             testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
           />
         );
@@ -589,44 +534,14 @@ const CardHome = () => {
   }, [
     addFundsAction,
     changeAssetAction,
-    enableCardAction,
+    canEnableCard,
     isBaanxLoginEnabled,
     isLoading,
-    isLoadingPollCardStatusUntilProvisioned,
-    isLoadingProvisionCard,
     isSwapEnabledForPriorityToken,
     needToEnableAssets,
     needToEnableCard,
     styles,
-    isKYCPendingOrUnverified,
     openOnboardingDelegationAction,
-  ]);
-
-  useEffect(() => {
-    if (
-      !isAuthenticated ||
-      !isBaanxLoginEnabled ||
-      !needToEnableCard ||
-      !canEnableCard ||
-      isLoading ||
-      isLoadingProvisionCard ||
-      isLoadingPollCardStatusUntilProvisioned ||
-      hasTriggeredAutoProvision.current
-    ) {
-      return;
-    }
-
-    hasTriggeredAutoProvision.current = true;
-    enableCardAction();
-  }, [
-    isAuthenticated,
-    isBaanxLoginEnabled,
-    needToEnableCard,
-    canEnableCard,
-    isLoading,
-    isLoadingProvisionCard,
-    isLoadingPollCardStatusUntilProvisioned,
-    enableCardAction,
   ]);
 
   useEffect(
@@ -665,10 +580,10 @@ const CardHome = () => {
         dispatch(resetAuthenticatedData());
         dispatch(clearAllCache());
 
-        navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+        navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
       } catch (error) {
         if (!isComponentUnmountedRef.current) {
-          navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+          navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
         }
       } finally {
         if (!isComponentUnmountedRef.current) {
@@ -832,12 +747,9 @@ const CardHome = () => {
           }}
         />
       )}
-      {isAuthenticated &&
-        isBaanxLoginEnabled &&
-        needToEnableCard &&
-        isKYCPendingOrUnverified && (
-          <CardWarningBox warning={CardWarningBoxType.KYCPending} />
-        )}
+      {isAuthenticated && isBaanxLoginEnabled && isKYCPendingOrUnverified && (
+        <CardWarningBox warning={CardWarningBoxType.KYCPending} />
+      )}
       <View style={styles.cardBalanceContainer}>
         <View
           style={[
