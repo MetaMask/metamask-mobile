@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectGeolocation } from '../../../../selectors/rampsController';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { selectMusdConversionBlockedCountries } from '../selectors/featureFlags';
 
 /**
@@ -20,14 +20,18 @@ import { selectMusdConversionBlockedCountries } from '../selectors/featureFlags'
  * - blockedCountries: array of blocked country codes from LaunchDarkly
  */
 export const useMusdConversionEligibility = () => {
-  const geolocation = useSelector(selectGeolocation);
+  const geolocation = useSelector(getDetectedGeolocation);
   const blockedCountries = useSelector(selectMusdConversionBlockedCountries);
-
   const isLoading = geolocation === null;
+
+  const userCountry = useMemo(() => {
+    if (geolocation) return geolocation?.toUpperCase().split('-')[0];
+    return null;
+  }, [geolocation]);
 
   const isEligible = useMemo(() => {
     // Block by default when geolocation is unknown for regulatory compliance
-    if (!geolocation) {
+    if (!userCountry) {
       return false;
     }
 
@@ -38,16 +42,16 @@ export const useMusdConversionEligibility = () => {
 
     // Check if user's country starts with any blocked country code
     // Uses startsWith to handle both "GB" and "GB-ENG" formats
-    const userCountry = geolocation.toUpperCase();
+
     return blockedCountries.every(
       (blockedCountry) => !userCountry.startsWith(blockedCountry.toUpperCase()),
     );
-  }, [geolocation, blockedCountries]);
+  }, [userCountry, blockedCountries]);
 
   return {
     isEligible,
     isLoading,
-    geolocation,
+    geolocation: userCountry,
     blockedCountries,
   };
 };
