@@ -25,6 +25,7 @@ import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
 import { useMusdConversionEligibility } from './useMusdConversionEligibility';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 /**
  * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
@@ -227,6 +228,11 @@ export const useMusdCtaVisibility = () => {
 
       // If user is geo-blocked, don't show the CTA
       if (!isGeoEligible) {
+        return false;
+      }
+
+      // mUSD needs to be available only on EVM chains
+      if (isNonEvmChainId(asset.chainId)) {
         return false;
       }
 
