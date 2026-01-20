@@ -314,6 +314,17 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
+    const rawUrl = sessionData.peerMeta?.url;
+    const normalizedUrl = normalizeDappUrl(rawUrl);
+    if (!normalizedUrl) {
+      Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
+      // For existing sessions, kill the session since it's already persisted
+      if (existing) {
+        this.killSession();
+      }
+      throw new Error('Invalid dApp URL');
+    }
+
     const chainId = selectEvmChainId(store.getState());
     const selectedAddress = toFormattedAddress(
       Engine.context.AccountsController.getSelectedAccount().address,
@@ -327,13 +338,6 @@ class WalletConnect {
     } else {
       await this.walletConnector.approveSession(approveData);
       persistSessions();
-    }
-
-    const rawUrl = sessionData.peerMeta.url;
-    const normalizedUrl = normalizeDappUrl(rawUrl);
-    if (!normalizedUrl) {
-      Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
-      throw new Error('Invalid dApp URL');
     }
 
     this.url.current = normalizedUrl;
