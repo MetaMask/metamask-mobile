@@ -404,36 +404,30 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
-  const needToEnableCard = useMemo(
-    () => warning === CardStateWarning.NoCard,
-    [warning],
-  );
-  const needToEnableAssets = useMemo(
-    () => warning === CardStateWarning.NeedDelegation,
-    [warning],
-  );
+  const cardSetupState = useMemo(() => {
+    const needsSetup =
+      isBaanxLoginEnabled &&
+      (warning === CardStateWarning.NoCard ||
+        warning === CardStateWarning.NeedDelegation);
 
-  const canEnableCard = useMemo(() => {
-    if (!isBaanxLoginEnabled) {
-      return true;
-    }
+    const isKYCVerified =
+      isAuthenticated && kycStatus?.verificationState === 'VERIFIED';
 
-    if (!isAuthenticated || !kycStatus || isLoading) {
-      return false;
-    }
+    const isKYCPending =
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      (kycStatus?.verificationState === 'PENDING' ||
+        kycStatus?.verificationState === 'UNVERIFIED');
 
-    return kycStatus.verificationState === 'VERIFIED';
-  }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
+    const canEnable = isKYCVerified && !isLoading;
 
-  const isKYCPendingOrUnverified = useMemo(() => {
-    if (!isAuthenticated || !isBaanxLoginEnabled || !kycStatus) {
-      return false;
-    }
-    return (
-      kycStatus.verificationState === 'PENDING' ||
-      kycStatus.verificationState === 'UNVERIFIED'
-    );
-  }, [isAuthenticated, isBaanxLoginEnabled, kycStatus]);
+    const setupTestId =
+      warning === CardStateWarning.NoCard
+        ? CardHomeSelectors.ENABLE_CARD_BUTTON
+        : CardHomeSelectors.ENABLE_ASSETS_BUTTON;
+
+    return { needsSetup, canEnable, isKYCPending, setupTestId };
+  }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
 
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
@@ -447,92 +441,69 @@ const CardHome = () => {
       );
     }
 
-    if (isBaanxLoginEnabled) {
-      if (needToEnableCard) {
-        if (!canEnableCard) {
-          return null;
-        }
+    if (!isBaanxLoginEnabled) {
+      return (
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={strings('card.card_home.add_funds')}
+          size={ButtonSize.Lg}
+          onPress={addFundsAction}
+          width={ButtonWidthTypes.Full}
+          testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+        />
+      );
+    }
 
-        // KYC verified users - delegation will automatically provision the card
-        return (
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('card.card_home.enable_card_button_label')}
-            size={ButtonSize.Lg}
-            onPress={openOnboardingDelegationAction}
-            width={ButtonWidthTypes.Full}
-            disabled={isLoading}
-            loading={isLoading}
-            testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
-          />
-        );
-      }
-
-      if (needToEnableAssets) {
-        return (
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('card.card_home.enable_card_button_label')}
-            size={ButtonSize.Lg}
-            onPress={openOnboardingDelegationAction}
-            width={ButtonWidthTypes.Full}
-            disabled={isLoading}
-            loading={isLoading}
-            testID={CardHomeSelectors.ENABLE_ASSETS_BUTTON}
-          />
-        );
+    if (cardSetupState.needsSetup) {
+      if (!cardSetupState.canEnable) {
+        return null;
       }
 
       return (
-        <Box twClassName="w-full gap-2 flex-row justify-between items-center">
-          <Button
-            variant={ButtonVariants.Secondary}
-            style={tw.style(
-              'w-1/2',
-              !isSwapEnabledForPriorityToken && 'opacity-50',
-            )}
-            label={strings('card.card_home.add_funds')}
-            size={ButtonSize.Lg}
-            onPress={addFundsAction}
-            width={ButtonWidthTypes.Full}
-            disabled={!isSwapEnabledForPriorityToken}
-            loading={isLoading}
-            testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            style={tw.style('w-1/2')}
-            label={strings('card.card_home.change_asset')}
-            size={ButtonSize.Lg}
-            onPress={changeAssetAction}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
-            testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-          />
-        </Box>
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={strings('card.card_home.enable_card_button_label')}
+          size={ButtonSize.Lg}
+          onPress={openOnboardingDelegationAction}
+          width={ButtonWidthTypes.Full}
+          testID={cardSetupState.setupTestId}
+        />
       );
     }
 
     return (
-      <Button
-        variant={ButtonVariants.Secondary}
-        label={strings('card.card_home.add_funds')}
-        size={ButtonSize.Lg}
-        onPress={addFundsAction}
-        width={ButtonWidthTypes.Full}
-        loading={isLoading}
-        testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-      />
+      <Box twClassName="w-full gap-2 flex-row justify-between items-center">
+        <Button
+          variant={ButtonVariants.Secondary}
+          style={tw.style(
+            'w-1/2',
+            !isSwapEnabledForPriorityToken && 'opacity-50',
+          )}
+          label={strings('card.card_home.add_funds')}
+          size={ButtonSize.Lg}
+          onPress={addFundsAction}
+          width={ButtonWidthTypes.Full}
+          disabled={!isSwapEnabledForPriorityToken}
+          testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          style={tw.style('w-1/2')}
+          label={strings('card.card_home.change_asset')}
+          size={ButtonSize.Lg}
+          onPress={changeAssetAction}
+          width={ButtonWidthTypes.Full}
+          testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
+        />
+      </Box>
     );
   }, [
     addFundsAction,
     changeAssetAction,
-    canEnableCard,
+    cardSetupState,
     isBaanxLoginEnabled,
     isLoading,
     isSwapEnabledForPriorityToken,
-    needToEnableAssets,
-    needToEnableCard,
     tw,
     openOnboardingDelegationAction,
   ]);
@@ -742,7 +713,7 @@ const CardHome = () => {
           }}
         />
       )}
-      {isAuthenticated && isBaanxLoginEnabled && isKYCPendingOrUnverified && (
+      {cardSetupState.isKYCPending && (
         <CardWarningBox warning={CardWarningBoxType.KYCPending} />
       )}
       <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
@@ -764,7 +735,7 @@ const CardHome = () => {
         <Box
           style={tw.style(
             'items-center justify-between flex-row w-full mt-4',
-            (needToEnableAssets || needToEnableCard) && 'hidden',
+            cardSetupState.needsSetup && 'hidden',
           )}
         >
           <Box twClassName="flex-col">
@@ -853,12 +824,12 @@ const CardHome = () => {
               symbol={priorityToken?.symbol ?? ''}
             />
           )}
-        <Box twClassName="w-full mt-4">{ButtonsSection}</Box>
+        {ButtonsSection && (
+          <Box twClassName="w-full mt-4">{ButtonsSection}</Box>
+        )}
       </Box>
 
-      <Box
-        style={tw.style((needToEnableAssets || needToEnableCard) && 'hidden')}
-      >
+      <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
         {isBaanxLoginEnabled &&
           !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
             <ManageCardListItem

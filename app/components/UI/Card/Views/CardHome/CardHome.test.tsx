@@ -2757,7 +2757,24 @@ describe('CardHome Component', () => {
         ).toBeTruthy();
       });
 
-      it('shows enable assets button when warning is NeedDelegation', () => {
+      it('shows enable assets button when warning is NeedDelegation and user is VERIFIED', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NeedDelegation,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeTruthy();
+      });
+
+      it('does not show enable assets button when warning is NeedDelegation and user is PENDING', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -2770,8 +2787,8 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
-        ).toBeTruthy();
+          screen.queryByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeNull();
       });
 
       it('shows skeleton when data is loading', () => {
@@ -3053,7 +3070,28 @@ describe('CardHome Component', () => {
     });
 
     describe('Enable Card Button for Delegation', () => {
-      it('displays enable card button for PENDING user without delegated asset', () => {
+      it('displays enable card button for VERIFIED user without delegated asset', () => {
+        // Given: VERIFIED user without card and without delegated asset
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardStateWarning.NeedDelegation,
+          priorityToken: null,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: enable assets button is shown
+        expect(
+          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeTruthy();
+      });
+
+      it('does not display enable card button for PENDING user without delegated asset', () => {
         // Given: PENDING user without card and without delegated asset
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
@@ -3068,18 +3106,16 @@ describe('CardHome Component', () => {
         // When: component renders
         render();
 
-        // Then: enable assets button is shown
+        // Then: enable assets button is NOT shown (PENDING users cannot enable)
         expect(
-          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
-        ).toBeTruthy();
+          screen.queryByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+        ).toBeNull();
       });
 
-      it('navigates to delegation when enable card button pressed for PENDING user without delegated asset', async () => {
-        // Given: PENDING user without card and without delegated asset (NoCard warning + needToEnableAssets)
+      it('navigates to delegation when enable card button pressed for VERIFIED user without delegated asset', async () => {
+        // Given: VERIFIED user without card and without delegated asset
         setupMockSelectors({ isAuthenticated: true });
 
-        // Create mock that returns both NoCard and NeedDelegation conditions
-        // This happens when the user has no card AND no delegation
         (useLoadCardData as jest.Mock).mockReturnValueOnce({
           priorityToken: null,
           allTokens: [],
@@ -3090,7 +3126,7 @@ describe('CardHome Component', () => {
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
           isCardholder: true,
-          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           fetchAllData: mockFetchAllData,
           refetchAllData: mockRefetchAllData,
         });
