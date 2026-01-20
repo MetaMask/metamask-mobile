@@ -166,29 +166,33 @@ export async function retryWithDelay<T>(
       // Wait before the next retry with cancellation support
       if (delayMs > 0) {
         await new Promise<void>((resolve, reject) => {
-          const timeoutId = setTimeout(resolve, delayMs);
+          let abortHandler: (() => void) | undefined;
+
+          const onTimeout = () => {
+            // Clean up abort listener when timeout completes normally
+            if (abortSignal && abortHandler) {
+              abortSignal.removeEventListener('abort', abortHandler);
+            }
+            resolve();
+          };
+
+          const timeoutId = setTimeout(onTimeout, delayMs);
 
           // If we have an abort signal, listen for cancellation during the delay
           if (abortSignal) {
-            const abortHandler = () => {
-              clearTimeout(timeoutId);
-              reject(new Error('Operation aborted'));
-            };
-
+            // Check if already aborted before setting up listener
             if (abortSignal.aborted) {
               clearTimeout(timeoutId);
               reject(new Error('Operation aborted'));
               return;
             }
 
-            abortSignal.addEventListener('abort', abortHandler, { once: true });
-
-            // Clean up the listener after timeout completes
-            const originalResolve = resolve;
-            resolve = () => {
-              abortSignal.removeEventListener('abort', abortHandler);
-              originalResolve();
+            abortHandler = () => {
+              clearTimeout(timeoutId);
+              reject(new Error('Operation aborted'));
             };
+
+            abortSignal.addEventListener('abort', abortHandler, { once: true });
           }
         });
       }
