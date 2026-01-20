@@ -1,4 +1,4 @@
-import { Hex , add0x } from '@metamask/utils';
+import { Hex, add0x } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import React, { useMemo, useCallback } from 'react';
