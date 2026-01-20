@@ -71,7 +71,9 @@ const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
               twClassName="text-primary-default"
               fontWeight={FontWeight.Medium}
             >
-              {strings('asset_overview.merkl_rewards.annual_bonus')}
+              {strings('asset_overview.merkl_rewards.annual_bonus', {
+                apy: '3',
+              })}
             </Text>
           </Box>
         </Box>

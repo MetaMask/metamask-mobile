@@ -5,12 +5,22 @@ import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, values?: Record<string, string>) => {
     const mockStrings: Record<string, string> = {
       'asset_overview.merkl_rewards.claimable_bonus': 'Claimable bonus',
-      'asset_overview.merkl_rewards.annual_bonus': 'Annual bonus',
+      'asset_overview.merkl_rewards.annual_bonus': '{{apy}}% bonus',
     };
-    return mockStrings[key] || key;
+    let template = mockStrings[key] || key;
+    if (values && template) {
+      // Replace placeholders like {{apy}} with actual values
+      Object.entries(values).forEach(([placeholder, value]) => {
+        template = template.replace(
+          new RegExp(`{{${placeholder}}}`, 'g'),
+          value,
+        );
+      });
+    }
+    return template;
   },
 }));
 
@@ -94,7 +104,7 @@ describe('PendingMerklRewards', () => {
     // Component should not render anything when claimableReward is null
     // Verify no text content is rendered
     expect(queryByText('Claimable bonus')).toBeNull();
-    expect(queryByText('Annual bonus')).toBeNull();
+    expect(queryByText('3% bonus')).toBeNull();
   });
 
   it('renders claimable bonus section when claimableReward is provided', () => {
@@ -103,6 +113,7 @@ describe('PendingMerklRewards', () => {
     );
 
     expect(getByText('Claimable bonus')).toBeTruthy();
+    expect(getByText('3% bonus')).toBeTruthy();
     expect(getByText('1.5 aglaMerkl')).toBeTruthy();
   });
 
