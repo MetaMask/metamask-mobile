@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -132,43 +132,25 @@ export const MusdConversionTransactionDetails = ({
   // Get MUSD token address for this chain
   const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
 
-  // State for input/output amounts from transaction logs
-  const [inputAmountRaw, setInputAmountRaw] = useState<string | null>(null);
-  const [outputAmountRaw, setOutputAmountRaw] = useState<string | null>(null);
-
-  // Fetch input and output transfer amounts from transaction logs
-  useEffect(() => {
-    const fetchTransfers = async () => {
-      if (!convertTransaction?.hash || !chainId) {
-        return;
-      }
-
-      const { input, output } = await getConversionTransfersFromLogs(
-        convertTransaction.hash,
-        chainId,
-      );
-
-      if (input) {
-        setInputAmountRaw(input.amount);
-      }
-      if (output) {
-        setOutputAmountRaw(output.amount);
-      }
-    };
-
-    fetchTransfers();
-  }, [convertTransaction?.hash, chainId]);
+  // Get input/output amounts from transaction logs (synchronous)
+  const conversionTransfers = useMemo(
+    () => getConversionTransfersFromLogs(convertTransaction),
+    [convertTransaction],
+  );
 
   // Get the source token amount from logs (first transfer)
   const sourceTokenAmount = useMemo(() => {
     const decimals = sourceTokenInfo?.decimals ?? 6; // Default to 6 for stablecoins
 
-    if (inputAmountRaw) {
-      return calcTokenAmount(inputAmountRaw, decimals).toFixed(5);
+    if (conversionTransfers.input?.amount) {
+      return calcTokenAmount(
+        conversionTransfers.input.amount,
+        decimals,
+      ).toFixed(5);
     }
 
     return '0';
-  }, [inputAmountRaw, sourceTokenInfo?.decimals]);
+  }, [conversionTransfers.input?.amount, sourceTokenInfo?.decimals]);
 
   // Create source token object (same structure as swap flow)
   const sourceToken: BridgeToken | null = sourceTokenInfo
@@ -194,12 +176,15 @@ export const MusdConversionTransactionDetails = ({
 
   // MUSD received amount from transaction logs (last transfer)
   const destinationTokenAmount = useMemo(() => {
-    if (outputAmountRaw) {
-      return calcTokenAmount(outputAmountRaw, MUSD_TOKEN.decimals).toFixed(5);
+    if (conversionTransfers.output?.amount) {
+      return calcTokenAmount(
+        conversionTransfers.output.amount,
+        MUSD_TOKEN.decimals,
+      ).toFixed(5);
     }
-    // Fallback to source amount while loading
+    // Fallback to source amount if output not available
     return sourceTokenAmount;
-  }, [outputAmountRaw, sourceTokenAmount]);
+  }, [conversionTransfers.output?.amount, sourceTokenAmount]);
 
   const dateString = time ? toDateFormat(time) : 'N/A';
 
