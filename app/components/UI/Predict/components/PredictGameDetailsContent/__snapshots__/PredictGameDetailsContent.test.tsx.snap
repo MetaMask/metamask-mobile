@@ -86,7 +86,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#ffffff",
                 "height": 24,
                 "width": 24,
               },
@@ -116,7 +116,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#ffffff",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 18,
                 "fontWeight": 700,
@@ -147,12 +147,12 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
         <RefreshControlMock
           colors={
             [
-              "#4459ff",
+              "#8b99ff",
             ]
           }
           onRefresh={[MockFunction]}
           refreshing={false}
-          tintColor="#4459ff"
+          tintColor="#8b99ff"
         />
       }
       style={
