@@ -1,23 +1,3 @@
-export const oldConfirmationsRemoteFeatureFlags = [
-  {
-    mobileMinimumVersions: {
-      appMinimumBuild: 1243,
-      appleMinimumOS: 6,
-      androidMinimumAPIVersion: 21,
-    },
-  },
-  {
-    confirmation_redesign: {
-      signatures: false,
-      staking_confirmations: false,
-      contract_deployment: false,
-      contract_interaction: false,
-      transfer: false,
-      approve: false,
-    },
-  },
-];
-
 export const confirmationsRedesignedFeatureFlags = [
   {
     mobileMinimumVersions: {
