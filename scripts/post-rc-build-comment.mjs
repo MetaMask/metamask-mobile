@@ -2,14 +2,18 @@ import { Octokit } from '@octokit/rest';
 import { minimizeComment, isValidUrl } from './lib/github-utils.mjs';
 
 const RC_BUILD_COMMENT_MARKER = '<!-- metamask-bot-rc-build-announce -->';
+const TESTFLIGHT_URL = 'https://testflight.apple.com/join/hBrjtFuA';
 
 /**
- * Posts a new PR comment with RC build links from Bitrise and minimizes older RC build comments.
+ * Posts a new PR comment with RC build links and minimizes older RC build comments.
  * Each RC build creates a new comment at the bottom of the PR, while older RC build comments
  * are automatically minimized (hidden) to keep the PR timeline clean.
  *
+ * iOS uses TestFlight link with build number reference.
+ * Android uses Bitrise public install page URL.
+ *
  * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, SEMVER,
- * BUILD_NUMBER, ANDROID_PUBLIC_URL, IOS_PUBLIC_URL, BITRISE_PIPELINE_URL
+ * BUILD_NUMBER, ANDROID_PUBLIC_URL, BITRISE_PIPELINE_URL
  *
  * @returns {Promise<void>}
  */
@@ -21,7 +25,6 @@ async function start() {
     SEMVER,
     BUILD_NUMBER,
     ANDROID_PUBLIC_URL,
-    IOS_PUBLIC_URL,
     BITRISE_PIPELINE_URL,
   } = process.env;
 
@@ -52,22 +55,16 @@ async function start() {
   const version = SEMVER || 'Unknown';
   const buildNum = BUILD_NUMBER || 'Unknown';
 
-  // Add iOS row if public URL is available
-  if (isValidUrl(IOS_PUBLIC_URL)) {
-    rows.push(`| **iOS** | [Install](${IOS_PUBLIC_URL}) | RC ${version} (${buildNum}) |`);
-  }
+  // iOS always uses TestFlight link with build number reference
+  rows.push(`| **iOS** | [TestFlight](${TESTFLIGHT_URL}) | Download build \`${buildNum}\` |`);
 
   // Add Android row if public URL is available
   if (isValidUrl(ANDROID_PUBLIC_URL)) {
     rows.push(`| **Android** | [Install](${ANDROID_PUBLIC_URL}) | RC ${version} (${buildNum}) |`);
-  }
-
-  if (rows.length === 0) {
-    console.error('ERROR: No public install URLs available to report.');
+  } else {
+    console.error('ERROR: No Android public install URL available.');
     console.error(`  ANDROID_PUBLIC_URL: ${ANDROID_PUBLIC_URL || '(not set)'}`);
-    console.error(`  IOS_PUBLIC_URL: ${IOS_PUBLIC_URL || '(not set)'}`);
-    console.error('This may indicate a Bitrise configuration issue - artifacts may not have public pages enabled.');
-    // Exit with error to make the issue visible in CI
+    console.error('This may indicate a Bitrise configuration issue - artifact may not have public page enabled.');
     process.exit(1);
   }
 

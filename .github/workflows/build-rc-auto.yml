@@ -148,5 +148,4 @@ jobs:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
           BUILD_NUMBER: ${{ needs.trigger-rc-build.outputs.build-number }}
           ANDROID_PUBLIC_URL: ${{ needs.trigger-rc-build.outputs.android-public-url }}
-          IOS_PUBLIC_URL: ${{ needs.trigger-rc-build.outputs.ios-public-url }}
           BITRISE_PIPELINE_URL: ${{ needs.trigger-rc-build.outputs.bitrise-pipeline-url }}
