@@ -5718,9 +5718,9 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "Boost Earnings with mUSD",
-        "description": "Get an automatic mUSD bonus when you convert your stablecoins to mUSD, MetaMask’s dollar-backed stable.",
-        "primary_button": "Convert to mUSD",
+        "heading": "GET {{percentage}}% ON STABLECOINS",
+        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
+        "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
       "buy_musd": "Buy mUSD",
