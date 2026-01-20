@@ -15,6 +15,7 @@ import {
   selectIsMusdGetBuyCtaEnabledFlag,
   selectMusdConversionCTATokens,
 } from '../selectors/featureFlags';
+import { selectMusdConversionAssetDetailCtasSeen } from '../../../../reducers/user/selectors';
 import type { WildcardTokenList } from '../utils/wildcardTokenList';
 import type { TokenI } from '../../Tokens/types';
 import type { AssetType } from '../../../Views/confirmations/types/token';
@@ -110,6 +111,7 @@ describe('useMusdCtaVisibility', () => {
   let mockIsMusdConversionTokenListItemCtaEnabled = false;
   let mockIsMusdConversionAssetOverviewEnabled = false;
   let mockMusdConversionCtaTokens: WildcardTokenList = {};
+  let mockMusdConversionAssetDetailCtasSeen: Record<string, boolean> = {};
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -117,6 +119,7 @@ describe('useMusdCtaVisibility', () => {
     mockIsMusdConversionTokenListItemCtaEnabled = false;
     mockIsMusdConversionAssetOverviewEnabled = false;
     mockMusdConversionCtaTokens = {};
+    mockMusdConversionAssetDetailCtasSeen = {};
 
     mockIsNonEvmChainId.mockReturnValue(false);
     mockUseSelector.mockImplementation((selector) => {
@@ -131,6 +134,9 @@ describe('useMusdCtaVisibility', () => {
       }
       if (selector === selectMusdConversionCTATokens) {
         return mockMusdConversionCtaTokens;
+      }
+      if (selector === selectMusdConversionAssetDetailCtasSeen) {
+        return mockMusdConversionAssetDetailCtasSeen;
       }
       return undefined;
     });
@@ -899,6 +905,28 @@ describe('useMusdCtaVisibility', () => {
 
       expect(isVisible).toBe(false);
     });
+
+    it('returns true even when asset detail CTA was dismissed (dismissal only affects asset overview)', () => {
+      mockMusdConversionAssetDetailCtasSeen = {
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      };
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
+      });
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowTokenListItemCta(listItemToken);
+
+      expect(isVisible).toBe(true);
+    });
   });
 
   describe('shouldShowAssetOverviewCta', () => {
@@ -963,6 +991,20 @@ describe('useMusdCtaVisibility', () => {
     it('returns false when token is not configured for CTA', () => {
       mockIsMusdConversionAssetOverviewEnabled = true;
       mockMusdConversionCtaTokens = { [CHAIN_IDS.MAINNET]: ['DAI'] };
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible =
+        result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+      expect(isVisible).toBe(false);
+    });
+
+    it('returns false when token is dismissed', () => {
+      mockIsMusdConversionAssetOverviewEnabled = true;
+      mockMusdConversionAssetDetailCtasSeen = {
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      };
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
