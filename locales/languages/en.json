@@ -5728,7 +5728,8 @@
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "boost_title": "Boost your stablecoin balance",
-      "boost_description": "Earn a bonus every time you convert stablecoins to"
+      "boost_description": "Earn a bonus every time you convert stablecoins to",
+      "powered_by_relay": "Powered by Relay"
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
