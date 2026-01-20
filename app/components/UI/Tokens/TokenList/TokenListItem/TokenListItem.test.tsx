@@ -20,6 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -533,7 +534,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       jest.clearAllMocks();
     });
 
-    it('displays "Convert to mUSD" CTA when asset is convertible stablecoin with positive balance', () => {
+    it('displays "Get 3% mUSD bonus" CTA when asset is convertible stablecoin with positive balance', () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
@@ -549,7 +550,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(getByText('Convert to mUSD')).toBeOnTheScreen();
+      expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
     });
 
     it('displays percentage change when mUSD conversion flag is disabled', () => {
@@ -570,7 +571,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+2.50%')).toBeOnTheScreen();
-      expect(queryByText('Convert to mUSD')).toBeNull();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
     });
 
     it('displays percentage change when asset is not a convertible stablecoin', () => {
@@ -597,7 +598,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('+3.20%')).toBeOnTheScreen();
-      expect(queryByText('Convert to mUSD')).toBeNull();
+      expect(queryByText('Get 3% mUSD bonus')).toBeNull();
     });
 
     it('hides mUSD conversion CTA when user is geo-blocked', () => {
@@ -654,7 +655,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
     });
 
-    it('tracks mUSD conversion CTA clicked event when Convert to mUSD is pressed and education screen has not been seen', async () => {
+    it('tracks mUSD conversion CTA clicked event when pressed and education screen has not been seen', async () => {
       // Arrange
       mockHasSeenConversionEducationScreen = false;
       prepareMocks({
@@ -702,7 +703,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         location: 'token_list_item',
         redirects_to: 'conversion_education_screen',
         cta_type: 'musd_conversion_secondary_cta',
-        cta_text: strings('earn.musd_conversion.convert_to_musd'),
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
         network_chain_id: usdcAsset.chainId,
         network_name: 'Ethereum Mainnet',
         asset_symbol: usdcAsset.symbol,
@@ -712,7 +715,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
-    it('tracks mUSD conversion CTA clicked event when Convert to mUSD is pressed and education screen has been seen', async () => {
+    it('tracks mUSD conversion CTA clicked event pressed and education screen has been seen', async () => {
       // Arrange
       mockHasSeenConversionEducationScreen = true;
       prepareMocks({
@@ -760,7 +763,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         location: 'token_list_item',
         redirects_to: 'custom_amount_screen',
         cta_type: 'musd_conversion_secondary_cta',
-        cta_text: strings('earn.musd_conversion.convert_to_musd'),
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
         network_chain_id: usdcAsset.chainId,
         network_name: 'Ethereum Mainnet',
         asset_symbol: usdcAsset.symbol,
