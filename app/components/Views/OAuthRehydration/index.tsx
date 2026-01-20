@@ -407,23 +407,29 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         isWrongPasswordError ||
         loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
 
+      // Handle password errors
       if (isPasswordError) {
         handlePasswordError(loginErrorMessage);
         return;
-      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      }
+
+      // Handle biometric cancellation - user intentionally cancelled, no error tracking needed
+      const isBiometricCancellation =
+        toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID) ||
+        loginErrorMessage.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        );
+      if (isBiometricCancellation) {
+        updateBiometryChoice(false);
+        setLoading(false);
+        return;
+      }
+
+      if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
         );
-      } else if (
-        toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID) ||
-        loginErrorMessage.includes(
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        )
-      ) {
-        updateBiometryChoice(false);
-        setLoading(false);
-        return;
       } else {
         setError(loginErrorMessage);
       }

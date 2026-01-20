@@ -341,20 +341,29 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         isWrongPasswordError ||
         loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
 
+      // Handle password errors
       if (isPasswordError) {
         handlePasswordError(loginErrorMessage);
-        // return and skip capture error to sentry
         return;
-      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('login.security_alert_title'),
-          strings('login.security_alert_desc'),
+      }
+
+      // Handle biometric cancellation - user intentionally cancelled, no error tracking needed
+      const isBiometricCancellation =
+        toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID) ||
+        loginErrorMessage.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
         );
-      } else if (
+      if (isBiometricCancellation) {
+        updateBiometryChoice(false);
+        setLoading(false);
+        return;
+      }
+
+      // Handle vault corruption
+      const isVaultCorruption =
         containsErrorMessage(loginError, VAULT_ERROR) ||
-        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
-      ) {
-        // Track vault corruption detected
+        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN);
+      if (isVaultCorruption) {
         trackVaultCorruption(loginErrorMessage, {
           error_type: containsErrorMessage(loginError, VAULT_ERROR)
             ? 'vault_error'
@@ -362,17 +371,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           context: 'login_authentication',
           oauth_login: false,
         });
-
         await handleVaultCorruption();
-      } else if (
-        toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID) ||
-        loginErrorMessage.includes(
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        )
-      ) {
-        updateBiometryChoice(false);
-        setLoading(false);
-        return;
+      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+        Alert.alert(
+          strings('login.security_alert_title'),
+          strings('login.security_alert_desc'),
+        );
       } else {
         setError(loginErrorMessage);
       }
