@@ -41,18 +41,18 @@ const AccountGroupItem = ({
   accountAvatarType: ReturnType<typeof selectAvatarAccountType>;
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const selectEvmAddress = useMemo(
+  const selectSeedAddress = useMemo(
     () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
     [accountGroup.id],
   );
-  const evmAddress = useSelector(selectEvmAddress);
+  const seedAddress = useSelector(selectSeedAddress);
 
   return (
     <View style={styles.accountItem}>
       <Avatar
         variant={AvatarVariant.Account}
         type={accountAvatarType}
-        accountAddress={evmAddress}
+        accountAddress={seedAddress}
         size={AvatarSize.Sm}
       />
       <Text variant={TextVariant.BodySM} color={TextColor.Default}>

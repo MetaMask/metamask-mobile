@@ -54,9 +54,9 @@ export const getSnapAccountsByKeyringId = createDeepEqualSelector(
  * Account groups represent multichain accounts that share the same entropy source.
  * Each account group contains multiple accounts across different chains (EVM, Solana, Bitcoin, etc.)
  *
- * @param {RootState} state - The Redux state
- * @param {string} keyringId - The ID of the keyring to get account groups for
- * @returns {AccountGroupWithInternalAccounts[]} An array of account groups belonging to the keyring
+ * @param state - The Redux state
+ * @param keyringId - The ID of the keyring to get account groups for
+ * @returns An array of account groups belonging to the keyring
  */
 export const selectAccountGroupsByKeyringId = createDeepEqualSelector(
   selectAccountGroupWithInternalAccounts,

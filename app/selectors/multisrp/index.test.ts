@@ -1,3 +1,7 @@
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
 import {
   selectHdKeyringIndexByIdOrDefault,
   getSnapAccountsByKeyringId,
@@ -5,10 +9,7 @@ import {
 } from './index';
 import { RootState } from '../../reducers';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { SOLANA_WALLET_SNAP_ID } from '../../core/SnapKeyring/SolanaWalletSnap';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const MOCK_ADDRESS_1 = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const MOCK_ADDRESS_2 = '0xeE94464eFCa6F3fb77AC3A77Ca995234c0c1f7fC';
@@ -273,7 +274,6 @@ describe('multisrp selectors', () => {
     });
 
     it('returns empty array when no account groups exist for keyring', () => {
-      // Use the simple keyring ID which has no account groups
       const result = selectAccountGroupsByKeyringId(
         mockState(),
         mockSimpleKeyring.metadata.id,
