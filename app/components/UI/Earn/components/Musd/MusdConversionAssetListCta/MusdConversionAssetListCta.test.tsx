@@ -784,6 +784,19 @@ describe('MusdConversionAssetListCta', () => {
     it('tracks mUSD conversion CTA clicked event when Buy mUSD is pressed', () => {
       // Arrange
       (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
         >

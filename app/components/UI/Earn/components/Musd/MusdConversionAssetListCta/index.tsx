@@ -69,7 +69,7 @@ const MusdConversionAssetListCta = () => {
     const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
     const getRedirectLocation = () => {
-      if (!isEmptyWallet) {
+      if (isEmptyWallet) {
         return EVENT_LOCATIONS.BUY_SCREEN;
       }
 
