@@ -1,3 +1,6 @@
+import { TrendingViewSelectorsIDs as AppTrendingViewSelectorsIDs } from '../../../app/components/Views/TrendingView/TrendingView.testIds';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+
 export const TrendingViewSelectorsIDs = {
   SEARCH_BUTTON: 'explore-view-search-button',
   BROWSER_BUTTON: 'trending-view-browser-button',
@@ -8,8 +11,9 @@ export const TrendingViewSelectorsIDs = {
   PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-list-trending-card-',
   SITE_ROW_ITEM: 'site-row-item',
   SEARCH_FOOTER_GOOGLE_LINK: 'trending-search-footer-google-link',
-  SCROLL_VIEW: 'trending-feed-scroll-view',
-  QUICK_ACTIONS_SCROLL_VIEW: 'quick-actions-scroll-view',
+  SCROLL_VIEW: AppTrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
+  QUICK_ACTIONS_SCROLL_VIEW:
+    AppTrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
   SEARCH_RESULTS_LIST: 'trending-search-results-list',
   VIEW_ALL_BUTTON_PREFIX: 'section-header-view-all-',
 } as const;
@@ -36,7 +40,7 @@ export const SECTION_BACK_BUTTONS: Record<string, string> = {
 
 // Map item type to its details page back button Test ID
 export const DETAILS_BACK_BUTTONS: Record<string, string> = {
-  token: 'back-arrow-button',
+  token: CommonSelectorsIDs.BACK_ARROW_BUTTON,
   perp: 'perps-market-header-back-button',
   prediction: 'predict-market-details-back-button',
 };

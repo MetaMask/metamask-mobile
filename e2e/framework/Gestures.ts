@@ -531,25 +531,10 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {
-          // iOS: Try to check if element is already visible first
-          try {
-            await waitFor(target).toBeVisible().withTimeout(100);
-            return;
-          } catch {
-            // If not visible, try scrolling
-            try {
-              await waitFor(target)
-                .toBeVisible()
-                .whileElement(scrollable)
-                .scroll(scrollAmount, direction);
-            } catch {
-              // If whileElement scroll fails (ScrollView not 100% visible),
-              // try direct scroll on scrollable element
-              const scrollableElement = element(scrollable);
-              await scrollableElement.scroll(scrollAmount, direction);
-              await waitFor(target).toBeVisible().withTimeout(100);
-            }
-          }
+          await waitFor(target)
+            .toBeVisible()
+            .whileElement(scrollable)
+            .scroll(scrollAmount, direction);
         }
       },
       {

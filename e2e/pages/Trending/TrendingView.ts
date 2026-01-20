@@ -119,7 +119,7 @@ class TrendingView {
   ): Promise<void> {
     await Gestures.scrollToElement(
       targetElement,
-      Matchers.getIdentifier('trending-feed-scroll-view'),
+      Matchers.getIdentifier(TrendingViewSelectorsIDs.SCROLL_VIEW),
       {
         direction,
         scrollAmount: 300,

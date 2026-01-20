@@ -32,6 +32,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import Section, { RefreshConfig } from './components/Sections/Section';
+import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 
 /**
  * Custom hook to track boolean state for each section
@@ -229,7 +230,7 @@ export const ExploreFeed: React.FC = () => {
 
       {isBasicFunctionalityEnabled ? (
         <ScrollView
-          testID="trending-feed-scroll-view"
+          testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
           style={tw.style('flex-1 px-4')}
           showsVerticalScrollIndicator={false}
           refreshControl={
