@@ -10,14 +10,7 @@ import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
 import { fetchMerklRewardsForAsset } from '../merkl-client';
-
-const MERKL_DISTRIBUTOR_ADDRESS =
-  '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
-
-// ABI for the claim method
-const DISTRIBUTOR_ABI = [
-  'function claim(address[] calldata users, address[] calldata tokens, uint256[] calldata amounts, bytes32[][] calldata proofs)',
-];
+import { DISTRIBUTOR_CLAIM_ABI, MERKL_DISTRIBUTOR_ADDRESS } from '../constants';
 
 interface UseMerklClaimOptions {
   asset: TokenI;
@@ -61,7 +54,7 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
       const proofs = [rewardData.proofs]; // Note: proofs is plural!
 
       // Encode the claim transaction data using ethers Interface
-      const contractInterface = new Interface(DISTRIBUTOR_ABI);
+      const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
 
       const claimData = [users, tokens, amounts, proofs];
 

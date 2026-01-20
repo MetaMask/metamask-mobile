@@ -7,7 +7,10 @@ import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
 import { AGLAMERKL_ADDRESS } from '../constants';
-import { fetchMerklRewardsForAsset } from '../merkl-client';
+import {
+  fetchMerklRewardsForAsset,
+  getClaimedAmountFromContract,
+} from '../merkl-client';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 
@@ -98,11 +101,20 @@ export const useMerklRewards = ({
           return;
         }
 
+        // Get the claimed amount from the contract instead of the API
+        // The API's claimed value doesn't update immediately after claiming,
+        // but the contract's claimed mapping is updated immediately
+        const claimedFromContract = await getClaimedAmountFromContract(
+          selectedAddress,
+          asset.address as Hex,
+          asset.chainId as Hex,
+        );
+
         // Use unclaimed amount as it represents claimable rewards in the Merkle tree
         // Use token decimals from API response, fallback to asset decimals
         // Convert string amounts to BigInt for subtraction, then back to string
         const unclaimedBaseUnits =
-          BigInt(matchingReward.amount) - BigInt(matchingReward.claimed);
+          BigInt(matchingReward.amount) - BigInt(claimedFromContract);
         const tokenDecimals =
           matchingReward.token.decimals ?? asset.decimals ?? 18;
 
