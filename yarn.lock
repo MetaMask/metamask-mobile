@@ -7247,38 +7247,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^64.4.0, @metamask/bridge-controller@npm:^64.4.1":
-  version: 64.4.1
-  resolution: "@metamask/bridge-controller@npm:64.4.1"
-  dependencies:
-    "@ethersproject/address": "npm:^5.7.0"
-    "@ethersproject/bignumber": "npm:^5.7.0"
-    "@ethersproject/constants": "npm:^5.7.0"
-    "@ethersproject/contracts": "npm:^5.7.0"
-    "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/accounts-controller": "npm:^35.0.1"
-    "@metamask/assets-controllers": "npm:^95.1.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.18.0"
-    "@metamask/gas-fee-controller": "npm:^26.0.1"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/metamask-eth-abis": "npm:^3.1.1"
-    "@metamask/multichain-network-controller": "npm:^3.0.1"
-    "@metamask/network-controller": "npm:^28.0.0"
-    "@metamask/polling-controller": "npm:^16.0.1"
-    "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
-    "@metamask/snaps-controllers": "npm:^17.2.0"
-    "@metamask/transaction-controller": "npm:^62.9.1"
-    "@metamask/utils": "npm:^11.9.0"
-    bignumber.js: "npm:^9.1.2"
-    reselect: "npm:^5.1.1"
-    uuid: "npm:^8.3.2"
-  checksum: 10/1a2d312b96900e1870513e1a2f638334d24133886bd4f9902712612af670bb0a7cb36930ac1fdcc061b589a34e705c8d909e1b1b2b08e0be9cad6b42f9040325
-  languageName: node
-  linkType: hard
-
-"@metamask/bridge-controller@npm:^64.6.1":
+"@metamask/bridge-controller@npm:^64.4.0, @metamask/bridge-controller@npm:^64.4.1, @metamask/bridge-controller@npm:^64.6.1":
   version: 64.6.1
   resolution: "@metamask/bridge-controller@npm:64.6.1"
   dependencies:
@@ -8314,25 +8283,6 @@ __metadata:
     "@metamask/accounts-controller": ^34.0.0
     "@metamask/network-controller": ^25.0.0
   checksum: 10/4cb84091e1b1cfcfadbd0a83a0aaee5a12ed03b482da7ff01f63ebe3148ec62060c4a168f0d4fe88a6ccef524f3c45c441c7ece2f562cd99644408da5ccfb913
-  languageName: node
-  linkType: hard
-
-"@metamask/multichain-network-controller@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "@metamask/multichain-network-controller@npm:3.0.1"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^35.0.1"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.18.0"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/keyring-internal-api": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/network-controller": "npm:^28.0.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-    "@solana/addresses": "npm:^2.0.0"
-    lodash: "npm:^4.17.21"
-  checksum: 10/01f34609a48e7381c87de0086a22d1a7436bbfe9471e41c8c2b527f261832cc4646450c8c8d01637af326be12962ece368037677f9926e6919c89fb3d8807799
   languageName: node
   linkType: hard
 
