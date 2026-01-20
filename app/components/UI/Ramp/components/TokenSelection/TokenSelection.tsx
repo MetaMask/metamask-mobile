@@ -26,7 +26,8 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
 import { useDepositCryptoCurrencyNetworkName } from '../../Deposit/hooks/useDepositCryptoCurrencyNetworkName';
-
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import { useRampsController } from '../../hooks/useRampsController';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../Navbar';
@@ -50,14 +51,38 @@ function TokenSelection() {
     null,
   );
   const theme = useTheme();
-
   const navigation = useNavigation();
+  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
-  const { topTokens, allTokens, isLoading, error } = useRampTokens();
+  const {
+    tokens: controllerTokens,
+    tokensLoading: controllerTokensLoading,
+    tokensError: controllerTokensError,
+  } = useRampsController();
+  const legacyTokens = useRampTokens();
+
   const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
+
+  const { topTokens, allTokens, isLoading, error } = useMemo(() => {
+    if (!isV2UnifiedEnabled) {
+      return legacyTokens;
+    }
+    return {
+      topTokens: controllerTokens?.topTokens,
+      allTokens: controllerTokens?.allTokens,
+      isLoading: controllerTokensLoading,
+      error: controllerTokensError,
+    };
+  }, [
+    isV2UnifiedEnabled,
+    controllerTokens,
+    legacyTokens,
+    controllerTokensLoading,
+    controllerTokensError,
+  ]);
 
   // Use topTokens for initial display, allTokens when searching
   const supportedTokens = useMemo(() => {
@@ -66,7 +91,7 @@ function TokenSelection() {
   }, [searchString, allTokens, topTokens]);
 
   const searchTokenResults = useSearchTokenResults({
-    tokens: supportedTokens,
+    tokens: supportedTokens as RampsToken[],
     networkFilter,
     searchString,
   });
@@ -85,7 +110,9 @@ function TokenSelection() {
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
           currency_destination_symbol: selectedToken.symbol,
-          currency_destination_network: getNetworkName(selectedToken.chainId),
+          currency_destination_network: getNetworkName(
+            selectedToken.chainId as string,
+          ),
           currency_source: '',
           is_authenticated: false,
           token_caip19: selectedToken.assetId,
@@ -160,7 +187,11 @@ function TokenSelection() {
   const uniqueNetworks = useMemo(() => {
     const uniqueNetworksSet = new Set<CaipChainId>();
     for (const token of supportedTokens) {
-      uniqueNetworksSet.add(token.chainId);
+      if (token.chainId) {
+        uniqueNetworksSet.add(
+          token.chainId as `${string}:${string}` as CaipChainId,
+        );
+      }
     }
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
