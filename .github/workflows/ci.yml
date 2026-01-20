@@ -604,34 +604,6 @@ jobs:
 
           echo "All required jobs passed"
 
-  post-build-comment:
-    name: Post Build Comment
-    runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.build-android-apks.result == 'success' || needs.build-ios-apps.result == 'success' || needs.build-android-flask-apks.result == 'success')
-    needs: [build-android-apks, build-ios-apps, build-android-flask-apks]
-    permissions:
-      pull-requests: write
-      contents: read
-      actions: read
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install dependencies
-        run: yarn install --immutable
-      - name: Post Build Comment
-        run: node scripts/post-build-comment.mjs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.number }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          ANDROID_BUILD_SUCCESS: ${{ needs.build-android-apks.result == 'success' }}
-          IOS_BUILD_SUCCESS: ${{ needs.build-ios-apps.result == 'success' }}
-          ANDROID_FLASK_BUILD_SUCCESS: ${{ needs.build-android-flask-apks.result == 'success' }}
-
   log-merge-group-failure:
     name: Log merge group failure
     runs-on: ubuntu-latest
