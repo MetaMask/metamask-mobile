@@ -558,7 +558,7 @@ describe('PersonalDetails Component', () => {
 
       const ssnInput = getByTestId('personal-details-ssn-input');
       fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
-      fireEvent(ssnInput, 'blur');
+      fireEvent(ssnInput, 'onBlur');
 
       // Error should be shown after blur
       expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
@@ -569,7 +569,7 @@ describe('PersonalDetails Component', () => {
 
       const ssnInput = getByTestId('personal-details-ssn-input');
       fireEvent.changeText(ssnInput, '123456789'); // Valid SSN (9 digits)
-      fireEvent(ssnInput, 'blur');
+      fireEvent(ssnInput, 'onBlur');
 
       // Error should not be shown for valid SSN
       expect(queryByTestId('personal-details-ssn-error')).toBeNull();
@@ -582,7 +582,7 @@ describe('PersonalDetails Component', () => {
 
       // Type invalid SSN and blur to trigger error
       fireEvent.changeText(ssnInput, '123');
-      fireEvent(ssnInput, 'blur');
+      fireEvent(ssnInput, 'onBlur');
       expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
 
       // Type again - error should be cleared
