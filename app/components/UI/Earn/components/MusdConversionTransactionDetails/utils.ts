@@ -1,6 +1,8 @@
 import { BigNumber } from 'bignumber.js';
-import { Hex } from '@metamask/utils';
-import Engine from '../../../../../core/Engine';
+import {
+  TransactionMeta,
+  TransactionReceipt,
+} from '@metamask/transaction-controller';
 
 // ERC20 Transfer event topic (keccak256 of "Transfer(address,address,uint256)")
 const TRANSFER_EVENT_TOPIC =
@@ -13,54 +15,28 @@ interface TransferEventLog {
   tokenContract: string;
 }
 
-interface TransactionLog {
-  address: string;
-  topics: string[];
-  data: string;
-}
-
 /**
- * Fetches the transaction receipt and extracts ERC20 Transfer events from logs.
+ * Extracts ERC20 Transfer events from transaction receipt logs.
  *
- * @param txHash - The transaction hash
- * @param chainId - The chain ID (hex)
+ * @param convertTransactionReceipt - The transaction receipt
  * @returns Array of transfer events, or empty array if none found
  */
-async function getTransferEventsFromReceipt(
-  txHash: string,
-  chainId: Hex,
-): Promise<TransferEventLog[]> {
+function getTransferEventsFromReceipt(
+  convertTransactionReceipt: TransactionReceipt | undefined,
+): TransferEventLog[] {
   try {
-    const { NetworkController } = Engine.context;
-
-    const networkClientId =
-      NetworkController.findNetworkClientIdByChainId(chainId);
-    if (!networkClientId) {
-      return [];
-    }
-
-    const networkClient =
-      NetworkController.getNetworkClientById(networkClientId);
-    if (!networkClient?.provider) {
-      return [];
-    }
-
-    // Fetch the transaction receipt
-    const receipt = (await networkClient.provider.request({
-      method: 'eth_getTransactionReceipt',
-      params: [txHash],
-    })) as { logs?: TransactionLog[] } | null;
-
-    if (!receipt?.logs) {
+    if (!convertTransactionReceipt?.logs) {
       return [];
     }
 
     // Parse Transfer events from logs
     const transfers: TransferEventLog[] = [];
 
-    for (const log of receipt.logs) {
+    for (const log of convertTransactionReceipt.logs) {
       // Check if this is a Transfer event (topic0 matches)
-      if (log.topics[0]?.toLowerCase() !== TRANSFER_EVENT_TOPIC.toLowerCase()) {
+      if (
+        log?.topics?.[0]?.toLowerCase() !== TRANSFER_EVENT_TOPIC.toLowerCase()
+      ) {
         continue;
       }
 
@@ -69,13 +45,13 @@ async function getTransferEventsFromReceipt(
       if (log.topics.length >= 3) {
         const from = '0x' + log.topics[1].slice(26); // Remove padding
         const to = '0x' + log.topics[2].slice(26); // Remove padding
-        const amount = new BigNumber(log.data).toString(10);
+        const amount = new BigNumber(log?.data ?? '0').toString(10);
 
         transfers.push({
           from,
           to,
           amount,
-          tokenContract: log.address,
+          tokenContract: log?.address ?? '',
         });
       }
     }
@@ -95,16 +71,18 @@ interface ConversionTransfers {
  * Gets the input (first) and output (last) transfers from a conversion transaction's logs.
  * The first transfer is the source token input, the last transfer is the MUSD output.
  *
- * @param txHash - The transaction hash
- * @param chainId - The chain ID (hex)
+ * @param convertTransaction - The transaction meta object
  * @returns Object with input (first) and output (last) transfer events
  */
-export async function getConversionTransfersFromLogs(
-  txHash: string,
-  chainId: Hex,
-): Promise<ConversionTransfers> {
+export function getConversionTransfersFromLogs(
+  convertTransaction: TransactionMeta | undefined,
+): ConversionTransfers {
+  if (!convertTransaction) {
+    return { input: null, output: null };
+  }
+
   // Get ALL transfers (no token filter)
-  const transfers = await getTransferEventsFromReceipt(txHash, chainId);
+  const transfers = getTransferEventsFromReceipt(convertTransaction.txReceipt);
 
   if (transfers.length === 0) {
     return { input: null, output: null };
