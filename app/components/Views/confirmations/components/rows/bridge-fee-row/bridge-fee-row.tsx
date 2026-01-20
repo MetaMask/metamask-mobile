@@ -26,6 +26,7 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
+import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -35,6 +36,18 @@ export function BridgeFeeRow() {
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
+
+  const networkFeeUsd = useMemo(() => {
+    if (!totals) {
+      return '';
+    }
+
+    return formatFiat(
+      new BigNumber(totals.fees.sourceNetwork.estimate.usd).plus(
+        totals.fees.targetNetwork.usd,
+      ),
+    );
+  }, [totals, formatFiat]);
 
   const feeTotalUsd = useMemo(() => {
     if (!totals?.fees) return '';
@@ -52,7 +65,13 @@ export function BridgeFeeRow() {
   );
 
   if (isLoading) {
-    return (
+    return hasTransactionType(transactionMetadata, [
+      TransactionType.musdConversion,
+    ]) ? (
+      <>
+        <InfoRowSkeleton testId="network-fee-row-skeleton" />
+      </>
+    ) : (
       <>
         <InfoRowSkeleton testId="bridge-fee-row-skeleton" />
         <InfoRowSkeleton testId="metamask-fee-row-skeleton" />
@@ -61,6 +80,30 @@ export function BridgeFeeRow() {
   }
 
   const hasQuotes = Boolean(quotes?.length);
+
+  if (
+    hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
+  ) {
+    return (
+      <AlertRow
+        testID="network-fee-row"
+        label={strings('confirm.label.network_fee')}
+        alertField={RowAlertKey.PayWithFee}
+        tooltipTitle={strings('confirm.label.network_fee')}
+        tooltip={strings('confirm.tooltip.network_fee')}
+        tooltipColor={IconColor.Alternative}
+        rowVariant={InfoRowVariant.Small}
+      >
+        <Text
+          variant={TextVariant.BodyMD}
+          color={hasAlert ? TextColor.Error : TextColor.Alternative}
+          testID={ConfirmationRowComponentIDs.NETWORK_FEE}
+        >
+          {networkFeeUsd}
+        </Text>
+      </AlertRow>
+    );
+  }
 
   return (
     <>
