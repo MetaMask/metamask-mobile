@@ -42,7 +42,7 @@ env:
 
 jobs:
   setup-dependencies:
-    name: Setup Dependencies
+    name: Setup Dependencies (PR)
     needs:
       - validate-pr
     uses: ./.github/workflows/setup-node-modules.yml
@@ -50,20 +50,34 @@ jobs:
       ref: ${{ inputs.commit_hash }}
       fetch-depth: 0
       upload-artifact: true
-      artifact-name: node-modules-eas-update
+      artifact-name: node-modules-eas-update-pr
+      artifact-retention-days: 1
+
+  setup-dependencies-base:
+    name: Setup Dependencies (Base)
+    needs:
+      - validate-pr
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ inputs.base_branch }}
+      fetch-depth: 0
+      upload-artifact: true
+      artifact-name: node-modules-eas-update-base
       artifact-retention-days: 1
 
   fingerprint-comparison:
     name: Compare Expo Fingerprints
     needs:
       - setup-dependencies
+      - setup-dependencies-base
     runs-on: ubuntu-latest
     outputs:
       branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     env:
-      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
+      PR_ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
+      BASE_ARTIFACT_NAME: ${{ needs.setup-dependencies-base.outputs.artifact-name }}
     steps:
       - name: Checkout target commit
         uses: actions/checkout@v4
@@ -83,30 +97,30 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validate artifact compatibility
+      - name: Validate artifact compatibility (PR commit)
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
           OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-          EXPECTED_ARTIFACT="node-modules-eas-update-node${NODE_VERSION}-${OS_NAME}"
+          EXPECTED_ARTIFACT="node-modules-eas-update-pr-node${NODE_VERSION}-${OS_NAME}"
           
-          echo "🔍 Validating artifact compatibility..."
+          echo "🔍 Validating PR artifact compatibility..."
           echo "  Expected artifact: $EXPECTED_ARTIFACT"
-          echo "  Actual artifact:   ${{ env.ARTIFACT_NAME }}"
+          echo "  Actual artifact:   ${{ env.PR_ARTIFACT_NAME }}"
           
-          if [ "$EXPECTED_ARTIFACT" != "${{ env.ARTIFACT_NAME }}" ]; then
+          if [ "$EXPECTED_ARTIFACT" != "${{ env.PR_ARTIFACT_NAME }}" ]; then
             echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
             echo "❌ The node_modules artifact was built with different Node version or OS"
             echo "   This could cause issues with native node modules"
             echo "   Expected: $EXPECTED_ARTIFACT"
-            echo "   Actual:   ${{ env.ARTIFACT_NAME }}"
+            echo "   Actual:   ${{ env.PR_ARTIFACT_NAME }}"
             exit 1
           fi
-          echo "✅ Artifact compatibility validated"
+          echo "✅ PR artifact compatibility validated"
 
       - name: Download node_modules artifact (PR commit)
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: ${{ env.PR_ARTIFACT_NAME }}
 
       - name: Restore executable permissions
         run: |
@@ -136,10 +150,30 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Target PR fingerprint: $FINGERPRINT"
 
+      - name: Validate artifact compatibility (base branch)
+        run: |
+          NODE_VERSION=$(node --version | sed 's/v//')
+          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
+          EXPECTED_ARTIFACT="node-modules-eas-update-base-node${NODE_VERSION}-${OS_NAME}"
+          
+          echo "🔍 Validating base branch artifact compatibility..."
+          echo "  Expected artifact: $EXPECTED_ARTIFACT"
+          echo "  Actual artifact:   ${{ env.BASE_ARTIFACT_NAME }}"
+          
+          if [ "$EXPECTED_ARTIFACT" != "${{ env.BASE_ARTIFACT_NAME }}" ]; then
+            echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
+            echo "❌ The node_modules artifact was built with different Node version or OS"
+            echo "   This could cause issues with native node modules"
+            echo "   Expected: $EXPECTED_ARTIFACT"
+            echo "   Actual:   ${{ env.BASE_ARTIFACT_NAME }}"
+            exit 1
+          fi
+          echo "✅ Base branch artifact compatibility validated"
+
       - name: Download node_modules artifact (base branch)
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: ${{ env.BASE_ARTIFACT_NAME }}
           path: main
 
       - name: Restore executable permissions (base branch)
@@ -310,7 +344,7 @@ jobs:
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
           OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-          EXPECTED_ARTIFACT="node-modules-eas-update-node${NODE_VERSION}-${OS_NAME}"
+          EXPECTED_ARTIFACT="node-modules-eas-update-pr-node${NODE_VERSION}-${OS_NAME}"
           
           echo "🔍 Validating artifact compatibility..."
           echo "  Expected artifact: $EXPECTED_ARTIFACT"
