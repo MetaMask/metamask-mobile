@@ -292,6 +292,11 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
+const mockUseRampTokens = jest.fn();
+jest.mock('../Ramp/hooks/useRampTokens', () => ({
+  useRampTokens: () => mockUseRampTokens(),
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -354,6 +359,25 @@ describe('AssetOverview', () => {
 
     // Default mock for unified V1 flag - disabled
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+
+    // Default mock for useRampTokens - return tokens that make the test assets buyable
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [
+        {
+          chainId: 'eip155:1',
+          assetId: 'eip155:1/erc20:0x123',
+          tokenSupported: true,
+        },
+        {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          tokenSupported: true,
+        },
+      ],
+      topTokens: [],
+      isLoading: false,
+      error: null,
+    });
   });
 
   afterEach(() => {
@@ -891,6 +915,18 @@ describe('AssetOverview', () => {
         displayBuyButton={false}
         displaySwapsButton
       />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    expect(buyButton).toBeNull();
+  });
+
+  it('should not render buy button if asset is not supported for buying', async () => {
+    mockUseRampTokens.mockReturnValue({});
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
