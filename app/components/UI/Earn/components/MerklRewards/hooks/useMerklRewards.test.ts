@@ -123,7 +123,10 @@ describe('isEligibleForMerklRewards', () => {
 describe('useMerklRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockClear();
+    // Reset mocks to ensure clean state between tests
+    mockFetchMerklRewardsForAsset.mockReset();
+    mockGetClaimedAmountFromContract.mockReset();
+    mockRenderFromTokenMinimalUnit.mockReset();
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
@@ -132,6 +135,8 @@ describe('useMerklRewards', () => {
       return undefined;
     });
 
+    // Default implementation for renderFromTokenMinimalUnit
+    // This calculates the actual value from the input, which is what most tests need
     mockRenderFromTokenMinimalUnit.mockImplementation(
       (value: string | number | unknown, decimals: number) => {
         let stringValue: string;
@@ -149,9 +154,6 @@ describe('useMerklRewards', () => {
         return result.toFixed(2);
       },
     );
-
-    // Default mock for getClaimedAmountFromContract
-    mockGetClaimedAmountFromContract.mockResolvedValue('0');
   });
 
   it('initializes with null claimableReward', () => {
@@ -174,7 +176,7 @@ describe('useMerklRewards', () => {
       expect(result.current.claimableReward).toBe(null);
     });
 
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(mockFetchMerklRewardsForAsset).not.toHaveBeenCalled();
   });
 
   it('returns null when no selected address', async () => {
@@ -191,7 +193,7 @@ describe('useMerklRewards', () => {
       expect(result.current.claimableReward).toBe(null);
     });
 
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(mockFetchMerklRewardsForAsset).not.toHaveBeenCalled();
   });
 
   it('fetches and sets claimableReward when eligible', async () => {
@@ -214,7 +216,7 @@ describe('useMerklRewards', () => {
 
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
     mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
-    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
+    // Default implementation will calculate '1.50' from '1500000000000000000' with 18 decimals
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -246,35 +248,27 @@ describe('useMerklRewards', () => {
       address: '0x8D652C6D4A8F3DB96CD866C1A9220B1447F29898' as const, // All uppercase
     };
 
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1500000000000000000',
-            pending: '0',
-            proofs: [],
-            amount: '1500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
-
-    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Override the implementation for this test to return the expected value
+    // Default implementation will calculate '1.50' from the amount
 
     const { result } = renderHook(() =>
       useMerklRewards({ asset: upperCaseAsset }),
@@ -287,25 +281,18 @@ describe('useMerklRewards', () => {
       { timeout: 3000 },
     );
 
-    // Verify that &test=true is added even with different case address
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(
-        `${mockSelectedAddress}/rewards?chainId=${Number(CHAIN_IDS.MAINNET)}&test=true`,
-      ),
-      expect.objectContaining({
-        signal: expect.any(AbortSignal),
-      }),
-    );
+    expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    expect(mockGetClaimedAmountFromContract).toHaveBeenCalled();
   });
 
   it('handles API errors gracefully', async () => {
     const error = new Error('Network error');
-    (global.fetch as jest.Mock).mockRejectedValueOnce(error);
+    mockFetchMerklRewardsForAsset.mockRejectedValueOnce(error);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     });
 
     // Should remain null on error
@@ -313,74 +300,36 @@ describe('useMerklRewards', () => {
   });
 
   it('handles non-OK API responses', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    });
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     });
 
     expect(result.current.claimableReward).toBe(null);
   });
 
   it('handles empty rewards array', async () => {
-    const mockRewardData = [
-      {
-        rewards: [],
-      },
-    ];
-
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     });
 
     expect(result.current.claimableReward).toBe(null);
   });
 
   it('handles no matching token in rewards', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x1111111111111111111111111111111111111111', // Different token
-              chainId: 1,
-              symbol: 'OTHER',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1500000000000000000',
-            pending: '0',
-            proofs: [],
-            amount: '1500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
-
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     });
 
     // Should remain null when no matching token is found
@@ -388,55 +337,26 @@ describe('useMerklRewards', () => {
   });
 
   it('finds matching reward in second data array element', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x1111111111111111111111111111111111111111', // Different token
-              chainId: 1,
-              symbol: 'OTHER',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1000000000000000000',
-            pending: '0',
-            proofs: [],
-            amount: '1000000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898', // Matching token
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
       },
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898', // Matching token in second element
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '2500000000000000000',
-            pending: '0',
-            proofs: [],
-            amount: '2500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
+      accumulated: '0',
+      unclaimed: '2500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '2500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
-
-    mockRenderFromTokenMinimalUnit.mockReturnValue('2.50');
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // The default implementation will calculate '2.50' from '2500000000000000000' with 18 decimals
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -447,7 +367,7 @@ describe('useMerklRewards', () => {
       { timeout: 3000 },
     );
 
-    // Verify it found the reward in the second data array element
+    // Verify it found the reward
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
       '2500000000000000000',
       18,
@@ -456,78 +376,64 @@ describe('useMerklRewards', () => {
   });
 
   it('handles zero unclaimed amounts', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '0',
-            pending: '0',
-            proofs: [],
-            amount: '0',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '0',
+      pending: '0',
+      proofs: [],
+      amount: '1000000000000000000', // amount is non-zero
+      claimed: '1000000000000000000', // but claimed equals amount
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce(
+      '1000000000000000000',
+    );
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     });
 
+    // Should be null because unclaimed = amount - claimed = 0
     expect(result.current.claimableReward).toBe(null);
   });
 
   it('handles very small amounts that round to zero', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1', // Very small amount
-            pending: '0',
-            proofs: [],
-            amount: '1',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '1', // Very small amount
+      pending: '0',
+      proofs: [],
+      amount: '1',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
-
-    mockRenderFromTokenMinimalUnit.mockReturnValue('0.00');
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // The default implementation will calculate '0.00' from '1' with 18 decimals, which should result in null
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     });
 
     // Should remain null when amount rounds to zero
@@ -535,35 +441,26 @@ describe('useMerklRewards', () => {
   });
 
   it('resets claimableReward when switching assets', async () => {
-    const mockRewardData1 = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1500000000000000000',
-            pending: '0',
-            proofs: [],
-            amount: '1500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData1 = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData1),
-    });
-
-    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData1);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // The default implementation will calculate '1.50' from '1500000000000000000' with 18 decimals
 
     const { result, rerender } = renderHook(
       ({ asset }) => useMerklRewards({ asset }),
@@ -581,21 +478,32 @@ describe('useMerklRewards', () => {
       address: '0x2222222222222222222222222222222222222222' as const,
     };
 
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
     rerender({ asset: newAsset });
 
     // Should reset to null when asset changes
-    expect(result.current.claimableReward).toBe(null);
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe(null);
+    });
   });
 
   it('cancels fetch on unmount', async () => {
     let resolveFetch:
-      | ((value: Response | PromiseLike<Response>) => void)
+      | ((
+          value:
+            | Awaited<ReturnType<typeof fetchMerklRewardsForAsset>>
+            | PromiseLike<
+                Awaited<ReturnType<typeof fetchMerklRewardsForAsset>>
+              >,
+        ) => void)
       | undefined;
-    const fetchPromise = new Promise<Response>((resolve) => {
+    const fetchPromise = new Promise<
+      Awaited<ReturnType<typeof fetchMerklRewardsForAsset>>
+    >((resolve) => {
       resolveFetch = resolve;
     });
 
-    (global.fetch as jest.Mock).mockReturnValueOnce(fetchPromise);
+    mockFetchMerklRewardsForAsset.mockReturnValueOnce(fetchPromise);
 
     const { unmount } = renderHook(() => useMerklRewards({ asset: mockAsset }));
 
@@ -603,15 +511,12 @@ describe('useMerklRewards', () => {
 
     await act(async () => {
       if (resolveFetch) {
-        resolveFetch({
-          ok: true,
-          json: jest.fn().mockResolvedValue([{ rewards: [] }]),
-        } as unknown as Response);
+        resolveFetch(null);
       }
     });
 
     // Fetch should have been called but aborted
-    expect(global.fetch).toHaveBeenCalled();
+    expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
   });
 
   it('uses token decimals from API when available', async () => {
@@ -620,43 +525,37 @@ describe('useMerklRewards', () => {
       decimals: 6,
     };
 
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18, // API returns 18 decimals
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1500000000000000000', // 1.5 tokens with 18 decimals
-            pending: '0',
-            proofs: [],
-            amount: '1500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18, // API returns 18 decimals
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '1500000000000000000', // 1.5 tokens with 18 decimals
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
-
-    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // The default implementation will calculate '1.50' from '1500000000000000000' with 18 decimals
 
     const { result } = renderHook(() =>
       useMerklRewards({ asset: assetWithDecimals }),
     );
 
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe('1.50');
-    });
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('1.50');
+      },
+      { timeout: 3000 },
+    );
 
     // Should use token decimals from API (18) not asset decimals (6)
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
@@ -672,35 +571,26 @@ describe('useMerklRewards', () => {
       decimals: undefined as unknown as number,
     };
 
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: undefined as unknown as number, // API doesn't provide decimals
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1500000000000000000',
-            pending: '0',
-            proofs: [],
-            amount: '1500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: undefined as unknown as number, // API doesn't provide decimals
+        price: null,
       },
-    ];
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockRewardData),
-    });
-
-    mockRenderFromTokenMinimalUnit.mockReturnValue('1.50');
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // The default implementation will calculate '1.50' from '1500000000000000000' with 18 decimals
 
     const { result } = renderHook(() =>
       useMerklRewards({ asset: assetWithoutDecimals }),
