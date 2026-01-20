@@ -118,8 +118,8 @@ describe('ChartTooltip', () => {
       const textElements = getAllByTestId('svg-text');
       const textContents = textElements.map((el) => el.children[0]);
 
-      expect(textContents).toContain('Team A');
-      expect(textContents).toContain('Team B');
+      expect(textContents).toContain('TEAM A');
+      expect(textContents).toContain('TEAM B');
       expect(textContents).toContain('55%');
       expect(textContents).toContain('45%');
     });
