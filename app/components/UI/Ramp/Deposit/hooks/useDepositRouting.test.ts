@@ -707,6 +707,30 @@ describe('useDepositRouting', () => {
       ).rejects.toThrow('KYC forms fetch failed');
     });
 
+    it('should throw error when KYC requirements are missing', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue(null);
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Missing KYC requirements');
+    });
+
+    it('should throw error when KYC requirements are undefined', async () => {
+      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
+      mockGetKycRequirement = jest.fn().mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useDepositRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Missing KYC requirements');
+    });
+
     it('should throw error when payment URL generation fails', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
