@@ -9,10 +9,10 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import QuoteView from '../../pages/swaps/QuoteView';
-import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { testSpecificMock } from './helpers/swap-mocks';
 import WalletView from '../../pages/wallet/WalletView';
+import DeeplinkModal from '../../pages/swaps/Deeplink';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
@@ -28,7 +28,7 @@ describe(
       jest.setTimeout(120000);
     });
 
-    it('should navigate to bridge view with full parameters (USDC to USDT)', async (): Promise<void> => {
+    it('navigate to bridge view with full parameters (USDC to USDT)', async (): Promise<void> => {
       await withFixtures(
         {
           fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -71,9 +71,9 @@ describe(
 
           // Handle "Proceed with caution" modal that appears for deep links
           await Assertions.expectElementToBeVisible(
-            Matchers.getElementByText('Proceed with caution'),
+            DeeplinkModal.proceedWithCaution,
           );
-          await Gestures.waitAndTap(Matchers.getElementByText('Continue'));
+          await Gestures.waitAndTap(DeeplinkModal.continueButton);
 
           // Wait for bridge view to load after modal is dismissed
 
@@ -97,7 +97,7 @@ describe(
       );
     });
 
-    it('should navigate to bridge view with no parameters', async (): Promise<void> => {
+    it('navigate to bridge view with no parameters', async (): Promise<void> => {
       await withFixtures(
         {
           fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -140,9 +140,9 @@ describe(
 
           // Handle "Proceed with caution" modal that appears for deep links
           await Assertions.expectElementToBeVisible(
-            Matchers.getElementByText('Proceed with caution'),
+            DeeplinkModal.proceedWithCaution,
           );
-          await Gestures.waitAndTap(Matchers.getElementByText('Continue'));
+          await Gestures.waitAndTap(DeeplinkModal.continueButton);
 
           // Check that we are on the quote view with default state
           await Assertions.expectElementToBeVisible(
@@ -159,7 +159,7 @@ describe(
       );
     });
 
-    it('should handle invalid deep link parameters gracefully', async (): Promise<void> => {
+    it('handle invalid deep link parameters gracefully', async (): Promise<void> => {
       const invalidDeeplink = `${SWAP_DEEPLINK_BASE}?from=invalid&to=invalid&amount=invalid`;
 
       await withFixtures(
@@ -204,9 +204,9 @@ describe(
 
           // Handle "Proceed with caution" modal that appears for deep links
           await Assertions.expectElementToBeVisible(
-            Matchers.getElementByText('Proceed with caution'),
+            DeeplinkModal.proceedWithCaution,
           );
-          await Gestures.waitAndTap(Matchers.getElementByText('Continue'));
+          await Gestures.waitAndTap(DeeplinkModal.continueButton);
 
           // Wait for bridge view to load after modal is dismissed
           await Assertions.expectElementToBeVisible(
