@@ -62,6 +62,8 @@ jobs:
       branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
       main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
+    env:
+      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
     steps:
       - name: Checkout target commit
         uses: actions/checkout@v4
@@ -81,15 +83,30 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Validate artifact compatibility
+        run: |
+          NODE_VERSION=$(node --version | sed 's/v//')
+          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
+          EXPECTED_ARTIFACT="node-modules-eas-update-node${NODE_VERSION}-${OS_NAME}"
+          
+          echo "🔍 Validating artifact compatibility..."
+          echo "  Expected artifact: $EXPECTED_ARTIFACT"
+          echo "  Actual artifact:   ${{ env.ARTIFACT_NAME }}"
+          
+          if [ "$EXPECTED_ARTIFACT" != "${{ env.ARTIFACT_NAME }}" ]; then
+            echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
+            echo "❌ The node_modules artifact was built with different Node version or OS"
+            echo "   This could cause issues with native node modules"
+            echo "   Expected: $EXPECTED_ARTIFACT"
+            echo "   Actual:   ${{ env.ARTIFACT_NAME }}"
+            exit 1
+          fi
+          echo "✅ Artifact compatibility validated"
+
       - name: Download node_modules artifact (PR commit)
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-eas-update
-
-      - name: Install dependencies (workflow branch)
-        run: |
-          echo "📦 Installing dependencies for current branch..."
-          yarn install --immutable --mode=skip-build
+          name: ${{ env.ARTIFACT_NAME }}
 
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
@@ -102,13 +119,7 @@ jobs:
       - name: Download node_modules artifact (base branch)
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-eas-update
-
-      - name: Install dependencies (base branch)
-        working-directory: main
-        run: |
-          echo "📦 Installing dependencies for base branch snapshot (${BASE_BRANCH_REF})..."
-          yarn install --immutable --mode=skip-build
+          name: ${{ env.ARTIFACT_NAME }}
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
@@ -207,6 +218,7 @@ jobs:
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       needs.approval.result == 'success'
     env:
+      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
@@ -265,10 +277,30 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Validate artifact compatibility
+        run: |
+          NODE_VERSION=$(node --version | sed 's/v//')
+          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
+          EXPECTED_ARTIFACT="node-modules-eas-update-node${NODE_VERSION}-${OS_NAME}"
+          
+          echo "🔍 Validating artifact compatibility..."
+          echo "  Expected artifact: $EXPECTED_ARTIFACT"
+          echo "  Actual artifact:   ${{ env.ARTIFACT_NAME }}"
+          
+          if [ "$EXPECTED_ARTIFACT" != "${{ env.ARTIFACT_NAME }}" ]; then
+            echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
+            echo "❌ The node_modules artifact was built with different Node version or OS"
+            echo "   This could cause issues with native node modules"
+            echo "   Expected: $EXPECTED_ARTIFACT"
+            echo "   Actual:   ${{ env.ARTIFACT_NAME }}"
+            exit 1
+          fi
+          echo "✅ Artifact compatibility validated"
+
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-modules-eas-update
+          name: ${{ env.ARTIFACT_NAME }}
 
       - name: Verify downloaded artifacts
         run: |

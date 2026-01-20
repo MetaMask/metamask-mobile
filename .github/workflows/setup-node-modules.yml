@@ -39,6 +39,9 @@ on:
       cache-key:
         description: 'The cache key used for node_modules'
         value: ${{ jobs.setup.outputs.cache-key }}
+      artifact-name:
+        description: 'The actual artifact name used (includes node version and OS)'
+        value: ${{ jobs.setup.outputs.artifact-name }}
 
 permissions:
   contents: read
@@ -50,6 +53,7 @@ jobs:
     outputs:
       cache-hit: ${{ steps.cache-node-modules.outputs.cache-hit }}
       cache-key: ${{ steps.cache-key.outputs.key }}
+      artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,6 +65,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Set artifact name with node version and OS
+        id: set-artifact-name
+        run: |
+          NODE_VERSION=$(node --version | sed 's/v//')
+          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
+          ARTIFACT_NAME="${{ inputs.artifact-name }}-node${NODE_VERSION}-${OS_NAME}"
+          echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+          echo "📦 Artifact name: $ARTIFACT_NAME"
 
       - name: Install dependencies
         run: |
@@ -102,7 +115,7 @@ jobs:
         if: inputs.upload-artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: |
             node_modules
             app/util/termsOfUse/termsOfUseContent.ts
@@ -110,3 +123,4 @@ jobs:
           retention-days: ${{ inputs.artifact-retention-days }}
           compression-level: 1
           if-no-files-found: warn
+          include-hidden-files: true
