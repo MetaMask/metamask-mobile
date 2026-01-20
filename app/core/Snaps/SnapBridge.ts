@@ -8,7 +8,12 @@ import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 // @ts-expect-error - No types declarations
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
-import { JsonRpcParams, Json, CaipChainId } from '@metamask/utils';
+import {
+  JsonRpcParams,
+  Json,
+  CaipChainId,
+  JsonRpcRequest,
+} from '@metamask/utils';
 import {
   createSelectedNetworkMiddleware,
   SelectedNetworkControllerMessenger,
@@ -50,6 +55,7 @@ import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
 } from '../RPCMethods/utils';
+import { MultichainRouter } from '@metamask/snaps-controllers';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -279,7 +285,9 @@ export default class SnapBridge {
           Engine.controllerMessenger,
           'MultichainRouter:isSupportedScope',
         ),
-        handleNonEvmRequestForOrigin: (params) =>
+        handleNonEvmRequestForOrigin: (
+          params: Parameters<MultichainRouter['handleRequest']>[0],
+        ) =>
           Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
             ...params,
             origin: this.#snapId,
@@ -310,11 +318,9 @@ export default class SnapBridge {
       }),
     );
 
-    // engine.push(this.createEip5792Middleware());
-
     engine.push(async (req, res, _next, end) => {
       const { provider } = NetworkController.getNetworkClientById(
-        req.networkClientId,
+        (req as JsonRpcRequest & { networkClientId: string }).networkClientId,
       );
       res.result = await provider.request(req);
       return end();
