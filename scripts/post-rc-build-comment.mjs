@@ -1,21 +1,68 @@
 import { Octokit } from '@octokit/rest';
-import { minimizeComment, isValidUrl } from './lib/github-utils.mjs';
 
 const RC_BUILD_COMMENT_MARKER = '<!-- metamask-bot-rc-build-announce -->';
 const TESTFLIGHT_URL = 'https://testflight.apple.com/join/hBrjtFuA';
 
 /**
+ * Checks if a URL value is valid (not empty, null, placeholder, and proper URL format).
+ * @param {string | undefined} url - The URL to check
+ * @returns {boolean} Whether the URL is valid
+ */
+function isValidUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+  const trimmed = url.trim().toLowerCase();
+  if (trimmed === '' || trimmed === 'n/a' || trimmed === 'null' || trimmed === 'undefined') {
+    return false;
+  }
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Minimizes (hides) a comment using GitHub GraphQL API.
+ * @param {Octokit} octokit - Octokit instance
+ * @param {string} nodeId - The GraphQL node ID of the comment
+ * @returns {Promise<boolean>} Whether the operation was successful
+ */
+async function minimizeComment(octokit, nodeId) {
+  try {
+    await octokit.graphql(
+      `
+      mutation MinimizeComment($id: ID!, $classifier: ReportedContentClassifiers!) {
+        minimizeComment(input: { subjectId: $id, classifier: $classifier }) {
+          minimizedComment {
+            isMinimized
+            minimizedReason
+          }
+        }
+      }
+      `,
+      {
+        id: nodeId,
+        classifier: 'OUTDATED',
+      },
+    );
+    return true;
+  } catch (error) {
+    console.error(`Failed to minimize comment ${nodeId}:`, error.message);
+    return false;
+  }
+}
+
+/**
  * Posts a new PR comment with RC build links and minimizes older RC build comments.
- * Each RC build creates a new comment at the bottom of the PR, while older RC build comments
- * are automatically minimized (hidden) to keep the PR timeline clean.
  *
  * iOS uses TestFlight link with build number reference.
  * Android uses Bitrise public install page URL.
  *
  * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, SEMVER,
  * BUILD_NUMBER, ANDROID_PUBLIC_URL, BITRISE_PIPELINE_URL
- *
- * @returns {Promise<void>}
  */
 async function start() {
   const {
