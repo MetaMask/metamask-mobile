@@ -4642,6 +4642,43 @@ describe('Authentication', () => {
       });
     });
 
+    it('calls lockApp when error is thrown and logs error when lockApp fails', async () => {
+      // Clear any previous mock setup from beforeEach
+      jest.spyOn(Authentication, 'lockApp').mockReset();
+
+      const lockAppSpy = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockRejectedValueOnce(new Error('Failed to lock app'));
+
+      // Mock rehydrateSeedPhrase to reject.
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(new Error('Failed to rehydrate seed phrase'));
+
+      // Call unlockWallet and expect it to throw the original error (not the lockApp error).
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true, // Required to trigger rehydrateSeedPhrase call
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      // Verify lockApp was called with correct parameters
+      expect(lockAppSpy).toHaveBeenCalledWith({
+        reset: false,
+        navigateToLogin: false,
+      });
+
+      // Verify the lockApp error was logged (not thrown)
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Failed to lock app during unlockWallet error condition.',
+      );
+    });
+
     describe('when using seedless onboarding', () => {
       afterEach(() => {
         jest.restoreAllMocks();

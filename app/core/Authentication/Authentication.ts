@@ -858,7 +858,15 @@ class AuthenticationService {
       // Error while submitting password.
 
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
-      this.lockApp({ reset: false, navigateToLogin: false });
+      try {
+        await this.lockApp({ reset: false, navigateToLogin: false });
+      } catch (lockError) {
+        // Log but don't replace the original error
+        Logger.error(
+          lockError as Error,
+          'Failed to lock app during unlockWallet error condition.',
+        );
+      }
 
       // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
       // handlePasswordSubmissionError(error as Error);
