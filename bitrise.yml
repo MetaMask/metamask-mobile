@@ -3445,6 +3445,9 @@ app:
       MM_RAMPS_UNIFIED_BUY_V1_ENABLED: true
     - opts:
         is_expand: false
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: true
+    - opts:
+        is_expand: false
       MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED: "0.01"
     - opts:
         is_expand: false
