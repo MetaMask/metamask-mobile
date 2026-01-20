@@ -1,5 +1,6 @@
 import { CaipChainId } from '@metamask/utils';
 import { BtcScope, EthScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import { getDefaultMultichainNetworkControllerState } from '@metamask/multichain-network-controller';
 import {
   selectMultichainNetworkControllerState,
   selectIsEvmNetworkSelected,
@@ -34,30 +35,90 @@ describe('Multichain Network Controller Selectors', () => {
   } as unknown as RootState;
 
   describe('selectMultichainNetworkControllerState', () => {
-    it('should return the multichain network controller state', () => {
+    it('returns the multichain network controller state', () => {
       const result = selectMultichainNetworkControllerState(mockState);
       expect(result).toBe(
         mockState.engine.backgroundState.MultichainNetworkController,
       );
     });
+
+    it('returns default state when MultichainNetworkController is undefined', () => {
+      const stateWithUndefinedController = {
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectMultichainNetworkControllerState(
+        stateWithUndefinedController,
+      );
+      expect(result).toStrictEqual(
+        getDefaultMultichainNetworkControllerState(),
+      );
+    });
+
+    it('returns default state when backgroundState is undefined', () => {
+      const stateWithUndefinedBackgroundState = {
+        engine: {
+          backgroundState: undefined,
+        },
+      } as unknown as RootState;
+
+      const result = selectMultichainNetworkControllerState(
+        stateWithUndefinedBackgroundState,
+      );
+      expect(result).toStrictEqual(
+        getDefaultMultichainNetworkControllerState(),
+      );
+    });
   });
 
   describe('selectIsEvmNetworkSelected', () => {
-    it('should return isEvmSelected value', () => {
+    it('returns isEvmSelected value', () => {
       const result = selectIsEvmNetworkSelected(mockState);
       expect(result).toBe(true);
+    });
+
+    it('does not crash when MultichainNetworkController state is undefined', () => {
+      const stateWithUndefinedController = {
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      expect(() =>
+        selectIsEvmNetworkSelected(stateWithUndefinedController),
+      ).not.toThrow();
     });
   });
 
   describe('selectSelectedNonEvmNetworkChainId', () => {
-    it('should return the selected non-EVM network chain ID', () => {
+    it('returns the selected non-EVM network chain ID', () => {
       const result = selectSelectedNonEvmNetworkChainId(mockState);
       expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+    });
+
+    it('does not crash when MultichainNetworkController state is undefined', () => {
+      const stateWithUndefinedController = {
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      expect(() =>
+        selectSelectedNonEvmNetworkChainId(stateWithUndefinedController),
+      ).not.toThrow();
     });
   });
 
   describe('selectNonEvmNetworkConfigurationsByChainId', () => {
-    it('should return the non-EVM network configurations', () => {
+    it('returns the non-EVM network configurations', () => {
       const result = selectNonEvmNetworkConfigurationsByChainId(mockState);
       expect(result).toEqual(
         mockState.engine.backgroundState.MultichainNetworkController
@@ -67,12 +128,12 @@ describe('Multichain Network Controller Selectors', () => {
   });
 
   describe('selectSelectedNonEvmNetworkName', () => {
-    it('should return the selected network name', () => {
+    it('returns the selected network name', () => {
       const result = selectSelectedNonEvmNetworkName(mockState);
       expect(result).toBe('Solana Mainnet');
     });
 
-    it('should return undefined when network is not found', () => {
+    it('returns undefined when network is not found', () => {
       const modifiedState = {
         ...mockState,
         engine: {
@@ -90,12 +151,12 @@ describe('Multichain Network Controller Selectors', () => {
   });
 
   describe('selectSelectedNonEvmNativeCurrency', () => {
-    it('should return the selected network native currency', () => {
+    it('returns the selected network native currency', () => {
       const result = selectSelectedNonEvmNativeCurrency(mockState);
       expect(result).toBe('solana:sol/token:sol');
     });
 
-    it('should return undefined when network is not found', () => {
+    it('returns undefined when network is not found', () => {
       const modifiedState = {
         ...mockState,
         engine: {
@@ -113,12 +174,12 @@ describe('Multichain Network Controller Selectors', () => {
   });
 
   describe('selectSelectedNonEvmNetworkSymbol', () => {
-    it('should return the selected network symbol', () => {
+    it('returns the selected network symbol', () => {
       const result = selectSelectedNonEvmNetworkSymbol(mockState);
       expect(result).toBe('SOL');
     });
 
-    it('should return undefined when network symbol is not found', () => {
+    it('returns undefined when network symbol is not found', () => {
       const modifiedState = {
         ...mockState,
         engine: {
@@ -166,7 +227,7 @@ describe('getActiveNetworksByScopes', () => {
     },
   } as unknown as RootState;
 
-  it('should return EVM networks with activity for an EOA account', () => {
+  it('returns EVM networks with activity for an EOA account', () => {
     const account = {
       address: MOCK_ETH_ACCOUNT,
       scopes: [EthScope.Eoa],
@@ -182,7 +243,7 @@ describe('getActiveNetworksByScopes', () => {
     ]);
   });
 
-  it('should return Solana network for a Solana account', () => {
+  it('returns Solana network for a Solana account', () => {
     const account = {
       address: MOCK_SOL_ACCOUNT,
       scopes: [SolScope.Mainnet],
@@ -196,7 +257,7 @@ describe('getActiveNetworksByScopes', () => {
   });
 
   it.each(Object.values(BtcScope))(
-    'should return correct network for Bitcoin: %s',
+    'returns correct network for Bitcoin: %s',
     (scope: BtcScope) => {
       const account = {
         address: MOCK_BTC_ACCOUNT,
@@ -212,7 +273,7 @@ describe('getActiveNetworksByScopes', () => {
   );
 
   it.each(Object.values(TrxScope))(
-    'should return correct network for Tron: %s',
+    'returns correct network for Tron: %s',
     (scope: TrxScope) => {
       const account = {
         address: MOCK_TRON_ACCOUNT,
@@ -227,7 +288,7 @@ describe('getActiveNetworksByScopes', () => {
     },
   );
 
-  it('should return an empty array if account has no scopes', () => {
+  it('returns an empty array if account has no scopes', () => {
     const account = {
       address: MOCK_ETH_ACCOUNT,
       scopes: [] as CaipChainId[],
@@ -236,7 +297,7 @@ describe('getActiveNetworksByScopes', () => {
     expect(result).toEqual([]);
   });
 
-  it('should return an empty array if account is undefined', () => {
+  it('returns an empty array if account is undefined', () => {
     const result = getActiveNetworksByScopes(
       baseState,
       undefined as unknown as { address: string; scopes: CaipChainId[] },
@@ -244,7 +305,7 @@ describe('getActiveNetworksByScopes', () => {
     expect(result).toEqual([]);
   });
 
-  it('should return an empty array if no activity for EVM account', () => {
+  it('returns an empty array if no activity for EVM account', () => {
     const account = {
       address: MOCK_ETH_ACCOUNT_NO_ACTIVITY,
       scopes: [EthScope.Eoa],

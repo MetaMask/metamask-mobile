@@ -30,6 +30,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../selectors/featureFlags');
+jest.mock('../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(),
+}));
+
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
 
 import { useSelector } from 'react-redux';
 
@@ -112,6 +120,8 @@ describe('useMusdCtaVisibility', () => {
     mockIsMusdConversionAssetOverviewEnabled = false;
     mockMusdConversionCtaTokens = {};
     mockMusdConversionAssetDetailCtasSeen = {};
+
+    mockIsNonEvmChainId.mockReturnValue(false);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsMusdGetBuyCtaEnabledFlag) {
         return mockIsMusdCtaEnabled;
@@ -756,6 +766,59 @@ describe('useMusdCtaVisibility', () => {
 
       const isVisible =
         result.current.shouldShowTokenListItemCta(tokenWithoutChainId);
+
+      expect(isVisible).toBe(false);
+    });
+
+    it('returns false when token is on a non-EVM chain like Tron', () => {
+      const tronChainId = 'tron:728126428';
+      const tronToken: TokenI = {
+        ...listItemToken,
+        chainId: tronChainId,
+      };
+      mockIsNonEvmChainId.mockImplementation(
+        (chainId) => chainId === tronChainId,
+      );
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: false,
+      });
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible = result.current.shouldShowTokenListItemCta(tronToken);
+
+      expect(isVisible).toBe(false);
+      expect(mockIsNonEvmChainId).toHaveBeenCalledWith(tronChainId);
+    });
+
+    it('returns false for non-EVM chain even when all conditions are met', () => {
+      const tronChainId = 'tron:728126428';
+      const tronToken: TokenI = {
+        ...listItemToken,
+        chainId: tronChainId,
+      };
+      mockIsNonEvmChainId.mockImplementation(
+        (chainId) => chainId === tronChainId,
+      );
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        ...defaultNetworksByNamespace,
+        areAllNetworksSelected: true,
+      });
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
+
+      const { result } = renderHook(() => useMusdCtaVisibility());
+
+      const isVisible = result.current.shouldShowTokenListItemCta(tronToken);
 
       expect(isVisible).toBe(false);
     });

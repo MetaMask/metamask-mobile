@@ -18,7 +18,7 @@ const PredictSportFootballIcon: React.FC<PredictSportFootballIconProps> = ({
   testID,
 }) => {
   const { colors } = useTheme();
-  const fillColor = color ?? colors.text.default;
+  const fillColor = color ?? colors.text.alternative;
 
   return (
     <Svg width={size} height={size} viewBox="0 0 16 16" testID={testID}>

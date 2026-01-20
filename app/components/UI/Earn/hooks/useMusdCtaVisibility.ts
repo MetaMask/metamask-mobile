@@ -25,6 +25,7 @@ import { toHexadecimal } from '../../../../util/number';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 /**
  * Hook exposing helpers that decide whether to show various mUSD-related CTAs.
@@ -214,6 +215,11 @@ export const useMusdCtaVisibility = () => {
   const shouldShowTokenListItemCta = useCallback(
     (asset?: TokenI) => {
       if (!isMusdConversionTokenListItemCtaEnabled || !asset?.chainId) {
+        return false;
+      }
+
+      // mUSD needs to be available only on EVM chains
+      if (isNonEvmChainId(asset.chainId)) {
         return false;
       }
 

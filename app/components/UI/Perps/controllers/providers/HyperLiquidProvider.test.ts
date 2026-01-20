@@ -1,7 +1,6 @@
 import type { CaipAssetId, Hex } from '@metamask/utils';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../../util/Logger';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
@@ -13,13 +12,15 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
-import {
+import type {
   ClosePositionParams,
   DepositParams,
+  IPerpsPlatformDependencies,
   LiveDataConfig,
   OrderParams,
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
@@ -32,35 +33,6 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: mockGetStreamManagerInstance,
 }));
 
-// Mock Sentry
-jest.mock('@sentry/react-native', () => ({
-  setMeasurement: jest.fn(),
-  captureException: jest.fn(),
-}));
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    // Support both singular and plural minute formatting keys used in code
-    if (
-      (key === 'time.minutes_format' || key === 'time.minutes_format_plural') &&
-      typeof params?.count !== 'undefined'
-    ) {
-      const count = params.count as number;
-      return count === 1 ? `${count} minute` : `${count} minutes`;
-    }
-    return key;
-  }),
-}));
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0x1234567890123456789012345678901234567890',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
-    },
-  },
-}));
 jest.mock('../../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),
@@ -305,6 +277,27 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+// Create shared mock platform dependencies for provider tests
+const mockPlatformDependencies: IPerpsPlatformDependencies =
+  createMockInfrastructure();
+
+/**
+ * Helper to create HyperLiquidProvider with mock platform dependencies
+ */
+const createTestProvider = (
+  options: {
+    isTestnet?: boolean;
+    hip3Enabled?: boolean;
+    allowlistMarkets?: string[];
+    blocklistMarkets?: string[];
+    useDexAbstraction?: boolean;
+  } = {},
+): HyperLiquidProvider =>
+  new HyperLiquidProvider({
+    ...options,
+    platformDependencies: mockPlatformDependencies,
+  });
+
 describe('HyperLiquidProvider', () => {
   let provider: HyperLiquidProvider;
   let mockClientService: jest.Mocked<HyperLiquidClientService>;
@@ -381,7 +374,7 @@ describe('HyperLiquidProvider', () => {
     mockValidateAssetSupport.mockReturnValue({ isValid: true });
     mockValidateBalance.mockReturnValue({ isValid: true });
 
-    provider = new HyperLiquidProvider();
+    provider = createTestProvider();
 
     // Mock the asset mapping that gets built during ensureReady
     Object.defineProperty(provider, 'coinToAssetId', {
@@ -407,7 +400,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should initialize with testnet configuration', () => {
-      const testnetProvider = new HyperLiquidProvider({ isTestnet: true });
+      const testnetProvider = createTestProvider({ isTestnet: true });
       expect(testnetProvider).toBeDefined();
       expect(testnetProvider.protocolId).toBe('hyperliquid');
     });
@@ -431,7 +424,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('initializes with HIP-3 disabled when hip3Enabled is false', async () => {
-      const disabledProvider = new HyperLiquidProvider({
+      const disabledProvider = createTestProvider({
         hip3Enabled: false,
       });
 
@@ -495,7 +488,7 @@ describe('HyperLiquidProvider', () => {
         const route = routes[0];
         expect(route.constraints).toBeDefined();
         expect(route.constraints?.minAmount).toBe('1.01');
-        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.estimatedMinutes).toBe(5);
         expect(route.constraints?.fees).toEqual({
           fixed: 1,
           token: 'USDC',
@@ -512,7 +505,7 @@ describe('HyperLiquidProvider', () => {
         const route = routes[0];
         expect(route.constraints).toBeDefined();
         expect(route.constraints?.minAmount).toBe('1.01');
-        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.estimatedMinutes).toBe(5);
         expect(route.constraints?.fees).toEqual({
           fixed: 1,
           token: 'USDC',
@@ -987,7 +980,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('perps.order.validation.price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       expect(
         mockClientService.getExchangeClient().order,
       ).not.toHaveBeenCalled();
@@ -1007,12 +1000,8 @@ describe('HyperLiquidProvider', () => {
 
   describe('closePosition with TP/SL handling', () => {
     beforeEach(() => {
-      // Mock DevLogger to capture logs
-      jest.spyOn(DevLogger, 'log');
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
+      // Clear debugLogger mock to capture logs for this test suite
+      (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
     });
 
     it('should close position without TP/SL successfully', async () => {
@@ -1254,7 +1243,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
 
       // Should not log TP/SL related messages
-      expect(DevLogger.log).not.toHaveBeenCalledWith(
+      expect(mockPlatformDependencies.debugLogger.log).not.toHaveBeenCalledWith(
         expect.stringContaining('Found open TP/SL orders'),
         expect.any(Object),
       );
@@ -2195,7 +2184,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('perps.order.validation.price_required');
+      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
     it('should handle missing position in close operation', async () => {
@@ -2504,7 +2493,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.minimum_amount');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should reject close position below minimum value on testnet', async () => {
@@ -2520,7 +2509,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.minimum_amount');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should accept close position at minimum value', async () => {
@@ -2565,7 +2554,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateClosePosition(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.limit_price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
     });
 
     it('should handle validation when currentPrice is not provided', async () => {
@@ -2806,7 +2795,7 @@ describe('HyperLiquidProvider', () => {
     describe('ensureReady and buildAssetMapping', () => {
       it('should handle meta fetch failure in buildAssetMapping', async () => {
         // Create a fresh provider to test buildAssetMapping
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Mock failed meta fetch but keep other methods working
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
@@ -2915,7 +2904,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.placeOrder(orderParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('perps.order.validation.price_required');
+        expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       });
 
       it('should handle order with custom slippage', async () => {
@@ -3013,7 +3002,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create a fresh provider to test WebSocket errors
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Mock getPositions to simulate the WebSocket error being handled
         jest
@@ -3040,7 +3029,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create a fresh provider to test non-WebSocket errors
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Mock getPositions to simulate a generic API error
         jest
@@ -3189,7 +3178,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create fresh provider to avoid cached state from other tests
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         // Should gracefully handle missing price data with fallback
         const result = await freshProvider.getMarketDataWithPrices();
@@ -3224,7 +3213,7 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Create fresh provider to avoid cached state from other tests
-        const freshProvider = new HyperLiquidProvider();
+        const freshProvider = createTestProvider();
 
         const result = await freshProvider.getMarketDataWithPrices();
 
@@ -3929,13 +3918,13 @@ describe('HyperLiquidProvider', () => {
         it('logs discount context updates', () => {
           // Arrange
           const discountBips = 3000; // 30% in basis points
-          jest.spyOn(DevLogger, 'log');
+          (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
 
           // Act
           provider.setUserFeeDiscount(discountBips);
 
           // Assert
-          expect(DevLogger.log).toHaveBeenCalledWith(
+          expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
             'HyperLiquid: Fee discount context updated',
             {
               discountBips,
@@ -3947,13 +3936,13 @@ describe('HyperLiquidProvider', () => {
 
         it('logs when clearing discount context', () => {
           // Arrange
-          jest.spyOn(DevLogger, 'log');
+          (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
 
           // Act
           provider.setUserFeeDiscount(undefined);
 
           // Assert
-          expect(DevLogger.log).toHaveBeenCalledWith(
+          expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
             'HyperLiquid: Fee discount context updated',
             {
               discountBips: undefined,
@@ -4270,7 +4259,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateOrder(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('perps.order.validation.price_required');
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
     it('should fail validation when order value is below minimum', async () => {
@@ -4286,7 +4275,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.validateOrder(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('perps.order.validation.minimum_amount');
+      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
     });
 
     it('should fail validation when basic params are invalid', async () => {
@@ -4402,7 +4391,7 @@ describe('HyperLiquidProvider', () => {
 
         expect(result.isValid).toBe(false);
         expect(result.error).toBe(
-          'perps.order.validation.leverage_below_position',
+          PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION,
         );
       });
 
@@ -5728,7 +5717,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(mockInfoClientWithDexs);
 
       // Create a provider instance with equity enabled for this specific test
-      const testProvider = new HyperLiquidProvider({ hip3Enabled: true });
+      const testProvider = createTestProvider({ hip3Enabled: true });
 
       // Override the private cachedValidatedDexs to simulate already validated state
       // This avoids the complex initialization flow
@@ -5748,7 +5737,7 @@ describe('HyperLiquidProvider', () => {
 
     it('returns empty array when equity disabled', async () => {
       // Arrange
-      const disabledProvider = new HyperLiquidProvider({
+      const disabledProvider = createTestProvider({
         hip3Enabled: false,
       });
 
@@ -5761,7 +5750,7 @@ describe('HyperLiquidProvider', () => {
 
     it('returns empty array when perpDexs returns invalid data', async () => {
       // Arrange
-      const hip3Provider = new HyperLiquidProvider({ hip3Enabled: true });
+      const hip3Provider = createTestProvider({ hip3Enabled: true });
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           perpDexs: jest.fn().mockResolvedValue(null),
@@ -6134,7 +6123,7 @@ describe('HyperLiquidProvider', () => {
             perpDexs: jest.fn().mockRejectedValue(mockError),
           }),
         );
-        const mockLoggerError = jest.spyOn(Logger, 'error');
+        (mockPlatformDependencies.logger.error as jest.Mock).mockClear();
 
         // Act
         const result = await testableProvider.getAllAvailableDexs();
@@ -6142,7 +6131,7 @@ describe('HyperLiquidProvider', () => {
         // Assert
         expect(result).toEqual([null]);
         expect(testableProvider.cachedAllPerpDexs).toBeNull();
-        expect(mockLoggerError).toHaveBeenCalledWith(
+        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
             context: expect.objectContaining({
@@ -6295,13 +6284,12 @@ describe('HyperLiquidProvider', () => {
         mockWalletService.getUserAddressWithDefault = jest
           .fn()
           .mockResolvedValue('0xUserAddress');
-        const mockLoggerError = jest.spyOn(Logger, 'error');
 
         // Act
         await testableProvider.ensureDexAbstractionEnabled();
 
         // Assert
-        expect(mockLoggerError).toHaveBeenCalledWith(
+        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
             context: expect.objectContaining({
@@ -6320,13 +6308,12 @@ describe('HyperLiquidProvider', () => {
         mockWalletService.getUserAddressWithDefault = jest
           .fn()
           .mockRejectedValue(mockError);
-        const mockLoggerError = jest.spyOn(Logger, 'error');
 
         // Act
         await testableProvider.ensureDexAbstractionEnabled();
 
         // Assert
-        expect(mockLoggerError).toHaveBeenCalledWith(
+        expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
           mockError,
           expect.objectContaining({
             context: expect.objectContaining({
