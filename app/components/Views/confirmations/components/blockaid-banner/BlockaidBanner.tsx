@@ -31,7 +31,7 @@ import {
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AppConstants from '../../../../../core/AppConstants';
-import { ConfirmationTopSheetSelectorsIDs } from '../../../ConfirmationView.testIds';
+import { ConfirmationTopSheetSelectorsIDs } from '../../ConfirmationView.testIds';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
