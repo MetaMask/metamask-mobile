@@ -225,8 +225,7 @@ export const useTokensWithBalance: ({
           const assetId = formatAddressToAssetId(token.address, chainId);
           if (assetId) {
             tokenImage =
-              getTokenIconUrl(assetId, isNonEvmChainId(chainId)) ||
-              token.image;
+              getTokenIconUrl(assetId, isNonEvmChainId(chainId)) || token.image;
           }
         } catch (error) {
           // formatAddressToAssetId can throw for chains not supported by XChain Swaps

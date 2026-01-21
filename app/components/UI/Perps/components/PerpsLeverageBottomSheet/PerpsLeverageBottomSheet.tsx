@@ -726,12 +726,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   size={24}
                   style={styles.tokenSelectorLogo}
                 />
-                <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={TextColor.Default}
+                >
                   {selectedToken.symbol}
                 </Text>
               </View>
             ) : (
-              <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyLGMedium}
+                color={TextColor.Alternative}
+              >
                 {strings('perps.order.select_token')}
               </Text>
             )}

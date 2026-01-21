@@ -58,7 +58,9 @@ const PerpsTokenSelectorBottomSheet: React.FC<
   const getNetworkName = useCallback(
     (chainId: Hex | CaipChainId): string => {
       const networkConfig = networkConfigurations?.[chainId as Hex];
-      return networkConfig?.name || strings('network_information.unknown_network');
+      return (
+        networkConfig?.name || strings('network_information.unknown_network')
+      );
     },
     [networkConfigurations],
   );
@@ -114,10 +116,7 @@ const PerpsTokenSelectorBottomSheet: React.FC<
             />
           </BadgeWrapper>
           <View style={styles.tokenInfo}>
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              color={TextColor.Default}
-            >
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
               {token.symbol}
             </Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

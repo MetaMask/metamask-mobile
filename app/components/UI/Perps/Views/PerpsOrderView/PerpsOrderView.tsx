@@ -180,6 +180,7 @@ import {
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
+import { PerpsInlineDeposit } from './PerpsInlineDeposit';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -1055,10 +1056,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Show "depositing your funds" toast that stays on screen
         showToast({
-          ...PerpsToastOptions.accountManagement.deposit.inProgress(0, transactionId),
-          labelOptions: [
-            { label: 'Depositing your funds', isBold: true },
-          ],
+          ...PerpsToastOptions.accountManagement.deposit.inProgress(
+            0,
+            transactionId,
+          ),
+          labelOptions: [{ label: 'Depositing your funds', isBold: true }],
           hasNoTimeout: true, // Keep toast visible until funds arrive
         });
       }
@@ -1099,10 +1101,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Show "depositing your funds" toast that stays on screen
         showToast({
-          ...PerpsToastOptions.accountManagement.deposit.inProgress(0, transactionId),
-          labelOptions: [
-            { label: 'Depositing your funds', isBold: true },
-          ],
+          ...PerpsToastOptions.accountManagement.deposit.inProgress(
+            0,
+            transactionId,
+          ),
+          labelOptions: [{ label: 'Depositing your funds', isBold: true }],
           hasNoTimeout: true, // Keep toast visible until funds arrive
         });
       }
@@ -1151,10 +1154,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       hasShownDepositToastRef.current = transactionId;
 
       showToast({
-        ...PerpsToastOptions.accountManagement.deposit.inProgress(0, transactionId),
-        labelOptions: [
-          { label: 'Depositing your funds', isBold: true },
-        ],
+        ...PerpsToastOptions.accountManagement.deposit.inProgress(
+          0,
+          transactionId,
+        ),
+        labelOptions: [{ label: 'Depositing your funds', isBold: true }],
         hasNoTimeout: true,
       });
     }
@@ -1169,7 +1173,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleTransactionFailed,
       );
     };
-  }, [activeTransactionMeta, account?.availableBalance, showToast, PerpsToastOptions, toastRef]);
+  }, [
+    activeTransactionMeta,
+    account?.availableBalance,
+    showToast,
+    PerpsToastOptions,
+    toastRef,
+  ]);
 
   // Monitor balance changes to detect when funds arrive
   useEffect(() => {
@@ -1194,14 +1204,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         ...PerpsToastOptions.accountManagement.deposit.success(
           account.availableBalance?.toString(),
         ),
-        labelOptions: [
-          { label: 'Your funds have arrived', isBold: true },
-        ],
+        labelOptions: [{ label: 'Your funds have arrived', isBold: true }],
       });
 
       // Reset state
       expectingDepositRef.current = false;
-      prevAvailableBalanceRef.current = account.availableBalance?.toString() || '0';
+      prevAvailableBalanceRef.current =
+        account.availableBalance?.toString() || '0';
       if (depositTransactionIdRef.current) {
         unmarkTransactionSkipDefaultToast(depositTransactionIdRef.current);
       }
@@ -1584,7 +1593,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             depositAmount.trim() !== '' &&
             activeTransactionMeta && (
               <View>
-                <CustomAmountInfo
+                <PerpsInlineDeposit
                   currency={PERPS_CURRENCY}
                   hasMax
                   defaultValue={depositAmount}
