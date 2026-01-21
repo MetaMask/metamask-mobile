@@ -101,31 +101,18 @@ describe('AdvancedDetailsRow', () => {
     });
 
     it('nonce is not editable if STX is enabled', () => {
-      const swapsEnabledState = merge({}, generateContractInteractionState, {
-        swaps: {
-          featureFlags: {
-            smart_transactions: {
-              mobile_active: true,
-              extension_active: true,
-            },
-            smartTransactions: {
-              mobileActive: true,
-              extensionActive: true,
-              mobileActiveIOS: true,
-              mobileActiveAndroid: true,
-            },
-          },
-          '0x1': {
-            isLive: true,
-            featureFlags: {
-              smartTransactions: {
-                expectedDeadline: 45,
-                maxDeadline: 160,
-                mobileReturnTxHashAsap: false,
-                mobileActive: true,
-                extensionActive: true,
-                mobileActiveIOS: true,
-                mobileActiveAndroid: true,
+      const stxEnabledState = merge({}, generateContractInteractionState, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                smartTransactionsNetworks: {
+                  '0x1': {
+                    mobileActive: true,
+                    mobileActiveIOS: true,
+                    mobileActiveAndroid: true,
+                  },
+                },
               },
             },
           },
@@ -134,7 +121,7 @@ describe('AdvancedDetailsRow', () => {
 
       const { getByText } = renderWithProvider(
         <AdvancedDetailsRow />,
-        { state: swapsEnabledState },
+        { state: stxEnabledState },
         false,
       );
 

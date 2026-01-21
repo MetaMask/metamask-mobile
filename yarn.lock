@@ -8979,9 +8979,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:21.1.0":
-  version: 21.1.0
-  resolution: "@metamask/smart-transactions-controller@npm:21.1.0"
+"@metamask/smart-transactions-controller@npm:^22.1.0":
+  version: 22.1.0
+  resolution: "@metamask/smart-transactions-controller@npm:22.1.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.1"
     "@ethereumjs/tx": "npm:^5.2.1"
@@ -8995,11 +8995,16 @@ __metadata:
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/polling-controller": "npm:^15.0.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.0.0"
     bignumber.js: "npm:^9.0.1"
     fast-json-patch: "npm:^3.1.0"
     lodash: "npm:^4.17.21"
+    reselect: "npm:^5.1.1"
   peerDependencies:
+    "@metamask/error-reporting-service": ^3.0.0
     "@metamask/network-controller": ^25.0.0
+    "@metamask/remote-feature-flag-controller": ^2.0.0
     "@metamask/transaction-controller": ^61.0.0
   peerDependenciesMeta:
     "@metamask/accounts-controller":
@@ -9010,46 +9015,7 @@ __metadata:
       optional: true
     "@metamask/gas-fee-controller":
       optional: true
-    "@metamask/remote-feature-flag-controller":
-      optional: true
-  checksum: 10/85d51b140fd535cf129eed062d687f66d308a11315f433f60bf8484a447a00419af3939f6bf59d43bc3b8b9f0a8ee91a480937e1caef40984bde829cbce2d6eb
-  languageName: node
-  linkType: hard
-
-"@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch":
-  version: 21.1.0
-  resolution: "@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch::version=21.1.0&hash=8eaed6"
-  dependencies:
-    "@babel/runtime": "npm:^7.24.1"
-    "@ethereumjs/tx": "npm:^5.2.1"
-    "@ethereumjs/util": "npm:^9.0.2"
-    "@ethersproject/bytes": "npm:^5.7.0"
-    "@ethersproject/keccak256": "npm:^5.8.0"
-    "@ethersproject/transactions": "npm:^5.7.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.0.0"
-    "@metamask/eth-json-rpc-provider": "npm:^4.1.6"
-    "@metamask/eth-query": "npm:^4.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/polling-controller": "npm:^15.0.0"
-    bignumber.js: "npm:^9.0.1"
-    fast-json-patch: "npm:^3.1.0"
-    lodash: "npm:^4.17.21"
-  peerDependencies:
-    "@metamask/network-controller": ^25.0.0
-    "@metamask/transaction-controller": ^61.0.0
-  peerDependenciesMeta:
-    "@metamask/accounts-controller":
-      optional: true
-    "@metamask/approval-controller":
-      optional: true
-    "@metamask/eth-block-tracker":
-      optional: true
-    "@metamask/gas-fee-controller":
-      optional: true
-    "@metamask/remote-feature-flag-controller":
-      optional: true
-  checksum: 10/8ee3d4378e9f52e484b69a875a2e2ead1d554e6272c911e9ec401575176d3d9ca13166ee000c207eb97121e9caf025e9be34f292b02fe945c092b4a5a415f69a
+  checksum: 10/c497fc9756d6538c586d5e813024bade5e5b05a57f40f0466b1c036fb4a269c8805b935bd0e25ea645b4d937532f1917f142e1c009f8aafa30a4c10397f03d1e
   languageName: node
   linkType: hard
 
@@ -9528,7 +9494,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.5.0, @metamask/utils@npm:^11.8.0, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
+"@metamask/utils@npm:^11.0.0, @metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.5.0, @metamask/utils@npm:^11.8.0, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
   version: 11.9.0
   resolution: "@metamask/utils@npm:11.9.0"
   dependencies:
@@ -34163,7 +34129,7 @@ __metadata:
     "@metamask/selected-network-controller": "npm:^25.0.0"
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
-    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A21.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-21.1.0-383adc86a8.patch"
+    "@metamask/smart-transactions-controller": "npm:^22.1.0"
     "@metamask/snaps-controllers": "npm:^17.2.0"
     "@metamask/snaps-execution-environments": "npm:^10.3.0"
     "@metamask/snaps-rpc-methods": "npm:^14.1.1"
