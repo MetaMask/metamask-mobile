@@ -571,7 +571,7 @@ const Wallet = ({
 
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
+    location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
   });
 

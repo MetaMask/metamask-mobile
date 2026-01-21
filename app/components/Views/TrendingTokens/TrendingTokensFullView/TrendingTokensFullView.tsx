@@ -204,7 +204,11 @@ const TrendingTokensFullView = () => {
     data: searchResults,
     isLoading,
     refetch: refetchTokensSection,
-  } = useTrendingSearch(searchQuery || undefined, sortBy, selectedNetwork);
+  } = useTrendingSearch({
+    searchQuery: searchQuery || undefined,
+    sortBy,
+    chainIds: selectedNetwork,
+  });
 
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {

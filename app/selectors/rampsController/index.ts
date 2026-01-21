@@ -20,6 +20,7 @@ export const selectRampsControllerState = createSelector(
 
 /**
  * Selects the user's region from state.
+ * Returns UserRegion | null (UserRegion contains country, state, and regionCode).
  */
 export const selectUserRegion = createSelector(
   selectRampsControllerState,
