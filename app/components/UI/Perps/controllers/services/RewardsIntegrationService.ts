@@ -1,106 +1,133 @@
-import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
-import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
-import Logger from '../../../../../util/Logger';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../../util/errorUtils';
-import type { RewardsController } from '../../../../../core/Engine/controllers/rewards-controller/RewardsController';
-import type { NetworkController } from '@metamask/network-controller';
 import type { PerpsControllerMessenger } from '../PerpsController';
+import type {
+  IPerpsPlatformDependencies,
+  IPerpsControllerAccess,
+} from '../types';
 
 /**
  * RewardsIntegrationService
  *
  * Handles rewards-related operations and fee discount calculations.
  * Stateless service that coordinates with RewardsController and NetworkController.
+ *
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class RewardsIntegrationService {
+  private readonly deps: IPerpsPlatformDependencies;
+
   /**
-   * Error context helper for consistent logging
+   * Create a new RewardsIntegrationService instance
+   * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  private static getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'RewardsIntegrationService',
-      method,
-      ...additionalContext,
-    };
+  constructor(deps: IPerpsPlatformDependencies) {
+    this.deps = deps;
   }
 
   /**
    * Calculate user fee discount from rewards
    * Returns discount in basis points (e.g., 6500 = 65% discount)
+   *
+   * @param options.controllers - Consolidated controller access interface
+   * @param options.messenger - Controller messenger for network state access
    */
-  static async calculateUserFeeDiscount(options: {
-    rewardsController: RewardsController;
-    networkController: NetworkController;
+  async calculateUserFeeDiscount(options: {
+    controllers: IPerpsControllerAccess;
     messenger: PerpsControllerMessenger;
   }): Promise<number | undefined> {
-    const { rewardsController, networkController, messenger } = options;
+    const { controllers, messenger } = options;
+
+    // Fee discount may not be available in all environments (e.g., extension)
+    if (!controllers.rewards?.getFeeDiscount) {
+      this.deps.debugLogger.log(
+        'RewardsIntegrationService: getFeeDiscount not available, no discount',
+      );
+      return undefined;
+    }
 
     try {
-      const evmAccount = getEvmAccountFromSelectedAccountGroup();
+      const evmAccount = controllers.accounts.getSelectedEvmAccount();
 
       if (!evmAccount) {
-        DevLogger.log(
+        this.deps.debugLogger.log(
           'RewardsIntegrationService: No EVM account found for fee discount',
         );
         return undefined;
       }
 
-      // Get the chain ID using proper NetworkController method
+      // Get the chain ID using controllers.network
       const networkState = messenger.call('NetworkController:getState');
       const selectedNetworkClientId = networkState.selectedNetworkClientId;
-      const networkClient = networkController.getNetworkClientById(
-        selectedNetworkClientId,
-      );
-      const chainId = networkClient?.configuration?.chainId;
+      let chainId: string | undefined;
+
+      try {
+        chainId = controllers.network.getChainIdForNetwork(
+          selectedNetworkClientId,
+        );
+      } catch {
+        // Network client may not exist
+        chainId = undefined;
+      }
 
       if (!chainId) {
-        Logger.error(
+        this.deps.logger.error(
           new Error('Chain ID not found for fee discount calculation'),
-          this.getErrorContext('calculateUserFeeDiscount', {
-            selectedNetworkClientId,
-            networkClientExists: !!networkClient,
-          }),
+          {
+            context: {
+              name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+              data: {
+                selectedNetworkClientId,
+              },
+            },
+          },
         );
         return undefined;
       }
 
-      const caipAccountId = formatAccountToCaipAccountId(
+      const caipAccountId = controllers.accounts.formatAccountToCaipId(
         evmAccount.address,
         chainId,
       );
 
       if (!caipAccountId) {
-        Logger.error(
+        this.deps.logger.error(
           new Error('Failed to format CAIP account ID for fee discount'),
-          this.getErrorContext('calculateUserFeeDiscount', {
-            address: evmAccount.address,
-            chainId,
-            selectedNetworkClientId,
-          }),
+          {
+            context: {
+              name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+              data: {
+                address: evmAccount.address,
+                chainId,
+                selectedNetworkClientId,
+              },
+            },
+          },
         );
         return undefined;
       }
 
-      const discountBips =
-        await rewardsController.getPerpsDiscountForAccount(caipAccountId);
+      const discountBips = await controllers.rewards.getFeeDiscount(
+        caipAccountId as `${string}:${string}:${string}`,
+      );
 
-      DevLogger.log('RewardsIntegrationService: Fee discount calculated', {
-        address: evmAccount.address,
-        caipAccountId,
-        discountBips,
-        discountPercentage: discountBips / 100,
-      });
+      this.deps.debugLogger.log(
+        'RewardsIntegrationService: Fee discount calculated',
+        {
+          address: evmAccount.address,
+          caipAccountId,
+          discountBips,
+          discountPercentage: discountBips / 100,
+        },
+      );
 
       return discountBips;
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('calculateUserFeeDiscount'),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+          data: {},
+        },
+      });
       return undefined;
     }
   }

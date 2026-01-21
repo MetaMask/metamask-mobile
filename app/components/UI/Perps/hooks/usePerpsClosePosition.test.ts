@@ -62,7 +62,7 @@ jest.mock('./usePerpsToasts', () => ({
 describe('usePerpsClosePosition', () => {
   const mockClosePosition = jest.fn();
   const mockPosition: Position = {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '0.1',
     entryPrice: '50000',
     positionValue: '5000',
@@ -113,7 +113,7 @@ describe('usePerpsClosePosition', () => {
       });
 
       expect(mockClosePosition).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         size: undefined,
         orderType: 'market',
         price: undefined,
@@ -160,7 +160,7 @@ describe('usePerpsClosePosition', () => {
       });
 
       expect(mockClosePosition).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.05',
         orderType: 'limit',
         price: '51000',
@@ -174,7 +174,7 @@ describe('usePerpsClosePosition', () => {
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsClosePosition: Closing position',
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.05',
           orderType: 'limit',
           limitPrice: '51000',
@@ -317,7 +317,7 @@ describe('usePerpsClosePosition', () => {
       });
 
       expect(mockClosePosition).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.1',
         orderType: 'market',
         price: undefined,
@@ -347,7 +347,7 @@ describe('usePerpsClosePosition', () => {
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsClosePosition: Closing position',
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: undefined,
           orderType: 'market',
           limitPrice: undefined,
@@ -384,7 +384,7 @@ describe('usePerpsClosePosition', () => {
 
       // The hook doesn't need special handling for TP/SL as that's done in the provider
       expect(mockClosePosition).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         size: undefined,
         orderType: 'market',
         price: undefined,
@@ -940,7 +940,7 @@ describe('usePerpsClosePosition', () => {
         mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
           .closeFullPositionSuccess,
       ).toHaveBeenCalledWith(
-        expect.objectContaining({ coin: 'BTC' }),
+        expect.objectContaining({ symbol: 'BTC' }),
         '$50000',
       );
     });

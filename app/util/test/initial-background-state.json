@@ -7,9 +7,7 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accountsByChainId": {
-      "0x1": {}
-    }
+    "accountsByChainId": {}
   },
   "AccountsController": {
     "internalAccounts": {
@@ -29,6 +27,16 @@
   },
   "AddressBookController": {
     "addressBook": {}
+  },
+  "AnalyticsController": {
+    "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+    "optedIn": false
+  },
+  "GatorPermissionsController": {
+    "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
+    "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+    "isFetchingGatorPermissions": false,
+    "isGatorPermissionsEnabled": false
   },
   "NftController": {
     "allNftContracts": {},
@@ -497,9 +505,15 @@
       "testnet": false,
       "mainnet": false
     },
-    "watchlistMarkets": [],
-    "tradeConfigurations": {},
-    "marketFilterPreferences": {},
+    "watchlistMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
+    "tradeConfigurations": {
+      "mainnet": {},
+      "testnet": {}
+    },
+    "marketFilterPreferences": "volume",
     "hip3ConfigVersion": 0,
     "perpsBalances": {}
   },
@@ -745,8 +759,11 @@
     "accountMeta": {}
   },
   "RampsController": {
+    "paymentMethods": [],
     "userRegion": null,
-    "eligibility": null,
+    "preferredProvider": null,
+    "providers": [],
+    "selectedPaymentMethod": null,
     "tokens": null,
     "requests": {}
   }
