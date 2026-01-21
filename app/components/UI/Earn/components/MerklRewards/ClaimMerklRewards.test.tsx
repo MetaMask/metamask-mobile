@@ -83,7 +83,10 @@ const mockUseMerklClaim = useMerklClaim as jest.MockedFunction<
 >;
 
 // Add this to track calls
-let mockUseMerklClaimCalls: Parameters<typeof useMerklClaim>[] = [];
+let mockUseMerklClaimCalls: {
+  asset: TokenI;
+  onClaimSuccess?: () => Promise<void>;
+}[] = [];
 
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
@@ -107,7 +110,10 @@ describe('ClaimMerklRewards', () => {
     jest.clearAllMocks();
     mockUseMerklClaimCalls = [];
     mockUseMerklClaim.mockImplementation((options) => {
-      mockUseMerklClaimCalls.push(options);
+      mockUseMerklClaimCalls.push({
+        asset: options.asset,
+        onClaimSuccess: options.onClaimSuccess,
+      });
       return {
         claimRewards: mockClaimRewards,
         isClaiming: false,
