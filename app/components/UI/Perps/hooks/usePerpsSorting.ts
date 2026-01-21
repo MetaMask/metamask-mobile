@@ -12,6 +12,7 @@ import {
 
 interface UsePerpsSortingParams {
   initialOptionId?: SortOptionId;
+  initialDirection?: SortDirection;
 }
 
 interface UsePerpsSortingReturn {
@@ -33,14 +34,13 @@ interface UsePerpsSortingReturn {
  */
 export const usePerpsSorting = ({
   initialOptionId = MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  initialDirection = MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
 }: UsePerpsSortingParams = {}): UsePerpsSortingReturn => {
   const [selectedOptionId, setSelectedOptionId] =
     useState<SortOptionId>(initialOptionId);
 
   // Maintain direction as separate state to allow toggling
-  const [direction, setDirection] = useState<SortDirection>(
-    MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
-  );
+  const [direction, setDirection] = useState<SortDirection>(initialDirection);
 
   // Derive sortBy from selectedOptionId
   const sortBy = useMemo(() => {

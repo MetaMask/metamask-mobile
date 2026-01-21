@@ -165,16 +165,15 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
-  // Derive sort field and direction from saved preference
+  // Derive sort field from saved preference
   const { sortBy, direction } = useMemo(() => {
     const sortOption = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
-      (opt) => opt.id === savedSortPreference,
+      (opt) => opt.id === savedSortPreference.optionId,
     );
 
     return {
       sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-      direction:
-        sortOption?.direction ?? MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      direction: savedSortPreference.direction,
     };
   }, [savedSortPreference]);
 

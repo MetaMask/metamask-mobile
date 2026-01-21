@@ -2910,11 +2910,25 @@ describe('PerpsController', () => {
 
   describe('market filter preferences', () => {
     it('saves and retrieves filter preference', () => {
-      controller.saveMarketFilterPreferences('openInterest');
+      controller.saveMarketFilterPreferences('openInterest', 'desc');
 
       const result = controller.getMarketFilterPreferences();
 
-      expect(result).toBe('openInterest');
+      expect(result).toEqual({
+        optionId: 'openInterest',
+        direction: 'desc',
+      });
+    });
+
+    it('saves and retrieves price change with ascending direction', () => {
+      controller.saveMarketFilterPreferences('priceChange', 'asc');
+
+      const result = controller.getMarketFilterPreferences();
+
+      expect(result).toEqual({
+        optionId: 'priceChange',
+        direction: 'asc',
+      });
     });
   });
 

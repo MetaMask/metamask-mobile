@@ -420,7 +420,10 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
   selectPerpsWatchlistMarkets: jest.fn(() => []),
-  selectPerpsMarketFilterPreferences: jest.fn(() => 'volume'),
+  selectPerpsMarketFilterPreferences: jest.fn(() => ({
+    optionId: 'volume',
+    direction: 'desc',
+  })),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
