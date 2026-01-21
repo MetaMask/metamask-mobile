@@ -98,12 +98,10 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
 
-        // Validate the prompted account (multichain account supports both EVM and Solana)
         await Assertions.expectTextDisplayed('Account 1');
 
         await ConnectBottomSheet.tapConnectButton();
 
-        // Validate the multichain account is connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectTextDisplayed('Account 1');
 
@@ -140,12 +138,10 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
           accounts: [DEFAULT_FIXTURE_ACCOUNT],
         });
 
-        // Validate the prompted account (multichain account supports both EVM and Solana)
         await Assertions.expectTextDisplayed('Account 1');
 
         await ConnectBottomSheet.tapConnectButton();
 
-        // Validate the multichain account is connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectTextDisplayed('Account 1');
       },
