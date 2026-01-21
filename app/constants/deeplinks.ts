@@ -42,6 +42,7 @@ export enum ACTIONS {
   REWARDS = 'rewards',
   PREDICT = 'predict',
   ONBOARDING = 'onboarding',
+  TRENDING = 'trending',
 }
 
 export const PREFIXES = {
@@ -71,5 +72,6 @@ export const PREFIXES = {
   [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
   [ACTIONS.CARD_HOME]: '',
+  [ACTIONS.TRENDING]: '',
   METAMASK: 'metamask://',
 };
