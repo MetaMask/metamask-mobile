@@ -344,6 +344,8 @@ export class PolymarketProvider implements PredictProvider {
     marketId,
     fidelity,
     interval,
+    startTs,
+    endTs,
   }: GetPriceHistoryParams): Promise<PredictPriceHistoryPoint[]> {
     if (!marketId) {
       throw new Error('marketId parameter is required');
@@ -357,7 +359,10 @@ export class PolymarketProvider implements PredictProvider {
         searchParams.set('fidelity', String(fidelity));
       }
 
-      if (interval) {
+      if (startTs !== undefined && endTs !== undefined) {
+        searchParams.set('startTs', String(startTs));
+        searchParams.set('endTs', String(endTs));
+      } else if (interval) {
         searchParams.set('interval', interval);
       }
 
@@ -392,13 +397,14 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting price history via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getPriceHistory', {
           marketId,
           fidelity,
           interval,
+          startTs,
+          endTs,
         }),
       );
 

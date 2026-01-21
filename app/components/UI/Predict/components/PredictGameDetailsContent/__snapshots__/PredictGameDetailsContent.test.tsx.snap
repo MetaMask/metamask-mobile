@@ -19,6 +19,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
         "flexShrink": 1,
       }
     }
+    testID="predict-market-details-screen"
   >
     <View
       style={
@@ -196,7 +197,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
           }
         >
           <View
-            accessibilityHint="tokens:token-1,token-2"
+            accessibilityHint="marketId:test-market-id"
             testID="game-chart"
           />
         </View>

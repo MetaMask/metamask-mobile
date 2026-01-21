@@ -113,7 +113,7 @@ export type PredictCategory =
   | 'politics';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl';
+export type PredictSportsLeague = 'nfl' | 'nba';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -144,6 +144,7 @@ export type PredictGamePeriod =
   | 'Q3' // Third Quarter
   | 'End Q3' // End of Third Quarter
   | 'Q4' // Fourth Quarter
+  | 'End Q4' // End of Fourth Quarter
   | 'OT' // Overtime
   | 'FT' // Final
   | 'VFT'; // Verified fulltime (when closed=true)
@@ -152,6 +153,7 @@ export type PredictGamePeriod =
 export interface PredictMarketGame {
   id: string;
   startTime: string;
+  endTime?: string; // ISO date when game ended, available for ended games
   status: PredictGameStatus;
   league: PredictSportsLeague;
   elapsed: string | null; // Game clock, null if not available
@@ -277,6 +279,8 @@ export interface GetPriceHistoryParams {
   providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  startTs?: number;
+  endTs?: number;
 }
 
 /**
