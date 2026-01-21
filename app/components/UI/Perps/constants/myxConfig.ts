@@ -74,6 +74,13 @@ export const MYX_ENDPOINTS: MYXEndpoints = {
   },
 };
 
+// OpenAPI WebSocket endpoints (for SDK authentication)
+// These are different from the standard endpoints above
+export const MYX_OPENAPI_WS_URL = {
+  testnet: 'wss://oapi-beta.myx.finance/ws',
+  mainnet: 'wss://oapi.myx.finance/ws',
+} as const;
+
 // ============================================================================
 // Asset Icons
 // ============================================================================

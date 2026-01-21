@@ -1,15 +1,22 @@
 /**
- * MYXAuthDebug
+ * MYXAuthDebug - Diagnostic tool to identify MYX auth issues
  *
- * Multi-format debug component to test MYX WebSocket authentication and HTTP API.
- * Tests different token formats to find which one works.
+ * Toggle between environments for consistent testing:
+ * - Testnet: chainId 97 (BNB testnet) + isBetaMode: true + beta API endpoints
+ * - Mainnet: chainId 56 (BNB mainnet) + isBetaMode: false + mainnet API endpoints
  *
- * Purpose: Debug 9401 Unauthorized error by trying multiple authentication
- * token formats and reporting which one succeeds. Also validates HTTP API
- * works independently of WebSocket auth.
+ * This ensures token, HTTP, and WebSocket all use the same environment,
+ * eliminating mismatches where beta tokens fail on mainnet WebSocket.
+ *
+ * Investigation Tests:
+ * - Test 4a: SDK WS Auth (uses sdk.{token} format internally)
+ * - Test 4b: Manual WS Auth with raw token
+ * - Test 4c: Manual WS Auth with sdk.{token} format
+ *
+ * This helps isolate whether 9401 errors are caused by token format or server config.
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -18,962 +25,605 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MyxClient } from '@myx-trade/sdk';
+import Crypto from 'react-native-quick-crypto';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { useTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
-import { getMYXChainId, getMYXBrokerAddress } from '../constants/myxConfig';
+import { getMYXBrokerAddress } from '../constants/myxConfig';
 import styleSheet from './MYXAuthDebug.styles';
 
-interface LogEntry {
-  timestamp: string;
-  message: string;
-  type: 'info' | 'success' | 'error' | 'warn';
-}
-
-interface TokenFormat {
-  id: number;
+interface TestResult {
   name: string;
-  desc: string;
+  status: 'pending' | 'running' | 'pass' | 'fail';
+  details?: string;
+  error?: string;
 }
 
-const TOKEN_FORMATS: TokenFormat[] = [
-  {
-    id: 1,
-    name: 'Raw Signature',
-    desc: 'Personal sign of custom message (current)',
-  },
-  { id: 2, name: 'Address Only', desc: 'Just the wallet address as token' },
-  {
-    id: 3,
-    name: 'Timestamp:Address',
-    desc: 'Colon-separated timestamp and address',
-  },
-  {
-    id: 4,
-    name: 'JSON Payload',
-    desc: 'JSON object with address and timestamp',
-  },
-  { id: 5, name: 'Base64 JSON', desc: 'Base64 encoded JSON payload' },
-  {
-    id: 6,
-    name: 'Address:Timestamp:Sig',
-    desc: 'Combined address, timestamp, and signature',
-  },
-  { id: 7, name: 'No Token', desc: 'Return undefined/empty' },
-];
+interface EnvConfig {
+  chainId: number;
+  isBetaMode: boolean;
+  isTestnet: boolean;
+  tokenApi: string;
+  wsUrl: string;
+}
 
-type TestMode = 'auth' | 'http';
+const getEnvConfig = (testnet: boolean): EnvConfig => ({
+  chainId: testnet ? 97 : 56,
+  isBetaMode: testnet,
+  isTestnet: testnet,
+  tokenApi: testnet
+    ? 'https://api-beta.myx.finance/openapi/gateway/auth/api_key/create_token'
+    : 'https://api.myx.finance/openapi/gateway/auth/api_key/create_token',
+  wsUrl: testnet
+    ? 'wss://oapi-beta.myx.finance/ws'
+    : 'wss://oapi.myx.finance/ws',
+});
+
+/**
+ * Fetch a fresh access token from MYX API.
+ * Used to test if existing tokens were invalidated by previous connections.
+ */
+const fetchFreshToken = async (
+  tokenApi: string,
+  address: string,
+  log: (msg: string) => void,
+  envName: string,
+): Promise<string | null> => {
+  try {
+    const appId = 'metamask';
+    const secret = 'vcVSelUYUfcepmOKGemyfC0dcxQDhCg1';
+    const timestamp = Math.floor(Date.now() / 1000);
+    const expireTime = 3600;
+    const payload = `${appId}&${timestamp}&${expireTime}&${address}&${secret}`;
+    const signature = Crypto.createHash('sha256').update(payload).digest('hex');
+    const url = `${tokenApi}?appId=${appId}&timestamp=${timestamp}&expireTime=${expireTime}&allowAccount=${address}&signature=${signature}`;
+
+    log(`[${envName}] Fetching fresh token...`);
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (result.data?.accessToken) {
+      log(`[${envName}] Fresh token: ${result.data.accessToken.slice(0, 12)}...`);
+      return result.data.accessToken;
+    }
+    log(`[${envName}] Fresh token failed: ${JSON.stringify(result)}`);
+    return null;
+  } catch (err) {
+    log(`[${envName}] Fresh token error: ${err}`);
+    return null;
+  }
+};
+
+/**
+ * Manual WebSocket auth test - bypasses SDK to test token formats directly.
+ * This helps isolate whether 9401 errors are from token format vs server config.
+ */
+const testManualWebSocketAuth = (
+  wsUrl: string,
+  tokenArg: string,
+  formatLabel: string,
+  log: (msg: string) => void,
+  envName: string,
+): Promise<TestResult> => new Promise((resolve) => {
+    const testName = `4${formatLabel === 'raw' ? 'b' : 'c'}. Manual WS (${formatLabel})`;
+    const ws = new WebSocket(wsUrl);
+    const timeout = setTimeout(() => {
+      ws.close();
+      resolve({ name: testName, status: 'fail', error: 'Connection timeout (8s)' });
+    }, 8000);
+
+    ws.onopen = () => {
+      log(`[${envName}] Manual WS connected, sending signin with ${formatLabel} format`);
+      const request = JSON.stringify({ request: 'signin', args: tokenArg });
+      log(`[${envName}] Sending: ${request.slice(0, 100)}...`);
+      ws.send(request);
+    };
+
+    ws.onmessage = (event) => {
+      clearTimeout(timeout);
+      const responseData = typeof event.data === 'string' ? event.data : String(event.data);
+      log(`[${envName}] Manual WS response (${formatLabel}): ${responseData}`);
+
+      try {
+        const response = JSON.parse(responseData);
+        const code = response?.data?.code ?? response?.code;
+        const msg = response?.data?.msg ?? response?.msg ?? '';
+
+        // MYX uses code=0 for success on some endpoints, code=9200 on others
+        if (code === 0 || code === 9200) {
+          ws.close();
+          resolve({
+            name: testName,
+            status: 'pass',
+            details: `${formatLabel} token worked! code=${code}`,
+          });
+        } else {
+          ws.close();
+          resolve({
+            name: testName,
+            status: 'fail',
+            error: `code=${code} msg=${msg}`.slice(0, 60),
+          });
+        }
+      } catch {
+        ws.close();
+        resolve({
+          name: testName,
+          status: 'fail',
+          error: `Parse error: ${responseData.slice(0, 50)}`,
+        });
+      }
+    };
+
+    ws.onerror = (err) => {
+      clearTimeout(timeout);
+      log(`[${envName}] Manual WS error (${formatLabel}): ${JSON.stringify(err)}`);
+      ws.close();
+      resolve({ name: testName, status: 'fail', error: 'WebSocket error' });
+    };
+
+    ws.onclose = () => {
+      clearTimeout(timeout);
+    };
+  });
+
+/**
+ * Test full WebSocket flow: auth + subscribe to data + receive updates.
+ * This verifies the connection actually works for real-time data.
+ */
+const testManualWebSocketWithSubscription = (
+  wsUrl: string,
+  tokenArg: string,
+  _walletAddress: string,
+  log: (msg: string) => void,
+  envName: string,
+): Promise<TestResult> => new Promise((resolve) => {
+    const testName = '5. WS Auth + Subscribe';
+    const ws = new WebSocket(wsUrl);
+    let authSucceeded = false;
+    let dataReceived = false;
+    const timeout = setTimeout(() => {
+      ws.close();
+      if (authSucceeded && !dataReceived) {
+        resolve({ name: testName, status: 'fail', error: 'Auth OK but no data received (10s)' });
+      } else {
+        resolve({ name: testName, status: 'fail', error: 'Timeout (10s)' });
+      }
+    }, 10000);
+
+    ws.onopen = () => {
+      log(`[${envName}] WS+Sub: Connected, sending signin...`);
+      ws.send(JSON.stringify({ request: 'signin', args: tokenArg }));
+    };
+
+    ws.onmessage = (event) => {
+      const responseData = typeof event.data === 'string' ? event.data : String(event.data);
+      log(`[${envName}] WS+Sub response: ${responseData.slice(0, 200)}`);
+
+      try {
+        const response = JSON.parse(responseData);
+
+        // Handle signin response
+        if (response.type === 'signin') {
+          const code = response?.data?.code ?? response?.code;
+          if (code === 0 || code === 9200) {
+            authSucceeded = true;
+            log(`[${envName}] WS+Sub: Auth succeeded, subscribing to data...`);
+            // MYX SDK uses 'subv2' format with subscription IDs
+            // Subscribe to position updates (private) and ticker (public)
+            ws.send(JSON.stringify({
+              request: 'subv2',
+              args: ['position', 'order', 'ticker.*'],
+            }));
+          } else {
+            clearTimeout(timeout);
+            ws.close();
+            resolve({ name: testName, status: 'fail', error: `Auth failed: code=${code}` });
+          }
+          return;
+        }
+
+        // Handle subv2 acknowledgment
+        if (response.type === 'subv2') {
+          const code = response?.data?.code ?? response?.code;
+          log(`[${envName}] WS+Sub: subv2 ack code=${code}`);
+          if (code === 0 || code === 9200) {
+            // Subscription accepted, wait for actual data
+            return;
+          }
+          // Subscription failed
+          clearTimeout(timeout);
+          ws.close();
+          resolve({ name: testName, status: 'fail', error: `Subscribe failed: code=${code}` });
+          return;
+        }
+
+        // Handle actual data (ticker, position, order updates)
+        if (response.type?.startsWith('ticker') || response.type === 'position' || response.type === 'order') {
+          dataReceived = true;
+          clearTimeout(timeout);
+          ws.close();
+          resolve({
+            name: testName,
+            status: 'pass',
+            details: `Auth + ${response.type} data received!`,
+          });
+          return;
+        }
+
+        // Handle any other data response
+        if (response.data && !response.type?.includes('signin') && !response.type?.includes('sub')) {
+          dataReceived = true;
+          clearTimeout(timeout);
+          ws.close();
+          resolve({
+            name: testName,
+            status: 'pass',
+            details: `Auth + data received: ${response.type || 'unknown'}`,
+          });
+        }
+      } catch {
+        // Non-JSON message, might be binary data
+        dataReceived = true;
+        clearTimeout(timeout);
+        ws.close();
+        resolve({
+          name: testName,
+          status: 'pass',
+          details: 'Auth + binary data received',
+        });
+      }
+    };
+
+    ws.onerror = (err) => {
+      clearTimeout(timeout);
+      log(`[${envName}] WS+Sub error: ${JSON.stringify(err)}`);
+      ws.close();
+      resolve({ name: testName, status: 'fail', error: 'WebSocket error' });
+    };
+
+    ws.onclose = () => {
+      clearTimeout(timeout);
+    };
+  });
 
 const MYXAuthDebug: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isTestnet, setIsTestnet] = useState(true);
+  const [results, setResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [useTestnet, setUseTestnet] = useState(true);
-  const [selectedFormat, setSelectedFormat] = useState<number>(1);
-  const [testAllMode, setTestAllMode] = useState(false);
-  const [testMode, setTestMode] = useState<TestMode>('http');
-  const currentFormatRef = useRef<number>(1);
+  const [summary, setSummary] = useState<string>('');
 
-  const addLog = useCallback(
-    (message: string, type: LogEntry['type'] = 'info') => {
-      const timestamp = new Date().toISOString().slice(11, 23);
-      const prefix =
-        type === 'error'
-          ? '❌'
-          : type === 'success'
-            ? '✅'
-            : type === 'warn'
-              ? '⚠️'
-              : 'ℹ️';
-      // eslint-disable-next-line no-console
-      console.log(`[MYX-AUTH-DEBUG] ${prefix} [${timestamp}] ${message}`);
-      setLogs((prev) => [...prev, { timestamp, message, type }]);
-    },
-    [],
-  );
-
-  const clearLogs = useCallback(() => {
-    setLogs([]);
+  const log = useCallback((msg: string) => {
+    // eslint-disable-next-line no-console
+    console.log(`[MYX-DIAG] ${msg}`);
   }, []);
 
-  const generateToken = useCallback(
-    async (
-      formatId: number,
-      address: string,
-      logFn: (msg: string, type: LogEntry['type']) => void,
-    ): Promise<{ accessToken: string; expireAt: number } | undefined> => {
-      const timestamp = Date.now();
-      const expireAt = timestamp + 30 * 60 * 1000; // 30 minutes
+  const runTests = useCallback(async (testnet: boolean) => {
+    const env = getEnvConfig(testnet);
+    const envName = testnet ? 'Testnet' : 'Mainnet';
+    const testResults: TestResult[] = [];
 
-      logFn(
-        `Generating token with format ${formatId}: ${TOKEN_FORMATS.find((f) => f.id === formatId)?.name}`,
-        'info',
-      );
+    const account = Engine.context.AccountsController?.getSelectedAccount?.();
+    const address = account?.address;
+    if (!address) {
+      return [{ name: 'Wallet', status: 'fail' as const, error: 'No wallet connected' }];
+    }
 
-      const signMessage = async (message: string): Promise<string> => {
-        const hexMsg = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
-        return Engine.context.KeyringController.signPersonalMessage({
-          from: address,
-          data: hexMsg,
+    // Test 1: Token API
+    let token = '';
+    let expireAt = 0;
+    try {
+      const appId = 'metamask';
+      const secret = 'vcVSelUYUfcepmOKGemyfC0dcxQDhCg1';
+      const timestamp = Math.floor(Date.now() / 1000);
+      const expireTime = 3600;
+      const payload = `${appId}&${timestamp}&${expireTime}&${address}&${secret}`;
+      const signature = Crypto.createHash('sha256').update(payload).digest('hex');
+      const url = `${env.tokenApi}?appId=${appId}&timestamp=${timestamp}&expireTime=${expireTime}&allowAccount=${address}&signature=${signature}`;
+
+      log(`[${envName}] Token API: ${url}`);
+      const response = await fetch(url);
+      const result = await response.json();
+      log(`[${envName}] Token Response: ${JSON.stringify(result)}`);
+
+      if (result.data?.accessToken) {
+        token = result.data.accessToken;
+        expireAt = result.data.expireAt;
+        testResults.push({
+          name: '1. Token API',
+          status: 'pass',
+          details: `Token: ${token.slice(0, 12)}...`,
         });
-      };
-
-      try {
-        let accessToken: string;
-
-        switch (formatId) {
-          case 1: {
-            const message = `MYX Authentication\nAddress: ${address}\nTimestamp: ${timestamp}\nExpires: ${expireAt}`;
-            logFn(`Message to sign:\n${message}`, 'info');
-            accessToken = await signMessage(message);
-            logFn(`Signature: ${accessToken.slice(0, 30)}...`, 'info');
-            break;
-          }
-
-          case 2: {
-            accessToken = address;
-            logFn(`Using address as token: ${accessToken}`, 'info');
-            break;
-          }
-
-          case 3: {
-            accessToken = `${timestamp}:${address}`;
-            logFn(`Using timestamp:address: ${accessToken}`, 'info');
-            break;
-          }
-
-          case 4: {
-            accessToken = JSON.stringify({ address, timestamp, expireAt });
-            logFn(`Using JSON payload: ${accessToken.slice(0, 50)}...`, 'info');
-            break;
-          }
-
-          case 5: {
-            const jsonPayload = JSON.stringify({
-              address,
-              timestamp,
-              expireAt,
-            });
-            accessToken = Buffer.from(jsonPayload).toString('base64');
-            logFn(`Using Base64 JSON: ${accessToken.slice(0, 40)}...`, 'info');
-            break;
-          }
-
-          case 6: {
-            const message = `${address}:${timestamp}`;
-            const signature = await signMessage(message);
-            accessToken = `${address}:${timestamp}:${signature}`;
-            logFn(
-              `Using address:timestamp:sig: ${accessToken.slice(0, 50)}...`,
-              'info',
-            );
-            break;
-          }
-
-          case 7: {
-            logFn('Returning undefined (no token)', 'info');
-            return undefined;
-          }
-
-          default:
-            logFn(`Unknown format ID: ${formatId}`, 'error');
-            return undefined;
-        }
-
-        return { accessToken, expireAt };
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        logFn(`Token generation error: ${errMsg}`, 'error');
-        return undefined;
-      }
-    },
-    [],
-  );
-
-  /**
-   * Test HTTP API endpoints (no auth required for public endpoints)
-   */
-  const testHTTPAPI = useCallback(
-    async (
-      logFn: (msg: string, type: LogEntry['type']) => void,
-    ): Promise<boolean> => {
-      logFn('\n' + '='.repeat(50), 'warn');
-      logFn('Testing MYX HTTP API (Public Endpoints)', 'warn');
-      logFn('='.repeat(50), 'warn');
-
-      const evmAccount =
-        Engine.context.AccountsController?.getSelectedAccount?.();
-      const address = evmAccount?.address;
-      logFn(`Account address: ${address || 'Not connected'}`, 'info');
-
-      const chainId = parseInt(getMYXChainId(useTestnet), 10);
-      const brokerAddress = getMYXBrokerAddress(useTestnet);
-      logFn(
-        `Network: ${useTestnet ? 'testnet' : 'mainnet'}, chainId: ${chainId}`,
-        'info',
-      );
-
-      // Create a minimal signer adapter (only needed for SDK initialization)
-      const signerAdapter = {
-        getAddress: async () =>
-          address || '0x0000000000000000000000000000000000000000',
-        signMessage: async () => '0x',
-        signTypedData: async () => '0x',
-      };
-
-      try {
-        const client = new MyxClient({
-          chainId,
-          ...(brokerAddress !==
-            '0x0000000000000000000000000000000000000000' && { brokerAddress }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          signer: signerAdapter as any,
-          isTestnet: useTestnet,
-          isBetaMode: false,
+      } else {
+        testResults.push({
+          name: '1. Token API',
+          status: 'fail',
+          error: JSON.stringify(result).slice(0, 80),
         });
-
-        let allTestsPassed = true;
-
-        // Test 1: Get Pool Symbols (Public)
-        logFn('\n--- Test 1: Get Pool Symbols (Public) ---', 'info');
-        try {
-          const marketsClient = client.markets;
-          const pools = await marketsClient.getPoolSymbolAll();
-          if (Array.isArray(pools) && pools.length > 0) {
-            logFn(
-              `✅ getPoolSymbolAll: Found ${pools.length} pools`,
-              'success',
-            );
-            const samplePools = pools
-              .slice(0, 3)
-              .map((p) => p.baseSymbol || p.poolId);
-            logFn(`   Sample pools: ${samplePools.join(', ')}`, 'info');
-          } else {
-            logFn(`⚠️ getPoolSymbolAll: Empty or invalid response`, 'warn');
-            logFn(
-              `   Response: ${JSON.stringify(pools).slice(0, 100)}`,
-              'info',
-            );
-          }
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          logFn(`❌ getPoolSymbolAll failed: ${errMsg}`, 'error');
-          allTestsPassed = false;
-        }
-
-        // Test 2: Get Tickers (Public)
-        logFn('\n--- Test 2: Get Tickers (Public) ---', 'info');
-        try {
-          const marketsClient = client.markets;
-          // First get pools to have valid poolIds
-          const pools = await marketsClient.getPoolSymbolAll();
-          if (Array.isArray(pools) && pools.length > 0) {
-            const poolIds = pools.slice(0, 3).map((p) => p.poolId);
-            const tickers = await marketsClient.getTickerList({
-              chainId,
-              poolIds,
-            });
-            if (Array.isArray(tickers) && tickers.length > 0) {
-              logFn(
-                `✅ getTickerList: Got ${tickers.length} tickers`,
-                'success',
-              );
-              const sample = tickers[0];
-              logFn(
-                `   Sample: ${sample?.symbol || 'N/A'} price=${sample?.lastPrice || 'N/A'}`,
-                'info',
-              );
-            } else {
-              logFn(`⚠️ getTickerList: Empty response`, 'warn');
-            }
-          } else {
-            logFn(`⚠️ Skipping ticker test - no pools available`, 'warn');
-          }
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          logFn(`❌ getTickerList failed: ${errMsg}`, 'error');
-          allTestsPassed = false;
-        }
-
-        // Test 3: Get Klines/Candles (Public)
-        logFn('\n--- Test 3: Get Klines/Candles (Public) ---', 'info');
-        try {
-          const marketsClient = client.markets;
-          const pools = await marketsClient.getPoolSymbolAll();
-          if (Array.isArray(pools) && pools.length > 0) {
-            const poolId = pools[0].poolId;
-            const klines = await marketsClient.getKlineList({
-              poolId,
-              chainId,
-              interval: '1h',
-              limit: 10,
-              endTime: Date.now(),
-            });
-            if (Array.isArray(klines) && klines.length > 0) {
-              logFn(
-                `✅ getKlineList: Got ${klines.length} candles for ${pools[0].baseSymbol}`,
-                'success',
-              );
-              const sample = klines[0];
-              logFn(
-                `   Sample: open=${sample?.open} high=${sample?.high} low=${sample?.low} close=${sample?.close}`,
-                'info',
-              );
-            } else {
-              logFn(`⚠️ getKlineList: Empty response`, 'warn');
-            }
-          } else {
-            logFn(`⚠️ Skipping kline test - no pools available`, 'warn');
-          }
-        } catch (error) {
-          const errMsg = error instanceof Error ? error.message : String(error);
-          logFn(`❌ getKlineList failed: ${errMsg}`, 'error');
-          allTestsPassed = false;
-        }
-
-        // Test 4: Get Positions (Private - requires address)
-        if (address) {
-          logFn('\n--- Test 4: Get Positions (Private HTTP) ---', 'info');
-          try {
-            const positionClient = client.position;
-            const result = await positionClient.listPositions(address);
-            if (result?.code === 0) {
-              const positions = result.data || [];
-              logFn(
-                `✅ listPositions: Found ${Array.isArray(positions) ? positions.length : 0} positions`,
-                'success',
-              );
-            } else if (Array.isArray(result)) {
-              logFn(
-                `✅ listPositions: Found ${result.length} positions (direct array)`,
-                'success',
-              );
-            } else {
-              logFn(
-                `⚠️ listPositions: Response code=${result?.code}, msg=${result?.msg || result?.message}`,
-                'warn',
-              );
-            }
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            if (
-              errMsg.includes('401') ||
-              errMsg.includes('Unauthorized') ||
-              errMsg.includes('9401')
-            ) {
-              logFn(`❌ listPositions requires auth: ${errMsg}`, 'error');
-            } else {
-              logFn(`❌ listPositions failed: ${errMsg}`, 'error');
-            }
-            allTestsPassed = false;
-          }
-
-          // Test 5: Get Orders (Private - requires address)
-          logFn('\n--- Test 5: Get Orders (Private HTTP) ---', 'info');
-          try {
-            const orderClient = client.order;
-            const result = await orderClient.getOrders(address);
-            if (result?.code === 0) {
-              const orders = result.data || [];
-              logFn(
-                `✅ getOrders: Found ${Array.isArray(orders) ? orders.length : 0} orders`,
-                'success',
-              );
-            } else if (Array.isArray(result)) {
-              logFn(
-                `✅ getOrders: Found ${result.length} orders (direct array)`,
-                'success',
-              );
-            } else {
-              logFn(
-                `⚠️ getOrders: Response code=${result?.code}, msg=${result?.msg || result?.message}`,
-                'warn',
-              );
-            }
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            if (
-              errMsg.includes('401') ||
-              errMsg.includes('Unauthorized') ||
-              errMsg.includes('9401')
-            ) {
-              logFn(`❌ getOrders requires auth: ${errMsg}`, 'error');
-            } else {
-              logFn(`❌ getOrders failed: ${errMsg}`, 'error');
-            }
-            allTestsPassed = false;
-          }
-
-          // Test 6: Get Account Info (Private - requires address and poolId)
-          logFn('\n--- Test 6: Get Account Info (Private HTTP) ---', 'info');
-          try {
-            const accountClient = client.account;
-            const marketsClient = client.markets;
-            const pools = await marketsClient.getPoolSymbolAll();
-            if (Array.isArray(pools) && pools.length > 0) {
-              const poolId = pools[0].poolId;
-              const result = await accountClient.getAccountInfo(
-                chainId,
-                address,
-                poolId,
-              );
-              if (result?.code === 0 && result?.data) {
-                logFn(
-                  `✅ getAccountInfo: Got account data for pool ${poolId}`,
-                  'success',
-                );
-                const data = result.data;
-                logFn(
-                  `   Equity: ${data.equity || 'N/A'}, Margin: ${data.margin || 'N/A'}`,
-                  'info',
-                );
-              } else {
-                logFn(
-                  `⚠️ getAccountInfo: Response code=${result?.code}, msg=${result?.msg || result?.message}`,
-                  'warn',
-                );
-              }
-            } else {
-              logFn(
-                `⚠️ Skipping account info test - no pools available`,
-                'warn',
-              );
-            }
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            if (
-              errMsg.includes('401') ||
-              errMsg.includes('Unauthorized') ||
-              errMsg.includes('9401')
-            ) {
-              logFn(`❌ getAccountInfo requires auth: ${errMsg}`, 'error');
-            } else {
-              logFn(`❌ getAccountInfo failed: ${errMsg}`, 'error');
-            }
-            allTestsPassed = false;
-          }
-        } else {
-          logFn(
-            '\n--- Skipping Private HTTP Tests (no wallet connected) ---',
-            'warn',
-          );
-        }
-
-        // Summary
-        logFn('\n' + '='.repeat(50), 'warn');
-        if (allTestsPassed) {
-          logFn('HTTP API SUMMARY: All tests passed! ✅', 'success');
-        } else {
-          logFn('HTTP API SUMMARY: Some tests failed ⚠️', 'warn');
-          logFn('Public endpoints work, private may need auth header', 'info');
-        }
-        logFn('='.repeat(50), 'warn');
-
-        return allTestsPassed;
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        logFn(`❌ HTTP API test failed: ${errMsg}`, 'error');
-        return false;
+        return testResults;
       }
-    },
-    [useTestnet],
-  );
+    } catch (err) {
+      testResults.push({ name: '1. Token API', status: 'fail', error: String(err) });
+      return testResults;
+    }
 
-  const testSingleFormat = useCallback(
-    async (
-      formatId: number,
-      logFn: (msg: string, type: LogEntry['type']) => void,
-    ): Promise<boolean> => {
-      const formatInfo = TOKEN_FORMATS.find((f) => f.id === formatId);
-      logFn(`\n${'='.repeat(50)}`, 'warn');
-      logFn(`Testing Format ${formatId}: ${formatInfo?.name}`, 'warn');
-      logFn(`Description: ${formatInfo?.desc}`, 'info');
-      logFn(`${'='.repeat(50)}`, 'warn');
-
-      const evmAccount =
-        Engine.context.AccountsController?.getSelectedAccount?.();
-      const address = evmAccount?.address;
-
-      if (!address) {
-        logFn('ERROR: No EVM account selected', 'error');
-        return false;
-      }
-
-      logFn(`Account address: ${address}`, 'info');
-
-      const chainId = parseInt(getMYXChainId(useTestnet), 10);
-      const brokerAddress = getMYXBrokerAddress(useTestnet);
-      logFn(
-        `Network: ${useTestnet ? 'testnet' : 'mainnet'}, chainId: ${chainId}`,
-        'info',
-      );
-
-      const signerAdapter = {
-        getAddress: async () => address,
-        signMessage: async (message: string | Uint8Array) => {
-          logFn(`Signer.signMessage called`, 'warn');
-          const hexMsg =
-            typeof message === 'string'
-              ? `0x${Buffer.from(message, 'utf8').toString('hex')}`
-              : `0x${Buffer.from(message).toString('hex')}`;
-          return Engine.context.KeyringController.signPersonalMessage({
-            from: address,
-            data: hexMsg,
-          });
-        },
-        signTypedData: async () => '0x',
-      };
-
-      currentFormatRef.current = formatId;
-
-      const client = new MyxClient({
-        chainId,
-        ...(brokerAddress !== '0x0000000000000000000000000000000000000000' && {
-          brokerAddress,
-        }),
+    // Test 2: HTTP Private Endpoint
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let client: any;
+    try {
+      client = new MyxClient({
+        chainId: env.chainId,
+        brokerAddress: getMYXBrokerAddress(env.isTestnet),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        signer: signerAdapter as any,
-        isTestnet: useTestnet,
-        isBetaMode: false,
-        socketConfig: {
-          initialReconnectDelay: 5000,
-          maxReconnectAttempts: 1,
-        },
-        getAccessToken: async () => {
-          logFn('SDK called getAccessToken()', 'warn');
-          return generateToken(currentFormatRef.current, address, logFn);
-        },
+        signer: { getAddress: async () => address, signMessage: async () => '0x', signTypedData: async () => '0x' } as any,
+        isTestnet: env.isTestnet,
+        isBetaMode: env.isBetaMode,
+        getAccessToken: async () => ({ accessToken: token, expireAt }),
       });
 
-      const subscriptionClient = client.subscription;
-      if (!subscriptionClient) {
-        logFn('Subscription module not available', 'error');
-        return false;
-      }
+      const positions = await client.position.listPositions(address);
+      log(`[${envName}] listPositions: ${JSON.stringify(positions)}`);
 
-      if (!subscriptionClient.isConnected) {
-        logFn('Connecting WebSocket...', 'info');
+      if (positions?.code === 0 || Array.isArray(positions)) {
+        testResults.push({ name: '2. HTTP listPositions', status: 'pass', details: 'code=0' });
+      } else {
+        testResults.push({
+          name: '2. HTTP listPositions',
+          status: 'fail',
+          error: JSON.stringify(positions).slice(0, 80),
+        });
+      }
+    } catch (err) {
+      testResults.push({ name: '2. HTTP listPositions', status: 'fail', error: String(err) });
+    }
+
+    // Test 3: WebSocket Connect
+    if (client) {
+      try {
+        const sub = client.subscription;
+        client.getConfigManager().clearAccessToken();
+
+        if (!sub.isConnected) {
+          sub.connect();
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout (5s)')), 5000);
+            sub.on('open', () => { clearTimeout(timeout); resolve(); });
+            sub.on('error', (err: Error) => { clearTimeout(timeout); reject(err); });
+          });
+        }
+        testResults.push({ name: '3. WS Connect', status: 'pass', details: env.wsUrl });
+
+        // Test 4a: SDK WebSocket Auth (uses sdk.{token} format internally)
         try {
-          if (typeof subscriptionClient.connect === 'function') {
-            subscriptionClient.connect();
-            await new Promise<void>((resolve, reject) => {
-              const timeout = setTimeout(
-                () => reject(new Error('Connection timeout')),
-                10000,
-              );
-              subscriptionClient.on('open', () => {
-                clearTimeout(timeout);
-                logFn('WebSocket connected', 'success');
-                resolve();
-              });
-              subscriptionClient.on('error', (err: Error) => {
-                clearTimeout(timeout);
-                reject(err);
-              });
-            });
-          }
-        } catch (connError) {
-          const errMsg =
-            connError instanceof Error ? connError.message : String(connError);
-          logFn(`WebSocket connection error: ${errMsg}`, 'error');
-          return false;
+          log(`[${envName}] SDK WS auth - will send: sdk.${token.slice(0, 12)}...`);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (sub as any).auth();
+          testResults.push({ name: '4a. SDK WS Auth', status: 'pass', details: 'SDK auth successful' });
+        } catch (authErr) {
+          const errorMsg = String(authErr);
+          testResults.push({
+            name: '4a. SDK WS Auth',
+            status: 'fail',
+            error: errorMsg.includes('9401') ? '9401 Unauthorized' : errorMsg.slice(0, 80),
+          });
         }
-      }
-
-      logFn('Calling auth()...', 'info');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const subClient = subscriptionClient as any;
-      try {
-        if (typeof subClient.auth === 'function') {
-          await (subClient.auth as () => Promise<unknown>)();
-          logFn('auth() returned successfully!', 'success');
-
-          logFn('Testing private subscription...', 'info');
-          if (typeof subClient.subscribeOrder === 'function') {
-            await (
-              subClient.subscribeOrder as (
-                cb: (data: unknown) => void,
-              ) => Promise<void>
-            )(() => {
-              // Order callback
-            });
-            logFn(
-              `✅ FORMAT ${formatId} WORKS! Private subscription succeeded!`,
-              'success',
-            );
-            return true;
-          }
-          logFn(
-            `✅ FORMAT ${formatId} auth() succeeded (no subscribeOrder to confirm)`,
-            'success',
-          );
-          return true;
-        }
-        logFn('No auth() method available', 'error');
-        return false;
-      } catch (authError) {
-        const errMsg =
-          authError instanceof Error ? authError.message : String(authError);
-        logFn(`auth() failed: ${errMsg}`, 'error');
-        return false;
-      }
-    },
-    [useTestnet, generateToken],
-  );
-
-  const runTest = useCallback(async () => {
-    setIsRunning(true);
-    clearLogs();
-
-    if (testMode === 'http') {
-      addLog('Starting MYX HTTP API test...', 'info');
-      try {
-        const success = await testHTTPAPI(addLog);
-        if (success) {
-          addLog('\n✅ HTTP API tests completed successfully!', 'success');
-        } else {
-          addLog('\n⚠️ Some HTTP API tests failed', 'warn');
-        }
-      } catch (error) {
-        const errorMsg =
-          error instanceof Error ? error.message : JSON.stringify(error);
-        addLog(`❌ HTTP test failed: ${errorMsg}`, 'error');
-      }
-    } else {
-      addLog(
-        `Starting MYX authentication test with format ${selectedFormat}...`,
-        'info',
-      );
-      try {
-        const success = await testSingleFormat(selectedFormat, addLog);
-        if (success) {
-          addLog(`\n✅ SUCCESS! Format ${selectedFormat} works!`, 'success');
-        } else {
-          addLog(`\n❌ Format ${selectedFormat} failed`, 'error');
-        }
-      } catch (error) {
-        const errorMsg =
-          error instanceof Error ? error.message : JSON.stringify(error);
-        addLog(`❌ Test failed: ${errorMsg}`, 'error');
+      } catch (connErr) {
+        testResults.push({ name: '3. WS Connect', status: 'fail', error: String(connErr) });
       }
     }
+
+    // Test 4b: Manual WS Auth with RAW token (bypass SDK)
+    // Run BEFORE SDK test to see if fresh connection works
+    try {
+      log(`[${envName}] Manual WS test - raw token format...`);
+      const rawTokenResult = await testManualWebSocketAuth(env.wsUrl, token, 'raw', log, envName);
+      testResults.push(rawTokenResult);
+    } catch (err) {
+      testResults.push({ name: '4b. Manual WS (raw)', status: 'fail', error: String(err).slice(0, 80) });
+    }
+
+    // Test 4c: Manual WS Auth with sdk.{token} format
+    try {
+      log(`[${envName}] Manual WS test - sdk.{token} format...`);
+      const sdkTokenResult = await testManualWebSocketAuth(env.wsUrl, `sdk.${token}`, 'sdk.', log, envName);
+      testResults.push(sdkTokenResult);
+    } catch (err) {
+      testResults.push({ name: '4c. Manual WS (sdk.)', status: 'fail', error: String(err).slice(0, 80) });
+    }
+
+    // Test 4d: Manual WS with FRESH token (new token request + new WebSocket)
+    // Tests if existing token was invalidated by previous connections
+    try {
+      log(`[${envName}] Manual WS test - fresh token...`);
+      const freshToken = await fetchFreshToken(env.tokenApi, address, log, envName);
+      if (freshToken) {
+        const freshResult = await testManualWebSocketAuth(env.wsUrl, `sdk.${freshToken}`, 'fresh', log, envName);
+        testResults.push({ ...freshResult, name: '4d. Manual WS (fresh token)' });
+      } else {
+        testResults.push({ name: '4d. Manual WS (fresh token)', status: 'fail', error: 'Failed to get fresh token' });
+      }
+    } catch (err) {
+      testResults.push({ name: '4d. Manual WS (fresh token)', status: 'fail', error: String(err).slice(0, 80) });
+    }
+
+    // Test 5: Full WebSocket flow - auth + subscribe + receive data
+    // This verifies the connection actually works for real-time updates
+    try {
+      log(`[${envName}] Testing full WS flow: auth + subscribe...`);
+      const freshToken = await fetchFreshToken(env.tokenApi, address, log, envName);
+      if (freshToken) {
+        const fullFlowResult = await testManualWebSocketWithSubscription(
+          env.wsUrl,
+          `sdk.${freshToken}`,
+          address,
+          log,
+          envName,
+        );
+        testResults.push(fullFlowResult);
+      } else {
+        testResults.push({ name: '5. WS Auth + Subscribe', status: 'fail', error: 'Failed to get token' });
+      }
+    } catch (err) {
+      testResults.push({ name: '5. WS Auth + Subscribe', status: 'fail', error: String(err).slice(0, 80) });
+    }
+
+    return testResults;
+  }, [log]);
+
+  const runDiagnostics = useCallback(async () => {
+    setIsRunning(true);
+    setSummary('');
+    const envName = isTestnet ? 'Testnet' : 'Mainnet';
+    setResults([{ name: `Running ${envName} tests...`, status: 'running' }]);
+
+    const testResults = await runTests(isTestnet);
+    setResults(testResults);
+
+    const passed = testResults.filter(r => r.status === 'pass').length;
+    const failed = testResults.filter(r => r.status === 'fail').length;
+    setSummary(`${envName}: ${passed} passed, ${failed} failed`);
 
     setIsRunning(false);
-  }, [
-    addLog,
-    clearLogs,
-    selectedFormat,
-    testSingleFormat,
-    testHTTPAPI,
-    testMode,
-  ]);
+  }, [isTestnet, runTests]);
 
-  const testAllFormats = useCallback(async () => {
-    setIsRunning(true);
-    setTestAllMode(true);
-    clearLogs();
-    addLog('Starting multi-format authentication test...', 'info');
-    addLog(
-      'Will test each format sequentially and stop on first success',
-      'info',
-    );
-
-    let successFormat: number | null = null;
-
-    for (const format of TOKEN_FORMATS) {
-      try {
-        const success = await testSingleFormat(format.id, addLog);
-        if (success) {
-          successFormat = format.id;
-          addLog(`\n${'🎉'.repeat(10)}`, 'success');
-          addLog(
-            `SUCCESS! Format ${format.id} (${format.name}) works!`,
-            'success',
-          );
-          addLog(`Update MYXClientService.ts to use this format`, 'success');
-          addLog(`${'🎉'.repeat(10)}`, 'success');
-          break;
-        }
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        addLog(`Format ${format.id} error: ${errMsg}`, 'error');
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+  const getStatusColor = (status: TestResult['status']) => {
+    switch (status) {
+      case 'pass': return colors.success.default;
+      case 'fail': return colors.error.default;
+      case 'running': return colors.warning.default;
+      default: return colors.text.muted;
     }
+  };
 
-    if (successFormat === null) {
-      addLog('\n' + '❌'.repeat(10), 'error');
-      addLog('ALL FORMATS FAILED', 'error');
-      addLog('Consider:', 'warn');
-      addLog('1. Check if MYX has an /auth/token or /login endpoint', 'warn');
-      addLog('2. Contact MYX team for auth documentation', 'warn');
-      addLog('3. Check if there is an OAuth flow', 'warn');
-      addLog('❌'.repeat(10), 'error');
-    }
-
-    setTestAllMode(false);
-    setIsRunning(false);
-  }, [addLog, clearLogs, testSingleFormat]);
-
-  const getLogColor = (type: LogEntry['type']) => {
-    switch (type) {
-      case 'success':
-        return colors.success.default;
-      case 'error':
-        return colors.error.default;
-      case 'warn':
-        return colors.warning.default;
-      default:
-        return colors.info.default;
+  const getStatusIcon = (status: TestResult['status']) => {
+    switch (status) {
+      case 'pass': return '✅';
+      case 'fail': return '❌';
+      case 'running': return '⏳';
+      default: return '⬚';
     }
   };
 
   if (!__DEV__) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['bottom', 'left', 'right']}
-      >
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingLG}>MYX Auth Debug</Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-            Only available in development builds
-          </Text>
-        </View>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+        <Text variant={TextVariant.BodyMD}>Only available in dev builds</Text>
       </SafeAreaView>
     );
   }
 
+  const envConfig = getEnvConfig(isTestnet);
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView style={styles.scrollView}>
-        {/* Header */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-            MYX API Debug
-          </Text>
+          <Text variant={TextVariant.HeadingMD}>MYX Auth Diagnostics</Text>
           <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-            Test MYX HTTP API and WebSocket authentication
+            Toggle environment and run all 4 tests in sequence
           </Text>
         </View>
 
-        {/* Test Mode Toggle */}
+        {/* Environment Toggle */}
         <View style={styles.section}>
-          <Text variant={TextVariant.BodyMD}>Test Mode:</Text>
+          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+            Environment:
+          </Text>
           <View style={styles.toggleContainer}>
             <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                testMode === 'http' && styles.toggleActive,
-              ]}
-              onPress={() => setTestMode('http')}
+              style={[styles.toggleButton, isTestnet && styles.toggleActive]}
+              onPress={() => setIsTestnet(true)}
+              disabled={isRunning}
             >
               <Text
-                variant={TextVariant.BodySM}
-                style={
-                  testMode === 'http'
-                    ? styles.toggleTextActive
-                    : styles.toggleText
-                }
-              >
-                HTTP API
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                testMode === 'auth' && styles.toggleActive,
-              ]}
-              onPress={() => setTestMode('auth')}
-            >
-              <Text
-                variant={TextVariant.BodySM}
-                style={
-                  testMode === 'auth'
-                    ? styles.toggleTextActive
-                    : styles.toggleText
-                }
-              >
-                WS Auth
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Network Toggle */}
-        <View style={styles.section}>
-          <Text variant={TextVariant.BodyMD}>Network:</Text>
-          <View style={styles.toggleContainer}>
-            <TouchableOpacity
-              style={[styles.toggleButton, useTestnet && styles.toggleActive]}
-              onPress={() => setUseTestnet(true)}
-            >
-              <Text
-                variant={TextVariant.BodySM}
-                style={useTestnet ? styles.toggleTextActive : styles.toggleText}
+                variant={TextVariant.BodyMD}
+                style={isTestnet ? styles.toggleTextActive : styles.toggleText}
               >
                 Testnet
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.toggleButton, !useTestnet && styles.toggleActive]}
-              onPress={() => setUseTestnet(false)}
+              style={[styles.toggleButton, !isTestnet && styles.toggleActive]}
+              onPress={() => setIsTestnet(false)}
+              disabled={isRunning}
             >
               <Text
-                variant={TextVariant.BodySM}
-                style={
-                  !useTestnet ? styles.toggleTextActive : styles.toggleText
-                }
+                variant={TextVariant.BodyMD}
+                style={!isTestnet ? styles.toggleTextActive : styles.toggleText}
               >
                 Mainnet
               </Text>
             </TouchableOpacity>
           </View>
+          <Text variant={TextVariant.BodyXS} style={styles.subtitle}>
+            Chain: {envConfig.chainId} | Beta: {String(envConfig.isBetaMode)}
+          </Text>
         </View>
 
-        {/* Format Selector (only for auth mode) */}
-        {testMode === 'auth' && (
-          <View style={styles.section}>
-            <Text
-              variant={TextVariant.BodyMD}
-              style={styles.formatSelectorTitle}
-            >
-              Token Format to Test:
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.button, isRunning && styles.buttonDisabled]}
+            onPress={runDiagnostics}
+            disabled={isRunning}
+          >
+            {isRunning ? (
+              <ActivityIndicator color={colors.primary.inverse} />
+            ) : (
+              <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
+                Run Diagnostics
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {results.length > 0 && (
+          <View style={styles.logsSection}>
+            <Text variant={TextVariant.BodyMD} style={styles.logsTitle}>
+              Test Results
             </Text>
-            <View style={styles.formatSelector}>
-              {TOKEN_FORMATS.map((format) => (
-                <TouchableOpacity
-                  key={format.id}
-                  style={[
-                    styles.formatButton,
-                    selectedFormat === format.id && styles.formatButtonSelected,
-                  ]}
-                  onPress={() => setSelectedFormat(format.id)}
-                  disabled={isRunning}
-                >
+            <View style={styles.logsContainer}>
+              {results.map((result, i) => (
+                <View key={i} style={styles.logEntry}>
                   <Text
                     variant={TextVariant.BodySM}
-                    style={[
-                      styles.formatButtonText,
-                      selectedFormat === format.id &&
-                        styles.formatButtonTextSelected,
-                    ]}
+                    style={[styles.logText, { color: getStatusColor(result.status) }]}
                   >
-                    {format.id}. {format.name}
+                    {getStatusIcon(result.status)} {result.name}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodyXS}
-                    style={[
-                      styles.formatButtonDesc,
-                      selectedFormat === format.id &&
-                        styles.formatButtonDescSelected,
-                    ]}
-                    numberOfLines={2}
-                  >
-                    {format.desc}
-                  </Text>
-                </TouchableOpacity>
+                  {result.details && (
+                    <Text variant={TextVariant.BodyXS} style={[styles.logText, { color: colors.text.muted }]}>
+                      {'  '}{result.details}
+                    </Text>
+                  )}
+                  {result.error && (
+                    <Text variant={TextVariant.BodyXS} style={[styles.logText, { color: colors.error.default }]}>
+                      {'  '}Error: {result.error}
+                    </Text>
+                  )}
+                </View>
               ))}
+
+              {summary && (
+                <View style={styles.section}>
+                  <Text variant={TextVariant.BodyMD}>
+                    {summary}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         )}
 
-        {/* Test Buttons */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.button, isRunning && styles.buttonDisabled]}
-            onPress={runTest}
-            disabled={isRunning}
-          >
-            {isRunning && !testAllMode ? (
-              <ActivityIndicator color={colors.primary.inverse} />
-            ) : (
-              <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
-                {testMode === 'http'
-                  ? '🔍 Test HTTP API'
-                  : `Test Format ${selectedFormat}`}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          {testMode === 'auth' && (
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.buttonSuccess,
-                isRunning && styles.buttonDisabled,
-              ]}
-              onPress={testAllFormats}
-              disabled={isRunning}
-            >
-              {isRunning && testAllMode ? (
-                <View style={styles.buttonContent}>
-                  <ActivityIndicator color={colors.primary.inverse} />
-                  <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
-                    {' '}
-                    Testing All Formats...
-                  </Text>
-                </View>
-              ) : (
-                <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
-                  🔍 Test ALL Formats (Auto-Stop on Success)
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={[styles.button, styles.buttonSecondary]}
-            onPress={clearLogs}
-          >
-            <Text
-              variant={TextVariant.BodyMD}
-              style={styles.buttonTextSecondary}
-            >
-              Clear Logs
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Logs Display */}
-        <View style={styles.logsSection}>
-          <Text variant={TextVariant.BodyMD} style={styles.logsTitle}>
-            Logs ({logs.length})
-          </Text>
-          <View style={styles.logsContainer}>
-            {logs.length === 0 ? (
-              <Text variant={TextVariant.BodySM} style={styles.logsEmpty}>
-                Tap a test button to start
-              </Text>
-            ) : (
-              logs.map((log, index) => (
-                <View key={index} style={styles.logEntry}>
-                  <Text
-                    variant={TextVariant.BodyXS}
-                    style={[styles.logText, { color: getLogColor(log.type) }]}
-                  >
-                    [{log.timestamp}] {log.message}
-                  </Text>
-                </View>
-              ))
-            )}
-          </View>
-        </View>
-
-        {/* Info */}
         <View style={styles.section}>
           <Text variant={TextVariant.BodyXS} style={styles.subtitle}>
-            HTTP API test validates public endpoints (pools, tickers, klines)
-            and private endpoints (positions, orders, account). WS Auth test
-            tries different token formats for WebSocket authentication.
+            Testnet: chainId=97, isBetaMode=true, api-beta endpoints{'\n'}
+            Mainnet: chainId=56, isBetaMode=false, api endpoints{'\n'}
+            Tests: Token API → HTTP → WS Connect → SDK Auth → Manual Auth (raw/sdk.)
           </Text>
         </View>
       </ScrollView>

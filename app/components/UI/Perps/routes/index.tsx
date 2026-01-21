@@ -35,7 +35,7 @@ import PerpsOrderBookView from '../Views/PerpsOrderBookView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
-import { HIP3DebugView, MYXAuthDebugView } from '../Debug';
+import { HIP3DebugView, MYXAuthDebugView, MYXServiceDebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 
 const Stack = createStackNavigator();
@@ -305,6 +305,16 @@ const PerpsScreenStack = () => {
               component={MYXAuthDebugView}
               options={{
                 title: 'MYX Auth Debug',
+                headerShown: true,
+              }}
+            />
+          )}
+          {__DEV__ && (
+            <Stack.Screen
+              name={Routes.PERPS.MYX_SERVICE_DEBUG}
+              component={MYXServiceDebugView}
+              options={{
+                title: 'MYX Service Debug',
                 headerShown: true,
               }}
             />

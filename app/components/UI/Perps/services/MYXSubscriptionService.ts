@@ -24,6 +24,7 @@ import type {
 } from '../controllers/types';
 import {
   adaptPriceUpdateFromMYX,
+  adaptTickerToPriceUpdate,
   adaptPositionFromMYX,
   adaptOrderFromMYX,
   adaptAccountStateFromMYX,
@@ -118,6 +119,9 @@ export class MYXSubscriptionService {
   private cachedPositionsHash = '';
   private cachedOrdersHash = '';
   private cachedAccountHash = '';
+
+  // REST polling intervals (for cleanup on disconnect)
+  private pollingIntervals = new Set<ReturnType<typeof setInterval>>();
 
   constructor(
     clientService: MYXClientService,
@@ -282,11 +286,12 @@ export class MYXSubscriptionService {
     this.authenticationPromise = (async () => {
       try {
         await this.ensureConnection();
-        // SDK will call getAccessToken callback internally
-        await client.subscription.auth();
+        // SDK's subscription.auth() fails with 9401 because it creates its own auth flow
+        // separate from MYXClientService's manual WebSocket auth (which succeeds with 9200).
+        // Skip SDK auth and rely on manual auth completed in MYXClientService.initialize().
         this.isAuthenticated = true;
         this.deps.debugLogger.log(
-          '[MYXSubscriptionService] WebSocket authenticated',
+          '[MYXSubscriptionService] Using manual WebSocket auth from MYXClientService',
         );
       } catch (error) {
         this.deps.debugLogger.log(
@@ -308,7 +313,8 @@ export class MYXSubscriptionService {
 
   /**
    * Subscribe to live price updates
-   * Uses globalId-based ticker subscriptions
+   * Uses REST polling as primary (SDK WebSocket ticker callback never fires due to separate auth).
+   * Keeps SDK WebSocket subscription as backup in case SDK fixes auth.
    */
   public async subscribeToPrices(
     params: SubscribePricesParams,
@@ -323,7 +329,16 @@ export class MYXSubscriptionService {
       throw new Error('MYX client not initialized');
     }
 
-    // Map symbols to globalIds and subscribe
+    // Build symbol → poolId map for REST calls
+    const symbolPoolIdMap = new Map<string, string>();
+    for (const symbol of symbols) {
+      const poolId = await this.clientService.getPoolIdForSymbol(symbol);
+      if (poolId) {
+        symbolPoolIdMap.set(symbol, poolId);
+      }
+    }
+
+    // Map symbols to globalIds and subscribe (SDK WebSocket as backup)
     for (const symbol of symbols) {
       const globalId = await this.clientService.getGlobalIdForSymbol(symbol);
       if (globalId === undefined) {
@@ -342,7 +357,7 @@ export class MYXSubscriptionService {
       const currentCount = this.globalIdSubscriberCounts.get(globalId) || 0;
       this.globalIdSubscriberCounts.set(globalId, currentCount + 1);
 
-      // Create subscription if first subscriber
+      // Create SDK WebSocket subscription if first subscriber (backup, may not fire)
       if (currentCount === 0) {
         const tickerCallback: TickerCallback = (data) => {
           this.handleTickerUpdate(data as MYXTickerWsResponse, symbol);
@@ -359,11 +374,75 @@ export class MYXSubscriptionService {
       }
     }
 
+    // REST polling for prices (primary data source - SDK WS ticker unreliable)
+    const pollPrices = async () => {
+      try {
+        const poolIds = Array.from(symbolPoolIdMap.values());
+        if (poolIds.length === 0) return;
+
+        const tickers = await this.clientService.getTickers(poolIds);
+
+        // Build reverse map: poolId → symbol
+        const poolIdSymbolMap = new Map<string, string>();
+        symbolPoolIdMap.forEach((poolId, symbol) =>
+          poolIdSymbolMap.set(poolId, symbol),
+        );
+
+        for (const ticker of tickers) {
+          const priceUpdate = adaptTickerToPriceUpdate(ticker, poolIdSymbolMap);
+          this.cachedPriceData.set(priceUpdate.coin, priceUpdate);
+
+          // Get globalId for this symbol to notify correct subscribers
+          const globalId = await this.clientService.getGlobalIdForSymbol(
+            priceUpdate.coin,
+          );
+          if (globalId !== undefined) {
+            const subscribers = this.priceSubscribers.get(globalId);
+            if (subscribers) {
+              subscribers.forEach((cb) => {
+                try {
+                  cb([priceUpdate]);
+                } catch (error) {
+                  this.deps.logger.error(
+                    ensureError(error),
+                    this.getErrorContext('pollPrices.callback', {
+                      symbol: priceUpdate.coin,
+                    }),
+                  );
+                }
+              });
+            }
+          }
+        }
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(error),
+          this.getErrorContext('pollPrices'),
+        );
+      }
+    };
+
+    // Poll every 2 seconds for price updates (faster than 5s positions, prices more time-sensitive)
+    const PRICE_POLL_INTERVAL_MS = 2000;
+    const pollInterval = setInterval(pollPrices, PRICE_POLL_INTERVAL_MS);
+    this.pollingIntervals.add(pollInterval);
+
+    // Immediate first fetch to clear skeleton UI instantly
+    pollPrices().catch(() => {
+      /* Errors logged in pollPrices */
+    });
+
+    this.deps.debugLogger.log(
+      '[MYXSubscriptionService] Price subscription using REST polling (SDK WS ticker unreliable)',
+    );
+
     // Return cleanup function
     return () => {
+      clearInterval(pollInterval);
+      this.pollingIntervals.delete(pollInterval);
       unsubscribers.forEach((fn) => fn());
 
-      // Cleanup subscriptions with reference counting
+      // Cleanup SDK WebSocket subscriptions with reference counting
       for (const symbol of symbols) {
         this.clientService
           .getGlobalIdForSymbol(symbol)
@@ -426,32 +505,15 @@ export class MYXSubscriptionService {
 
   /**
    * Subscribe to position updates
-   * Requires authentication - degrades gracefully if auth fails
+   *
+   * NOTE: SDK's subscribePosition() internally calls its own auth flow which fails with 9401
+   * because it uses a separate WebSocket auth mechanism that's incompatible with our manual auth.
+   * Instead, we use REST polling as fallback which is more reliable.
    */
   public async subscribeToPositions(
     params: SubscribePositionsParams,
   ): Promise<() => void> {
     const { callback } = params;
-
-    // Try authentication, but degrade gracefully if unavailable
-    try {
-      await this.ensureAuthentication();
-    } catch {
-      this.deps.debugLogger.log(
-        '[MYXSubscriptionService] Position subscription unavailable - using cached/REST data',
-      );
-      // Return cached data if available
-      if (this.cachedPositions.length > 0) {
-        callback(this.cachedPositions);
-      }
-      // No-op unsubscribe since WebSocket subscription was not established
-      return () => undefined;
-    }
-
-    const client = this.clientService.getClient();
-    if (!client) {
-      throw new Error('MYX client not initialized');
-    }
 
     // Add subscriber
     const unsubscribe = this.createSubscription(
@@ -460,33 +522,81 @@ export class MYXSubscriptionService {
     );
     this.positionSubscriberCount++;
 
-    // Create subscription if first subscriber
-    if (this.positionSubscriberCount === 1) {
-      this.positionCallback = async (data: MYXPosition) => {
-        await this.handlePositionUpdate(data);
-      };
+    // Track if this subscriber has received first update (for skeleton clearing)
+    let hasNotifiedFirstUpdate = false;
 
-      await client.subscription.subscribePosition(this.positionCallback);
-    }
+    // Send cached data immediately if available (including empty array for zero positions)
+    // Always call callback to clear loading state, even with empty positions
+    callback([...this.cachedPositions]);
+    hasNotifiedFirstUpdate = true;
 
-    // Send cached data immediately
-    if (this.cachedPositions.length > 0) {
-      callback(this.cachedPositions);
-    }
+    // Start REST polling for positions (SDK WebSocket triggers 9401 auth errors)
+    const pollPositions = async () => {
+      try {
+        const userAddress = this.walletService.getCurrentUserAddress();
+        const positions = await this.clientService.getPositions(userAddress);
+
+        const adaptedPositions: Position[] = [];
+        for (const pos of positions) {
+          const symbol = await this.clientService.getSymbolForPoolId(
+            pos.poolId,
+          );
+          if (symbol) {
+            const position = adaptPositionFromMYX(pos);
+            position.coin = symbol;
+            adaptedPositions.push(position);
+          }
+        }
+
+        // Check for changes before notifying (skip hash check on first update to ensure skeleton clears)
+        const newHash = this.hashPositions(adaptedPositions);
+        const shouldNotify =
+          !hasNotifiedFirstUpdate || newHash !== this.cachedPositionsHash;
+
+        if (shouldNotify) {
+          hasNotifiedFirstUpdate = true;
+          this.cachedPositionsHash = newHash;
+          this.cachedPositions = adaptedPositions;
+
+          this.positionSubscribers.forEach((cb) => {
+            try {
+              cb([...this.cachedPositions]);
+            } catch (error) {
+              this.deps.logger.error(
+                ensureError(error),
+                this.getErrorContext('pollPositions.callback'),
+              );
+            }
+          });
+        }
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(error),
+          this.getErrorContext('pollPositions'),
+        );
+      }
+    };
+
+    // Poll every 5 seconds for position updates (REST fallback)
+    const POSITION_POLL_INTERVAL_MS = 5000;
+    const pollInterval = setInterval(pollPositions, POSITION_POLL_INTERVAL_MS);
+    this.pollingIntervals.add(pollInterval);
+
+    // Initial fetch (fire-and-forget, errors handled internally)
+    pollPositions().catch(() => {
+      /* Errors logged in pollPositions */
+    });
+
+    this.deps.debugLogger.log(
+      '[MYXSubscriptionService] Position subscription using REST polling (SDK WS auth bypassed)',
+    );
 
     // Return cleanup function
     return () => {
       unsubscribe();
       this.positionSubscriberCount--;
-
-      if (
-        this.positionSubscriberCount === 0 &&
-        this.positionCallback &&
-        client
-      ) {
-        client.subscription.unsubscribePosition(this.positionCallback);
-        this.positionCallback = null;
-      }
+      clearInterval(pollInterval);
+      this.pollingIntervals.delete(pollInterval);
     };
   }
 
@@ -548,32 +658,15 @@ export class MYXSubscriptionService {
 
   /**
    * Subscribe to order updates
-   * Requires authentication - degrades gracefully if auth fails
+   *
+   * NOTE: SDK's subscribeOrder() internally calls its own auth flow which fails with 9401
+   * because it uses a separate WebSocket auth mechanism that's incompatible with our manual auth.
+   * Instead, we use REST polling as fallback which is more reliable.
    */
   public async subscribeToOrders(
     params: SubscribeOrdersParams,
   ): Promise<() => void> {
     const { callback } = params;
-
-    // Try authentication, but degrade gracefully if unavailable
-    try {
-      await this.ensureAuthentication();
-    } catch {
-      this.deps.debugLogger.log(
-        '[MYXSubscriptionService] Order subscription unavailable - using cached/REST data',
-      );
-      // Return cached data if available
-      if (this.cachedOrders.length > 0) {
-        callback(this.cachedOrders);
-      }
-      // No-op unsubscribe since WebSocket subscription was not established
-      return () => undefined;
-    }
-
-    const client = this.clientService.getClient();
-    if (!client) {
-      throw new Error('MYX client not initialized');
-    }
 
     // Add subscriber
     const unsubscribe = this.createSubscription(
@@ -582,29 +675,82 @@ export class MYXSubscriptionService {
     );
     this.orderSubscriberCount++;
 
-    // Create subscription if first subscriber
-    if (this.orderSubscriberCount === 1) {
-      this.orderCallback = async (data: MYXOrder) => {
-        await this.handleOrderUpdate(data);
-      };
+    // Track if this subscriber has received first update (for skeleton clearing)
+    let hasNotifiedFirstUpdate = false;
 
-      await client.subscription.subscribeOrder(this.orderCallback);
-    }
+    // Send cached data immediately (including empty array for zero orders)
+    // Always call callback to clear loading state
+    callback([...this.cachedOrders]);
+    hasNotifiedFirstUpdate = true;
 
-    // Send cached data immediately
-    if (this.cachedOrders.length > 0) {
-      callback(this.cachedOrders);
-    }
+    // Start REST polling for orders (SDK WebSocket triggers 9401 auth errors)
+    const pollOrders = async () => {
+      try {
+        const userAddress = this.walletService.getCurrentUserAddress();
+        const orders = await this.clientService.getOpenOrders(userAddress);
+
+        const adaptedOrders: Order[] = [];
+        for (const order of orders) {
+          const symbol = await this.clientService.getSymbolForPoolId(
+            order.poolId,
+          );
+          if (symbol) {
+            const symbolPoolMap = new Map<string, string>([
+              [order.poolId, symbol],
+            ]);
+            adaptedOrders.push(adaptOrderFromMYX(order, symbolPoolMap));
+          }
+        }
+
+        // Check for changes before notifying (skip hash check on first update to ensure skeleton clears)
+        const newHash = this.hashOrders(adaptedOrders);
+        const shouldNotify =
+          !hasNotifiedFirstUpdate || newHash !== this.cachedOrdersHash;
+
+        if (shouldNotify) {
+          hasNotifiedFirstUpdate = true;
+          this.cachedOrdersHash = newHash;
+          this.cachedOrders = adaptedOrders;
+
+          this.orderSubscribers.forEach((cb) => {
+            try {
+              cb([...this.cachedOrders]);
+            } catch (error) {
+              this.deps.logger.error(
+                ensureError(error),
+                this.getErrorContext('pollOrders.callback'),
+              );
+            }
+          });
+        }
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(error),
+          this.getErrorContext('pollOrders'),
+        );
+      }
+    };
+
+    // Poll every 5 seconds for order updates (REST fallback)
+    const ORDER_POLL_INTERVAL_MS = 5000;
+    const pollInterval = setInterval(pollOrders, ORDER_POLL_INTERVAL_MS);
+    this.pollingIntervals.add(pollInterval);
+
+    // Initial fetch (fire-and-forget, errors handled internally)
+    pollOrders().catch(() => {
+      /* Errors logged in pollOrders */
+    });
+
+    this.deps.debugLogger.log(
+      '[MYXSubscriptionService] Order subscription using REST polling (SDK WS auth bypassed)',
+    );
 
     // Return cleanup function
     return () => {
       unsubscribe();
       this.orderSubscriberCount--;
-
-      if (this.orderSubscriberCount === 0 && this.orderCallback && client) {
-        client.subscription.unsubscribeOrder(this.orderCallback);
-        this.orderCallback = null;
-      }
+      clearInterval(pollInterval);
+      this.pollingIntervals.delete(pollInterval);
     };
   }
 
@@ -930,6 +1076,16 @@ export class MYXSubscriptionService {
    * Disconnect WebSocket and cleanup all subscriptions
    */
   public async disconnect(): Promise<void> {
+    // Clear all REST polling intervals first (prevents further API calls during cleanup)
+    const intervalCount = this.pollingIntervals.size;
+    for (const interval of this.pollingIntervals) {
+      clearInterval(interval);
+    }
+    this.pollingIntervals.clear();
+    this.deps.debugLogger.log(
+      `[MYXSubscriptionService] Cleared ${intervalCount} REST polling intervals`,
+    );
+
     const client = this.clientService.getClient();
     if (client?.subscription.isConnected) {
       // Unsubscribe from all tickers

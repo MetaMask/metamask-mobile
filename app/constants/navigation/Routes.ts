@@ -267,6 +267,7 @@ const Routes = {
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     MYX_AUTH_DEBUG: 'PerpsMYXAuthDebug',
+    MYX_SERVICE_DEBUG: 'PerpsMYXServiceDebug',
     TPSL: 'PerpsTPSL',
     ADJUST_MARGIN: 'PerpsAdjustMargin',
     SELECT_MODIFY_ACTION: 'PerpsSelectModifyAction',

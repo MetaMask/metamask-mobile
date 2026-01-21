@@ -12,13 +12,53 @@
  */
 
 import { MyxClient } from '@myx-trade/sdk';
+import Crypto from 'react-native-quick-crypto';
 import { ensureError } from '../../../../util/errorUtils';
-import { getMYXChainId, MYX_TRANSPORT_CONFIG } from '../constants/myxConfig';
+import {
+  MYX_TRANSPORT_CONFIG,
+  MYX_OPENAPI_WS_URL,
+} from '../constants/myxConfig';
 import type {
   IPerpsPlatformDependencies,
   SubscribeCandlesParams,
 } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+
+// ============================================================================
+// MYX Authentication Configuration
+// ============================================================================
+
+/**
+ * MYX API-based authentication config
+ * Uses SHA256 signature instead of wallet signature for token generation
+ *
+ * IMPORTANT: Uses TESTNET/BETA endpoint - we only have testnet credentials (appId=metamask)
+ * When mainnet credentials are available, this should be configurable based on isTestnet
+ */
+const MYX_AUTH_CONFIG = {
+  appId: 'metamask',
+  secret: 'vcVSelUYUfcepmOKGemyfC0dcxQDhCg1',
+  // TESTNET endpoint - matches the credentials we have
+  tokenEndpoint:
+    'https://api-beta.myx.finance/openapi/gateway/auth/api_key/create_token',
+  defaultExpireTime: 3600, // 1 hour in seconds
+};
+
+/**
+ * Generate SHA256 hash of data using react-native-quick-crypto
+ * This is the proper way to do SHA256 in React Native environment
+ */
+const sha256Hex = (data: string): string =>
+  Crypto.createHash('sha256').update(data).digest('hex');
+
+/**
+ * Hardcoded BNB chainIds for MYX - MYX runs exclusively on BNB chain
+ * Don't rely on getMYXChainId() which may read from wallet state and return wrong chainId
+ */
+const BNB_CHAIN_IDS = {
+  testnet: 97, // BNB testnet
+  mainnet: 56, // BNB mainnet
+} as const;
 import type {
   MYXNetwork,
   MYXPoolSymbol,
@@ -103,26 +143,43 @@ export class MYXClientService {
   private poolsCacheTimestamp = 0;
   private readonly POOLS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+  // Global ID cache (symbol -> globalId) for WebSocket subscriptions
+  // globalId is required for ticker subscriptions but not in PoolSymbolAllResponse
+  private globalIdCache: Map<string, number> = new Map();
+
   // Authentication token cache for WebSocket
   private accessToken: { token: string; expireAt: number } | null = null;
-  private readonly TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
   private signer: MYXSignerAdapter | null = null;
 
   // Platform dependencies for logging
   private readonly deps: IPerpsPlatformDependencies;
+
+  // Manual WebSocket for authentication (bypasses SDK's auth which fails)
+  private authWebSocket: WebSocket | null = null;
 
   constructor(
     deps: IPerpsPlatformDependencies,
     options: { isTestnet?: boolean; brokerAddress?: string } = {},
   ) {
     this.deps = deps;
-    this.isTestnet = options.isTestnet ?? false;
+
+    // FORCE TESTNET - we only have testnet credentials (appId=metamask)
+    // The SDK's internal auth fails with 9401, but manual WS auth works on testnet
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _requestedTestnet = options.isTestnet; // Preserved for when mainnet credentials available
+    this.isTestnet = true; // Override any passed option until mainnet credentials available
 
     this.config = {
-      chainId: parseInt(getMYXChainId(this.isTestnet), 10),
+      chainId: BNB_CHAIN_IDS.testnet, // Always testnet for now
       brokerAddress: options.brokerAddress || '',
-      isTestnet: this.isTestnet,
+      isTestnet: true,
     };
+
+    this.deps.debugLogger.log('[MYXClientService] Initialized (TESTNET FORCED)', {
+      requestedTestnet: options.isTestnet,
+      actualTestnet: this.isTestnet,
+      chainId: this.config.chainId,
+    });
   }
 
   // ============================================================================
@@ -179,7 +236,7 @@ export class MYXClientService {
         signer: signer as any,
         brokerAddress: this.config.brokerAddress,
         isTestnet: this.isTestnet,
-        isBetaMode: false,
+        isBetaMode: this.isTestnet,
         socketConfig: {
           initialReconnectDelay:
             MYX_TRANSPORT_CONFIG.reconnect.reconnectInterval,
@@ -187,6 +244,26 @@ export class MYXClientService {
         },
         getAccessToken: () => this.generateAccessToken(),
       });
+
+      // Diagnostic: Verify SDK received correct chainId
+      const configManager = this.myxClient.getConfigManager();
+      this.deps.debugLogger.log('[MYXClientService] SDK constructed', {
+        passedChainId: this.config.chainId,
+        sdkChainId: configManager?.chainId,
+        match: this.config.chainId === configManager?.chainId,
+        isBetaMode: this.isTestnet,
+      });
+
+      // Configure authentication on the client
+      // MyxClient.auth() sets up signer, walletClient, and getAccessToken on ConfigManager
+      // This must be called before WebSocket auth to enable private subscriptions
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      this.myxClient.auth({
+        signer: signer as any,
+        walletClient: signer as any, // Our adapter implements required WalletClient methods
+        getAccessToken: () => this.generateAccessToken(),
+      });
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       this.connectionState = MYXConnectionState.CONNECTED;
 
@@ -227,23 +304,37 @@ export class MYXClientService {
 
   /**
    * Generate access token for WebSocket authentication
-   * Uses wallet signature for authentication (signature-based auth)
+   * Uses MYX API with SHA256 signature for token generation
    *
-   * Note: SDK docs show wrapped format { code, msg, data: {...} } but actual SDK code
-   * at line 12848 does `return response.accessToken` - expects simple format
+   * Authentication flow:
+   * 1. Generate SHA256 signature: payload = `${appId}&${timestamp}&${expireTime}&${address}&${secret}`
+   * 2. Call MYX API endpoint with signature
+   * 3. API returns { code, msg, data: { accessToken, expireAt } }
    */
   private async generateAccessToken(): Promise<
     { accessToken: string; expireAt: number } | undefined
   > {
-    const now = Date.now();
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    // Add 60 second buffer before expiry to avoid edge cases
+    const TOKEN_EXPIRY_BUFFER_SECONDS = 60;
 
-    // Return cached token if still valid (with 5-minute buffer)
-    if (this.accessToken && this.accessToken.expireAt > now + 5 * 60 * 1000) {
+    // Return cached token if still valid (with buffer)
+    if (
+      this.accessToken &&
+      this.accessToken.expireAt > nowSeconds + TOKEN_EXPIRY_BUFFER_SECONDS
+    ) {
       return {
         accessToken: this.accessToken.token,
         expireAt: this.accessToken.expireAt,
       };
     }
+
+    this.deps.debugLogger.log('[MYXClientService] generateAccessToken called', {
+      hasCachedToken: !!this.accessToken,
+      cachedExpireAt: this.accessToken?.expireAt,
+      nowSeconds,
+      hasSigner: !!this.signer,
+    });
 
     if (!this.signer) {
       this.deps.debugLogger.log(
@@ -254,28 +345,52 @@ export class MYXClientService {
 
     try {
       const address = await this.signer.getAddress();
-      const timestamp = now;
-      const expireAt = timestamp + this.TOKEN_TTL_MS;
+      const timestamp = nowSeconds;
+      const expireTime = MYX_AUTH_CONFIG.defaultExpireTime;
 
-      // MYX authentication message format (signature-based auth)
-      const message = `MYX Authentication\nAddress: ${address}\nTimestamp: ${timestamp}\nExpires: ${expireAt}`;
-      const signature = await this.signer.signMessage(message);
+      // Generate SHA256 signature for MYX API
+      const payload = `${MYX_AUTH_CONFIG.appId}&${timestamp}&${expireTime}&${address}&${MYX_AUTH_CONFIG.secret}`;
+      const signature = sha256Hex(payload);
 
-      // Cache the token
-      this.accessToken = {
-        token: signature,
-        expireAt,
-      };
+      // Call MYX API to get access token
+      const url = `${MYX_AUTH_CONFIG.tokenEndpoint}?appId=${MYX_AUTH_CONFIG.appId}&timestamp=${timestamp}&expireTime=${expireTime}&allowAccount=${address}&signature=${signature}`;
 
-      this.deps.debugLogger.log('[MYXClientService] Generated access token', {
+      this.deps.debugLogger.log('[MYXClientService] Calling MYX auth API...', {
         address,
-        expiresIn: Math.round(this.TOKEN_TTL_MS / 60000) + ' minutes',
+        timestamp,
+        expireTime,
       });
 
-      return {
-        accessToken: signature,
-        expireAt,
-      };
+      const response = await fetch(url);
+      const result = await response.json();
+
+      // MYX API returns code=9200 on success (not 0), check for data presence
+      if (result.data?.accessToken) {
+        const { accessToken, expireAt } = result.data as {
+          accessToken: string;
+          expireAt: number;
+        };
+
+        // Cache the token for reuse
+        this.accessToken = { token: accessToken, expireAt };
+
+        this.deps.debugLogger.log(
+          '[MYXClientService] Generated fresh access token via API',
+          {
+            address,
+            tokenPrefix: accessToken.substring(0, 8),
+            expiresIn: `${Math.round((expireAt - nowSeconds) / 60)} minutes`,
+          },
+        );
+
+        return { accessToken, expireAt };
+      }
+
+      this.deps.debugLogger.log('[MYXClientService] Token API error', {
+        code: result.code,
+        msg: result.msg,
+      });
+      return undefined;
     } catch (error) {
       this.deps.logger.error(
         ensureError(error),
@@ -337,6 +452,13 @@ export class MYXClientService {
   }
 
   /**
+   * Get the API module (for getPoolDetail and other API methods)
+   */
+  public getApiClient(): MyxClient['api'] {
+    return this.getClient().api;
+  }
+
+  /**
    * Get the account module
    */
   public getAccountClient(): MyxClient['account'] {
@@ -362,50 +484,147 @@ export class MYXClientService {
   // ============================================================================
 
   /**
-   * Connect and authenticate WebSocket for private subscriptions.
-   * Must be called before subscribing to private channels (orders, positions).
+   * Authenticate WebSocket manually (bypassing SDK's auth which fails with 9401).
+   * Uses the same approach as MYXAuthDebug which works.
    *
-   * The MYX SDK requires explicit auth() call after WebSocket connection
-   * to enable private subscriptions. Without this, getAccessToken is never invoked.
+   * The signin format is: { request: 'signin', args: 'sdk.{token}' }
+   */
+  private async manualWebSocketAuth(
+    ws: WebSocket,
+    token: string,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const AUTH_TIMEOUT_MS = 8000;
+      const timeout = setTimeout(() => {
+        reject(new Error('WebSocket auth timeout (8s)'));
+      }, AUTH_TIMEOUT_MS);
+
+      const messageHandler = (event: MessageEvent) => {
+        try {
+          const response = JSON.parse(event.data as string);
+          this.deps.debugLogger.log(
+            '[MYXClientService] WS message received',
+            response,
+          );
+
+          if (response.type === 'signin') {
+            ws.removeEventListener('message', messageHandler);
+            clearTimeout(timeout);
+
+            const code = response?.data?.code ?? response?.code;
+            if (code === 0 || code === 9200) {
+              this.deps.debugLogger.log(
+                '[MYXClientService] Manual WS auth succeeded!',
+                { code },
+              );
+              resolve();
+            } else {
+              reject(
+                new Error(
+                  `WS auth failed: code=${code} msg=${response?.data?.msg || response?.msg}`,
+                ),
+              );
+            }
+          }
+        } catch {
+          // Ignore non-JSON or non-signin messages
+        }
+      };
+
+      ws.addEventListener('message', messageHandler);
+
+      // Send signin request with sdk.{token} format (same as MYXAuthDebug)
+      const request = JSON.stringify({ request: 'signin', args: `sdk.${token}` });
+      this.deps.debugLogger.log(
+        '[MYXClientService] Sending manual signin request...',
+        { tokenPrefix: token.substring(0, 8) },
+      );
+      ws.send(request);
+    });
+  }
+
+  /**
+   * Connect and authenticate WebSocket for private subscriptions.
+   * Uses manual WebSocket auth instead of SDK's auth() which fails with 9401.
+   *
+   * This bypasses the SDK's internal auth flow and directly sends the signin
+   * request to the OpenAPI WebSocket endpoint, matching the working MYXAuthDebug approach.
    */
   public async connectAndAuthenticateWebSocket(): Promise<boolean> {
     try {
-      const subscriptionClient = this.getSubscriptionClient();
-
-      // Connect if not already connected
-      if (!subscriptionClient.isConnected) {
-        this.deps.debugLogger.log('[MYXClientService] Connecting WebSocket...');
-        subscriptionClient.connect();
-
-        // Wait for connection
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(
-            () => reject(new Error('WebSocket connection timeout')),
-            10000,
-          );
-          subscriptionClient.on('open', () => {
-            clearTimeout(timeout);
-            this.deps.debugLogger.log('[MYXClientService] WebSocket connected');
-            resolve();
-          });
-          subscriptionClient.on('error', (err: Error) => {
-            clearTimeout(timeout);
-            reject(err);
-          });
-        });
+      // Get fresh token FIRST (before any WS connection)
+      const tokenData = await this.generateAccessToken();
+      if (!tokenData?.accessToken) {
+        throw new Error('Failed to get access token for WebSocket auth');
       }
 
-      // Authenticate for private subscriptions - this triggers the getAccessToken callback
       this.deps.debugLogger.log(
-        '[MYXClientService] Authenticating WebSocket...',
-      );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (subscriptionClient as any).auth();
-      this.deps.debugLogger.log(
-        '[MYXClientService] WebSocket authenticated successfully',
+        '[MYXClientService] Got access token, creating manual WebSocket...',
+        { tokenPrefix: tokenData.accessToken.substring(0, 8) },
       );
 
-      return true;
+      // Use the OpenAPI WebSocket endpoint directly (same as MYXAuthDebug)
+      const wsUrl = this.isTestnet
+        ? MYX_OPENAPI_WS_URL.testnet
+        : MYX_OPENAPI_WS_URL.mainnet;
+
+      // Close any existing manual WebSocket
+      if (this.authWebSocket) {
+        try {
+          this.authWebSocket.close();
+        } catch {
+          // Ignore close errors
+        }
+        this.authWebSocket = null;
+      }
+
+      // Create new WebSocket connection
+      return new Promise((resolve, reject) => {
+        const CONNECTION_TIMEOUT_MS = 10000;
+        const ws = new WebSocket(wsUrl);
+        const timeout = setTimeout(() => {
+          ws.close();
+          reject(new Error('WebSocket connection timeout'));
+        }, CONNECTION_TIMEOUT_MS);
+
+        ws.onopen = () => {
+          clearTimeout(timeout);
+          this.deps.debugLogger.log(
+            '[MYXClientService] Manual WebSocket connected to',
+            { url: wsUrl },
+          );
+
+          // Now authenticate
+          this.manualWebSocketAuth(ws, tokenData.accessToken)
+            .then(() => {
+              this.authWebSocket = ws;
+              this.deps.debugLogger.log(
+                '[MYXClientService] Manual WebSocket auth complete!',
+              );
+              resolve(true);
+            })
+            .catch((authError) => {
+              ws.close();
+              reject(authError);
+            });
+        };
+
+        ws.onerror = (event) => {
+          clearTimeout(timeout);
+          this.deps.debugLogger.log('[MYXClientService] WebSocket error', event);
+          reject(new Error('WebSocket connection error'));
+        };
+
+        ws.onclose = (event) => {
+          this.deps.debugLogger.log('[MYXClientService] WebSocket closed', {
+            code: event.code,
+            reason: event.reason,
+          });
+          if (this.authWebSocket === ws) {
+            this.authWebSocket = null;
+          }
+        };
+      });
     } catch (error) {
       this.deps.logger.error(
         ensureError(error),
@@ -445,7 +664,9 @@ export class MYXClientService {
    */
   public async toggleTestnet(signer: MYXSignerAdapter): Promise<MYXNetwork> {
     this.isTestnet = !this.isTestnet;
-    this.config.chainId = parseInt(getMYXChainId(this.isTestnet), 10);
+    this.config.chainId = this.isTestnet
+      ? BNB_CHAIN_IDS.testnet
+      : BNB_CHAIN_IDS.mainnet;
 
     // Re-initialize with new network
     await this.initialize(signer);
@@ -492,7 +713,7 @@ export class MYXClientService {
   }
 
   /**
-   * Refresh the pools cache
+   * Refresh the pools cache and fetch globalIds for WebSocket subscriptions
    */
   private async refreshPoolsCache(): Promise<MYXPoolSymbol[]> {
     try {
@@ -502,8 +723,13 @@ export class MYXClientService {
       this.poolsCache = pools || [];
       this.poolsCacheTimestamp = Date.now();
 
+      // Fetch globalIds for each pool (needed for WebSocket subscriptions)
+      // Do this in parallel for better performance
+      await this.refreshGlobalIdCache(pools || []);
+
       this.deps.debugLogger.log('[MYXClientService] Pools cache refreshed', {
         count: this.poolsCache.length,
+        globalIdCount: this.globalIdCache.size,
       });
 
       return this.poolsCache;
@@ -514,6 +740,42 @@ export class MYXClientService {
       );
       return this.poolsCache; // Return stale cache on error
     }
+  }
+
+  /**
+   * Refresh globalId cache by fetching pool details
+   * globalId is required for ticker subscriptions but not included in PoolSymbolAllResponse
+   *
+   * NOTE: getPoolDetail is on client.api, NOT client.markets
+   * SDK signature: Api.getPoolDetail(chainId, poolId): Promise<PoolResponse>
+   */
+  private async refreshGlobalIdCache(pools: MYXPoolSymbol[]): Promise<void> {
+    const apiClient = this.getApiClient();
+
+    // Fetch pool details in parallel (limited batch to avoid overwhelming API)
+    const batchSize = 5;
+    for (let i = 0; i < pools.length; i += batchSize) {
+      const batch = pools.slice(i, i + batchSize);
+      const results = await Promise.allSettled(
+        batch.map((pool) => apiClient.getPoolDetail(pool.chainId, pool.poolId)),
+      );
+
+      for (let j = 0; j < results.length; j++) {
+        const result = results[j];
+        const pool = batch[j];
+
+        if (result.status === 'fulfilled' && result.value?.data) {
+          const poolDetail = result.value.data;
+          if (poolDetail.globalId !== undefined) {
+            this.globalIdCache.set(pool.baseSymbol, poolDetail.globalId);
+          }
+        }
+      }
+    }
+
+    this.deps.debugLogger.log('[MYXClientService] GlobalId cache refreshed', {
+      symbols: Array.from(this.globalIdCache.keys()),
+    });
   }
 
   /**
@@ -536,20 +798,20 @@ export class MYXClientService {
 
   /**
    * Get globalId for a symbol (used by WebSocket subscriptions)
-   * Note: PoolSymbolAllResponse doesn't have globalId, need to get from MarketPool
+   * globalId is cached when pools are loaded via refreshGlobalIdCache()
    */
   public async getGlobalIdForSymbol(
     symbol: string,
   ): Promise<number | undefined> {
-    const pools = await this.getPools();
-    const pool = pools.find((p) => p.baseSymbol === symbol);
-    if (!pool) return undefined;
+    // Check cache first
+    const cachedId = this.globalIdCache.get(symbol);
+    if (cachedId !== undefined) {
+      return cachedId;
+    }
 
-    // PoolSymbolAllResponse doesn't have globalId directly
-    // Need to get full pool details from markets API
-    // TODO: Get globalId from MarketPool via separate API call
-    // For now, return undefined until proper API integration is available
-    return undefined;
+    // If not cached, refresh pools (which also refreshes globalId cache)
+    await this.getPools(true);
+    return this.globalIdCache.get(symbol);
   }
 
   /**
@@ -647,7 +909,9 @@ export class MYXClientService {
    */
   public setTestnetMode(isTestnet: boolean): void {
     this.isTestnet = isTestnet;
-    this.config.chainId = parseInt(getMYXChainId(isTestnet), 10);
+    this.config.chainId = isTestnet
+      ? BNB_CHAIN_IDS.testnet
+      : BNB_CHAIN_IDS.mainnet;
     this.config.isTestnet = isTestnet;
 
     this.deps.debugLogger.log('[MYXClientService] Testnet mode updated', {
@@ -1241,7 +1505,17 @@ export class MYXClientService {
       this.stopHealthCheckMonitoring();
       this.onReconnectCallback = undefined;
 
-      // Disconnect WebSocket subscription if active
+      // Close manual auth WebSocket if active
+      if (this.authWebSocket) {
+        try {
+          this.authWebSocket.close();
+        } catch {
+          // Ignore close errors
+        }
+        this.authWebSocket = null;
+      }
+
+      // Disconnect SDK WebSocket subscription if active
       if (this.myxClient?.subscription?.disconnect) {
         try {
           this.myxClient.subscription.disconnect();

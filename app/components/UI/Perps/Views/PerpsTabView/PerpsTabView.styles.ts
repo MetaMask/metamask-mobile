@@ -93,13 +93,23 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
-    // Debug button (dev only)
+    // Debug buttons (dev only)
     debugButton: {
       position: 'absolute',
       top: 8,
       right: 8,
       zIndex: 999,
       backgroundColor: colors.warning.default,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+    },
+    debugButtonSecondary: {
+      position: 'absolute',
+      top: 8,
+      right: 90,
+      zIndex: 999,
+      backgroundColor: colors.info.default,
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 4,

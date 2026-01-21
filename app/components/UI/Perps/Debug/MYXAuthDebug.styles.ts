@@ -141,6 +141,10 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 11,
       lineHeight: 16,
     },
+    groupHeader: {
+      marginTop: 8,
+      fontWeight: '600',
+    },
   });
 };
 
