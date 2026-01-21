@@ -14,42 +14,6 @@ exports[`QuickAmounts matches snapshot 1`] = `
     style={
       {
         "flex": 1,
-        "opacity": 0,
-        "paddingHorizontal": 16,
-        "pointerEvents": "none",
-        "position": "absolute",
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      adjustsFontSizeToFit={true}
-      minimumFontScale={0.5}
-      numberOfLines={1}
-      onTextLayout={[Function]}
-      style={
-        [
-          {
-            "color": "#121314",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          {
-            "fontSize": 16,
-          },
-        ]
-      }
-    >
-      $400
-    </Text>
-  </View>
-  <View
-    style={
-      {
-        "flex": 1,
       }
     }
   >
@@ -71,12 +35,13 @@ exports[`QuickAmounts matches snapshot 1`] = `
       }
     >
       <View
+        accessibilityLabel="$50"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -106,21 +71,22 @@ exports[`QuickAmounts matches snapshot 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
+              "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
               "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
+              "paddingLeft": 0,
+              "paddingRight": 0,
               "width": "100%",
             },
           ]
         }
         testID="quick-amounts-button-50"
-        variant="Secondary"
       >
         <View
           style={
@@ -197,19 +163,24 @@ exports[`QuickAmounts matches snapshot 1`] = `
         >
           <Text
             accessibilityRole="text"
+            adjustsFontSizeToFit={true}
+            ellipsizeMode="clip"
+            numberOfLines={1}
             style={
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": "center",
                 },
-                {
-                  "fontSize": 16,
-                },
+                undefined,
               ]
             }
           >
@@ -244,12 +215,13 @@ exports[`QuickAmounts matches snapshot 1`] = `
       }
     >
       <View
+        accessibilityLabel="$100"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -279,21 +251,22 @@ exports[`QuickAmounts matches snapshot 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
+              "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
               "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
+              "paddingLeft": 0,
+              "paddingRight": 0,
               "width": "100%",
             },
           ]
         }
         testID="quick-amounts-button-100"
-        variant="Secondary"
       >
         <View
           style={
@@ -370,19 +343,24 @@ exports[`QuickAmounts matches snapshot 1`] = `
         >
           <Text
             accessibilityRole="text"
+            adjustsFontSizeToFit={true}
+            ellipsizeMode="clip"
+            numberOfLines={1}
             style={
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": "center",
                 },
-                {
-                  "fontSize": 16,
-                },
+                undefined,
               ]
             }
           >
@@ -417,12 +395,13 @@ exports[`QuickAmounts matches snapshot 1`] = `
       }
     >
       <View
+        accessibilityLabel="$200"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -452,21 +431,22 @@ exports[`QuickAmounts matches snapshot 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
+              "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
               "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
+              "paddingLeft": 0,
+              "paddingRight": 0,
               "width": "100%",
             },
           ]
         }
         testID="quick-amounts-button-200"
-        variant="Secondary"
       >
         <View
           style={
@@ -543,19 +523,24 @@ exports[`QuickAmounts matches snapshot 1`] = `
         >
           <Text
             accessibilityRole="text"
+            adjustsFontSizeToFit={true}
+            ellipsizeMode="clip"
+            numberOfLines={1}
             style={
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": "center",
                 },
-                {
-                  "fontSize": 16,
-                },
+                undefined,
               ]
             }
           >
@@ -590,12 +575,13 @@ exports[`QuickAmounts matches snapshot 1`] = `
       }
     >
       <View
+        accessibilityLabel="$400"
         accessibilityRole="button"
         accessibilityState={
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": undefined,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -625,21 +611,22 @@ exports[`QuickAmounts matches snapshot 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
+              "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
               "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
-              "paddingLeft": 16,
-              "paddingRight": 16,
+              "paddingLeft": 0,
+              "paddingRight": 0,
               "width": "100%",
             },
           ]
         }
         testID="quick-amounts-button-400"
-        variant="Secondary"
       >
         <View
           style={
@@ -716,19 +703,24 @@ exports[`QuickAmounts matches snapshot 1`] = `
         >
           <Text
             accessibilityRole="text"
+            adjustsFontSizeToFit={true}
+            ellipsizeMode="clip"
+            numberOfLines={1}
             style={
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist-Regular",
+                  "flexGrow": 0,
+                  "flexShrink": 1,
+                  "flexWrap": "wrap",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": "center",
                 },
-                {
-                  "fontSize": 16,
-                },
+                undefined,
               ]
             }
           >

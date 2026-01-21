@@ -15,19 +15,27 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
   }
   testID="payment-method-pill"
 >
-  <SvgMock
-    color="#121314"
-    fill="currentColor"
-    height={20}
-    name="Card"
+  <View
     style={
       {
-        "height": 20,
-        "width": 20,
+        "padding": 4,
       }
     }
-    width={20}
-  />
+  >
+    <SvgMock
+      color="#121314"
+      fill="currentColor"
+      height={16}
+      name="Card"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
   <Text
     accessibilityRole="text"
     style={
