@@ -135,6 +135,10 @@ jobs:
             const chatId = process.env.CHAT_ID;
             const issueNumber = context.issue.number;
 
+            // Extract changelog entry from Cursor's output (format: "CHANGELOG: type: description")
+            const changelogMatch = implementation.match(/CHANGELOG:\s*((?:fix|feat|chore):\s*.+?)(?:\n|$)/i);
+            const changelogEntry = changelogMatch ? changelogMatch[1].trim() : '';
+
             const body = [
               '## **Description**',
               '',
@@ -152,8 +156,8 @@ jobs:
               '',
               '## **Changelog**',
               '',
-              '<!-- Reviewer: Add a changelog entry if this is user-facing, e.g. "fix: description" or "feat: description" -->',
-              'CHANGELOG entry:',
+              '<!-- Reviewer: Verify this changelog entry is accurate, or set to empty if not user-facing -->',
+              `CHANGELOG entry: ${changelogEntry}`,
               '',
               '## **Related issues**',
               '',
