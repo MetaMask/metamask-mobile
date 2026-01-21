@@ -65,7 +65,8 @@
     "node_modules/expect-webdriverio/jest",
     "e2e/**/*",
     "tests/**/*",
-    "appwright/**/*"
+    "appwright/**/*",
+    "scripts/plugin-preview-builds.cjs"
   ],
   "exclude": [
     "node_modules",

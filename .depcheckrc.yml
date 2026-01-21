@@ -121,3 +121,6 @@ ignores:
   - '@types/react-test-renderer'
   # runtime for dependecies using Nitro Modules (@metamask/native-utils)
   - 'react-native-nitro-modules'
+
+  # Used in Yarn plugin for preview builds
+  - '@yarnpkg/core'
