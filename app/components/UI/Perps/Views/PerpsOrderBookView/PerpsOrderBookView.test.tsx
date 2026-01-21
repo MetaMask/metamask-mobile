@@ -611,7 +611,7 @@ describe('PerpsOrderBookView', () => {
 
   describe('action buttons with existing position', () => {
     const mockLongPosition = {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '1.5',
       entryPrice: '50000',
       leverage: { value: 10, type: 'cross' as const },

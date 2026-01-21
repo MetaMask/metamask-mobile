@@ -411,7 +411,7 @@ export class HyperLiquidClientService {
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToCandles({
-    coin,
+    symbol,
     interval,
     duration,
     callback,
@@ -434,8 +434,8 @@ export class HyperLiquidClientService {
       ? Math.min(calculateCandleCount(duration, interval), 500)
       : 100; // Default to 100 if no duration provided
 
-    // 1. Fetch initial historical data
-    this.fetchHistoricalCandles(coin, interval, initialLimit)
+    // 1. Fetch initial historical data (use symbol as coin for HyperLiquid API)
+    this.fetchHistoricalCandles(symbol, interval, initialLimit)
       .then((initialData) => {
         // Don't proceed if already unsubscribed
         if (isUnsubscribed) {
@@ -447,9 +447,9 @@ export class HyperLiquidClientService {
           callback(currentCandleData);
         }
 
-        // 2. Subscribe to WebSocket for new candles
+        // 2. Subscribe to WebSocket for new candles (HyperLiquid API uses 'coin')
         const subscription = subscriptionClient.candle(
-          { coin, interval },
+          { coin: symbol, interval },
           (candleEvent) => {
             // Don't process events if already unsubscribed
             if (isUnsubscribed) {
@@ -468,7 +468,7 @@ export class HyperLiquidClientService {
 
             if (!currentCandleData) {
               currentCandleData = {
-                coin,
+                coin: symbol,
                 interval,
                 candles: [newCandle],
               };
@@ -522,7 +522,7 @@ export class HyperLiquidClientService {
                 name: 'websocket_subscription',
                 data: {
                   operation: 'subscribeToCandles',
-                  coin,
+                  symbol,
                   interval,
                   phase: 'ws_subscription',
                 },
@@ -547,7 +547,7 @@ export class HyperLiquidClientService {
             name: 'initial_candles_fetch',
             data: {
               operation: 'subscribeToCandles',
-              coin,
+              symbol,
               interval,
               phase: 'initial_fetch',
               initialLimit,

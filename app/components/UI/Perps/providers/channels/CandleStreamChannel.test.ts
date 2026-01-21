@@ -63,9 +63,10 @@ describe('CandleStreamChannel', () => {
       });
 
       // Verify subscription was called (implies cache key was used internally)
+      // Note: CandleStreamChannel maps internal 'coin' to 'symbol' when calling controller
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: CandlePeriod.ONE_HOUR,
         }),
       );
@@ -122,10 +123,11 @@ describe('CandleStreamChannel', () => {
       let btcCapturedCallback: ((data: CandleData) => void) | undefined;
       let ethCapturedCallback: ((data: CandleData) => void) | undefined;
 
-      mockSubscribeToCandles.mockImplementation(({ coin, callback }) => {
-        if (coin === 'BTC') {
+      // Note: CandleStreamChannel maps internal 'coin' to 'symbol' when calling controller
+      mockSubscribeToCandles.mockImplementation(({ symbol, callback }) => {
+        if (symbol === 'BTC') {
           btcCapturedCallback = callback;
-        } else if (coin === 'ETH') {
+        } else if (symbol === 'ETH') {
           ethCapturedCallback = callback;
         }
         return jest.fn();
@@ -288,8 +290,9 @@ describe('CandleStreamChannel', () => {
       const ethCallback = jest.fn();
 
       let btcCapturedCallback: ((data: CandleData) => void) | undefined;
-      mockSubscribeToCandles.mockImplementation(({ coin, callback }) => {
-        if (coin === 'BTC') {
+      // Note: CandleStreamChannel maps internal 'coin' to 'symbol' when calling controller
+      mockSubscribeToCandles.mockImplementation(({ symbol, callback }) => {
+        if (symbol === 'BTC') {
           btcCapturedCallback = callback;
         }
         return jest.fn();
@@ -350,8 +353,9 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      mockSubscribeToCandles.mockImplementation(({ coin }) =>
-        coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
+      // Note: CandleStreamChannel maps internal 'coin' to 'symbol' when calling controller
+      mockSubscribeToCandles.mockImplementation(({ symbol }) =>
+        symbol === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
       );
 
       const btcUnsubscribe = channel.subscribe({
@@ -676,8 +680,9 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      mockSubscribeToCandles.mockImplementation(({ coin }) =>
-        coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
+      // Note: CandleStreamChannel maps internal 'coin' to 'symbol' when calling controller
+      mockSubscribeToCandles.mockImplementation(({ symbol }) =>
+        symbol === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
       );
 
       channel.subscribe({

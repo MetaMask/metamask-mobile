@@ -34,7 +34,7 @@ describe('usePerpsMarketStats', () => {
   // Shared test data
   const mockPriceData = {
     BTC: {
-      coin: 'BTC',
+      symbol: 'BTC',
       price: '45000.00',
       timestamp: Date.now(),
       percentChange24h: '2.50',

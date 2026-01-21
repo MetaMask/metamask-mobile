@@ -27,7 +27,7 @@ export const defaultMockAccountState: AccountState = {
  * Default mock position for testing
  */
 export const defaultMockPosition: Position = {
-  coin: 'ETH',
+  symbol: 'ETH',
   size: '1.5',
   entryPrice: '2000.00',
   positionValue: '3000.00',
@@ -70,7 +70,7 @@ export const defaultMockOrder: Order = {
  * Default mock price update for testing
  */
 export const defaultMockPriceUpdate: PriceUpdate = {
-  coin: 'ETH',
+  symbol: 'ETH',
   price: '2000.00',
   timestamp: Date.now(),
   volume24h: 1000000,

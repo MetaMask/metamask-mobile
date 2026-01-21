@@ -208,7 +208,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     // Subscribe to candle updates via controller
     // Always use YEAR_TO_DATE to fetch maximum candles (500) regardless of subscriber's duration
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
-      coin,
+      symbol: coin, // Map internal 'coin' terminology to 'symbol' for API
       interval,
       duration: TimeDuration.YEAR_TO_DATE, // Always fetch max candles
       callback: (candleData: CandleData) => {

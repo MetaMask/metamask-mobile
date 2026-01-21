@@ -46,9 +46,10 @@ import { CandlePeriod } from '../constants/chartConfig';
 import { OrderType } from '../controllers/types';
 
 /**
- * Represents historical candlestick data for a specific coin and interval
+ * Represents historical candlestick data for a specific symbol and interval
  */
 export interface CandleData {
+  /** Asset identifier (e.g., 'BTC', 'ETH'). HyperLiquid API uses 'coin' internally. */
   coin: string;
   interval: CandlePeriod;
   candles: CandleStick[];
