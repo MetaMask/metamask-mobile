@@ -57,21 +57,25 @@ const persistSessions = async () => {
       const normalizedUrl = normalizeDappUrl(rawUrl);
 
       if (!normalizedUrl) {
-        throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+        Logger.log(
+          `WC: Skipping session with invalid dApp URL during persist: ${rawUrl}`,
+        );
+        return null;
       }
 
       return {
         ...session,
         peerMeta: {
           ...session.peerMeta,
-          url: normalizedUrl || rawUrl,
+          url: normalizedUrl,
         },
         autosign: connector.autosign,
         redirectUrl: connector.redirectUrl,
         requestOriginatedFrom: connector.requestOriginatedFrom,
         lastTimeConnected: new Date(),
       };
-    });
+    })
+    .filter(Boolean);
 
   await StorageWrapper.setItem(
     WALLETCONNECT_SESSIONS,
