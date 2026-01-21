@@ -1,10 +1,4 @@
-import React, {
-  ReactNode,
-  memo,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
@@ -49,10 +43,7 @@ import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -71,26 +62,12 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
+  footerText?: string;
   /**
    * Optional render function that overrides the default content.
    * When set, automatically hides PayTokenAmount, PayWithRow, and children.
    */
   overrideContent?: (amountHuman: string) => ReactNode;
-  defaultValue?: string;
-  minimalView?: boolean;
-  /**
-   * If true, skips navigation after transaction confirmation.
-   * Useful when the confirmation screen is used as a modal and should stay on the current screen.
-   */
-  skipNavigation?: boolean;
-  /**
-   * Optional token name to display in the confirm button.
-   */
-  tokenName?: string;
-  /**
-   * Optional callback to be called when the user confirms the transaction.
-   */
-  onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -101,11 +78,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     hasMax,
     overrideContent,
     preferredToken,
-    defaultValue,
-    minimalView = true,
-    skipNavigation = false,
-    tokenName,
-    onConfirmCallback,
+    footerText,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -135,12 +108,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
-    useEffect(() => {
-      if (defaultValue) {
-        updatePendingAmount(defaultValue);
-      }
-    }, [defaultValue, updatePendingAmount]);
-
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
       isKeyboardVisible,
@@ -158,22 +125,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, []);
 
     return (
-      <Box style={[!minimalView && styles.container]}>
-        <Box style={[!minimalView && styles.inputContainer]}>
-          {!minimalView && (
-            <CustomAmount
-              amountFiat={amountFiat}
-              currency={currency}
-              hasAlert={Boolean(alertMessage)}
-              onPress={handleAmountPress}
-              disabled={!hasTokens}
-            />
-          )}
-          {!minimalView && overrideContent ? (
+      <Box style={styles.container}>
+        <Box style={styles.inputContainer}>
+          <CustomAmount
+            amountFiat={amountFiat}
+            currency={currency}
+            hasAlert={Boolean(alertMessage)}
+            onPress={handleAmountPress}
+            disabled={!hasTokens}
+          />
+          {overrideContent ? (
             overrideContent(amountHuman)
           ) : (
             <>
-              {!minimalView && disablePay !== true && (
+              {disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}
@@ -194,7 +159,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PercentageRow />
             </Box>
           )}
-          {isKeyboardVisible && hasTokens && !minimalView && (
+          {footerText && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.footerText}
+            >
+              {footerText}
+            </Text>
+          )}
+          {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
               alertMessage={alertTitle}
               value={amountFiat}
@@ -205,33 +179,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && !isNativePayToken}
             />
           )}
-          {minimalView && !isResultReady && (
-            <Box>
-              <Button
-                label="Confirm"
-                onPress={handleDone}
-                variant={ButtonVariants.Primary}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-              />
-            </Box>
-          )}
-          {!minimalView && (
-            <Box>
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                {amountFiat}
-              </Text>
-            </Box>
-          )}
           {!hasTokens && <BuySection />}
-          {!isKeyboardVisible && (
-            <ConfirmButton
-              alertTitle={alertTitle}
-              skipNavigation={skipNavigation}
-              tokenName={tokenName}
-              onConfirmCallback={onConfirmCallback}
-            />
-          )}
+          {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
         </Box>
       </Box>
     );
@@ -312,38 +261,19 @@ function BuySection() {
 
 function ConfirmButton({
   alertTitle,
-  skipNavigation,
-  tokenName: _tokenName,
-  onConfirmCallback,
-}: Readonly<{
-  alertTitle: string | undefined;
-  skipNavigation?: boolean;
-  tokenName?: string;
-  onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
-}>) {
+}: Readonly<{ alertTitle: string | undefined }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useTransactionConfirm({
-    skipNavigation,
-    onConfirmCallback,
-  });
+  const { onConfirm } = useTransactionConfirm();
   const disabled = hasBlockingAlerts || isLoading;
   const buttonLabel = useButtonLabel();
-  const { payToken } = useTransactionPayToken();
-
-  let label = alertTitle ?? buttonLabel;
-
-  label =
-    label === 'Add funds' && payToken
-      ? 'Execute trade ' + payToken.symbol
-      : label;
 
   return (
     <Button
       style={[disabled && styles.disabledButton]}
       size={ButtonSize.Lg}
-      label={label}
+      label={alertTitle ?? buttonLabel}
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
       disabled={disabled}
