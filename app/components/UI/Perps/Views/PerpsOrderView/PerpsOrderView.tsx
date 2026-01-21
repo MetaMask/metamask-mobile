@@ -160,7 +160,10 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
-import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+import {
+  selectPerpsButtonColorTestVariant,
+  selectPerpsTradeWithAnyTokenEnabledFlag,
+} from '../../selectors/featureFlags';
 import type { PerpsToken } from '../../types/perps-types';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
@@ -384,6 +387,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const walletAddress = useSelector(selectSelectedInternalAccountAddress);
   const dispatch = useDispatch();
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const isTradeWithAnyTokenEnabled = useSelector(
+    selectPerpsTradeWithAnyTokenEnabledFlag,
+  );
   const context = useUnifiedSwapBridgeContext();
   const quotes = useSelector(selectBridgeQuotes);
 
@@ -1589,7 +1595,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             </Text>
           </View>
 
-          {depositAmount &&
+          {isTradeWithAnyTokenEnabled &&
+            depositAmount &&
             depositAmount.trim() !== '' &&
             activeTransactionMeta && (
               <View>

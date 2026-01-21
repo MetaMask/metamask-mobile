@@ -161,3 +161,21 @@ export const selectPerpsFeedbackEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
+
+/**
+ * Selector for Perps Trade With Any Token feature flag
+ * Controls visibility of the PerpsInlineDeposit component in PerpsOrderView
+ * When enabled, allows users to trade with any token
+ *
+ * @returns boolean - true if PerpsInlineDeposit should be shown, false otherwise
+ */
+export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTradeWithAnyTokenEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
