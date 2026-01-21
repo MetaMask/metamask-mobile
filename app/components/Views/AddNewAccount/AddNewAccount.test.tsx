@@ -20,6 +20,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AddNewAccountIds } from './AddHdAccount.testIds';
 import Logger from '../../../util/Logger';
 import { SolAccountType, TrxScope } from '@metamask/keyring-api';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
@@ -459,6 +460,54 @@ describe('AddNewAccount', () => {
         accounts: [solanaAccount.address],
         type: KeyringTypes.snap,
       };
+
+      // Create account groups for the accounts
+      const mockAccountGroup1 = {
+        id: `entropy:${mockKeyring1.metadata.id}/0`,
+        type: AccountGroupType.MultichainAccount,
+        accounts: [mockAccount1.id],
+        metadata: {
+          name: 'Account 1',
+          pinned: false,
+          hidden: false,
+          entropy: { groupIndex: 0 },
+        },
+      };
+
+      const mockAccountGroup2 = {
+        id: `entropy:${mockKeyring1.metadata.id}/1`,
+        type: AccountGroupType.MultichainAccount,
+        accounts: [solanaAccount.id],
+        metadata: {
+          name: 'Solana Account 1',
+          pinned: false,
+          hidden: false,
+          entropy: { groupIndex: 1 },
+        },
+      };
+
+      const mockAccountTreeControllerState = {
+        accountTree: {
+          wallets: {
+            [`entropy:${mockKeyring1.metadata.id}`]: {
+              id: `entropy:${mockKeyring1.metadata.id}`,
+              type: AccountWalletType.Entropy,
+              metadata: {
+                name: 'Wallet 1',
+                entropy: { id: mockKeyring1.metadata.id },
+              },
+              groups: {
+                [mockAccountGroup1.id]: mockAccountGroup1,
+                [mockAccountGroup2.id]: mockAccountGroup2,
+              },
+            },
+          },
+          selectedAccountGroup: mockAccountGroup1.id,
+        },
+        hasAccountTreeSyncingSyncedAtLeastOnce: false,
+        isAccountTreeSyncingInProgress: false,
+      };
+
       const stateWithSnapAccount = {
         engine: {
           backgroundState: {
@@ -476,6 +525,7 @@ describe('AddNewAccount', () => {
             KeyringController: {
               keyrings: [mockKeyring1, mockKeyring2, snapKeyring],
             },
+            AccountTreeController: mockAccountTreeControllerState,
           },
         },
       } as unknown as RootState;
