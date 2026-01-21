@@ -323,14 +323,14 @@ export class HyperLiquidClientService {
 
   /**
    * Fetch historical candle data using the HyperLiquid SDK
-   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param symbol - The asset symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
    * @param limit - Number of candles to fetch (default: 100)
    * @param endTime - End timestamp in milliseconds (default: now). Used for fetching historical data before a specific time.
    * @returns Promise<CandleData | null>
    */
   public async fetchHistoricalCandles(
-    coin: string,
+    symbol: string,
     interval: ValidCandleInterval,
     limit: number = 100,
     endTime?: number,
@@ -344,9 +344,10 @@ export class HyperLiquidClientService {
       const startTime = now - limit * intervalMs;
 
       // Use the SDK's InfoClient to fetch candle data
+      // HyperLiquid SDK uses 'coin' terminology
       const infoClient = this.getInfoClient();
       const data = await infoClient.candleSnapshot({
-        coin,
+        coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
         interval,
         startTime,
         endTime: now,
@@ -364,14 +365,14 @@ export class HyperLiquidClientService {
         }));
 
         return {
-          coin,
+          symbol,
           interval,
           candles,
         };
       }
 
       return {
-        coin,
+        symbol,
         interval,
         candles: [],
       };
@@ -389,7 +390,7 @@ export class HyperLiquidClientService {
           name: 'historical_candles_api',
           data: {
             operation: 'fetchHistoricalCandles',
-            coin,
+            symbol,
             interval,
             limit,
             hasEndTime: endTime !== undefined,
@@ -403,7 +404,7 @@ export class HyperLiquidClientService {
 
   /**
    * Subscribe to candle updates via WebSocket
-   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param symbol - The asset symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", etc.)
    * @param duration - Optional time duration for calculating initial fetch size
    * @param callback - Function called with updated candle data
@@ -434,7 +435,7 @@ export class HyperLiquidClientService {
       ? Math.min(calculateCandleCount(duration, interval), 500)
       : 100; // Default to 100 if no duration provided
 
-    // 1. Fetch initial historical data (use symbol as coin for HyperLiquid API)
+    // 1. Fetch initial historical data
     this.fetchHistoricalCandles(symbol, interval, initialLimit)
       .then((initialData) => {
         // Don't proceed if already unsubscribed
@@ -447,9 +448,10 @@ export class HyperLiquidClientService {
           callback(currentCandleData);
         }
 
-        // 2. Subscribe to WebSocket for new candles (HyperLiquid API uses 'coin')
+        // 2. Subscribe to WebSocket for new candles
+        // HyperLiquid SDK uses 'coin' terminology
         const subscription = subscriptionClient.candle(
-          { coin: symbol, interval },
+          { coin: symbol, interval }, // Map to HyperLiquid SDK's 'coin' parameter
           (candleEvent) => {
             // Don't process events if already unsubscribed
             if (isUnsubscribed) {
@@ -468,7 +470,7 @@ export class HyperLiquidClientService {
 
             if (!currentCandleData) {
               currentCandleData = {
-                coin: symbol,
+                symbol,
                 interval,
                 candles: [newCandle],
               };

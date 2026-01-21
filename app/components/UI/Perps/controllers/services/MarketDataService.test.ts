@@ -860,7 +860,7 @@ describe('MarketDataService', () => {
 
   describe('fetchHistoricalCandles', () => {
     const mockCandleData: CandleData = {
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: '1h' as CandlePeriod,
       candles: [
         {

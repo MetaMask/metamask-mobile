@@ -21,7 +21,7 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
 
 describe('usePerpsLiveCandles', () => {
   const mockCandleData: CandleData = {
-    coin: 'BTC',
+    symbol: 'BTC',
     interval: CandlePeriod.ONE_HOUR,
     candles: [
       {
@@ -52,7 +52,7 @@ describe('usePerpsLiveCandles', () => {
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: CandlePeriod.ONE_HOUR,
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
@@ -78,7 +78,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
-  it('resubscribes when coin changes', () => {
+  it('resubscribes when symbol changes', () => {
     const mockUnsubscribe = jest.fn();
     mockCandleSubscribe.mockReturnValue(mockUnsubscribe);
 
@@ -103,7 +103,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
-      coin: 'ETH',
+      symbol: 'ETH',
       interval: CandlePeriod.ONE_HOUR,
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
@@ -137,7 +137,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: CandlePeriod.FIVE_MINUTES,
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
@@ -146,7 +146,7 @@ describe('usePerpsLiveCandles', () => {
     });
   });
 
-  it('handles empty coin gracefully', () => {
+  it('handles empty symbol gracefully', () => {
     mockCandleSubscribe.mockReturnValue(jest.fn());
 
     const { result } = renderHook(() =>
@@ -157,9 +157,9 @@ describe('usePerpsLiveCandles', () => {
       }),
     );
 
-    // Empty coin returns stable empty data object, not null
+    // Empty symbol returns stable empty data object, not null
     expect(result.current.candleData).toEqual({
-      coin: '',
+      symbol: '',
       interval: CandlePeriod.ONE_HOUR,
       candles: [],
     });
@@ -167,7 +167,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockCandleSubscribe).not.toHaveBeenCalled();
   });
 
-  it('rejects updates with mismatched coin', async () => {
+  it('rejects updates with mismatched symbol', async () => {
     let capturedCallback: (data: CandleData) => void = jest.fn();
     mockCandleSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -182,14 +182,14 @@ describe('usePerpsLiveCandles', () => {
       }),
     );
 
-    // Send update for wrong coin
-    const wrongCoinData: CandleData = {
+    // Send update for wrong symbol
+    const wrongSymbolData: CandleData = {
       ...mockCandleData,
-      coin: 'ETH',
+      symbol: 'ETH',
     };
 
     act(() => {
-      capturedCallback(wrongCoinData);
+      capturedCallback(wrongSymbolData);
     });
 
     // Should not update
@@ -273,7 +273,7 @@ describe('usePerpsLiveCandles', () => {
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: CandlePeriod.ONE_HOUR,
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
@@ -356,7 +356,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
     expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: CandlePeriod.ONE_HOUR,
       duration: TimeDuration.ONE_WEEK,
       callback: expect.any(Function),
@@ -378,7 +378,7 @@ describe('usePerpsLiveCandles', () => {
     );
 
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: CandlePeriod.ONE_HOUR,
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
@@ -406,7 +406,7 @@ describe('usePerpsLiveCandles', () => {
     expect(result.current.candleData).toBeNull();
   });
 
-  it('does not fetch more history when coin is empty', async () => {
+  it('does not fetch more history when symbol is empty', async () => {
     mockCandleSubscribe.mockReturnValue(jest.fn());
 
     const { result } = renderHook(() =>

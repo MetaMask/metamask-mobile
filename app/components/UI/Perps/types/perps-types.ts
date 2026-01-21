@@ -49,8 +49,8 @@ import { OrderType } from '../controllers/types';
  * Represents historical candlestick data for a specific symbol and interval
  */
 export interface CandleData {
-  /** Asset identifier (e.g., 'BTC', 'ETH'). HyperLiquid API uses 'coin' internally. */
-  coin: string;
+  /** Asset identifier (e.g., 'BTC', 'ETH'). Protocol-agnostic terminology for multi-provider support. */
+  symbol: string;
   interval: CandlePeriod;
   candles: CandleStick[];
 }

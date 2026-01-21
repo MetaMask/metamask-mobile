@@ -9,7 +9,7 @@ import { ensureError } from '../../../../../util/errorUtils';
 
 // Stable empty candle data reference to prevent re-renders
 const EMPTY_CANDLE_DATA: CandleData = {
-  coin: '',
+  symbol: '',
   interval: CandlePeriod.ONE_HOUR,
   candles: [],
 };
@@ -88,7 +88,7 @@ export function usePerpsLiveCandles(
 
     try {
       const unsubscribe = stream.candles.subscribe({
-        coin: symbol, // Map external 'symbol' param to internal 'coin' terminology (CandleData uses 'coin')
+        symbol,
         interval,
         duration,
         callback: (newCandleData) => {
@@ -100,15 +100,14 @@ export function usePerpsLiveCandles(
           // DEFENSIVE: Validate incoming data matches current subscription
           // This prevents race conditions when switching symbols where old subscription
           // might deliver data after new subscription starts
-          // Note: CandleData uses 'coin' internally (HyperLiquid API terminology)
           if (
-            newCandleData.coin !== symbol ||
+            newCandleData.symbol !== symbol ||
             newCandleData.interval !== interval
           ) {
             DevLogger.log('usePerpsLiveCandles: REJECTED - Validation failed', {
               reason: 'Symbol or interval mismatch',
               expectedSymbol: symbol,
-              receivedCoin: newCandleData.coin,
+              receivedSymbol: newCandleData.symbol,
               expectedInterval: interval,
               receivedInterval: newCandleData.interval,
             });
