@@ -64,7 +64,8 @@ export const createRegionSelectorModalNavigationDetails =
 
 function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const listRef = useRef<FlatList<Region>>(null);
+  const countryListRef = useRef<FlatList<Region>>(null);
+  const stateListRef = useRef<FlatList<Region>>(null);
 
   const { selectedRegion, setSelectedRegion, isBuy } = useRampSDK();
   const { regions } = useParams<RegionSelectorModalParams>();
@@ -197,13 +198,19 @@ function RegionSelectorModal() {
   }, [searchString, stateFuseData, stateData]);
 
   const scrollToTop = useCallback(() => {
-    if (listRef?.current) {
-      listRef.current.scrollToOffset({
+    if (activeView === RegionViewType.COUNTRY && countryListRef?.current) {
+      countryListRef.current.scrollToOffset({
         animated: false,
         offset: 0,
       });
     }
-  }, []);
+    if (activeView === RegionViewType.STATE && stateListRef?.current) {
+      stateListRef.current.scrollToOffset({
+        animated: false,
+        offset: 0,
+      });
+    }
+  }, [activeView]);
 
   const handleOnRegionPressCallback = useCallback(
     async (region: Region) => {
@@ -212,7 +219,6 @@ function RegionSelectorModal() {
         setRegionInTransit(region);
         setStateData(region.states as Region[]);
         setSearchString('');
-        scrollToTop();
         return;
       }
 
@@ -223,11 +229,10 @@ function RegionSelectorModal() {
         is_unsupported_onramp: !region.support.buy,
         is_unsupported_offramp: !region.support.sell,
       });
-
       setSelectedRegion(region);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [setSelectedRegion, trackEvent, regionInTransit, scrollToTop, isBuy],
+    [setSelectedRegion, trackEvent, regionInTransit, isBuy],
   );
 
   const renderRegionItem = useCallback(
@@ -298,8 +303,7 @@ function RegionSelectorModal() {
     setStateData([]);
     setRegionInTransit(null);
     setSearchString('');
-    scrollToTop();
-  }, [regions, scrollToTop]);
+  }, [regions]);
 
   const onBackButtonPress = useCallback(() => {
     if (activeView === RegionViewType.STATE) {
@@ -379,7 +383,7 @@ function RegionSelectorModal() {
           {/* Country List Panel */}
           <View style={styles.listPanel}>
             <FlatList
-              ref={listRef}
+              ref={countryListRef}
               style={styles.list}
               data={countrySearchResults}
               renderItem={renderRegionItem}
@@ -394,6 +398,7 @@ function RegionSelectorModal() {
           {/* State List Panel */}
           <View style={styles.listPanel}>
             <FlatList
+              ref={stateListRef}
               style={styles.list}
               data={stateSearchResults}
               renderItem={renderRegionItem}
