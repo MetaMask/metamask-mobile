@@ -456,11 +456,11 @@ describe('deepLinkAnalytics', () => {
     });
 
     it.each([
-      [ACTIONS.DAPP, DeepLinkRoute.INVALID],
-      [ACTIONS.WC, DeepLinkRoute.INVALID],
-      [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.INVALID],
+      [ACTIONS.DAPP, DeepLinkRoute.DAPP],
+      [ACTIONS.WC, DeepLinkRoute.WC],
+      [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
     ] as const)(
-      'maps unsupported action %s to INVALID route',
+      'maps action %s to its corresponding route',
       (action, expectedRoute) => {
         // Arrange & Act
         const result = mapSupportedActionToRoute(action);
