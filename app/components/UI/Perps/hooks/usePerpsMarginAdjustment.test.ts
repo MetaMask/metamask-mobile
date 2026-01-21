@@ -111,7 +111,7 @@ describe('usePerpsMarginAdjustment', () => {
       });
 
       expect(mockUpdateMargin).toHaveBeenCalledWith({
-        coin: 'ETH',
+        symbol: 'ETH',
         amount: '100',
       });
     });
@@ -171,7 +171,7 @@ describe('usePerpsMarginAdjustment', () => {
       });
 
       expect(mockUpdateMargin).toHaveBeenCalledWith({
-        coin: 'ETH',
+        symbol: 'ETH',
         amount: '-100',
       });
     });
@@ -258,7 +258,7 @@ describe('usePerpsMarginAdjustment', () => {
           }),
           extra: expect.objectContaining({
             marginContext: expect.objectContaining({
-              coin: 'ETH',
+              symbol: 'ETH',
               amount: 100,
               action: 'add',
             }),

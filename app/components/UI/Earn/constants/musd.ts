@@ -40,3 +40,10 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 };
 
 export const MUSD_CURRENCY = 'MUSD';
+export const MUSD_CONVERSION_APY = 3;
+
+/**
+ * Default blocked countries for mUSD conversion when no remote or env config is available.
+ * This is a safety fallback to ensure geo-blocking is always active.
+ */
+export const DEFAULT_MUSD_BLOCKED_COUNTRIES = ['GB'];

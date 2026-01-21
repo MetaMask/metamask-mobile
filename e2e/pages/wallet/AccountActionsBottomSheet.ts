@@ -1,4 +1,4 @@
-import { AccountActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/AccountActionsBottomSheet.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountActions/AccountActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';

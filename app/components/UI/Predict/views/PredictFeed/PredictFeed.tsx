@@ -46,8 +46,9 @@ import {
 import {
   PredictMarketListSelectorsIDs,
   getPredictMarketListSelector,
-} from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+} from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import {
   PredictCategory,
@@ -515,6 +516,8 @@ interface PredictSearchOverlayProps {
   onClose: () => void;
 }
 
+const SEARCH_DEBOUNCE_MS = 200;
+
 const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   isVisible,
   onClose,
@@ -523,12 +526,19 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(
+    searchQuery,
+    SEARCH_DEBOUNCE_MS,
+  );
+  const isDebouncing = searchQuery !== debouncedSearchQuery;
 
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
-    q: searchQuery,
+    q: debouncedSearchQuery,
     pageSize: 20,
   });
+
+  const isSearchLoading = isDebouncing || isFetching;
 
   const handleSearch = useCallback((text: string) => {
     setSearchQuery(text);
@@ -605,36 +615,34 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         </Pressable>
       </Box>
 
-      {searchQuery.length > 0 && (
-        <Box twClassName="flex-1">
-          {isFetching ? (
-            <Box twClassName="px-4 pt-4">
-              <PredictMarketSkeleton testID="search-skeleton-1" />
-              <PredictMarketSkeleton testID="search-skeleton-2" />
-              <PredictMarketSkeleton testID="search-skeleton-3" />
-            </Box>
-          ) : error ? (
-            <PredictOffline onRetry={refetch} />
-          ) : !marketData || marketData.length === 0 ? (
-            <Box twClassName="flex-1 justify-center items-center p-8">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryAlternative}
-              >
-                {strings('predict.search_no_markets_found', { q: searchQuery })}
-              </Text>
-            </Box>
-          ) : (
-            <FlashList<PredictMarketType>
-              data={marketData}
-              renderItem={renderItem}
-              keyExtractor={keyExtractor}
-              contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
-        </Box>
-      )}
+      <Box twClassName="flex-1">
+        {isSearchLoading ? (
+          <Box twClassName="px-4 pt-4">
+            <PredictMarketSkeleton testID="search-skeleton-1" />
+            <PredictMarketSkeleton testID="search-skeleton-2" />
+            <PredictMarketSkeleton testID="search-skeleton-3" />
+          </Box>
+        ) : error ? (
+          <PredictOffline onRetry={refetch} />
+        ) : !marketData || marketData.length === 0 ? (
+          <Box twClassName="flex-1 justify-center items-center p-8">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryAlternative}
+            >
+              {strings('predict.search_no_markets_found', { q: searchQuery })}
+            </Text>
+          </Box>
+        ) : (
+          <FlashList<PredictMarketType>
+            data={marketData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </Box>
     </Box>
   );
 };

@@ -6,7 +6,7 @@ import {
   formatVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { PerpsOHLCVBarSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOHLCVBarSelectorsIDs } from '../../Perps.testIds';
 
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({

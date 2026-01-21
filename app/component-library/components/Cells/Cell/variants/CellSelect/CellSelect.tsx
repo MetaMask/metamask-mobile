@@ -11,7 +11,7 @@ import CellBase from '../../foundation/CellBase';
 // Internal dependencies.
 import styleSheet from './CellSelect.styles';
 import { CellSelectProps } from './CellSelect.types';
-import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../CellComponent.testIds';
 
 const CellSelect = ({
   style,

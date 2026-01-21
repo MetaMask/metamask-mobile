@@ -201,6 +201,7 @@ jest.mock('../BackupVault/backupVault', () => ({
 jest.mock('../Analytics/MetaMetrics', () => {
   const mockInstance = {
     createDataDeletionTask: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
   };
   return {
     __esModule: true,
@@ -283,6 +284,12 @@ jest.mock('../../util/trace', () => ({
 }));
 
 describe('Authentication', () => {
+  let mockDispatch: jest.Mock;
+
+  beforeEach(() => {
+    mockDispatch = jest.fn();
+  });
+
   afterEach(() => {
     StorageWrapper.clearAll();
     jest.restoreAllMocks();
@@ -582,12 +589,12 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
-  it('returns PASSCODE type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
+  it('returns BIOMETRIC type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
     // No storage flags set - represents new user or first-time choice
-    // With new logic, this defaults to PASSCODE when biometryChoice is true
+    // With new logic, this defaults to BIOMETRIC when biometryChoice is true
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -599,7 +606,7 @@ describe('Authentication', () => {
       false,
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
   it('returns PASSWORD type when biometryChoice is false', async () => {
@@ -680,11 +687,9 @@ describe('Authentication', () => {
   describe('storePassword (protected method tested via updateAuthPreference)', () => {
     const mockPassword = 'test-password-123';
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      mockDispatch = jest.fn();
       jest.clearAllMocks();
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -2527,7 +2532,7 @@ describe('Authentication', () => {
       expect(Authentication.resetPassword).toHaveBeenCalled();
     });
 
-    it('lock app and throw error if vault recreation fails', async () => {
+    it('throw error if vault recreation fails', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .submitGlobalPassword as jest.Mock
@@ -2563,13 +2568,6 @@ describe('Authentication', () => {
       await expect(
         Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow('change password failed');
-
-      // expect SeedlessOnboardingController.setLocked to be called
-      expect(
-        Engine.context.SeedlessOnboardingController.setLocked,
-      ).toHaveBeenCalled();
-
-      expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });
     });
   });
 
@@ -4497,6 +4495,199 @@ describe('Authentication', () => {
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
       expect(exportAccountSpy).toHaveBeenCalledWith('valid-password', address);
+    });
+  });
+
+  describe('unlockWallet', () => {
+    const passwordToUse = 'test-password';
+
+    beforeEach(() => {
+      const Engine = jest.requireMock('../Engine');
+      // Restore the KeyringController mock that may have been replaced by other test suites.
+      Engine.context.KeyringController = {
+        submitPassword: jest.fn(),
+        verifyPassword: jest.fn(),
+      };
+
+      // Mock existing user state.
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: true },
+        }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      // Mock SecureKeychain to return the biometric stored password.
+      jest.spyOn(SecureKeychain, 'getGenericPassword').mockResolvedValue({
+        password: passwordToUse,
+        username: 'test-username',
+        service: 'test-service',
+        storage: Keychain.STORAGE_TYPE.AES_GCM,
+      });
+    });
+
+    it('navigates to the onboarding flow when user does not exist', async () => {
+      // Mock existing user state.
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: false },
+        }),
+      } as unknown as ReduxStore);
+
+      // Call unlockWallet.
+      await Authentication.unlockWallet();
+
+      // Verify that it navigates to the onboarding flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+      });
+    });
+
+    it('navigates to the home flow when a password is provided', async () => {
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet({ password: passwordToUse });
+
+      // Verify that it navigates to the home flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+    });
+
+    it('navigates to the home flow when biometric credentials are provided', async () => {
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet();
+
+      // Verify that it navigates to the home flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+    });
+
+    it('submits password to KeyringController when password is derived', async () => {
+      const Engine = jest.requireMock('../Engine');
+
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet({ password: passwordToUse });
+
+      // Verify that the password is used for unlocking the KeyringController.
+      expect(
+        Engine.context.KeyringController.submitPassword,
+      ).toHaveBeenCalledWith(passwordToUse);
+    });
+
+    it('performs post login operations when authentication is successful', async () => {
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet({ password: passwordToUse });
+
+      // Verify that both login and password set actions are dispatched.
+      expect(mockDispatch).toHaveBeenCalledWith(logIn());
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
+
+    it('updates authentication preference when auth preference is provided', async () => {
+      // Spy on updateAuthPreference method.
+      const updateAuthPreferenceSpy = jest.spyOn(
+        Authentication,
+        'updateAuthPreference',
+      );
+
+      // Call unlockWallet with a password.
+      await Authentication.unlockWallet({
+        password: passwordToUse,
+        authPreference: { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+      });
+
+      // Verify that the authentication preference is updated.
+      expect(updateAuthPreferenceSpy).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: passwordToUse,
+      });
+    });
+
+    describe('when using seedless onboarding', () => {
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('rehydrates seed phrase when oauth2Login is true', async () => {
+        // Spy on rehydrateSeedPhrase.
+        const rehydrateSeedPhraseSpy = jest
+          .spyOn(Authentication, 'rehydrateSeedPhrase')
+          .mockResolvedValueOnce();
+
+        // Call unlockWallet with a password and set oauth2Login to true.
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        });
+
+        // Verify that the rehydrateSeedPhrase is called.
+        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(passwordToUse);
+      });
+
+      it('syncs password and unlocks wallet when seedless password is outdated', async () => {
+        // Spy on syncPasswordAndUnlockWallet.
+        const syncPasswordAndUnlockWalletSpy = jest
+          .spyOn(Authentication, 'syncPasswordAndUnlockWallet')
+          .mockResolvedValueOnce();
+
+        // Mock checkIsSeedlessPasswordOutdated to return true.
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValueOnce(true);
+
+        // Call unlockWallet with a password.
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+        });
+
+        // Verify that syncPasswordAndUnlockWallet is called.
+        expect(syncPasswordAndUnlockWalletSpy).toHaveBeenCalledWith(
+          passwordToUse,
+        );
+      });
+
+      it('throws error when rehydrating seed phrase fails', async () => {
+        // Mock rehydrateSeedPhrase to reject.
+        jest
+          .spyOn(Authentication, 'rehydrateSeedPhrase')
+          .mockRejectedValueOnce(new Error('Failed to rehydrate seed phrase'));
+
+        // Call unlockWallet with a password and set oauth2Login to true.
+        await expect(
+          Authentication.unlockWallet({
+            password: passwordToUse,
+            authPreference: {
+              currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+              oauth2Login: true,
+            },
+          }),
+        ).rejects.toThrow('Failed to rehydrate seed phrase');
+      });
+
+      it('throws error when syncing password and unlocking wallet fails', async () => {
+        // Mock syncPasswordAndUnlockWallet to reject.
+        jest
+          .spyOn(Authentication, 'syncPasswordAndUnlockWallet')
+          .mockRejectedValueOnce(
+            new Error('Failed to sync password and unlock wallet'),
+          );
+
+        // Mock checkIsSeedlessPasswordOutdated to return true.
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValueOnce(true);
+
+        // Call unlockWallet with a password and set oauth2Login to true.
+        await expect(
+          Authentication.unlockWallet({
+            password: passwordToUse,
+          }),
+        ).rejects.toThrow('Failed to sync password and unlock wallet');
+      });
     });
   });
 });

@@ -2,8 +2,9 @@ import {
   ProfileMetricsController,
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
+import { analyticsControllerSelectors } from '@metamask/analytics-controller';
 import { ControllerInitFunction } from '../types';
-import { MetaMetrics } from '../../Analytics';
+import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 /**
  * Initialize the profile metrics controller.
@@ -17,28 +18,41 @@ import { MetaMetrics } from '../../Analytics';
  */
 export const profileMetricsControllerInit: ControllerInitFunction<
   ProfileMetricsController,
-  ProfileMetricsControllerMessenger
+  ProfileMetricsControllerMessenger,
+  ProfileMetricsControllerInitMessenger
 > = ({
   controllerMessenger,
   persistedState,
   getController,
-  metaMetricsId,
+  analyticsId,
   getState,
+  initMessenger,
 }) => {
   const remoteFeatureFlagController = getController(
     'RemoteFeatureFlagController',
   );
-  const assertUserOptedIn = () =>
-    remoteFeatureFlagController.state.remoteFeatureFlags.extensionUxPna25 ===
-      true &&
-    MetaMetrics.getInstance().isEnabled() === true &&
-    getState().legalNotices.isPna25Acknowledged === true;
+  const assertUserOptedIn = () => {
+    try {
+      const analyticsState = initMessenger.call('AnalyticsController:getState');
+      const isEnabled =
+        analyticsControllerSelectors.selectEnabled(analyticsState);
+      return (
+        remoteFeatureFlagController.state.remoteFeatureFlags
+          .extensionUxPna25 === true &&
+        isEnabled === true &&
+        getState().legalNotices.isPna25Acknowledged === true
+      );
+    } catch {
+      // If messenger call fails, return false (conservative approach)
+      return false;
+    }
+  };
 
   const controller = new ProfileMetricsController({
     messenger: controllerMessenger,
     state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
-    getMetaMetricsId: () => metaMetricsId,
+    getMetaMetricsId: () => analyticsId,
   });
 
   return {

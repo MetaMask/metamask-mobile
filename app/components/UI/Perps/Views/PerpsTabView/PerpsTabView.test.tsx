@@ -151,7 +151,7 @@ jest.mock('../../components/PerpsTabControlBar', () => ({
 }));
 
 // Mock selectors
-jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
+jest.mock('../../Perps.testIds', () => ({
   PerpsTabViewSelectorsIDs: {
     START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
     SCROLL_VIEW: 'perps-tab-scroll-view',
@@ -163,9 +163,7 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
 }));
 
 // Import after mock to use the mocked values
-const { PerpsTabViewSelectorsIDs } = jest.requireMock(
-  '../../../../../../e2e/selectors/Perps/Perps.selectors',
-);
+const { PerpsTabViewSelectorsIDs } = jest.requireMock('../../Perps.testIds');
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
@@ -228,7 +226,7 @@ describe('PerpsTabView', () => {
   ).selectSelectedInternalAccountByScope;
 
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     entryPrice: '2000.00',
     positionValue: '5000.00',
@@ -436,7 +434,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'position_tab' },
+        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
       });
     });
 

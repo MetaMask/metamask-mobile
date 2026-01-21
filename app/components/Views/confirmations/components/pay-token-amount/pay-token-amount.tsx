@@ -13,6 +13,10 @@ import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayIsMaxAmount,
+} from '../../hooks/pay/useTransactionPayData';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -24,6 +28,8 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const { chainId } = transaction ?? { chainId: '0x0' };
   const { payToken } = useTransactionPayToken();
   const targetTokenAddress = getTokenAddress(transaction);
+  const isMaxAmount = useTransactionPayIsMaxAmount();
+  const isQuotesLoading = useIsTransactionPayLoading();
 
   const fiatRequests = useMemo(
     () =>
@@ -71,7 +77,9 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
     );
   }
 
-  if (!formattedAmount) return <PayTokenAmountSkeleton />;
+  if (!formattedAmount || (isMaxAmount && isQuotesLoading)) {
+    return <PayTokenAmountSkeleton />;
+  }
 
   return (
     <View testID="pay-token-amount">

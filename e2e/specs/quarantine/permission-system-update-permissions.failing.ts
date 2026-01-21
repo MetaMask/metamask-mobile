@@ -1,14 +1,13 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
-import { NetworkNonPemittedBottomSheetSelectorsText } from '../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
@@ -48,7 +47,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         logger.debug('Starting test');
         await loginToApp();
         logger.debug('Logged in');
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();
@@ -100,7 +99,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
       async () => {
         //should navigate to browser
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         // navigate to test dapp and verify that the connected accounts modal is visible

@@ -2620,7 +2620,7 @@
     "advisory_by": "Payo na ibinigay ng Ethereum Phishing Detector at PhishFort",
     "potential_threat": "Kabilang sa potensyal na panganib ay",
     "fake_metamask": "Pekeng bersyon ng MetaMask",
-    "srp_theft": "Pagnanakaw ng password o secret recovery phrase",
+    "srp_theft": "Pagnanakaw ng password o Secret Recovery Phrase",
     "malicious_transactions": "Mga mapanganib na transaskyon na magreresulta sa ninakaw na pag-aari",
     "secret_recovery_phrase": "Lihim na Parirala sa Pagbawi (Secret Recovery Phrase)",
     "account_name": "Pangalan ng account",
@@ -5695,9 +5695,7 @@
       },
       "earn_points_daily": "Earn points daily",
       "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
-      "earn_rewards_when": "Kumita ng mga reward kapag",
-      "you_convert_to": "you convert to"
+      "get_musd": "Get mUSD"
     },
     "rewards": {
       "rewards_tag_label": "Mga Reward",

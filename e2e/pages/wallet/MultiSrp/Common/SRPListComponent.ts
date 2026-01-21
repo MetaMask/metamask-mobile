@@ -1,4 +1,4 @@
-import { SRPListSelectorsIDs } from '../../../../selectors/MultiSRP/SRPList.selectors';
+import { SRPListSelectorsIDs } from '../../../../../app/components/UI/SRPList/SRPList.testIds';
 import Matchers from '../../../../framework/Matchers';
 
 class SRPListComponent {

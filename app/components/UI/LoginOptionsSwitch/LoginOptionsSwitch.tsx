@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { AUTHENTICATION_TYPE, BIOMETRY_TYPE } from 'react-native-keychain';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../Views/Login/LoginView.testIds';
 import { useSelector } from 'react-redux';
 import SecurityOptionToggle from '../SecurityOptionToggle/SecurityOptionToggle';
 
