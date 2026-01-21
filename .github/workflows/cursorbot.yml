@@ -44,7 +44,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '🤖 Working on implementing this issue. A draft PR will be created shortly...'
+              body: '🤖 Working on implementing this issue. A PR will be created shortly...\n\n> ⚠️ Please review the PR carefully before merging - it is AI-generated.'
             });
 
       - name: Checkout repository
@@ -133,9 +133,16 @@ jobs:
               ].filter(line => line !== null).join('\n');
             } else {
               body = [
-                '## Cursorbot Implementation Complete',
+                '## Cursorbot Analysis Complete',
                 '',
-                '✅ Implementation completed. Check the repository for the new branch: `cursorbot/issue-' + issueNumber + '`',
+                '✅ Agent completed successfully, but no PR was created.',
+                '',
+                '> This typically means:',
+                '> - No code changes were needed',
+                '> - The issue may already be resolved',
+                '> - The issue requires clarification before implementation',
+                '',
+                'Please review the agent session for details on what was analyzed.',
                 '',
                 summary && summary !== 'Complete' ? `**Summary**: ${summary}` : null,
                 '',
@@ -145,7 +152,7 @@ jobs:
                 '',
                 `🖥️ [Open in Cursor App](https://cursor.com/bg/${agentId})`,
                 '',
-                '*Automated implementation by Cursorbot*'
+                '*Automated analysis by Cursorbot*'
               ].filter(line => line !== null).join('\n');
             }
 
