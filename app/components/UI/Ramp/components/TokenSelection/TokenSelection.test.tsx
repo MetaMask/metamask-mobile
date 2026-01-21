@@ -85,6 +85,32 @@ jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({
   useDepositCryptoCurrencyNetworkName: () => mockGetNetworkName,
 }));
 
+const mockNetworkConfigurations = {
+  'eip155:1': {
+    chainId: '0x1',
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [],
+  },
+  'bip122:000000000019d6689c085ae165831e93': {
+    chainId: 'bip122:000000000019d6689c085ae165831e93',
+    name: 'Bitcoin',
+    nativeCurrency: 'BTC',
+    rpcEndpoints: [],
+  },
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    name: 'Solana',
+    nativeCurrency: 'SOL',
+    rpcEndpoints: [],
+  },
+};
+
+jest.mock('../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../selectors/networkController'),
+  selectNetworkConfigurationsByCaipChainId: () => mockNetworkConfigurations,
+}));
+
 const mockTokens = MOCK_CRYPTOCURRENCIES;
 const mockUseRampTokens = useRampTokens as jest.MockedFunction<
   typeof useRampTokens
@@ -524,5 +550,65 @@ describe('TokenSelection Component', () => {
       token_symbol: mockTokens[0].symbol,
       ramp_routing: UnifiedRampRoutingType.DEPOSIT,
     });
+  });
+
+  it('filters tokens to only include those for configured networks (V2 enabled)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+
+    const allTokensWithUnconfiguredNetwork = convertToRampsTokens([
+      ...mockTokens,
+      {
+        ...mockTokens[0],
+        assetId: 'eip155:999/erc20:0x123',
+        chainId: 'eip155:999',
+        symbol: 'UNCONFIGURED',
+      },
+    ]);
+
+    mockUseRampsController.mockReturnValue({
+      tokens: {
+        topTokens: allTokensWithUnconfiguredNetwork,
+        allTokens: allTokensWithUnconfiguredNetwork,
+      },
+      tokensLoading: false,
+      tokensError: null,
+      userRegion: null,
+      userRegionLoading: false,
+      userRegionError: null,
+      fetchUserRegion: jest.fn(),
+      setUserRegion: jest.fn(),
+      preferredProvider: null,
+      setPreferredProvider: jest.fn(),
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      fetchProviders: jest.fn(),
+      fetchTokens: jest.fn(),
+      countries: null,
+      countriesLoading: false,
+      countriesError: null,
+      fetchCountries: jest.fn(),
+    });
+
+    renderWithProvider(TokenSelection);
+
+    expect(useSearchTokenResults).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokens: expect.arrayContaining(
+          convertToRampsTokens(mockTokens).map((token) =>
+            expect.objectContaining({
+              chainId: token.chainId,
+            }),
+          ),
+        ),
+      }),
+    );
+
+    const tokensPassedToSearch = (useSearchTokenResults as jest.Mock).mock
+      .calls[0][0].tokens;
+    const unconfiguredToken = tokensPassedToSearch.find(
+      (token: (typeof mockTokens)[0]) => token.chainId === 'eip155:999',
+    );
+    expect(unconfiguredToken).toBeUndefined();
   });
 });

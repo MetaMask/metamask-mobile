@@ -39,6 +39,7 @@ import {
   getRampRoutingDecision,
   getDetectedGeolocation,
 } from '../../../../../reducers/fiatOrders';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -65,14 +66,34 @@ function TokenSelection() {
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const { topTokens, allTokens, isLoading, error } = useMemo(() => {
     if (!isV2UnifiedEnabled) {
       return legacyTokens;
     }
+
+    const filterTokens = <T extends { chainId?: string }>(
+      tokens: T[] | undefined,
+    ): T[] | null => {
+      if (!tokens) return null;
+      return tokens.filter((token) => {
+        if (!token.chainId) return false;
+        return (
+          networksByCaipChainId[token.chainId as CaipChainId] !== undefined
+        );
+      });
+    };
+
     return {
-      topTokens: controllerTokens?.topTokens,
-      allTokens: controllerTokens?.allTokens,
+      topTokens: filterTokens(controllerTokens?.topTokens) as
+        | RampsToken[]
+        | null,
+      allTokens: filterTokens(controllerTokens?.allTokens) as
+        | RampsToken[]
+        | null,
       isLoading: controllerTokensLoading,
       error: controllerTokensError,
     };
@@ -82,6 +103,7 @@ function TokenSelection() {
     legacyTokens,
     controllerTokensLoading,
     controllerTokensError,
+    networksByCaipChainId,
   ]);
 
   // Use topTokens for initial display, allTokens when searching
