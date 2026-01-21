@@ -1,17 +1,22 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { DeviceEventEmitter } from 'react-native';
 import { useScrollToMerklRewards } from './useScrollToMerklRewards';
 
-// Mock DeviceEventEmitter
+// Mock DeviceEventEmitter.emit
+const mockEmit = jest.fn();
+
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
     ...RN,
     DeviceEventEmitter: {
-      emit: jest.fn(),
+      ...RN.DeviceEventEmitter,
+      emit: mockEmit,
     },
     InteractionManager: {
-      runAfterInteractions: jest.fn((callback) => callback()),
+      runAfterInteractions: jest.fn((callback) => {
+        // Call immediately - the setTimeout inside will be handled by fake timers
+        callback();
+      }),
     },
   };
 });
@@ -22,22 +27,29 @@ const mockRoute = {
   params: {},
 };
 
-const mockUseFocusEffect = jest.fn((callback: () => void | (() => void)) => {
-  // Call the callback immediately for testing
-  const cleanup = callback();
-  return cleanup;
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    ...actual,
+    useRoute: () => mockRoute,
+    useNavigation: () => ({
+      setParams: mockSetParams,
+    }),
+    // Run focus effects as a normal effect during tests
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      // Use useEffect with empty deps to run once on mount
+      ReactActual.useEffect(() => {
+        const cleanup = effect();
+        return cleanup;
+      }, []);
+    },
+  };
 });
 
-jest.mock('@react-navigation/native', () => ({
-  useRoute: () => mockRoute,
-  useNavigation: () => ({
-    setParams: mockSetParams,
-  }),
-  useFocusEffect: mockUseFocusEffect,
-}));
-
-// Mock requestAnimationFrame
+// Mock requestAnimationFrame to schedule callback with setTimeout
 global.requestAnimationFrame = jest.fn((callback) => {
+  // Schedule with setTimeout so it works with fake timers
   setTimeout(callback, 0);
   return 0;
 });
@@ -48,6 +60,8 @@ jest.useFakeTimers();
 describe('useScrollToMerklRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEmit.mockClear();
+    mockSetParams.mockClear();
     mockRoute.params = {};
   });
 
@@ -59,7 +73,7 @@ describe('useScrollToMerklRewards', () => {
     const merklRewardsYInHeaderRef = { current: 500 };
     renderHook(() => useScrollToMerklRewards(merklRewardsYInHeaderRef));
 
-    expect(DeviceEventEmitter.emit).not.toHaveBeenCalled();
+    expect(mockEmit).not.toHaveBeenCalled();
     expect(mockSetParams).not.toHaveBeenCalled();
   });
 
@@ -69,29 +83,23 @@ describe('useScrollToMerklRewards', () => {
 
     renderHook(() => useScrollToMerklRewards(merklRewardsYInHeaderRef));
 
-    // Fast-forward timers
-    act(() => {
-      jest.advanceTimersByTime(200);
-    });
-
+    // Wait for effect to run and setParams to be called
     await waitFor(() => {
       expect(mockSetParams).toHaveBeenCalledWith({
         scrollToMerklRewards: undefined,
       });
     });
 
-    // Wait for requestAnimationFrame and setTimeout
+    // Advance timers: first flush requestAnimationFrame (0ms), then setTimeout (150ms)
     act(() => {
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(1); // Execute requestAnimationFrame setTimeout
+      jest.advanceTimersByTime(150); // Execute scroll setTimeout
     });
 
     await waitFor(() => {
-      expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(
-        'scrollToMerklRewards',
-        {
-          y: 150, // 500 - 350
-        },
-      );
+      expect(mockEmit).toHaveBeenCalledWith('scrollToMerklRewards', {
+        y: 150, // 500 - 350
+      });
     });
   });
 
@@ -103,33 +111,32 @@ describe('useScrollToMerklRewards', () => {
 
     renderHook(() => useScrollToMerklRewards(merklRewardsYInHeaderRef));
 
+    // Wait for effect to run
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalled();
+    });
+
     // First retry - still null
     act(() => {
       jest.advanceTimersByTime(100);
     });
 
-    expect(DeviceEventEmitter.emit).not.toHaveBeenCalled();
+    expect(mockEmit).not.toHaveBeenCalled();
 
     // Set Y position after first retry
     merklRewardsYInHeaderRef.current = 600;
 
     // Second retry - should now scroll
     act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    // Wait for requestAnimationFrame and setTimeout
-    act(() => {
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(100); // Second retry delay
+      jest.advanceTimersByTime(1); // Execute requestAnimationFrame
+      jest.advanceTimersByTime(150); // Execute setTimeout
     });
 
     await waitFor(() => {
-      expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(
-        'scrollToMerklRewards',
-        {
-          y: 250, // 600 - 350
-        },
-      );
+      expect(mockEmit).toHaveBeenCalledWith('scrollToMerklRewards', {
+        y: 250, // 600 - 350
+      });
     });
   });
 
@@ -145,7 +152,7 @@ describe('useScrollToMerklRewards', () => {
     });
 
     // Should not have emitted after max retries
-    expect(DeviceEventEmitter.emit).not.toHaveBeenCalled();
+    expect(mockEmit).not.toHaveBeenCalled();
   });
 
   it('calculates scroll offset correctly with padding', async () => {
@@ -154,17 +161,21 @@ describe('useScrollToMerklRewards', () => {
 
     renderHook(() => useScrollToMerklRewards(merklRewardsYInHeaderRef));
 
+    // Wait for effect to run
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalled();
+    });
+
+    // Advance timers: first flush requestAnimationFrame (0ms), then setTimeout (150ms)
     act(() => {
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(1); // Execute requestAnimationFrame setTimeout
+      jest.advanceTimersByTime(150); // Execute scroll setTimeout
     });
 
     await waitFor(() => {
-      expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(
-        'scrollToMerklRewards',
-        {
-          y: 650, // 1000 - 350
-        },
-      );
+      expect(mockEmit).toHaveBeenCalledWith('scrollToMerklRewards', {
+        y: 650, // 1000 - 350
+      });
     });
   });
 
@@ -174,17 +185,21 @@ describe('useScrollToMerklRewards', () => {
 
     renderHook(() => useScrollToMerklRewards(merklRewardsYInHeaderRef));
 
+    // Wait for effect to run
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalled();
+    });
+
+    // Advance timers: first flush requestAnimationFrame (0ms), then setTimeout (150ms)
     act(() => {
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(1); // Execute requestAnimationFrame setTimeout
+      jest.advanceTimersByTime(150); // Execute scroll setTimeout
     });
 
     await waitFor(() => {
-      expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(
-        'scrollToMerklRewards',
-        {
-          y: 0, // Math.max(0, 200 - 350) = 0
-        },
-      );
+      expect(mockEmit).toHaveBeenCalledWith('scrollToMerklRewards', {
+        y: 0, // Math.max(0, 200 - 350) = 0
+      });
     });
   });
 
@@ -196,16 +211,23 @@ describe('useScrollToMerklRewards', () => {
       useScrollToMerklRewards(merklRewardsYInHeaderRef),
     );
 
+    // Wait for effect to run
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalled();
+    });
+
+    // Advance timers: first flush requestAnimationFrame (0ms), then setTimeout (150ms)
     act(() => {
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(1); // Execute requestAnimationFrame setTimeout
+      jest.advanceTimersByTime(150); // Execute scroll setTimeout
     });
 
     await waitFor(() => {
-      expect(DeviceEventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(mockEmit).toHaveBeenCalledTimes(1);
     });
 
     // Clear the mock
-    (DeviceEventEmitter.emit as jest.Mock).mockClear();
+    mockEmit.mockClear();
 
     // Rerender with same params - should not scroll again
     rerender(merklRewardsYInHeaderRef);
@@ -215,6 +237,6 @@ describe('useScrollToMerklRewards', () => {
     });
 
     // Should not emit again
-    expect(DeviceEventEmitter.emit).not.toHaveBeenCalled();
+    expect(mockEmit).not.toHaveBeenCalled();
   });
 });
