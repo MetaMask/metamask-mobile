@@ -121,7 +121,8 @@ runs:
         AGENT_URL=$(echo "$BODY" | jq -r '.target.url // empty')
 
         # If no target URL (read-only/analysis mode), construct from agent ID
-        if [ -z "$AGENT_URL" ]; then
+        # Check both empty and literal "null" string (jq returns "null" when key doesn't exist)
+        if [ -z "$AGENT_URL" ] || [ "$AGENT_URL" = "null" ]; then
           AGENT_URL="https://cursor.com/bg/$AGENT_ID"
         fi
 
