@@ -37,6 +37,7 @@ import {
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
 import { MarketDataService } from './services/MarketDataService';
 import { TradingService } from './services/TradingService';
 import { AccountService } from './services/AccountService';
@@ -276,6 +277,11 @@ export type PerpsControllerState = {
 
 /**
  * Get default PerpsController state
+ *
+ * To change the active provider, modify the `activeProvider` value below:
+ * - 'hyperliquid': HyperLiquid provider (default, production)
+ * - 'aggregated': Multi-provider aggregation mode
+ * - 'myx': MYX provider (future implementation)
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
@@ -695,6 +701,13 @@ export class PerpsController extends BaseController<
   private hip3BlocklistMarkets: string[];
   private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
 
+  /**
+   * Active provider instance for routing operations.
+   * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
+   * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
+   */
+  protected activeProviderInstance: IPerpsProvider | null = null;
+
   // Store options for dependency injection (allows core package to inject platform-specific services)
   private readonly options: PerpsControllerOptions;
 
@@ -1051,6 +1064,8 @@ export class PerpsController extends BaseController<
         }
         this.providers.clear();
 
+        const { activeProvider } = this.state;
+
         this.debugLog(
           'PerpsController: Creating provider with HIP-3 configuration',
           {
@@ -1059,19 +1074,41 @@ export class PerpsController extends BaseController<
             hip3BlocklistMarkets: this.hip3BlocklistMarkets,
             hip3ConfigSource: this.hip3ConfigSource,
             isTestnet: this.state.isTestnet,
+            activeProvider,
           },
         );
 
-        this.providers.set(
-          'hyperliquid',
-          new HyperLiquidProvider({
-            isTestnet: this.state.isTestnet,
-            hip3Enabled: this.hip3Enabled,
-            allowlistMarkets: this.hip3AllowlistMarkets,
-            blocklistMarkets: this.hip3BlocklistMarkets,
-            platformDependencies: this.options.infrastructure,
-          }),
-        );
+        // Always create HyperLiquid provider as the base provider
+        const hyperLiquidProvider = new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+        });
+        this.providers.set('hyperliquid', hyperLiquidProvider);
+
+        // Set up active provider based on activeProvider value in state
+        // 'aggregated' is treated as just another provider that wraps others
+        if (activeProvider === 'aggregated') {
+          // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
+          // Future: register additional providers here (MYX, etc.)
+          this.activeProviderInstance = new AggregatedPerpsProvider({
+            providers: this.providers,
+            defaultProvider: 'hyperliquid',
+            infrastructure: this.options.infrastructure,
+          });
+          this.debugLog(
+            'PerpsController: Using aggregated provider (multi-provider)',
+            { registeredProviders: Array.from(this.providers.keys()) },
+          );
+        } else {
+          // Direct provider mode: use specific provider directly (default: hyperliquid)
+          this.activeProviderInstance = hyperLiquidProvider;
+          this.debugLog(
+            `PerpsController: Using direct provider (${activeProvider})`,
+          );
+        }
 
         // Future providers can be added here with their own authentication patterns:
         // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
@@ -1089,7 +1126,7 @@ export class PerpsController extends BaseController<
 
         this.debugLog('PerpsController: Providers initialized successfully', {
           providerCount: this.providers.size,
-          activeProvider: this.state.activeProvider,
+          activeProvider,
           timestamp: new Date().toISOString(),
           attempts: attempt,
         });
@@ -1213,8 +1250,11 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get the currently active provider
-   * @returns The active provider
+   * Get the currently active provider.
+   * In aggregated mode, returns AggregatedPerpsProvider which routes to underlying providers.
+   * In single provider mode, returns HyperLiquidProvider directly.
+   *
+   * @returns The active provider (aggregated wrapper or direct provider based on mode)
    * @throws Error if provider is not initialized or reinitializing
    */
   getActiveProvider(): IPerpsProvider {
@@ -1244,8 +1284,8 @@ export class PerpsController extends BaseController<
       throw new Error(errorMessage);
     }
 
-    const provider = this.providers.get(this.state.activeProvider);
-    if (!provider) {
+    // Return the active provider instance (set during initialization based on providerMode)
+    if (!this.activeProviderInstance) {
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
         state.lastUpdateTimestamp = Date.now();
@@ -1253,7 +1293,7 @@ export class PerpsController extends BaseController<
       throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
-    return provider;
+    return this.activeProviderInstance;
   }
 
   /**

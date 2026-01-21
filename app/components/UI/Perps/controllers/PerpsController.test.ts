@@ -280,9 +280,15 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test-only method to set the providers map with complete providers.
    * Used in most tests to inject mock providers.
+   * Also sets activeProviderInstance to the first provider (default provider).
    */
   public testSetProviders(providers: Map<string, IPerpsProvider>) {
     this.providers = providers;
+    // Set activeProviderInstance to the first provider (typically 'hyperliquid')
+    const firstProvider = providers.values().next().value;
+    if (firstProvider) {
+      this.activeProviderInstance = firstProvider;
+    }
   }
 
   /**
