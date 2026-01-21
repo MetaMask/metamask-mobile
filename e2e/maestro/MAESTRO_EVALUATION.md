@@ -2,9 +2,18 @@
 
 ## Executive Summary
 
-This document evaluates the Maestro testing framework as a potential primary E2E testing solution for MetaMask Mobile, based on a successful proof-of-concept implementation. Our evaluation demonstrates that Maestro can successfully integrate with MetaMask's existing E2E infrastructure (fixtures and mocks) while offering significant advantages in test development speed, maintainability, and developer experience.
+This document evaluates the Maestro testing framework as a potential E2E testing solution for MetaMask Mobile, based on a successful proof-of-concept implementation. Our evaluation demonstrates that Maestro can successfully integrate with MetaMask's existing E2E infrastructure (fixtures and mocks) while offering significant advantages in test development speed, maintainability, and developer experience.
 
-**Recommendation**: We recommend proceeding with expanded evaluation and phased adoption of Maestro as the primary E2E testing framework for MetaMask Mobile.
+**Recommendation**: We recommend adopting Maestro as a **complementary testing framework** alongside Detox, rather than a full replacement. This hybrid approach leverages each framework's strengths:
+
+- **Continue using Detox** for in-app flows where it performs faster (~28% faster execution in CI benchmarks)
+- **Adopt Maestro** for scenarios Detox cannot handle:
+  - **Cross-app dApp testing**: Browser (Chrome) → MetaMask → Browser flows
+  - **WalletConnect integration testing**: External app initiates connection to MetaMask
+  - **System-level interactions**: Push notifications, permission dialogs, deep links from external sources
+  - **Multi-app workflows**: Testing integrations with other wallets or apps on the device
+
+This hybrid strategy expands E2E test coverage to previously untestable scenarios while maintaining optimal performance for existing test suites.
 
 ---
 
@@ -1151,28 +1160,42 @@ Our POC has demonstrated that **Maestro can successfully integrate with MetaMask
 - ✅ **Tests are more concise**: 40-60% less code for equivalent functionality
 - ✅ **Development is faster**: 2-3x faster to write and debug tests
 - ✅ **Learning curve is lower**: Team can be productive in days, not weeks
+- ⚠️ **CI execution slower**: Detox is ~28% faster for equivalent in-app tests (see [CI Execution Time Comparison](#ci-execution-time))
 
 ### Recommendation
 
-**We recommend proceeding with Maestro adoption in three stages**:
+**We recommend adopting Maestro as a complementary framework alongside Detox (Hybrid Approach)**:
 
-#### 1. **Immediate (Next 2 weeks)**
+#### Framework Selection Guidelines
 
-- ✅ Approve continued evaluation
-- ✅ Allocate resources for Phase 1-2 evaluation
-- ✅ Begin CI/CD integration work
+| Scenario                               | Recommended Framework | Reason                                  |
+| -------------------------------------- | --------------------- | --------------------------------------- |
+| In-app UI flows                        | **Detox**             | ~28% faster execution, mature tooling   |
+| Cross-app testing (Browser → MetaMask) | **Maestro**           | Detox cannot interact with other apps   |
+| WalletConnect flows from external apps | **Maestro**           | Multi-app orchestration required        |
+| System dialogs & notifications         | **Maestro**           | Better system-level access              |
+| Deep link testing from browser         | **Maestro**           | Can launch Chrome and navigate          |
+| New feature smoke tests                | **Either**            | Consider complexity and team preference |
 
-#### 2. **Short-term (3 months)**
+#### Adoption Stages
 
-- ✅ Complete 5-phase evaluation program
-- ✅ Make final decision on full migration
-- ✅ Begin writing new tests in Maestro
+##### 1. **Immediate (Next 2 weeks)**
 
-#### 3. **Long-term (12 months)**
+- ✅ Approve hybrid approach
+- ✅ Identify cross-app test scenarios currently untested
+- ✅ Continue CI/CD integration refinement
 
-- ✅ Execute migration plan if approved
-- ✅ Convert existing Detox tests to Maestro
-- ✅ Build world-class E2E test suite
+##### 2. **Short-term (3 months)**
+
+- ✅ Build Maestro test suite for multi-app scenarios (dApp connections, WalletConnect)
+- ✅ Maintain Detox for existing in-app test coverage
+- ✅ Document framework selection guidelines for team
+
+##### 3. **Long-term (6-12 months)**
+
+- ✅ Expand Maestro coverage for all cross-app workflows
+- ✅ Evaluate converting select Detox tests where Maestro offers clear advantages
+- ✅ Continuously benchmark and optimize both frameworks
 
 ### Why This Matters
 
@@ -1214,16 +1237,16 @@ E2E testing is critical for MetaMask's success:
 
 ### Final Thought
 
-The E2E testing landscape is evolving. Maestro represents the next generation of mobile testing tools—faster, simpler, and more maintainable than previous frameworks.
+The E2E testing landscape is evolving. Rather than choosing one framework over another, the most effective strategy leverages the **strengths of each tool**.
 
-**This is an opportunity to lead**, not follow. By adopting Maestro now, MetaMask can:
+**A hybrid Detox + Maestro approach allows MetaMask to**:
 
-- Build a best-in-class E2E test suite
-- Set the standard for mobile testing in Web3
-- Attract top QA and engineering talent
-- Ship features faster with higher confidence
+- **Maximize performance**: Use Detox where it's faster for in-app flows
+- **Expand coverage**: Use Maestro for cross-app scenarios previously untestable
+- **Test real user journeys**: dApp connections, WalletConnect, and browser interactions
+- **Reduce risk**: No need for full migration—incremental adoption
 
-The question is not "Can we afford to adopt Maestro?" but rather **"Can we afford not to?"**
+The question is not "Detox or Maestro?" but rather **"How can we use both to build the most comprehensive E2E test suite possible?"**
 
 ---
 
@@ -1326,7 +1349,7 @@ See the following files in this PR for complete POC implementation:
 
 ---
 
-**Document Version**: 1.1  
+**Document Version**: 1.2  
 **Last Updated**: January 21, 2026  
 **Status**: Ready for Review  
-**Next Review**: After Phase 5 Evaluation
+**Next Review**: After Hybrid Approach Pilot
