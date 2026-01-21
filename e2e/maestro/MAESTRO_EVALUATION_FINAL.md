@@ -1246,7 +1246,7 @@ The E2E testing landscape is evolving. Rather than choosing one framework over a
 - **Test real user journeys**: dApp connections, WalletConnect, and browser interactions
 - **Reduce risk**: No need for full migration—incremental adoption
 
-The question is not "Detox or Maestro?" but rather **"How can we use both to build the most comprehensive E2E test suite possible?"**
+The question is not "Can we afford to adopt Maestro?" but rather **"Can we afford not to?"** With a hybrid approach, we get the best of both worlds.
 
 ---
 
