@@ -1,7 +1,7 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
   artifacts: {
-    rootDir: "./e2e/artifacts",
+    rootDir: "./tests/artifacts",
     plugins: {
       screenshot: {
         shouldTakeAutomaticSnapshots: true,
@@ -20,7 +20,7 @@ module.exports = {
   testRunner: {
     args: {
       $0: 'jest',
-      config: 'e2e/jest.e2e.config.js',
+      config: 'tests/jest.e2e.config.js',
       // CI only: Force Jest to exit after all tests complete, preventing indefinite hangs
       // from open handles (sockets, timers). Also detect what's keeping Jest open.
       ...({
@@ -41,7 +41,7 @@ module.exports = {
       app: process.env.CI ? `ios.${process.env.METAMASK_BUILD_TYPE}.release` : 'ios.debug',
       testRunner: {
         args: {
-          "$0": "node e2e/api-specs/run-api-spec-tests.js",
+          "$0": "node tests/smoke/api-specs/run-api-spec-tests.js",
         },
       },
     },

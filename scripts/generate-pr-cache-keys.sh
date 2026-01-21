@@ -57,7 +57,7 @@ else
             if git rev-parse --git-dir > /dev/null 2>&1 && \
                git diff --name-only "${LAST_SUCCESSFUL_COMMIT}..HEAD" 2>/dev/null | \
                grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|scripts|patches)/' | \
-               grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' > /dev/null; then
+               grep -v '^app/e2e/' | grep -v '^tests/' | grep -v '^wdio/' > /dev/null; then
                 echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
                 APP_CODE_HASH="$CURRENT_COMMIT_SHORT"
             else

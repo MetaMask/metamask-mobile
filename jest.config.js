@@ -51,9 +51,9 @@ const config = {
     '<rootDir>/app/features/SampleFeature/e2e/',
   ],
   testPathIgnorePatterns: [
-    '.*/e2e/specs/.*\\.spec\\.(ts|js)$',
-    '.*/e2e/pages/',
-    '.*/e2e/selectors/',
+    '.*/tests/.*\\.spec\\.(ts|js)$',
+    '.*/tests/page-objects/',
+    '.*/tests/locators/',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',

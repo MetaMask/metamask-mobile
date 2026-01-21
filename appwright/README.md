@@ -618,7 +618,7 @@ test('My Performance Test', async ({
 ## Additional Resources
 
 - [Appwright Documentation](https://appwright.dev/)
-- [MetaMask Mobile E2E Documentation](../e2e/README.md)
+- [MetaMask Mobile E2E Documentation](../tests/docs/README.md)
 - [WDIO Page Objects](../wdio/screen-objects/)
 - [Performance Test Fixtures](./fixtures/)
 

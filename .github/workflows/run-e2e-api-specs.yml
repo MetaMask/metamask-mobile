@@ -160,7 +160,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-specs-test-results
-          path: e2e/reports/
+          path: tests/reports/
           retention-days: 7
 
       - name: Upload API specs screenshots

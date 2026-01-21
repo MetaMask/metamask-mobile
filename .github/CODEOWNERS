@@ -243,12 +243,10 @@ app/core/Engine/controllers/gator-permissions-controller              @MetaMask/
 app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/delegation
 
 # QA Team - E2E Framework
-e2e/api-mocking/                             @MetaMask/qa
-e2e/fixtures/                                @MetaMask/qa
-e2e/framework/                               @MetaMask/qa
-e2e/pages/                                   @MetaMask/qa
-e2e/utils/                                   @MetaMask/qa
-e2e/viewHelper.ts                            @MetaMask/qa
+tests/api-mocking/                             @MetaMask/qa
+tests/framework/                               @MetaMask/qa
+tests/page-objects/                            @MetaMask/qa
+tests/utils/                                   @MetaMask/qa
 
 # Co-owned by Swaps and Ramps teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/ramp

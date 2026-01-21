@@ -124,4 +124,4 @@ gh pr create \
 
 - Conventional Commits: https://www.conventionalcommits.org/
 - PR Template: `.github/pull-request-template.md`
-- E2E framework: `e2e/`
+- E2E framework: `e2e/framework`

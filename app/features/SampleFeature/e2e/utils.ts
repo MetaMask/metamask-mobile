@@ -1,7 +1,7 @@
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import DeveloperOptionsView from '../../../../e2e/pages/Settings/DeveloperOptions/DeveloperOptionsView';
+import { loginToApp } from '../../../../tests/page-objects/viewHelper.ts';
+import TabBarComponent from '../../../../tests/page-objects/wallet/TabBarComponent';
+import SettingsView from '../../../../tests/page-objects/Settings/SettingsView';
+import DeveloperOptionsView from '../../../../tests/page-objects/Settings/DeveloperOptions/DeveloperOptionsView';
 
 export const navigateToSampleFeature = async () => {
   // Login to app with password

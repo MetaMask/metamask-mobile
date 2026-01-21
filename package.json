@@ -82,7 +82,7 @@
     "build:ios:qa": "./scripts/build.sh ios QA",
     "build:attribution": "./scripts/generate-attributions.sh",
     "test": "yarn test:unit",
-    "test:unit": "jest ./app/ ./locales/ ./e2e/**/*.test.ts .github/**/*.test.ts --testPathIgnorePatterns='.*/e2e/specs/.*\\.spec\\.(ts|tsx|js)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
+    "test:unit": "jest ./app/ ./locales/ ./tests/**/*.test.ts .github/**/*.test.ts --testPathIgnorePatterns='.*/tests/.*\\.spec\\.(ts|tsx|js)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view": "jest -c jest.config.view.js --runInBand --no-watchman --verbose --testPathPattern='.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",

@@ -25,11 +25,11 @@ const xmlParser = new xml2js.Parser();
 /**
  * Normalize a test path to be relative and consistent
  * @param {string} filePath - The path to normalize
- * @returns {string} Normalized path starting with e2e/
+ * @returns {string} Normalized path starting with tests/
  */
 function normalizeTestPath(filePath) {
   const normalized = filePath.replace(/\\/g, '/');
-  const e2eIndex = normalized.indexOf('e2e/');
+  const e2eIndex = normalized.indexOf('tests/');
   if (e2eIndex !== -1) {
     return normalized.slice(e2eIndex);
   }
@@ -171,7 +171,7 @@ export async function mergeTestResults(previousResultsDir, currentResultsDir) {
  */
 if (process.argv[1].endsWith('e2e-merge-test-results.mjs')) {
   const previousDir = process.argv[2] || './previous-test-results';
-  const currentDir = process.argv[3] || './e2e/reports';
+  const currentDir = process.argv[3] || './tests/reports';
 
   mergeTestResults(previousDir, currentDir)
     .then(() => console.log('Merge complete'))

@@ -145,19 +145,19 @@ source .e2e.env && yarn test:e2e:ios:debug:run
 source .e2e.env && yarn test:e2e:android:debug:run
 
 # Run specific folder
-source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/your-folder
-source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/your-folder
+source .e2e.env && yarn test:e2e:ios:debug:run tests/smoke/your-folder
+source .e2e.env && yarn test:e2e:android:debug:run tests/smoke/your-folder
 
 # Run specific test
-source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/onboarding/create-wallet.spec.js
-source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/onboarding/create-wallet.spec.js
+source .e2e.env && yarn test:e2e:ios:debug:run tests/smoke/wallet/analytics/new-wallet.spec.ts
+source .e2e.env && yarn test:e2e:android:debug:run tests/smoke/wallet/analytics/new-wallet.spec.ts
 
 # Run tests by tag
 source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
 source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
-To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../e2e/docs/README.md).
+To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../tests/docs/README.md).
 
 ## Flask E2E Testing (Snaps Support)
 
@@ -196,8 +196,8 @@ yarn test:e2e:android:flask:run
 # These commands are hardcoded to build for `flask` build type and `e2e` environment based on the .detoxrc.js file
 
 # Run specific Flask test
-yarn test:e2e:ios:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
-yarn test:e2e:android:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
+yarn test:e2e:ios:flask:run tests/smoke/snaps/test-snap-jsx.spec.ts
+yarn test:e2e:android:flask:run tests/smoke/snaps/test-snap-jsx.spec.ts
 ```
 
 ### Flask Configuration Details
@@ -518,11 +518,11 @@ For more details on our CI pipelines, see the [Bitrise Pipelines Overview](#bitr
 ### API Spec Tests
 
 **Platform**: iOS  
-**Test Location**: `e2e/api-specs/json-rpc-coverage.js`
+**Test Location**: `tests/smoke/api-specs/json-rpc-coverage.js`
 
 The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from our [api-specs](https://github.com/MetaMask/api-specs) OpenRPC Document. These tests are currently executed only on iOS and use the same build as the Detox tests for iOS.
 
-- **Test Coverage Tool**: The `test-coverage` tool uses `Rules` and `Reporters` to generate and report test results. These are passed as parameters in the test coverage tool call located in [e2e/api-specs/json-rpc-coverage.js](../../e2e/api-specs/json-rpc-coverage.js). For more details on `Rules` and `Reporters`, refer to the [OpenRPC test coverage documentation](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
+- **Test Coverage Tool**: The `test-coverage` tool uses `Rules` and `Reporters` to generate and report test results. These are passed as parameters in the test coverage tool call located in [tests/smoke/api-specs/json-rpc-coverage.js](../../tests/smoke/api-specs/json-rpc-coverage.js). For more details on `Rules` and `Reporters`, refer to the [OpenRPC test coverage documentation](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
 
 #### Commands
 
@@ -660,7 +660,7 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 - **Example**:
 
   ```
-  FAIL e2e/specs/swaps/swap-action-smoke.spec.js (232.814 s)
+  FAIL tests/smoke/swaps/swap-action-smoke.spec.js (232.814 s)
     SmokeSwaps Swap from Actions
       ✓ should Swap .05 'ETH' to 'USDT' (90488 ms)
       ✕ should Swap 100 'USDT' to 'ETH' (50549 ms)
@@ -674,7 +674,7 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
         166 |   }
         167 |
         168 |   static async checkIfNotVisible(elementId) {
-      at Function.withTimeout (e2e/helpers.js:165:8)
+      at Function.withTimeout (tests/helpers.js:165:8)
       ...
   ```
 
@@ -694,6 +694,6 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 
 For detailed E2E framework documentation, patterns, and best practices, see:
 
-- **[E2E Framework Guide](../../e2e/framework/README.md)** - Comprehensive guide to the TypeScript testing framework
-- **[Mocking Guide](../../e2e/MOCKING.md)** - Guide on how to mock API call in tests
+- **[E2E Framework Guide](../../tests/framework/README.md)** - Comprehensive guide to the TypeScript testing framework
+- **[Mocking Guide](../../tests/docs/MOCKING.md)** - Guide on how to mock API call in tests
 - **[General E2E Best Practices](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md)** - MetaMask-wide testing guidelines

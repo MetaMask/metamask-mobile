@@ -34,7 +34,7 @@ runs:
       run: |
         # Strict allowlist: only read source code, deny everything else
         mkdir -p .cursor
-        printf '%s\n' '{"permissions":{"allow":["Read(app/**/*)","Read(src/**/*)","Read(e2e/**/*)","Read(docs/**/*)","Read(*.md)","Read(*.json)","Read(*.ts)","Read(*.tsx)","Read(*.js)"],"deny":["Shell(*)","Write(*)","Read(.env*)","Read(**/.env*)","Read(**/secrets/**)","Read(**/*.pem)","Read(**/*.key)","Read(**/*.secret)","Read(.git/**)","Read(node_modules/**)"]}}' > .cursor/permissions.json
+        printf '%s\n' '{"permissions":{"allow":["Read(app/**/*)","Read(src/**/*)","Read(tests/**/*)","Read(docs/**/*)","Read(*.md)","Read(*.json)","Read(*.ts)","Read(*.tsx)","Read(*.js)"],"deny":["Shell(*)","Write(*)","Read(.env*)","Read(**/.env*)","Read(**/secrets/**)","Read(**/*.pem)","Read(**/*.key)","Read(**/*.secret)","Read(.git/**)","Read(node_modules/**)"]}}' > .cursor/permissions.json
 
     - name: Configure Cursor permissions (read-write)
       if: inputs.read-only == 'false'
@@ -42,7 +42,7 @@ runs:
       run: |
         # Allow reads and writes to source code, deny sensitive files
         mkdir -p .cursor
-        printf '%s\n' '{"permissions":{"allow":["Read(app/**/*)","Read(src/**/*)","Read(e2e/**/*)","Read(docs/**/*)","Read(*.md)","Read(*.json)","Read(*.ts)","Read(*.tsx)","Read(*.js)","Write(app/**/*)","Write(src/**/*)","Write(e2e/**/*)","Write(docs/**/*)","Write(*.md)","Write(*.json)","Write(*.ts)","Write(*.tsx)","Write(*.js)","Shell(yarn *)","Shell(git *)"],"deny":["Read(.env*)","Read(**/.env*)","Read(**/secrets/**)","Read(**/*.pem)","Read(**/*.key)","Read(**/*.secret)","Read(node_modules/**)","Write(.env*)","Write(**/.env*)","Write(**/secrets/**)","Write(**/*.pem)","Write(**/*.key)","Write(**/*.secret)","Shell(curl *)","Shell(wget *)","Shell(npm *)","Shell(npx *)"]}}' > .cursor/permissions.json
+        printf '%s\n' '{"permissions":{"allow":["Read(app/**/*)","Read(src/**/*)","Read(tests/**/*)","Read(docs/**/*)","Read(*.md)","Read(*.json)","Read(*.ts)","Read(*.tsx)","Read(*.js)","Write(app/**/*)","Write(src/**/*)","Write(tests/**/*)","Write(docs/**/*)","Write(*.md)","Write(*.json)","Write(*.ts)","Write(*.tsx)","Write(*.js)","Shell(yarn *)","Shell(git *)"],"deny":["Read(.env*)","Read(**/.env*)","Read(**/secrets/**)","Read(**/*.pem)","Read(**/*.key)","Read(**/*.secret)","Read(node_modules/**)","Write(.env*)","Write(**/.env*)","Write(**/secrets/**)","Write(**/*.pem)","Write(**/*.key)","Write(**/*.secret)","Shell(curl *)","Shell(wget *)","Shell(npm *)","Shell(npx *)"]}}' > .cursor/permissions.json
 
     - name: Install Cursor CLI
       shell: bash

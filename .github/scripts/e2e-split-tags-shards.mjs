@@ -9,9 +9,14 @@ import { extractTestResults } from './e2e-extract-test-results.mjs';
 // 4) Flaky test detector mechanism in PRs (test retries)
 // 5) Log and run the selected specs for the given shard split
 
+// Important note: BASE_DIR now points to the root of all the tests meaning 
+// that it will try to find tests in all subdirectories. Because this is only
+// used for smoke tests and those have the tag machanism, this is not a
+// problem. If we remove the tag mechanism, we need to change this to point to
+// the smoke tests directory.
 const env = {
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,
-  BASE_DIR: process.env.BASE_DIR || './e2e/specs',
+  BASE_DIR: process.env.BASE_DIR || './tests',
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE || 'main',
   PLATFORM: process.env.PLATFORM || 'ios',
   SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),

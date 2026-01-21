@@ -1,0 +1,65 @@
+import FixtureBuilder from '../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../page-objects/viewHelper.ts';
+import TestHelpers from '../helpers';
+import WalletView from '../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../page-objects/wallet/AddAccountBottomSheet';
+import AddNewHdAccountComponent from '../page-objects/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import { DappVariants } from '../framework/Constants';
+import Assertions from '../framework/Assertions';
+
+export async function withSolanaAccountEnabled(
+  {
+    numberOfAccounts = 1,
+    solanaAccountPermitted,
+    evmAccountPermitted,
+    dappVariant,
+  }: {
+    numberOfAccounts?: number;
+    solanaAccountPermitted?: boolean;
+    evmAccountPermitted?: boolean;
+    dappVariant?: DappVariants;
+  },
+  test: () => Promise<void>,
+) {
+  let fixtureBuilder = new FixtureBuilder().withSolanaFixture();
+
+  if (solanaAccountPermitted) {
+    fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
+  }
+  if (evmAccountPermitted) {
+    fixtureBuilder = fixtureBuilder.withChainPermission(['0x1']);
+  }
+  const fixtures = fixtureBuilder.build();
+
+  await withFixtures(
+    {
+      fixture: fixtures,
+      dapps: [
+        {
+          dappVariant: dappVariant || DappVariants.SOLANA_TEST_DAPP, // Default to the Solana test dapp if no variant is provided
+        },
+      ],
+      restartDevice: true,
+    },
+    async () => {
+      await TestHelpers.reverseServerPort();
+      await loginToApp();
+
+      // Create Solana accounts through the wallet view
+      for (let i = 0; i < numberOfAccounts; i++) {
+        await WalletView.tapCurrentMainWalletAccountActions();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapAddSolanaAccount();
+        await AddNewHdAccountComponent.tapConfirm();
+        await Assertions.expectElementToHaveText(
+          WalletView.accountName,
+          `Solana Account ${i + 1}`,
+        );
+      }
+
+      await test();
+    },
+  );
+}
