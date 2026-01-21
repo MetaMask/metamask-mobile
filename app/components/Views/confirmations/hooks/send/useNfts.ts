@@ -57,16 +57,14 @@ export function useEVMNfts(): Nft[] {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
       for (const nft of rawNfts) {
-        if (nft.collection) {
-          const transformed = await transformNftWithCollection(
-            nft,
-            evmAccount.address,
-            AssetsContractController,
-            NetworkController,
-          );
-          if (transformed) {
-            transformedResults.push(transformed);
-          }
+        const transformed = await transformNft(
+          nft,
+          evmAccount.address,
+          AssetsContractController,
+          NetworkController,
+        );
+        if (transformed) {
+          transformedResults.push(transformed);
         }
       }
 
@@ -100,7 +98,7 @@ function getValidImageUrl(
   return undefined;
 }
 
-async function transformNftWithCollection(
+async function transformNft(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nft: any,
   userAddress: string,
