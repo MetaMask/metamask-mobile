@@ -13,8 +13,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
-  TransactionType.lendingDeposit,
-  TransactionType.lendingWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.revokeDelegation,
