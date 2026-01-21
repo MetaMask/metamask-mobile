@@ -218,16 +218,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     carouselBanners: false,
   },
   {
-    confirmation_redesign: {
-      staking_confirmations: true,
-      transfer: true,
-      approve: true,
-      contract_deployment: true,
-      contract_interaction: true,
-      signatures: true,
-    },
-  },
-  {
     rewards: false,
   },
   {
