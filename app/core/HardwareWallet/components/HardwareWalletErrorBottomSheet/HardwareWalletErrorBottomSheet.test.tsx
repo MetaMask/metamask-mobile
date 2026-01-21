@@ -29,7 +29,9 @@ jest.mock('../../../../component-library/components/Icons/Icon', () => {
   const { View } = require('react-native');
   return {
     __esModule: true,
-    default: ({ name, testID }: { name: string; testID?: string }) => <View testID={testID ?? `icon-${name}`} />,
+    default: ({ name, testID }: { name: string; testID?: string }) => (
+      <View testID={testID ?? `icon-${name}`} />
+    ),
     IconSize: { Xl: 'Xl' },
     IconName: {
       Lock: 'Lock',
@@ -146,7 +148,8 @@ describe('HardwareWalletErrorBottomSheet', () => {
     code: ErrorCode,
     userMessage: string,
     recoveryAction?: RecoveryAction,
-  ): HardwareWalletError => new HardwareWalletError('Test error', {
+  ): HardwareWalletError =>
+    new HardwareWalletError('Test error', {
       code,
       severity: Severity.Err,
       category: Category.Connection,
