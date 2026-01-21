@@ -329,7 +329,9 @@ describe('HardwareWalletErrorContext', () => {
     it('handleOpenBluetoothSettings opens iOS Bluetooth settings on iOS', async () => {
       const originalPlatform = Platform.OS;
       Platform.OS = 'ios';
-      const mockOpenURL = jest.spyOn(Linking, 'openURL').mockResolvedValue();
+      const mockOpenURL = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
 
       const { getByTestId } = render(
         <HardwareWalletErrorProvider>

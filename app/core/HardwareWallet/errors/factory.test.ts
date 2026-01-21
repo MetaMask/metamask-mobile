@@ -59,7 +59,7 @@ describe('createHardwareWalletError', () => {
       );
 
       // UserRejected has Info severity in SDK
-      expect([Severity.Info, Severity.Warning, Severity.Error]).toContain(
+      expect([Severity.Info, Severity.Warning, Severity.Err]).toContain(
         error.severity,
       );
     });

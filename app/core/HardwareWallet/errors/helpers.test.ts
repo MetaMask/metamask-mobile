@@ -26,7 +26,7 @@ describe('error helpers', () => {
     it('returns true for HardwareWalletError instance', () => {
       const error = new HardwareWalletError('Test', {
         code: ErrorCode.DeviceDisconnected,
-        severity: Severity.Error,
+        severity: Severity.Err,
         category: Category.Connection,
         userMessage: 'Test',
       });
@@ -55,7 +55,7 @@ describe('error helpers', () => {
     it('returns false for object with similar shape', () => {
       const fakeError = {
         code: ErrorCode.DeviceDisconnected,
-        severity: Severity.Error,
+        severity: Severity.Err,
         category: Category.Connection,
         userMessage: 'Test',
       };
@@ -90,7 +90,7 @@ describe('error helpers', () => {
     it('returns false for other HardwareWalletError codes', () => {
       const error = new HardwareWalletError('Device disconnected', {
         code: ErrorCode.DeviceDisconnected,
-        severity: Severity.Error,
+        severity: Severity.Err,
         category: Category.Connection,
         userMessage: 'Device disconnected',
       });

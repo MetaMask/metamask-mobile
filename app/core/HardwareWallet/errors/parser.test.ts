@@ -22,7 +22,7 @@ describe('parseErrorByType', () => {
     it('returns the error unchanged', () => {
       const existingError = new HardwareWalletError('Test error', {
         code: ErrorCode.DeviceDisconnected,
-        severity: Severity.Error,
+        severity: Severity.Err,
         category: Category.Connection,
         userMessage: 'Device disconnected',
       });
