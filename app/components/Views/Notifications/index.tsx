@@ -127,16 +127,16 @@ const NotificationsView = ({
             loading={isLoading}
           />
           {!isLoading && unreadCount > 0 && (
-          <View style={styles.stickyButtonContainer}>
-            <Button
-              variant={ButtonVariants.Primary}
-              label={strings('notifications.mark_all_as_read')}
-              onPress={handleMarkAllAsRead}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              disabled={loading}
-            />
-          </View>
+            <View style={styles.stickyButtonContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('notifications.mark_all_as_read')}
+                onPress={handleMarkAllAsRead}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                disabled={loading}
+              />
+            </View>
           )}
         </>
       ) : (

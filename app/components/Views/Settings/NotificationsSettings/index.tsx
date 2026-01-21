@@ -54,63 +54,63 @@ const NotificationsSettings = ({ navigation }: Props) => {
         includesTopInset
       />
       <ScrollView style={styles.container}>
-      {/* Main Toggle */}
-      <MainNotificationToggle />
+        {/* Main Toggle */}
+        <MainNotificationToggle />
 
-      {/* Additional Toggles only visible if main toggle is enabled */}
-      {isMetamaskNotificationsEnabled && (
-        <>
-          {/* Push Notifications Toggle */}
-          <PushNotificationToggle />
+        {/* Additional Toggles only visible if main toggle is enabled */}
+        {isMetamaskNotificationsEnabled && (
+          <>
+            {/* Push Notifications Toggle */}
+            <PushNotificationToggle />
 
-          <View style={styles.line} />
+            <View style={styles.line} />
 
-          {/* Feature Announcement Toggle */}
-          <SessionHeader
-            title={strings(
-              'app_settings.notifications_opts.customize_session_title',
+            {/* Feature Announcement Toggle */}
+            <SessionHeader
+              title={strings(
+                'app_settings.notifications_opts.customize_session_title',
+              )}
+              description={strings(
+                'app_settings.notifications_opts.customize_session_desc',
+              )}
+              styles={styles}
+            />
+            <View style={styles.productAnnouncementContainer}>
+              <FeatureAnnouncementToggle />
+            </View>
+
+            <View
+              style={styles.line}
+              testID={
+                NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENT_SEPARATOR
+              }
+            />
+
+            {/* Account Notification Toggles */}
+            {hasFirstHDWallet && (
+              <>
+                <SessionHeader
+                  title={strings(
+                    'app_settings.notifications_opts.account_session_title',
+                  )}
+                  description={strings(
+                    'app_settings.notifications_opts.account_session_desc',
+                  )}
+                  styles={styles}
+                />
+                <AccountsList />
+              </>
             )}
-            description={strings(
-              'app_settings.notifications_opts.customize_session_desc',
-            )}
-            styles={styles}
-          />
-          <View style={styles.productAnnouncementContainer}>
-            <FeatureAnnouncementToggle />
-          </View>
 
-          <View
-            style={styles.line}
-            testID={
-              NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENT_SEPARATOR
-            }
-          />
-
-          {/* Account Notification Toggles */}
-          {hasFirstHDWallet && (
-            <>
-              <SessionHeader
-                title={strings(
-                  'app_settings.notifications_opts.account_session_title',
-                )}
-                description={strings(
-                  'app_settings.notifications_opts.account_session_desc',
-                )}
-                styles={styles}
-              />
-              <AccountsList />
-            </>
-          )}
-
-          {/* Reset Notifications Button */}
-          <ResetNotificationsButton />
-        </>
-      )}
-      <SwitchLoadingModal
-        loading={!!loadingText}
-        loadingText={loadingText ?? ''}
-      />
-    </ScrollView>
+            {/* Reset Notifications Button */}
+            <ResetNotificationsButton />
+          </>
+        )}
+        <SwitchLoadingModal
+          loading={!!loadingText}
+          loadingText={loadingText ?? ''}
+        />
+      </ScrollView>
     </View>
   );
 };

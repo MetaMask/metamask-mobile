@@ -4,7 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { ButtonSize, ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
