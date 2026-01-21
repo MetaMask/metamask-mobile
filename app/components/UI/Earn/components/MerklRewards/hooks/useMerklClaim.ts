@@ -128,6 +128,13 @@ export const useMerklClaim = ({
             pendingTransactionIdRef.current = null;
             // Update UI state immediately
             setIsClaiming(false);
+            // Update token balances to reflect the new balance after claiming
+            // This ensures AssetOverview shows the updated token balance
+            Engine.context.TokenBalancesController.updateBalances({
+              chainIds: [transactionMeta.chainId],
+            }).catch(() => {
+              // Ignore balance update errors
+            });
             // Refetch claimed amount from blockchain after transaction confirmation
             if (onClaimSuccessRef.current) {
               onClaimSuccessRef.current().catch(() => {

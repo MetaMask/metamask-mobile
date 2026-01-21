@@ -25,6 +25,11 @@ jest.mock('../../../../../../core/Engine', () => ({
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
+  context: {
+    TokenBalancesController: {
+      updateBalances: jest.fn().mockResolvedValue(undefined),
+    },
+  },
 }));
 
 // Mock fetch globally
