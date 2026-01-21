@@ -107,7 +107,7 @@ jobs:
               '',
               `**Status**: ${statusEmoji} ${status}`,
               '',
-              summary && summary !== 'Complete' ? `**Summary**: ${summary}` : '',
+              summary && summary !== 'Complete' ? `**Summary**: ${summary}` : null,
               '',
               '---',
               '',
@@ -123,7 +123,7 @@ jobs:
               '*Leave a comment for detailed feedback*',
               '',
               '*Automated analysis by Cursor Background Agent*'
-            ].filter(line => line !== '').join('\n');
+            ].filter(line => line !== null).join('\n');
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
