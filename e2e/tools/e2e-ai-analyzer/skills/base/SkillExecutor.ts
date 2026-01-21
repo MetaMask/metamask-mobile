@@ -155,10 +155,7 @@ export class SkillExecutor<TInput = void, TOutput = unknown> {
         // Update conversation history
         conversationHistory.push({
           role: 'user',
-          content:
-            typeof currentMessage === 'string'
-              ? currentMessage
-              : currentMessage,
+          content: currentMessage,
         });
         conversationHistory.push({
           role: 'assistant',

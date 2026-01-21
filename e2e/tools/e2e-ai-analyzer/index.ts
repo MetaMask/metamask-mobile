@@ -99,11 +99,9 @@ function parseArgs(args: string[]): ParsedArgs {
 
 /**
  * Shows help message
+ * Note: Skills must be registered before calling this function
  */
 function showHelp(): void {
-  // Register skills to show them in help
-  registerAllSkills();
-
   const skillList = SkillRegistry.list()
     .map((skill) => `  ${skill.name.padEnd(20)} ${skill.description}`)
     .join('\n');
