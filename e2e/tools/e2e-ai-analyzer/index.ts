@@ -1,19 +1,29 @@
 /**
  * E2E AI Analyzer - Entry Point
  *
- * AI-powered E2E test analysis with multiple operation modes
+ * AI-powered E2E test analysis with multiple operation modes.
+ * Supports multiple LLM providers with automatic fallback.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { ParsedArgs } from './types';
-import { APP_CONFIG } from './config';
+import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
   getPRFiles,
   validatePRNumber,
 } from './utils/git-utils';
-import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
+import {
+  MODES,
+  validateMode,
+  analyzeWithAgent,
+  AnalysisContext,
+} from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
+import {
+  createProvider,
+  getSupportedProviders,
+  ProviderType,
+} from './providers';
 
 /**
  * Validates provided files against actual git changes
@@ -81,6 +91,10 @@ function parseArgs(args: string[]): ParsedArgs {
         options.prNumber = validPR;
         break;
       }
+      case '--provider':
+      case '-p':
+        options.provider = args[++i];
+        break;
     }
   }
 
@@ -95,11 +109,24 @@ function showHelp(): void {
     .map(([key, mode]) => `  ${key.padEnd(20)} ${mode.description}`)
     .join('\n');
 
+  const providerList = getSupportedProviders()
+    .map((p) => {
+      const config = LLM_CONFIG.providers[p];
+      return `  ${p.padEnd(12)} ${config.envKey.padEnd(24)} ${config.model}`;
+    })
+    .join('\n');
+
   console.log(`
 Smart E2E AI Analyzer
 
 AVAILABLE MODES:
 ${modeList}
+
+SUPPORTED LLM PROVIDERS (in priority order):
+${providerList}
+
+The analyzer will automatically use the first available provider.
+Set the appropriate API key environment variable to enable a provider.
 
 AI AGENTIC FLOW:
 1. AI gets list of changed files and act depending on the mode
@@ -113,28 +140,63 @@ Options:
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
+  -p, --provider <provider>     Force specific provider (anthropic, openai, google)
   -h, --help                    Show this help message
 
 Output:
   - each mode defines its own output format
 
 Examples:
+  # Using Anthropic Claude (default)
   E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
-  E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
+
+  # Using OpenAI GPT-4
+  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+
+  # Using Google Gemini
+  E2E_GEMINI_API_KEY=... node -r esbuild-register e2e/tools/e2e-ai-analyzer
+
+  # With multiple keys (uses first available in priority order)
+  E2E_CLAUDE_API_KEY=sk-... E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
+
+  # Force a specific provider
+  E2E_OPENAI_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --provider openai --pr 12345
 `);
+}
+
+/**
+ * Validate provider option
+ */
+function validateProvider(providerInput?: string): ProviderType | undefined {
+  if (!providerInput) return undefined;
+
+  const supported = getSupportedProviders();
+  if (!supported.includes(providerInput as ProviderType)) {
+    console.error(
+      `❌ Invalid provider: ${providerInput}. Valid providers: ${supported.join(', ')}`,
+    );
+    process.exit(1);
+  }
+
+  return providerInput as ProviderType;
+}
+
+/**
+ * Get provider order to try
+ *
+ * If forcedProvider is specified, only that provider will be tried.
+ * Otherwise, returns providers in priority order from config.
+ * Availability is checked at runtime - missing API keys trigger fallback.
+ */
+function getProviderOrder(forcedProvider?: ProviderType): ProviderType[] {
+  if (forcedProvider) {
+    return [forcedProvider];
+  }
+  return LLM_CONFIG.providerPriority;
 }
 
 async function main() {
   console.log('🤖 Starting E2E AI analysis...');
-  const apiKey = process.env.E2E_CLAUDE_API_KEY;
-  if (!apiKey) {
-    console.error('❌ E2E_CLAUDE_API_KEY not set');
-    process.exit(1);
-  }
-
-  const anthropic = new Anthropic({
-    apiKey,
-  });
 
   const args = process.argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) {
@@ -144,11 +206,15 @@ async function main() {
 
   const options = parseArgs(args);
   const mode = validateMode(options.mode);
+  const forcedProvider = validateProvider(options.provider);
   const baseBranch = options.baseBranch;
   const baseDir = process.cwd();
   const githubRepo = APP_CONFIG.githubRepo;
 
   console.log(`🎯 Mode: ${mode}`);
+  if (forcedProvider) {
+    console.log(`🔒 Provider: ${forcedProvider} (forced)`);
+  }
 
   // Get changed files
   let allChangedFiles: string[];
@@ -177,18 +243,93 @@ async function main() {
     console.log(`⚠️  ${criticalFiles.length} critical files detected`);
   }
 
-  // Run AI analysis
-  const analysis = await analyzeWithAgent(
-    anthropic,
-    allChangedFiles,
-    criticalFiles,
-    mode,
+  // Build analysis context
+  const analysisContext: AnalysisContext = {
     baseDir,
     baseBranch,
+    prNumber: options.prNumber,
+    githubRepo,
+  };
+
+  if (options.prNumber) {
+    console.log(`🔗 PR #${options.prNumber} - using gh CLI for diffs`);
+  }
+
+  // Get provider order (forced provider or priority from config)
+  const providerOrder = getProviderOrder(forcedProvider);
+  console.log(`📋 Provider failover order: ${providerOrder.join(' → ')}`);
+
+  // Check provider availability upfront
+  console.log('\n🔍 Checking provider availability...');
+  const availableProviders: {
+    type: ProviderType;
+    provider: ReturnType<typeof createProvider>;
+  }[] = [];
+
+  for (const providerType of providerOrder) {
+    const provider = createProvider(providerType);
+    console.log(`   Checking ${provider.displayName}...`);
+
+    if (await provider.isAvailable()) {
+      console.log(`   ✅ ${provider.displayName} is available`);
+      availableProviders.push({ type: providerType, provider });
+    } else {
+      console.log(`   ❌ ${provider.displayName} is not available`);
+    }
+  }
+
+  if (availableProviders.length === 0) {
+    console.error('\n❌ No providers available. Set one of:');
+    console.error(`   ${LLM_CONFIG.providers.anthropic.envKey}`);
+    console.error(`   ${LLM_CONFIG.providers.openai.envKey}`);
+    console.error(`   ${LLM_CONFIG.providers.google.envKey}`);
+    const fallbackAnalysis = MODES[mode].createConservativeResult();
+    MODES[mode].outputAnalysis(fallbackAnalysis);
+    return;
+  }
+
+  console.log(
+    `\n📋 Available providers: ${availableProviders.map((p) => p.type).join(' → ')}`,
   );
 
-  // Output results
-  MODES[mode].outputAnalysis(analysis);
+  // Try each available provider in order
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < availableProviders.length; i++) {
+    const { type: providerType, provider } = availableProviders[i];
+
+    try {
+      console.log(`\n🚀 Using ${provider.displayName}...`);
+
+      const analysis = await analyzeWithAgent(
+        provider,
+        allChangedFiles,
+        criticalFiles,
+        mode,
+        analysisContext,
+      );
+
+      // Success - output results and exit
+      MODES[mode].outputAnalysis(analysis);
+      return;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`\n⚠️  ${providerType} failed: ${lastError.message}`);
+
+      if (i < availableProviders.length - 1) {
+        console.log('🔄 Falling back to next provider...');
+      }
+    }
+  }
+
+  // All providers failed - use conservative fallback
+  console.error('\n❌ All providers failed. Using conservative fallback.');
+  if (lastError) {
+    console.error(`Last error: ${lastError.message}`);
+  }
+
+  const fallbackAnalysis = MODES[mode].createConservativeResult();
+  MODES[mode].outputAnalysis(fallbackAnalysis);
 }
 
 main().catch((error) => {

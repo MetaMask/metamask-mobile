@@ -438,7 +438,7 @@ const PerpsHomeView = () => {
           <View style={styles.positionsOrdersContainer}>
             {positions.map((position, index) => (
               <PerpsCard
-                key={`${position.coin}-${index}`}
+                key={`${position.symbol}-${index}`}
                 position={position}
                 source={PerpsEventValues.SOURCE.HOMESCREEN_TAB}
               />

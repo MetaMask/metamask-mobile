@@ -85,7 +85,7 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'linea-us' | 'solana' | 'base';
+export type CardNetwork = 'linea' | 'solana' | 'base';
 
 export interface CardNetworkInfo {
   caipChainId: CaipChainId;
@@ -180,6 +180,7 @@ export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
 
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  INVALID_OTP_CODE = 'INVALID_OTP_CODE',
   OTP_REQUIRED = 'OTP_REQUIRED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
