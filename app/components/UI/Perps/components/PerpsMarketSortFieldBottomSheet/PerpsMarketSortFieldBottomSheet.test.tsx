@@ -489,5 +489,65 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         screen.queryByTestId('sort-field-sheet-checkmark-volume'),
       ).not.toBeOnTheScreen();
     });
+
+    it('resets uncommitted changes when reopening the sheet', () => {
+      const { rerender } = render(
+        <PerpsMarketSortFieldBottomSheet
+          isVisible
+          selectedOptionId="volume"
+          sortDirection="desc"
+          onClose={mockOnClose}
+          onOptionSelect={mockOnOptionSelect}
+          testID="sort-field-sheet"
+        />,
+      );
+
+      // Initially volume is selected
+      expect(
+        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+      ).toBeOnTheScreen();
+
+      // User makes changes without applying - select priceChange
+      fireEvent.press(
+        screen.getByTestId('sort-field-sheet-option-priceChange'),
+      );
+
+      // Now priceChange should be selected locally
+      expect(
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
+      ).toBeOnTheScreen();
+
+      // User closes the sheet without applying
+      rerender(
+        <PerpsMarketSortFieldBottomSheet
+          isVisible={false}
+          selectedOptionId="volume"
+          sortDirection="desc"
+          onClose={mockOnClose}
+          onOptionSelect={mockOnOptionSelect}
+          testID="sort-field-sheet"
+        />,
+      );
+
+      // User reopens the sheet - props haven't changed (still volume)
+      rerender(
+        <PerpsMarketSortFieldBottomSheet
+          isVisible
+          selectedOptionId="volume"
+          sortDirection="desc"
+          onClose={mockOnClose}
+          onOptionSelect={mockOnOptionSelect}
+          testID="sort-field-sheet"
+        />,
+      );
+
+      // Local state should be reset to volume (uncommitted changes discarded)
+      expect(
+        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('sort-field-sheet-direction-indicator'),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

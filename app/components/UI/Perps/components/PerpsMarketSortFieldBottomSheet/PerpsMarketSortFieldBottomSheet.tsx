@@ -65,11 +65,14 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(initialSortDirection);
 
-  // Sync local state when props change
+  // Sync local state when props change or when sheet opens
+  // This ensures uncommitted changes are reset when reopening the sheet
   useEffect(() => {
-    setSelectedOption(initialSelectedOptionId);
-    setSortDirection(initialSortDirection);
-  }, [initialSelectedOptionId, initialSortDirection]);
+    if (isVisible) {
+      setSelectedOption(initialSelectedOptionId);
+      setSortDirection(initialSortDirection);
+    }
+  }, [initialSelectedOptionId, initialSortDirection, isVisible]);
 
   useEffect(() => {
     if (isVisible) {
