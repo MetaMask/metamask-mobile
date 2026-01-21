@@ -513,7 +513,6 @@ const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 const MainFlow = () => (
   <Stack.Navigator
     initialRouteName={'Main'}
-    mode={'modal'}
     screenOptions={{
       headerShown: false,
     }}
