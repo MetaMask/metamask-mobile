@@ -297,6 +297,7 @@
     "@metamask/transaction-pay-controller": "^11.0.0",
     "@metamask/tron-wallet-snap": "^1.19.1",
     "@metamask/utils": "^11.8.1",
+    "@myx-trade/sdk": "^0.1.247",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.30.2",
     "@noble/curves": "1.9.6",

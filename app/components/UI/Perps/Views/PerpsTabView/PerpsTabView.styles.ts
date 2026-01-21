@@ -93,6 +93,20 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
+    // Debug button (dev only)
+    debugButton: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      zIndex: 999,
+      backgroundColor: colors.warning.default,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+    },
+    debugButtonText: {
+      color: colors.warning.inverse,
+    },
   });
 };
 

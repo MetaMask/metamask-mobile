@@ -21,6 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
 import styleSheet from './PerpsHomeHeader.styles';
+import PerpsProviderSelector from '../PerpsProviderSelector';
 
 /**
  * PerpsHomeHeader Component
@@ -147,6 +148,11 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
               {title || strings('perps.title')}
             </Text>
           </View>
+
+          {/* Provider Selector - Shows when multiple providers available */}
+          <PerpsProviderSelector
+            testID={testID ? `${testID}-provider-selector` : undefined}
+          />
 
           {/* Search Toggle Button */}
           <View style={styles.titleButtonsRightContainer}>

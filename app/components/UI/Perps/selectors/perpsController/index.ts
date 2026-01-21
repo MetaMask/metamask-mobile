@@ -7,14 +7,23 @@ import {
   selectMarketFilterPreferences,
 } from '../../controllers/selectors';
 import { InitializationState } from '../../controllers/PerpsController';
+import type { PerpsProviderType } from '../../controllers/types';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
 
-const selectPerpsProvider = createSelector(
+/**
+ * Selects the active provider ID from PerpsController state
+ * @returns The currently active provider ('hyperliquid' | 'myx')
+ */
+const selectPerpsActiveProvider = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => perpsControllerState.activeProvider,
+  (perpsControllerState): PerpsProviderType =>
+    perpsControllerState?.activeProvider || 'hyperliquid',
 );
+
+// Alias for backward compatibility
+const selectPerpsProvider = selectPerpsActiveProvider;
 
 const selectPerpsAccountState = createSelector(
   selectPerpsControllerState,
@@ -94,6 +103,7 @@ export const createSelectIsWatchlistMarket = (symbol: string) =>
 
 export {
   selectPerpsProvider,
+  selectPerpsActiveProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,

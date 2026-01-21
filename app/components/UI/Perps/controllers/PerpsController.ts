@@ -16,9 +16,18 @@ import {
 import { Hex } from '@metamask/utils';
 import {
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  ARBITRUM_MAINNET_CHAIN_ID,
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_SYMBOL,
+  HYPERLIQUID_NETWORK_NAME,
+  USDC_TOKEN_ICON_URL,
 } from '../constants/hyperLiquidConfig';
+import {
+  BNB_MAINNET_CHAIN_ID,
+  USDT_SYMBOL,
+  MYX_NETWORK_NAME,
+  USDT_TOKEN_ICON_URL,
+} from '../constants/myxConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -33,6 +42,7 @@ import { CandlePeriod } from '../constants/chartConfig';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
+  PROVIDER_CONFIG,
   type SortOptionId,
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
@@ -99,6 +109,8 @@ import {
   type GetHistoricalPortfolioParams,
   type HistoricalPortfolioResult,
   type OrderType,
+  type PerpsProviderInfo,
+  type PerpsProviderType,
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
   type IPerpsPlatformDependencies,
   type IPerpsLogger,
@@ -132,7 +144,7 @@ export enum InitializationState {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsControllerState = {
   // Active provider
-  activeProvider: string;
+  activeProvider: PerpsProviderType;
   isTestnet: boolean; // Dev toggle for testnet
 
   // Initialization state machine
@@ -610,6 +622,14 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:saveOrderBookGrouping';
       handler: PerpsController['saveOrderBookGrouping'];
+    }
+  | {
+      type: 'PerpsController:getAvailableProviders';
+      handler: PerpsController['getAvailableProviders'];
+    }
+  | {
+      type: 'PerpsController:setActiveProvider';
+      handler: PerpsController['setActiveProvider'];
     };
 
 /**
@@ -1073,10 +1093,17 @@ export class PerpsController extends BaseController<
           }),
         );
 
-        // Future providers can be added here with their own authentication patterns:
-        // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-        // - Some might use different wallet patterns: new GMXProvider({ signer })
-        // - Some might not need auth at all: new DydxProvider()
+        // Add MYX provider if enabled
+        if (PROVIDER_CONFIG.MYX_ENABLED) {
+          const { MYXProvider } = await import('./providers/MYXProvider');
+          this.providers.set(
+            'myx',
+            new MYXProvider({
+              isTestnet: this.state.isTestnet,
+              platformDependencies: this.options.infrastructure,
+            }),
+          );
+        }
 
         // Wait for WebSocket transport to be ready before marking as initialized
         await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
@@ -2044,10 +2071,51 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Switch to a different provider
+   * Get available providers for user selection
+   * Returns provider info filtered by feature flags
    */
-  async switchProvider(providerId: string): Promise<SwitchProviderResult> {
-    if (!this.providers.has(providerId)) {
+  getAvailableProviders(): PerpsProviderInfo[] {
+    const providers: PerpsProviderInfo[] = [
+      {
+        id: 'hyperliquid',
+        name: HYPERLIQUID_NETWORK_NAME,
+        chain: 'Arbitrum',
+        collateral: 'USD Coin',
+        collateralSymbol: USDC_SYMBOL,
+        chainId: ARBITRUM_MAINNET_CHAIN_ID,
+        iconUrl: USDC_TOKEN_ICON_URL,
+        enabled: true,
+      },
+    ];
+
+    if (PROVIDER_CONFIG.MYX_ENABLED) {
+      providers.push({
+        id: 'myx',
+        name: MYX_NETWORK_NAME,
+        chain: 'BNB Chain',
+        collateral: 'Tether USD',
+        collateralSymbol: USDT_SYMBOL,
+        chainId: BNB_MAINNET_CHAIN_ID,
+        iconUrl: USDT_TOKEN_ICON_URL,
+        enabled: true,
+      });
+    }
+
+    return providers;
+  }
+
+  /**
+   * Switch to a different provider
+   * Disconnects current provider and reinitializes with new provider
+   */
+  async switchProvider(
+    providerId: PerpsProviderType,
+  ): Promise<SwitchProviderResult> {
+    // Validate provider is available
+    const availableProviders = this.getAvailableProviders();
+    const providerInfo = availableProviders.find((p) => p.id === providerId);
+
+    if (!providerInfo?.enabled) {
       return {
         success: false,
         providerId: this.state.activeProvider,
@@ -2055,11 +2123,75 @@ export class PerpsController extends BaseController<
       };
     }
 
-    this.update((state) => {
-      state.activeProvider = providerId;
-    });
+    // Skip if already on this provider
+    if (this.state.activeProvider === providerId) {
+      return { success: true, providerId };
+    }
 
-    return { success: true, providerId };
+    // Prevent concurrent switches
+    if (this.isReinitializing) {
+      return {
+        success: false,
+        providerId: this.state.activeProvider,
+        error: PERPS_ERROR_CODES.CLIENT_REINITIALIZING,
+      };
+    }
+
+    this.isReinitializing = true;
+
+    try {
+      this.debugLog('PerpsController: Provider switch initiated', {
+        from: this.state.activeProvider,
+        to: providerId,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Disconnect current provider
+      await this.disconnect();
+
+      // Update state with new provider
+      this.update((state) => {
+        state.activeProvider = providerId;
+        state.accountState = null;
+        state.initializationState = InitializationState.UNINITIALIZED;
+      });
+
+      // Reset initialization state and reinitialize
+      this.isInitialized = false;
+      this.initializationPromise = null;
+      await this.init();
+
+      this.debugLog('PerpsController: Provider switch completed', {
+        providerId,
+        timestamp: new Date().toISOString(),
+      });
+
+      return { success: true, providerId };
+    } catch (error) {
+      this.logError(
+        ensureError(error),
+        this.getErrorContext('switchProvider', { providerId }),
+      );
+      return {
+        success: false,
+        providerId: this.state.activeProvider,
+        error:
+          error instanceof Error
+            ? error.message
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      };
+    } finally {
+      this.isReinitializing = false;
+    }
+  }
+
+  /**
+   * Set the active provider (alias for switchProvider for better semantics)
+   */
+  async setActiveProvider(
+    providerId: PerpsProviderType,
+  ): Promise<SwitchProviderResult> {
+    return this.switchProvider(providerId);
   }
 
   /**

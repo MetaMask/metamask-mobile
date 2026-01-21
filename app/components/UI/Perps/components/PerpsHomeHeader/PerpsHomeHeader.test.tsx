@@ -105,6 +105,16 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('../PerpsProviderSelector', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => (
+      <View testID={testID || 'mock-provider-selector'} />
+    ),
+  };
+});
+
 describe('PerpsHomeHeader', () => {
   const mockGoBack = jest.fn();
   const mockCanGoBack = jest.fn();

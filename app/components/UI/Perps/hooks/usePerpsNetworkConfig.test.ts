@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 import type {
+  PerpsProviderType,
   SwitchProviderResult,
   ToggleTestnetResult,
 } from '../controllers/types';
@@ -168,13 +169,13 @@ describe('usePerpsNetworkConfig', () => {
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
-      await expect(
-        result.current.switchProvider('invalid-provider'),
-      ).rejects.toThrow('Provider switch failed');
+      await expect(result.current.switchProvider('myx')).rejects.toThrow(
+        'Provider switch failed',
+      );
     });
 
     it('should handle switching between different providers', async () => {
-      const providers = ['hyperliquid', 'gmx', 'dydx'];
+      const providers: PerpsProviderType[] = ['hyperliquid', 'myx'];
 
       for (const provider of providers) {
         const mockSwitchResult: SwitchProviderResult = {
@@ -285,7 +286,7 @@ describe('usePerpsNetworkConfig', () => {
 
       const mockSwitchResult: SwitchProviderResult = {
         success: true,
-        providerId: 'hyperliquid-testnet',
+        providerId: 'myx',
       };
 
       (
@@ -302,10 +303,8 @@ describe('usePerpsNetworkConfig', () => {
       expect(toggleResponse.isTestnet).toBe(true);
 
       // Switch provider on testnet
-      const switchResponse = await result.current.switchProvider(
-        'hyperliquid-testnet',
-      );
-      expect(switchResponse.providerId).toBe('hyperliquid-testnet');
+      const switchResponse = await result.current.switchProvider('myx');
+      expect(switchResponse.providerId).toBe('myx');
     });
 
     it('should handle getCurrentNetwork after toggle', async () => {

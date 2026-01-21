@@ -1,0 +1,28 @@
+Hi @RyanMYXFinance,
+
+Quick update on SDK integration progress (v0.1.247):
+
+Working ✅:
+- Public HTTP API (getPoolSymbolAll, getTickerList, getKlineList)
+- getAccountInfo (returns account data)
+- WebSocket connection (connects successfully)
+
+Not working ❌:
+- subscription.auth() returns 9401 Unauthorized
+- listPositions() and getOrders() return "Failed to obtain accessToken"
+
+The issue: The SDK requires a getAccessToken callback, but I can't find documentation on how to generate a valid token. I tried:
+- Wallet signatures (personal_sign)
+- Address-based tokens
+- JSON/Base64 payloads
+
+All fail with 9401.
+
+Questions:
+1. Is there a backend endpoint I need to call to get the accessToken? (e.g., /auth/token)
+2. What format should the token be in?
+3. Is appId registration required?
+
+Could you share a working code example or point me to the auth documentation?
+
+Thanks!

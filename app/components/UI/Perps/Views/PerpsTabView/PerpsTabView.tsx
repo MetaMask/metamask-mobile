@@ -233,6 +233,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     );
   };
 
+  const handleMYXAuthDebug = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MYX_AUTH_DEBUG,
+    });
+  }, [navigation]);
+
   return (
     <SafeAreaView
       style={[
@@ -242,6 +248,17 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       edges={['left', 'right']}
     >
       <>
+        {/* Debug button - only in development */}
+        {__DEV__ && (
+          <TouchableOpacity
+            onPress={handleMYXAuthDebug}
+            style={styles.debugButton}
+          >
+            <Text variant={TextVariant.BodyXS} style={styles.debugButtonText}>
+              MYX Debug
+            </Text>
+          </TouchableOpacity>
+        )}
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
           hasPositions={hasPositions}

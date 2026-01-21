@@ -1947,6 +1947,15 @@
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
+    },
+    "provider_selector": {
+      "title": "Select provider",
+      "warning": {
+        "title": "Open positions",
+        "message": "You have {{count}} open position(s) on {{fromProvider}}. These will remain open when you switch to {{toProvider}}.",
+        "cancel": "Cancel",
+        "switch": "Switch anyway"
+      }
     }
   },
   "predict": {

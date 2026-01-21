@@ -29,12 +29,13 @@ import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMar
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
 import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
+import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
 import PerpsOrderBookView from '../Views/PerpsOrderBookView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
-import { HIP3DebugView } from '../Debug';
+import { HIP3DebugView, MYXAuthDebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 
 const Stack = createStackNavigator();
@@ -126,6 +127,13 @@ const PerpsModalStack = () => {
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_ORDER_TYPE}
             component={PerpsSelectOrderTypeView}
+            options={{
+              cardStyle: { backgroundColor: 'transparent' },
+            }}
+          />
+          <ModalStack.Screen
+            name={Routes.PERPS.SELECT_PROVIDER}
+            component={PerpsSelectProviderView}
             options={{
               cardStyle: { backgroundColor: 'transparent' },
             }}
@@ -287,6 +295,16 @@ const PerpsScreenStack = () => {
               component={HIP3DebugView}
               options={{
                 title: 'HIP-3 Debug Tools',
+                headerShown: true,
+              }}
+            />
+          )}
+          {__DEV__ && (
+            <Stack.Screen
+              name={Routes.PERPS.MYX_AUTH_DEBUG}
+              component={MYXAuthDebugView}
+              options={{
+                title: 'MYX Auth Debug',
                 headerShown: true,
               }}
             />
