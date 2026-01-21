@@ -4,14 +4,14 @@ import { View } from 'react-native-animatable';
 import { captureException } from '@sentry/react-native';
 import { deflate } from 'react-native-gzip';
 
-import { strings } from '../../../../../../../locales/i18n';
-import { AccordionHeaderHorizontalAlignment } from '../../../../../../component-library/components/Accordions/Accordion';
-import Accordion from '../../../../../../component-library/components/Accordions/Accordion/Accordion';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
-import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import Text from '../../../../../../component-library/components/Texts/Text/Text';
-import { useStyles } from '../../../../../../component-library/hooks/useStyles';
+import { strings } from '../../../../../../locales/i18n';
+import { AccordionHeaderHorizontalAlignment } from '../../../../../component-library/components/Accordions/Accordion';
+import Accordion from '../../../../../component-library/components/Accordions/Accordion/Accordion';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
+import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import Text from '../../../../../component-library/components/Texts/Text/Text';
+import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import {
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
@@ -27,10 +27,10 @@ import BlockaidBannerLink from './BlockaidBannerLink';
 import {
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
-} from '../../../../../../constants/urls';
-import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../../util/networks';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
-import AppConstants from '../../../../../../core/AppConstants';
+} from '../../../../../constants/urls';
+import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import AppConstants from '../../../../../core/AppConstants';
 import { ConfirmationTopSheetSelectorsIDs } from '../../../ConfirmationView.testIds';
 
 const getReportUrl = (encodedData: string) =>

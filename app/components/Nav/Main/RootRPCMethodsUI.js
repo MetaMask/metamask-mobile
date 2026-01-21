@@ -23,7 +23,6 @@ import {
   calcTokenAmount,
   getTokenValueParamAsHex,
   getIsSwapApproveOrSwapTransaction,
-  isApprovalTransaction,
 } from '../../../util/transactions';
 import BN from 'bnjs4';
 import Logger from '../../../util/Logger';
@@ -37,7 +36,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
-import SignatureApproval from '../../Approvals/SignatureApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
@@ -295,7 +293,6 @@ const RootRPCMethodsUI = (props) => {
   return (
     <React.Fragment>
       <ConfirmRoot />
-      <SignatureApproval />
       <WalletConnectApproval />
       <AddChainApproval />
       <SwitchChainApproval />

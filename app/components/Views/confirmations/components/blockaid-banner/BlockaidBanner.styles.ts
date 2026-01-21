@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '../../../../../util/theme/models';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { BlockaidBannerStyleSheetVars } from './BlockaidBanner.types';
 /**

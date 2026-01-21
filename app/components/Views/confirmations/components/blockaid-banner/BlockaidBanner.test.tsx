@@ -2,18 +2,18 @@ import React from 'react';
 
 import { fireEvent } from '@testing-library/react-native';
 
-import { TESTID_ACCORDION_CONTENT } from '../../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
-import { TESTID_ACCORDIONHEADER } from '../../../../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
-import { BANNERALERT_TEST_ID } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
+import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
+import { BANNERALERT_TEST_ID } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import BlockaidBanner from './BlockaidBanner';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from './BlockaidBanner.constants';
 import { ResultType, Reason } from './BlockaidBanner.types';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../../../util/test/renderWithProvider';
+} from '../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../../reducers';
 
-jest.mock('../../../../../../util/blockaid', () => ({
+jest.mock('../../../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
