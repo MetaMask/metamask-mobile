@@ -187,7 +187,7 @@ export class TradingService {
     }
 
     this.deps.metrics.trackPerpsEvent(
-      PerpsAnalyticsEvent.TRADE_TRANSACTION,
+      PerpsAnalyticsEvent.TradeTransaction,
       properties,
     );
   }
@@ -637,7 +637,7 @@ export class TradingService {
       );
 
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+        PerpsAnalyticsEvent.PositionCloseTransaction,
         {
           ...partialProperties,
           [PerpsEventProperties.AMOUNT_FILLED]: metrics.filledSize,
@@ -667,7 +667,7 @@ export class TradingService {
     );
 
     this.deps.metrics.trackPerpsEvent(
-      PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+      PerpsAnalyticsEvent.PositionCloseTransaction,
       {
         ...eventProperties,
         [PerpsEventProperties.COMPLETION_DURATION]: duration,
@@ -829,7 +829,7 @@ export class TradingService {
           );
         }
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.TRADE_TRANSACTION,
+          PerpsAnalyticsEvent.TradeTransaction,
           editExecutedProps,
         );
 
@@ -837,7 +837,7 @@ export class TradingService {
       } else {
         // Track order edit failed
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.TRADE_TRANSACTION,
+          PerpsAnalyticsEvent.TradeTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
             [PerpsEventProperties.ASSET]: params.newOrder.coin,
@@ -861,7 +861,7 @@ export class TradingService {
       const completionDuration = this.deps.performance.now() - startTime;
 
       // Track order edit exception
-      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TRADE_TRANSACTION, {
+      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
         [PerpsEventProperties.ASSET]: params.newOrder.coin,
         [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
@@ -950,7 +950,7 @@ export class TradingService {
 
         // Track order cancel executed
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+          PerpsAnalyticsEvent.OrderCancelTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
             [PerpsEventProperties.ASSET]: params.coin,
@@ -962,7 +962,7 @@ export class TradingService {
       } else {
         // Track order cancel failed
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+          PerpsAnalyticsEvent.OrderCancelTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
             [PerpsEventProperties.ASSET]: params.coin,
@@ -981,7 +981,7 @@ export class TradingService {
 
       // Track order cancel exception
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+        PerpsAnalyticsEvent.OrderCancelTransaction,
         {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
           [PerpsEventProperties.ASSET]: params.coin,
@@ -1162,7 +1162,7 @@ export class TradingService {
           operationError.message;
       }
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+        PerpsAnalyticsEvent.OrderCancelTransaction,
         batchCancelProps,
       );
 
@@ -1447,7 +1447,7 @@ export class TradingService {
           operationError.message;
       }
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+        PerpsAnalyticsEvent.PositionCloseTransaction,
         batchCloseProps,
       );
 
@@ -1583,7 +1583,7 @@ export class TradingService {
 
       // Track event once with all properties
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.RISK_MANAGEMENT,
+        PerpsAnalyticsEvent.RiskManagement,
         eventProperties,
       );
 
@@ -1639,7 +1639,7 @@ export class TradingService {
         }
 
         // Track success analytics
-        this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RISK_MANAGEMENT, {
+        this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RiskManagement, {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
           [PerpsEventProperties.ASSET]: coin,
           [PerpsEventProperties.ACTION]:
@@ -1667,7 +1667,7 @@ export class TradingService {
       );
 
       // Track failure analytics
-      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RISK_MANAGEMENT, {
+      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RiskManagement, {
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
         [PerpsEventProperties.ASSET]: coin,
         [PerpsEventProperties.ACTION]:
@@ -1763,7 +1763,7 @@ export class TradingService {
 
         // Track success analytics
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.TRADE_TRANSACTION,
+          PerpsAnalyticsEvent.TradeTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
             [PerpsEventProperties.ASSET]: position.coin,
@@ -1797,7 +1797,7 @@ export class TradingService {
       );
 
       // Track failure analytics
-      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TRADE_TRANSACTION, {
+      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.ACTION]: 'flip_position',

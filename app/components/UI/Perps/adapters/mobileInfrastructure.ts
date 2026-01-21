@@ -52,12 +52,6 @@ function createMobileMetrics(): IPerpsMetrics {
   const metricsInstance: IMetaMetrics = MetaMetrics.getInstance();
 
   return {
-    trackEvent(event: unknown, saveDataRecording?: boolean): void {
-      metricsInstance.trackEvent(
-        event as Parameters<IMetaMetrics['trackEvent']>[0],
-        saveDataRecording,
-      );
-    },
     isEnabled(): boolean {
       return metricsInstance.isEnabled();
     },

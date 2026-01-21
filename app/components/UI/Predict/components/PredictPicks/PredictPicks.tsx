@@ -1,15 +1,7 @@
-import {
-  Box,
-  Button,
-  ButtonVariant,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import React from 'react';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { useLivePositions } from '../../hooks/useLivePositions';
-import { formatPrice } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -17,6 +9,7 @@ import { PredictMarket, PredictPosition } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { strings } from '../../../../../../locales/i18n';
+import PredictPickItem from './PredictPickItem';
 
 interface PredictPicksProps {
   market: PredictMarket;
@@ -60,9 +53,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     );
   };
 
-  const hasPositions = livePositions.length > 0;
-
-  if (!hasPositions) {
+  if (livePositions.length === 0) {
     return null;
   }
 
@@ -72,44 +63,12 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
         {strings('predict.market_details.your_picks')}
       </Text>
       {livePositions.map((position) => (
-        <Box
-          testID={testID}
-          twClassName="flex-row justify-between items-center py-3"
+        <PredictPickItem
           key={position.id}
-        >
-          <Box>
-            <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-              {strings('predict.position_pick_info', {
-                initialValue: formatPrice(position.initialValue, {
-                  maximumDecimals: 2,
-                }),
-                outcome: position.outcome,
-              })}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={
-                position.cashPnl < 0
-                  ? TextColor.ErrorDefault
-                  : TextColor.SuccessDefault
-              }
-              twClassName="font-medium"
-              testID={`predict-picks-pnl-${position.id}`}
-            >
-              {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
-            </Text>
-          </Box>
-          <Button
-            variant={ButtonVariant.Secondary}
-            twClassName="py-3 px-4 light:bg-muted/5"
-            onPress={() => onCashOut(position)}
-            testID={`predict-picks-cash-out-button-${position.id}`}
-          >
-            <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-              {strings('predict.cash_out')}
-            </Text>
-          </Button>
-        </Box>
+          position={position}
+          onCashOut={onCashOut}
+          testID={`${testID}-item-${position.id}`}
+        />
       ))}
     </Box>
   );
