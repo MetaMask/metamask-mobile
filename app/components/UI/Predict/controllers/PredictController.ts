@@ -1873,6 +1873,141 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by deposit preparation');
       }
 
+      DevLogger.log('PredictController: depositWithConfirmation transactions', {
+        count: transactions.length,
+        transactions: transactions.map((tx, index) => ({
+          index,
+          type: tx?.type,
+          to: tx?.params?.to,
+          dataLength: tx?.params?.data?.length ?? 0,
+        })),
+      });
+
+      const MIN_VALID_DATA_LENGTH = 10;
+      const VALID_ADDRESS_LENGTH = 42;
+      for (let i = 0; i < transactions.length; i++) {
+        const tx = transactions[i];
+
+        if (!tx) {
+          Logger.error(
+            new Error(
+              `Invalid transaction at index ${i}: transaction is null or undefined`,
+            ),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+            }),
+          );
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} is null or undefined`,
+          );
+        }
+
+        if (!tx.params) {
+          Logger.error(
+            new Error(
+              `Invalid transaction at index ${i}: params object is missing`,
+            ),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+              transactionType: tx.type,
+            }),
+          );
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} is missing params object`,
+          );
+        }
+
+        if (!tx.params.to) {
+          Logger.error(
+            new Error(
+              `Invalid transaction at index ${i}: 'to' address is missing`,
+            ),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+              transactionType: tx.type,
+            }),
+          );
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} is missing 'to' address`,
+          );
+        }
+
+        if (
+          typeof tx.params.to !== 'string' ||
+          !tx.params.to.startsWith('0x') ||
+          tx.params.to.length !== VALID_ADDRESS_LENGTH
+        ) {
+          Logger.error(
+            new Error(
+              `Invalid transaction at index ${i}: 'to' address has invalid format (${tx.params.to})`,
+            ),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+              transactionType: tx.type,
+              toAddress: tx.params.to,
+            }),
+          );
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} has invalid 'to' address format`,
+          );
+        }
+
+        if (!tx.params.data) {
+          Logger.error(
+            new Error(`Invalid transaction at index ${i}: data is missing`),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+              transactionType: tx.type,
+            }),
+          );
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} is missing data`,
+          );
+        }
+
+        if (
+          typeof tx.params.data !== 'string' ||
+          !tx.params.data.startsWith('0x')
+        ) {
+          Logger.error(
+            new Error(
+              `Invalid transaction at index ${i}: data has invalid hex format`,
+            ),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+              transactionType: tx.type,
+              dataPrefix: tx.params.data?.slice?.(0, 10),
+            }),
+          );
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} has invalid data format (must be hex string starting with 0x)`,
+          );
+        }
+
+        if (tx.params.data.length < MIN_VALID_DATA_LENGTH) {
+          Logger.error(
+            new Error(
+              `Invalid transaction at index ${i}: data length ${tx.params.data.length} is less than minimum ${MIN_VALID_DATA_LENGTH}`,
+            ),
+            this.getErrorContext('depositWithConfirmation', {
+              providerId: params.providerId,
+              transactionIndex: i,
+              transactionType: tx.type,
+              dataLength: tx.params.data.length,
+            }),
+          );
+          throw new Error(
+            `Invalid transaction: transaction at index ${i} has insufficient data (length: ${tx.params.data.length}, minimum: ${MIN_VALID_DATA_LENGTH})`,
+          );
+        }
+      }
+
       const { NetworkController } = Engine.context;
       const networkClientId =
         NetworkController.findNetworkClientIdByChainId(chainId);
