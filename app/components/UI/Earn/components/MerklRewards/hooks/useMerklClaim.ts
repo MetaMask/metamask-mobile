@@ -128,20 +128,58 @@ export const useMerklClaim = ({
             pendingTransactionIdRef.current = null;
             // Update UI state immediately
             setIsClaiming(false);
-            // Update token balances to reflect the new balance after claiming
-            // This ensures AssetOverview shows the updated token balance
-            Engine.context.TokenBalancesController.updateBalances({
-              chainIds: [transactionMeta.chainId],
-            }).catch(() => {
-              // Ignore balance update errors
-            });
-            // Refetch claimed amount from blockchain after transaction confirmation
-            if (onClaimSuccessRef.current) {
-              onClaimSuccessRef.current().catch(() => {
-                // Ignore refetch errors
+            // Update token balances and account balances to reflect the new balance after claiming
+            // This ensures AssetOverview shows the updated token balance immediately
+            const txNetworkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                transactionMeta.chainId,
+              );
+            // Add a small delay to allow blockchain state to propagate after transaction confirmation
+            // Then update balances with retry mechanism to ensure they're refreshed
+            // Also detect tokens to ensure the token is in the tokens list
+            const updateBalancesWithRetry = async (retries = 2) => {
+              // Wait 1 second for blockchain state to propagate
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+
+              try {
+                await Promise.all([
+                  // Detect tokens first to ensure they're in the tokens list
+                  Engine.context.TokenDetectionController.detectTokens({
+                    chainIds: [transactionMeta.chainId],
+                  }),
+                  // Then update balances
+                  Engine.context.TokenBalancesController.updateBalances({
+                    chainIds: [transactionMeta.chainId],
+                  }),
+                  txNetworkClientId
+                    ? Engine.context.AccountTrackerController.refresh([
+                        txNetworkClientId,
+                      ])
+                    : Promise.resolve(),
+                ]);
+              } catch (error) {
+                // Retry if we have retries left
+                if (retries > 0) {
+                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                  return updateBalancesWithRetry(retries - 1);
+                }
+                throw error;
+              }
+            };
+
+            updateBalancesWithRetry()
+              .then(() => {
+                // Refetch claimed amount from blockchain after balance updates complete
+                if (onClaimSuccessRef.current) {
+                  return onClaimSuccessRef.current();
+                }
+              })
+              .catch(() => {
+                // Ignore balance update errors, but still resolve
+              })
+              .finally(() => {
+                resolve();
               });
-            }
-            resolve();
           } else if (
             transactionMeta.status === TransactionStatus.failed ||
             transactionMeta.status === TransactionStatus.rejected

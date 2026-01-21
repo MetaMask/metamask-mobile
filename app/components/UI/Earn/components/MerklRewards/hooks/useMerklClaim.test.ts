@@ -29,6 +29,21 @@ jest.mock('../../../../../../core/Engine', () => ({
     TokenBalancesController: {
       updateBalances: jest.fn().mockResolvedValue(undefined),
     },
+    TokenDetectionController: {
+      detectTokens: jest.fn().mockResolvedValue(undefined),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn().mockResolvedValue(undefined),
+    },
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn((chainId) => {
+        // Mainnet chainId is '0x1'
+        if (chainId === '0x1' || chainId === 1) {
+          return 'mainnet';
+        }
+        return undefined;
+      }),
+    },
   },
 }));
 
@@ -603,7 +618,7 @@ describe('useMerklClaim', () => {
     },
   );
 
-  it('calls TokenBalancesController.updateBalances on transaction confirmation', async () => {
+  it('calls TokenBalancesController.updateBalances and AccountTrackerController.refresh on transaction confirmation', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => createMockRewardData(),
@@ -618,6 +633,10 @@ describe('useMerklClaim', () => {
     const mockUpdateBalances = Engine.context.TokenBalancesController
       .updateBalances as jest.MockedFunction<
       typeof Engine.context.TokenBalancesController.updateBalances
+    >;
+    const mockRefresh = Engine.context.AccountTrackerController
+      .refresh as jest.MockedFunction<
+      typeof Engine.context.AccountTrackerController.refresh
     >;
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
@@ -645,5 +664,6 @@ describe('useMerklClaim', () => {
         chainIds: [CHAIN_IDS.MAINNET],
       }),
     );
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalledWith(['mainnet']));
   });
 });
