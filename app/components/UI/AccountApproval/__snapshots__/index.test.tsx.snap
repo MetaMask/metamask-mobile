@@ -208,7 +208,7 @@ exports[`AccountApproval should render correctly 1`] = `
       }
     }
   >
-    By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
+    By clicking connect, you allow this site to view your public address. This is an important security step to protect your data from potential phishing risks.
   </Text>
   <View
     style={

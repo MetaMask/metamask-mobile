@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback, useState } from 'react';
-import { PanResponder, View } from 'react-native';
+import { ActivityIndicator, PanResponder, View } from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -22,7 +22,7 @@ import ChartTooltip from './ChartTooltip';
 import EndpointDots from './EndpointDots';
 import { CHART_HEIGHT } from './PredictGameChart.constants';
 
-const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 10, right: 80 };
+const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 0, right: 80 };
 const LINE_CURVE = curveStepAfter;
 
 const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
@@ -32,6 +32,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   onRetry,
   timeframe = 'live',
   onTimeframeChange,
+  disabledTimeframeSelector = false,
   testID,
 }) => {
   const tw = useTailwind();
@@ -139,13 +140,15 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
     return (
       <Box twClassName="flex-1" testID={testID}>
         <Box
-          twClassName={`h-[${CHART_HEIGHT}px] bg-background-alternative rounded-lg`}
-        />
+          twClassName={`h-[${CHART_HEIGHT}px] bg-transparent rounded-lg items-center justify-center`}
+        >
+          <ActivityIndicator color={colors.primary.default} />
+        </Box>
         {onTimeframeChange && (
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
-            disabled
+            disabled={disabledTimeframeSelector || isLoading}
           />
         )}
       </Box>
@@ -183,6 +186,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -201,6 +205,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -330,7 +335,11 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
       </View>
 
       {onTimeframeChange && (
-        <TimeframeSelector selected={timeframe} onSelect={onTimeframeChange} />
+        <TimeframeSelector
+          selected={timeframe}
+          onSelect={onTimeframeChange}
+          disabled={disabledTimeframeSelector}
+        />
       )}
     </Box>
   );

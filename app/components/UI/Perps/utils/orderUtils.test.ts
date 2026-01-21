@@ -8,19 +8,12 @@ import {
 import { Order, OrderParams } from '../controllers/types';
 import { Position } from '../hooks';
 
-// Mock i18n strings
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
-}));
-
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
 }));
-
-import { strings } from '../../../../../locales/i18n';
 
 describe('orderUtils', () => {
   describe('formatOrderLabel', () => {
@@ -290,50 +283,24 @@ describe('orderUtils', () => {
   });
 
   describe('getOrderDirection', () => {
-    const mockStrings = strings as jest.MockedFunction<typeof strings>;
-
     it('should return long for buy with no position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('buy', undefined);
-      expect(result).toBe('Long');
+      expect(result).toBe('long');
     });
 
     it('should return short for sell with no position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('sell', undefined);
-      expect(result).toBe('Short');
+      expect(result).toBe('short');
     });
 
     it('should return long for positive position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('sell', '1.5');
-      expect(result).toBe('Long');
+      expect(result).toBe('long');
     });
 
     it('should return short for negative position', () => {
-      mockStrings.mockImplementation((key: string) => {
-        if (key === 'perps.market.long') return 'Long';
-        if (key === 'perps.market.short') return 'Short';
-        return key;
-      });
-
       const result = getOrderDirection('buy', '-1.5');
-      expect(result).toBe('Short');
+      expect(result).toBe('short');
     });
   });
 

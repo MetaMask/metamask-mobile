@@ -15,6 +15,7 @@ import {
   CardLocation,
   CreateOnboardingConsentRequest,
   UserResponse,
+  DelegationSettingsNetwork,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -75,6 +76,17 @@ jest.mock('../../../../util/networks', () => ({
 
 // Mock fetch for geolocation API
 global.fetch = jest.fn();
+
+// Mock i18n
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: { [key: string]: string } = {
+      'card.card_home.enable_card_error':
+        'Failed to provision card. Please try again.',
+    };
+    return translations[key] || key;
+  },
+}));
 
 describe('CardSDK', () => {
   let cardSDK: CardSDK;
@@ -1205,6 +1217,31 @@ describe('CardSDK', () => {
         message: 'Login failed. Please try again.',
       });
     });
+
+    it('throws INVALID_OTP_CODE error when status is 400 and otpCode is provided', async () => {
+      const mockLoginDataWithOtp = {
+        ...mockLoginData,
+        otpCode: '123456',
+        location: 'us' as CardLocation,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: 'Invalid OTP code',
+        }),
+      });
+
+      await expect(cardSDK.login(mockLoginDataWithOtp)).rejects.toThrow(
+        CardError,
+      );
+
+      await expect(cardSDK.login(mockLoginDataWithOtp)).rejects.toMatchObject({
+        type: CardErrorType.INVALID_OTP_CODE,
+        message: 'Invalid OTP code',
+      });
+    });
   });
 
   describe('sendOtpLogin', () => {
@@ -1680,7 +1717,38 @@ describe('CardSDK', () => {
       );
     });
 
-    it('throws SERVER_ERROR when provision fails', async () => {
+    it('throws SERVER_ERROR with API message when provision fails with message', async () => {
+      const errorResponse = {
+        message:
+          'Unable to place a card order. Please contact customer support',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue(errorResponse),
+      });
+
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
+
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message:
+          'Unable to place a card order. Please contact customer support',
+      });
+      expect(Logger.log).toHaveBeenCalledWith(
+        errorResponse,
+        'Failed to provision card.',
+      );
+    });
+
+    it('throws SERVER_ERROR with fallback message when provision fails without message', async () => {
       const errorResponse = { error: 'Card provision failed' };
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -1689,20 +1757,25 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(errorResponse),
       });
 
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
 
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message: 'Failed to provision card. Please try again.',
       });
-
       expect(Logger.log).toHaveBeenCalledWith(
         errorResponse,
         'Failed to provision card.',
       );
     });
 
-    it('handles error when response JSON parsing fails', async () => {
+    it('throws SERVER_ERROR with fallback message when response JSON parsing fails', async () => {
       const parseError = new Error('Invalid JSON');
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -1711,9 +1784,15 @@ describe('CardSDK', () => {
         json: jest.fn().mockRejectedValue(parseError),
       });
 
-      await expect(cardSDK.provisionCard()).rejects.toThrow(CardError);
+      let thrownError: CardError | undefined;
+      try {
+        await cardSDK.provisionCard();
+      } catch (error) {
+        thrownError = error as CardError;
+      }
 
-      await expect(cardSDK.provisionCard()).rejects.toMatchObject({
+      expect(thrownError).toBeInstanceOf(CardError);
+      expect(thrownError).toMatchObject({
         type: CardErrorType.SERVER_ERROR,
         message: 'Failed to provision card. Please try again.',
       });
@@ -3724,6 +3803,252 @@ describe('CardSDK', () => {
         'Failed to retrieve Card bearer token:',
         expect.any(Error),
       );
+    });
+  });
+
+  describe('mapCardExternalWalletDetailsToDelegationSettings', () => {
+    const mockDelegationSettings: DelegationSettingsNetwork[] = [
+      {
+        network: 'linea',
+        environment: 'production',
+        chainId: '59144',
+        delegationContract: '0xDelegationContract123',
+        tokens: {
+          usdc: {
+            symbol: 'USDC',
+            decimals: 6,
+            address: '0xUSDCAddress123',
+          },
+          usdt: {
+            symbol: 'USDT',
+            decimals: 6,
+            address: '0xUSDTAddress456',
+          },
+        },
+      },
+      {
+        network: 'linea',
+        environment: 'staging',
+        chainId: '59144',
+        delegationContract: '0xStagingDelegationContract',
+        tokens: {
+          usdc: {
+            symbol: 'USDC',
+            decimals: 6,
+            address: '0xStagingUSDCAddress',
+          },
+        },
+      },
+    ];
+
+    it('returns token details with delegation contract when network and token are in delegation settings', () => {
+      const walletExternal = {
+        address: '0xWalletAddress',
+        currency: 'USDC',
+        balance: '1000',
+        allowance: '500',
+        network: 'linea' as const,
+      };
+
+      const result = cardSDK.mapCardExternalWalletDetailsToDelegationSettings(
+        walletExternal,
+        mockDelegationSettings,
+      );
+
+      expect(result).toEqual({
+        symbol: 'USDC',
+        address: '0xUSDCAddress123',
+        decimals: 6,
+        decimalChainId: '59144',
+        name: 'USD Coin',
+        delegationContractAddress: '0xDelegationContract123',
+      });
+    });
+
+    it('returns fallback token details with empty delegation contract when network is not in delegation settings', () => {
+      const walletExternal = {
+        address: '0xWalletAddress',
+        currency: 'USDC',
+        balance: '1000',
+        allowance: '500',
+        network: 'linea' as const,
+      };
+
+      // Empty delegation settings - network not found
+      const result = cardSDK.mapCardExternalWalletDetailsToDelegationSettings(
+        walletExternal,
+        [],
+      );
+
+      expect(result).toEqual({
+        symbol: 'USDC',
+        address: '0x1234567890123456789012345678901234567890',
+        decimals: 6,
+        decimalChainId: 59144,
+        name: 'USD Coin',
+        delegationContractAddress: '',
+        stagingTokenAddress: null,
+      });
+    });
+
+    it('returns fallback token details with empty delegation contract when token is not in delegation settings', () => {
+      const walletExternal = {
+        address: '0xWalletAddress',
+        currency: 'DAI', // DAI is not in delegation settings but is a supported token
+        balance: '1000',
+        allowance: '500',
+        network: 'linea' as const,
+      };
+
+      // Add DAI to supported tokens for this test
+      const cardFeatureFlagWithDAI = {
+        ...mockCardFeatureFlag,
+        chains: {
+          'eip155:59144': {
+            ...mockCardFeatureFlag.chains?.['eip155:59144'],
+            tokens: [
+              ...mockSupportedTokens,
+              {
+                address: '0xDAIAddress789',
+                symbol: 'DAI',
+                name: 'Dai Stablecoin',
+                decimals: 18,
+              },
+            ],
+          },
+        },
+      };
+
+      const sdkWithDAI = new CardSDK({
+        cardFeatureFlag: cardFeatureFlagWithDAI,
+      });
+
+      const result =
+        sdkWithDAI.mapCardExternalWalletDetailsToDelegationSettings(
+          walletExternal,
+          mockDelegationSettings, // DAI not in delegation settings tokens
+        );
+
+      expect(result).toEqual({
+        symbol: 'DAI',
+        address: '0xDAIAddress789',
+        decimals: 18,
+        decimalChainId: '59144',
+        name: 'Dai Stablecoin',
+        delegationContractAddress: '',
+        stagingTokenAddress: null,
+      });
+    });
+
+    it('returns null when network is not in delegation settings and token is not in supported tokens', () => {
+      const walletExternal = {
+        address: '0xWalletAddress',
+        currency: 'UNKNOWN_TOKEN',
+        balance: '1000',
+        allowance: '500',
+        network: 'linea' as const,
+      };
+
+      const result = cardSDK.mapCardExternalWalletDetailsToDelegationSettings(
+        walletExternal,
+        [], // Empty delegation settings
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when token is not in delegation settings and not in supported tokens', () => {
+      const walletExternal = {
+        address: '0xWalletAddress',
+        currency: 'UNKNOWN_TOKEN',
+        balance: '1000',
+        allowance: '500',
+        network: 'linea' as const,
+      };
+
+      const result = cardSDK.mapCardExternalWalletDetailsToDelegationSettings(
+        walletExternal,
+        mockDelegationSettings,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('returns staging token details when environment is staging', () => {
+      const walletExternal = {
+        address: '0xWalletAddress',
+        currency: 'USDC',
+        balance: '1000',
+        allowance: '500',
+        network: 'linea' as const,
+      };
+
+      // Filter to only staging settings
+      const stagingDelegationSettings = mockDelegationSettings.filter(
+        (s) => s.environment === 'staging',
+      );
+
+      const result = cardSDK.mapCardExternalWalletDetailsToDelegationSettings(
+        walletExternal,
+        stagingDelegationSettings,
+      );
+
+      expect(result).toEqual({
+        symbol: 'USDC',
+        address: '0x1234567890123456789012345678901234567890',
+        decimals: 6,
+        decimalChainId: '59144',
+        name: 'USD Coin',
+        delegationContractAddress: '0xStagingDelegationContract',
+        stagingTokenAddress: '0xStagingUSDCAddress',
+      });
+    });
+
+    it('uses default decimals of 18 when supported token has no decimals in fallback', () => {
+      const cardFeatureFlagNoDecimals = {
+        ...mockCardFeatureFlag,
+        chains: {
+          'eip155:59144': {
+            ...mockCardFeatureFlag.chains?.['eip155:59144'],
+            tokens: [
+              {
+                address: '0xTokenNoDecimals',
+                symbol: 'TND',
+                name: 'Token No Decimals',
+                // decimals intentionally omitted
+              },
+            ],
+          },
+        },
+      };
+
+      const sdkNoDecimals = new CardSDK({
+        cardFeatureFlag: cardFeatureFlagNoDecimals,
+      });
+
+      const walletExternal = {
+        address: '0xWalletAddress',
+        currency: 'TND',
+        balance: '1000',
+        allowance: '500',
+        network: 'linea' as const,
+      };
+
+      const result =
+        sdkNoDecimals.mapCardExternalWalletDetailsToDelegationSettings(
+          walletExternal,
+          [], // Empty delegation settings to trigger fallback
+        );
+
+      expect(result).toEqual({
+        symbol: 'TND',
+        address: '0xTokenNoDecimals',
+        decimals: 18, // Default fallback
+        decimalChainId: 59144,
+        name: 'Token No Decimals',
+        delegationContractAddress: '',
+        stagingTokenAddress: null,
+      });
     });
   });
 });

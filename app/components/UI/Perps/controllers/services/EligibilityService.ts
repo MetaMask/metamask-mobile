@@ -1,8 +1,7 @@
 import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
-import Logger from '../../../../../util/Logger';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError } from '../../utils/perpsErrorHandler';
+import { ensureError } from '../../../../../util/errorUtils';
+import type { IPerpsPlatformDependencies } from '../types';
 
 // Geo-blocking API URLs
 const ON_RAMP_GEO_BLOCKING_URLS = {
@@ -23,45 +22,47 @@ interface GeoLocationCache {
  *
  * Handles geo-location fetching and eligibility checking.
  * Manages caching to minimize API calls.
+ *
+ * Instance-based service with constructor injection of platform dependencies.
+ * Cache is instance-scoped to support multiple service instances (e.g., testing).
  */
 export class EligibilityService {
-  private static geoLocationCache: GeoLocationCache | null = null;
-  private static geoLocationFetchPromise: Promise<string> | null = null;
-  private static readonly GEO_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+  private readonly GEO_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+  private readonly deps: IPerpsPlatformDependencies;
+
+  private geoLocationCache: GeoLocationCache | null = null;
+  private geoLocationFetchPromise: Promise<string> | null = null;
 
   /**
-   * Error context helper for consistent logging
+   * Create a new EligibilityService instance
+   * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  private static getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'EligibilityService',
-      method,
-      ...additionalContext,
-    };
+  constructor(deps: IPerpsPlatformDependencies) {
+    this.deps = deps;
   }
 
   /**
    * Fetch geo location with caching and deduplication
    */
-  static async fetchGeoLocation(): Promise<string> {
+  async fetchGeoLocation(): Promise<string> {
     // Check cache first
     if (this.geoLocationCache) {
       const cacheAge = Date.now() - this.geoLocationCache.timestamp;
       if (cacheAge < this.GEO_CACHE_TTL_MS) {
-        DevLogger.log('EligibilityService: Using cached geo location', {
-          location: this.geoLocationCache.location,
-          cacheAge: `${(cacheAge / 1000).toFixed(1)}s`,
-        });
+        this.deps.debugLogger.log(
+          'EligibilityService: Using cached geo location',
+          {
+            location: this.geoLocationCache.location,
+            cacheAge: `${(cacheAge / 1000).toFixed(1)}s`,
+          },
+        );
         return this.geoLocationCache.location;
       }
     }
 
     // If already fetching, return the existing promise
     if (this.geoLocationFetchPromise) {
-      DevLogger.log(
+      this.deps.debugLogger.log(
         'EligibilityService: Geo location fetch already in progress, waiting...',
       );
       return this.geoLocationFetchPromise;
@@ -83,15 +84,18 @@ export class EligibilityService {
    * Perform the actual geo location fetch
    * Separated to allow proper promise management
    */
-  private static async performGeoLocationFetch(): Promise<string> {
+  private async performGeoLocationFetch(): Promise<string> {
     let location = 'UNKNOWN';
 
     try {
       const environment = getEnvironment();
 
-      DevLogger.log('EligibilityService: Fetching geo location from API', {
-        environment,
-      });
+      this.deps.debugLogger.log(
+        'EligibilityService: Fetching geo location from API',
+        {
+          environment,
+        },
+      );
 
       const response = await successfulFetch(
         ON_RAMP_GEO_BLOCKING_URLS[environment],
@@ -106,16 +110,21 @@ export class EligibilityService {
         timestamp: Date.now(),
       };
 
-      DevLogger.log('EligibilityService: Geo location fetched successfully', {
-        location,
-      });
+      this.deps.debugLogger.log(
+        'EligibilityService: Geo location fetched successfully',
+        {
+          location,
+        },
+      );
 
       return location;
     } catch (e) {
-      Logger.error(
-        ensureError(e),
-        this.getErrorContext('performGeoLocationFetch'),
-      );
+      this.deps.logger.error(ensureError(e), {
+        context: {
+          name: 'EligibilityService.performGeoLocationFetch',
+          data: {},
+        },
+      });
       // Don't cache failures
       return location;
     }
@@ -126,9 +135,9 @@ export class EligibilityService {
    * @param blockedRegions - List of blocked region codes (e.g., ['US', 'CN'])
    * @returns true if eligible (not in blocked region), false otherwise
    */
-  static async checkEligibility(blockedRegions: string[]): Promise<boolean> {
+  async checkEligibility(blockedRegions: string[]): Promise<boolean> {
     try {
-      DevLogger.log('EligibilityService: Checking eligibility', {
+      this.deps.debugLogger.log('EligibilityService: Checking eligibility', {
         blockedRegionsCount: blockedRegions.length,
       });
 
@@ -144,11 +153,14 @@ export class EligibilityService {
               .startsWith(geoBlockedRegion.toUpperCase()),
         );
 
-        DevLogger.log('EligibilityService: Eligibility check completed', {
-          geoLocation,
-          isEligible,
-          blockedRegions,
-        });
+        this.deps.debugLogger.log(
+          'EligibilityService: Eligibility check completed',
+          {
+            geoLocation,
+            isEligible,
+            blockedRegions,
+          },
+        );
 
         return isEligible;
       }
@@ -156,10 +168,12 @@ export class EligibilityService {
       // Default to eligible if location is unknown
       return true;
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('checkEligibility'),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'EligibilityService.checkEligibility',
+          data: {},
+        },
+      });
       // Default to eligible on error
       return true;
     }
@@ -169,9 +183,9 @@ export class EligibilityService {
    * Clear the geo-location cache
    * Useful for testing or forcing a fresh fetch
    */
-  static clearCache(): void {
+  clearCache(): void {
     this.geoLocationCache = null;
     this.geoLocationFetchPromise = null;
-    DevLogger.log('EligibilityService: Cache cleared');
+    this.deps.debugLogger.log('EligibilityService: Cache cleared');
   }
 }
