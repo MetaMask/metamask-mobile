@@ -308,6 +308,71 @@ const extractHomeProperties = (
 };
 
 /**
+ * Extract properties for DAPP route
+ * DAPP routes may contain sensitive URLs, so we don't extract them
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractDappProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // DAPP URLs may contain sensitive information, so we don't extract them
+  // to prevent leaking full URLs in analytics
+};
+
+/**
+ * Extract properties for WC route
+ * WC routes contain sensitive WalletConnect session URIs, so we don't extract them
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractWcProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // WC URIs contain sensitive WalletConnect session information
+  // We don't extract them to prevent leaking session URIs in analytics
+};
+
+/**
+ * Extract properties for REWARDS route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractRewardsProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // REWARDS route may have referral or other non-sensitive parameters
+  // Currently no specific properties to extract
+};
+
+/**
+ * Extract properties for CREATE_ACCOUNT route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractCreateAccountProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // CREATE_ACCOUNT route doesn't have sensitive parameters to extract
+};
+
+/**
+ * Extract properties for ONBOARDING route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractOnboardingProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // ONBOARDING route doesn't have sensitive parameters to extract
+};
+
+/**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
  * to satisfy the type checker
@@ -335,6 +400,11 @@ const routeExtractors: Record<
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
   [DeepLinkRoute.HOME]: extractHomeProperties,
+  [DeepLinkRoute.DAPP]: extractDappProperties,
+  [DeepLinkRoute.WC]: extractWcProperties,
+  [DeepLinkRoute.REWARDS]: extractRewardsProperties,
+  [DeepLinkRoute.CREATE_ACCOUNT]: extractCreateAccountProperties,
+  [DeepLinkRoute.ONBOARDING]: extractOnboardingProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -453,6 +523,16 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SELL;
     case ACTIONS.HOME:
       return DeepLinkRoute.HOME;
+    case ACTIONS.DAPP:
+      return DeepLinkRoute.DAPP;
+    case ACTIONS.WC:
+      return DeepLinkRoute.WC;
+    case ACTIONS.REWARDS:
+      return DeepLinkRoute.REWARDS;
+    case ACTIONS.CREATE_ACCOUNT:
+      return DeepLinkRoute.CREATE_ACCOUNT;
+    case ACTIONS.ONBOARDING:
+      return DeepLinkRoute.ONBOARDING;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -483,6 +563,16 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SELL;
       case 'home':
         return DeepLinkRoute.HOME;
+      case 'dapp':
+        return DeepLinkRoute.DAPP;
+      case 'wc':
+        return DeepLinkRoute.WC;
+      case 'rewards':
+        return DeepLinkRoute.REWARDS;
+      case 'create-account':
+        return DeepLinkRoute.CREATE_ACCOUNT;
+      case 'onboarding':
+        return DeepLinkRoute.ONBOARDING;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

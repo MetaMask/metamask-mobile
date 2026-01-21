@@ -43,6 +43,11 @@ export enum DeepLinkRoute {
   TRANSACTION = 'transaction',
   BUY = 'buy',
   SELL = 'sell',
+  DAPP = 'dapp',
+  WC = 'wc',
+  REWARDS = 'rewards',
+  CREATE_ACCOUNT = 'create-account',
+  ONBOARDING = 'onboarding',
   INVALID = 'invalid',
 }
 
