@@ -11,8 +11,11 @@ import {
   UserStorageControllerMessenger,
 } from '@metamask/profile-sync-controller/user-storage';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { trackEvent } from '../../utils/analytics-utils';
+import { MetaMetricsEvents } from '../../../Analytics';
 
 jest.mock('@metamask/profile-sync-controller/user-storage');
+jest.mock('../../utils/analytics-utils');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<
@@ -55,6 +58,73 @@ describe('UserStorageControllerInit', () => {
           onContactSyncErroneousSituation: expect.any(Function),
         },
       },
+    });
+  });
+
+  describe('trackEvent integration', () => {
+    it('calls trackEvent when onContactUpdated is invoked', () => {
+      const requestMock = getInitRequestMock();
+      userStorageControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(UserStorageController);
+      const onContactUpdated =
+        controllerMock.mock.calls[0][0].config.contactSyncing.onContactUpdated;
+
+      onContactUpdated('test-profile-id');
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+        {
+          profile_id: 'test-profile-id',
+          feature_name: 'Contacts Sync',
+          action: 'Contacts Sync Contact Updated',
+        },
+      );
+    });
+
+    it('calls trackEvent when onContactDeleted is invoked', () => {
+      const requestMock = getInitRequestMock();
+      userStorageControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(UserStorageController);
+      const onContactDeleted =
+        controllerMock.mock.calls[0][0].config.contactSyncing.onContactDeleted;
+
+      onContactDeleted('test-profile-id');
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+        {
+          profile_id: 'test-profile-id',
+          feature_name: 'Contacts Sync',
+          action: 'Contacts Sync Contact Deleted',
+        },
+      );
+    });
+
+    it('calls trackEvent when onContactSyncErroneousSituation is invoked', () => {
+      const requestMock = getInitRequestMock();
+      userStorageControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(UserStorageController);
+      const onContactSyncErroneousSituation =
+        controllerMock.mock.calls[0][0].config.contactSyncing
+          .onContactSyncErroneousSituation;
+
+      onContactSyncErroneousSituation('test-profile-id', 'Test error message');
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+        {
+          profile_id: 'test-profile-id',
+          feature_name: 'Contacts Sync',
+          action: 'Contacts Sync Erroneous Situation',
+          additional_description: 'Test error message',
+        },
+      );
     });
   });
 });

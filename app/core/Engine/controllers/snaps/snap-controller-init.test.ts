@@ -15,11 +15,11 @@ import {
   KeyringControllerGetKeyringsByTypeAction,
 } from '@metamask/keyring-controller';
 import { store, runSaga } from '../../../../store';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { trackEvent } from '../../utils/analytics-utils';
 
 jest.mock('@metamask/snaps-controllers');
-jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
+jest.mock('../../utils/analytics-utils');
 
 jest.mock('.../../../../store', () => ({
   store: {
@@ -49,13 +49,6 @@ function getInitRequestMock(
 describe('SnapControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({
-        name: 'test-event',
-        properties: { testProperty: 'test-value' },
-      }),
-    });
   });
 
   it('initializes the controller', () => {
@@ -210,7 +203,7 @@ describe('SnapControllerInit', () => {
   });
 
   describe('trackEvent', () => {
-    it('calls AnalyticsController:trackEvent via initMessenger', () => {
+    it('calls trackEvent utility with correct parameters', () => {
       const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
         namespace: MOCK_ANY_NAMESPACE,
       });
@@ -229,25 +222,49 @@ describe('SnapControllerInit', () => {
       snapControllerInit(requestMock);
 
       const controllerMock = jest.mocked(SnapController);
-      const trackEvent = controllerMock.mock.calls[0][0].trackEvent;
+      const trackEventFn = controllerMock.mock.calls[0][0].trackEvent;
 
-      trackEvent({
+      trackEventFn({
         event: 'test-event',
-        category: 'test-category',
         properties: {
           testProperty: 'test-value',
         },
       });
 
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      expect(trackEvent).toHaveBeenCalledWith(mockInitMessenger, 'test-event', {
+        testProperty: 'test-value',
+      });
+    });
+
+    it('calls trackEvent utility with empty properties when properties are not provided', () => {
+      const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+
+      const mockInitMessenger = {
+        call: jest.fn(),
+        subscribe: jest.fn(),
+      } as unknown as SnapControllerInitMessenger;
+
+      const requestMock = {
+        ...buildControllerInitRequestMock(baseMessenger),
+        controllerMessenger: getSnapControllerMessenger(baseMessenger),
+        initMessenger: mockInitMessenger,
+      };
+
+      snapControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(SnapController);
+      const trackEventFn = controllerMock.mock.calls[0][0].trackEvent;
+
+      trackEventFn({
+        event: 'test-event',
+      });
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        mockInitMessenger,
         'test-event',
-      );
-      expect(mockInitMessenger.call).toHaveBeenCalledWith(
-        'AnalyticsController:trackEvent',
-        expect.objectContaining({
-          name: 'test-event',
-          properties: { testProperty: 'test-value' },
-        }),
+        {},
       );
     });
   });

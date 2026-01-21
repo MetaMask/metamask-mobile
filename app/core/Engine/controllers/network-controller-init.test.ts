@@ -18,8 +18,15 @@ import {
 } from '@metamask/network-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { trackEvent } from '../utils/analytics-utils';
+import {
+  onRpcEndpointUnavailable,
+  onRpcEndpointDegraded,
+} from './network-controller/messenger-action-handlers';
 
 jest.mock('@metamask/network-controller');
+jest.mock('../utils/analytics-utils');
+jest.mock('./network-controller/messenger-action-handlers');
 
 function getInitRequestMock(
   baseMessenger: ExtendedMessenger<
@@ -192,5 +199,130 @@ describe('networkControllerInit', () => {
     expect(
       controllerMock.mock.instances[0].disableRpcFailover,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  describe('trackEvent integration', () => {
+    it('calls trackEvent when NetworkController:rpcEndpointUnavailable event is published', () => {
+      const baseMessenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        'NetworkController:rpcEndpointUnavailable'
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      const initRequest = getInitRequestMock(baseMessenger);
+      let capturedTrackEvent:
+        | ((options: { event: unknown; properties: unknown }) => void)
+        | undefined;
+
+      jest.mocked(onRpcEndpointUnavailable).mockImplementation((args) => {
+        capturedTrackEvent = args.trackEvent;
+      });
+
+      networkControllerInit(initRequest);
+
+      // @ts-expect-error: Partial mock.
+      baseMessenger.publish('NetworkController:rpcEndpointUnavailable', {
+        chainId: '0x1',
+        endpointUrl: 'https://example.com',
+        error: new Error('Test error'),
+      });
+
+      expect(onRpcEndpointUnavailable).toHaveBeenCalled();
+      expect(capturedTrackEvent).toBeDefined();
+
+      // Call the captured trackEvent function to verify it calls the utility
+      capturedTrackEvent?.({
+        event: 'test-event',
+        properties: { testProperty: 'test-value' },
+      });
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        initRequest.initMessenger,
+        'test-event',
+        { testProperty: 'test-value' },
+      );
+    });
+
+    it('calls trackEvent when NetworkController:rpcEndpointDegraded event is published', () => {
+      const baseMessenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        'NetworkController:rpcEndpointDegraded'
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      const initRequest = getInitRequestMock(baseMessenger);
+      let capturedTrackEvent:
+        | ((options: { event: unknown; properties: unknown }) => void)
+        | undefined;
+
+      jest.mocked(onRpcEndpointDegraded).mockImplementation((args) => {
+        capturedTrackEvent = args.trackEvent;
+      });
+
+      networkControllerInit(initRequest);
+
+      // @ts-expect-error: Partial mock.
+      baseMessenger.publish('NetworkController:rpcEndpointDegraded', {
+        chainId: '0x1',
+        endpointUrl: 'https://example.com',
+        error: new Error('Test error'),
+      });
+
+      expect(onRpcEndpointDegraded).toHaveBeenCalled();
+      expect(capturedTrackEvent).toBeDefined();
+
+      // Call the captured trackEvent function to verify it calls the utility
+      capturedTrackEvent?.({
+        event: 'test-event',
+        properties: { testProperty: 'test-value' },
+      });
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        initRequest.initMessenger,
+        'test-event',
+        { testProperty: 'test-value' },
+      );
+    });
+
+    it('calls trackEvent with empty properties when properties are not provided in rpcEndpointUnavailable', () => {
+      const baseMessenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        'NetworkController:rpcEndpointUnavailable'
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      const initRequest = getInitRequestMock(baseMessenger);
+      let capturedTrackEvent:
+        | ((options: { event: unknown; properties?: unknown }) => void)
+        | undefined;
+
+      jest.mocked(onRpcEndpointUnavailable).mockImplementation((args) => {
+        capturedTrackEvent = args.trackEvent;
+      });
+
+      networkControllerInit(initRequest);
+
+      // @ts-expect-error: Partial mock.
+      baseMessenger.publish('NetworkController:rpcEndpointUnavailable', {
+        chainId: '0x1',
+        endpointUrl: 'https://example.com',
+        error: new Error('Test error'),
+      });
+
+      // Call the captured trackEvent function with no properties
+      capturedTrackEvent?.({
+        event: 'test-event',
+        properties: undefined,
+      });
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        initRequest.initMessenger,
+        'test-event',
+        {},
+      );
+    });
   });
 });
