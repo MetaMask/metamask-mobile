@@ -25,7 +25,7 @@ import ButtonBase from '../../../../../component-library/components/Buttons/Butt
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigate } = useNavigation();
+  const { goBack, navigate } = useNavigation();
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();
   const dimensions = useWindowDimensions();
@@ -42,8 +42,8 @@ const CardWelcome = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleClose = useCallback(() => {
-    navigate(Routes.WALLET.HOME);
-  }, [navigate]);
+    goBack();
+  }, [goBack]);
 
   const handleButtonPress = useCallback(() => {
     trackEvent(
@@ -106,7 +106,11 @@ const CardWelcome = () => {
                 variant={TextVariant.BodyMDMedium}
                 style={styles.getStartedButtonText}
               >
-                {strings('card.card_onboarding.apply_now_button')}
+                {strings(
+                  hasCardholderAccounts
+                    ? 'card.card_onboarding.login_button'
+                    : 'card.card_onboarding.apply_now_button',
+                )}
               </Text>
             }
           />
@@ -123,7 +127,7 @@ const CardWelcome = () => {
                 variant={TextVariant.BodyMDMedium}
                 style={styles.notNowButtonText}
               >
-                {strings('predict.gtm_content.not_now')}
+                {strings('card.card_onboarding.not_now_button')}
               </Text>
             }
           />

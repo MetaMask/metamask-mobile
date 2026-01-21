@@ -17,6 +17,7 @@ import {
   TIMESTAMP_Y,
   CROSSHAIR_START_Y,
   CROSSHAIR_STROKE_WIDTH,
+  TIMESTAMP_TEXT_HALF_WIDTH,
   getSeparatedLabelYPositions,
 } from './PredictGameChart.constants';
 
@@ -69,15 +70,30 @@ const ChartTooltip: React.FC<ChartTooltipProps> = ({
   const timestamp = primaryData[activeIndex].timestamp;
   const labelStartX = chartWidth - contentInset.right + RIGHT_LABEL_OFFSET;
 
+  const chartDataRight = chartWidth - contentInset.right;
+  const isNearLeftEdge = xPos < contentInset.left + TIMESTAMP_TEXT_HALF_WIDTH;
+  const isNearRightEdge = xPos > chartDataRight - TIMESTAMP_TEXT_HALF_WIDTH;
+
+  const timestampAnchor = isNearLeftEdge
+    ? 'start'
+    : isNearRightEdge
+      ? 'end'
+      : 'middle';
+  const timestampX = isNearLeftEdge
+    ? contentInset.left
+    : isNearRightEdge
+      ? chartDataRight
+      : xPos;
+
   return (
     <G>
       <SvgText
-        x={xPos}
+        x={timestampX}
         y={TIMESTAMP_Y}
         fill={colors.text.alternative}
         fontSize={FONT_SIZE_LABEL}
         fontWeight="400"
-        textAnchor="middle"
+        textAnchor={timestampAnchor}
       >
         {formatTimestamp(timestamp)}
       </SvgText>
@@ -118,7 +134,7 @@ const ChartTooltip: React.FC<ChartTooltipProps> = ({
               fontSize={FONT_SIZE_LABEL}
               fontWeight="500"
             >
-              {pos.label}
+              {pos.label.toUpperCase()}
             </SvgText>
             <SvgText
               x={labelStartX}

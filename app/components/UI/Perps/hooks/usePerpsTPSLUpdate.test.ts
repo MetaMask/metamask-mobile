@@ -102,7 +102,7 @@ describe('usePerpsTPSLUpdate', () => {
   };
 
   const createMockPosition = (overrides = {}) => ({
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '1.5',
     entryPrice: '3000',
     positionValue: '4500',
@@ -166,7 +166,7 @@ describe('usePerpsTPSLUpdate', () => {
     });
 
     expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
-      coin: 'ETH',
+      symbol: 'ETH',
       takeProfitPrice,
       stopLossPrice,
     });
@@ -248,7 +248,7 @@ describe('usePerpsTPSLUpdate', () => {
     });
 
     expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
-      coin: 'ETH',
+      symbol: 'ETH',
       takeProfitPrice: undefined,
       stopLossPrice: undefined,
     });
