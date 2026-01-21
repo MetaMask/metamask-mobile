@@ -1,9 +1,4 @@
-/**
- * Registry for managing available skills
- *
- * Provides a central registry for skill discovery and retrieval.
- * Skills must be registered before they can be used.
- */
+/** Central registry for skill discovery and retrieval */
 
 import { Skill } from './Skill';
 import { SkillMetadata } from '../../types';
@@ -11,10 +6,7 @@ import { SkillMetadata } from '../../types';
 export class SkillRegistry {
   private static skills = new Map<string, Skill>();
 
-  /**
-   * Register a skill in the registry
-   * If a skill with the same name already exists, it will be overwritten with a warning
-   */
+  /** Registers a skill (overwrites if already exists) */
   static register(skill: Skill): void {
     if (this.skills.has(skill.name)) {
       console.warn(
@@ -26,10 +18,10 @@ export class SkillRegistry {
   }
 
   /**
-   * Get a skill by name
-   * Throws an error if the skill is not found
+   * Gets a skill by name (throws if not found)
+   * @template SkillType - Optional specific skill type
    */
-  static get<T extends Skill>(name: string): T {
+  static get<SkillType extends Skill>(name: string): SkillType {
     const skill = this.skills.get(name);
     if (!skill) {
       const available = Array.from(this.skills.keys()).join(', ');
@@ -37,42 +29,30 @@ export class SkillRegistry {
         `Skill '${name}' not found in registry. Available skills: ${available || 'none'}`,
       );
     }
-    return skill as T;
+    return skill as SkillType;
   }
 
-  /**
-   * Check if a skill is registered
-   */
+  /** Checks if a skill is registered */
   static has(name: string): boolean {
     return this.skills.has(name);
   }
 
-  /**
-   * List all registered skills
-   * Returns metadata for discovery
-   */
+  /** Lists all registered skill metadata */
   static list(): SkillMetadata[] {
     return Array.from(this.skills.values()).map((skill) => skill.getMetadata());
   }
 
-  /**
-   * Remove a skill from the registry
-   */
+  /** Removes a skill from the registry */
   static remove(name: string): void {
     this.skills.delete(name);
   }
 
-  /**
-   * Clear all skills from the registry
-   * Useful for testing
-   */
+  /** Clears all skills (for testing) */
   static clear(): void {
     this.skills.clear();
   }
 
-  /**
-   * Get the number of registered skills
-   */
+  /** Returns the number of registered skills */
   static size(): number {
     return this.skills.size;
   }

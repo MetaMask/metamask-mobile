@@ -9,10 +9,6 @@ export interface SelectTagsAnalysis {
   reasoning: string;
 }
 
-export interface ModeAnalysisTypes {
-  'select-tags': SelectTagsAnalysis;
-}
-
 export interface ParsedArgs {
   baseBranch: string;
   changedFiles?: string;
