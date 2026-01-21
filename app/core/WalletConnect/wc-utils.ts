@@ -61,7 +61,6 @@ export const getHostname = (uri: string): string => {
 
 /**
  * Normalizes a dApp URL by ensuring it has a valid protocol.
- * This prevents crashes when processing malformed URLs from WalletConnect metadata.
  *
  * @param url - The URL string to normalize
  * @param defaultProtocol - The protocol to use if none is present (defaults to 'https://')
