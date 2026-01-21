@@ -503,6 +503,7 @@ class TransactionElement extends PureComponent {
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
     const isBridgeTransaction = type === TransactionType.bridge;
+    const isUnifiedSwap = type === TransactionType.swap && bridgeTxHistoryItem;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
@@ -525,7 +526,7 @@ class TransactionElement extends PureComponent {
     const renderLedgerActions =
       transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
-    if (isBridgeTransaction && bridgeTxHistoryItem) {
+    if ((isBridgeTransaction || isUnifiedSwap) && bridgeTxHistoryItem) {
       title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
     }
 
@@ -539,8 +540,12 @@ class TransactionElement extends PureComponent {
             {this.renderTxElementIcon(transactionElement, tx)}
           </ListItem.Icon>
           <ListItem.Body>
-            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-              {title}
+            <ListItem.Title numberOfLines={2} style={styles.listItemTitle}>
+              {title} (id: {tx.id?.slice(0, 4)}...{tx.id?.slice(-4)}
+              {tx.actionId
+                ? `, actionId: ${tx.actionId?.slice(0, 4)}...${tx.actionId?.slice(-4)}`
+                : ''}
+              )
             </ListItem.Title>
             {!FINAL_NON_CONFIRMED_STATUSES.includes(transactionStatus) &&
             isBridgeTransaction &&
