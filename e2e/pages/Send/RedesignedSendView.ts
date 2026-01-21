@@ -156,11 +156,14 @@ class SendView {
   async checkInsufficientBalanceToCoverFeesError(): Promise<void> {
     await Assertions.expectElementToBeVisible(
       this.insufficientBalanceToCoverFeesError,
+      { description: 'Insufficient balance to cover fees error message' },
     );
   }
 
   async checkInvalidValueError(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.invalidValueError);
+    await Assertions.expectElementToBeVisible(this.invalidValueError, {
+      description: 'Invalid value error message',
+    });
   }
 }
 export default new SendView();
