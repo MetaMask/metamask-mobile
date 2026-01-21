@@ -132,24 +132,24 @@ describe('GasImpactModal', () => {
   });
 
   describe('navigates to', () => {
-    it('StakeConfirmationView on approval', () => {
+    it('StakeConfirmationView on approval', async () => {
+      const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: attemptDepositTransactionMock,
+      });
+
       const { getByText } = renderGasImpactModal();
 
       const proceedAnywayButton = getByText(strings('stake.proceed_anyway'));
 
       fireEvent.press(proceedAnywayButton);
 
+      await flushPromises();
+
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE_CONFIRMATION,
-        params: {
-          amountWei: props.route.params.amountWei,
-          amountFiat: props.route.params.amountFiat,
-          annualRewardsETH: props.route.params.annualRewardsETH,
-          annualRewardsFiat: props.route.params.annualRewardsFiat,
-          annualRewardRate: props.route.params.annualRewardRate,
-          chainId: props.route.params.chainId,
-        },
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
     });
 
@@ -190,10 +190,17 @@ describe('GasImpactModal', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('tracks proceed event when proceeding with stake', () => {
+    it('tracks proceed event when proceeding with stake', async () => {
+      const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: attemptDepositTransactionMock,
+      });
+
       const { getByText } = renderGasImpactModal();
       const proceedButton = getByText(strings('stake.proceed_anyway'));
       fireEvent.press(proceedButton);
+      await flushPromises();
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
   });
