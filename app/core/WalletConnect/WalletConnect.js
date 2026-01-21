@@ -338,19 +338,16 @@ class WalletConnect {
     const normalizedUrl = normalizeDappUrl(rawUrl);
 
     if (!normalizedUrl) {
-      throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
-    }
-
-    let hostname;
-    try {
-      hostname = new URL(normalizedUrl).hostname;
-    } catch {
       Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
       if (existing) {
         this.killSession();
       }
-      throw new Error('Invalid dApp URL');
+      throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
     }
+
+    // normalizeDappUrl already validates the URL, so this should always succeed.
+    // We keep this for type safety to get the hostname.
+    const hostname = new URL(normalizedUrl).hostname;
 
     const chainId = selectEvmChainId(store.getState());
     const selectedAddress = toFormattedAddress(
