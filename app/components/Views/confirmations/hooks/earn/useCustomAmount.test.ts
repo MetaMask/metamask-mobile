@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useCustomAmount } from './useCustomAmount';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -11,6 +12,11 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../UI/Earn/selectors/featureFlags');
+jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility');
+
+const mockUseMusdConversionEligibility = jest.mocked(
+  useMusdConversionEligibility,
+);
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseTransactionMetadataRequest = jest.mocked(
@@ -25,6 +31,12 @@ describe('useCustomAmount', () => {
         return true;
       }
       return undefined;
+    });
+    mockUseMusdConversionEligibility.mockReturnValue({
+      isEligible: true,
+      isLoading: false,
+      geolocation: 'US',
+      blockedCountries: [],
     });
   });
 
@@ -85,6 +97,26 @@ describe('useCustomAmount', () => {
       );
 
       expect(result.current.shouldShowOutputAmountTag).toBe(false);
+    });
+
+    it('returns shouldShowOutputAmountTag false when user is geo-blocked', () => {
+      mockUseMusdConversionEligibility.mockReturnValue({
+        isEligible: false,
+        isLoading: false,
+        geolocation: 'GB',
+        blockedCountries: ['GB'],
+      });
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        type: TransactionType.musdConversion,
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { result } = renderHook(() =>
+        useCustomAmount({ amountHuman: '100' }),
+      );
+
+      expect(result.current.shouldShowOutputAmountTag).toBe(false);
+      expect(result.current.outputAmount).toBeNull();
+      expect(result.current.outputSymbol).toBeNull();
     });
   });
 
