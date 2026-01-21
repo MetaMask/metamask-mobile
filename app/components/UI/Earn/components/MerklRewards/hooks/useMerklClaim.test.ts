@@ -70,6 +70,54 @@ const mockAsset: TokenI = {
   isNative: false,
 };
 
+// Helper to create mock reward data
+const createMockRewardData = (overrides?: {
+  address?: string;
+  chainId?: number;
+  symbol?: string;
+  amount?: string;
+}) => [
+  {
+    rewards: [
+      {
+        token: {
+          address:
+            overrides?.address ?? '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+          chainId: overrides?.chainId ?? 1,
+          symbol: overrides?.symbol ?? 'aglaMerkl',
+          decimals: 18,
+          price: null,
+        },
+        accumulated: '0',
+        unclaimed: '0',
+        pending: overrides?.amount ?? '1000000000000000000',
+        proofs: [
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        ],
+        amount: overrides?.amount ?? '1000000000000000000',
+        claimed: '0',
+        recipient: mockSelectedAddress,
+      },
+    ],
+  },
+];
+
+// Helper to create mock transaction meta
+const createMockTransactionMeta = (
+  id: string,
+  status: TransactionStatus,
+  overrides?: Partial<TransactionMeta>,
+): TransactionMeta =>
+  ({
+    id,
+    status,
+    chainId: CHAIN_IDS.MAINNET,
+    networkClientId: mockNetworkClientId,
+    time: Date.now(),
+    txParams: {} as TransactionMeta['txParams'],
+    ...overrides,
+  }) as unknown as TransactionMeta;
+
 describe('useMerklClaim', () => {
   let transactionStatusUpdateCallbacks: (({
     transactionMeta,
@@ -182,97 +230,47 @@ describe('useMerklClaim', () => {
   });
 
   it('fetches rewards and submits transaction successfully', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '0',
-            pending: '1000000000000000000',
-            proofs: [
-              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-              '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-            ],
-            amount: '1000000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
-
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockRewardData,
+      json: async () => createMockRewardData(),
     });
 
     const mockTransactionId = 'tx-123';
-    const mockTransactionHash = '0xabc123';
-
     mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve(mockTransactionHash),
-      transactionMeta: {
-        id: mockTransactionId,
-      },
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: mockTransactionId },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
-
-    // Start the claim process
     const claimPromise = act(async () => {
       await result.current.claimRewards();
     });
 
-    // Wait for transaction submission
-    await waitFor(() => {
-      expect(mockAddTransaction).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
 
-    // Simulate transaction confirmation
     await act(async () => {
       transactionStatusUpdateCallbacks.forEach((callback) => {
         callback({
-          transactionMeta: {
-            id: mockTransactionId,
-            status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          transactionMeta: createMockTransactionMeta(
+            mockTransactionId,
+            TransactionStatus.confirmed,
+          ),
         });
       });
     });
 
-    // Wait for claim to complete
     await claimPromise;
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockAddTransaction).toHaveBeenCalled();
-    });
 
     expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toBe(null);
-
-    // Verify API was called with correct chainId (decimal format, not hex)
-    const expectedDecimalChainId = Number(CHAIN_IDS.MAINNET);
     expect(global.fetch).toHaveBeenCalled();
     const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
-    expect(fetchCall[0]).toContain(`chainId=${expectedDecimalChainId}`);
+    expect(fetchCall[0]).toContain(`chainId=${Number(CHAIN_IDS.MAINNET)}`);
 
-    const transactionCall = mockAddTransaction.mock.calls[0][0];
-    expect(transactionCall.from).toBe(mockSelectedAddress);
-    expect(transactionCall.to).toBe(
-      '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae',
-    );
-    expect(transactionCall.data).toBeDefined();
+    const txCall = mockAddTransaction.mock.calls[0][0];
+    expect(txCall.from).toBe(mockSelectedAddress);
+    expect(txCall.to).toBe('0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae');
+    expect(txCall.data).toBeDefined();
   });
 
   it('handles API fetch error', async () => {
@@ -300,15 +298,9 @@ describe('useMerklClaim', () => {
   });
 
   it('handles no claimable rewards error', async () => {
-    const mockRewardData = [
-      {
-        rewards: [],
-      },
-    ];
-
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockRewardData,
+      json: async () => [{ rewards: [] }],
     });
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
@@ -317,47 +309,23 @@ describe('useMerklClaim', () => {
       try {
         await result.current.claimRewards();
       } catch {
-        // Expected to throw
+        // Expected
       }
     });
 
-    await waitFor(() => {
-      expect(result.current.error).toBeTruthy();
-    });
-
+    await waitFor(() => expect(result.current.error).toBeTruthy());
     expect(result.current.error).toBe('No claimable rewards found');
     expect(result.current.isClaiming).toBe(false);
   });
 
   it('handles no matching token in rewards', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x1111111111111111111111111111111111111111', // Different token
-              chainId: 1,
-              symbol: 'OTHER',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1000000000000000000',
-            pending: '0',
-            proofs: [
-              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-            ],
-            amount: '1000000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
-
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockRewardData,
+      json: async () =>
+        createMockRewardData({
+          address: '0x1111111111111111111111111111111111111111',
+          symbol: 'OTHER',
+        }),
     });
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
@@ -366,117 +334,56 @@ describe('useMerklClaim', () => {
       try {
         await result.current.claimRewards();
       } catch {
-        // Expected to throw
+        // Expected
       }
     });
 
-    await waitFor(() => {
-      expect(result.current.error).toBeTruthy();
-    });
-
+    await waitFor(() => expect(result.current.error).toBeTruthy());
     expect(result.current.error).toBe('No claimable rewards found');
     expect(result.current.isClaiming).toBe(false);
   });
 
   it('finds matching reward in second data array element', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x1111111111111111111111111111111111111111', // Different token
-              chainId: 1,
-              symbol: 'OTHER',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '1000000000000000000',
-            pending: '0',
-            proofs: [
-              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-            ],
-            amount: '1000000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898', // Matching token in second element
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '2500000000000000000',
-            pending: '0',
-            proofs: [
-              '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-            ],
-            amount: '2500000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
-
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockRewardData,
+      json: async () => [
+        ...createMockRewardData({
+          address: '0x1111111111111111111111111111111111111111',
+          symbol: 'OTHER',
+        }),
+        createMockRewardData({ amount: '2500000000000000000' })[0],
+      ],
     });
 
     const mockTransactionId = 'tx-123';
-    const mockTransactionHash = '0xabc123';
-
     mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve(mockTransactionHash),
-      transactionMeta: {
-        id: mockTransactionId,
-      },
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: mockTransactionId },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
-
-    // Start the claim process
     const claimPromise = act(async () => {
       await result.current.claimRewards();
     });
 
-    // Wait for transaction submission
-    await waitFor(() => {
-      expect(mockAddTransaction).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
 
-    // Simulate transaction confirmation
     await act(async () => {
       transactionStatusUpdateCallbacks.forEach((callback) => {
         callback({
-          transactionMeta: {
-            id: mockTransactionId,
-            status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          transactionMeta: createMockTransactionMeta(
+            mockTransactionId,
+            TransactionStatus.confirmed,
+          ),
         });
       });
     });
 
-    // Wait for claim to complete
     await claimPromise;
-
-    await waitFor(() => {
-      expect(result.current.isClaiming).toBe(false);
-    });
-
-    // Verify it found the reward in the second data array element and created transaction
-    expect(mockAddTransaction).toHaveBeenCalled();
-    const txParams = mockAddTransaction.mock.calls[0][0];
-    expect(txParams.to).toBe('0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae');
-    expect(txParams.data).toBeTruthy();
+    await waitFor(() => expect(result.current.isClaiming).toBe(false));
+    expect(mockAddTransaction.mock.calls[0][0].to).toBe(
+      '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae',
+    );
   });
 
   it('handles network error', async () => {
@@ -503,48 +410,20 @@ describe('useMerklClaim', () => {
   });
 
   it('sets isClaiming to true during claim process', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '0',
-            pending: '1000000000000000000',
-            proofs: [
-              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-            ],
-            amount: '1000000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
 
     const mockTransactionId = 'tx-123';
-    const mockTransactionHash = '0xabc123';
     let resolveTransaction: ((value: unknown) => void) | undefined;
     const transactionPromise = new Promise<unknown>((resolve) => {
       resolveTransaction = resolve;
     });
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockRewardData,
-    });
-
     mockAddTransaction.mockReturnValueOnce({
       result: transactionPromise,
-      transactionMeta: {
-        id: mockTransactionId,
-      },
+      transactionMeta: { id: mockTransactionId },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
@@ -556,204 +435,215 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(true);
 
     await act(async () => {
-      if (resolveTransaction) {
-        resolveTransaction(mockTransactionHash);
-      }
+      resolveTransaction?.('0xabc123');
       await transactionPromise;
     });
 
-    // Simulate transaction confirmation
     await act(async () => {
       transactionStatusUpdateCallbacks.forEach((callback) => {
         callback({
-          transactionMeta: {
-            id: mockTransactionId,
-            status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          transactionMeta: createMockTransactionMeta(
+            mockTransactionId,
+            TransactionStatus.confirmed,
+          ),
         });
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.isClaiming).toBe(false);
-    });
+    await waitFor(() => expect(result.current.isClaiming).toBe(false));
   });
 
   it('uses asset chainId for API fetch and transaction', async () => {
     const lineaAsset: TokenI = {
       ...mockAsset,
       chainId: CHAIN_IDS.LINEA_MAINNET,
-      address: '0x1234567890123456789012345678901234567890' as const, // Match test data
+      address: '0x1234567890123456789012345678901234567890' as const,
     };
-
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x1234567890123456789012345678901234567890',
-              chainId: Number(CHAIN_IDS.LINEA_MAINNET),
-              symbol: 'mUSD',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '0',
-            pending: '1000000000000000000',
-            proofs: [
-              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-            ],
-            amount: '1000000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockRewardData,
+      json: async () =>
+        createMockRewardData({
+          address: '0x1234567890123456789012345678901234567890',
+          chainId: Number(CHAIN_IDS.LINEA_MAINNET),
+          symbol: 'mUSD',
+        }),
     });
 
     const mockTransactionId = 'tx-123';
-    const mockTransactionHash = '0xabc123';
-
     mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve(mockTransactionHash),
-      transactionMeta: {
-        id: mockTransactionId,
-      },
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: mockTransactionId },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: lineaAsset }));
-
-    // Start the claim process
     const claimPromise = act(async () => {
       await result.current.claimRewards();
     });
 
-    // Wait for transaction submission
-    await waitFor(() => {
-      expect(mockAddTransaction).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
 
-    // Simulate transaction confirmation
     await act(async () => {
       transactionStatusUpdateCallbacks.forEach((callback) => {
         callback({
-          transactionMeta: {
-            id: mockTransactionId,
-            status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          transactionMeta: createMockTransactionMeta(
+            mockTransactionId,
+            TransactionStatus.confirmed,
+            { chainId: CHAIN_IDS.LINEA_MAINNET },
+          ),
         });
       });
     });
 
-    // Wait for claim to complete
     await claimPromise;
 
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
-    });
-
-    // Verify API was called with correct chainId (decimal format, not hex)
-    const expectedDecimalChainId = Number(CHAIN_IDS.LINEA_MAINNET);
     const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
-    expect(fetchCall[0]).toContain(`chainId=${expectedDecimalChainId}`);
-
-    await waitFor(() => {
-      expect(mockAddTransaction).toHaveBeenCalled();
-    });
-
-    // Verify transaction uses chainId from reward data
-    const transactionCall = mockAddTransaction.mock.calls[0][0];
-    expect(transactionCall.chainId).toBe(
+    expect(fetchCall[0]).toContain(
+      `chainId=${Number(CHAIN_IDS.LINEA_MAINNET)}`,
+    );
+    expect(mockAddTransaction.mock.calls[0][0].chainId).toBe(
       `0x${Number(CHAIN_IDS.LINEA_MAINNET).toString(16)}`,
     );
   });
 
   it('calls onClaimSuccess callback after transaction confirmation', async () => {
-    const mockRewardData = [
-      {
-        rewards: [
-          {
-            token: {
-              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-              chainId: 1,
-              symbol: 'aglaMerkl',
-              decimals: 18,
-              price: null,
-            },
-            accumulated: '0',
-            unclaimed: '0',
-            pending: '1000000000000000000',
-            proofs: [
-              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-            ],
-            amount: '1000000000000000000',
-            claimed: '0',
-            recipient: mockSelectedAddress,
-          },
-        ],
-      },
-    ];
-
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockRewardData,
+      json: async () => createMockRewardData(),
     });
 
     const mockTransactionId = 'tx-123';
-    const mockTransactionHash = '0xabc123';
     const mockOnClaimSuccess = jest.fn().mockResolvedValue(undefined);
 
     mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve(mockTransactionHash),
-      transactionMeta: {
-        id: mockTransactionId,
-      },
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: mockTransactionId },
     } as never);
 
     const { result } = renderHook(() =>
-      useMerklClaim({
-        asset: mockAsset,
-        onClaimSuccess: mockOnClaimSuccess,
-      }),
+      useMerklClaim({ asset: mockAsset, onClaimSuccess: mockOnClaimSuccess }),
     );
 
-    // Start the claim process
     const claimPromise = act(async () => {
       await result.current.claimRewards();
     });
 
-    // Wait for transaction submission
-    await waitFor(() => {
-      expect(mockAddTransaction).toHaveBeenCalled();
-    });
-
-    // Verify onClaimSuccess hasn't been called yet
+    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
     expect(mockOnClaimSuccess).not.toHaveBeenCalled();
 
-    // Simulate transaction confirmation
     await act(async () => {
-      // Trigger transactionStatusUpdated
       transactionStatusUpdateCallbacks.forEach((callback) => {
         callback({
-          transactionMeta: {
-            id: mockTransactionId,
-            status: TransactionStatus.confirmed,
-          } as TransactionMeta,
+          transactionMeta: createMockTransactionMeta(
+            mockTransactionId,
+            TransactionStatus.confirmed,
+          ),
         });
       });
     });
 
-    // Wait for claim to complete
     await claimPromise;
+    await waitFor(() => expect(mockOnClaimSuccess).toHaveBeenCalledTimes(1));
+  });
 
-    // Verify onClaimSuccess was called after confirmation
-    await waitFor(() => {
-      expect(mockOnClaimSuccess).toHaveBeenCalledTimes(1);
+  it.each([
+    [
+      'failure',
+      TransactionStatus.failed,
+      { error: { name: 'Error', message: 'Transaction reverted' } },
+      'Transaction reverted',
+    ],
+    [
+      'rejection',
+      TransactionStatus.rejected,
+      {},
+      'Transaction failed or was rejected',
+    ],
+  ])(
+    'handles transaction %s',
+    async (_, status, metaOverrides, expectedError) => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => createMockRewardData(),
+      });
+
+      const mockTransactionId = 'tx-123';
+      mockAddTransaction.mockResolvedValueOnce({
+        result: Promise.resolve('0xabc123'),
+        transactionMeta: { id: mockTransactionId },
+      } as never);
+
+      const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
+
+      const claimPromise = act(async () => {
+        try {
+          await result.current.claimRewards();
+        } catch {
+          // Expected
+        }
+      });
+
+      await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
+
+      await act(async () => {
+        transactionStatusUpdateCallbacks.forEach((callback) => {
+          callback({
+            transactionMeta: createMockTransactionMeta(
+              mockTransactionId,
+              status,
+              metaOverrides,
+            ),
+          });
+        });
+      });
+
+      await claimPromise;
+      await waitFor(() => expect(result.current.isClaiming).toBe(false));
+      expect(result.current.error).toBe(expectedError);
+    },
+  );
+
+  it('calls TokenBalancesController.updateBalances on transaction confirmation', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
     });
+
+    const mockTransactionId = 'tx-123';
+    mockAddTransaction.mockResolvedValueOnce({
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: mockTransactionId },
+    } as never);
+
+    const mockUpdateBalances = Engine.context.TokenBalancesController
+      .updateBalances as jest.MockedFunction<
+      typeof Engine.context.TokenBalancesController.updateBalances
+    >;
+
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
+
+    const claimPromise = act(async () => {
+      await result.current.claimRewards();
+    });
+
+    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
+
+    await act(async () => {
+      transactionStatusUpdateCallbacks.forEach((callback) => {
+        callback({
+          transactionMeta: createMockTransactionMeta(
+            mockTransactionId,
+            TransactionStatus.confirmed,
+          ),
+        });
+      });
+    });
+
+    await claimPromise;
+    await waitFor(() =>
+      expect(mockUpdateBalances).toHaveBeenCalledWith({
+        chainIds: [CHAIN_IDS.MAINNET],
+      }),
+    );
   });
 });
