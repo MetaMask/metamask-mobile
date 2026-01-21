@@ -65,65 +65,14 @@ jest.mock('uuid', () => ({
 }));
 
 describe('isDeeplinkRedesignedConfirmationCompatible', () => {
-  const enabledTransferFlags = {
-    approve: false,
-    transfer: true,
-    signatures: true,
-    contract_deployment: false,
-    staking_confirmations: false,
-    contract_interaction: false,
-  };
-
-  const disabledTransferFlags = {
-    ...enabledTransferFlags,
-    transfer: false,
-  };
-
-  const mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags =
-    jest.mocked();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags.mockReturnValue(
-      enabledTransferFlags,
-    );
-  });
-
-  it('returns feature flag value for ETH_ACTIONS.TRANSFER', () => {
-    const result = isDeeplinkRedesignedConfirmationCompatible(
-      ETH_ACTIONS.TRANSFER,
-    );
-    expect(result).toBe(true);
-
-    mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags.mockReturnValue(
-      disabledTransferFlags,
-    );
-
-    const disabledResult = isDeeplinkRedesignedConfirmationCompatible(
-      ETH_ACTIONS.TRANSFER,
-    );
-
-    expect(disabledResult).toBe(false);
-  });
-
-  it('returns false for ETH_ACTIONS.APPROVE', () => {
-    const result = isDeeplinkRedesignedConfirmationCompatible(
-      ETH_ACTIONS.APPROVE,
-    );
-    expect(result).toBe(false);
-  });
-
-  it('defaults to true if function name is not provided', () => {
-    const result = isDeeplinkRedesignedConfirmationCompatible();
-    expect(result).toBe(true);
-
-    mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags.mockReturnValue(
-      disabledTransferFlags,
-    );
-
-    const disabledResult = isDeeplinkRedesignedConfirmationCompatible();
-
-    expect(disabledResult).toBe(false);
+  it('returns true for all confirmation types', () => {
+    expect(
+      isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.TRANSFER),
+    ).toBe(true);
+    expect(
+      isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.APPROVE),
+    ).toBe(true);
+    expect(isDeeplinkRedesignedConfirmationCompatible()).toBe(true);
   });
 });
 

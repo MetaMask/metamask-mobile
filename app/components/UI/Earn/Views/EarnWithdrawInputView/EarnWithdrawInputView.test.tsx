@@ -4,7 +4,7 @@ import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import {} from '../../../../../selectors/featureFlagController/confirmations';
+
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -541,32 +541,15 @@ describe('EarnWithdrawInputView', () => {
     });
   });
 
-  describe('when staking_confirmations feature flag is enabled', () => {
-    let originalMock: jest.Mock;
+  describe('unstake transaction flow', () => {
     let mockAttemptUnstakeTransaction: jest.Mock;
 
     beforeEach(() => {
-      originalMock = jest.requireMock(
-        '../../../../../selectors/featureFlagController',
-      ).selectConfirmationRedesignFlags as jest.Mock;
-
-      jest.requireMock(
-        '../../../../../selectors/featureFlagController',
-      ).selectConfirmationRedesignFlags = jest.fn(() => ({
-        staking_confirmations: true,
-      }));
-
       mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue(undefined);
       jest.requireMock('../../../Stake/hooks/usePoolStakedUnstake').default =
         () => ({
           attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
         });
-    });
-
-    afterEach(() => {
-      jest.requireMock(
-        '../../../../../selectors/featureFlagController',
-      ).selectConfirmationRedesignFlags = originalMock;
     });
 
     it('calls attemptUnstakeTransaction when Review button is pressed', async () => {

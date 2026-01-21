@@ -14,8 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
-// eslint-disable-next-line import/no-namespace
-import {} from '../../../../../selectors/featureFlagController/confirmations';
+
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -1711,11 +1710,7 @@ describe('EarnInputView', () => {
     });
 
     describe('Pooled Staking flow tracing', () => {
-      it('calls trace with EarnDepositConfirmationScreen when redesigned confirmations are enabled', async () => {
-        selectConfirmationRedesignFlagsMock.mockReturnValue({
-          staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags);
-
+      it('calls trace with EarnDepositConfirmationScreen', async () => {
         const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
         usePoolStakedDepositMock.mockReturnValue({
           attemptDepositTransaction: attemptDepositTransactionMock,
