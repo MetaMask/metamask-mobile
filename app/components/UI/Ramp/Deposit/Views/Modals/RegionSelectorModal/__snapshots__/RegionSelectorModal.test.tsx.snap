@@ -553,10 +553,10 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -570,8 +570,8 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -1320,10 +1320,10 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -1337,8 +1337,8 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -2283,10 +2283,10 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -2300,8 +2300,8 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -3478,10 +3478,10 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -3495,8 +3495,8 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -4286,10 +4286,10 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -4303,8 +4303,8 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -5182,10 +5182,10 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -5199,8 +5199,8 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -6377,10 +6377,10 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -6394,8 +6394,8 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -7572,10 +7572,10 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -7589,8 +7589,8 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]

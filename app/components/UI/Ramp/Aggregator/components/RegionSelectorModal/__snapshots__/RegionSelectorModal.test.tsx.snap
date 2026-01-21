@@ -553,10 +553,10 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -570,8 +570,8 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -1475,10 +1475,10 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -1492,8 +1492,8 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -2735,10 +2735,10 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -2752,8 +2752,8 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -3657,10 +3657,10 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -3674,8 +3674,8 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -4447,10 +4447,10 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -4464,8 +4464,8 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -5317,10 +5317,10 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -5334,8 +5334,8 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -6195,10 +6195,10 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -6212,8 +6212,8 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -7455,10 +7455,10 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -7472,8 +7472,8 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -8715,10 +8715,10 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -8732,8 +8732,8 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -9991,10 +9991,10 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -10008,8 +10008,8 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -11267,10 +11267,10 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -11284,8 +11284,8 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]

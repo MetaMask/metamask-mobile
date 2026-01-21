@@ -11,6 +11,7 @@ import {
   FontWeight,
   IconName,
   ButtonIconProps,
+  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
@@ -76,6 +77,7 @@ const HeaderCenter: React.FC<HeaderCenterProps> = ({
     if (onClose || closeButtonProps) {
       const closeProps: ButtonIconProps = {
         iconName: IconName.Close,
+        size: ButtonIconSize.Lg,
         ...(closeButtonProps || {}),
         onPress: closeButtonProps?.onPress ?? onClose,
       };

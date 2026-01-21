@@ -376,9 +376,13 @@ const EarnTokenList = () => {
     return <EarnTokenListSkeletonPlaceholder />;
   }, [earnTokens?.length]);
 
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader>
+      <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSM}>
           {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')

@@ -553,10 +553,10 @@ exports[`SsnInfoModal Component renders correctly and matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -570,8 +570,8 @@ exports[`SsnInfoModal Component renders correctly and matches snapshot 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]

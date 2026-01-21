@@ -553,10 +553,10 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -570,8 +570,8 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -1551,10 +1551,10 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -1568,8 +1568,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -2549,10 +2549,10 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -2566,8 +2566,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -3547,10 +3547,10 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
                                           "borderRadius": 2,
-                                          "height": 32,
+                                          "height": 40,
                                           "justifyContent": "center",
                                           "opacity": 1,
-                                          "width": 32,
+                                          "width": 40,
                                         },
                                         undefined,
                                       ]
@@ -3564,8 +3564,8 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
