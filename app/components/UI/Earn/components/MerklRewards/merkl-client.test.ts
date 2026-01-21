@@ -159,7 +159,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(result).toBe('222540254228106035846');
   });
 
-  it('returns "0" when networkClientId is not found', async () => {
+  it('returns null when networkClientId is not found', async () => {
     mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
       undefined,
     );
@@ -170,11 +170,11 @@ describe('getClaimedAmountFromContract', () => {
       mockChainId,
     );
 
-    expect(result).toBe('0');
+    expect(result).toBe(null);
     expect(mockQuery).not.toHaveBeenCalled();
   });
 
-  it('returns "0" when response is empty', async () => {
+  it('returns null when response is empty', async () => {
     const mockEncodedData = '0x1234567890abcdef';
 
     mockContractInterface.encodeFunctionData.mockReturnValue(mockEncodedData);
@@ -186,11 +186,11 @@ describe('getClaimedAmountFromContract', () => {
       mockChainId,
     );
 
-    expect(result).toBe('0');
+    expect(result).toBe(null);
     expect(mockContractInterface.decodeFunctionResult).not.toHaveBeenCalled();
   });
 
-  it('returns "0" when response is null', async () => {
+  it('returns null when response is null', async () => {
     const mockEncodedData = '0x1234567890abcdef';
 
     mockContractInterface.encodeFunctionData.mockReturnValue(mockEncodedData);
@@ -202,11 +202,11 @@ describe('getClaimedAmountFromContract', () => {
       mockChainId,
     );
 
-    expect(result).toBe('0');
+    expect(result).toBe(null);
     expect(mockContractInterface.decodeFunctionResult).not.toHaveBeenCalled();
   });
 
-  it('returns "0" when contract call throws an error', async () => {
+  it('returns null when contract call throws an error', async () => {
     const mockEncodedData = '0x1234567890abcdef';
 
     mockContractInterface.encodeFunctionData.mockReturnValue(mockEncodedData);
@@ -218,10 +218,10 @@ describe('getClaimedAmountFromContract', () => {
       mockChainId,
     );
 
-    expect(result).toBe('0');
+    expect(result).toBe(null);
   });
 
-  it('returns "0" when decodeFunctionResult throws an error', async () => {
+  it('returns null when decodeFunctionResult throws an error', async () => {
     const mockEncodedData = '0x1234567890abcdef';
     const mockResponse =
       '0x0000000000000000000000000000000000000000000000000000000000000001';
@@ -238,7 +238,7 @@ describe('getClaimedAmountFromContract', () => {
       mockChainId,
     );
 
-    expect(result).toBe('0');
+    expect(result).toBe(null);
   });
 
   it('uses correct ABI for Interface', async () => {

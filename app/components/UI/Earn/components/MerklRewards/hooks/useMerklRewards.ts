@@ -61,7 +61,6 @@ export const useMerklRewards = ({
   asset,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -105,17 +104,24 @@ export const useMerklRewards = ({
         // Get the claimed amount from the contract instead of the API
         // The API's claimed value doesn't update immediately after claiming,
         // but the contract's claimed mapping is updated immediately
+        // If the contract call fails, fall back to the API's claimed value
         const claimedFromContract = await getClaimedAmountFromContract(
           selectedAddress,
           asset.address as Hex,
           asset.chainId as Hex,
         );
 
+        // Use contract value if available, otherwise fall back to API value
+        const claimedAmount =
+          claimedFromContract !== null
+            ? claimedFromContract
+            : matchingReward.claimed;
+
         // Use unclaimed amount as it represents claimable rewards in the Merkle tree
         // Use token decimals from API response, fallback to asset decimals
         // Convert string amounts to BigInt for subtraction, then back to string
         const unclaimedBaseUnits =
-          BigInt(matchingReward.amount) - BigInt(claimedFromContract);
+          BigInt(matchingReward.amount) - BigInt(claimedAmount);
         const tokenDecimals =
           matchingReward.token.decimals ?? asset.decimals ?? 18;
 
@@ -163,11 +169,11 @@ export const useMerklRewards = ({
     return () => {
       abortController.abort();
     };
-  }, [fetchClaimableRewards, refetchTrigger]);
+  }, [fetchClaimableRewards]);
 
-  const refetch = async () => {
-    setRefetchTrigger((prev) => prev + 1);
-  };
+  const refetch = useCallback(async () => {
+    await fetchClaimableRewards();
+  }, [fetchClaimableRewards]);
 
   return {
     claimableReward,

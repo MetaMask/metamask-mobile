@@ -607,4 +607,86 @@ describe('useMerklRewards', () => {
       2,
     );
   });
+
+  it('falls back to API claimed value when contract call fails', async () => {
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '500000000000000000', // 0.5 tokens remaining
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000', // 1.5 total
+      claimed: '1000000000000000000', // 1.0 already claimed (from API)
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    // Contract call fails, returns null
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce(null);
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('0.50');
+      },
+      { timeout: 3000 },
+    );
+
+    // Should use API's claimed value (1.0) instead of contract value
+    // unclaimed = amount - claimed = 1.5 - 1.0 = 0.5
+    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
+      '500000000000000000',
+      18,
+      2,
+    );
+  });
+
+  it('uses contract value when available, even if API has different claimed value', async () => {
+    const mockRewardData = {
+      token: {
+        address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '1000000000000000000', // API says 1.0 claimed (stale)
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    // Contract returns updated value (1.2 claimed, more recent than API)
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce(
+      '1200000000000000000',
+    );
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('0.30');
+      },
+      { timeout: 3000 },
+    );
+
+    // Should use contract value (1.2) not API value (1.0)
+    // unclaimed = amount - claimed = 1.5 - 1.2 = 0.3
+    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
+      '300000000000000000',
+      18,
+      2,
+    );
+  });
 });

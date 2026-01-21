@@ -98,37 +98,86 @@ export const useMerklClaim = ({
       // Wait for transaction confirmation (mined in a block)
       // Contract state changes (like updating the claimed mapping) only happen after confirmation
       await new Promise<void>((resolve, reject) => {
+        // Capture unsubscribe functions to clean up all subscriptions when one fires
+        const unsubscribes: (() => void)[] = [];
+
+        // Helper to clean up all subscriptions and resolve/reject
+        const cleanupAndResolve = () => {
+          unsubscribes.forEach((unsubscribe) => unsubscribe());
+          resolve();
+        };
+
+        const cleanupAndReject = (rejectionError: Error) => {
+          unsubscribes.forEach((unsubscribe) => unsubscribe());
+          reject(rejectionError);
+        };
+
         // Handle successful confirmation
-        Engine.controllerMessenger.subscribeOnceIf(
+        // transactionConfirmed event passes transactionMeta directly
+        // Note: transactionConfirmed can fire with TransactionStatus.failed,
+        // so we must check the status and handle both cases
+        const confirmedListener = (
+          Engine.controllerMessenger.subscribeOnceIf as unknown as (
+            eventType: string,
+            handler: (transactionMeta: {
+              id: string;
+              status:
+                | typeof TransactionStatus.confirmed
+                | typeof TransactionStatus.failed;
+              error?: { message?: string };
+            }) => void,
+            criteria: (transactionMeta: { id: string }) => boolean,
+          ) => () => void
+        )(
           'TransactionController:transactionConfirmed',
           (transactionMeta) => {
             if (transactionMeta.status === TransactionStatus.confirmed) {
-              resolve();
+              cleanupAndResolve();
+            } else if (transactionMeta.status === TransactionStatus.failed) {
+              cleanupAndReject(
+                new Error(
+                  transactionMeta.error?.message ?? 'Transaction failed',
+                ),
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transactionId,
         );
+        unsubscribes.push(confirmedListener);
 
         // Handle transaction failure
-        Engine.controllerMessenger.subscribeOnceIf(
+        // transactionFailed event passes { transactionMeta } as an object
+        const failedListener = (
+          Engine.controllerMessenger.subscribeOnceIf as unknown as (
+            eventType: string,
+            handler: () => void,
+            criteria: (payload: { transactionMeta: { id: string } }) => boolean,
+          ) => () => void
+        )(
           'TransactionController:transactionFailed',
-          ({ transactionMeta }) => {
-            reject(
-              new Error(transactionMeta.error?.message ?? 'Transaction failed'),
-            );
+          () => {
+            cleanupAndReject(new Error('Transaction failed'));
           },
           ({ transactionMeta }) => transactionMeta.id === transactionId,
         );
+        unsubscribes.push(failedListener);
 
         // Handle transaction rejection (user cancelled)
-        Engine.controllerMessenger.subscribeOnceIf(
+        // transactionRejected event passes { transactionMeta } as an object
+        const rejectedListener = (
+          Engine.controllerMessenger.subscribeOnceIf as unknown as (
+            eventType: string,
+            handler: () => void,
+            criteria: (payload: { transactionMeta: { id: string } }) => boolean,
+          ) => () => void
+        )(
           'TransactionController:transactionRejected',
           () => {
-            reject(new Error('Transaction was rejected'));
+            cleanupAndReject(new Error('Transaction was rejected'));
           },
-          ({ transactionMeta: _transactionMeta }) =>
-            _transactionMeta.id === transactionId,
+          ({ transactionMeta }) => transactionMeta.id === transactionId,
         );
+        unsubscribes.push(rejectedListener);
       });
 
       // Refetch claimed amount from blockchain after transaction confirmation

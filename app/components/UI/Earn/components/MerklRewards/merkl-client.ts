@@ -141,20 +141,20 @@ export const fetchMerklRewardsForAsset = async (
  * @param userAddress - The user's wallet address
  * @param tokenAddress - The token address
  * @param chainId - The chain ID
- * @returns The claimed amount as a string (in base units/wei), or '0' if not found or on error
+ * @returns The claimed amount as a string (in base units/wei), or null if the call fails (allows fallback to API value)
  */
 export const getClaimedAmountFromContract = async (
   userAddress: string,
   tokenAddress: Hex,
   chainId: Hex,
-): Promise<string> => {
+): Promise<string | null> => {
   try {
     const { NetworkController } = Engine.context;
     const networkClientId =
       NetworkController.findNetworkClientIdByChainId(chainId);
 
     if (!networkClientId) {
-      return '0';
+      return null;
     }
 
     const networkClient =
@@ -178,7 +178,7 @@ export const getClaimedAmountFromContract = async (
 
     // Decode the result - it's a struct with (amount, timestamp, merkleRoot)
     if (!res || res === '0x') {
-      return '0';
+      return null;
     }
 
     // Decode the struct response
@@ -189,7 +189,7 @@ export const getClaimedAmountFromContract = async (
 
     return claimedAmount.toString();
   } catch (error) {
-    // Silently return '0' on error to allow fallback to API value
-    return '0';
+    // Return null on error to allow fallback to API value
+    return null;
   }
 };
