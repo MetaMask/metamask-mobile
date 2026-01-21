@@ -222,6 +222,7 @@ export interface EmailVerificationVerifyRequest {
   countryOfResidence: string;
   allowMarketing: boolean;
   allowSms: boolean;
+  userExternalId?: string;
 }
 
 export interface EmailVerificationVerifyResponse {

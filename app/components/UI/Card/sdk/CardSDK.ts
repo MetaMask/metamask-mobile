@@ -1574,6 +1574,7 @@ export class CardSDK {
       email: request.email,
       contactVerificationId: request.contactVerificationId,
       countryOfResidence: request.countryOfResidence,
+      userExternalId: request.userExternalId,
     });
 
     try {
