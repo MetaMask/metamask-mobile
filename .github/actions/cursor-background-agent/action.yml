@@ -118,7 +118,12 @@ runs:
 
         # Extract agent ID and URL
         AGENT_ID=$(echo "$BODY" | jq -r '.id')
-        AGENT_URL=$(echo "$BODY" | jq -r '.target.url')
+        AGENT_URL=$(echo "$BODY" | jq -r '.target.url // empty')
+
+        # If no target URL (read-only/analysis mode), construct from agent ID
+        if [ -z "$AGENT_URL" ]; then
+          AGENT_URL="https://cursor.com/bg/$AGENT_ID"
+        fi
 
         echo "agent_id=$AGENT_ID" >> "$GITHUB_OUTPUT"
         echo "agent_url=$AGENT_URL" >> "$GITHUB_OUTPUT"
