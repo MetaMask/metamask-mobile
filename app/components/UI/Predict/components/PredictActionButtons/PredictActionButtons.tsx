@@ -40,8 +40,8 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
     const yesLivePrice = getPrice(yesToken.id);
     const noLivePrice = getPrice(noToken.id);
 
-    const yesPrice = yesLivePrice?.price ?? yesToken.price;
-    const noPrice = noLivePrice?.price ?? noToken.price;
+    const yesPrice = yesLivePrice?.bestAsk ?? yesToken.price;
+    const noPrice = noLivePrice?.bestAsk ?? noToken.price;
 
     if (isGameMarket && market.game) {
       const { awayTeam, homeTeam } = market.game;
