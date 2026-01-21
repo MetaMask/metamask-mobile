@@ -5,25 +5,21 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import { ParsedArgs } from './types';
+import { ParsedArgs, SelectTagsAnalysis } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
   getPRFiles,
   validatePRNumber,
 } from './utils/git-utils';
-import {
-  MODES,
-  validateMode,
-  analyzeWithAgent,
-  AnalysisContext,
-} from './analysis/analyzer';
+import { analyzeWithSkill, AnalysisContext } from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
 import {
   createProvider,
   getSupportedProviders,
   ProviderType,
 } from './providers';
+import { registerAllSkills, SkillRegistry } from './skills';
 
 /**
  * Validates provided files against actual git changes
@@ -105,8 +101,11 @@ function parseArgs(args: string[]): ParsedArgs {
  * Shows help message
  */
 function showHelp(): void {
-  const modeList = Object.entries(MODES)
-    .map(([key, mode]) => `  ${key.padEnd(20)} ${mode.description}`)
+  // Register skills to show them in help
+  registerAllSkills();
+
+  const skillList = SkillRegistry.list()
+    .map((skill) => `  ${skill.name.padEnd(20)} ${skill.description}`)
     .join('\n');
 
   const providerList = getSupportedProviders()
@@ -119,8 +118,8 @@ function showHelp(): void {
   console.log(`
 Smart E2E AI Analyzer
 
-AVAILABLE MODES:
-${modeList}
+AVAILABLE SKILLS:
+${skillList}
 
 SUPPORTED LLM PROVIDERS (in priority order):
 ${providerList}
@@ -129,14 +128,14 @@ The analyzer will automatically use the first available provider.
 Set the appropriate API key environment variable to enable a provider.
 
 AI AGENTIC FLOW:
-1. AI gets list of changed files and act depending on the mode
+1. AI gets list of changed files and analyzes using the selected skill
 2. AI calls tools to investigate (get_git_diff, find_related_files, etc.)
 3. AI thinks deeply about impacts and provides a decision
 
 Usage: node -r esbuild-register e2e/tools/e2e-ai-analyzer [options]
 
 Options:
-  -m, --mode <mode>             Analysis mode (default: select-tags)
+  -m, --mode <skill>            Skill to use for analysis (default: select-tags)
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
@@ -144,7 +143,7 @@ Options:
   -h, --help                    Show this help message
 
 Output:
-  - each mode defines its own output format
+  - each skill defines its own output format
 
 Examples:
   # Using Anthropic Claude (default)
@@ -198,6 +197,9 @@ function getProviderOrder(forcedProvider?: ProviderType): ProviderType[] {
 async function main() {
   console.log('🤖 Starting E2E AI analysis...');
 
+  // Register all available skills
+  registerAllSkills();
+
   const args = process.argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) {
     showHelp();
@@ -205,13 +207,24 @@ async function main() {
   }
 
   const options = parseArgs(args);
-  const mode = validateMode(options.mode);
+  const skillName = options.mode || 'select-tags'; // Default to select-tags skill
   const forcedProvider = validateProvider(options.provider);
   const baseBranch = options.baseBranch;
   const baseDir = process.cwd();
   const githubRepo = APP_CONFIG.githubRepo;
 
-  console.log(`🎯 Mode: ${mode}`);
+  // Validate skill exists
+  if (!SkillRegistry.has(skillName)) {
+    console.error(`❌ Skill '${skillName}' not found.`);
+    console.error(
+      `Available skills: ${SkillRegistry.list()
+        .map((s) => s.name)
+        .join(', ')}`,
+    );
+    process.exit(1);
+  }
+
+  console.log(`🎯 Skill: ${skillName}`);
   if (forcedProvider) {
     console.log(`🔒 Provider: ${forcedProvider} (forced)`);
   }
@@ -233,8 +246,9 @@ async function main() {
     console.log(
       '💡 Tip: Make sure you have uncommitted changes or are on a branch with commits',
     );
-    const analysis = MODES[mode].createEmptyResult();
-    MODES[mode].outputAnalysis(analysis);
+    const skill = SkillRegistry.get(skillName);
+    const emptyResult = skill.createEmptyResult();
+    skill.outputResult(emptyResult);
     return;
   }
 
@@ -283,8 +297,14 @@ async function main() {
     console.error(`   ${LLM_CONFIG.providers.anthropic.envKey}`);
     console.error(`   ${LLM_CONFIG.providers.openai.envKey}`);
     console.error(`   ${LLM_CONFIG.providers.google.envKey}`);
-    const fallbackAnalysis = MODES[mode].createConservativeResult();
-    MODES[mode].outputAnalysis(fallbackAnalysis);
+    const skill = SkillRegistry.get(skillName);
+    const skillContext = {
+      ...analysisContext,
+      changedFiles: allChangedFiles,
+      criticalFiles,
+    };
+    const fallbackAnalysis = skill.createConservativeResult(skillContext);
+    skill.outputResult(fallbackAnalysis);
     return;
   }
 
@@ -301,16 +321,18 @@ async function main() {
     try {
       console.log(`\n🚀 Using ${provider.displayName}...`);
 
-      const analysis = await analyzeWithAgent(
+      // Use skills architecture
+      const analysis = await analyzeWithSkill<SelectTagsAnalysis>(
         provider,
+        skillName,
         allChangedFiles,
         criticalFiles,
-        mode,
         analysisContext,
       );
 
       // Success - output results and exit
-      MODES[mode].outputAnalysis(analysis);
+      const skill = SkillRegistry.get(skillName);
+      skill.outputResult(analysis);
       return;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -328,8 +350,14 @@ async function main() {
     console.error(`Last error: ${lastError.message}`);
   }
 
-  const fallbackAnalysis = MODES[mode].createConservativeResult();
-  MODES[mode].outputAnalysis(fallbackAnalysis);
+  const skill = SkillRegistry.get(skillName);
+  const skillContext = {
+    ...analysisContext,
+    changedFiles: allChangedFiles,
+    criticalFiles,
+  };
+  const fallbackAnalysis = skill.createConservativeResult(skillContext);
+  skill.outputResult(fallbackAnalysis);
 }
 
 main().catch((error) => {

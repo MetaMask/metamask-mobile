@@ -47,3 +47,40 @@ export interface ToolInput {
   confidence?: number;
   reasoning?: string;
 }
+
+/**
+ * Skills Architecture Types
+ */
+
+/**
+ * Context passed to skills containing all analysis parameters
+ */
+export interface SkillContext {
+  baseDir: string;
+  baseBranch: string;
+  prNumber?: number;
+  githubRepo?: string;
+  changedFiles: string[];
+  criticalFiles: string[];
+  // Skills can pass additional context to each other
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Dependency declaration for skills
+ */
+export interface SkillDependency {
+  skillName: string;
+  required: boolean; // If true, fail if dependency not available
+  version?: string; // Optional version constraint
+}
+
+/**
+ * Metadata for skill discovery
+ */
+export interface SkillMetadata {
+  name: string;
+  version: string;
+  description: string;
+  dependencies?: SkillDependency[];
+}
