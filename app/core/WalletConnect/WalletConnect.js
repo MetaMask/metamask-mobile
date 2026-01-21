@@ -51,13 +51,23 @@ const METHODS_TO_REDIRECT = {
 const persistSessions = async () => {
   const sessions = connectors
     .filter((connector) => connector?.walletConnector?.connected)
-    .map((connector) => ({
-      ...connector.walletConnector.session,
-      autosign: connector.autosign,
-      redirectUrl: connector.redirectUrl,
-      requestOriginatedFrom: connector.requestOriginatedFrom,
-      lastTimeConnected: new Date(),
-    }));
+    .map((connector) => {
+      const session = connector.walletConnector.session;
+      const rawUrl = session.peerMeta?.url;
+      const normalizedUrl = normalizeDappUrl(rawUrl);
+
+      return {
+        ...session,
+        peerMeta: {
+          ...session.peerMeta,
+          url: normalizedUrl || rawUrl,
+        },
+        autosign: connector.autosign,
+        redirectUrl: connector.redirectUrl,
+        requestOriginatedFrom: connector.requestOriginatedFrom,
+        lastTimeConnected: new Date(),
+      };
+    });
 
   await StorageWrapper.setItem(
     WALLETCONNECT_SESSIONS,
@@ -314,11 +324,16 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
+    // For existing sessions from storage, URL should already be normalized.
+    // However we still normalize here as a safety measure for legacy data.
     const rawUrl = sessionData.peerMeta?.url;
-    const normalizedUrl = normalizeDappUrl(rawUrl);
-    if (!normalizedUrl) {
+    const normalizedUrl = normalizeDappUrl(rawUrl) || rawUrl;
+
+    let hostname;
+    try {
+      hostname = new URL(normalizedUrl).hostname;
+    } catch {
       Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
-      // For existing sessions, kill the session since it's already persisted
       if (existing) {
         this.killSession();
       }
@@ -345,7 +360,7 @@ class WalletConnect {
     this.icon.current = sessionData.peerMeta?.icons?.[0];
     this.dappScheme.current = sessionData.peerMeta?.dappScheme;
 
-    this.hostname = new URL(normalizedUrl).hostname;
+    this.hostname = hostname;
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
@@ -390,11 +405,13 @@ class WalletConnect {
     try {
       const rawUrl = peerInfo.peerMeta?.url;
       const normalizedUrl = normalizeDappUrl(rawUrl);
-      const host = normalizedUrl ? new URL(normalizedUrl).host : rawUrl;
+      if (!normalizedUrl) {
+        throw new Error(`Invalid dApp URL: ${rawUrl}`);
+      }
 
       return await ApprovalController.add({
         id: random(),
-        origin: host,
+        origin: new URL(normalizedUrl).host,
         requestData: peerInfo,
         type: ApprovalTypes.WALLET_CONNECT,
       });
