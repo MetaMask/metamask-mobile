@@ -32,10 +32,10 @@ jest.mock('@metamask/utils', () => ({
 
 describe('hyperLiquidAdapter', () => {
   describe('adaptOrderToSDK', () => {
-    let coinToAssetId: Map<string, number>;
+    let symbolToAssetId: Map<string, number>;
 
     beforeEach(() => {
-      coinToAssetId = new Map([
+      symbolToAssetId = new Map([
         ['BTC', 0],
         ['ETH', 1],
         ['SOL', 2],
@@ -44,13 +44,13 @@ describe('hyperLiquidAdapter', () => {
 
     it('should convert basic market order correctly', () => {
       const order: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result).toEqual({
         a: 0, // BTC asset ID
@@ -65,7 +65,7 @@ describe('hyperLiquidAdapter', () => {
 
     it('should convert limit order correctly', () => {
       const order: OrderParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         isBuy: false,
         size: '2.5',
         orderType: 'limit',
@@ -74,7 +74,7 @@ describe('hyperLiquidAdapter', () => {
         clientOrderId: '0x123abc',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result).toEqual({
         a: 1, // ETH asset ID
@@ -89,13 +89,13 @@ describe('hyperLiquidAdapter', () => {
 
     it('should handle missing price for limit order', () => {
       const order: OrderParams = {
-        coin: 'SOL',
+        symbol: 'SOL',
         isBuy: true,
         size: '10',
         orderType: 'limit',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result.p).toBe('0');
       expect(result.t).toEqual({ limit: { tif: 'Gtc' } });
@@ -103,27 +103,27 @@ describe('hyperLiquidAdapter', () => {
 
     it('should handle non-hex client order ID', () => {
       const order: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '1',
         orderType: 'market',
         clientOrderId: 'not-hex',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result.c).toBeUndefined();
     });
 
     it('should throw error for unknown coin', () => {
       const order: OrderParams = {
-        coin: 'UNKNOWN',
+        symbol: 'UNKNOWN',
         isBuy: true,
         size: '1',
         orderType: 'market',
       };
 
-      expect(() => adaptOrderToSDK(order, coinToAssetId)).toThrow(
+      expect(() => adaptOrderToSDK(order, symbolToAssetId)).toThrow(
         'Asset UNKNOWN not found in asset mapping',
       );
     });
@@ -194,7 +194,7 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         orderId: '54321',
-        symbol: 'ETH',
+        symbol: 'ETH', // Output uses 'symbol' (internal type)
         side: 'sell',
         orderType: 'limit',
         size: '2.0',
@@ -734,7 +734,7 @@ describe('hyperLiquidAdapter', () => {
       const result = adaptPositionFromSDK(assetPosition);
 
       expect(result).toEqual({
-        coin: 'BTC',
+        symbol: 'BTC', // Output uses 'symbol' (internal type), input was 'coin' (SDK type)
         size: '1.5',
         entryPrice: '50000',
         positionValue: '75000',
@@ -984,13 +984,13 @@ describe('hyperLiquidAdapter', () => {
         perpDexIndex: 0,
       });
 
-      expect(result.coinToAssetId.get('BTC')).toBe(0);
-      expect(result.coinToAssetId.get('ETH')).toBe(1);
-      expect(result.coinToAssetId.get('SOL')).toBe(2);
+      expect(result.symbolToAssetId.get('BTC')).toBe(0);
+      expect(result.symbolToAssetId.get('ETH')).toBe(1);
+      expect(result.symbolToAssetId.get('SOL')).toBe(2);
 
-      expect(result.assetIdToCoin.get(0)).toBe('BTC');
-      expect(result.assetIdToCoin.get(1)).toBe('ETH');
-      expect(result.assetIdToCoin.get(2)).toBe('SOL');
+      expect(result.assetIdToSymbol.get(0)).toBe('BTC');
+      expect(result.assetIdToSymbol.get(1)).toBe('ETH');
+      expect(result.assetIdToSymbol.get(2)).toBe('SOL');
     });
 
     it('should handle empty universe', () => {
@@ -999,8 +999,8 @@ describe('hyperLiquidAdapter', () => {
         perpDexIndex: 0,
       });
 
-      expect(result.coinToAssetId.size).toBe(0);
-      expect(result.assetIdToCoin.size).toBe(0);
+      expect(result.symbolToAssetId.size).toBe(0);
+      expect(result.assetIdToSymbol.size).toBe(0);
     });
   });
 

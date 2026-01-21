@@ -119,7 +119,7 @@ export function usePerpsOrderValidation(
     try {
       // Convert form state to OrderParams for protocol validation
       const orderParams: OrderParams = {
-        coin: orderForm.asset,
+        symbol: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize, // Use BTC amount, not USD amount
         orderType: orderForm.type,
@@ -181,8 +181,8 @@ export function usePerpsOrderValidation(
         } else if (
           protocolValidation.error === PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN
         ) {
-          // Provide the coin that was not found
-          errorContext.coin = orderForm.asset;
+          // Provide the symbol that was not found
+          errorContext.symbol = orderForm.asset;
         }
 
         // Translate error codes from provider to user-friendly messages

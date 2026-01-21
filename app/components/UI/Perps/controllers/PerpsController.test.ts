@@ -783,7 +783,7 @@ describe('PerpsController', () => {
     it('gets positions successfully', async () => {
       const mockPositions = [
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2.5',
           entryPrice: '2000',
           positionValue: '5000',
@@ -865,7 +865,7 @@ describe('PerpsController', () => {
   describe('placeOrder', () => {
     it('places order successfully', async () => {
       const orderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -898,7 +898,7 @@ describe('PerpsController', () => {
 
     it('handles placeOrder error', async () => {
       const orderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -957,7 +957,7 @@ describe('PerpsController', () => {
     it('cancels order successfully', async () => {
       const cancelParams = {
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const mockCancelResult = {
@@ -996,7 +996,7 @@ describe('PerpsController', () => {
             success: true,
             successCount: 1,
             failureCount: 0,
-            results: [{ coin: 'BTC', orderId: 'order-1', success: true }],
+            results: [{ symbol: 'BTC', orderId: 'order-1', success: true }],
           }),
           ['orders'],
         );
@@ -1005,7 +1005,7 @@ describe('PerpsController', () => {
           success: true,
           successCount: 1,
           failureCount: 0,
-          results: [{ coin: 'BTC', orderId: 'order-1', success: true }],
+          results: [{ symbol: 'BTC', orderId: 'order-1', success: true }],
         };
       });
 
@@ -1062,7 +1062,7 @@ describe('PerpsController', () => {
   describe('closePosition', () => {
     it('closes position successfully', async () => {
       const closeParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market' as const,
         size: '0.5',
       };
@@ -1104,7 +1104,7 @@ describe('PerpsController', () => {
           success: true,
           successCount: 1,
           failureCount: 0,
-          results: [{ coin: 'BTC', success: true }],
+          results: [{ symbol: 'BTC', success: true }],
         });
 
       const result = await controller.closePositions({ closeAll: true });
@@ -1124,7 +1124,7 @@ describe('PerpsController', () => {
   describe('validateOrder', () => {
     it('validates order successfully', async () => {
       const orderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market' as const,
@@ -1441,7 +1441,7 @@ describe('PerpsController', () => {
     it('returns positions without updating state', async () => {
       const mockPositions = [
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2.5',
           entryPrice: '2000',
           positionValue: '5000',
@@ -1566,7 +1566,7 @@ describe('PerpsController', () => {
       const editParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           orderType: 'limit' as const,
           price: '51000',
@@ -1602,7 +1602,7 @@ describe('PerpsController', () => {
       const editParams = {
         orderId: 'order-123',
         newOrder: {
-          coin: 'BTC',
+          symbol: 'BTC',
           isBuy: true,
           orderType: 'limit' as const,
           price: '51000',
@@ -1855,7 +1855,7 @@ describe('PerpsController', () => {
   describe('validation methods', () => {
     it('validates close position', async () => {
       const closeParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market' as const,
         size: '0.5',
       };
@@ -1916,7 +1916,7 @@ describe('PerpsController', () => {
   describe('position management', () => {
     it('updates position TP/SL', async () => {
       const updateParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         takeProfitPrice: '55000',
         stopLossPrice: '45000',
       };
@@ -1948,7 +1948,7 @@ describe('PerpsController', () => {
 
     it('calculates maintenance margin', async () => {
       const marginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '1.0',
         entryPrice: '50000',
         asset: 'BTC',
@@ -1976,7 +1976,7 @@ describe('PerpsController', () => {
 
     it('updates margin successfully', async () => {
       const updateMarginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
       };
 
@@ -1996,7 +1996,7 @@ describe('PerpsController', () => {
       expect(mockTradingServiceInstance.updateMargin).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: mockProvider,
-          coin: updateMarginParams.coin,
+          symbol: updateMarginParams.symbol,
           amount: '100',
           context: expect.any(Object),
         }),
@@ -2005,7 +2005,7 @@ describe('PerpsController', () => {
 
     it('handles updateMargin error', async () => {
       const updateMarginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
       };
 
@@ -2025,7 +2025,7 @@ describe('PerpsController', () => {
 
     it('flips position successfully', async () => {
       const mockPosition = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         entryPrice: '50000',
         positionValue: '25000',
@@ -2041,7 +2041,7 @@ describe('PerpsController', () => {
       };
 
       const flipPositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         position: mockPosition,
       };
 
@@ -2072,7 +2072,7 @@ describe('PerpsController', () => {
 
     it('handles flipPosition error', async () => {
       const mockPosition = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
         entryPrice: '50000',
         positionValue: '25000',
@@ -2088,7 +2088,7 @@ describe('PerpsController', () => {
       };
 
       const flipPositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         position: mockPosition,
       };
 
@@ -2113,7 +2113,7 @@ describe('PerpsController', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const mockFees = {
@@ -2162,7 +2162,7 @@ describe('PerpsController', () => {
 
       const orderParams = {
         action: 'open' as const,
-        coin: 'BTC',
+        symbol: 'BTC',
         sl_price: 45000,
         tp_price: 55000,
       };
@@ -2172,7 +2172,7 @@ describe('PerpsController', () => {
       expect(result).toEqual(mockReportResult);
       expect(mockDataLakeServiceInstance.reportOrder).toHaveBeenCalledWith({
         action: orderParams.action,
-        coin: orderParams.coin,
+        symbol: orderParams.symbol,
         sl_price: orderParams.sl_price,
         tp_price: orderParams.tp_price,
         isTestnet: controller.state.isTestnet,
