@@ -125,6 +125,7 @@ jobs:
       total_splits: 3
       changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
+      metamask_environment: 'e2e'
     secrets: inherit
 
   report-ios-smoke-tests:
