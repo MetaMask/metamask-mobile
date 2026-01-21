@@ -2170,6 +2170,36 @@ describe('CardSDK', () => {
       expect(result[1].currency).toBe('USDT');
     });
 
+    it('includes wallets with decimal allowances (e.g., 0.5)', async () => {
+      createMockWalletData([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'WETH',
+          allowance: '0.5',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDC',
+          allowance: '0.001',
+        },
+        {
+          address: '0x1111111111111111111111111111111111111111',
+          currency: 'DAI',
+          allowance: '100.25',
+        },
+      ]);
+
+      const result = await cardSDK.getCardExternalWalletDetails([]);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].currency).toBe('WETH');
+      expect(result[0].allowance).toBe('0.5');
+      expect(result[1].currency).toBe('USDC');
+      expect(result[1].allowance).toBe('0.001');
+      expect(result[2].currency).toBe('DAI');
+      expect(result[2].allowance).toBe('100.25');
+    });
+
     it('filters out multiple wallets with mixed invalid allowances', async () => {
       createMockWalletData([
         {

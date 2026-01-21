@@ -945,10 +945,11 @@ export class CardSDK {
     const combinedDetails = externalWalletDetails
       .map((wallet: CardWalletExternalResponse) => {
         const networkLower = wallet.network?.toLowerCase();
+        const allowanceValue = parseFloat(wallet.allowance);
         if (
           !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork) ||
-          isNaN(parseInt(wallet.allowance)) ||
-          isZeroValue(parseInt(wallet.allowance))
+          isNaN(allowanceValue) ||
+          isZeroValue(allowanceValue)
         ) {
           return null;
         }

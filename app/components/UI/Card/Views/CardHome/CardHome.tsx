@@ -883,7 +883,7 @@ const CardHome = () => {
           <TouchableOpacity
             onPress={logoutAction}
             testID={CardHomeSelectors.LOGOUT_ITEM}
-            style={tw.style('py-4 px-4')}
+            style={tw.style('py-4 px-4 mb-6')}
           >
             <Text
               variant={TextVariant.BodyMd}
