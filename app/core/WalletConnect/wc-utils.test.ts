@@ -328,7 +328,7 @@ describe('WalletConnect Utils', () => {
       expect(normalizeDappUrl('://invalid')).toBe('');
     });
 
-    it('handles URLs with ports correctly', () => {
+    it('normalizes URLs with ports', () => {
       expect(normalizeDappUrl('https://example.com:8080')).toBe(
         'https://example.com:8080',
       );
