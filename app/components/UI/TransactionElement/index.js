@@ -57,6 +57,7 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { getEffectiveTransactionStatus } from '../../../util/transactions/statusMapping';
 import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
@@ -162,20 +163,6 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-const INTENT_STATUS = {
-  SUBMITTED: 'SUBMITTED',
-  PENDING: 'PENDING',
-  COMPLETE: 'COMPLETE',
-  FAILED: 'FAILED',
-  UNKNOWN: 'UNKNOWN',
-};
-
-const TRANSACTION_STATUS = {
-  SUBMITTED: 'submitted',
-  PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  FAILED: 'failed',
-};
 /**
  * View that renders a transaction item part of transactions list
  */
@@ -395,13 +382,20 @@ class TransactionElement extends PureComponent {
   };
 
   renderTxElementIcon = (transactionElement, tx) => {
-    const { chainId: txChainId, requiredTransactionIds, status, type } = tx;
+    const { chainId: txChainId, requiredTransactionIds, type } = tx;
     const { transactionType } = transactionElement;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
-    const { transactions } = this.props;
+    const { transactions, bridgeTxHistoryData } = this.props;
 
-    const isFailedTransaction = status === 'cancelled' || status === 'failed';
+    // Get effective status prioritizing BridgeStatusController when available
+    const effectiveStatus = this.getEffectiveTransactionStatus({
+      tx,
+      bridgeTxHistoryItem: bridgeTxHistoryData?.bridgeTxHistoryItem,
+    });
+
+    const isFailedTransaction =
+      effectiveStatus === 'cancelled' || effectiveStatus === 'failed';
     let icon;
     switch (transactionType) {
       case TRANSACTION_TYPES.SENT_TOKEN:
@@ -463,23 +457,12 @@ class TransactionElement extends PureComponent {
     );
   };
 
-  mapIntentStatusToTransactionStatus = (intentStatus) => {
-    if (intentStatus === INTENT_STATUS.PENDING) {
-      return TRANSACTION_STATUS.PENDING;
-    }
-    if (intentStatus === INTENT_STATUS.COMPLETE) {
-      return TRANSACTION_STATUS.CONFIRMED;
-    }
-    if (intentStatus === INTENT_STATUS.FAILED) {
-      return TRANSACTION_STATUS.FAILED;
-    }
-    if (intentStatus === INTENT_STATUS.SUBMITTED) {
-      return TRANSACTION_STATUS.SUBMITTED;
-    }
-
-    // if it is unknown status, default to failed
-    return TRANSACTION_STATUS.FAILED;
-  };
+  /**
+   * Gets the effective transaction status using shared utility.
+   * Wraps the shared getEffectiveTransactionStatus function.
+   */
+  getEffectiveTransactionStatus = ({ tx, bridgeTxHistoryItem }) =>
+    getEffectiveTransactionStatus(tx, bridgeTxHistoryItem);
 
   /**
    * Renders an horizontal bar with basic tx information
@@ -499,12 +482,12 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
-    const transactionStatus =
-      bridgeTxHistoryItem?.status && bridgeTxHistoryItem.quote.intent
-        ? this.mapIntentStatusToTransactionStatus(
-            bridgeTxHistoryItem.status.status,
-          )
-        : status;
+
+    // Get effective status prioritizing BridgeStatusController when available
+    const transactionStatus = this.getEffectiveTransactionStatus({
+      tx,
+      bridgeTxHistoryItem,
+    });
 
     const renderNormalActions =
       (transactionStatus === 'submitted' ||
