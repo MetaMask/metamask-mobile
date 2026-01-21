@@ -39,7 +39,7 @@ const makeExpirySet = () => {
     },
 
     /**
-     * Destroy the set and tear down the underlying timer.
+     * Clear the map and tear down the underlying timer.
      */
     destroy() {
       map.clear();
