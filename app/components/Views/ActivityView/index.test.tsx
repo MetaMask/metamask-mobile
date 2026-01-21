@@ -103,7 +103,7 @@ const mockNavigation = {
   goBack: jest.fn(),
   canGoBack: jest.fn(() => true),
   reset: jest.fn(),
-  dangerouslyGetParent: () => ({
+  getParent: () => ({
     pop: jest.fn(),
   }),
 };

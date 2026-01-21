@@ -42,8 +42,8 @@ const navigation: NavigationHelpers<ParamListBase> = {
   dispatch: jest.fn(),
   isFocused: jest.fn(),
   canGoBack: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
+  getParent: jest.fn(),
+  getState: jest.fn(),
   emit: jest.fn(),
 };
 
