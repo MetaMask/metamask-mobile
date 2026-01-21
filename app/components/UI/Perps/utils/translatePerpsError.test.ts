@@ -26,6 +26,7 @@ jest.mock('../controllers/perpsErrorCodes', () => ({
     BATCH_CANCEL_FAILED: 'BATCH_CANCEL_FAILED',
     BATCH_CLOSE_FAILED: 'BATCH_CLOSE_FAILED',
     INSUFFICIENT_MARGIN: 'INSUFFICIENT_MARGIN',
+    INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
     REDUCE_ONLY_VIOLATION: 'REDUCE_ONLY_VIOLATION',
     POSITION_WOULD_FLIP: 'POSITION_WOULD_FLIP',
     MARGIN_ADJUSTMENT_FAILED: 'MARGIN_ADJUSTMENT_FAILED',
@@ -175,6 +176,25 @@ describe('translatePerpsError', () => {
       expect(result).toBe('Custom error message');
       expect(strings).not.toHaveBeenCalled();
     });
+
+    it('translates Error with API pattern matching message', () => {
+      const error = new Error('Not enough margin available');
+      const result = translatePerpsError(error);
+
+      expect(result).toBe('perps.errors.insufficientMargin');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.insufficientMargin',
+        {},
+      );
+    });
+
+    it('translates Error with transfer failed pattern', () => {
+      const error = new Error('Transfer failed: network issue');
+      const result = translatePerpsError(error);
+
+      expect(result).toBe('perps.errors.transferFailed');
+      expect(strings).toHaveBeenCalledWith('perps.errors.transferFailed', {});
+    });
   });
 
   describe('with string errors', () => {
@@ -192,6 +212,23 @@ describe('translatePerpsError', () => {
         'perps.errors.clientNotInitialized',
         {},
       );
+    });
+
+    it('translates string with API pattern matching', () => {
+      const result = translatePerpsError('insufficient margin for this order');
+
+      expect(result).toBe('perps.errors.insufficientMargin');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.insufficientMargin',
+        {},
+      );
+    });
+
+    it('translates string with swap failed pattern', () => {
+      const result = translatePerpsError('Swap failed due to price impact');
+
+      expect(result).toBe('perps.errors.swapFailed');
+      expect(strings).toHaveBeenCalledWith('perps.errors.swapFailed', {});
     });
   });
 
@@ -563,7 +600,7 @@ describe('handlePerpsError', () => {
   });
 
   describe('with API error pattern matching', () => {
-    it('should translate insufficient margin error pattern', () => {
+    it('translates insufficient margin error pattern', () => {
       const result = handlePerpsError({
         error: 'Not enough margin available for this order',
       });
@@ -571,7 +608,7 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.insufficientMargin');
     });
 
-    it('should translate reduce only violation error pattern', () => {
+    it('translates reduce only violation error pattern', () => {
       const result = handlePerpsError({
         error: 'Reduce only order rejected',
       });
@@ -579,7 +616,7 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.reduceOnlyViolation');
     });
 
-    it('should translate insufficient liquidity error pattern', () => {
+    it('translates insufficient liquidity error pattern', () => {
       const result = handlePerpsError({
         error: 'Insufficient liquidity for this trade',
       });
@@ -587,7 +624,7 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.insufficientLiquidity');
     });
 
-    it('should translate transfer failed error pattern', () => {
+    it('translates transfer failed error pattern', () => {
       const result = handlePerpsError({
         error: 'Transfer failed with status: error',
       });
@@ -595,7 +632,7 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.transferFailed');
     });
 
-    it('should translate slippage exceeded error pattern', () => {
+    it('translates slippage exceeded error pattern', () => {
       const result = handlePerpsError({
         error: 'Price moved too much during execution',
       });
@@ -603,7 +640,7 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.slippageExceeded');
     });
 
-    it('should translate rate limit error pattern', () => {
+    it('translates rate limit error pattern', () => {
       const result = handlePerpsError({
         error: 'Rate limit exceeded, please try again later',
       });
@@ -611,7 +648,7 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.rateLimitExceeded');
     });
 
-    it('should translate timeout error pattern', () => {
+    it('translates timeout error pattern', () => {
       const result = handlePerpsError({
         error: 'Connection timed out',
       });
@@ -619,7 +656,111 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.connectionTimeout');
     });
 
-    it('should use fallback for unrecognized patterns', () => {
+    it('translates insufficient balance error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Insufficient balance for withdrawal',
+      });
+
+      expect(result).toBe('perps.errors.insufficientBalance');
+    });
+
+    it('translates position would flip error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Order rejected: position would flip',
+      });
+
+      expect(result).toBe('perps.errors.positionWouldFlip');
+    });
+
+    it('translates order rejected error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Order rejected by exchange',
+      });
+
+      expect(result).toBe('perps.errors.orderRejected');
+    });
+
+    it('translates swap failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Swap failed: insufficient output',
+      });
+
+      expect(result).toBe('perps.errors.swapFailed');
+    });
+
+    it('translates spot pair not found error pattern', () => {
+      const result = handlePerpsError({
+        error: 'USDH to USDC pair not found',
+      });
+
+      expect(result).toBe('perps.errors.spotPairNotFound');
+    });
+
+    it('translates price unavailable error pattern', () => {
+      const result = handlePerpsError({
+        error: 'No price available for this asset',
+      });
+
+      expect(result).toBe('perps.errors.priceUnavailable');
+    });
+
+    it('translates batch cancel failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Batch cancel failed: partial execution',
+      });
+
+      expect(result).toBe('perps.errors.batchCancelFailed');
+    });
+
+    it('translates batch close failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Batch close failed: some positions still open',
+      });
+
+      expect(result).toBe('perps.errors.batchCloseFailed');
+    });
+
+    it('translates service unavailable error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Service temporarily unavailable',
+      });
+
+      expect(result).toBe('perps.errors.serviceUnavailable');
+    });
+
+    it('translates 503 service unavailable error pattern', () => {
+      const result = handlePerpsError({
+        error: 'HTTP Error 503: Service Unavailable',
+      });
+
+      expect(result).toBe('perps.errors.serviceUnavailable');
+    });
+
+    it('translates network error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Network error: connection failed',
+      });
+
+      expect(result).toBe('perps.errors.networkErrorSimple');
+    });
+
+    it('translates fetch failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Fetch failed: unable to reach server',
+      });
+
+      expect(result).toBe('perps.errors.networkErrorSimple');
+    });
+
+    it('translates leverage reduction error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Cannot reduce position leverage below current level',
+      });
+
+      expect(result).toBe('perps.errors.orderLeverageReductionFailed');
+    });
+
+    it('uses fallback for unrecognized patterns', () => {
       const result = handlePerpsError({
         error: 'Completely random error xyz123',
         fallbackMessage: 'Something went wrong',

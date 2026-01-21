@@ -95,6 +95,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.BATCH_CLOSE_FAILED]: 'perps.errors.batchCloseFailed',
   // Position/margin errors
   [PERPS_ERROR_CODES.INSUFFICIENT_MARGIN]: 'perps.errors.insufficientMargin',
+  [PERPS_ERROR_CODES.INSUFFICIENT_BALANCE]: 'perps.errors.insufficientBalance',
   [PERPS_ERROR_CODES.REDUCE_ONLY_VIOLATION]: 'perps.errors.reduceOnlyViolation',
   [PERPS_ERROR_CODES.POSITION_WOULD_FLIP]: 'perps.errors.positionWouldFlip',
   [PERPS_ERROR_CODES.MARGIN_ADJUSTMENT_FAILED]:
@@ -125,7 +126,7 @@ const API_ERROR_PATTERNS: {
   },
   {
     pattern: /insufficient balance|not enough balance/i,
-    errorCode: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
+    errorCode: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
   },
   // Order execution errors
   {

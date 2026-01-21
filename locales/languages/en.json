@@ -1474,6 +1474,7 @@
       "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
       "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
       "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
+      "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
