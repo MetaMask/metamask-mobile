@@ -373,6 +373,66 @@ const extractOnboardingProperties = (
 };
 
 /**
+ * Extract properties for PREDICT route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractPredictProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // PREDICT route doesn't have sensitive parameters to extract
+};
+
+/**
+ * Extract properties for TRENDING route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractTrendingProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // TRENDING route doesn't have sensitive parameters to extract
+};
+
+/**
+ * Extract properties for ENABLE_CARD_BUTTON route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractEnableCardButtonProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // ENABLE_CARD_BUTTON route doesn't have sensitive parameters to extract
+};
+
+/**
+ * Extract properties for CARD_ONBOARDING route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractCardOnboardingProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // CARD_ONBOARDING route doesn't have sensitive parameters to extract
+};
+
+/**
+ * Extract properties for CARD_HOME route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractCardHomeProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // CARD_HOME route doesn't have sensitive parameters to extract
+};
+
+/**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
  * to satisfy the type checker
@@ -405,6 +465,11 @@ const routeExtractors: Record<
   [DeepLinkRoute.REWARDS]: extractRewardsProperties,
   [DeepLinkRoute.CREATE_ACCOUNT]: extractCreateAccountProperties,
   [DeepLinkRoute.ONBOARDING]: extractOnboardingProperties,
+  [DeepLinkRoute.PREDICT]: extractPredictProperties,
+  [DeepLinkRoute.TRENDING]: extractTrendingProperties,
+  [DeepLinkRoute.ENABLE_CARD_BUTTON]: extractEnableCardButtonProperties,
+  [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
+  [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -533,6 +598,16 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.CREATE_ACCOUNT;
     case ACTIONS.ONBOARDING:
       return DeepLinkRoute.ONBOARDING;
+    case ACTIONS.PREDICT:
+      return DeepLinkRoute.PREDICT;
+    case ACTIONS.TRENDING:
+      return DeepLinkRoute.TRENDING;
+    case ACTIONS.ENABLE_CARD_BUTTON:
+      return DeepLinkRoute.ENABLE_CARD_BUTTON;
+    case ACTIONS.CARD_ONBOARDING:
+      return DeepLinkRoute.CARD_ONBOARDING;
+    case ACTIONS.CARD_HOME:
+      return DeepLinkRoute.CARD_HOME;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -573,6 +648,16 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.CREATE_ACCOUNT;
       case 'onboarding':
         return DeepLinkRoute.ONBOARDING;
+      case 'predict':
+        return DeepLinkRoute.PREDICT;
+      case 'trending':
+        return DeepLinkRoute.TRENDING;
+      case 'enable-card-button':
+        return DeepLinkRoute.ENABLE_CARD_BUTTON;
+      case 'card-onboarding':
+        return DeepLinkRoute.CARD_ONBOARDING;
+      case 'card-home':
+        return DeepLinkRoute.CARD_HOME;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

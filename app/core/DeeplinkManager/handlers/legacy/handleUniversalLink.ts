@@ -41,8 +41,9 @@ import {
   SignatureStatus,
   InterstitialState,
   BranchParams,
+  DeepLinkRoute,
 } from '../../types/deepLinkAnalytics.types';
-import { SupportedAction } from '../../types/deepLink.types';
+import { isSupportedAction } from '../../types/deepLink.types';
 import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
 import ReduxService from '../../../redux';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -310,7 +311,10 @@ async function handleUniversalLink({
     signatureStatus = SignatureStatus.MISSING;
   }
 
-  const route = mapSupportedActionToRoute(action as unknown as SupportedAction);
+  // Type guard to ensure action is a SupportedAction before mapping
+  const route = isSupportedAction(action)
+    ? mapSupportedActionToRoute(action)
+    : DeepLinkRoute.INVALID;
 
   // Get interstitial disabled state safely
   let interstitialDisabled = false;

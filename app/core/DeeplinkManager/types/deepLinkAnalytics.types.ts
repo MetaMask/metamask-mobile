@@ -48,6 +48,11 @@ export enum DeepLinkRoute {
   REWARDS = 'rewards',
   CREATE_ACCOUNT = 'create-account',
   ONBOARDING = 'onboarding',
+  PREDICT = 'predict',
+  TRENDING = 'trending',
+  ENABLE_CARD_BUTTON = 'enable-card-button',
+  CARD_ONBOARDING = 'card-onboarding',
+  CARD_HOME = 'card-home',
   INVALID = 'invalid',
 }
 
