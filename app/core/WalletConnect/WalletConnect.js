@@ -56,6 +56,10 @@ const persistSessions = async () => {
       const rawUrl = session.peerMeta?.url;
       const normalizedUrl = normalizeDappUrl(rawUrl);
 
+      if (!normalizedUrl) {
+        throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+      }
+
       return {
         ...session,
         peerMeta: {
@@ -327,7 +331,11 @@ class WalletConnect {
     // For existing sessions from storage, URL should already be normalized.
     // However we still normalize here as a safety measure for legacy data.
     const rawUrl = sessionData.peerMeta?.url;
-    const normalizedUrl = normalizeDappUrl(rawUrl) || rawUrl;
+    const normalizedUrl = normalizeDappUrl(rawUrl);
+
+    if (!normalizedUrl) {
+      throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+    }
 
     let hostname;
     try {
@@ -405,6 +413,7 @@ class WalletConnect {
     try {
       const rawUrl = peerInfo.peerMeta?.url;
       const normalizedUrl = normalizeDappUrl(rawUrl);
+
       if (!normalizedUrl) {
         throw new Error(`Invalid dApp URL: ${rawUrl}`);
       }
