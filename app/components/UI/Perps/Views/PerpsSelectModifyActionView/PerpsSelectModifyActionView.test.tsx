@@ -53,8 +53,8 @@ jest.mock(
         position &&
           ReactModule.createElement(
             Text,
-            { testID: 'position-coin' },
-            position.coin,
+            { testID: 'position-symbol' },
+            position.symbol,
           ),
         ReactModule.createElement(
           TouchableOpacity,
@@ -91,7 +91,7 @@ jest.mock(
 
 describe('PerpsSelectModifyActionView', () => {
   const mockLongPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',
@@ -147,7 +147,7 @@ describe('PerpsSelectModifyActionView', () => {
   it('renders with position from props', () => {
     render(<PerpsSelectModifyActionView position={mockLongPosition} />);
 
-    expect(screen.getByTestId('position-coin')).toBeOnTheScreen();
+    expect(screen.getByTestId('position-symbol')).toBeOnTheScreen();
     expect(screen.getByText('ETH')).toBeOnTheScreen();
   });
 

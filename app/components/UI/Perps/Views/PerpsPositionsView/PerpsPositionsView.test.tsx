@@ -103,7 +103,7 @@ jest.mock('react-native', () => {
 // Mock data and functions (stable across renders)
 const mockPositions: Position[] = [
   {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '1.5',
     entryPrice: '2000',
     positionValue: '3150.75',
@@ -127,7 +127,7 @@ const mockPositions: Position[] = [
     stopLossCount: 0,
   },
   {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '-0.5',
     entryPrice: '50000',
     positionValue: '24924.75',
@@ -434,8 +434,8 @@ describe('PerpsPositionsView', () => {
     it('handles positions with unique keys', async () => {
       // Arrange
       const duplicatePositions = [
-        { ...mockPositions[0], coin: 'ETH' },
-        { ...mockPositions[0], coin: 'ETH' },
+        { ...mockPositions[0], symbol: 'ETH' },
+        { ...mockPositions[0], symbol: 'ETH' },
       ];
       (usePerpsLivePositions as jest.Mock).mockReturnValue({
         positions: duplicatePositions,
@@ -495,7 +495,7 @@ describe('PerpsPositionsView', () => {
     });
 
     it('handles positions with TP/SL correctly', async () => {
-      const positionWithTPSL = mockPositions.find((p) => p.coin === 'ETH');
+      const positionWithTPSL = mockPositions.find((p) => p.symbol === 'ETH');
       expect(positionWithTPSL?.takeProfitPrice).toBeDefined();
       expect(positionWithTPSL?.stopLossPrice).toBeDefined();
 

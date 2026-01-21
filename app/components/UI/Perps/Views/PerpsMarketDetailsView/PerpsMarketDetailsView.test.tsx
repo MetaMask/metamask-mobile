@@ -304,7 +304,7 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
 jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
   usePerpsLiveCandles: () => ({
     candleData: {
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: '1h',
       candles: [
         {
@@ -817,7 +817,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
@@ -958,7 +958,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
@@ -1701,7 +1701,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
