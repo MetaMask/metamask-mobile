@@ -92,34 +92,6 @@ const chainIdSelector = selectEvmChainId;
 const swapsStateSelector = (state) => state.swaps;
 
 /**
- * Returns if smart transactions are enabled in feature flags
- */
-export const swapsSmartTxFlagEnabled = createSelector(
-  swapsStateSelector,
-  (swapsState) => {
-    const globalFlags = swapsState.featureFlags;
-    const isEnabled = Boolean(globalFlags?.smartTransactions?.mobileActive);
-    return isEnabled;
-  },
-);
-
-/**
- * Returns the swaps feature flags
- */
-export const selectSwapsChainFeatureFlags = createSelector(
-  swapsStateSelector,
-  (_state, transactionChainId) =>
-    transactionChainId || selectEvmChainId(_state),
-  (swapsState, chainId) => ({
-    ...(swapsState[chainId]?.featureFlags || {}),
-    smartTransactions: {
-      ...(swapsState[chainId]?.featureFlags?.smartTransactions || {}),
-      ...(swapsState.featureFlags?.smartTransactions || {}),
-    },
-  }),
-);
-
-/**
  * Returns the swaps onboarded state
  */
 
