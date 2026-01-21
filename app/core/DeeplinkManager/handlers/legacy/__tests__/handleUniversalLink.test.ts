@@ -66,7 +66,7 @@ jest.mock('../../../../../util/analytics/analytics', () => ({
     trackEvent: jest.fn(),
   },
 }));
-jest.mock('../../../../../util/deeplinks/deepLinkAnalytics', () => ({
+jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
   createDeepLinkUsedEventBuilder: jest.fn(() =>
     Promise.resolve({
       addProperties: jest.fn().mockReturnThis(),
@@ -1833,7 +1833,7 @@ describe('handleUniversalLink', () => {
       '../../../../../util/analytics/analytics',
     );
     const { createDeepLinkUsedEventBuilder } = jest.requireMock(
-      '../../../../../util/deeplinks/deepLinkAnalytics',
+      '../../../util/deeplinks/deepLinkAnalytics',
     );
     const ReduxService = jest.requireMock('../../../../redux') as {
       default: {

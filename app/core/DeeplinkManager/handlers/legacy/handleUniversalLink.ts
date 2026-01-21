@@ -35,7 +35,7 @@ import { RampType } from '../../../../reducers/fiatOrders/types';
 import {
   createDeepLinkUsedEventBuilder,
   mapSupportedActionToRoute,
-} from '../../../../util/deeplinks/deepLinkAnalytics';
+} from '../../util/deeplinks/deepLinkAnalytics';
 import {
   DeepLinkAnalyticsContext,
   SignatureStatus,

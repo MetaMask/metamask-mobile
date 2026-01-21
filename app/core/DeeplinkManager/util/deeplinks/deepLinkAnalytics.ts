@@ -4,19 +4,19 @@
  */
 
 import branch from 'react-native-branch';
-import Logger from '../Logger';
+import Logger from '../../../../util/Logger';
 import {
   InterstitialState,
   SignatureStatus,
   DeepLinkRoute,
   DeepLinkAnalyticsContext,
   BranchParams,
-} from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
-import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
+} from '../../types/deepLinkAnalytics.types';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
-import { SupportedAction } from '../../core/DeeplinkManager/types/deepLink.types';
-import { ACTIONS } from '../../constants/deeplinks';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
+import { SupportedAction } from '../../types/deepLink.types';
+import { ACTIONS } from '../../../../constants/deeplinks';
 
 /**
  * Type for URL parameters that can contain string or boolean values
@@ -512,23 +512,9 @@ export const extractSensitiveProperties = (
 export const determineInterstitialState = (
   context: DeepLinkAnalyticsContext,
 ): InterstitialState => {
-  const { interstitialShown, interstitialDisabled, interstitialAction } =
-    context;
+  const { interstitialShown, interstitialAction } = context;
 
-  if (!interstitialShown) {
-    // Interstitial was not shown
-    if (
-      context.branchParams?.['+clicked_branch_link'] &&
-      context.branchParams?.['+is_first_session']
-    ) {
-      // Deferred deep link - app not installed
-      return InterstitialState.NOT_SHOWN;
-    }
-    // Direct app launch or other scenario
-    return InterstitialState.NOT_SHOWN;
-  }
-
-  // Check user action first - if user took action, report it regardless of disabled state
+  // Check user action first - if user took action, report it
   if (interstitialAction === InterstitialState.ACCEPTED) {
     return InterstitialState.ACCEPTED;
   }
@@ -536,13 +522,19 @@ export const determineInterstitialState = (
     return InterstitialState.REJECTED;
   }
 
-  // Only return SKIPPED if no action was taken and interstitials are disabled
-  if (interstitialDisabled) {
-    // User has disabled interstitials ("Don't remind me again")
-    return InterstitialState.SKIPPED;
+  // No action taken - check visibility
+  if (!interstitialShown) {
+    // Check for deferred deep link scenario
+    if (
+      context.branchParams?.['+clicked_branch_link'] &&
+      context.branchParams?.['+is_first_session']
+    ) {
+      return InterstitialState.NOT_SHOWN;
+    }
+    return InterstitialState.NOT_SHOWN;
   }
 
-  // Default case
+  // Modal shown but no action (edge case)
   return InterstitialState.NOT_SHOWN;
 };
 

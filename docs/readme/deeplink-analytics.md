@@ -26,7 +26,7 @@ The `DEEP_LINK_USED` event is created using `AnalyticsEventBuilder` and includes
 | `route`             | string  | The deep link route (e.g., "swap", "perps", "deposit")                                       |
 | `was_app_installed` | boolean | `true` if app was already installed, `false` for deferred deep link (app installed via link) |
 | `signature`         | string  | Signature validation status: "valid", "invalid", or "missing"                                |
-| `interstitial`      | string  | Interstitial state: "accepted", "rejected", "not shown", or "skipped"                        |
+| `interstitial`      | string  | Interstitial state: "accepted", "rejected", or "not shown"                                   |
 | `attribution_id`    | string? | Attribution ID from URL parameters                                                           |
 | `utm_source`        | string? | UTM source parameter                                                                         |
 | `utm_medium`        | string? | UTM medium parameter                                                                         |
@@ -131,30 +131,27 @@ The `interstitial` property indicates the user's interaction with the deep link 
 
 ### InterstitialState Enum
 
-| State       | Value       | Description                                                                                    |
-| ----------- | ----------- | ---------------------------------------------------------------------------------------------- |
-| `ACCEPTED`  | "accepted"  | User clicked "Continue" on the interstitial modal                                              |
-| `REJECTED`  | "rejected"  | User clicked "Back" or dismissed the interstitial modal                                        |
-| `NOT_SHOWN` | "not shown" | Interstitial was not shown (whitelisted action, in-app source, or deferred deep link scenario) |
-| `SKIPPED`   | "skipped"   | User has disabled interstitials ("Don't remind me again" setting)                              |
+| State       | Value       | Description                                                                                                                    |
+| ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `ACCEPTED`  | "accepted"  | User clicked "Continue" on the interstitial modal                                                                              |
+| `REJECTED`  | "rejected"  | User clicked "Back" or dismissed the interstitial modal                                                                        |
+| `NOT_SHOWN` | "not shown" | Interstitial was not shown (whitelisted action, in-app source, or deferred deep link scenario)                                 |
+| `SKIPPED`   | "skipped"   | User has disabled interstitials ("Don't remind me again" setting) - Note: Currently not returned by determineInterstitialState |
 
 ### State Determination Logic
 
-1. If `interstitialShown === false`:
+1. If `interstitialAction === ACCEPTED`:
+   - Return `ACCEPTED` (user action takes precedence)
+
+2. If `interstitialAction === REJECTED`:
+   - Return `REJECTED` (user action takes precedence)
+
+3. If `interstitialShown === false`:
    - Check if `branchParams` indicates deferred deep link (`+clicked_branch_link: true` and `+is_first_session: true`)
    - Return `NOT_SHOWN` (interstitial not shown for deferred deep links or other scenarios)
 
-2. If `interstitialDisabled === true`:
-   - Return `SKIPPED` (user disabled interstitials)
-
-3. If `interstitialAction === ACCEPTED`:
-   - Return `ACCEPTED`
-
-4. If `interstitialAction === REJECTED`:
-   - Return `REJECTED`
-
-5. Default:
-   - Return `NOT_SHOWN`
+4. Default:
+   - Return `NOT_SHOWN` (modal shown but no action taken)
 
 ## Signature Status
 

@@ -13,17 +13,17 @@ import {
   createDeepLinkUsedEventBuilder,
   detectAppInstallation,
 } from './deepLinkAnalytics';
-import { DeeplinkUrlParams } from '../../core/DeeplinkManager/types/deepLink.types';
+import { DeeplinkUrlParams } from '../../types/deepLink.types';
 import {
   DeepLinkRoute,
   InterstitialState,
   SignatureStatus,
   DeepLinkAnalyticsContext,
-} from '../../core/DeeplinkManager/types/deepLinkAnalytics.types';
-import { ACTIONS } from '../../constants/deeplinks';
+} from '../../types/deepLinkAnalytics.types';
+import { ACTIONS } from '../../../../constants/deeplinks';
 
 // Mock Logger to avoid console output during tests
-jest.mock('../Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
 }));
@@ -244,7 +244,7 @@ describe('deepLinkAnalytics', () => {
       expect(result).toEqual({});
     });
 
-    it('returns empty object for invalid route', () => {
+    it('returns empty object for non-existent route string', () => {
       const result = extractSensitiveProperties(
         'invalid-route' as DeepLinkRoute,
         mockUrlParams,
@@ -274,7 +274,7 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(InterstitialState.NOT_SHOWN);
     });
 
-    it('return SKIPPED when user disabled interstitials and no action was taken', () => {
+    it('return NOT_SHOWN when modal was shown but no action was taken (edge case)', () => {
       const context = createMockContext({
         interstitialShown: true,
         interstitialDisabled: true,
@@ -282,7 +282,7 @@ describe('deepLinkAnalytics', () => {
       });
 
       const result = determineInterstitialState(context);
-      expect(result).toBe(InterstitialState.SKIPPED);
+      expect(result).toBe(InterstitialState.NOT_SHOWN);
     });
 
     it('return ACCEPTED when user accepted the interstitial even if disabled', () => {
