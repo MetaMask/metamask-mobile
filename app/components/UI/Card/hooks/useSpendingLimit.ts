@@ -251,16 +251,28 @@ const useSpendingLimit = ({
         (qt) => qt.symbol.toUpperCase() === symbol.toUpperCase(),
       );
       if (quickSelectToken?.token) {
-        setSelectedToken(quickSelectToken.token);
+        const token = quickSelectToken.token;
+
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.QUICK_SELECT_TOKEN_BUTTON,
+              token_symbol: token.symbol,
+              chain_id: token.caipChainId,
+            })
+            .build(),
+        );
+
+        setSelectedToken(token);
       }
     },
-    [quickSelectTokens],
+    [quickSelectTokens, trackEvent, createEventBuilder],
   );
 
   const handleOtherSelect = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.CHANGE_ASSET_BUTTON })
+        .addProperties({ action: CardActions.OTHER_TOKEN_BUTTON })
         .build(),
     );
 
