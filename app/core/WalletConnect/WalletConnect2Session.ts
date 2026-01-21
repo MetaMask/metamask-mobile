@@ -109,20 +109,20 @@ class WalletConnect2Session {
     const name = session.peer.metadata.name;
     const icons = session.peer.metadata.icons;
 
-    const url = normalizeDappUrl(rawUrl);
-    if (!url) {
+    const normalizedUrl = normalizeDappUrl(rawUrl);
+    if (!normalizedUrl) {
       throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
     }
 
-    this.normalizedUrl = url;
+    this.normalizedUrl = normalizedUrl;
 
     DevLogger.log(
-      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
+      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${normalizedUrl} name=${name} icons=${icons}`,
     );
 
     this.backgroundBridge = backgroundBridgeFactory.create({
       webview: null,
-      url,
+      url: normalizedUrl,
       isWalletConnect: true,
       channelId,
       wcRequestActions: {
@@ -149,7 +149,7 @@ class WalletConnect2Session {
           fromHomepage: { current: false },
           injectHomePageScripts: () => false,
           navigation: this.navigation,
-          url: { current: url },
+          url: { current: normalizedUrl },
           title: { current: name },
           icon: { current: icons?.[0] as ImageSourcePropType },
           toggleUrlModal: () => null,
