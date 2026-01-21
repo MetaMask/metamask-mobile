@@ -3215,11 +3215,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               <Image
                                                 onError={[Function]}
                                                 resizeMode="contain"
-                                                source={
-                                                  {
-                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png",
-                                                  }
-                                                }
+                                                source={1}
                                                 style={
                                                   {
                                                     "flex": 1,
@@ -3518,11 +3514,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               <Image
                                                 onError={[Function]}
                                                 resizeMode="contain"
-                                                source={
-                                                  {
-                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/tron/728126428/slip44/195.png",
-                                                  }
-                                                }
+                                                source={1}
                                                 style={
                                                   {
                                                     "flex": 1,
