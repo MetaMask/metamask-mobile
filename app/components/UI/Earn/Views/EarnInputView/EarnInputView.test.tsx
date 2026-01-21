@@ -922,15 +922,7 @@ describe('EarnInputView', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE_CONFIRMATION,
-        params: {
-          amountFiat: '750',
-          amountWei: '375000000000000000',
-          annualRewardRate: '50%',
-          annualRewardsFiat: '375 USD',
-          annualRewardsToken: '0.1875 ETH',
-          chainId: CHAIN_IDS.MAINNET,
-        },
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
     });
 
@@ -998,23 +990,8 @@ describe('EarnInputView', () => {
       expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-          screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
-          params: {
-            action: 'ALLOWANCE_INCREASE',
-            amountFiat: '25',
-            amountTokenMinimalUnit: '25000000',
-            annualRewardRate: '2.5%',
-            annualRewardsFiat: '0.63 USD',
-            annualRewardsToken: '0.625 USDC',
-            lendingContractAddress:
-              '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
-            lendingProtocol: 'AAVE v3',
-            token: {
-              ...MOCK_USDC_MAINNET_ASSET,
-            },
-            allowanceMinimalTokenUnit: '0',
-          },
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         });
       });
     });
@@ -1088,23 +1065,8 @@ describe('EarnInputView', () => {
       expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-          screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
-          params: {
-            action: 'DEPOSIT',
-            amountFiat: '25',
-            amountTokenMinimalUnit: '25000000',
-            annualRewardRate: '2.5%',
-            annualRewardsFiat: '0.63 USD',
-            annualRewardsToken: '0.625 USDC',
-            lendingContractAddress:
-              '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
-            lendingProtocol: 'AAVE v3',
-            token: {
-              ...MOCK_USDC_MAINNET_ASSET,
-            },
-            allowanceMinimalTokenUnit: '25000000',
-          },
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         });
       });
     });
