@@ -2521,6 +2521,7 @@
     "billion_abbreviation": "Mrd",
     "trillion_abbreviation": "B",
     "million_abbreviation": "M",
+    "thousand_abbreviation": "k",
     "token_details": "Détails du jeton",
     "contract_address": "Adresse du contrat",
     "token_list": "Liste des jetons",

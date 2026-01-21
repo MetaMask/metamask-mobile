@@ -5441,6 +5441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@google/generative-ai@npm:^0.24.1":
+  version: 0.24.1
+  resolution: "@google/generative-ai@npm:0.24.1"
+  checksum: 10/992a82e2d4a58d6eb0545254fe05e2da074c08560a9d51fb29c6f2a44db8c66ba44d87bc04e61b3676f5adc9ab94e527f171ee1395edf4ccbead3472fd8efff8
+  languageName: node
+  linkType: hard
+
 "@graphql-tools/merge@npm:8.3.1":
   version: 8.3.1
   resolution: "@graphql-tools/merge@npm:8.3.1"
@@ -8735,14 +8742,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/ramps-controller@npm:4.0.0"
+"@metamask/ramps-controller@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@metamask/ramps-controller@npm:4.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/53a134aa86675a5204027b4d836e37338721f6e8f6617abde43ce21c4621e7c8d346f08692926b395f8538165e705a10c18e163a3602bb90eca9d4beecc35e77
+  checksum: 10/6e05fc1e2765aa69b3667dab5243113c062cf848f67be090c61909c596ed19ba458abe1918c285a043a286a49dde953729dc266cc367aa0aee9718e30f88fec0
   languageName: node
   linkType: hard
 
@@ -34038,6 +34045,7 @@ __metadata:
     "@ethersproject/providers": "npm:^5.7.2"
     "@expo/fingerprint": "npm:^0.15.0"
     "@expo/repack-app": "npm:^0.2.9"
+    "@google/generative-ai": "npm:^0.24.1"
     "@img/sharp-darwin-arm64": "npm:^0.34.3"
     "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
     "@img/sharp-libvips-linux-x64": "npm:^1.2.1"
@@ -34128,7 +34136,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^4.0.0"
+    "@metamask/ramps-controller": "npm:^4.1.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -34352,6 +34360,7 @@ __metadata:
     multihashes: "npm:0.4.14"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
+    openai: "npm:^4.77.0"
     pako: "npm:^2.1.0"
     patch-package: "npm:^6.2.2"
     path: "npm:0.12.7"
@@ -36453,7 +36462,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:4.104.0":
+"openai@npm:4.104.0, openai@npm:^4.77.0":
   version: 4.104.0
   resolution: "openai@npm:4.104.0"
   dependencies:

@@ -112,6 +112,8 @@ import DSText, {
 } from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import MerklRewards from '../Earn/components/MerklRewards';
+import { selectMerklCampaignClaimingEnabledFlag } from '../Earn/selectors/featureFlags';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,
@@ -217,6 +219,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isMerklCampaignClaimingEnabled = useSelector(
+    selectMerklCampaignClaimingEnabledFlag,
+  );
   const { navigateToSendPage } = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
@@ -281,7 +286,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { sourceToken, destToken } = getSwapTokens(asset);
 
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenDetails,
+    location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
     sourceToken,
     destToken,
@@ -826,6 +831,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {isMerklCampaignClaimingEnabled && <MerklRewards asset={asset} />}
           {isPerpsEnabled && hasPerpsMarket && marketData && (
             <>
               <View style={styles.perpsPositionHeader}>

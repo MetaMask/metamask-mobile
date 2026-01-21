@@ -3365,6 +3365,7 @@ workflows:
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
       - script@1:
           title: Upload to TestFlight via Fastlane
+          timeout: 2700
           inputs:
             - content: |-
                 #!/usr/bin/env bash

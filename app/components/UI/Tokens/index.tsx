@@ -35,6 +35,7 @@ import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
+import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -84,6 +85,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
@@ -207,7 +209,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     if (sortedTokenKeys.length > 0) {
       return (
         <>
-          {isMusdConversionFlowEnabled && (
+          {isMusdConversionFlowEnabled && isGeoEligible && (
             <View style={isFullView ? tw`px-4` : undefined}>
               <MusdConversionAssetListCta />
             </View>
@@ -241,6 +243,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     showRemoveMenu,
     handleScamWarningModal,
     maxItems,
+    isGeoEligible,
   ]);
 
   return (
