@@ -17,7 +17,7 @@ export function registerAllSkills(): void {
 
   // Future skills can be added here
   // SkillRegistry.register(new GapDetectorSkill());
-  // SkillRegistry.register(new FlakinessAnalyzerSkill());
+  // SkillRegistry.register(new BalanceTestPyramidSkill());
 }
 
 // Re-export for convenience
