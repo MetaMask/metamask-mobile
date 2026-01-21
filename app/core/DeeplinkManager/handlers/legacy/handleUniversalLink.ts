@@ -361,12 +361,6 @@ async function handleUniversalLink({
         inAppLinkSources.includes(source) &&
         linkInstanceType === DeepLinkModalLinkType.PRIVATE;
 
-      const willShowInterstitial =
-        !WHITELISTED_ACTIONS.includes(action) &&
-        !isWhitelistedUrl &&
-        !isInAppSourceWithPrivateLink &&
-        !interstitialDisabled;
-
       // Build analytics context - interstitialShown starts as false, set to true when modal is actually shown
       // interstitialAction will be set when user takes action
       const analyticsContext: DeepLinkAnalyticsContext = {
@@ -426,19 +420,23 @@ async function handleUniversalLink({
         pageTitle,
         onContinue: () => {
           // Determine if modal was actually shown or auto-accepted due to disabled setting
-          // Case 1: Modal was shown and user accepted
-          // Case 2: Modal was not shown because user disabled modals (auto-accepted)
-          if (willShowInterstitial) {
-            // Modal was shown and user accepted
+          // PUBLIC links always show modal (security requirement), so if we reach onContinue,
+          // the modal was shown regardless of interstitialDisabled setting
+          // PRIVATE links can be auto-accepted (skipped) if interstitialDisabled is true
+          if (linkInstanceType === DeepLinkModalLinkType.PUBLIC) {
+            // PUBLIC links always show modal - modal was shown and user accepted
             analyticsContext.interstitialShown = true;
             analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
-          } else if (interstitialDisabled) {
-            // Modal was not shown because user disabled modals (auto-accepted)
+          } else if (
+            linkInstanceType === DeepLinkModalLinkType.PRIVATE &&
+            interstitialDisabled
+          ) {
+            // PRIVATE link with disabled setting - modal was skipped (auto-accepted)
             analyticsContext.interstitialShown = false;
             analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
           } else {
-            // Should not happen, but fallback
-            analyticsContext.interstitialShown = willShowInterstitial;
+            // PRIVATE link without disabled setting - modal was shown and user accepted
+            analyticsContext.interstitialShown = true;
             analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
           }
           // Track analytics asynchronously without blocking
