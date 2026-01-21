@@ -127,6 +127,7 @@ describe('useMerklRewards', () => {
     mockFetchMerklRewardsForAsset.mockReset();
     mockGetClaimedAmountFromContract.mockReset();
     mockRenderFromTokenMinimalUnit.mockReset();
+    (global.fetch as jest.Mock).mockClear();
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {

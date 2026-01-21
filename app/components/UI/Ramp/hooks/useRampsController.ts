@@ -15,6 +15,7 @@ import {
   useRampsCountries,
   type UseRampsCountriesResult,
 } from './useRampsCountries';
+import { useRampsPreferredProviderAutoSet } from './useRampsPreferredProviderAutoSet';
 
 /**
  * Options for the useRampsController hook.
@@ -152,6 +153,8 @@ export function useRampsController(
     error: countriesError,
     fetchCountries,
   } = useRampsCountries(options?.action);
+
+  useRampsPreferredProviderAutoSet();
 
   return {
     // User region
