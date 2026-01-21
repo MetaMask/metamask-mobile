@@ -191,6 +191,7 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
       isSelected,
       onPress,
       avatarProps,
+      children,
     }: {
       title: string;
       isSelected: boolean;
@@ -200,6 +201,7 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
         name?: string;
         imageSource?: { uri: string };
       };
+      children?: React.ReactNode;
     }) {
       return (
         <TouchableOpacity onPress={onPress} testID={`cell-${title}`}>
@@ -217,6 +219,7 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
           )}
           <Text>{title}</Text>
           {isSelected && <RNView testID="selection-indicator" />}
+          {children}
         </TouchableOpacity>
       );
     },

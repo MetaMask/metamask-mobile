@@ -7,7 +7,10 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import {
   AvatarSize,
   AvatarVariant,
@@ -143,8 +146,13 @@ const TrendingTokenNetworkBottomSheet: React.FC<
           avatarProps={{
             variant: AvatarVariant.Icon,
             name: IconName.Global,
+            size: AvatarSize.Sm,
           }}
-        />
+        >
+          {isAllNetworksSelected && (
+            <Icon name={IconName.Check} size={IconSize.Md} />
+          )}
+        </Cell>
         {networks.map((network) => {
           const isSelected = isNetworkSelected(network);
           return (
@@ -160,7 +168,9 @@ const TrendingTokenNetworkBottomSheet: React.FC<
                 imageSource: network.imageSource,
                 size: AvatarSize.Sm,
               }}
-            />
+            >
+              {isSelected && <Icon name={IconName.Check} size={IconSize.Md} />}
+            </Cell>
           );
         })}
       </ScrollView>
