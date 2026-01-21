@@ -27,6 +27,7 @@ export function isStakingConfirmation(requestType: string) {
  * The redesigned confirmation modal handles:
  * - Signatures: personal_sign, eth_signTypedData
  * - Transactions: All transaction types in REDESIGNED_TRANSACTION_TYPES
+ * - Batch transactions: Used for EIP-7702 account delegation
  *
  * Other approval types have dedicated components:
  * - wallet_requestPermissions → PermissionApproval
@@ -44,6 +45,10 @@ export function isRedesignedConfirmationType(approvalType: string): boolean {
   }
 
   if (approvalType === ApprovalTypes.TRANSACTION) {
+    return true;
+  }
+
+  if (approvalType === ApprovalType.TransactionBatch) {
     return true;
   }
 

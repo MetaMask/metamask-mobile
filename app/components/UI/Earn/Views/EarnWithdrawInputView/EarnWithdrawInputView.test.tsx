@@ -878,7 +878,7 @@ describe('EarnWithdrawInputView', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
           amountWei: '1000000000000000000',
           amountFiat: '2000',
