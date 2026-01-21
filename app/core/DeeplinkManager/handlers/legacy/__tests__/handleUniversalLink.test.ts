@@ -39,6 +39,7 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleEnableCardButton');
+jest.mock('../handleTrendingUrl');
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {
@@ -625,6 +626,59 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.TRENDING', () => {
+    it('calls _handleTrending when action is TRENDING', async () => {
+      const trendingUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.TRENDING}`;
+      const trendingUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: trendingUrl,
+        pathname: `/${ACTIONS.TRENDING}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: trendingUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: trendingUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('calls _handleTrending with different deeplink domains', async () => {
+      const testCases = [
+        AppConstants.MM_UNIVERSAL_LINK_HOST,
+        AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+      ];
+
+      for (const domain of testCases) {
+        jest.clearAllMocks();
+        const trendingUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.TRENDING}`;
+        const trendingUrlObj = {
+          ...urlObj,
+          hostname: domain,
+          href: trendingUrl,
+          pathname: `/${ACTIONS.TRENDING}`,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: trendingUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: trendingUrl,
+          source: 'test-source',
+        });
+
+        expect(handled).toHaveBeenCalled();
+      }
     });
   });
 

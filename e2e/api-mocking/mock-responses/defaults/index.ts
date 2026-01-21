@@ -306,6 +306,24 @@ export const DEFAULT_MOCKS = {
         sendBundle: false,
       },
     },
+    {
+      urlEndpoint:
+        'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io/network',
+      responseCode: 200,
+      response: {
+        name: 'Polygon Mainnet',
+        group: 'polygon',
+        chainID: 137,
+        nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+        network: 'polygon-mainnet',
+        explorer: 'https://polygonscan.com/',
+        confirmations: true,
+        smartTransactions: false,
+        relayTransactions: false,
+        hidden: false,
+        sendBundle: false,
+      },
+    },
   ],
   POST: [
     ...(authMocks.POST || []),

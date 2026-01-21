@@ -318,7 +318,7 @@ describe('AccountService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+        PerpsAnalyticsEvent.WithdrawalTransaction,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -406,7 +406,7 @@ describe('AccountService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+        PerpsAnalyticsEvent.WithdrawalTransaction,
         expect.objectContaining({
           status: 'failed',
         }),

@@ -490,7 +490,7 @@ describe('HyperLiquidClientService', () => {
 
       // Assert
       expect(result).toEqual({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h',
         candles: [
           {
@@ -512,7 +512,7 @@ describe('HyperLiquidClientService', () => {
         ],
       });
       expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'BTC',
+        coin: 'BTC', // SDK uses 'coin' terminology
         interval: '1h',
         startTime: expect.any(Number),
         endTime: expect.any(Number),
@@ -536,7 +536,7 @@ describe('HyperLiquidClientService', () => {
 
       // Assert
       expect(result).toEqual({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h',
         candles: [],
       });
@@ -558,7 +558,7 @@ describe('HyperLiquidClientService', () => {
     it('should calculate correct time range for different intervals', async () => {
       // Arrange
       const mockResponse = {
-        coin: 'ETH',
+        symbol: 'ETH',
         interval: '5m',
         candles: [],
       };
@@ -576,7 +576,7 @@ describe('HyperLiquidClientService', () => {
 
       // Assert
       expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'ETH',
+        coin: 'ETH', // SDK uses 'coin' terminology
         interval: '5m',
         startTime: expect.any(Number),
         endTime: expect.any(Number),
@@ -669,7 +669,7 @@ describe('HyperLiquidClientService', () => {
       // Act & Assert
       expect(() =>
         uninitializedService.subscribeToCandles({
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: '1h' as ValidCandleInterval,
           callback: jest.fn(),
         }),
@@ -686,7 +686,7 @@ describe('HyperLiquidClientService', () => {
       // Act & Assert
       expect(() =>
         serviceWithNoSubClient.subscribeToCandles({
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: '1h' as ValidCandleInterval,
           callback: jest.fn(),
         }),
@@ -730,7 +730,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act
       const unsubscribe = service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -738,7 +738,7 @@ describe('HyperLiquidClientService', () => {
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // Assert - should have fetched historical data
+      // Assert - should have fetched historical data (SDK uses 'coin' terminology)
       expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
         expect.objectContaining({
           coin: 'BTC',
@@ -749,7 +749,7 @@ describe('HyperLiquidClientService', () => {
       // Assert - callback invoked with historical data
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: '1h',
           candles: expect.arrayContaining([
             expect.objectContaining({
@@ -796,7 +796,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act
       service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -849,7 +849,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act
       service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -917,7 +917,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act
       service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -993,7 +993,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act
       service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -1030,7 +1030,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act
       service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -1039,7 +1039,7 @@ describe('HyperLiquidClientService', () => {
 
       // Assert - callback invoked with empty candles
       expect(callback).toHaveBeenCalledWith({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h',
         candles: [],
       });
@@ -1058,7 +1058,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act
       const unsubscribe = service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -1093,7 +1093,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act - subscribe and immediately unsubscribe
       const unsubscribe = service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
@@ -1133,7 +1133,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act - subscribe
       const unsubscribe = service.subscribeToCandles({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });

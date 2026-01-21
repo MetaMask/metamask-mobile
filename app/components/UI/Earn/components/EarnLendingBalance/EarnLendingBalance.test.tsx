@@ -150,6 +150,15 @@ const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
   typeof useStakingEligibility
 >;
 
+jest.mock('../../hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: jest.fn().mockReturnValue({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
+  }),
+}));
+
 jest.mock('../../selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
@@ -774,5 +783,78 @@ describe('EarnLendingBalance', () => {
     expect(
       updatedState.user.musdConversionAssetDetailCtasSeen[expectedCtaKey],
     ).toBe(true);
+  });
+
+  it('hides mUSD conversion CTA when user is geo-blocked', () => {
+    const mockEmptyReceiptToken = {
+      ...mockADAIMainnet,
+      balanceMinimalUnit: '0',
+      balanceFormatted: '0 ADAI',
+      balanceFiatNumber: 0,
+    };
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockEmptyReceiptToken,
+      earnToken: mockDaiMainnet,
+    });
+
+    // Geo-blocked: shouldShowAssetOverviewCta returns false
+    mockShouldShowAssetOverviewCta.mockReturnValue(false);
+
+    const { queryByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    // mUSD CTA hidden because geo-blocked (useMusdCtaVisibility returns false)
+    expect(
+      queryByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeNull();
+  });
+
+  it('shows mUSD conversion CTA when user is geo-eligible', () => {
+    const mockEmptyReceiptToken = {
+      ...mockADAIMainnet,
+      balanceMinimalUnit: '0',
+      balanceFormatted: '0 ADAI',
+      balanceFiatNumber: 0,
+    };
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockEmptyReceiptToken,
+      earnToken: mockDaiMainnet,
+    });
+
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    (
+      selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
+        typeof selectIsMusdConversionFlowEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    // Geo-eligible: shouldShowAssetOverviewCta returns true
+    mockShouldShowAssetOverviewCta.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+    // mUSD CTA visible because geo-eligible (useMusdCtaVisibility returns true)
+    expect(
+      getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+    ).toBeOnTheScreen();
   });
 });
