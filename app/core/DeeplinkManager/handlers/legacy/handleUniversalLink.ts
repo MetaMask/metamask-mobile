@@ -361,11 +361,11 @@ async function handleUniversalLink({
         inAppLinkSources.includes(source) &&
         linkInstanceType === DeepLinkModalLinkType.PRIVATE;
 
-      // Determine if interstitial will be shown
       const willShowInterstitial =
         !WHITELISTED_ACTIONS.includes(action) &&
         !isWhitelistedUrl &&
-        !isInAppSourceWithPrivateLink;
+        !isInAppSourceWithPrivateLink &&
+        !interstitialDisabled;
 
       // Build analytics context - interstitialShown starts as false, set to true when modal is actually shown
       // interstitialAction will be set when user takes action
@@ -398,16 +398,16 @@ async function handleUniversalLink({
         const modalParams: DeepLinkModalParams = {
           linkType: linkInstanceType,
           onContinue: () => {
-            // Update context for analytics - modal was shown
-            analyticsContext.interstitialShown = willShowInterstitial;
+            // Modal was shown and user accepted (invalid/unsupported links always show modal)
+            analyticsContext.interstitialShown = true;
             analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
             // Track analytics before early return
             trackDeepLinkAnalytics(analyticsContext);
             resolve(false); // Still resolve false since we're not proceeding with the link
           },
           onBack: () => {
-            // Update context for analytics - modal was shown
-            analyticsContext.interstitialShown = willShowInterstitial;
+            // Modal was shown and user rejected
+            analyticsContext.interstitialShown = true;
             analyticsContext.interstitialAction = InterstitialState.REJECTED;
             // Track analytics before early return
             trackDeepLinkAnalytics(analyticsContext);
@@ -425,16 +425,29 @@ async function handleUniversalLink({
         linkType: linkInstanceType,
         pageTitle,
         onContinue: () => {
-          // Update context for analytics - modal was shown
-          analyticsContext.interstitialShown = willShowInterstitial;
-          analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+          // Determine if modal was actually shown or auto-accepted due to disabled setting
+          // Case 1: Modal was shown and user accepted
+          // Case 2: Modal was not shown because user disabled modals (auto-accepted)
+          if (willShowInterstitial) {
+            // Modal was shown and user accepted
+            analyticsContext.interstitialShown = true;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+          } else if (interstitialDisabled) {
+            // Modal was not shown because user disabled modals (auto-accepted)
+            analyticsContext.interstitialShown = false;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+          } else {
+            // Should not happen, but fallback
+            analyticsContext.interstitialShown = willShowInterstitial;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+          }
           // Track analytics asynchronously without blocking
           trackDeepLinkAnalytics(analyticsContext);
           resolve(true);
         },
         onBack: () => {
-          // Update context for analytics - modal was shown
-          analyticsContext.interstitialShown = willShowInterstitial;
+          // Modal was shown and user rejected (onBack only called when modal is shown)
+          analyticsContext.interstitialShown = true;
           analyticsContext.interstitialAction = InterstitialState.REJECTED;
           // Track analytics before early return
           trackDeepLinkAnalytics(analyticsContext);
