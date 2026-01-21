@@ -540,12 +540,8 @@ class TransactionElement extends PureComponent {
             {this.renderTxElementIcon(transactionElement, tx)}
           </ListItem.Icon>
           <ListItem.Body>
-            <ListItem.Title numberOfLines={2} style={styles.listItemTitle}>
-              {title} (id: {tx.id?.slice(0, 4)}...{tx.id?.slice(-4)}
-              {tx.actionId
-                ? `, actionId: ${tx.actionId?.slice(0, 4)}...${tx.actionId?.slice(-4)}`
-                : ''}
-              )
+            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+              {title}
             </ListItem.Title>
             {!FINAL_NON_CONFIRMED_STATUSES.includes(transactionStatus) &&
             isBridgeTransaction &&
