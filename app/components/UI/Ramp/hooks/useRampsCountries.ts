@@ -1,11 +1,12 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
-import { selectCountriesRequest } from '../../../../selectors/rampsController';
 import {
-  ExecuteRequestOptions,
-  RequestSelectorResult,
+  selectCountries,
+  selectCountriesRequest,
+} from '../../../../selectors/rampsController';
+import {
   type Country,
+  RequestSelectorResult,
 } from '@metamask/ramps-controller';
 
 /**
@@ -21,51 +22,37 @@ export interface UseRampsCountriesResult {
    */
   error: string | null;
   /**
-   * The cached countries data if available, or null.
+   * The countries data from state.
    */
-  countries: Country[] | null;
-  /**
-   * Fetch countries for a given action.
-   */
-  fetchCountries: (
-    action?: 'buy' | 'sell',
-    options?: ExecuteRequestOptions,
-  ) => Promise<Country[]>;
+  countries: Country[];
 }
 
 /**
- * Hook to get countries request state from RampsController.
+ * Hook to get countries state from RampsController.
  * This hook assumes Engine is already initialized.
+ * Countries are hydrated on init, so there's no need to fetch them manually.
  *
  * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
- * @returns Countries request state and fetch function.
+ * @returns Countries state.
  */
 export function useRampsCountries(
   action: 'buy' | 'sell' = 'buy',
 ): UseRampsCountriesResult {
+  const countries = useSelector(selectCountries);
+
   const requestSelector = useMemo(
     () => selectCountriesRequest(action),
     [action],
   );
 
-  const { isFetching, error, data } = useSelector(
+  const { isFetching, error } = useSelector(
     requestSelector,
   ) as RequestSelectorResult<Country[]>;
 
-  const fetchCountries = useCallback(
-    async (
-      fetchAction: 'buy' | 'sell' = action,
-      options?: ExecuteRequestOptions,
-    ) =>
-      await Engine.context.RampsController.getCountries(fetchAction, options),
-    [action],
-  );
-
   return {
-    countries: data ?? null,
+    countries,
     isLoading: isFetching,
     error,
-    fetchCountries,
   };
 }
 

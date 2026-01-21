@@ -140,10 +140,9 @@ describe('TokenSelection Component', () => {
       providersError: null,
       fetchProviders: jest.fn(),
       fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
     });
   });
 
@@ -250,10 +249,9 @@ describe('TokenSelection Component', () => {
       providersError: null,
       fetchProviders: jest.fn(),
       fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
     });
 
     const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
@@ -294,10 +292,9 @@ describe('TokenSelection Component', () => {
       providersError: null,
       fetchProviders: jest.fn(),
       fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -350,10 +347,9 @@ describe('TokenSelection Component', () => {
       providersError: null,
       fetchProviders: jest.fn(),
       fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);
@@ -416,10 +412,9 @@ describe('TokenSelection Component', () => {
       providersError: null,
       fetchProviders: jest.fn(),
       fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -486,10 +481,9 @@ describe('TokenSelection Component', () => {
       providersError: null,
       fetchProviders: jest.fn(),
       fetchTokens: jest.fn(),
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
-      fetchCountries: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);

@@ -36,6 +36,14 @@ export const selectPreferredProvider = createSelector(
 );
 
 /**
+ * Selects the list of countries available for ramp actions.
+ */
+export const selectCountries = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState) => rampsControllerState?.countries ?? [],
+);
+
+/**
  * Selects the list of providers available for the current region.
  */
 export const selectProviders = createSelector(

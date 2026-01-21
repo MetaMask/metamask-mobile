@@ -36,6 +36,7 @@ function Settings() {
   const { colors } = useAppTheme();
   const trackEvent = useAnalytics();
   const { userRegion } = useRampsController();
+  console.log('****** SETTINGS userRegion ******', userRegion);
   const style = styles();
 
   useEffect(() => {

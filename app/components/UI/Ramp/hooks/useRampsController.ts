@@ -51,7 +51,6 @@ export interface UseRampsControllerResult {
   userRegion: UseRampsUserRegionResult['userRegion'];
   userRegionLoading: UseRampsUserRegionResult['isLoading'];
   userRegionError: UseRampsUserRegionResult['error'];
-  fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
   // Preferred provider
@@ -74,7 +73,6 @@ export interface UseRampsControllerResult {
   countries: UseRampsCountriesResult['countries'];
   countriesLoading: UseRampsCountriesResult['isLoading'];
   countriesError: UseRampsCountriesResult['error'];
-  fetchCountries: UseRampsCountriesResult['fetchCountries'];
 }
 
 /**
@@ -91,7 +89,6 @@ export interface UseRampsControllerResult {
  *   userRegion,
  *   userRegionLoading,
  *   userRegionError,
- *   fetchUserRegion,
  *   setUserRegion,
  *
  *   // Preferred provider
@@ -114,7 +111,6 @@ export interface UseRampsControllerResult {
  *   countries,
  *   countriesLoading,
  *   countriesError,
- *   fetchCountries,
  *
  * } = useRampsController({ action: 'buy' });
  * ```
@@ -126,7 +122,6 @@ export function useRampsController(
     userRegion,
     isLoading: userRegionLoading,
     error: userRegionError,
-    fetchUserRegion,
     setUserRegion,
   } = useRampsUserRegion();
 
@@ -151,7 +146,6 @@ export function useRampsController(
     countries,
     isLoading: countriesLoading,
     error: countriesError,
-    fetchCountries,
   } = useRampsCountries(options?.action);
 
   useRampsPreferredProviderAutoSet();
@@ -161,7 +155,6 @@ export function useRampsController(
     userRegion,
     userRegionLoading,
     userRegionError,
-    fetchUserRegion,
     setUserRegion,
 
     // Preferred provider
@@ -184,7 +177,6 @@ export function useRampsController(
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
   };
 }
 

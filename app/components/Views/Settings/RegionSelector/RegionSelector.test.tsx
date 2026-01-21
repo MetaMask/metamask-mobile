@@ -25,7 +25,6 @@ jest.mock('@react-navigation/native', () => {
 
 const mockSetUserRegion = jest.fn().mockResolvedValue(undefined);
 const mockFetchUserRegion = jest.fn().mockResolvedValue(null);
-const mockFetchCountries = jest.fn().mockResolvedValue([]);
 const mockFetchProviders = jest.fn().mockResolvedValue({ providers: [] });
 const mockFetchTokens = jest.fn().mockResolvedValue(null);
 const mockSetPreferredProvider = jest.fn();
@@ -114,7 +113,6 @@ const mockUseRampsControllerInitialValues: ReturnType<
   countries: mockRegions,
   countriesLoading: false,
   countriesError: null,
-  fetchCountries: mockFetchCountries,
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
@@ -162,15 +160,14 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls fetchCountries when regions are null', () => {
+  it('renders empty state when regions are null', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: null,
     };
     render(RegionSelector);
-    expect(mockFetchCountries).toHaveBeenCalled();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -185,18 +182,15 @@ describe('RegionSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls fetchCountries when retry button is pressed on error', () => {
+  it('renders error state when countries error occurs', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
-      countries: null,
+      countries: [],
       countriesLoading: false,
       countriesError: 'Failed to fetch countries',
     };
     render(RegionSelector);
-    jest.clearAllMocks();
-    const retryButton = screen.getByTestId('retry-countries-button');
-    fireEvent.press(retryButton);
-    expect(mockFetchCountries).toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders with selected user region', () => {

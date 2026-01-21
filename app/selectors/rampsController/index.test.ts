@@ -12,6 +12,7 @@ import {
   selectPreferredProvider,
   selectProviders,
   selectTokens,
+  selectCountries,
   selectCountriesRequest,
   selectTokensRequest,
   selectProvidersRequest,
@@ -255,6 +256,26 @@ describe('RampsController Selectors', () => {
       const state = createMockState();
 
       expect(selectTokens(state)).toBeNull();
+    });
+  });
+
+  describe('selectCountries', () => {
+    it('returns countries from state', () => {
+      const state = createMockState({ countries: mockCountries });
+
+      expect(selectCountries(state)).toEqual(mockCountries);
+    });
+
+    it('returns empty array when countries is empty', () => {
+      const state = createMockState({ countries: [] });
+
+      expect(selectCountries(state)).toEqual([]);
+    });
+
+    it('returns empty array when countries is undefined', () => {
+      const state = createMockState();
+
+      expect(selectCountries(state)).toEqual([]);
     });
   });
 

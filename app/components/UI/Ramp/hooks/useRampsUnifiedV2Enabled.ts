@@ -6,28 +6,29 @@ import {
 import { hasMinimumRequiredVersion } from '../utils/hasMinimumRequiredVersion';
 
 export default function useRampsUnifiedV2Enabled() {
-  const rampsUnifiedBuyV2MinimumVersionFlag = useSelector(
-    selectRampsUnifiedBuyV2MinimumVersionFlag,
-  );
-  const rampsUnifiedBuyV2ActiveFlag = useSelector(
-    selectRampsUnifiedBuyV2ActiveFlag,
-  );
+return true
+  // const rampsUnifiedBuyV2MinimumVersionFlag = useSelector(
+  //   selectRampsUnifiedBuyV2MinimumVersionFlag,
+  // );
+  // const rampsUnifiedBuyV2ActiveFlag = useSelector(
+  //   selectRampsUnifiedBuyV2ActiveFlag,
+  // );
 
-  const rampsUnifiedBuyV2BuildFlag =
-    process.env.MM_RAMPS_UNIFIED_BUY_V2_ENABLED;
+  // const rampsUnifiedBuyV2BuildFlag =
+  //   process.env.MM_RAMPS_UNIFIED_BUY_V2_ENABLED;
 
-  // if build flag is defined, it takes precedence over remote feature flag
-  if (
-    rampsUnifiedBuyV2BuildFlag === 'true' ||
-    rampsUnifiedBuyV2BuildFlag === 'false'
-  ) {
-    return rampsUnifiedBuyV2BuildFlag === 'true';
-  }
+  // // if build flag is defined, it takes precedence over remote feature flag
+  // if (
+  //   rampsUnifiedBuyV2BuildFlag === 'true' ||
+  //   rampsUnifiedBuyV2BuildFlag === 'false'
+  // ) {
+  //   return rampsUnifiedBuyV2BuildFlag === 'true';
+  // }
 
-  const isRampsUnifiedV2Enabled = hasMinimumRequiredVersion(
-    rampsUnifiedBuyV2MinimumVersionFlag,
-    rampsUnifiedBuyV2ActiveFlag,
-  );
+  // const isRampsUnifiedV2Enabled = hasMinimumRequiredVersion(
+  //   rampsUnifiedBuyV2MinimumVersionFlag,
+  //   rampsUnifiedBuyV2ActiveFlag,
+  // );
 
-  return isRampsUnifiedV2Enabled;
+  // return isRampsUnifiedV2Enabled;
 }

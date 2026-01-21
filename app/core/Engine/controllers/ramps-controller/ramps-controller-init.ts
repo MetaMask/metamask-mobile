@@ -28,9 +28,11 @@ export const rampsControllerInit: ControllerInitFunction<
   // Initialize controller at app startup (non-blocking)
   // Defer to next tick to avoid affecting initial state snapshot
   Promise.resolve().then(() => {
+    console.log('****** RAMP CONTROLLER INIT controller.init ******');
     controller.init().catch(() => {
       // Initialization failed - error state will be available via selectors
     });
+    console.log('****** RAMP CONTROLLER INIT controller.init done ******');
   });
 
   return {

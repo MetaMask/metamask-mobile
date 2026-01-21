@@ -54,10 +54,9 @@ jest.mock('./useRampsTokens', () => ({
 
 jest.mock('./useRampsCountries', () => ({
   useRampsCountries: jest.fn(() => ({
-    countries: null,
+    countries: [],
     isLoading: false,
     error: null,
-    fetchCountries: jest.fn(),
   })),
 }));
 
@@ -126,7 +125,6 @@ describe('useRampsController', () => {
     expect(typeof result.current.setPreferredProvider).toBe('function');
     expect(typeof result.current.fetchProviders).toBe('function');
     expect(typeof result.current.fetchTokens).toBe('function');
-    expect(typeof result.current.fetchCountries).toBe('function');
   });
 
   it('passes options to child hooks', () => {

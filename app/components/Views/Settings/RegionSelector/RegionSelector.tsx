@@ -102,7 +102,6 @@ function RegionSelector() {
     countries,
     countriesLoading,
     countriesError,
-    fetchCountries,
   } = useRampsController();
 
   const [searchString, setSearchString] = useState('');
@@ -124,12 +123,6 @@ function RegionSelector() {
       ),
     );
   }, [colors, navigation, activeView, regionInTransit]);
-
-  useEffect(() => {
-    if (!countries && !countriesLoading && !countriesError) {
-      fetchCountries();
-    }
-  }, [countries, countriesLoading, countriesError, fetchCountries]);
 
   useEffect(() => {
     if (countries && activeView === RegionViewType.COUNTRY) {
@@ -559,13 +552,6 @@ function RegionSelector() {
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {countriesError}
           </Text>
-          <ButtonIcon
-            size={ButtonIconSizes.Md}
-            iconName={IconName.Refresh}
-            onPress={() => fetchCountries()}
-            style={styles.retryButton}
-            testID="retry-countries-button"
-          />
         </View>
       );
     }
@@ -590,9 +576,7 @@ function RegionSelector() {
     searchString,
     styles.emptyList,
     styles.errorText,
-    styles.retryButton,
     colors.primary.default,
-    fetchCountries,
   ]);
 
   const handleSearchTextChange = useCallback(
