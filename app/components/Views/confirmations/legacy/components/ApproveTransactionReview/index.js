@@ -52,7 +52,7 @@ import TransactionReviewDetailsCard from '../TransactionReview/TransactionReview
 import AppConstants from '../../../../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../../../../constants/transaction';
 import { getBlockaidTransactionMetricsParams } from '../../../../../../util/blockaid';
-import { withNavigation } from '@react-navigation/compat';
+import { withNavigation } from '../../../../../../components/hooks/useNavigation';
 import {
   isTestNet,
   isMultiLayerFeeNetwork,

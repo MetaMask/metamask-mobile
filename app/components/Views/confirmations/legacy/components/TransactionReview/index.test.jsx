@@ -117,13 +117,9 @@ jest.mock('../../../../../../core/Engine', () => {
   };
 });
 
-jest.mock('@react-navigation/compat', () => {
-  const actualNav = jest.requireActual('@react-navigation/compat');
-  return {
-    actualNav,
-    withNavigation: (obj) => obj,
-  };
-});
+jest.mock('../../../../../../components/hooks/useNavigation', () => ({
+  withNavigation: (obj) => obj,
+}));
 
 jest.mock('react-native-gzip', () => ({
   deflate: (val) => val,

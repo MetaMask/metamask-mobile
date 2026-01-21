@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { withNavigation } from '@react-navigation/compat';
+import { withNavigation } from '../../hooks/useNavigation';
 import {
   selectChainId,
   selectProviderConfig,

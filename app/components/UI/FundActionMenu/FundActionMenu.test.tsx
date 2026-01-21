@@ -52,7 +52,7 @@ jest.mock(
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
+jest.mock('../../hooks/useNavigation', () => ({
   withNavigation: jest.fn((component) => component),
 }));
 jest.mock('react-redux', () => ({

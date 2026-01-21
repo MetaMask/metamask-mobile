@@ -38,7 +38,7 @@ jest.mock('../../../util/networks', () => ({
   getDecimalChainId: jest.fn(() => 1),
 }));
 
-jest.mock('@react-navigation/compat', () => ({
+jest.mock('../../hooks/useNavigation', () => ({
   withNavigation: (Component: React.ComponentType) => Component,
 }));
 

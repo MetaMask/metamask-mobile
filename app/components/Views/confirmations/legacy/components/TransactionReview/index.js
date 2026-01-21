@@ -1,5 +1,5 @@
 import Eth from '@metamask/ethjs-query';
-import { withNavigation } from '@react-navigation/compat';
+import { withNavigation } from '../../../../../../components/hooks/useNavigation';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
