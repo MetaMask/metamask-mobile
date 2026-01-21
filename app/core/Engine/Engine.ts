@@ -1366,7 +1366,6 @@ export default {
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
-      SnapInterfaceController: SnapInterfaceController.state,
       SwapsController: SwapsController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenListController: TokenListController.state,
@@ -1385,6 +1384,7 @@ export default {
       NotificationServicesPushController:
         NotificationServicesPushController.state,
       SnapController: SnapController.state,
+      SnapInterfaceController: SnapInterfaceController.state,
       SnapsRegistry: SnapsRegistry.state,
       SubjectMetadataController: SubjectMetadataController.state,
       UserStorageController: UserStorageController.state,
