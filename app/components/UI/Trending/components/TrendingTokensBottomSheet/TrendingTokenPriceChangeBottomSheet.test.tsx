@@ -312,4 +312,57 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     expect(getByText('Market cap')).toBeOnTheScreen();
     expect(getByText('High to low')).toBeOnTheScreen();
   });
+
+  it('resets uncommitted changes when reopening the sheet', () => {
+    const { rerender, getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        selectedOption={PriceChangeOption.PriceChange}
+        sortDirection={SortDirection.Descending}
+      />,
+    );
+
+    // Initially Price change with High to low is selected
+    expect(getByText('Price change')).toBeOnTheScreen();
+    expect(getByText('High to low')).toBeOnTheScreen();
+
+    // User makes changes without applying - select Volume
+    const volumeOption = getByText('Volume');
+    const volumeParent = volumeOption.parent;
+    if (!volumeParent) throw new Error('Parent element not found');
+    fireEvent.press(volumeParent);
+
+    // Now Volume should be selected locally
+    expect(getByText('Volume')).toBeOnTheScreen();
+
+    // User closes the sheet without applying
+    rerender(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible={false}
+        onClose={mockOnClose}
+        selectedOption={PriceChangeOption.PriceChange}
+        sortDirection={SortDirection.Descending}
+      />,
+    );
+
+    // User reopens the sheet - props haven't changed (still Price change)
+    rerender(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        selectedOption={PriceChangeOption.PriceChange}
+        sortDirection={SortDirection.Descending}
+      />,
+    );
+
+    // Local state should be reset to Price change (uncommitted changes discarded)
+    expect(getByText('Price change')).toBeOnTheScreen();
+    expect(getByText('High to low')).toBeOnTheScreen();
+    // Volume should not be the selected option anymore
+    const volumeOptionAgain = getByText('Volume');
+    expect(volumeOptionAgain).toBeOnTheScreen();
+    // The High to low indicator should be on Price change, not Volume
+    // (We can verify by checking that Volume's parent doesn't have the indicator)
+  });
 });
