@@ -1678,7 +1678,7 @@ export class PerpsController extends BaseController<
         // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
         if (withdrawalAmount !== undefined && originalStatus !== status) {
           this.getMetrics().trackPerpsEvent(
-            PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+            PerpsAnalyticsEvent.WithdrawalTransaction,
             {
               [PerpsEventProperties.STATUS]:
                 status === 'completed'

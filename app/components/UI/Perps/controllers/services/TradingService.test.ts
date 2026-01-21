@@ -271,7 +271,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.TRADE_TRANSACTION,
+        PerpsAnalyticsEvent.TradeTransaction,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -303,7 +303,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.TRADE_TRANSACTION,
+        PerpsAnalyticsEvent.TradeTransaction,
         expect.objectContaining({
           status: 'failed',
         }),
@@ -595,7 +595,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.TRADE_TRANSACTION,
+        PerpsAnalyticsEvent.TradeTransaction,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -630,7 +630,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.TRADE_TRANSACTION,
+        PerpsAnalyticsEvent.TradeTransaction,
         expect.objectContaining({
           status: 'failed',
         }),
@@ -766,7 +766,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+        PerpsAnalyticsEvent.OrderCancelTransaction,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -792,7 +792,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+        PerpsAnalyticsEvent.OrderCancelTransaction,
         expect.objectContaining({
           status: 'failed',
         }),
@@ -1199,7 +1199,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+        PerpsAnalyticsEvent.PositionCloseTransaction,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -1263,7 +1263,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+        PerpsAnalyticsEvent.PositionCloseTransaction,
         expect.objectContaining({
           direction: expect.any(String),
         }),
@@ -1294,7 +1294,7 @@ describe('TradingService', () => {
 
       expect(result).toEqual(mockFailureResult);
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+        PerpsAnalyticsEvent.PositionCloseTransaction,
         expect.objectContaining({
           status: 'failed',
           error_message: 'Insufficient liquidity',
@@ -1561,7 +1561,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.RISK_MANAGEMENT,
+        PerpsAnalyticsEvent.RiskManagement,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -1591,7 +1591,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.RISK_MANAGEMENT,
+        PerpsAnalyticsEvent.RiskManagement,
         expect.objectContaining({
           status: 'failed',
         }),
@@ -1625,7 +1625,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.RISK_MANAGEMENT,
+        PerpsAnalyticsEvent.RiskManagement,
         expect.objectContaining({
           direction: expect.any(String),
           position_size: expect.any(Number),
@@ -1740,7 +1740,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.RISK_MANAGEMENT,
+        PerpsAnalyticsEvent.RiskManagement,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -1762,7 +1762,7 @@ describe('TradingService', () => {
       ).rejects.toThrow('Network error');
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.RISK_MANAGEMENT,
+        PerpsAnalyticsEvent.RiskManagement,
         expect.objectContaining({
           status: 'failed',
         }),
@@ -1949,7 +1949,7 @@ describe('TradingService', () => {
       });
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.TRADE_TRANSACTION,
+        PerpsAnalyticsEvent.TradeTransaction,
         expect.objectContaining({
           status: 'executed',
         }),
@@ -1968,7 +1968,7 @@ describe('TradingService', () => {
       ).rejects.toThrow('Network error');
 
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
-        PerpsAnalyticsEvent.TRADE_TRANSACTION,
+        PerpsAnalyticsEvent.TradeTransaction,
         expect.objectContaining({
           status: 'failed',
         }),

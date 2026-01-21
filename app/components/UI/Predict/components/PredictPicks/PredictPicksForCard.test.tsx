@@ -6,6 +6,18 @@ import { PredictPositionStatus, type PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 
 jest.mock('../../hooks/usePredictPositions');
+jest.mock('../../hooks/useLivePositions', () => ({
+  useLivePositions: jest.fn((positions: unknown[]) => ({
+    livePositions: positions ?? [],
+    isConnected: false,
+    lastUpdateTime: null,
+  })),
+}));
+jest.mock('../../hooks/usePredictOptimisticPositionRefresh', () => ({
+  usePredictOptimisticPositionRefresh: jest.fn(
+    ({ position }: { position: unknown }) => position,
+  ),
+}));
 jest.mock('../../utils/format');
 
 const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
@@ -61,7 +73,7 @@ describe('PredictPicksForCard', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('rendering', () => {

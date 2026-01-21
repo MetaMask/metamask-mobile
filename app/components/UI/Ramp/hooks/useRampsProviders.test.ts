@@ -295,7 +295,7 @@ describe('useRampsProviders', () => {
       expect(response).toEqual({ providers: mockProviders });
     });
 
-    it('uses regionToUse fallback when fetchRegion is not provided', async () => {
+    it('uses regionCode fallback when fetchRegion is not provided', async () => {
       const store = createMockStore({
         userRegion: mockUserRegion,
       });

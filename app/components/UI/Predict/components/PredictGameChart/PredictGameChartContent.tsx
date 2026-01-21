@@ -22,7 +22,7 @@ import ChartTooltip from './ChartTooltip';
 import EndpointDots from './EndpointDots';
 import { CHART_HEIGHT } from './PredictGameChart.constants';
 
-const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 10, right: 80 };
+const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 0, right: 80 };
 const LINE_CURVE = curveStepAfter;
 
 const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
