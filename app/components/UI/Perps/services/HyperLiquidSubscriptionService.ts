@@ -491,7 +491,7 @@ export class HyperLiquidSubscriptionService {
     return positions
       .map(
         (p) =>
-          `${p.coin}:${p.size}:${p.entryPrice}:${p.leverage.value}:${
+          `${p.symbol}:${p.size}:${p.entryPrice}:${p.leverage.value}:${
             p.takeProfitPrice || ''
           }:${p.stopLossPrice || ''}:${p.takeProfitCount}:${p.stopLossCount}:${
             p.unrealizedPnl
@@ -558,7 +558,7 @@ export class HyperLiquidSubscriptionService {
           const isStop = order.detailedOrderType?.includes('Stop');
 
           const matchingPosition = positions.find(
-            (p) => p.coin === order.symbol,
+            (p) => p.symbol === order.symbol,
           );
 
           // Determine TP vs SL classification for count and price updates
@@ -625,17 +625,17 @@ export class HyperLiquidSubscriptionService {
       const matchPositionToTpsl = (p: Position) => {
         if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
           return (
-            p.coin === order.coin && order.reduceOnly && order.isPositionTpsl
+            p.symbol === order.coin && order.reduceOnly && order.isPositionTpsl
           );
         }
 
         return (
-          p.coin === order.coin &&
+          p.symbol === order.coin &&
           Math.abs(parseFloat(order.sz)) >= Math.abs(parseFloat(p.size))
         );
       };
 
-      const matchPositionToCoin = (p: Position) => p.coin === order.coin;
+      const matchPositionToCoin = (p: Position) => p.symbol === order.coin;
 
       // Process trigger orders for TP/SL extraction
       if (order.triggerPx) {
@@ -728,8 +728,8 @@ export class HyperLiquidSubscriptionService {
     >,
   ): Position[] {
     return positions.map((position) => {
-      const tpsl = tpslMap.get(position.coin) || {};
-      const tpslCount = tpslCountMap.get(position.coin) || {};
+      const tpsl = tpslMap.get(position.symbol) || {};
+      const tpslCount = tpslCountMap.get(position.symbol) || {};
       return {
         ...position,
         takeProfitPrice: tpsl.takeProfitPrice || undefined,
@@ -1932,7 +1932,7 @@ export class HyperLiquidSubscriptionService {
       (this.marketDataSubscribers.get(symbol)?.size ?? 0) > 0;
 
     const priceUpdate = {
-      coin: symbol,
+      symbol,
       price, // This is the mid price from allMids
       timestamp: Date.now(),
       percentChange24h,

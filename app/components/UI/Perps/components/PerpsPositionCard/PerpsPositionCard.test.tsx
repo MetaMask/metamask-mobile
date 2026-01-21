@@ -173,7 +173,7 @@ jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
 
 describe('PerpsPositionCard', () => {
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     entryPrice: '2000.00',
     positionValue: '5000.00',
@@ -237,7 +237,7 @@ describe('PerpsPositionCard', () => {
     const { usePerpsLivePrices } = jest.requireMock('../../hooks');
     usePerpsLivePrices.mockReturnValue({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '2100.50',
         timestamp: Date.now(),
         percentChange24h: '2.5',
@@ -392,7 +392,7 @@ describe('PerpsPositionCard', () => {
       // Arrange
       const btcPosition = {
         ...mockPosition,
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
       };
 
