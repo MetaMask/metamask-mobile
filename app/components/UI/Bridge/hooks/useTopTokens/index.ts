@@ -55,8 +55,6 @@ const getAccountType = (
 /**
  * Convert cached tokens from TokenListController to BridgeToken format
  */
-// TODO: Uncomment this when we have a way to get the cached tokens from the TokenListController
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const formatCachedTokenListControllerTokens = (
   cachedTokens: Record<string, TokenListToken>,
   chainId: Hex | CaipChainId,
@@ -87,6 +85,7 @@ const formatCachedTokenListControllerTokens = (
       aggregators: token.aggregators ?? [],
       chainId: isNonEnvChain ? caipChainId : hexChainId,
       accountType: getAccountType(caipChainId),
+      rwaData: token.rwaData,
     };
   });
 
@@ -179,14 +178,14 @@ export const useTopTokens = ({
     }
 
     // If we have cached tokens, use them instead of fetching from bridge API
-    // if (hasCachedTokens && cachedEvmTokensForChain) {
-    //   return formatCachedTokenListControllerTokens(
-    //     cachedEvmTokensForChain,
-    //     chainId,
-    //   );
-    // }
+    if (hasCachedTokens && cachedEvmTokensForChain) {
+      return formatCachedTokenListControllerTokens(
+        cachedEvmTokensForChain,
+        chainId,
+      );
+    }
 
-    // Fallback to bridge API if no cached tokens available
+    // Fallback to bridge API if no cached tokens available (e.g., for non-EVM chains)
     const rawBridgeAssets = await memoizedFetchBridgeTokens(
       chainId,
       BridgeClientId.MOBILE,
