@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import Keypad from '../../../../Base/Keypad';
+import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../PaymentMethodPill';
 import QuickAmounts from '../QuickAmounts';
 import Text, {
@@ -25,13 +25,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AmountInput.styles';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { useSelector } from 'react-redux';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import {
-  selectUserRegion,
-  selectPreferredProvider,
-} from '../../../../../selectors/rampsController';
+import { useRampsController } from '../../hooks/useRampsController';
 
 interface AmountInputParams {
   assetId?: string;
@@ -48,17 +44,12 @@ function AmountInput() {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // Get user region data from RampsController (via Redux selector)
-  const userRegion = useSelector(selectUserRegion);
-  const preferredProvider = useSelector(selectPreferredProvider);
+  // Get user region and preferred provider from RampsController
+  const { userRegion, preferredProvider } = useRampsController();
 
   // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
-  const hasQuickAmounts = quickAmounts && quickAmounts.length > 0;
-
-  // Get provider name - only show if user has a preferred provider set
-  const providerName = preferredProvider?.name;
 
   // Get token and network info for the navbar
   const { allTokens } = useRampTokens();
@@ -93,14 +84,7 @@ function AmountInput() {
   }, [navigation, selectedToken, networkInfo]);
 
   const handleKeypadChange = useCallback(
-    ({
-      value,
-      valueAsNumber,
-    }: {
-      value: string;
-      valueAsNumber: number;
-      pressedKey: string;
-    }) => {
+    ({ value, valueAsNumber }: KeypadChangeData) => {
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
     },
@@ -145,10 +129,10 @@ function AmountInput() {
           </View>
 
           <View style={styles.actionSection}>
-            {providerName && (
+            {preferredProvider && (
               <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
                 {strings('fiat_on_ramp.powered_by_provider', {
-                  provider: providerName,
+                  provider: preferredProvider.name,
                 })}
               </Text>
             )}
@@ -163,7 +147,7 @@ function AmountInput() {
                 {strings('fiat_on_ramp.continue')}
               </Button>
             ) : (
-              hasQuickAmounts && (
+              quickAmounts.length > 0 && (
                 <QuickAmounts
                   amounts={quickAmounts}
                   currency={currency}
@@ -172,7 +156,11 @@ function AmountInput() {
               )
             )}
           </View>
-          <Keypad value={amount} onChange={handleKeypadChange} />
+          <Keypad
+            currency={currency}
+            value={amount}
+            onChange={handleKeypadChange}
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
     </ScreenLayout>

@@ -96,22 +96,11 @@ const defaultUserRegion: MockUserRegion = {
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
 let mockPreferredProvider: unknown = null;
 
-jest.mock('../../../../../selectors/rampsController', () => ({
-  selectUserRegion: 'selectUserRegion',
-  selectPreferredProvider: 'selectPreferredProvider',
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: unknown) => {
-    if (selector === 'selectUserRegion') {
-      return mockUserRegion;
-    }
-    if (selector === 'selectPreferredProvider') {
-      return mockPreferredProvider;
-    }
-    return null;
-  },
+jest.mock('../../hooks/useRampsController', () => ({
+  useRampsController: () => ({
+    userRegion: mockUserRegion,
+    preferredProvider: mockPreferredProvider,
+  }),
 }));
 
 const renderWithTheme = (component: React.ReactElement) =>

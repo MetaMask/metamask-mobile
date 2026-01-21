@@ -9,7 +9,6 @@ import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
-import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -81,8 +80,6 @@ jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
 
-jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => jest.fn());
-
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
@@ -124,10 +121,6 @@ const mockUseRampTokens = useRampTokens as jest.MockedFunction<
 const mockUseRampsController = useRampsController as jest.MockedFunction<
   typeof useRampsController
 >;
-const mockUseRampsUnifiedV2Enabled =
-  useRampsUnifiedV2Enabled as jest.MockedFunction<
-    typeof useRampsUnifiedV2Enabled
-  >;
 
 // Convert MockDepositCryptoCurrency to RampsToken format
 const convertToRampsTokens = (tokens: typeof mockTokens) =>
