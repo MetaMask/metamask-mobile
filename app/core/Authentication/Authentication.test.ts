@@ -589,12 +589,12 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
-  it('returns PASSCODE type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
+  it('returns BIOMETRIC type for components when no previous auth choice exists (new user choosing biometrics)', async () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
     // No storage flags set - represents new user or first-time choice
-    // With new logic, this defaults to PASSCODE when biometryChoice is true
+    // With new logic, this defaults to BIOMETRIC when biometryChoice is true
 
     // Mock Redux store to return allowLoginWithRememberMe: false
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -606,7 +606,7 @@ describe('Authentication', () => {
       false,
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
   it('returns PASSWORD type when biometryChoice is false', async () => {
