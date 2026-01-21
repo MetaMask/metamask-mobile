@@ -4,8 +4,9 @@ import { useMerklClaim } from './useMerklClaim';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { TokenI } from '../../../../Tokens/types';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionStatus } from '@metamask/transaction-controller';
 import { RootState } from '../../../../../../reducers';
+import Engine from '../../../../../../core/Engine';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -15,12 +16,22 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
 }));
 
+jest.mock('../../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
+}));
+
 // Mock fetch globally
 global.fetch = jest.fn();
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockAddTransaction = addTransaction as jest.MockedFunction<
   typeof addTransaction
+>;
+const mockSubscribeOnceIf = Engine.controllerMessenger
+  .subscribeOnceIf as jest.MockedFunction<
+  typeof Engine.controllerMessenger.subscribeOnceIf
 >;
 
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
@@ -46,9 +57,33 @@ const mockAsset: TokenI = {
 };
 
 describe('useMerklClaim', () => {
+  let confirmationCallbacks: {
+    event: string;
+    callback: (transactionMeta: {
+      id: string;
+      status?: TransactionStatus;
+      error?: { message: string };
+    }) => void;
+    filter: (transactionMeta: { id: string }) => boolean;
+  }[] = [];
+
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
+    confirmationCallbacks = [];
+
+    // Mock subscribeOnceIf to capture callbacks
+    mockSubscribeOnceIf.mockImplementation((event, callback, filter) => {
+      confirmationCallbacks.push({
+        event,
+        callback: callback as (typeof confirmationCallbacks)[0]['callback'],
+        filter: filter as (typeof confirmationCallbacks)[0]['filter'],
+      });
+      // Return unsubscribe function
+      return () => {
+        // Unsubscribe implementation (no-op for tests)
+      };
+    });
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
@@ -164,15 +199,43 @@ describe('useMerklClaim', () => {
       json: async () => mockRewardData,
     });
 
+    const mockTransactionId = 'tx-123';
+    const mockTransactionHash = '0xabc123';
+
     mockAddTransaction.mockResolvedValueOnce({
-      id: 'tx-123',
+      result: Promise.resolve(mockTransactionHash),
+      transactionMeta: {
+        id: mockTransactionId,
+      },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
-    await act(async () => {
+    // Start the claim process
+    const claimPromise = act(async () => {
       await result.current.claimRewards();
     });
+
+    // Wait for transaction submission
+    await waitFor(() => {
+      expect(mockAddTransaction).toHaveBeenCalled();
+    });
+
+    // Simulate transaction confirmation
+    await act(async () => {
+      const confirmedCallback = confirmationCallbacks.find(
+        (cb) => cb.event === 'TransactionController:transactionConfirmed',
+      );
+      if (confirmedCallback) {
+        confirmedCallback.callback({
+          id: mockTransactionId,
+          status: TransactionStatus.confirmed,
+        });
+      }
+    });
+
+    // Wait for claim to complete
+    await claimPromise;
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
@@ -355,15 +418,43 @@ describe('useMerklClaim', () => {
       json: async () => mockRewardData,
     });
 
+    const mockTransactionId = 'tx-123';
+    const mockTransactionHash = '0xabc123';
+
     mockAddTransaction.mockResolvedValueOnce({
-      id: 'tx-123',
+      result: Promise.resolve(mockTransactionHash),
+      transactionMeta: {
+        id: mockTransactionId,
+      },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
-    await act(async () => {
+    // Start the claim process
+    const claimPromise = act(async () => {
       await result.current.claimRewards();
     });
+
+    // Wait for transaction submission
+    await waitFor(() => {
+      expect(mockAddTransaction).toHaveBeenCalled();
+    });
+
+    // Simulate transaction confirmation
+    await act(async () => {
+      const confirmedCallback = confirmationCallbacks.find(
+        (cb) => cb.event === 'TransactionController:transactionConfirmed',
+      );
+      if (confirmedCallback) {
+        confirmedCallback.callback({
+          id: mockTransactionId,
+          status: TransactionStatus.confirmed,
+        });
+      }
+    });
+
+    // Wait for claim to complete
+    await claimPromise;
 
     await waitFor(() => {
       expect(result.current.isClaiming).toBe(false);
@@ -425,6 +516,8 @@ describe('useMerklClaim', () => {
       },
     ];
 
+    const mockTransactionId = 'tx-123';
+    const mockTransactionHash = '0xabc123';
     let resolveTransaction: ((value: unknown) => void) | undefined;
     const transactionPromise = new Promise<unknown>((resolve) => {
       resolveTransaction = resolve;
@@ -435,7 +528,12 @@ describe('useMerklClaim', () => {
       json: async () => mockRewardData,
     });
 
-    mockAddTransaction.mockReturnValueOnce(transactionPromise as never);
+    mockAddTransaction.mockReturnValueOnce({
+      result: transactionPromise,
+      transactionMeta: {
+        id: mockTransactionId,
+      },
+    } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
@@ -447,9 +545,22 @@ describe('useMerklClaim', () => {
 
     await act(async () => {
       if (resolveTransaction) {
-        resolveTransaction({ id: 'tx-123' });
+        resolveTransaction(mockTransactionHash);
       }
       await transactionPromise;
+    });
+
+    // Simulate transaction confirmation
+    await act(async () => {
+      const confirmedCallback = confirmationCallbacks.find(
+        (cb) => cb.event === 'TransactionController:transactionConfirmed',
+      );
+      if (confirmedCallback) {
+        confirmedCallback.callback({
+          id: mockTransactionId,
+          status: TransactionStatus.confirmed,
+        });
+      }
     });
 
     await waitFor(() => {
@@ -494,15 +605,43 @@ describe('useMerklClaim', () => {
       json: async () => mockRewardData,
     });
 
+    const mockTransactionId = 'tx-123';
+    const mockTransactionHash = '0xabc123';
+
     mockAddTransaction.mockResolvedValueOnce({
-      id: 'tx-123',
+      result: Promise.resolve(mockTransactionHash),
+      transactionMeta: {
+        id: mockTransactionId,
+      },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: lineaAsset }));
 
-    await act(async () => {
+    // Start the claim process
+    const claimPromise = act(async () => {
       await result.current.claimRewards();
     });
+
+    // Wait for transaction submission
+    await waitFor(() => {
+      expect(mockAddTransaction).toHaveBeenCalled();
+    });
+
+    // Simulate transaction confirmation
+    await act(async () => {
+      const confirmedCallback = confirmationCallbacks.find(
+        (cb) => cb.event === 'TransactionController:transactionConfirmed',
+      );
+      if (confirmedCallback) {
+        confirmedCallback.callback({
+          id: mockTransactionId,
+          status: TransactionStatus.confirmed,
+        });
+      }
+    });
+
+    // Wait for claim to complete
+    await claimPromise;
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
@@ -522,5 +661,89 @@ describe('useMerklClaim', () => {
     expect(transactionCall.chainId).toBe(
       `0x${Number(CHAIN_IDS.LINEA_MAINNET).toString(16)}`,
     );
+  });
+
+  it('calls onClaimSuccess callback after transaction confirmation', async () => {
+    const mockRewardData = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: 1,
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '0',
+            pending: '1000000000000000000',
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            ],
+            amount: '1000000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockRewardData,
+    });
+
+    const mockTransactionId = 'tx-123';
+    const mockTransactionHash = '0xabc123';
+    const mockOnClaimSuccess = jest.fn().mockResolvedValue(undefined);
+
+    mockAddTransaction.mockResolvedValueOnce({
+      result: Promise.resolve(mockTransactionHash),
+      transactionMeta: {
+        id: mockTransactionId,
+      },
+    } as never);
+
+    const { result } = renderHook(() =>
+      useMerklClaim({
+        asset: mockAsset,
+        onClaimSuccess: mockOnClaimSuccess,
+      }),
+    );
+
+    // Start the claim process
+    const claimPromise = act(async () => {
+      await result.current.claimRewards();
+    });
+
+    // Wait for transaction submission
+    await waitFor(() => {
+      expect(mockAddTransaction).toHaveBeenCalled();
+    });
+
+    // Verify onClaimSuccess hasn't been called yet
+    expect(mockOnClaimSuccess).not.toHaveBeenCalled();
+
+    // Simulate transaction confirmation
+    await act(async () => {
+      const confirmedCallback = confirmationCallbacks.find(
+        (cb) => cb.event === 'TransactionController:transactionConfirmed',
+      );
+      if (confirmedCallback) {
+        confirmedCallback.callback({
+          id: mockTransactionId,
+          status: TransactionStatus.confirmed,
+        });
+      }
+    });
+
+    // Wait for claim to complete
+    await claimPromise;
+
+    // Verify onClaimSuccess was called after confirmation
+    await waitFor(() => {
+      expect(mockOnClaimSuccess).toHaveBeenCalledTimes(1);
+    });
   });
 });

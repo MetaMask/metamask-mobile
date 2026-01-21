@@ -27,7 +27,7 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({
   );
 
   // Fetch claimable rewards data
-  const { claimableReward } = useMerklRewards({
+  const { claimableReward, refetch } = useMerklRewards({
     asset,
   });
 
@@ -38,7 +38,9 @@ const MerklRewards: React.FC<MerklRewardsProps> = ({
   return (
     <>
       <PendingMerklRewards asset={asset} claimableReward={claimableReward} />
-      {claimableReward && <ClaimMerklRewards asset={asset} />}
+      {claimableReward && (
+        <ClaimMerklRewards asset={asset} onRefetch={refetch} />
+      )}
     </>
   );
 };

@@ -15,12 +15,16 @@ import { useStyles } from '../../../../../component-library/hooks';
 
 interface ClaimMerklRewardsProps {
   asset: TokenI;
+  onRefetch?: () => Promise<void>;
 }
 
 /**
  * Component to display the claim button for Merkl rewards
  */
-const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
+const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
+  asset,
+  onRefetch,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const {
     claimRewards,
@@ -28,6 +32,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
     error: claimError,
   } = useMerklClaim({
     asset,
+    onClaimSuccess: onRefetch,
   });
 
   const handleClaim = async () => {

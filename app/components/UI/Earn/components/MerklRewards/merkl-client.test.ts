@@ -92,7 +92,7 @@ describe('getClaimedAmountFromContract', () => {
     });
   });
 
-  it('should return claimed amount successfully with named struct', async () => {
+  it('returns claimed amount with named struct', async () => {
     const mockEncodedData = '0x1234567890abcdef';
     const mockResponse =
       '0x0000000000000000000000000000000000000000000000000000000000000001';
@@ -136,7 +136,7 @@ describe('getClaimedAmountFromContract', () => {
     );
   });
 
-  it('should return claimed amount successfully with positional struct', async () => {
+  it('returns claimed amount with positional struct', async () => {
     const mockEncodedData = '0x1234567890abcdef';
     const mockResponse =
       '0x0000000000000000000000000000000000000000000000000000000000000001';
@@ -159,7 +159,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(result).toBe('222540254228106035846');
   });
 
-  it('should return "0" when networkClientId is not found', async () => {
+  it('returns "0" when networkClientId is not found', async () => {
     mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
       undefined,
     );
@@ -174,7 +174,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(mockQuery).not.toHaveBeenCalled();
   });
 
-  it('should return "0" when response is empty', async () => {
+  it('returns "0" when response is empty', async () => {
     const mockEncodedData = '0x1234567890abcdef';
 
     mockContractInterface.encodeFunctionData.mockReturnValue(mockEncodedData);
@@ -190,7 +190,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(mockContractInterface.decodeFunctionResult).not.toHaveBeenCalled();
   });
 
-  it('should return "0" when response is null', async () => {
+  it('returns "0" when response is null', async () => {
     const mockEncodedData = '0x1234567890abcdef';
 
     mockContractInterface.encodeFunctionData.mockReturnValue(mockEncodedData);
@@ -206,7 +206,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(mockContractInterface.decodeFunctionResult).not.toHaveBeenCalled();
   });
 
-  it('should return "0" when contract call throws an error', async () => {
+  it('returns "0" when contract call throws an error', async () => {
     const mockEncodedData = '0x1234567890abcdef';
 
     mockContractInterface.encodeFunctionData.mockReturnValue(mockEncodedData);
@@ -221,7 +221,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(result).toBe('0');
   });
 
-  it('should return "0" when decodeFunctionResult throws an error', async () => {
+  it('returns "0" when decodeFunctionResult throws an error', async () => {
     const mockEncodedData = '0x1234567890abcdef';
     const mockResponse =
       '0x0000000000000000000000000000000000000000000000000000000000000001';
@@ -241,7 +241,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(result).toBe('0');
   });
 
-  it('should use correct ABI for Interface', () => {
+  it('uses correct ABI for Interface', async () => {
     const mockEncodedData = '0x1234567890abcdef';
     const mockResponse =
       '0x0000000000000000000000000000000000000000000000000000000000000001';
@@ -253,7 +253,7 @@ describe('getClaimedAmountFromContract', () => {
     mockContractInterface.decodeFunctionResult.mockReturnValue(mockDecoded);
     mockQuery.mockResolvedValue(mockResponse);
 
-    getClaimedAmountFromContract(
+    await getClaimedAmountFromContract(
       mockUserAddress,
       mockTokenAddress,
       mockChainId,
@@ -262,7 +262,7 @@ describe('getClaimedAmountFromContract', () => {
     expect(mockInterface).toHaveBeenCalledWith(DISTRIBUTOR_CLAIMED_ABI);
   });
 
-  it('should handle zero claimed amount', async () => {
+  it('handles zero claimed amount', async () => {
     const mockEncodedData = '0x1234567890abcdef';
     const mockResponse =
       '0x0000000000000000000000000000000000000000000000000000000000000001';

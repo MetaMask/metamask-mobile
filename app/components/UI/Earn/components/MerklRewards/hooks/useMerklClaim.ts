@@ -2,8 +2,12 @@ import { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { WalletDevice } from '@metamask/transaction-controller';
+import {
+  WalletDevice,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import { Interface } from '@ethersproject/abi';
+import Engine from '../../../../../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { selectDefaultEndpointByChainId } from '../../../../../../selectors/networkController';
 import { addTransaction } from '../../../../../../util/transaction-controller';
@@ -14,9 +18,13 @@ import { DISTRIBUTOR_CLAIM_ABI, MERKL_DISTRIBUTOR_ADDRESS } from '../constants';
 
 interface UseMerklClaimOptions {
   asset: TokenI;
+  onClaimSuccess?: () => Promise<void>;
 }
 
-export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
+export const useMerklClaim = ({
+  asset,
+  onClaimSuccess,
+}: UseMerklClaimOptions) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selectedAddress = useSelector(
@@ -83,6 +91,52 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
         origin: 'merkl-claim',
       });
 
+      // Wait for transaction hash (submission)
+      await result.result;
+      const { id: transactionId } = result.transactionMeta;
+
+      // Wait for transaction confirmation (mined in a block)
+      // Contract state changes (like updating the claimed mapping) only happen after confirmation
+      await new Promise<void>((resolve, reject) => {
+        // Handle successful confirmation
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionConfirmed',
+          (transactionMeta) => {
+            if (transactionMeta.status === TransactionStatus.confirmed) {
+              resolve();
+            }
+          },
+          (transactionMeta) => transactionMeta.id === transactionId,
+        );
+
+        // Handle transaction failure
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionFailed',
+          ({ transactionMeta }) => {
+            reject(
+              new Error(transactionMeta.error?.message ?? 'Transaction failed'),
+            );
+          },
+          ({ transactionMeta }) => transactionMeta.id === transactionId,
+        );
+
+        // Handle transaction rejection (user cancelled)
+        Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionRejected',
+          () => {
+            reject(new Error('Transaction was rejected'));
+          },
+          ({ transactionMeta: _transactionMeta }) =>
+            _transactionMeta.id === transactionId,
+        );
+      });
+
+      // Refetch claimed amount from blockchain after transaction confirmation
+      // This will update the UI to reflect the new claimed state
+      if (onClaimSuccess) {
+        await onClaimSuccess();
+      }
+
       return result;
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -91,7 +145,7 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
     } finally {
       setIsClaiming(false);
     }
-  }, [selectedAddress, networkClientId, asset]);
+  }, [selectedAddress, networkClientId, asset, onClaimSuccess]);
 
   return {
     claimRewards,

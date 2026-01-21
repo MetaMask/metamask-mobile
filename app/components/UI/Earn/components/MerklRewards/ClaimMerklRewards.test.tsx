@@ -14,7 +14,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('./hooks/useMerklClaim');
+jest.mock('./hooks/useMerklClaim', () => ({
+  useMerklClaim: jest.fn(),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -80,6 +82,9 @@ const mockUseMerklClaim = useMerklClaim as jest.MockedFunction<
   typeof useMerklClaim
 >;
 
+// Add this to track calls
+let mockUseMerklClaimCalls: Parameters<typeof useMerklClaim>[] = [];
+
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
   symbol: 'aglaMerkl',
@@ -100,10 +105,14 @@ describe('ClaimMerklRewards', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMerklClaim.mockReturnValue({
-      claimRewards: mockClaimRewards,
-      isClaiming: false,
-      error: null,
+    mockUseMerklClaimCalls = [];
+    mockUseMerklClaim.mockImplementation((options) => {
+      mockUseMerklClaimCalls.push(options);
+      return {
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+        error: null,
+      };
     });
   });
 
@@ -179,6 +188,28 @@ describe('ClaimMerklRewards', () => {
     // Error is handled by useMerklClaim hook and displayed via error state
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();
+    });
+  });
+
+  it('passes onRefetch to useMerklClaim as onClaimSuccess', () => {
+    const mockOnRefetch = jest.fn();
+
+    render(<ClaimMerklRewards asset={mockAsset} onRefetch={mockOnRefetch} />);
+
+    expect(mockUseMerklClaimCalls.length).toBe(1);
+    expect(mockUseMerklClaimCalls[0]).toEqual({
+      asset: mockAsset,
+      onClaimSuccess: mockOnRefetch,
+    });
+  });
+
+  it('works without onRefetch prop', () => {
+    render(<ClaimMerklRewards asset={mockAsset} />);
+
+    expect(mockUseMerklClaimCalls.length).toBe(1);
+    expect(mockUseMerklClaimCalls[0]).toEqual({
+      asset: mockAsset,
+      onClaimSuccess: undefined,
     });
   });
 });

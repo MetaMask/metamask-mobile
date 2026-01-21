@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
@@ -51,6 +51,7 @@ interface UseMerklRewardsOptions {
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
+  refetch: () => Promise<void>;
 }
 
 /**
@@ -60,40 +61,40 @@ export const useMerklRewards = ({
   asset,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  useEffect(() => {
-    const isEligible = isEligibleForMerklRewards(
-      asset.chainId as Hex,
-      asset.address as Hex | undefined,
-    );
+  const fetchClaimableRewards = useCallback(
+    async (abortController?: AbortController) => {
+      const isEligible = isEligibleForMerklRewards(
+        asset.chainId as Hex,
+        asset.address as Hex | undefined,
+      );
 
-    if (!isEligible || !selectedAddress) {
+      if (!isEligible || !selectedAddress) {
+        setClaimableReward(null);
+        return;
+      }
+
+      // Reset claimableReward when switching assets to prevent stale data
       setClaimableReward(null);
-      return;
-    }
 
-    // Reset claimableReward when switching assets to prevent stale data
-    setClaimableReward(null);
+      const controller = abortController || new AbortController();
 
-    // Create AbortController to cancel fetch if effect is cleaned up
-    const abortController = new AbortController();
-
-    const fetchClaimableRewards = async () => {
       try {
         // Use throwOnError=false to silently handle API errors
         const matchingReward = await fetchMerklRewardsForAsset(
           asset,
           selectedAddress,
-          abortController.signal,
+          controller.signal,
           false, // Don't throw on error, return null instead
         );
 
         // Check if aborted after fetch (defensive check)
-        if (abortController.signal.aborted) {
+        if (controller.signal.aborted) {
           return;
         }
 
@@ -133,10 +134,13 @@ export const useMerklRewards = ({
             unclaimedAmount !== '0.00'
           ) {
             // Final check before setting state to ensure effect is still active
-            if (!abortController.signal.aborted) {
+            if (!controller.signal.aborted) {
               setClaimableReward(unclaimedAmount);
             }
           }
+        } else if (!controller.signal.aborted) {
+          // No claimable rewards left, set to null
+          setClaimableReward(null);
         }
       } catch (error) {
         // Ignore AbortError - this is expected when effect is cleaned up
@@ -145,17 +149,28 @@ export const useMerklRewards = ({
         }
         // Silently handle other errors - component will show no rewards if fetch fails
       }
-    };
+    },
+    [asset, selectedAddress],
+  );
 
-    fetchClaimableRewards();
+  useEffect(() => {
+    // Create AbortController to cancel fetch if effect is cleaned up
+    const abortController = new AbortController();
+
+    fetchClaimableRewards(abortController);
 
     // Cleanup function to abort fetch
     return () => {
       abortController.abort();
     };
-  }, [asset, selectedAddress]);
+  }, [fetchClaimableRewards, refetchTrigger]);
+
+  const refetch = async () => {
+    setRefetchTrigger((prev) => prev + 1);
+  };
 
   return {
     claimableReward,
+    refetch,
   };
 };
