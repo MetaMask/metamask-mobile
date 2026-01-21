@@ -15,6 +15,7 @@ This document evaluates the Maestro testing framework as a potential primary E2E
 3. [Implementation Successes](#implementation-successes)
 4. [Further Evaluation Recommendations](#further-evaluation)
 5. [Vision: Maestro as Primary Testing Framework](#future-vision)
+6. [CI Execution Time Comparison](#ci-execution-time)
 
 ---
 
@@ -1226,6 +1227,66 @@ The question is not "Can we afford to adopt Maestro?" but rather **"Can we affor
 
 ---
 
+## CI Execution Time Comparison {#ci-execution-time}
+
+As part of Phase 1 evaluation, we implemented both Maestro and Detox versions of the same test and ran them in CI to compare actual execution times.
+
+### Test Setup
+
+Both tests perform identical operations:
+
+| Aspect         | Detox Test                                    | Maestro Test                                   |
+| -------------- | --------------------------------------------- | ---------------------------------------------- |
+| **Test File**  | `e2e/specs/accounts/import-srp.spec.ts`       | `e2e/maestro/tests/add-wallet-with-mocks.yaml` |
+| **Fixtures**   | ✅ Uses `FixtureBuilder` to bypass onboarding | ✅ Uses fixture server with same fixtures      |
+| **Mocking**    | ✅ Mocks feature flags via Mockttp            | ✅ Mocks feature flags via mock server         |
+| **Test Steps** | Unlock wallet → Import SRP → Verify account   | Unlock wallet → Import SRP → Verify account    |
+| **Platform**   | Android                                       | Android                                        |
+
+### CI Results (January 2026)
+
+| Metric                  | Detox | Maestro | Difference          |
+| ----------------------- | ----- | ------- | ------------------- |
+| **Test Execution Time** | 2m 3s | 2m 37s  | Maestro +34s slower |
+| **Total Job Time**      | 6m 8s | ~7m     | Maestro ~1m slower  |
+
+**Result**: Detox is approximately **28% faster** for this specific test on CI.
+
+### Analysis
+
+#### Why Maestro is Slower in This Test
+
+1. **SRP Input Method**:
+   - **Detox**: Uses `replaceText()` to inject the full 12-word seed phrase at once
+   - **Maestro**: Types each word separately (`inputText: 'club '`, `inputText: 'badge '`, etc.) due to `setClipboard` not being available in the CI Maestro version
+
+2. **Server Startup Overhead**:
+   - Maestro test requires starting fixture server and mock server as separate processes
+   - Detox has integrated fixture/mock handling
+
+3. **First Implementation**:
+   - This is the initial CI integration - optimizations are possible
+
+#### Potential Optimizations
+
+1. **Clipboard Support**: If `setClipboard` + `pasteText` worked reliably on CI, Maestro could paste all 12 words at once instead of typing word-by-word
+
+2. **Server Integration**: Pre-warming fixture/mock servers or integrating them more tightly could reduce startup time
+
+3. **Parallel Execution**: Maestro's parallel execution capabilities haven't been tested yet
+
+### Conclusion
+
+For this specific test, Detox outperforms Maestro in raw execution speed. However:
+
+- The 34-second difference is relatively small in the context of a full test suite
+- Maestro's advantages in **test development speed** and **maintainability** may outweigh the execution time difference
+- Further optimization of the Maestro implementation could close this gap
+
+**Recommendation**: Continue evaluation with a broader set of tests to determine if this pattern holds across different test types.
+
+---
+
 ## Appendix
 
 ### A. POC Test Files
@@ -1265,7 +1326,7 @@ See the following files in this PR for complete POC implementation:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: October 27, 2025  
+**Document Version**: 1.1  
+**Last Updated**: January 21, 2026  
 **Status**: Ready for Review  
 **Next Review**: After Phase 5 Evaluation
