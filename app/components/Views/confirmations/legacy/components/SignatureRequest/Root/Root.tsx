@@ -2,11 +2,9 @@ import Modal from 'react-native-modal';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import setSignatureRequestSecurityAlertResponse from '../../../../../../../actions/signatureRequest';
 import { store } from '../../../../../../../store';
 import { useTheme } from '../../../../../../../util/theme';
-import { useConfirmationRedesignEnabled } from '../../../../hooks/useConfirmationRedesignEnabled';
 import PersonalSign from '../../PersonalSign';
 import TypedSign from '../../TypedSign';
 import { MessageParams } from '../types';
@@ -35,12 +33,6 @@ const Root = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
-  const visibility = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (reduxState: any) => reduxState.modals.signMessageModalVisible,
-  );
-  const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);
@@ -54,15 +46,7 @@ const Root = ({
     };
   }, []);
 
-  if (
-    !messageParams ||
-    !currentPageMeta ||
-    !approvalType ||
-    !visibility ||
-    isRedesignedEnabled
-  ) {
-    return null;
-  }
+  return null;
 
   return (
     <Modal

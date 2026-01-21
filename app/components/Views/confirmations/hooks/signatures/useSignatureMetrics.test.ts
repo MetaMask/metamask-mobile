@@ -10,7 +10,7 @@ import {
   ResultType,
   Reason,
   SecurityAlertSource,
-} from '../../../../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../../../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
 
 const mockTypedSignV4SignatureRequest = typedSignV4SignatureRequest;
 jest.mock('./useSignatureRequest', () => ({

@@ -1,0 +1,732 @@
+# Legacy Confirmation Deprecation Plan
+
+**Status:** Planning Phase  
+**Created:** January 20, 2026  
+**Target Completion:** TBD
+
+## Overview
+
+This document outlines the comprehensive plan to deprecate and remove all legacy confirmation code from MetaMask Mobile. The legacy confirmation system is currently toggled via the `confirmation_redesign` feature flag, and the redesigned confirmations are now stable and ready to fully replace the legacy system.
+
+---
+
+## Deprecation Strategy
+
+The deprecation will be executed in **two major phases**:
+
+### **Phase 1: Remove Legacy E2E Tests** ⏭️ Next
+
+Remove all E2E tests dedicated to legacy confirmations to reduce maintenance burden and test suite execution time.
+
+### **Phase 2: Remove Legacy Confirmation Code**
+
+Completely remove all legacy confirmation components, utilities, and feature flag logic.
+
+---
+
+## Phase 1: Remove Legacy E2E Tests
+
+### Objective
+
+Remove 20 legacy confirmation E2E test files and update testing infrastructure to rely solely on redesigned confirmation tests.
+
+### Scope
+
+#### Files to Remove (20 total)
+
+**Directory:** `e2e/specs/confirmations/`
+
+##### Signature Tests (6 files):
+
+1. `e2e/specs/confirmations/ethereum-sign.spec.ts`
+2. `e2e/specs/confirmations/personal-sign.spec.ts`
+3. `e2e/specs/confirmations/security-alert-signatures.mock.spec.ts`
+4. `e2e/specs/confirmations/typed-sign.spec.ts`
+5. `e2e/specs/confirmations/typed-sign-v3.spec.ts`
+6. `e2e/specs/confirmations/typed-sign-v4.spec.ts`
+
+##### Transaction Tests (14 files):
+
+7. `e2e/specs/confirmations/advanced-gas-fees.mock.spec.ts`
+8. `e2e/specs/confirmations/approve-custom-erc20.spec.ts`
+9. `e2e/specs/confirmations/approve-default-erc20.spec.ts`
+10. `e2e/specs/confirmations/approve-erc721.spec.ts`
+11. `e2e/specs/confirmations/batch-transfer-erc1155.spec.ts`
+12. `e2e/specs/confirmations/increase-allowance-erc20.spec.ts`
+13. `e2e/specs/confirmations/send-erc20-with-dapp.spec.ts`
+14. `e2e/specs/confirmations/send-erc721.spec.ts`
+15. `e2e/specs/confirmations/send-failing-contract.spec.ts`
+16. `e2e/specs/confirmations/send-to-contract-address.spec.ts`
+17. `e2e/specs/confirmations/set-approval-for-all-erc1155.spec.ts`
+18. `e2e/specs/confirmations/set-approve-for-all-erc721.spec.ts`
+19. `e2e/specs/confirmations/regression/new-networks-send-erc20.spec.ts`
+20. `e2e/specs/confirmations/regression/new-networks-send-erc721.spec.ts`
+
+**Note:** `e2e/specs/confirmations/transaction-pay.spec.ts` is NOT legacy and will be kept.
+
+#### Verification Steps
+
+**Before Removal:**
+
+1. ✅ Run full redesigned test suite to ensure stability
+2. ✅ Check for any shared test utilities or helpers that are used by both legacy and redesigned tests
+
+**Action Items for Phase 1:**
+
+- [ ] Update CI/CD pipeline to remove legacy test execution
+- [ ] Remove `oldConfirmationsRemoteFeatureFlags` from `e2e/api-mocking/mock-responses/feature-flags-mocks.ts` (Lines 10-17)
+- [ ] Delete all 20 legacy test files
+- [ ] Keep `e2e/specs/confirmations/transaction-pay.spec.ts` (NOT legacy)
+- [ ] Update test documentation
+
+**Estimated Impact:**
+
+- Test suite execution time reduction: ~15-20%
+- Files removed: 20
+- Lines of code removed: ~2,800-4,500 (estimated)
+
+---
+
+## Phase 2: Remove Legacy Confirmation Code
+
+### Objective
+
+Completely remove all legacy confirmation components, feature flag logic, and related infrastructure.
+
+### Scope
+
+This phase involves removing **120+ legacy component files** across multiple directories.
+
+#### 2.1: Remove Feature Flag Infrastructure
+
+**Files to Modify:**
+
+1. **`app/selectors/featureFlagController/confirmations/index.ts`**
+   - Remove: `selectConfirmationRedesignFlagsFromRemoteFeatureFlags` function (Lines 80-124)
+   - Remove: `ConfirmationRedesignRemoteFlags` type (Lines 14-21)
+   - Remove: `selectConfirmationRedesignFlags` selector
+   - Keep: Any other selectors unrelated to confirmation redesign
+
+2. **`app/components/Views/confirmations/hooks/useConfirmationRedesignEnabled.ts`**
+   - **DELETE ENTIRE FILE** - No longer needed when legacy is removed
+   - Update all imports of this hook throughout codebase
+
+3. **Environment Variables (`.env` files, CI config)**
+   - Remove references to:
+     - `FEATURE_FLAG_REDESIGNED_SIGNATURES`
+     - `FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS`
+     - `FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION`
+     - `FEATURE_FLAG_REDESIGNED_TRANSFER`
+     - `FEATURE_FLAG_REDESIGNED_APPROVE`
+     - `FEATURE_FLAG_REDESIGNED_CONTRACT_DEPLOYMENT`
+
+4. **`e2e/api-mocking/mock-responses/feature-flags-mocks.ts`**
+   - Remove: `confirmationsRedesignedFeatureFlags` export (Lines 30-37)
+   - Remove: Any legacy-specific mock data
+
+#### 2.2: Remove Legacy Components
+
+**Main Directory to Remove:** `app/components/Views/confirmations/legacy/`
+
+**Total Files:** 120+ TypeScript/JavaScript files
+
+##### Top-Level Legacy Directories (3):
+
+1. `app/components/Views/confirmations/legacy/Approval/`
+   - Main approval component for legacy flow
+   - Remove: `index.js` and all subdirectories
+
+2. `app/components/Views/confirmations/legacy/Approve/`
+   - Token approval flows
+   - Remove: `index.js` and all subdirectories
+
+3. `app/components/Views/confirmations/legacy/ApproveView/`
+   - Approval view components
+   - Remove: Entire directory
+
+##### Legacy Component Subdirectories (22):
+
+Located in `app/components/Views/confirmations/legacy/components/`:
+
+1. **AddressElement/** - Address display component
+2. **AddressList/** - List of addresses
+3. **Amount/** - Amount input/display
+4. **Approval/** - Approval-related components
+   - Subdirs: `ApprovalFlowLoader/`, `TemplateConfirmation/` (includes `Templates/`)
+5. **ApproveTransactionHeader/** - Header for approve transactions
+6. **ApproveTransactionReview/** - Review screen for approvals
+   - Subdirs: `AddNickname/`, `AddNickNameHeader/`, `EditPermission/`, `ShowBlockExplorer/`, `VerifyContractDetails/`
+7. **BlockaidBanner/** ⚠️ - Security alert banners (SHARED - see 2.2.1)
+8. **Confirm/** - Confirmation screens
+9. **CustomNonce/** ⚠️ - Custom nonce input (SHARED - see 2.2.1)
+10. **CustomNonceModal/** ⚠️ - Modal for custom nonce (SHARED - see 2.2.1)
+11. **EditGasFee1559Update/** - EIP-1559 gas fee editor
+12. **EditGasFeeLegacyUpdate/** - Legacy gas fee editor
+13. **ErrorMessage/** - Error displays
+14. **PersonalSign/** - Personal signature requests
+15. **SignatureRequest/** - Signature request handling
+16. **SmartTransactionsMigrationBanner/** - Smart transaction banner
+17. **TransactionBlockaidBanner/** ⚠️ - Transaction security alerts (SHARED - see 2.2.1)
+18. **TransactionReview/** - Transaction review screens
+    - Subdirs: `TransactionReviewData/`, `TransactionReviewDetailsCard/`, `TransactionReviewEIP1559/`, `TransactionReviewEIP1559Update/`, `TransactionReviewInformation/`, `TransactionReviewSummary/`
+19. **TypedSign/** - Typed signature requests
+20. **UpdateEIP1559Tx/** ⚠️ - EIP-1559 transaction updates (SHARED - see 2.2.1)
+21. **WarningMessage/** - Warning displays
+22. **WatchAssetRequest/** - Asset watching requests
+
+##### 2.2.1: Handling Shared Components ⚠️
+
+Some legacy components are currently imported by redesigned confirmations. These need special handling:
+
+**Shared Components:**
+
+1. **BlockaidBanner** and related security components
+   - **Used by:** Redesigned confirmation security alerts
+   - **Strategy:**
+     - Check if redesigned has equivalent components in `app/components/Views/confirmations/components/signature-blockaid-banner/` and `app/components/Views/confirmations/components/alerts/`
+     - If equivalent exists, migrate imports
+     - If not, move shared components to a common location before deletion
+2. **CustomNonceModal**
+   - **Used by:** `app/components/Views/confirmations/components/rows/transactions/advanced-details-row/advanced-details-row.tsx` (Line 24)
+   - **Strategy:**
+     - Move to redesigned component directory or shared utilities
+     - Update import in `advanced-details-row.tsx`
+
+3. **UpdateEIP1559Tx**
+   - **Used by:** Various redesigned transaction views
+   - **Strategy:**
+     - Verify usage in redesigned codebase
+     - Move to redesigned component directory if still needed
+     - Refactor to remove legacy dependencies
+
+**Action Items for Shared Components:**
+
+- [ ] Audit all imports from `legacy/` directory in redesigned code
+- [ ] For each shared component:
+  - [ ] Check if redesigned equivalent exists
+  - [ ] If yes, update imports to use redesigned version
+  - [ ] If no, move component to appropriate shared location
+  - [ ] Update all imports
+  - [ ] Test thoroughly
+
+#### 2.3: Update Routing and Navigation
+
+**Files to Modify:**
+
+1. **`app/components/Approvals/TransactionApproval/TransactionApproval.tsx`**
+   - **Current (Lines 28, 43-48):**
+
+     ```typescript
+     const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+
+     if (isRedesignedEnabled) {
+       return null;
+     }
+     ```
+
+   - **After:**
+     - Remove `useConfirmationRedesignEnabled` import and usage
+     - Always return `null` (legacy component no longer renders)
+     - OR delete entire component if it's only used for legacy flow
+
+2. **`app/components/Views/confirmations/components/confirm/confirm-root.tsx`**
+   - **Current (Lines 9, 13-19):**
+
+     ```typescript
+     const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+
+     if (isRedesignedEnabled) {
+       navigate('CONFIRMATION_REQUEST_MODAL');
+     }
+     ```
+
+   - **After:**
+     - Remove conditional logic
+     - Always navigate to `CONFIRMATION_REQUEST_MODAL`
+
+3. **`app/components/Views/confirmations/legacy/components/SignatureRequest/Root/Root.tsx`**
+   - **Current (Lines 43, 57-65):**
+
+     ```typescript
+     const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+
+     if (isRedesignedEnabled) {
+       return null;
+     }
+     ```
+
+   - **After:**
+     - Delete entire file/component (legacy signature request)
+
+4. **Navigation Routes (`app/constants/navigation/Routes.ts`)**
+   - Verify `Routes.CONFIRMATION_REQUEST_MODAL` (Line 306) is the only route needed
+   - Remove any legacy confirmation routes
+
+#### 2.4: Update Type Definitions and Constants
+
+**Files to Modify:**
+
+1. **`app/components/Views/confirmations/constants/confirmations.ts`**
+   - Review constants:
+     - `REDESIGNED_SIGNATURE_TYPES` (Lines 7-10)
+     - `REDESIGNED_TRANSACTION_TYPES` (Lines 12-31)
+     - `REDESIGNED_APPROVE_TYPES` (Lines 33-37)
+     - `REDESIGNED_TRANSFER_TYPES` (Lines 39-44)
+     - `REDESIGNED_CONTRACT_INTERACTION_TYPES` (Lines 46-52)
+   - **Action:** Remove "REDESIGNED\_" prefix, rename to standard types
+   - Update all imports throughout codebase
+
+2. **Test IDs**
+   - **Remove:** `app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds.ts`
+   - **Keep:** `app/components/Views/confirmations/ConfirmationView.testIds.ts` (redesigned, 102 lines)
+   - Update any remaining references to legacy test IDs
+
+#### 2.5: Clean Up Utilities and Helpers
+
+**Search and Remove:**
+
+- Any utility functions specific to legacy confirmations
+- Helper functions that check for `isRedesignedEnabled`
+- Legacy-specific type guards or validators
+- Functions like `isRedesignedSignature()` and `isRedesignedTransaction()` in `useConfirmationRedesignEnabled.ts`
+
+**Files to Review:**
+
+- All files in `app/components/Views/confirmations/utils/` (if exists)
+- All files in `app/components/Views/confirmations/helpers/` (if exists)
+- Selector files in `app/selectors/` that reference legacy confirmations
+
+#### 2.6: Update Documentation and Comments
+
+**Files to Update:**
+
+- [ ] README files mentioning feature flags
+- [ ] Developer documentation about confirmations
+- [ ] Code comments referencing legacy vs. redesigned
+- [ ] Architecture decision records (ADRs) if they exist
+- [ ] Update this deprecation plan to "Completed" status
+
+---
+
+## Rollout Plan
+
+### Pre-Phase 1 Validation ✅
+
+**Before removing any E2E tests:**
+
+1. **Production Readiness Check**
+   - [ ] Verify `confirmation_redesign` feature flags are enabled in production for all transaction types
+   - [ ] Confirm no recent rollbacks or incidents related to redesigned confirmations
+   - [ ] Review support tickets for any legacy-specific issues (should be zero)
+   - [ ] Analytics check: Confirm 100% of users are on redesigned confirmations
+
+2. **Test Coverage Audit**
+   - [ ] Run full redesigned E2E test suite (`e2e/specs/confirmations-redesigned/`)
+   - [ ] Confirm all tests pass on all platforms (iOS/Android)
+   - [ ] Get QA team sign-off on test coverage
+
+3. **Stakeholder Approval**
+   - [ ] Product team approval to proceed
+   - [ ] Engineering lead approval
+   - [ ] QA team approval
+
+### Phase 1 Execution
+
+**Timeline:** 1-2 sprints
+
+**Steps:**
+
+1. **Week 1: Preparation**
+   - [ ] Create tracking issue for Phase 1
+   - [ ] Run full redesigned test suite, verify 100% pass rate
+   - [ ] Check for shared test utilities between legacy and redesigned tests
+
+2. **Week 2: Test Removal**
+   - [ ] Create PR to remove legacy E2E tests
+     - [ ] Delete 20 legacy test files
+     - [ ] Keep `transaction-pay.spec.ts` (NOT legacy)
+     - [ ] Remove `oldConfirmationsRemoteFeatureFlags` from mocks
+     - [ ] Update CI/CD configuration
+     - [ ] Update test documentation
+   - [ ] Get PR reviews from QA and engineering
+   - [ ] Merge after approval
+   - [ ] Monitor CI/CD pipeline for any issues
+   - [ ] Celebrate 🎉 (optional but recommended)
+
+### Phase 2 Execution
+
+**Timeline:** 3-4 sprints
+
+**Prerequisites:**
+
+- [ ] Phase 1 completed successfully
+- [ ] No legacy E2E tests in codebase for at least 1 sprint
+- [ ] All feature flags confirmed enabled in production
+- [ ] Zero reports of legacy confirmation usage
+
+**Steps:**
+
+1. **Sprint 1: Preparation & Shared Components**
+   - [ ] Create tracking epic/issue for Phase 2
+   - [ ] Audit all imports from `legacy/` directory
+   - [ ] Document all shared components and their usage
+   - [ ] Create plan to migrate/move shared components
+   - [ ] Set up feature branch for Phase 2 work
+   - [ ] Implement shared component migrations
+   - [ ] Create PR for shared component work
+   - [ ] Thorough testing of shared component changes
+   - [ ] Merge shared component PR
+
+2. **Sprint 2: Feature Flag & Hook Removal**
+   - [ ] Remove `useConfirmationRedesignEnabled` hook
+   - [ ] Update all components using the hook
+   - [ ] Remove feature flag selectors
+   - [ ] Remove environment variable references
+   - [ ] Remove from build configurations
+   - [ ] Create PR for feature flag removal
+   - [ ] Code review
+   - [ ] QA testing
+   - [ ] Merge PR
+
+3. **Sprint 3: Legacy Component Removal (Part 1)**
+   - [ ] Remove legacy component directories 1-11:
+     - AddressElement, AddressList, Amount, Approval, ApproveTransactionHeader, ApproveTransactionReview, Confirm, EditGasFee1559Update, EditGasFeeLegacyUpdate, ErrorMessage, PersonalSign
+   - [ ] Update any remaining imports
+   - [ ] Create PR
+   - [ ] Thorough regression testing
+   - [ ] Merge PR
+
+4. **Sprint 4: Legacy Component Removal (Part 2) & Cleanup**
+   - [ ] Remove remaining legacy component directories 12-22
+   - [ ] Remove legacy top-level directories (Approval, Approve, ApproveView)
+   - [ ] Delete entire `legacy/` directory
+   - [ ] Update routing and navigation code
+   - [ ] Clean up constants (remove "REDESIGNED\_" prefix)
+   - [ ] Remove legacy test IDs
+   - [ ] Search for and remove any remaining legacy references
+   - [ ] Update documentation
+   - [ ] Create final PR
+   - [ ] Comprehensive QA regression testing
+   - [ ] Staged rollout to production
+   - [ ] Monitor for issues
+   - [ ] Merge PR
+   - [ ] Close all related issues/epic
+   - [ ] Update this document to "Completed" status
+
+---
+
+## Testing Strategy
+
+### Phase 1 Testing
+
+- Run full redesigned E2E suite before and after removal
+- Manual smoke testing of all confirmation flows
+- Verify CI/CD pipeline changes don't break other tests
+
+### Phase 2 Testing
+
+**For Each Sprint:**
+
+1. **Unit Tests**
+   - Update or remove tests for deleted components
+   - Ensure all redesigned component tests pass
+   - Add new tests for any refactored shared components
+
+2. **Integration Tests**
+   - Test all confirmation flows end-to-end
+   - Verify navigation and routing work correctly
+   - Test feature flag removal doesn't cause runtime errors
+
+3. **E2E Tests**
+   - Run full redesigned E2E suite
+   - Platform-specific testing (iOS and Android)
+   - Test on various network conditions
+
+4. **Manual Testing Checklist**
+   - [ ] Personal Sign signatures
+   - [ ] Typed Sign (v1, v3, v4) signatures
+   - [ ] ERC20 token approvals (default and custom amounts)
+   - [ ] ERC721 NFT approvals and transfers
+   - [ ] ERC1155 multi-token operations
+   - [ ] Contract deployment
+   - [ ] Contract interactions
+   - [ ] Token transfers via dApp
+   - [ ] Native currency sends
+   - [ ] Advanced gas fee editing (EIP-1559 and legacy)
+   - [ ] Custom nonce setting
+   - [ ] Security alerts (Blockaid)
+   - [ ] Transaction simulation
+   - [ ] Multi-chain support
+   - [ ] Transaction batching
+   - [ ] Smart account confirmations
+
+5. **Regression Testing**
+   - Test on different network types (Ethereum, BSC, Polygon, etc.)
+   - Test with various wallet states (empty, funded, with tokens/NFTs)
+   - Test error scenarios (insufficient funds, failed transactions, etc.)
+
+---
+
+## Risks and Mitigation
+
+### Risk 1: Undiscovered Dependencies
+
+**Risk:** Legacy components may be imported or used in unexpected places  
+**Impact:** Runtime errors after deletion  
+**Mitigation:**
+
+- Comprehensive code search for all imports from `legacy/` directory
+- Automated import analysis tools
+- Thorough code review process
+- Feature branch testing before merge
+
+### Risk 2: Incomplete Test Coverage
+
+**Risk:** Redesigned tests may not cover all legacy test scenarios  
+**Impact:** Reduced test coverage, potential bugs in production  
+**Mitigation:**
+
+- Run full redesigned test suite before removal
+- Increase manual QA testing during rollout
+- Monitor production metrics post-removal
+
+### Risk 3: Shared Component Issues
+
+**Risk:** Moving/refactoring shared components causes unexpected bugs  
+**Impact:** Broken functionality in redesigned confirmations  
+**Mitigation:**
+
+- Careful auditing of shared component usage
+- Comprehensive testing after migration
+- Staged rollout with monitoring
+- Rollback plan ready
+
+### Risk 4: Production Issues Post-Deployment
+
+**Risk:** Issues discovered after legacy code removal  
+**Impact:** User-facing bugs, potential regression to legacy code needed  
+**Mitigation:**
+
+- Staged rollout to production
+- Enhanced monitoring and alerting
+- Quick rollback plan (feature flag kill switch initially)
+- Keep legacy code in git history for reference
+
+### Risk 5: Feature Flag Configuration Issues
+
+**Risk:** Feature flags not properly enabled in all environments  
+**Impact:** Users still seeing legacy UI unexpectedly  
+**Mitigation:**
+
+- Verify flag state in all environments before Phase 2
+- Document flag states in each environment
+- Have rollback plan if legacy code already deleted
+
+---
+
+## Success Criteria
+
+### Phase 1 Success Criteria
+
+- ✅ All 20 legacy E2E test files removed
+- ✅ `transaction-pay.spec.ts` kept (not legacy)
+- ✅ CI/CD pipeline runs successfully without legacy tests
+- ✅ Redesigned E2E suite maintains 100% pass rate
+- ✅ Test execution time reduced by 15-20%
+- ✅ No references to `oldConfirmationsRemoteFeatureFlags` in codebase
+
+### Phase 2 Success Criteria
+
+- ✅ All files in `app/components/Views/confirmations/legacy/` removed (120+ files)
+- ✅ `useConfirmationRedesignEnabled` hook completely removed
+- ✅ All feature flag infrastructure removed
+- ✅ No imports from legacy directory in codebase
+- ✅ All environment variables related to feature flags removed
+- ✅ All confirmation flows working in production
+- ✅ Zero production incidents related to confirmations
+- ✅ Code coverage maintained or improved
+- ✅ Bundle size reduced (estimated 50-100KB reduction)
+- ✅ Simplified codebase architecture
+- ✅ Updated documentation reflects new architecture
+
+---
+
+## Rollback Plan
+
+### Phase 1 Rollback
+
+If issues are discovered after removing E2E tests:
+
+1. Revert the PR that removed tests
+2. Investigate root cause
+3. Fix issues in redesigned tests
+4. Re-attempt removal
+
+**Note:** Low risk, as we're only removing tests, not production code.
+
+### Phase 2 Rollback
+
+**Before Feature Flag Removal:**
+If issues discovered:
+
+1. Use feature flag kill switch to re-enable legacy confirmations
+2. Investigate and fix issues in redesigned confirmations
+3. Re-enable redesigned confirmations via feature flag
+4. Resume deprecation plan
+
+**After Feature Flag Removal:**
+If critical issues discovered:
+
+1. Emergency hotfix to patch immediate issues
+2. If hotfix insufficient:
+   - Revert PRs in reverse order (most recent first)
+   - Restore from git history if needed
+   - Redeploy previous stable version
+3. Root cause analysis
+4. Fix issues in redesigned confirmations
+5. Re-attempt Phase 2 with additional safeguards
+
+**Rollback Considerations:**
+
+- Keep detailed PR history for easy reversion
+- Tag commits before major deletions
+- Maintain detailed changelog
+- Have team available during initial rollout for quick response
+
+---
+
+## Code Statistics
+
+### Current State (Estimated)
+
+| Category                         | Count                                |
+| -------------------------------- | ------------------------------------ |
+| Legacy E2E Test Files            | 20                                   |
+| Redesigned E2E Test Files        | 14                                   |
+| Legacy Component Files           | 120+                                 |
+| Redesigned Component Files       | ~318                                 |
+| Feature Flag Sub-Flags           | 6                                    |
+| Legacy Component Directories     | 25 (3 top-level + 22 subdirectories) |
+| Redesigned Component Directories | 44                                   |
+
+### After Phase 1
+
+| Category                      | Count        |
+| ----------------------------- | ------------ |
+| Legacy E2E Test Files         | 0 ❌         |
+| Redesigned E2E Test Files     | 14+          |
+| Lines of Test Code Removed    | ~2,800-4,500 |
+| Test Execution Time Reduction | 15-20%       |
+
+### After Phase 2 (Target)
+
+| Category                         | Count                      |
+| -------------------------------- | -------------------------- |
+| Legacy Component Files           | 0 ❌                       |
+| Legacy Directories               | 0 ❌                       |
+| Feature Flags for Confirmations  | 0 ❌                       |
+| Lines of Production Code Removed | ~15,000-25,000 (estimated) |
+| Bundle Size Reduction            | ~50-100KB (estimated)      |
+| Maintenance Burden               | Reduced by ~40%            |
+
+---
+
+## Team Responsibilities
+
+### Engineering
+
+- Execute code removal according to plan
+- Code reviews for all PRs
+- Unit and integration test updates
+- Technical documentation updates
+
+### QA
+
+- Test coverage verification
+- Regression testing for each phase
+- Sign-off on test removals
+- Manual testing checklist execution
+- Production monitoring post-deployment
+
+### Product
+
+- Stakeholder communication
+- User impact assessment
+- Timeline and priority decisions
+- Final approval for production deployment
+
+### DevOps
+
+- CI/CD pipeline updates
+- Environment variable cleanup
+- Build configuration updates
+- Deployment support and monitoring
+
+---
+
+## Timeline
+
+**Phase 1: Remove Legacy E2E Tests**
+
+- Duration: 1-2 sprints
+- Target Start: TBD
+- Target Completion: TBD
+
+**Phase 2: Remove Legacy Confirmation Code**
+
+- Duration: 3-4 sprints
+- Target Start: TBD (after Phase 1 completion + 1 sprint buffer)
+- Target Completion: TBD
+
+**Total Estimated Timeline:** 5-7 sprints (~10-14 weeks)
+
+---
+
+## Notes and Open Questions
+
+### Open Questions
+
+1. **Shared Components:** What is the complete list of components currently shared between legacy and redesigned?
+   - Known: BlockaidBanner, CustomNonceModal, UpdateEIP1559Tx
+   - Need comprehensive audit
+
+2. **Feature Flag Timeline:** When were the `confirmation_redesign` flags fully enabled in production?
+   - Need date to confirm sufficient stability period
+
+3. **Analytics:** What percentage of users are currently using redesigned vs legacy confirmations?
+   - Need confirmation of 100% before Phase 2
+
+4. **Support Tickets:** Have there been any recent user-reported issues specific to legacy confirmations?
+   - Need review of support data
+
+### Notes
+
+- This plan was created based on codebase analysis as of January 20, 2026
+- File counts and line numbers are estimates and should be verified during execution
+- Timeline estimates are preliminary and may be adjusted based on team capacity and priorities
+- Consider creating a dedicated Slack channel or wiki page for this deprecation effort
+- Regular sync meetings recommended during execution (weekly during active phases)
+
+---
+
+## References
+
+### Key Files
+
+- Feature Flag Selector: `app/selectors/featureFlagController/confirmations/index.ts`
+- Redesign Hook: `app/components/Views/confirmations/hooks/useConfirmationRedesignEnabled.ts`
+- Legacy E2E Tests: `e2e/specs/confirmations/`
+- Redesigned E2E Tests: `e2e/specs/confirmations-redesigned/`
+- Legacy Components: `app/components/Views/confirmations/legacy/`
+- Redesigned Components: `app/components/Views/confirmations/components/`
+- Test IDs: `app/components/Views/confirmations/ConfirmationView.testIds.ts`
+
+### Related Documentation
+
+- [Add links to relevant ADRs, design docs, or other documentation here]
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** January 20, 2026  
+**Next Review Date:** TBD

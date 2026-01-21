@@ -1,7 +1,7 @@
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
-import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
+
 import Engine from '../../../../core/Engine';
 import { generateTransferData } from '../../../../util/transactions';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
@@ -47,9 +47,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
-  selectConfirmationRedesignFlagsFromRemoteFeatureFlags: jest.fn(),
-}));
+jest.mock(
+  '../../../../selectors/featureFlagController/confirmations',
+  () => ({}),
+);
 
 jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn(),
@@ -78,9 +79,8 @@ describe('isDeeplinkRedesignedConfirmationCompatible', () => {
     transfer: false,
   };
 
-  const mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags = jest.mocked(
-    selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
-  );
+  const mockSelectConfirmationRedesignFlagsFromRemoteFeatureFlags =
+    jest.mocked();
 
   beforeEach(() => {
     jest.clearAllMocks();

@@ -1,5 +1,5 @@
 import { RootState } from '../../../../reducers';
-import { SecurityAlertResponse } from '../legacy/components/BlockaidBanner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '../components/blockaid-banner/BlockaidBanner.types';
 
 export const selectSignatureSecurityAlertResponse = (
   rootState: RootState,

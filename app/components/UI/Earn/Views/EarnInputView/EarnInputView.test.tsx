@@ -15,10 +15,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
 // eslint-disable-next-line import/no-namespace
-import {
-  ConfirmationRedesignRemoteFlags,
-  selectConfirmationRedesignFlags,
-} from '../../../../../selectors/featureFlagController/confirmations';
+import {} from '../../../../../selectors/featureFlagController/confirmations';
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -347,9 +344,6 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('EarnInputView', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
-  const selectConfirmationRedesignFlagsMock = jest.mocked(
-    selectConfirmationRedesignFlags,
-  );
   const selectStablecoinLendingEnabledFlagMock = jest.mocked(
     selectStablecoinLendingEnabledFlag,
   );
@@ -375,9 +369,6 @@ describe('EarnInputView', () => {
     jest.useFakeTimers();
 
     // Reset the mocked function to default value
-    selectConfirmationRedesignFlagsMock.mockReturnValue({
-      staking_confirmations: false,
-    } as unknown as ConfirmationRedesignRemoteFlags);
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
@@ -872,9 +863,6 @@ describe('EarnInputView', () => {
     it('redesigned stake deposit confirmation view', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
       // Override the mock value for this specific test
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags);
 
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: attemptDepositTransactionMock,
@@ -1127,9 +1115,6 @@ describe('EarnInputView', () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       // Enable redesigned staking confirmations flag
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags);
 
       const getErc20SpendingLimitSpy = jest
         .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
@@ -1872,10 +1857,6 @@ describe('EarnInputView', () => {
       usePoolStakedDepositMock.mockReturnValue({
         attemptDepositTransaction: undefined,
       });
-
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags);
 
       const { getByText } = renderComponent();
 

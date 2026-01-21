@@ -23,7 +23,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
 
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {

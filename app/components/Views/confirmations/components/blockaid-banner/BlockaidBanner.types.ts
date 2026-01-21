@@ -1,5 +1,5 @@
 import { BannerAlertProps } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { ResultType as BlockaidResultType } from '../../../constants/signatures';
+import { ResultType as BlockaidResultType } from '../../constants/signatures';
 
 export enum Reason {
   approvalFarming = 'approval_farming',

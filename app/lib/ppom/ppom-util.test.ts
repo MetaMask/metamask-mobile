@@ -22,7 +22,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
 import Logger from '../../util/Logger';
 
 const CHAIN_ID_REQUEST_MOCK = '0x1' as Hex;

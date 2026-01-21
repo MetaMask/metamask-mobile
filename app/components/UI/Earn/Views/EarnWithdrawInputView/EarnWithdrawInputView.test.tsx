@@ -4,10 +4,7 @@ import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import {
-  ConfirmationRedesignRemoteFlags,
-  selectConfirmationRedesignFlags,
-} from '../../../../../selectors/featureFlagController/confirmations';
+import {} from '../../../../../selectors/featureFlagController/confirmations';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -426,9 +423,6 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 describe('EarnWithdrawInputView', () => {
-  const selectConfirmationRedesignFlagsMock = jest.mocked(
-    selectConfirmationRedesignFlags,
-  );
   const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
@@ -446,10 +440,6 @@ describe('EarnWithdrawInputView', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useMetrics>);
-
-    selectConfirmationRedesignFlagsMock.mockReturnValue({
-      staking_confirmations: false,
-    } as unknown as ConfirmationRedesignRemoteFlags);
   });
 
   it('render matches snapshot', async () => {
@@ -571,10 +561,6 @@ describe('EarnWithdrawInputView', () => {
         () => ({
           attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
         });
-
-      selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags);
     });
 
     afterEach(() => {
@@ -1357,10 +1343,6 @@ describe('EarnWithdrawInputView', () => {
   describe('Tracing', () => {
     describe('Pooled Staking flow tracing', () => {
       it('calls trace with EarnWithdrawConfirmationScreen when redesigned confirmations are enabled', async () => {
-        selectConfirmationRedesignFlagsMock.mockReturnValue({
-          staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags);
-
         const mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue({});
         jest.requireMock('../../../Stake/hooks/usePoolStakedUnstake').default =
           () => ({

@@ -1,4 +1,4 @@
-import { SecurityAlertResponse } from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
 
 /**
  * Clears transaction object completely

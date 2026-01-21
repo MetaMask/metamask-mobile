@@ -42,10 +42,7 @@ import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 import ConnectApproval from '../../Approvals/ConnectApproval';
-import {
-  TransactionApproval,
-  TransactionModalType,
-} from '../../Approvals/TransactionApproval';
+
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
@@ -72,7 +69,6 @@ const hstInterface = new ethers.utils.Interface(abi);
 
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
@@ -260,12 +256,6 @@ const RootRPCMethodsUI = (props) => {
             ...transactionMeta.txParams,
           });
         }
-
-        if (isApprovalTransaction(data) && (!value || isZeroValue(value))) {
-          setTransactionModalType(TransactionModalType.Transaction);
-        } else {
-          setTransactionModalType(TransactionModalType.Dapp);
-        }
       }
     },
     [
@@ -277,10 +267,6 @@ const RootRPCMethodsUI = (props) => {
       setEtherTransaction,
     ],
   );
-
-  const onTransactionComplete = useCallback(() => {
-    setTransactionModalType(undefined);
-  }, []);
 
   // unapprovedTransaction effect
   useEffect(() => {
@@ -311,11 +297,6 @@ const RootRPCMethodsUI = (props) => {
       <ConfirmRoot />
       <SignatureApproval />
       <WalletConnectApproval />
-      <TransactionApproval
-        transactionType={transactionModalType}
-        navigation={props.navigation}
-        onComplete={onTransactionComplete}
-      />
       <AddChainApproval />
       <SwitchChainApproval />
       <WatchAssetApproval />
