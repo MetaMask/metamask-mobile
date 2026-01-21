@@ -150,10 +150,11 @@ runs:
           STATUS_RESPONSE=$(curl -s -X GET "https://api.cursor.com/v0/agents/$AGENT_ID" \
             -H "Authorization: Bearer $CURSOR_API_KEY")
 
-          STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.status')
-          echo "Status: $STATUS (attempt $i/$MAX_ITERATIONS)"
+          CURRENT_STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.status')
+          echo "Status: $CURRENT_STATUS (attempt $i/$MAX_ITERATIONS)"
 
-          if [ "$STATUS" = "COMPLETED" ] || [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "CANCELLED" ]; then
+          if [ "$CURRENT_STATUS" = "COMPLETED" ] || [ "$CURRENT_STATUS" = "FAILED" ] || [ "$CURRENT_STATUS" = "CANCELLED" ]; then
+            STATUS="$CURRENT_STATUS"
             break
           fi
 
