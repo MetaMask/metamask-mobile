@@ -184,7 +184,7 @@ export const PopularList = [
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://megaeth.blockscout.com',
+      blockExplorerUrl: 'https://megaeth.blockscout.com/',
       imageUrl: 'MEGAETH',
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
     },
