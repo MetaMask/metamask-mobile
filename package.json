@@ -121,7 +121,8 @@
     "gen-bundle:ios": "NODE_OPTIONS='--max-old-space-size=8192' yarn react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
     "gen-bundle:android": "yarn react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
     "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
-    "generate-icons": "yarn ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
+    "generate-icons": "yarn ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts",
+    "use-preview-build": "./scripts/use-preview-build.mjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -557,10 +558,12 @@
     "@types/serve-handler": "^6.1.4",
     "@types/url-parse": "^1.4.8",
     "@types/valid-url": "^1.0.4",
+    "@types/yargs": "^17.0.35",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
     "@walletconnect/types": "^2.19.2",
     "@welldone-software/why-did-you-render": "^8.0.1",
+    "@yarnpkg/core": "^4.5.0",
     "appium": "^2.12.1",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
@@ -635,7 +638,8 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
-    "xml2js": "^0.5.0"
+    "xml2js": "^0.5.0",
+    "yargs": "^17.7.2"
   },
   "config": {
     "react-native-storybook-loader": {

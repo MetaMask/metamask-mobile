@@ -37,6 +37,8 @@ ignores:
   - 'esbuild-register'
   # xml2js is used in .github/scripts/ for E2E test report processing
   - 'xml2js'
+  # @types/yargs is used in scripts/use-preview-build.mjs
+  - '@types/yargs'
 
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'
