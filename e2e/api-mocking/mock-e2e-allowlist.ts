@@ -26,6 +26,7 @@ export const ALLOWLISTED_HOSTS = [
 export const ALLOWLISTED_URLS = [
   // Temporarily allow existing live requests during migration
   'https://clients3.google.com/generate_204',
+  'https://cdn-settings.segment.com/v1/projects/TEB8xv152IJn8FFTpVwm0XFFNpczkpcr/settings',
   'https://api.avax.network/ext/bc/C/rpc',
   // Token SVGs in notifications list
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdc.svg',
