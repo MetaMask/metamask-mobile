@@ -304,13 +304,13 @@ describe('usePerpsMarketListView', () => {
           return ['BTC'];
         }
         // Even calls are sort preference
-        return 'priceChange-desc';
+        return 'priceChange';
       });
 
       renderHook(() => usePerpsMarketListView());
 
       expect(mockUsePerpsSorting).toHaveBeenCalledWith({
-        initialOptionId: 'priceChange-desc',
+        initialOptionId: 'priceChange',
       });
     });
 
