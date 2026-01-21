@@ -4,7 +4,11 @@ import { useMerklClaim } from './useMerklClaim';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { TokenI } from '../../../../Tokens/types';
-import { CHAIN_IDS, TransactionStatus } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import { RootState } from '../../../../../../reducers';
 import Engine from '../../../../../../core/Engine';
 
@@ -18,7 +22,8 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
 
 jest.mock('../../../../../../core/Engine', () => ({
   controllerMessenger: {
-    subscribeOnceIf: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -29,9 +34,13 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockAddTransaction = addTransaction as jest.MockedFunction<
   typeof addTransaction
 >;
-const mockSubscribeOnceIf = Engine.controllerMessenger
-  .subscribeOnceIf as jest.MockedFunction<
-  typeof Engine.controllerMessenger.subscribeOnceIf
+const mockSubscribe = Engine.controllerMessenger
+  .subscribe as jest.MockedFunction<
+  typeof Engine.controllerMessenger.subscribe
+>;
+const mockUnsubscribe = Engine.controllerMessenger
+  .unsubscribe as jest.MockedFunction<
+  typeof Engine.controllerMessenger.unsubscribe
 >;
 
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
@@ -57,32 +66,32 @@ const mockAsset: TokenI = {
 };
 
 describe('useMerklClaim', () => {
-  let confirmationCallbacks: {
-    event: string;
-    callback: (transactionMeta: {
-      id: string;
-      status?: TransactionStatus;
-      error?: { message: string };
-    }) => void;
-    filter: (transactionMeta: { id: string }) => boolean;
-  }[] = [];
+  let transactionStatusUpdateCallbacks: (({
+    transactionMeta,
+  }: {
+    transactionMeta: TransactionMeta;
+  }) => void)[] = [];
 
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
-    confirmationCallbacks = [];
+    transactionStatusUpdateCallbacks = [];
 
-    // Mock subscribeOnceIf to capture callbacks
-    mockSubscribeOnceIf.mockImplementation((event, callback, filter) => {
-      confirmationCallbacks.push({
-        event,
-        callback: callback as (typeof confirmationCallbacks)[0]['callback'],
-        filter: filter as (typeof confirmationCallbacks)[0]['filter'],
-      });
-      // Return unsubscribe function
-      return () => {
-        // Unsubscribe implementation (no-op for tests)
-      };
+    // Mock subscribe to capture transactionStatusUpdated callbacks
+    mockSubscribe.mockImplementation((event, callback) => {
+      if (event === 'TransactionController:transactionStatusUpdated') {
+        transactionStatusUpdateCallbacks.push(
+          callback as ({
+            transactionMeta,
+          }: {
+            transactionMeta: TransactionMeta;
+          }) => void,
+        );
+      }
+    });
+
+    mockUnsubscribe.mockImplementation(() => {
+      // No-op for tests
     });
 
     mockUseSelector.mockImplementation((selector: unknown) => {
@@ -223,15 +232,14 @@ describe('useMerklClaim', () => {
 
     // Simulate transaction confirmation
     await act(async () => {
-      const confirmedCallback = confirmationCallbacks.find(
-        (cb) => cb.event === 'TransactionController:transactionConfirmed',
-      );
-      if (confirmedCallback) {
-        confirmedCallback.callback({
-          id: mockTransactionId,
-          status: TransactionStatus.confirmed,
+      transactionStatusUpdateCallbacks.forEach((callback) => {
+        callback({
+          transactionMeta: {
+            id: mockTransactionId,
+            status: TransactionStatus.confirmed,
+          } as TransactionMeta,
         });
-      }
+      });
     });
 
     // Wait for claim to complete
@@ -442,15 +450,14 @@ describe('useMerklClaim', () => {
 
     // Simulate transaction confirmation
     await act(async () => {
-      const confirmedCallback = confirmationCallbacks.find(
-        (cb) => cb.event === 'TransactionController:transactionConfirmed',
-      );
-      if (confirmedCallback) {
-        confirmedCallback.callback({
-          id: mockTransactionId,
-          status: TransactionStatus.confirmed,
+      transactionStatusUpdateCallbacks.forEach((callback) => {
+        callback({
+          transactionMeta: {
+            id: mockTransactionId,
+            status: TransactionStatus.confirmed,
+          } as TransactionMeta,
         });
-      }
+      });
     });
 
     // Wait for claim to complete
@@ -552,15 +559,14 @@ describe('useMerklClaim', () => {
 
     // Simulate transaction confirmation
     await act(async () => {
-      const confirmedCallback = confirmationCallbacks.find(
-        (cb) => cb.event === 'TransactionController:transactionConfirmed',
-      );
-      if (confirmedCallback) {
-        confirmedCallback.callback({
-          id: mockTransactionId,
-          status: TransactionStatus.confirmed,
+      transactionStatusUpdateCallbacks.forEach((callback) => {
+        callback({
+          transactionMeta: {
+            id: mockTransactionId,
+            status: TransactionStatus.confirmed,
+          } as TransactionMeta,
         });
-      }
+      });
     });
 
     await waitFor(() => {
@@ -629,15 +635,14 @@ describe('useMerklClaim', () => {
 
     // Simulate transaction confirmation
     await act(async () => {
-      const confirmedCallback = confirmationCallbacks.find(
-        (cb) => cb.event === 'TransactionController:transactionConfirmed',
-      );
-      if (confirmedCallback) {
-        confirmedCallback.callback({
-          id: mockTransactionId,
-          status: TransactionStatus.confirmed,
+      transactionStatusUpdateCallbacks.forEach((callback) => {
+        callback({
+          transactionMeta: {
+            id: mockTransactionId,
+            status: TransactionStatus.confirmed,
+          } as TransactionMeta,
         });
-      }
+      });
     });
 
     // Wait for claim to complete
@@ -727,15 +732,15 @@ describe('useMerklClaim', () => {
 
     // Simulate transaction confirmation
     await act(async () => {
-      const confirmedCallback = confirmationCallbacks.find(
-        (cb) => cb.event === 'TransactionController:transactionConfirmed',
-      );
-      if (confirmedCallback) {
-        confirmedCallback.callback({
-          id: mockTransactionId,
-          status: TransactionStatus.confirmed,
+      // Trigger transactionStatusUpdated
+      transactionStatusUpdateCallbacks.forEach((callback) => {
+        callback({
+          transactionMeta: {
+            id: mockTransactionId,
+            status: TransactionStatus.confirmed,
+          } as TransactionMeta,
         });
-      }
+      });
     });
 
     // Wait for claim to complete

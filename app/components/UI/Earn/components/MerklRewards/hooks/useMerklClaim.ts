@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import {
   WalletDevice,
   TransactionStatus,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Interface } from '@ethersproject/abi';
 import Engine from '../../../../../../core/Engine';
@@ -27,6 +28,8 @@ export const useMerklClaim = ({
 }: UseMerklClaimOptions) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pendingTransactionIdRef = useRef<string | null>(null);
+  const onClaimSuccessRef = useRef(onClaimSuccess);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -34,6 +37,11 @@ export const useMerklClaim = ({
     selectDefaultEndpointByChainId(state, asset.chainId as Hex),
   );
   const networkClientId = endpoint?.networkClientId;
+
+  // Keep ref updated
+  useEffect(() => {
+    onClaimSuccessRef.current = onClaimSuccess;
+  }, [onClaimSuccess]);
 
   const claimRewards = useCallback(async () => {
     if (!selectedAddress || !networkClientId) {
@@ -94,97 +102,65 @@ export const useMerklClaim = ({
       // Wait for transaction hash (submission)
       await result.result;
       const { id: transactionId } = result.transactionMeta;
+      pendingTransactionIdRef.current = transactionId;
 
       // Wait for transaction confirmation (mined in a block)
       // Contract state changes (like updating the claimed mapping) only happen after confirmation
+      // We use transactionStatusUpdated to handle all status changes in one place
       await new Promise<void>((resolve, reject) => {
-        // Capture unsubscribe functions to clean up all subscriptions when one fires
-        const unsubscribes: (() => void)[] = [];
+        let isResolved = false;
+        const handleTransactionStatusUpdate = ({
+          transactionMeta,
+        }: {
+          transactionMeta: TransactionMeta;
+        }) => {
+          // Only handle if this is our transaction
+          if (transactionMeta.id !== transactionId || isResolved) {
+            return;
+          }
 
-        // Helper to clean up all subscriptions and resolve/reject
-        const cleanupAndResolve = () => {
-          unsubscribes.forEach((unsubscribe) => unsubscribe());
-          resolve();
-        };
-
-        const cleanupAndReject = (rejectionError: Error) => {
-          unsubscribes.forEach((unsubscribe) => unsubscribe());
-          reject(rejectionError);
-        };
-
-        // Handle successful confirmation
-        // transactionConfirmed event passes transactionMeta directly
-        // Note: transactionConfirmed can fire with TransactionStatus.failed,
-        // so we must check the status and handle both cases
-        const confirmedListener = (
-          Engine.controllerMessenger.subscribeOnceIf as unknown as (
-            eventType: string,
-            handler: (transactionMeta: {
-              id: string;
-              status:
-                | typeof TransactionStatus.confirmed
-                | typeof TransactionStatus.failed;
-              error?: { message?: string };
-            }) => void,
-            criteria: (transactionMeta: { id: string }) => boolean,
-          ) => () => void
-        )(
-          'TransactionController:transactionConfirmed',
-          (transactionMeta) => {
-            if (transactionMeta.status === TransactionStatus.confirmed) {
-              cleanupAndResolve();
-            } else if (transactionMeta.status === TransactionStatus.failed) {
-              cleanupAndReject(
-                new Error(
-                  transactionMeta.error?.message ?? 'Transaction failed',
-                ),
-              );
+          if (transactionMeta.status === TransactionStatus.confirmed) {
+            isResolved = true;
+            Engine.controllerMessenger.unsubscribe(
+              'TransactionController:transactionStatusUpdated',
+              handleTransactionStatusUpdate,
+            );
+            pendingTransactionIdRef.current = null;
+            // Update UI state immediately
+            setIsClaiming(false);
+            // Refetch claimed amount from blockchain after transaction confirmation
+            if (onClaimSuccessRef.current) {
+              onClaimSuccessRef.current().catch(() => {
+                // Ignore refetch errors
+              });
             }
-          },
-          (transactionMeta) => transactionMeta.id === transactionId,
-        );
-        unsubscribes.push(confirmedListener);
+            resolve();
+          } else if (
+            transactionMeta.status === TransactionStatus.failed ||
+            transactionMeta.status === TransactionStatus.rejected
+          ) {
+            isResolved = true;
+            Engine.controllerMessenger.unsubscribe(
+              'TransactionController:transactionStatusUpdated',
+              handleTransactionStatusUpdate,
+            );
+            pendingTransactionIdRef.current = null;
+            // Update UI state immediately
+            setIsClaiming(false);
+            reject(
+              new Error(
+                transactionMeta.error?.message ??
+                  'Transaction failed or was rejected',
+              ),
+            );
+          }
+        };
 
-        // Handle transaction failure
-        // transactionFailed event passes { transactionMeta } as an object
-        const failedListener = (
-          Engine.controllerMessenger.subscribeOnceIf as unknown as (
-            eventType: string,
-            handler: () => void,
-            criteria: (payload: { transactionMeta: { id: string } }) => boolean,
-          ) => () => void
-        )(
-          'TransactionController:transactionFailed',
-          () => {
-            cleanupAndReject(new Error('Transaction failed'));
-          },
-          ({ transactionMeta }) => transactionMeta.id === transactionId,
+        Engine.controllerMessenger.subscribe(
+          'TransactionController:transactionStatusUpdated',
+          handleTransactionStatusUpdate,
         );
-        unsubscribes.push(failedListener);
-
-        // Handle transaction rejection (user cancelled)
-        // transactionRejected event passes { transactionMeta } as an object
-        const rejectedListener = (
-          Engine.controllerMessenger.subscribeOnceIf as unknown as (
-            eventType: string,
-            handler: () => void,
-            criteria: (payload: { transactionMeta: { id: string } }) => boolean,
-          ) => () => void
-        )(
-          'TransactionController:transactionRejected',
-          () => {
-            cleanupAndReject(new Error('Transaction was rejected'));
-          },
-          ({ transactionMeta }) => transactionMeta.id === transactionId,
-        );
-        unsubscribes.push(rejectedListener);
       });
-
-      // Refetch claimed amount from blockchain after transaction confirmation
-      // This will update the UI to reflect the new claimed state
-      if (onClaimSuccess) {
-        await onClaimSuccess();
-      }
 
       return result;
     } catch (e) {
@@ -192,9 +168,12 @@ export const useMerklClaim = ({
       setError(errorMessage);
       throw e;
     } finally {
+      // Always set isClaiming to false in finally block
+      // The listener may have already set it, but this ensures it's cleared
       setIsClaiming(false);
+      pendingTransactionIdRef.current = null;
     }
-  }, [selectedAddress, networkClientId, asset, onClaimSuccess]);
+  }, [selectedAddress, networkClientId, asset]);
 
   return {
     claimRewards,
