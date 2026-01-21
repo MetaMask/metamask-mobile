@@ -2598,4 +2598,43 @@ describe('UnconnectedTransactions Scroll to MerklRewards', () => {
 
     expect(mockScrollToOffset).not.toHaveBeenCalled();
   });
+
+  it('does not scroll if FlatList becomes null during timeout', () => {
+    instance.componentDidMount();
+    const scrollCallback = addListenerSpy.mock.calls.find(
+      (call) => call[0] === 'scrollToMerklRewards',
+    )?.[1];
+
+    // Trigger scroll event with valid y
+    scrollCallback({ y: 500 });
+
+    // FlatList becomes null during the 100ms timeout
+    instance.flatList = { current: null };
+
+    // Advance timers to trigger the setTimeout callback
+    jest.advanceTimersByTime(100);
+
+    // Should not scroll because flatList is now null
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('handles componentWillUnmount when no listener exists', () => {
+    // Don't call componentDidMount, so no listener is created
+    instance.scrollToMerklRewardsListener = null;
+    instance.scrollTimeout = null;
+
+    // Should not throw when unmounting without a listener
+    expect(() => instance.componentWillUnmount()).not.toThrow();
+  });
+
+  it('handles componentWillUnmount when no pending timeout exists', () => {
+    instance.componentDidMount();
+
+    // Don't trigger any scroll event, so no timeout is pending
+    instance.scrollTimeout = null;
+
+    // Should handle unmount gracefully
+    expect(() => instance.componentWillUnmount()).not.toThrow();
+    expect(mockRemove).toHaveBeenCalled();
+  });
 });
