@@ -68,21 +68,17 @@ describe(
 
     it('should retain EVM permissions when connecting through the Solana Wallet Standard', async () => {
       await withSolanaAccountEnabled(
-        { evmAccountPermitted: true },
+        { numberOfAccounts: 0, evmAccountPermitted: true },
         async () => {
           await navigateToSolanaTestDApp();
           await connectSolanaTestDapp({
-            // Validate the prompted accounts
             assert: async () => {
               await Assertions.expectTextDisplayed('Account 1');
-              await Assertions.expectTextDisplayed('Solana Account 1');
             },
           });
 
-          // Validate both EVM and Solana accounts are connected
           await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
           await Assertions.expectTextDisplayed('Account 1');
-          await Assertions.expectTextDisplayed('Solana Account 1');
 
           // Navigate to the permissions summary tab
           await ConnectedAccountsModal.tapManagePermissionsButton();
@@ -100,6 +96,7 @@ describe(
     it('should be able to request specific chains when connecting through the EVM provider with existing permissions', async () => {
       await withSolanaAccountEnabled(
         {
+          numberOfAccounts: 0,
           solanaAccountPermitted: true,
           dappVariant: DappVariants.TEST_DAPP,
         },
@@ -120,16 +117,12 @@ describe(
             ],
           });
 
-          // Validate the prompted accounts
           await Assertions.expectTextDisplayed('Account 1');
-          await Assertions.expectTextDisplayed('Solana Account 1');
 
           await ConnectBottomSheet.tapConnectButton();
 
-          //Validate both EVM and Solana accounts are connected
           await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
           await Assertions.expectTextDisplayed('Account 1');
-          await Assertions.expectTextDisplayed('Solana Account 1');
 
           // Navigate to the permissions summary tab
           await ConnectedAccountsModal.tapManagePermissionsButton();

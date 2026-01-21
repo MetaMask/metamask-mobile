@@ -12,7 +12,7 @@ describe(
     });
 
     it('Should sign a transaction', async () => {
-      await withSolanaAccountEnabled({}, async () => {
+      await withSolanaAccountEnabled({ numberOfAccounts: 0 }, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
 
@@ -28,7 +28,7 @@ describe(
 
     // TODO: Enable when devnet is supported on mobile (https://github.com/MetaMask/metamask-mobile/issues/15002)
     it.skip('Should send a transaction', async () => {
-      await withSolanaAccountEnabled({}, async () => {
+      await withSolanaAccountEnabled({ numberOfAccounts: 0 }, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
 
