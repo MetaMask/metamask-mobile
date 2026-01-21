@@ -6,7 +6,7 @@ This document evaluates the Maestro testing framework as a potential E2E testing
 
 **Recommendation**: We recommend adopting Maestro as a **complementary testing framework** alongside Detox, rather than a full replacement. This hybrid approach leverages each framework's strengths:
 
-- **Continue using Detox** for in-app flows where it performs faster (~28% faster execution in CI benchmarks)
+- **Continue using Detox** for in-app flows where it currently performs slightly faster due to years of refinement and contributions
 - **Adopt Maestro** for scenarios Detox cannot handle:
   - **Cross-app dApp testing**: Browser (Chrome) → MetaMask → Browser flows
   - **WalletConnect integration testing**: External app initiates connection to MetaMask
@@ -1170,7 +1170,7 @@ Our POC has demonstrated that **Maestro can successfully integrate with MetaMask
 
 | Scenario                               | Recommended Framework | Reason                                  |
 | -------------------------------------- | --------------------- | --------------------------------------- |
-| In-app UI flows                        | **Detox**             | ~28% faster execution, mature tooling   |
+| In-app UI flows                        | **Detox**             | Mature tooling, years of refinement     |
 | Cross-app testing (Browser → MetaMask) | **Maestro**           | Detox cannot interact with other apps   |
 | WalletConnect flows from external apps | **Maestro**           | Multi-app orchestration required        |
 | System dialogs & notifications         | **Maestro**           | Better system-level access              |
