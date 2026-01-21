@@ -34543,7 +34543,7 @@ __metadata:
     react-native-fast-crypto: "npm:^2.2.0"
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:^2.25.0"
-    react-native-get-random-values: "npm:^2.0.0"
+    react-native-get-random-values: "npm:^1.8.0"
     react-native-gzip: "npm:^1.1.0"
     react-native-i18n: "npm:2.0.15"
     react-native-in-app-review: "npm:^4.3.3"
@@ -38925,14 +38925,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-get-random-values@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "react-native-get-random-values@npm:2.0.0"
+"react-native-get-random-values@npm:^1.8.0":
+  version: 1.11.0
+  resolution: "react-native-get-random-values@npm:1.11.0"
   dependencies:
     fast-base64-decode: "npm:^1.0.0"
   peerDependencies:
-    react-native: ">=0.81"
-  checksum: 10/f55218ac9710f9d329f0cfb1d8dce9765b4d06fdd2b9f966ed0476298f8373875679caf68b44f4e3b363abe81d1cb6f4c47b45f58b87eae63bd54776beeded46
+    react-native: ">=0.56"
+  checksum: 10/eb04833ce2b66309d737f1447ab01ad32aca00a8d1cc4de7b4e751c23f4d9f8059a2643bb16e0b6f3e6b074a9e57e769bb2bf2afc50a912c5661d80a6ce4de34
   languageName: node
   linkType: hard
 
