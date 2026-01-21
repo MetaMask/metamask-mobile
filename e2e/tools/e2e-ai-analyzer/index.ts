@@ -56,15 +56,15 @@ function validateProvidedFiles(
 function parseArgs(args: string[]): ParsedArgs {
   const options: ParsedArgs = {
     baseBranch: APP_CONFIG.defaultBaseBranch,
-    mode: 'select-tags',
+    skill: 'select-tags',
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     switch (arg) {
-      case '--mode':
-      case '-m':
-        options.mode = args[++i];
+      case '--skill':
+      case '-s':
+        options.skill = args[++i];
         break;
       case '--base-branch':
       case '-b':
@@ -135,7 +135,7 @@ AI AGENTIC FLOW:
 Usage: node -r esbuild-register e2e/tools/e2e-ai-analyzer [options]
 
 Options:
-  -m, --mode <skill>            Skill to use for analysis (default: select-tags)
+  -s, --skill <name>            Skill to use for analysis (default: select-tags)
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
@@ -207,7 +207,7 @@ async function main() {
   }
 
   const options = parseArgs(args);
-  const skillName = options.mode || 'select-tags'; // Default to select-tags skill
+  const skillName = options.skill || 'select-tags'; // Default to select-tags skill
   const forcedProvider = validateProvider(options.provider);
   const baseBranch = options.baseBranch;
   const baseDir = process.cwd();

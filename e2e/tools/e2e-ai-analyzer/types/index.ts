@@ -17,7 +17,7 @@ export interface ParsedArgs {
   baseBranch: string;
   changedFiles?: string;
   prNumber?: number;
-  mode?: string;
+  skill?: string;
   provider?: string;
 }
 
