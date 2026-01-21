@@ -1,26 +1,22 @@
-import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import type { ServiceContext } from './ServiceContext';
-import type { IPerpsProvider, WithdrawParams, WithdrawResult } from '../types';
+import {
+  PerpsAnalyticsEvent,
+  PerpsTraceNames,
+  PerpsTraceOperations,
+  type IPerpsProvider,
+  type WithdrawParams,
+  type WithdrawResult,
+  type IPerpsPlatformDependencies,
+} from '../types';
 import type { TransactionStatus } from '../../types/transactionTypes';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  trace,
-  TraceName,
-  TraceOperation,
-  endTrace,
-} from '../../../../../util/trace';
-import performance from 'react-native-performance';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils';
 
 /**
  * AccountService
@@ -28,27 +24,25 @@ import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accountUtils'
  * Handles account operations (deposits, withdrawals).
  * Stateless service that delegates to provider.
  * Controller handles state updates and analytics.
+ *
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class AccountService {
+  private readonly deps: IPerpsPlatformDependencies;
+
   /**
-   * Error context helper for consistent logging
+   * Create a new AccountService instance
+   * @param deps - Platform dependencies for logging, metrics, etc.
    */
-  private static getErrorContext(
-    method: string,
-    additionalContext?: Record<string, unknown>,
-  ): Record<string, unknown> {
-    return {
-      controller: 'AccountService',
-      method,
-      ...additionalContext,
-    };
+  constructor(deps: IPerpsPlatformDependencies) {
+    this.deps = deps;
   }
 
   /**
    * Withdraw funds with full orchestration
    * Handles tracing, state management, analytics, and account refresh
    */
-  static async withdraw(options: {
+  async withdraw(options: {
     provider: IPerpsProvider;
     params: WithdrawParams;
     context: ServiceContext;
@@ -57,7 +51,7 @@ export class AccountService {
     const { provider, params, context, refreshAccountState } = options;
 
     const traceId = uuidv4();
-    const startTime = performance.now();
+    const startTime = this.deps.performance.now();
     let traceData:
       | {
           success: boolean;
@@ -73,18 +67,18 @@ export class AccountService {
       .substring(2, 11)}`;
 
     try {
-      trace({
-        name: TraceName.PerpsWithdraw,
+      this.deps.tracer.trace({
+        name: PerpsTraceNames.WITHDRAW,
         id: traceId,
-        op: TraceOperation.PerpsOperation,
+        op: PerpsTraceOperations.OPERATION,
         tags: {
           assetId: params.assetId || '',
           provider: context.tracingContext.provider,
-          isTestnet: context.tracingContext.isTestnet,
+          isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
-      DevLogger.log('AccountService: STARTING WITHDRAWAL', {
+      this.deps.debugLogger.log('AccountService: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
         assetId: params.assetId,
@@ -104,16 +98,20 @@ export class AccountService {
           const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
-          // Get current account address
-          const evmAccount = getEvmAccountFromSelectedAccountGroup();
+          // Get current account address via controllers.accounts
+          const evmAccount =
+            this.deps.controllers.accounts.getSelectedEvmAccount();
           const accountAddress = evmAccount?.address || 'unknown';
 
-          DevLogger.log('AccountService: Creating withdrawal request', {
-            accountAddress,
-            hasEvmAccount: !!evmAccount,
-            evmAccountAddress: evmAccount?.address,
-            amount: netAmount.toString(),
-          });
+          this.deps.debugLogger.log(
+            'AccountService: Creating withdrawal request',
+            {
+              accountAddress,
+              hasEvmAccount: !!evmAccount,
+              evmAccountAddress: evmAccount?.address,
+              amount: netAmount.toString(),
+            },
+          );
 
           // Add withdrawal request to tracking
           const withdrawalRequest = {
@@ -133,7 +131,7 @@ export class AccountService {
         });
       }
 
-      DevLogger.log('AccountService: DELEGATING TO PROVIDER', {
+      this.deps.debugLogger.log('AccountService: DELEGATING TO PROVIDER', {
         provider: context.tracingContext.provider,
         providerReady: !!provider,
       });
@@ -141,7 +139,7 @@ export class AccountService {
       // Execute withdrawal
       const result = await provider.withdraw(params);
 
-      DevLogger.log('AccountService: WITHDRAWAL RESULT', {
+      this.deps.debugLogger.log('AccountService: WITHDRAWAL RESULT', {
         success: result.success,
         error: result.error,
         txHash: result.txHash,
@@ -186,7 +184,7 @@ export class AccountService {
           });
         }
 
-        DevLogger.log('AccountService: WITHDRAWAL SUCCESSFUL', {
+        this.deps.debugLogger.log('AccountService: WITHDRAWAL SUCCESSFUL', {
           txHash: result.txHash,
           amount: params.amount,
           assetId: params.assetId,
@@ -194,24 +192,24 @@ export class AccountService {
         });
 
         // Track withdrawal transaction executed
-        const completionDuration = performance.now() - startTime;
-        const eventBuilder = MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
-        ).addProperties({
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-        });
-        context.analytics.trackEvent(eventBuilder.build());
+        const completionDuration = this.deps.performance.now() - startTime;
+        this.deps.metrics.trackPerpsEvent(
+          PerpsAnalyticsEvent.WithdrawalTransaction,
+          {
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
+            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          },
+        );
 
         // Trigger account state refresh after withdrawal
-        refreshAccountState().catch((error) => {
-          Logger.error(
-            ensureError(error),
-            this.getErrorContext('withdraw', {
-              operation: 'refreshAccountState',
-            }),
-          );
+        refreshAccountState().catch((refreshError) => {
+          this.deps.logger.error(ensureError(refreshError), {
+            context: {
+              name: 'AccountService.withdraw',
+              data: { operation: 'refreshAccountState' },
+            },
+          });
         });
 
         traceData = {
@@ -251,22 +249,22 @@ export class AccountService {
         });
       }
 
-      DevLogger.log('AccountService: WITHDRAWAL FAILED', {
+      this.deps.debugLogger.log('AccountService: WITHDRAWAL FAILED', {
         error: result.error,
         params,
       });
 
       // Track withdrawal transaction failed
-      const completionDuration = performance.now() - startTime;
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
-      ).addProperties({
-        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-        [PerpsEventProperties.ERROR_MESSAGE]: result.error || 'Unknown error',
-      });
-      context.analytics.trackEvent(eventBuilder.build());
+      const completionDuration = this.deps.performance.now() - startTime;
+      this.deps.metrics.trackPerpsEvent(
+        PerpsAnalyticsEvent.WithdrawalTransaction,
+        {
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
+          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          [PerpsEventProperties.ERROR_MESSAGE]: result.error || 'Unknown error',
+        },
+      );
 
       traceData = {
         success: false,
@@ -280,13 +278,12 @@ export class AccountService {
           ? error.message
           : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('withdraw', {
-          assetId: params.assetId,
-          amount: params.amount,
-        }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'AccountService.withdraw',
+          data: { assetId: params.assetId, amount: params.amount },
+        },
+      });
 
       if (context.stateManager) {
         context.stateManager.update((state) => {
@@ -316,17 +313,16 @@ export class AccountService {
       }
 
       // Track withdrawal transaction failed (catch block)
-      const completionDuration = performance.now() - startTime;
-
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
-      ).addProperties({
-        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
-        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-        [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
-      });
-      context.analytics.trackEvent(eventBuilder.build());
+      const completionDuration = this.deps.performance.now() - startTime;
+      this.deps.metrics.trackPerpsEvent(
+        PerpsAnalyticsEvent.WithdrawalTransaction,
+        {
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
+        },
+      );
 
       traceData = {
         success: false,
@@ -335,8 +331,8 @@ export class AccountService {
 
       return { success: false, error: errorMessage };
     } finally {
-      endTrace({
-        name: TraceName.PerpsWithdraw,
+      this.deps.tracer.endTrace({
+        name: PerpsTraceNames.WITHDRAW,
         id: traceId,
         data: traceData,
       });
@@ -346,7 +342,7 @@ export class AccountService {
   /**
    * Validate withdrawal parameters
    */
-  static async validateWithdrawal(options: {
+  async validateWithdrawal(options: {
     provider: IPerpsProvider;
     params: WithdrawParams;
   }): Promise<{ isValid: boolean; error?: string }> {
@@ -355,10 +351,12 @@ export class AccountService {
     try {
       return await provider.validateWithdrawal(params);
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('validateWithdrawal', { params }),
-      );
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'AccountService.validateWithdrawal',
+          data: { params },
+        },
+      });
       throw error;
     }
   }

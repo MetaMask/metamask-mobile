@@ -36,7 +36,7 @@ export function getNetworkControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [],
+    actions: ['ConnectivityController:getState'],
     events: [],
     messenger,
   });

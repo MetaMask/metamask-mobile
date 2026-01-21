@@ -88,7 +88,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             onChangeText={props.onSearchChange}
             placeholder={placeholder}
             placeholderTextColor={colors.text.alternative}
-            style={tw.style('flex-1 text-base text-default py-2.5')}
+            style={tw.style('flex-1 text-body-md leading-0 text-default')}
             testID="explore-view-search-input"
             autoFocus={props.type === 'interactive'}
             autoCapitalize="none"
