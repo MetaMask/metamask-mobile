@@ -19,11 +19,11 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { Box } from '../../Box/Box';
+import { ethers } from 'ethers';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
-import { ethers } from 'ethers';
 import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
@@ -43,6 +43,7 @@ import Tag from '../../../../component-library/components/Tags/Tag';
 import { RootState } from '../../../../reducers';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import parseAmount from '../../../../util/parseAmount';
+import { getTokenImageSource } from '../utils';
 
 const createStyles = ({
   theme,
@@ -221,7 +222,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           >
             <AvatarToken
               name={token.symbol}
-              imageSource={token.image ? { uri: token.image } : undefined}
+              imageSource={getTokenImageSource(token.symbol, token.image)}
               size={AvatarSize.Md}
               testID={
                 isNative

@@ -957,14 +957,14 @@ export interface IPerpsLogger {
  * When migrating to core monorepo, this enum travels with PerpsController.
  */
 export enum PerpsAnalyticsEvent {
-  WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
-  TRADE_TRANSACTION = 'Perp Trade Transaction',
-  POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
-  ORDER_CANCEL_TRANSACTION = 'Perp Order Cancel Transaction',
-  SCREEN_VIEWED = 'Perp Screen Viewed',
-  UI_INTERACTION = 'Perp UI Interaction',
-  RISK_MANAGEMENT = 'Perp Risk Management',
-  ERROR = 'Perp Error',
+  WithdrawalTransaction = 'Perp Withdrawal Transaction',
+  TradeTransaction = 'Perp Trade Transaction',
+  PositionCloseTransaction = 'Perp Position Close Transaction',
+  OrderCancelTransaction = 'Perp Order Cancel Transaction',
+  ScreenViewed = 'Perp Screen Viewed',
+  UiInteraction = 'Perp UI Interaction',
+  RiskManagement = 'Perp Risk Management',
+  PerpsError = 'Perp Error',
 }
 
 /**
@@ -1088,11 +1088,6 @@ export type PerpsAnalyticsProperties = Record<
  * Allows core package to work with different analytics backends.
  */
 export interface IPerpsMetrics {
-  /**
-   * @deprecated Use trackPerpsEvent instead for type-safe event tracking.
-   * This method uses 'unknown' for backward compatibility with legacy code.
-   */
-  trackEvent(event: unknown, saveDataRecording?: boolean): void;
   isEnabled(): boolean;
 
   /**
@@ -1304,40 +1299,3 @@ export interface IPerpsPlatformDependencies {
   // === Controller Access (ALL controllers consolidated) ===
   controllers: IPerpsControllerAccess;
 }
-
-/**
- * @deprecated Use IPerpsNetworkOperations and IPerpsTransactionOperations via
- * deps.controllers.network and deps.controllers.transaction instead.
- * This interface is preserved for backward compatibility during migration.
- */
-export interface IPerpsExternalServices {
-  getChainIdForNetwork(networkClientId: string): Hex;
-  findNetworkClientIdForChain(chainId: Hex): string | undefined;
-  submitTransaction(
-    txParams: {
-      from: string;
-      to?: string;
-      value?: string;
-      data?: string;
-    },
-    options: {
-      networkClientId: string;
-      origin?: string;
-      type?: string;
-      skipInitialGasEstimate?: boolean;
-      gasFeeToken?: Hex;
-    },
-  ): Promise<{
-    result: Promise<string>;
-    transactionMeta: { id: string; hash?: string };
-  }>;
-  getFeeDiscount?(
-    caipAccountId: `${string}:${string}:${string}`,
-  ): Promise<number>;
-}
-
-/**
- * @deprecated Use IPerpsPlatformDependencies instead.
- * This alias is provided for backward compatibility during migration.
- */
-export type IPerpsInfrastructure = IPerpsPlatformDependencies;
