@@ -100,9 +100,10 @@ jobs:
         if: steps.check-pr.outputs.exists != 'true'
         id: check-changes
         run: |
-          if git diff --quiet && git diff --staged --quiet; then
+          # Exclude .cursor/permissions.json since it gets reset before commit
+          if git diff --quiet -- . ':!.cursor/permissions.json' && git diff --staged --quiet -- . ':!.cursor/permissions.json'; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            echo "No changes detected"
+            echo "No changes detected (excluding .cursor/permissions.json)"
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
             echo "Changes detected:"
