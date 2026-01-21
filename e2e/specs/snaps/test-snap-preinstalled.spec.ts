@@ -9,21 +9,29 @@ import TestHelpers from '../../helpers';
 
 jest.setTimeout(150_000);
 
+const eventToTrack = 'Test Event';
+
+const navigateToDappAndShowPreinstalledDialog = async () => {
+  await loginToApp();
+  await navigateToBrowserView();
+  await TestSnaps.navigateToTestSnap();
+};
+
 describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
   it.todo('displays the Snap settings page');
 
-  it('uses `initialConnections` to allow JSON-RPC', async () => {
+  /**
+   * We're combining the 2 tests as currently we don't have a way to share the mockServer instance between the 2 tests.
+   */
+  it('uses `initialConnections` to allow JSON-RPC and tracks an event in Segment with `snap_trackEvent`', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
         restartDevice: true,
         skipReactNativeReload: true,
       },
-      async () => {
-        await loginToApp();
-        await navigateToBrowserView();
-        await TestSnaps.navigateToTestSnap();
-
+      async ({ mockServer }) => {
+        await navigateToDappAndShowPreinstalledDialog();
         await TestSnaps.tapButton('showPreinstalledDialogButton');
 
         await Assertions.expectTextDisplayed(
@@ -31,26 +39,14 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
         );
 
         await TestSnaps.tapCancelButton();
-      },
-    );
-  });
 
-  it.todo('tracks an error in Sentry with `snap_trackError`');
-
-  it('tracks an event in Segment with `snap_trackEvent`', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-        skipReactNativeReload: true,
-      },
-      async ({ mockServer }) => {
         await TestSnaps.tapButton('trackEventButton');
         await TestHelpers.delay(1000);
 
-        const events = await getEventsPayloads(mockServer);
+        const events = await getEventsPayloads(mockServer, [eventToTrack]);
 
         await Assertions.checkIfObjectsMatch(events[0], {
-          event: 'Test Event',
+          event: eventToTrack,
           properties: {
             test_property: 'test value',
           },
@@ -58,6 +54,8 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
       },
     );
   });
+
+  it.todo('tracks an error in Sentry with `snap_trackError`');
 
   it.todo(
     'starts and ends a performance trace in Sentry with `snap_startTrace` and `snap_endTrace`',
