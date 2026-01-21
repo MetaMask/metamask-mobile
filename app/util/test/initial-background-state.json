@@ -759,9 +759,11 @@
     "accountMeta": {}
   },
   "RampsController": {
+    "paymentMethods": [],
     "userRegion": null,
     "preferredProvider": null,
     "providers": [],
+    "selectedPaymentMethod": null,
     "tokens": null,
     "requests": {}
   }
