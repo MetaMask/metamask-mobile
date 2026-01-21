@@ -372,6 +372,23 @@ jobs:
       mock-preset: 'feature-flags'
     secrets: inherit
 
+  # POC: Detox comparison test - runs the same test as Maestro for timing comparison
+  detox-import-srp-comparison:
+    name: 'Detox import-srp (Comparison)'
+    if: ${{ needs.check-maestro-changes.outputs.maestro_changed == 'true' }}
+    needs: [check-maestro-changes, build-android-apks-maestro]
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: 'detox-import-srp-comparison'
+      platform: android
+      test_file: 'e2e/specs/accounts/import-srp.spec.ts'
+      build_type: 'main'
+      metamask_environment: 'e2e'
+    secrets: inherit
+
   build-ios-apps:
     name: 'Build iOS Apps'
     if: >-
