@@ -2,11 +2,18 @@
  * Shared TypeScript types for AI E2E Tags Selector
  */
 
+export interface PerformanceTestSelection {
+  shouldRun: boolean;
+  selectedTags: string[];
+  reasoning: string;
+}
+
 export interface SelectTagsAnalysis {
   selectedTags: string[];
   confidence: number;
   riskLevel: 'low' | 'medium' | 'high';
   reasoning: string;
+  performanceTests: PerformanceTestSelection;
 }
 
 export interface ModeAnalysisTypes {
@@ -45,4 +52,9 @@ export interface ToolInput {
   risk_level?: 'low' | 'medium' | 'high';
   confidence?: number;
   reasoning?: string;
+  performance_tests?: {
+    should_run: boolean;
+    selected_tags: string[];
+    reasoning: string;
+  };
 }

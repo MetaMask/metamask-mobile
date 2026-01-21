@@ -121,14 +121,15 @@ export function getToolDefinitions(): Anthropic.Tool[] {
     },
     {
       name: 'finalize_tag_selection',
-      description: 'Submit final tag selection decision',
+      description:
+        'Submit final tag selection decision for both E2E tests and performance tests',
       input_schema: {
         type: 'object',
         properties: {
           selected_tags: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Tags to run',
+            description: 'E2E test tags to run',
           },
           risk_level: {
             type: 'string',
@@ -140,12 +141,33 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           },
           reasoning: {
             type: 'string',
-            description: 'Detailed reasoning',
+            description: 'Detailed reasoning for E2E test selection',
           },
           areas: {
             type: 'array',
             items: { type: 'string' },
             description: 'Impacted areas',
+          },
+          performance_tests: {
+            type: 'object',
+            description:
+              'Performance test selection based on performance impact',
+            properties: {
+              should_run: {
+                type: 'boolean',
+                description: 'Whether performance tests should run',
+              },
+              selected_tags: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Performance test tags to run',
+              },
+              reasoning: {
+                type: 'string',
+                description: 'Reasoning for performance test selection',
+              },
+            },
+            required: ['should_run', 'selected_tags', 'reasoning'],
           },
         },
         required: [
@@ -154,6 +176,7 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           'confidence',
           'reasoning',
           'areas',
+          'performance_tests',
         ],
       },
     },

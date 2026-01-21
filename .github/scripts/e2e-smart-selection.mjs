@@ -32,17 +32,25 @@ function appendGithubSummary(content) {
 }
 
 function generateAnalysisSummary(analysis) {
-  const { tagDisplay, riskLevel, confidence, reasoning } = analysis;
+  const { tagDisplay, riskLevel, confidence, reasoning, performanceTests } = analysis;
 
   let summary = '';
   summary += `- **Selected E2E tags**: ${tagDisplay}\n`;
   summary += `- **Risk Level**: ${riskLevel}\n`;
   summary += `- **AI Confidence**: ${confidence}%\n`;
 
+  // Add performance test info
+  summary += '\n### ⚡ Performance Tests\n';
+  summary += `- **Should run**: ${performanceTests.shouldRun ? 'Yes' : 'No'}\n`;
+  if (performanceTests.shouldRun && performanceTests.selectedTags.length > 0) {
+    summary += `- **Selected tags**: ${performanceTests.selectedTags.join(', ')}\n`;
+  }
+
   // Add AI reasoning in expandable section
   summary += '\n<details>\n';
   summary += '<summary>click to see 🤖 AI reasoning details</summary>\n\n';
-  summary += `${reasoning}\n`;
+  summary += `**E2E Test Selection:**\n${reasoning}\n\n`;
+  summary += `**Performance Test Selection:**\n${performanceTests.reasoning}\n`;
   summary += '\n</details>\n';
 
   return summary;
@@ -60,9 +68,12 @@ function generatePRComment(summaryContent) {
 }
 
 function setGitHubOutputs(analysis) {
-  const { tags, confidence } = analysis;
+  const { tags, confidence, performanceTests } = analysis;
   setGithubOutputs('ai_e2e_test_tags', tags);
   setGithubOutputs('ai_confidence', confidence);
+  // Performance test outputs
+  setGithubOutputs('ai_performance_should_run', performanceTests.shouldRun ? 'true' : 'false');
+  setGithubOutputs('ai_performance_test_tags', JSON.stringify(performanceTests.selectedTags));
 }
 
 async function main() {
@@ -99,6 +110,12 @@ async function main() {
 
     // Parse results for GitHub outputs
     const selectedTags = parsedResult.selectedTags || [];
+    const performanceTestsRaw = parsedResult.performanceTests || {};
+    const performanceTests = {
+      shouldRun: Boolean(performanceTestsRaw.shouldRun),
+      selectedTags: Array.isArray(performanceTestsRaw.selectedTags) ? performanceTestsRaw.selectedTags : [],
+      reasoning: performanceTestsRaw.reasoning || 'No performance impact detected',
+    };
     const analysis = {
       tags: JSON.stringify(selectedTags),  // JSON array format: [] or ["SmokeCore", "SmokeAccounts"]
       tagDisplay: selectedTags.length > 0 ? selectedTags.join(', ') : 'None (no tests recommended)',
@@ -106,6 +123,7 @@ async function main() {
       riskLevel: parsedResult.riskLevel || '',
       confidence: parsedResult.confidence || '',
       reasoning: parsedResult.reasoning || '',
+      performanceTests,
     };
 
     setGitHubOutputs(analysis);

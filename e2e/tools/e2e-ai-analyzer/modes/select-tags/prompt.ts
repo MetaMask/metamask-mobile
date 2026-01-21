@@ -2,7 +2,7 @@
  * Mode-specific prompt for E2E tag selection
  */
 
-import { SELECT_TAGS_CONFIG } from './handlers';
+import { SELECT_TAGS_CONFIG, PERFORMANCE_TAGS_CONFIG } from './handlers';
 import {
   buildCriticalPatternsSection,
   buildToolsSection,
@@ -17,7 +17,7 @@ import { CLAUDE_CONFIG } from '../../config';
  */
 export function buildSystemPrompt(): string {
   const role = `You are an expert in E2E testing for MetaMask Mobile, responsible for analyzing code changes in pull requests to determine which tests are necessary for adequate validation.`;
-  const goal = `GOAL: Implement a risk-based testing strategy by identifying and running only the tests relevant to the specific changes introduced in the PR, while safely skipping unrelated tests.`;
+  const goal = `GOAL: Implement a risk-based testing strategy by identifying and running only the tests relevant to the specific changes introduced in the PR, while safely skipping unrelated tests. Additionally, determine if performance tests should run based on changes that could impact app performance.`;
   const guidanceSection = `GUIDANCE:
 Use your judgment - selecting all tags is acceptable (recommended as conservative approach for risky changes), as well as selecting none of them if the changes are unrisky.
 Changes to wdio/ or appwright/ directories (separate test frameworks) do not require Detox tags - select none unless app code is also changed.
@@ -26,6 +26,30 @@ For E2E test infrastructure related changes, consider running the necessary test
 Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.
 Do not exceed the maximum number of analysis iterations which is ${CLAUDE_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.
 FlaskBuildTests is for MetaMask Snaps functionality (Android only). Select this tag when changes affect e2e/specs/snaps/ directory, snap-related app code (snap permissions, snap state, snap UI), or Flask build configuration.`;
+
+  const performanceGuidanceSection = `PERFORMANCE TEST GUIDANCE:
+Performance tests measure app responsiveness and render times. Select performance tests when changes could impact:
+- UI rendering performance (component changes, list rendering, animations)
+- Data loading and state management (Redux, controllers, API calls)
+- Account/network list components (AccountSelector, NetworkSelector, related hooks)
+- Critical user flows (login, balance loading, swap flows, send flows)
+- App startup and initialization (Engine, background services, navigation)
+
+WHEN TO RUN PERFORMANCE TESTS:
+- Changes to components that render lists (accounts, networks, tokens, transactions)
+- Changes to state management or data fetching logic
+- Changes to core Engine or controller initialization
+- Changes to onboarding or login flows
+- Changes to wallet view or asset display components
+- Changes to the appwright/ directory (performance test infrastructure)
+- Changes to e2e/specs/performance/ directory (Detox performance tests)
+
+WHEN TO SKIP PERFORMANCE TESTS:
+- Pure documentation or comment changes
+- Test-only changes (non-performance E2E tests)
+- Changes to unrelated features (notifications, analytics tracking code)
+- CI/CD configuration changes (unless affecting performance test runs)
+- Localization/i18n changes`;
 
   const prompt = [
     role,
@@ -36,6 +60,7 @@ FlaskBuildTests is for MetaMask Snaps functionality (Android only). Select this 
     buildCriticalPatternsSection(),
     buildRiskAssessmentSection(),
     guidanceSection,
+    performanceGuidanceSection,
   ].join('\n\n');
 
   return prompt;
@@ -48,8 +73,13 @@ export function buildTaskPrompt(
   allFiles: string[],
   criticalFiles: string[],
 ): string {
-  // Build tag coverage list
+  // Build E2E tag coverage list
   const tagCoverageList = SELECT_TAGS_CONFIG.map(
+    (config) => `- ${config.tag}: ${config.description}`,
+  ).join('\n');
+
+  // Build performance tag coverage list
+  const performanceTagList = PERFORMANCE_TAGS_CONFIG.map(
     (config) => `- ${config.tag}: ${config.description}`,
   ).join('\n');
 
@@ -68,13 +98,22 @@ export function buildTaskPrompt(
     otherFiles.forEach((f) => fileList.push(`  ${f}`));
   }
 
-  const instruction = `Analyze the changed files and the impacted codebase to select the E2E test tags to run so the changes can be verified safely with minimal risk.`;
-  const tagsSection = `AVAILABLE TEST TAGS (these are the ONLY valid tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
+  const instruction = `Analyze the changed files and the impacted codebase to:
+1. Select E2E test tags to run so the changes can be verified safely with minimal risk
+2. Determine if performance tests should run based on potential performance impact`;
+  const tagsSection = `AVAILABLE E2E TEST TAGS (these are the ONLY valid E2E tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
+  const performanceTagsSection = `AVAILABLE PERFORMANCE TEST TAGS (select when changes could impact app performance):\n${performanceTagList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
-  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready`;
-  const prompt = [instruction, tagsSection, filesSection, closing].join('\n\n');
+  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready. Include performance_tests in your final selection with should_run, selected_tags, and reasoning.`;
+  const prompt = [
+    instruction,
+    tagsSection,
+    performanceTagsSection,
+    filesSection,
+    closing,
+  ].join('\n\n');
 
   return prompt;
 }

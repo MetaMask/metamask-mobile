@@ -81,6 +81,25 @@ const flaskTags = {
   },
 };
 
+// Performance tests (AI-selectable for performance impact analysis)
+const performanceTags = {
+  performanceAccountList: {
+    tag: 'PerformanceAccountList:',
+    description:
+      'Account list rendering and dismissal performance - covers account selector, multi-account scenarios, token load impact',
+  },
+  performanceNetworkList: {
+    tag: 'PerformanceNetworkList:',
+    description:
+      'Network list rendering and dismissal performance - covers network selector, multi-network scenarios',
+  },
+  performanceAppwright: {
+    tag: 'PerformanceAppwright:',
+    description:
+      'Appwright performance tests - covers login flows, balance loading, swap flows, onboarding, launch times, and critical user journeys',
+  },
+};
+
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   regressionAccounts: 'RegressionAccounts:',
@@ -161,6 +180,7 @@ const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
 export {
   smokeTags,
   flaskTags,
+  performanceTags,
   SmokeAccounts,
   SmokeCore,
   SmokeConfirmationsRedesigned,
