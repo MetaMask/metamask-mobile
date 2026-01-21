@@ -90,7 +90,7 @@ jobs:
           prompt: ${{ steps.prompt.outputs.prompt }}
           repository: https://github.com/${{ github.repository }}
           ref: ${{ github.event.repository.default_branch }}
-          model: claude-4.5-opus-thinking
+          model: claude-4.5-opus-high-thinking
           branch-name: cursorbot/issue-${{ github.event.issue.number }}
           auto-create-pr: 'true'
           timeout-minutes: '15'
