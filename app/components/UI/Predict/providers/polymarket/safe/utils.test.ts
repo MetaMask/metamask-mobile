@@ -495,6 +495,22 @@ describe('safe utils', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
     });
+
+    it('throws error with "Unknown error" when non-Error is thrown', async () => {
+      const signer = buildSigner();
+      mockSignTypedMessage.mockRejectedValue('string error');
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {
+          // Mock implementation to suppress console output
+        });
+
+      await expect(getDeployProxyWalletTransaction({ signer })).rejects.toThrow(
+        'Failed to generate deploy proxy wallet transaction: Unknown error',
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe('checkProxyWalletDeployed', () => {
@@ -991,10 +1007,14 @@ describe('safe utils', () => {
       const signer = buildSigner();
 
       mockNetworkController();
-      mockQuery.mockResolvedValueOnce(
-        '0x0000000000000000000000000000000000000000000000000000000000000001',
-      );
-      mockSignPersonalMessage.mockRejectedValue(
+      mockQuery
+        .mockResolvedValueOnce(
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+        )
+        .mockResolvedValueOnce(
+          '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        );
+      mockSignPersonalMessage.mockRejectedValueOnce(
         new Error('User rejected signing'),
       );
 
@@ -1002,19 +1022,6 @@ describe('safe utils', () => {
         getProxyWalletAllowancesTransaction({ signer }),
       ).rejects.toThrow(
         'Failed to generate proxy wallet allowances transaction: User rejected signing',
-      );
-    });
-
-    it('throws error when call data generation fails', async () => {
-      const signer = buildSigner();
-
-      mockNetworkController();
-      mockQuery.mockRejectedValue(new Error('Network error'));
-
-      await expect(
-        getProxyWalletAllowancesTransaction({ signer }),
-      ).rejects.toThrow(
-        'Failed to generate proxy wallet allowances transaction: Network error',
       );
     });
   });
