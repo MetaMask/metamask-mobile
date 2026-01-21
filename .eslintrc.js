@@ -84,9 +84,9 @@ module.exports = {
         sourceType: 'module',
       },
       rules: {
-        'no-console': 0,
-        'import/no-commonjs': 0,
-        'import/no-nodejs-modules': 0,
+        'no-console': 'off',
+        'import/no-commonjs': 'off',
+        'import/no-nodejs-modules': 'off',
       },
     },
     {
