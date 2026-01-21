@@ -6,8 +6,8 @@ import {
 import type { UserStorageControllerInitMessenger } from '../../messengers/identity/user-storage-controller-messenger';
 import { calculateScryptKey } from './calculate-scrypt-key';
 import { MetaMetricsEvents } from '../../../Analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../../util/trace';
+import { trackEvent } from '../../utils/analytics-utils';
 
 /**
  * Initialize the user storage controller.
@@ -35,59 +35,38 @@ export const userStorageControllerInit: ControllerInitFunction<
     config: {
       contactSyncing: {
         onContactUpdated: (profileId) => {
-          try {
-            const event = AnalyticsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
-            )
-              .addProperties({
-                profile_id: profileId,
-                feature_name: 'Contacts Sync',
-                action: 'Contacts Sync Contact Updated',
-              })
-              .build();
-
-            initMessenger.call('AnalyticsController:trackEvent', event);
-          } catch (error) {
-            // Analytics tracking failures should not break user storage functionality
-            // Error is logged but not thrown
-          }
+          trackEvent(
+            initMessenger,
+            MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+            {
+              profile_id: profileId,
+              feature_name: 'Contacts Sync',
+              action: 'Contacts Sync Contact Updated',
+            },
+          );
         },
         onContactDeleted: (profileId) => {
-          try {
-            const event = AnalyticsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
-            )
-              .addProperties({
-                profile_id: profileId,
-                feature_name: 'Contacts Sync',
-                action: 'Contacts Sync Contact Deleted',
-              })
-              .build();
-
-            initMessenger.call('AnalyticsController:trackEvent', event);
-          } catch (error) {
-            // Analytics tracking failures should not break user storage functionality
-            // Error is logged but not thrown
-          }
+          trackEvent(
+            initMessenger,
+            MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+            {
+              profile_id: profileId,
+              feature_name: 'Contacts Sync',
+              action: 'Contacts Sync Contact Deleted',
+            },
+          );
         },
         onContactSyncErroneousSituation(profileId, situationMessage) {
-          try {
-            const event = AnalyticsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
-            )
-              .addProperties({
-                profile_id: profileId,
-                feature_name: 'Contacts Sync',
-                action: 'Contacts Sync Erroneous Situation',
-                additional_description: situationMessage,
-              })
-              .build();
-
-            initMessenger.call('AnalyticsController:trackEvent', event);
-          } catch (error) {
-            // Analytics tracking failures should not break user storage functionality
-            // Error is logged but not thrown
-          }
+          trackEvent(
+            initMessenger,
+            MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+            {
+              profile_id: profileId,
+              feature_name: 'Contacts Sync',
+              action: 'Contacts Sync Erroneous Situation',
+              additional_description: situationMessage,
+            },
+          );
         },
       },
     },

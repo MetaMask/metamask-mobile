@@ -8,8 +8,8 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import type { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import { TransactionParams } from '@metamask/transaction-controller';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import { trackEvent } from '../../utils/analytics-utils';
 import {
   ChainId,
   handleFetch,
@@ -65,22 +65,11 @@ export const bridgeControllerInit: ControllerInitFunction<
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
-        // Use AnalyticsEventBuilder to create proper event structure
-        // Call AnalyticsController directly via initMessenger
-        try {
-          const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
-          if (properties) {
-            eventBuilder.addProperties(properties as AnalyticsEventProperties);
-          }
-          const analyticsEvent = eventBuilder.build();
-
-          initMessenger.call('AnalyticsController:trackEvent', analyticsEvent);
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'BridgeController: Failed to track analytics event',
-          );
-        }
+        trackEvent(
+          initMessenger,
+          event,
+          properties as AnalyticsEventProperties | undefined,
+        );
       },
       traceFn: trace as TraceCallback,
     });
