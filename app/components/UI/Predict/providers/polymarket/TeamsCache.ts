@@ -60,10 +60,6 @@ export class TeamsCache {
     return leagueCache.get(abbreviation.toLowerCase());
   }
 
-  getNflTeam(abbreviation: string): PolymarketApiTeam | undefined {
-    return this.getTeam('nfl', abbreviation);
-  }
-
   isLeagueLoaded(league: PredictSportsLeague): boolean {
     return this.cache.has(league);
   }

@@ -62,15 +62,18 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
     initialSortDirection || SortDirection.Descending,
   );
 
-  // Sync selectedOption and sortDirection when initial values change
+  // Sync selectedOption and sortDirection when initial values change or when sheet opens
+  // This ensures uncommitted changes are reset when reopening the sheet
   useEffect(() => {
-    if (initialSelectedOption) {
-      setSelectedOption(initialSelectedOption);
+    if (isVisible) {
+      if (initialSelectedOption) {
+        setSelectedOption(initialSelectedOption);
+      }
+      if (initialSortDirection) {
+        setSortDirection(initialSortDirection);
+      }
     }
-    if (initialSortDirection) {
-      setSortDirection(initialSortDirection);
-    }
-  }, [initialSelectedOption, initialSortDirection]);
+  }, [initialSelectedOption, initialSortDirection, isVisible]);
 
   // Open bottom sheet when isVisible becomes true
   useEffect(() => {

@@ -33,6 +33,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: () => ({
+    prices: new Map(),
+    getPrice: jest.fn(),
+    isConnected: false,
+    lastUpdateTime: null,
+  }),
+}));
+
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
   providerId: 'polymarket',

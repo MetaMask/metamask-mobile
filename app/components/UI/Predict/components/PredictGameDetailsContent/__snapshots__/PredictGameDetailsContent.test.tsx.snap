@@ -19,6 +19,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
         "flexShrink": 1,
       }
     }
+    testID="predict-market-details-screen"
   >
     <View
       style={
@@ -166,9 +167,24 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
       <RCTRefreshControl />
       <View>
         <View
-          accessibilityHint="state:PreGame,away:TB,home:TA"
-          testID="game-scoreboard"
-        />
+          style={
+            [
+              {
+                "display": "flex",
+                "paddingBottom": 8,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "paddingTop": 8,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            accessibilityHint="state:PreGame,away:TB,home:TA"
+            testID="game-scoreboard"
+          />
+        </View>
         <View
           style={
             [
@@ -181,7 +197,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
           }
         >
           <View
-            accessibilityHint="tokens:token-1,token-2"
+            accessibilityHint="marketId:test-market-id"
             testID="game-chart"
           />
         </View>

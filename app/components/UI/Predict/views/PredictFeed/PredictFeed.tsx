@@ -542,36 +542,34 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         </Pressable>
       </Box>
 
-      {searchQuery.length > 0 && (
-        <Box twClassName="flex-1">
-          {isSearchLoading ? (
-            <Box twClassName="px-4 pt-4">
-              <PredictMarketSkeleton testID="search-skeleton-1" />
-              <PredictMarketSkeleton testID="search-skeleton-2" />
-              <PredictMarketSkeleton testID="search-skeleton-3" />
-            </Box>
-          ) : error ? (
-            <PredictOffline onRetry={refetch} />
-          ) : !marketData || marketData.length === 0 ? (
-            <Box twClassName="flex-1 justify-center items-center p-8">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryAlternative}
-              >
-                {strings('predict.search_no_markets_found', { q: searchQuery })}
-              </Text>
-            </Box>
-          ) : (
-            <FlashList<PredictMarketType>
-              data={marketData}
-              renderItem={renderItem}
-              keyExtractor={keyExtractor}
-              contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
-        </Box>
-      )}
+      <Box twClassName="flex-1">
+        {isSearchLoading ? (
+          <Box twClassName="px-4 pt-4">
+            <PredictMarketSkeleton testID="search-skeleton-1" />
+            <PredictMarketSkeleton testID="search-skeleton-2" />
+            <PredictMarketSkeleton testID="search-skeleton-3" />
+          </Box>
+        ) : error ? (
+          <PredictOffline onRetry={refetch} />
+        ) : !marketData || marketData.length === 0 ? (
+          <Box twClassName="flex-1 justify-center items-center p-8">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryAlternative}
+            >
+              {strings('predict.search_no_markets_found', { q: searchQuery })}
+            </Text>
+          </Box>
+        ) : (
+          <FlashList<PredictMarketType>
+            data={marketData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={tw.style('px-4 pt-4 pb-4')}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </Box>
     </Box>
   );
 };

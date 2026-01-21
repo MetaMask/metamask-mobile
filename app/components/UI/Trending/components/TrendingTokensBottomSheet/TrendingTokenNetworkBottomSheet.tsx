@@ -1,6 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
+import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -12,10 +11,13 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Avatar, {
+import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
+import Cell, {
+  CellVariant,
+} from '../../../../../component-library/components/Cells/Cell';
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
@@ -41,7 +43,6 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   selectedNetwork: initialSelectedNetwork,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { colors } = useTheme();
   const networks = TRENDING_NETWORKS_LIST;
 
   // Default to "All networks" if no selection
@@ -66,23 +67,6 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   const optionStyles = StyleSheet.create({
     optionsList: {
       paddingBottom: 16,
-    },
-    optionRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      minHeight: 56,
-    },
-    optionRowSelected: {
-      backgroundColor: colors.background.muted,
-    },
-    optionContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      flex: 1,
     },
   });
 
@@ -141,45 +125,39 @@ const TrendingTokenNetworkBottomSheet: React.FC<
         onClose={handleClose}
       />
       <ScrollView style={optionStyles.optionsList}>
-        <TouchableOpacity
-          style={[
-            optionStyles.optionRow,
-            isAllNetworksSelected && optionStyles.optionRowSelected,
-          ]}
+        <Cell
+          variant={CellVariant.Select}
+          title={strings('trending.all_networks')}
+          isSelected={isAllNetworksSelected}
           onPress={() => onNetworkOptionPress(NetworkOption.AllNetworks)}
+          avatarProps={{
+            variant: AvatarVariant.Icon,
+            name: IconName.Global,
+            size: AvatarSize.Sm,
+          }}
         >
-          <View style={optionStyles.optionContent}>
-            <Icon name={IconName.Global} size={IconSize.Md} />
-            <Text variant={TextVariant.BodyMD}>
-              {strings('trending.all_networks')}
-            </Text>
-          </View>
           {isAllNetworksSelected && (
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
-        </TouchableOpacity>
+        </Cell>
         {networks.map((network) => {
           const isSelected = isNetworkSelected(network);
           return (
-            <TouchableOpacity
+            <Cell
               key={network.caipChainId}
-              style={[
-                optionStyles.optionRow,
-                isSelected && optionStyles.optionRowSelected,
-              ]}
+              variant={CellVariant.Select}
+              title={network.name}
+              isSelected={isSelected}
               onPress={() => onNetworkOptionPress(network)}
+              avatarProps={{
+                variant: AvatarVariant.Network,
+                name: network.name,
+                imageSource: network.imageSource,
+                size: AvatarSize.Sm,
+              }}
             >
-              <View style={optionStyles.optionContent}>
-                <Avatar
-                  variant={AvatarVariant.Network}
-                  size={AvatarSize.Xs}
-                  name={network.name}
-                  imageSource={network.imageSource}
-                />
-                <Text variant={TextVariant.BodyMD}>{network.name}</Text>
-              </View>
               {isSelected && <Icon name={IconName.Check} size={IconSize.Md} />}
-            </TouchableOpacity>
+            </Cell>
           );
         })}
       </ScrollView>

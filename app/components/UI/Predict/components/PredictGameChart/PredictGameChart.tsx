@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { PredictPriceHistoryInterval } from '../../types';
+import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import PredictGameChartContent from './PredictGameChartContent';
@@ -14,13 +14,14 @@ import {
   GameChartSeries,
   GameChartDataPoint,
   ChartTimeframe,
+  GameChartSeriesConfig,
 } from './PredictGameChart.types';
 
 const TIMEFRAME_TO_INTERVAL: Record<
-  ChartTimeframe,
+  Exclude<ChartTimeframe, 'live'>,
   PredictPriceHistoryInterval
 > = {
-  live: PredictPriceHistoryInterval.ONE_HOUR,
+  '1h': PredictPriceHistoryInterval.ONE_HOUR,
   '6h': PredictPriceHistoryInterval.SIX_HOUR,
   '1d': PredictPriceHistoryInterval.ONE_DAY,
   max: PredictPriceHistoryInterval.MAX,
@@ -28,40 +29,96 @@ const TIMEFRAME_TO_INTERVAL: Record<
 
 const FIDELITY_BY_TIMEFRAME: Record<ChartTimeframe, number> = {
   live: 1,
+  '1h': 1,
   '6h': 5,
   '1d': 15,
   max: 60,
 };
 
+const ENDED_GAME_FIDELITY = 2;
+
 const getMinuteTimestamp = (timestamp: number): number =>
   Math.floor(timestamp / 60000) * 60000;
 
-/**
- * Converts a timestamp to milliseconds.
- * Detects if timestamp is in seconds (10 digits) or milliseconds (13 digits).
- * Unix timestamps in seconds are typically < 10 billion (until year 2286).
- */
 const toMilliseconds = (timestamp: number): number =>
   timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
 
+const toUnixSeconds = (isoString: string): number =>
+  Math.floor(new Date(isoString).getTime() / 1000);
+
+const getDefaultTimeframe = (
+  gameStatus: PredictGameStatus | undefined,
+): ChartTimeframe => {
+  switch (gameStatus) {
+    case 'ongoing':
+      return 'live';
+    case 'scheduled':
+      return '6h';
+    case 'ended':
+      return 'max';
+    default:
+      return '6h';
+  }
+};
+
 const PredictGameChart: React.FC<PredictGameChartProps> = ({
-  tokenIds,
-  seriesConfig,
+  market,
   providerId = 'polymarket',
   testID,
 }) => {
-  const [timeframe, setTimeframe] = useState<ChartTimeframe>('live');
+  const game = market.game;
+  const gameStatus = game?.status;
+  const isGameEnded = gameStatus === 'ended';
+  const isGameOngoing = gameStatus === 'ongoing';
+
+  const tokenIds = useMemo(() => {
+    const tokens = market.outcomes[0]?.tokens ?? [];
+    return tokens.map((t) => t.id);
+  }, [market.outcomes]);
+
+  const seriesConfig: [GameChartSeriesConfig, GameChartSeriesConfig] | null =
+    useMemo(() => {
+      if (!game) return null;
+      return [
+        { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
+        { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
+      ];
+    }, [game]);
+
+  const [timeframe, setTimeframe] = useState<ChartTimeframe>(() =>
+    getDefaultTimeframe(gameStatus),
+  );
   const [liveChartData, setLiveChartData] = useState<GameChartSeries[]>([]);
   const initialDataLoadedRef = useRef<boolean>(false);
 
-  const isLive = timeframe === 'live';
-  const interval = TIMEFRAME_TO_INTERVAL[timeframe];
-  const fidelity = FIDELITY_BY_TIMEFRAME[timeframe];
+  const isLive = timeframe === 'live' && isGameOngoing;
+  const disabledTimeframeSelector = isGameEnded;
+
+  const { startTs, endTs } = useMemo(() => {
+    if (!isGameEnded || !game?.startTime) {
+      return { startTs: undefined, endTs: undefined };
+    }
+    const start = toUnixSeconds(game.startTime);
+    const end = game.endTime ? toUnixSeconds(game.endTime) : undefined;
+    return { startTs: start, endTs: end };
+  }, [isGameEnded, game?.startTime, game?.endTime]);
+
+  const interval = useMemo(() => {
+    if (isGameEnded) return undefined;
+    if (timeframe === 'live') return PredictPriceHistoryInterval.ONE_HOUR;
+    return TIMEFRAME_TO_INTERVAL[timeframe];
+  }, [isGameEnded, timeframe]);
+
+  const fidelity = isGameEnded
+    ? ENDED_GAME_FIDELITY
+    : FIDELITY_BY_TIMEFRAME[timeframe];
 
   const { priceHistories, isFetching, errors, refetch } =
     usePredictPriceHistory({
       marketIds: tokenIds,
       interval,
+      startTs,
+      endTs,
       fidelity,
       providerId,
       enabled: tokenIds.length === 2,
@@ -72,7 +129,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   });
 
   const historicalChartData: GameChartSeries[] = useMemo(() => {
-    if (priceHistories.length < 2) return [];
+    if (priceHistories.length < 2 || !seriesConfig) return [];
 
     return tokenIds.map((_tokenId, index) => {
       const history = priceHistories[index] ?? [];
@@ -93,20 +150,36 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   }, [priceHistories, tokenIds, seriesConfig]);
 
   useEffect(() => {
+    if (isLive && isFetching) {
+      initialDataLoadedRef.current = false;
+      setLiveChartData([]);
+    }
+  }, [isLive, isFetching]);
+
+  useEffect(() => {
     if (!isLive) {
       initialDataLoadedRef.current = false;
       setLiveChartData([]);
       return;
     }
 
+    if (initialDataLoadedRef.current) {
+      return;
+    }
+
+    if (isFetching) {
+      return;
+    }
+
     if (
       historicalChartData.length === 2 &&
-      historicalChartData[0].data.length > 0
+      historicalChartData[0].data.length > 0 &&
+      historicalChartData[1].data.length > 0
     ) {
       setLiveChartData(historicalChartData);
       initialDataLoadedRef.current = true;
     }
-  }, [isLive, historicalChartData]);
+  }, [isLive, historicalChartData, isFetching]);
 
   const updateLiveData = useCallback(() => {
     if (!isLive || !initialDataLoadedRef.current || prices.size === 0) return;
@@ -130,7 +203,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         const lastPoint = existingData[existingData.length - 1];
 
         const newValue = priceUpdate
-          ? Number((priceUpdate.price * 100).toFixed(2))
+          ? Number((priceUpdate.bestAsk * 100).toFixed(2))
           : (lastPoint?.value ?? 50);
 
         const newPoint: GameChartDataPoint = {
@@ -180,6 +253,10 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     ? (errors.find((error) => error !== null) ?? null)
     : null;
 
+  if (!game || !seriesConfig) {
+    return null;
+  }
+
   return (
     <PredictGameChartContent
       data={chartData}
@@ -188,6 +265,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       onRetry={handleRetry}
       timeframe={timeframe}
       onTimeframeChange={handleTimeframeChange}
+      disabledTimeframeSelector={disabledTimeframeSelector}
       testID={testID}
     />
   );
