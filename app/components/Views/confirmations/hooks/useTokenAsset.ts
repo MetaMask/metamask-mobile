@@ -3,11 +3,12 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
-import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
+import { selectAccountTokensAcrossChainsForAddress } from '../../../../selectors/multichain';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { TokenI } from '../../../UI/Tokens/types';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { RootState } from '../../../../reducers';
 
 const TypesForNativeToken = [
   TransactionType.simpleSend,
@@ -24,7 +25,13 @@ export const useTokenAsset = () => {
   } = useTransactionMetadataRequest() ?? {};
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
-  const tokens = useSelector(selectAccountTokensAcrossChains);
+
+  // Use the transaction's from address to look up tokens
+  // This ensures we get the correct tokens even when a non-EVM network is selected in the Network Manager
+  const fromAddress = txParams?.from as string | undefined;
+  const tokens = useSelector((state: RootState) =>
+    selectAccountTokensAcrossChainsForAddress(state, fromAddress),
+  );
 
   if (!chainId) {
     return { displayName: strings('token.unknown') };
