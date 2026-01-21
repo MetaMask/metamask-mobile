@@ -95,7 +95,8 @@ const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
       top: 0,
       bottom: 0,
       zIndex: 9999,
-      backgroundColor: TRANSPARENT,
+      // eslint-disable-next-line react-native/no-color-literals
+      backgroundColor: TRANSPARENT, // DEBUG: Set to 'rgba(255, 0, 0, 0.3)' for visual debugging
     },
     gestureOverlayRight: {
       position: 'absolute',
@@ -103,7 +104,25 @@ const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
       top: 0,
       bottom: 0,
       zIndex: 9999,
+      // eslint-disable-next-line react-native/no-color-literals
+      backgroundColor: TRANSPARENT, // DEBUG: Set to 'rgba(0, 0, 255, 0.3)' for visual debugging
+    },
+    pullOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
       backgroundColor: TRANSPARENT,
+      zIndex: 9998, // Below edge overlays (9999)
+    },
+    refreshIndicator: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9997,
     },
   });
 };

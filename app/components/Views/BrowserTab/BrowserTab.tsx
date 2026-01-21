@@ -11,11 +11,17 @@ import {
   BackHandler,
   ImageSourcePropType,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  withTiming,
+  runOnJS,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
@@ -36,6 +42,7 @@ import {
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
+  SCROLL_TRACKER_SCRIPT,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
@@ -159,7 +166,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const navigation = useNavigation<StackNavigationProp<any>>();
-    const { styles } = useStyles(styleSheet, {});
+    const { styles, theme } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -181,10 +188,38 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // Track if webview is loaded for the first time
     const isWebViewReadyToLoad = useRef(false);
 
-    // Gesture navigation constants and state
+    /**
+     * GESTURE NAVIGATION SYSTEM
+     *
+     * Implements three independent gesture types for browser navigation:
+     * 1. Left edge swipe (horizontal) → Go back in history
+     * 2. Right edge swipe (horizontal) → Go forward in history
+     * 3. Pull-to-refresh (vertical, top only) → Reload current page
+     *
+     * CHALLENGE: WebView consumes all touch events internally for scrolling
+     * SOLUTION: Transparent overlay zones positioned above WebView with absolute positioning
+     *
+     * GESTURE COORDINATION:
+     * - Edge swipes: 20px wide zones on left/right edges, z-index 9999
+     * - Pull zone: Full-width 100px zone at top, z-index 9998 (below edges)
+     * - No conflicts: Different zones, different directions, clear priority
+     *
+     * Edge swipes take priority (higher z-index) over pull-to-refresh.
+     * Pull-to-refresh only activates when WebView is scrolled to top (scrollY === 0).
+     * Normal WebView scrolling works everywhere else (no overlays in center).
+     */
     const EDGE_THRESHOLD = 20; // pixels from edge to trigger (reduced to avoid blocking UI)
-    const SWIPE_THRESHOLD = 0.3; // 30% of screen width
+    const SWIPE_THRESHOLD = 0.3; // 30% of screen width to complete swipe
+    const PULL_THRESHOLD = 80; // pixels to trigger refresh
+    const PULL_OVERLAY_HEIGHT = 100; // Height of pull zone at top
     const screenWidth = Dimensions.get('window').width;
+    const [isAtTop, setIsAtTop] = useState(true); // Tracks if WebView is scrolled to top
+    const [isRefreshing, setIsRefreshing] = useState(false); // Pull-to-refresh in progress
+    const [shouldRefresh, setShouldRefresh] = useState(false); // State trigger for refresh
+    const pullDistanceRef = useRef<number>(0); // Track pull distance for analytics
+    const scrollY = useSharedValue(0); // Current scroll position from WebView
+    const pullProgress = useSharedValue(0); // Pull animation progress (0-1.5)
+    const isPulling = useSharedValue(false); // Pull gesture active state
     const swipeStartTime = useRef<number>(0);
     const swipeProgress = useSharedValue(0);
     const swipeDirection = useSharedValue<'back' | 'forward' | null>(null);
@@ -321,6 +356,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     /**
      * Trigger haptic feedback
+     * Used for all gesture interactions (swipe navigation + pull-to-refresh)
      */
     const triggerHapticFeedback = useCallback((style: ImpactFeedbackStyle) => {
       impactAsync(style);
@@ -328,6 +364,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     /**
      * Handle swipe navigation gesture completion
+     * Triggers WebView navigation and tracks analytics for horizontal edge swipes
      */
     const handleSwipeNavigation = useCallback(
       (direction: 'back' | 'forward', distance: number, duration: number) => {
@@ -368,6 +405,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     /**
      * Reset swipe animation state
+     * Returns swipe progress indicator to 0 with smooth animation
      */
     const resetSwipeAnimation = useCallback(() => {
       swipeProgress.value = withTiming(0, { duration: 200 });
@@ -375,7 +413,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [swipeProgress, swipeDirection]);
 
     /**
+     * Reset pull animation state
+     * Returns pull progress indicator to 0 with smooth animation
+     */
+    const resetPullAnimation = useCallback(() => {
+      pullProgress.value = withTiming(0, { duration: 200 });
+      isPulling.value = false;
+    }, [pullProgress, isPulling]);
+
+    /**
      * Check if gestures should be enabled
+     * Disables all gestures when URL bar is focused or page is loading
      */
     const areGesturesEnabled = useMemo(
       () => isTabActive && !isUrlBarFocused && firstUrlLoaded,
@@ -383,7 +431,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * GESTURE HANDLERS
+     *
+     * Three separate Pan gestures handle different navigation types:
+     * 1. leftEdgeGesture - Horizontal right-swipe from left 20px edge
+     * 2. rightEdgeGesture - Horizontal left-swipe from right 20px edge
+     * 3. pullToRefreshGesture - Vertical down-pull from top 100px zone
+     *
+     * Each gesture is attached to its own transparent overlay zone positioned
+     * absolutely above the WebView to intercept touches before WebView consumes them.
+     */
+
+    /**
      * Pan gesture handler for left edge (back navigation)
+     * Detects right-swipe starting from left 20px edge
      */
     const leftEdgeGesture = useMemo(
       () =>
@@ -433,6 +494,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     /**
      * Pan gesture handler for right edge (forward navigation)
+     * Detects left-swipe starting from right 20px edge
      */
     const rightEdgeGesture = useMemo(
       () =>
@@ -483,6 +545,52 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         swipeDirection,
         swipeProgress,
       ],
+    );
+
+    /**
+     * Pan gesture handler for pull-to-refresh (vertical pull from top)
+     * Only activates when WebView is scrolled to top (isAtTop === true)
+     * Uses state-driven refresh trigger to avoid runOnJS crashes
+     */
+    const pullToRefreshGesture = useMemo(
+      () =>
+        Gesture.Pan()
+          .activeOffsetY([10, 1000]) // Only downward pulls (prevents upward scroll interference)
+          .failOffsetX([-20, 20]) // Fail if too much horizontal movement (prevents conflicts with edge swipes)
+          .onStart(() => {
+            if (!isAtTop || isRefreshing) return;
+            isPulling.value = true;
+            pullProgress.value = 0;
+            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          })
+          .onUpdate((event) => {
+            if (!isPulling.value) return;
+            const translationY = event.translationY;
+            if (translationY < 0) return; // Only downward movement
+
+            pullProgress.value = Math.min(translationY / PULL_THRESHOLD, 1.5);
+          })
+          .onEnd((event) => {
+            'worklet';
+            if (!isPulling.value) {
+              runOnJS(resetPullAnimation)();
+              return;
+            }
+
+            const translationY = event.translationY;
+            if (translationY >= PULL_THRESHOLD) {
+              // Store distance for analytics before triggering refresh
+              pullDistanceRef.current = translationY;
+              runOnJS(setShouldRefresh)(true);
+            }
+            runOnJS(resetPullAnimation)();
+          })
+          .onFinalize(() => {
+            isPulling.value = false;
+            runOnJS(resetPullAnimation)();
+          }),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [isAtTop, isRefreshing, triggerHapticFeedback, resetPullAnimation],
     );
 
     /**
@@ -696,7 +804,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
       const getEntryScriptWeb3 = async () => {
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
-        setEntryScriptWeb3(entryScriptWeb3Fetched + SPA_urlChangeListener);
+        setEntryScriptWeb3(
+          entryScriptWeb3Fetched +
+            SPA_urlChangeListener +
+            SCROLL_TRACKER_SCRIPT,
+        );
       };
 
       getEntryScriptWeb3();
@@ -1068,6 +1180,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
           return;
         }
+        if (dataParsed.type === 'SCROLL_POSITION') {
+          const scrollPosition = dataParsed.payload?.scrollY || 0;
+          scrollY.value = scrollPosition;
+          setIsAtTop(scrollPosition === 0);
+          return;
+        }
         if (
           dataParsed.type === 'IFRAME_DETECTED' &&
           Array.isArray(dataParsed.iframeUrls) &&
@@ -1260,6 +1378,39 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       </View>
     );
 
+    /**
+     * Animated style for refresh indicator
+     */
+    const refreshIndicatorStyle = useAnimatedStyle(() => ({
+      transform: [
+        { translateY: pullProgress.value * PULL_THRESHOLD - PULL_THRESHOLD },
+      ],
+      opacity: pullProgress.value,
+    }));
+
+    /**
+     * Render refresh indicator
+     */
+    const renderRefreshIndicator = useCallback(
+      () =>
+        isAtTop && (
+          <Animated.View
+            style={[
+              styles.refreshIndicator,
+              // eslint-disable-next-line react-native/no-inline-styles
+              { height: PULL_THRESHOLD },
+              refreshIndicatorStyle,
+            ]}
+          >
+            <ActivityIndicator
+              size="small"
+              color={theme.colors.primary.default}
+            />
+          </Animated.View>
+        ),
+      [isAtTop, refreshIndicatorStyle, theme.colors.primary.default, styles],
+    );
+
     const isExternalLink = useMemo(
       () => linkType === EXTERNAL_LINK_TYPE,
       [linkType],
@@ -1365,6 +1516,28 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const returnHome = () => {
       onSubmitEditing(HOMEPAGE_HOST);
     };
+
+    /**
+     * Trigger refresh when state changes
+     * Uses state-driven pattern to avoid Reanimated runOnJS crashes
+     */
+    useEffect(() => {
+      if (shouldRefresh) {
+        setIsRefreshing(true);
+        setShouldRefresh(false);
+        reload();
+        impactAsync(ImpactFeedbackStyle.Medium);
+
+        // Track analytics
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.BROWSER_PULL_REFRESH)
+            .addProperties({ pull_distance: pullDistanceRef.current })
+            .build(),
+        );
+
+        setTimeout(() => setIsRefreshing(false), 1000);
+      }
+    }, [shouldRefresh, reload, trackEvent, createEventBuilder]);
 
     /**
      * Render the bottom navigation bar
@@ -1608,6 +1781,36 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             <View style={styles.wrapper}>
               {renderProgressBar()}
               <View style={styles.webview}>
+                {renderRefreshIndicator()}
+                {/*
+                  GESTURE OVERLAY ZONES
+
+                  Transparent overlays positioned absolutely above WebView to intercept gestures.
+                  WebView normally consumes all touch events, so these overlays are essential.
+
+                  Rendering order (z-index):
+                  1. Edge overlays (z-index: 9999) - 20px wide, left/right
+                  2. Pull overlay (z-index: 9998) - 100px tall, top only when scrollY === 0
+                  3. Refresh indicator (z-index: 9997) - Animated spinner
+                  4. WebView (z-index: default) - Below all overlays
+
+                  No conflicts because:
+                  - Edge swipes are narrow (20px) and only horizontal
+                  - Pull zone is full-width but only at top and only vertical
+                  - Different z-index ensures edges take priority over pull
+                */}
+
+                {/* Top overlay for pull-to-refresh - only when scrolled to top */}
+                {isAtTop && !isRefreshing && areGesturesEnabled && (
+                  <GestureDetector gesture={pullToRefreshGesture}>
+                    <View
+                      style={[
+                        styles.pullOverlay,
+                        { height: PULL_OVERLAY_HEIGHT },
+                      ]}
+                    />
+                  </GestureDetector>
+                )}
                 {!!entryScriptWeb3 && firstUrlLoaded && (
                   <>
                     <WebView
@@ -1653,10 +1856,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                     )}
                   </>
                 )}
-                {/* Edge gesture overlay zones */}
+
+                {/* Edge gesture overlay zones - horizontal swipe navigation */}
                 {areGesturesEnabled && (
                   <>
-                    {/* Left edge for back gesture */}
+                    {/* Left edge for back gesture - Red overlay (DEBUG) */}
                     {backEnabled && (
                       <GestureDetector gesture={leftEdgeGesture}>
                         <View
@@ -1667,7 +1871,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         />
                       </GestureDetector>
                     )}
-                    {/* Right edge for forward gesture */}
+                    {/* Right edge for forward gesture - Blue overlay (DEBUG) */}
                     {forwardEnabled && (
                       <GestureDetector gesture={rightEdgeGesture}>
                         <View

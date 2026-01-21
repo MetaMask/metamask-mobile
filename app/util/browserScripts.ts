@@ -76,6 +76,25 @@ export const JS_WINDOW_INFORMATION = `
 export const JS_DESELECT_TEXT = `if (window.getSelection) {window.getSelection().removeAllRanges();}
 else if (document.selection) {document.selection.empty();}`;
 
+export const SCROLL_TRACKER_SCRIPT = `
+  (function() {
+    let lastScrollY = 0;
+    const sendScrollPosition = () => {
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+      if (currentScrollY !== lastScrollY) {
+        lastScrollY = currentScrollY;
+        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'SCROLL_POSITION',
+          payload: { scrollY: currentScrollY }
+        }));
+      }
+    };
+    
+    window.addEventListener('scroll', sendScrollPosition, { passive: true });
+    sendScrollPosition(); // Send initial position
+  })();
+`;
+
 export const JS_POST_MESSAGE_TO_PROVIDER = (
   message: object,
   origin: string,
