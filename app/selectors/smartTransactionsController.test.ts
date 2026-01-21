@@ -48,6 +48,10 @@ jest.mock('./multichainAccounts/accountTreeController', () => {
   };
 });
 
+jest.mock('../core/Engine/controllers/remote-feature-flag-controller', () => ({
+  isRemoteFeatureFlagOverrideActivated: false,
+}));
+
 // Default state is setup to be on mainnet, with smart transactions enabled and opted into
 const getDefaultState = () => {
   // TODO: Replace "any" with type
@@ -55,44 +59,6 @@ const getDefaultState = () => {
   const defaultState: any = {
     engine: {
       backgroundState: cloneDeep(backgroundState),
-    },
-    swaps: {
-      featureFlags: {
-        smart_transactions: {
-          mobile_active: false,
-          extension_active: true,
-        },
-        smartTransactions: {
-          mobileActive: false,
-          extensionActive: true,
-          mobileActiveIOS: false,
-          mobileActiveAndroid: false,
-        },
-      },
-      '0x1': {
-        isLive: true,
-        featureFlags: {
-          smartTransactions: {
-            expectedDeadline: 45,
-            maxDeadline: 160,
-            mobileReturnTxHashAsap: false,
-            mobileActive: true,
-            extensionActive: true,
-            mobileActiveIOS: true,
-            mobileActiveAndroid: true,
-          },
-        },
-      },
-      '0x10': {
-        isLive: true,
-        featureFlags: {
-          smartTransactions: {
-            expectedDeadline: 45,
-            maxDeadline: 160,
-            mobileReturnTxHashAsap: false,
-          },
-        },
-      },
     },
   };
   defaultState.engine.backgroundState.NetworkController.providerConfig = {
@@ -108,19 +74,51 @@ const getDefaultState = () => {
       '0x1': [],
     };
 
+  // Set up RemoteFeatureFlagController with smartTransactionsNetworks flags
+  defaultState.engine.backgroundState.RemoteFeatureFlagController = {
+    cacheTimestamp: 0,
+    remoteFeatureFlags: {
+      smartTransactionsNetworks: {
+        default: {
+          mobileActive: false,
+          mobileActiveIOS: false,
+          mobileActiveAndroid: false,
+        },
+        '0x1': {
+          expectedDeadline: 45,
+          maxDeadline: 160,
+          mobileReturnTxHashAsap: false,
+          mobileActive: true,
+          mobileActiveIOS: true,
+          mobileActiveAndroid: true,
+        },
+      },
+    },
+  };
+
   return defaultState;
 };
 
 describe('SmartTransactionsController Selectors', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('getSmartTransactionsEnabled', () => {
+    it('returns true if smart transactions are enabled', () => {
+      const state = getDefaultState();
+      const enabled = selectSmartTransactionsEnabled(state);
+      expect(enabled).toEqual(true);
+    });
     it.each([
       ['an empty object', {}],
       ['undefined', undefined],
     ])(
-      'returns false when smart transactions feature flags are not enabled and smartTransactions is %s',
-      (_testCaseName, smartTransactions) => {
+      'returns false if smart transactions feature flags are not enabled when smartTransactionsNetworks is %s',
+      (_testCaseName, smartTransactionsNetworks) => {
         const state = getDefaultState();
-        state.swaps['0x1'].smartTransactions = smartTransactions;
+        state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.smartTransactionsNetworks =
+          smartTransactionsNetworks;
         const enabled = selectSmartTransactionsEnabled(state);
         expect(enabled).toEqual(false);
       },
@@ -152,17 +150,10 @@ describe('SmartTransactionsController Selectors', () => {
       const enabled = selectSmartTransactionsEnabled(state);
       expect(enabled).toEqual(false);
     });
-    it('returns true when smart transactions are enabled', () => {
-      const state = getDefaultState();
-      state.swaps.featureFlags.smart_transactions.mobile_active = true;
-      state.swaps.featureFlags.smartTransactions.mobileActive = true;
-      const enabled = selectSmartTransactionsEnabled(state);
-      expect(enabled).toEqual(true);
-    });
   });
 
   describe('getShouldUseSmartTransaction', () => {
-    it('returns false when smart transactions are not opted into', () => {
+    it('returns false if smart transactions are not opted into', () => {
       const state = getDefaultState();
       state.engine.backgroundState.PreferencesController.smartTransactionsOptInStatus = false;
       const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
@@ -170,21 +161,20 @@ describe('SmartTransactionsController Selectors', () => {
     });
     it('returns false when smart transactions are not enabled', () => {
       const state = getDefaultState();
-      state.swaps['0x1'].smartTransactions = {};
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.smartTransactionsNetworks =
+        {};
       const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
       expect(shouldUseSmartTransaction).toEqual(false);
     });
     it('returns true when smart transactions are enabled and opted into', () => {
       const state = getDefaultState();
-      state.swaps.featureFlags.smart_transactions.mobile_active = true;
-      state.swaps.featureFlags.smartTransactions.mobileActive = true;
+      // Default state already has mobileActive: true for 0x1
       const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
       expect(shouldUseSmartTransaction).toEqual(true);
     });
     it('accepts an optional chainId parameter', () => {
       const state = getDefaultState();
-      state.swaps.featureFlags.smart_transactions.mobile_active = true;
-      state.swaps.featureFlags.smartTransactions.mobileActive = true;
+      // Default state already has mobileActive: true for 0x1
       const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
         state,
         '0x1',
