@@ -1,280 +1,113 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
-import PerpsMarketSortFieldBottomSheet from './PerpsMarketSortFieldBottomSheet';
+import React, { useRef, useEffect } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { Box } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { styleSheet } from './PerpsMarketSortFieldBottomSheet.styles';
+import type { PerpsMarketSortFieldBottomSheetProps } from './PerpsMarketSortFieldBottomSheet.types';
+import { MARKET_SORTING_CONFIG } from '../../constants/perpsConfig';
 
-// Mock dependencies
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      filterList: {},
-      filterRow: {},
-      filterRowActive: {},
-      filterRowContent: {},
-      toggleContainer: {},
-    },
-    theme: {
-      colors: {
-        background: {
-          alternative: '#E5E5E5',
-        },
-        icon: {
-          default: '#000000',
-        },
-        border: {
-          muted: '#D6D6D6',
-        },
-      },
-    },
-  }),
-}));
+/**
+ * PerpsMarketSortFieldBottomSheet Component
+ *
+ * Simple list-based bottom sheet for selecting market sort options.
+ * Each option combines field + direction into a single selectable item.
+ *
+ * Features:
+ * - Flat list of sort options
+ * - Checkmark icon on selected option
+ * - Auto-closes on selection
+ *
+ * @example
+ * ```tsx
+ * <PerpsMarketSortFieldBottomSheet
+ *   isVisible={showSortSheet}
+ *   onClose={() => setShowSortSheet(false)}
+ *   selectedOptionId="priceChange-desc"
+ *   onOptionSelect={handleSortChange}
+ * />
+ * ```
+ */
+const PerpsMarketSortFieldBottomSheet: React.FC<
+  PerpsMarketSortFieldBottomSheetProps
+> = ({ isVisible, onClose, selectedOptionId, onOptionSelect, testID }) => {
+  const { styles } = useStyles(styleSheet, {});
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: MockReact.forwardRef(
-        (
-          {
-            children,
-            testID,
-          }: {
-            children: React.ReactNode;
-            testID?: string;
-          },
-          ref: React.Ref<{
-            onOpenBottomSheet: () => void;
-            onCloseBottomSheet: () => void;
-          }>,
-        ) => {
-          // Expose mock ref methods
-          MockReact.useImperativeHandle(ref, () => ({
-            onOpenBottomSheet: jest.fn(),
-            onCloseBottomSheet: jest.fn(),
-          }));
+  useEffect(() => {
+    if (isVisible) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
-          return <View testID={testID}>{children}</View>;
-        },
-      ),
-    };
-  },
-);
+  /**
+   * Handle option selection - selects the option and closes the sheet
+   */
+  const handleOptionSelect = (optionId: string) => {
+    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+      (opt) => opt.id === optionId,
+    );
+    if (option) {
+      onOptionSelect(option.id, option.field, option.direction);
+      onClose();
+    }
+  };
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return function MockBottomSheetHeader({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) {
-      return <View testID="bottom-sheet-header">{children}</View>;
-    };
-  },
-);
+  if (!isVisible) return null;
 
-jest.mock(
-  '../../../../../component-library/components-temp/SegmentedControl',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    return function MockSegmentedControl({
-      options,
-      selectedValue,
-      onValueChange,
-      testID,
-    }: {
-      options: { value: string; label: string }[];
-      selectedValue: string;
-      onValueChange: (value: string) => void;
-      testID?: string;
-    }) {
-      return (
-        <View testID={testID}>
-          {options.map((option) => (
+  return (
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={onClose}
+      isFullscreen={false}
+      testID={testID}
+    >
+      <BottomSheetHeader onClose={onClose}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('perps.sort.sort_by')}
+        </Text>
+      </BottomSheetHeader>
+      <Box style={styles.optionsList}>
+        {/* Render sort options */}
+        {MARKET_SORTING_CONFIG.SORT_OPTIONS.map((option) => {
+          const isSelected = selectedOptionId === option.id;
+          return (
             <TouchableOpacity
-              key={option.value}
-              testID={`${testID}-option-${option.value}`}
-              onPress={() => onValueChange(option.value)}
+              key={option.id}
+              style={[styles.optionRow, isSelected && styles.optionRowSelected]}
+              onPress={() => handleOptionSelect(option.id)}
+              testID={testID ? `${testID}-option-${option.id}` : undefined}
             >
-              <Text>
-                {option.label}{' '}
-                {selectedValue === option.value ? '(selected)' : ''}
+              <Text variant={TextVariant.BodyMD}>
+                {strings(option.labelKey)}
               </Text>
+              {isSelected && (
+                <Icon
+                  name={IconName.Check}
+                  size={IconSize.Md}
+                  testID={
+                    testID ? `${testID}-checkmark-${option.id}` : undefined
+                  }
+                />
+              )}
             </TouchableOpacity>
-          ))}
-        </View>
-      );
-    };
-  },
-);
+          );
+        })}
+      </Box>
+    </BottomSheet>
+  );
+};
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'perps.sort.sort_by': 'Sort By',
-      'perps.sort.volume': 'Volume',
-      'perps.sort.price_change': '24h Change',
-      'perps.sort.funding_rate': 'Funding Rate',
-      'perps.sort.open_interest': 'Open Interest',
-      'perps.sort.high': 'High',
-      'perps.sort.low': 'Low',
-    };
-    return translations[key] || key;
-  }),
-}));
-
-describe('PerpsMarketSortFieldBottomSheet', () => {
-  const mockOnClose = jest.fn();
-  const mockOnOptionSelect = jest.fn();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
-  describe('Visibility', () => {
-    it('returns null when isVisible is false', () => {
-      const { toJSON } = render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible={false}
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
-    });
-
-    it('renders when isVisible is true', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-        />,
-      );
-
-      expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Sort Options', () => {
-    it('renders all sort options with testIDs', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('sort-field-sheet-option-volume'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-option-priceChange-desc'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-option-priceChange-asc'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-option-openInterest'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-option-fundingRate'),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows checkmark on selected option', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="priceChange-desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('sort-field-sheet-checkmark-priceChange-desc'),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Option Selection', () => {
-    it('calls onOptionSelect with option ID, field, and direction', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId('sort-field-sheet-option-priceChange-desc'),
-      );
-
-      expect(mockOnOptionSelect).toHaveBeenCalledTimes(1);
-      expect(mockOnOptionSelect).toHaveBeenCalledWith(
-        'priceChange-desc',
-        'priceChange',
-        'desc',
-      );
-    });
-
-    it('auto-closes when option is selected', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId('sort-field-sheet-option-priceChange-desc'),
-      );
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onOptionSelect for ascending price change option', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId('sort-field-sheet-option-priceChange-asc'),
-      );
-
-      expect(mockOnOptionSelect).toHaveBeenCalledTimes(1);
-      expect(mockOnOptionSelect).toHaveBeenCalledWith(
-        'priceChange-asc',
-        'priceChange',
-        'asc',
-      );
-    });
-  });
-});
+export default PerpsMarketSortFieldBottomSheet;
