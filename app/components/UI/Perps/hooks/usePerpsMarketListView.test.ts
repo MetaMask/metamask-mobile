@@ -330,7 +330,7 @@ describe('usePerpsMarketListView', () => {
 
       // Call handleOptionChange
       result.current.sortState.handleOptionChange(
-        'priceChange-desc',
+        'priceChange',
         'priceChange' as SortField,
         'desc' as SortDirection,
       );
@@ -338,7 +338,7 @@ describe('usePerpsMarketListView', () => {
       // Should have called Engine's saveMarketFilterPreferences
       expect(
         Engine.context.PerpsController.saveMarketFilterPreferences,
-      ).toHaveBeenCalledWith('priceChange-desc');
+      ).toHaveBeenCalledWith('priceChange');
     });
 
     it('applies sorting to filtered markets', () => {
@@ -482,7 +482,7 @@ describe('usePerpsMarketListView', () => {
       );
 
       mockUsePerpsSorting.mockReturnValue({
-        selectedOptionId: 'priceChange-asc',
+        selectedOptionId: 'priceChange',
         sortBy: 'priceChange' as SortField,
         direction: 'asc' as SortDirection,
         handleOptionChange: jest.fn(),

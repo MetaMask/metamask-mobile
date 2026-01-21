@@ -18,7 +18,10 @@ import ButtonBase from '../../../../../component-library/components/Buttons/Butt
 import { strings } from '../../../../../../locales/i18n';
 import { styleSheet } from './PerpsMarketSortFieldBottomSheet.styles';
 import type { PerpsMarketSortFieldBottomSheetProps } from './PerpsMarketSortFieldBottomSheet.types';
-import { MARKET_SORTING_CONFIG } from '../../constants/perpsConfig';
+import {
+  MARKET_SORTING_CONFIG,
+  type SortOptionId,
+} from '../../constants/perpsConfig';
 import type { SortDirection } from '../../utils/sortMarkets';
 
 /**
@@ -78,7 +81,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
    * Handle option press - either select new option or toggle direction (only for priceChange)
    */
   const handleOptionPress = useCallback(
-    (optionId: string) => {
+    (optionId: SortOptionId) => {
       // If clicking the same option AND it's priceChange, toggle sort direction
       if (selectedOption === optionId && optionId === 'priceChange') {
         const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';

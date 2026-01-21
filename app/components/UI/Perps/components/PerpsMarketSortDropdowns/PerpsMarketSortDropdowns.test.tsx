@@ -121,10 +121,10 @@ describe('PerpsMarketSortDropdowns', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays price change label when selectedOptionId is priceChange-desc', () => {
+    it('displays price change label when selectedOptionId is priceChange', () => {
       render(
         <PerpsMarketSortDropdowns
-          selectedOptionId="priceChange-desc"
+          selectedOptionId="priceChange"
           onSortPress={mockOnSortPress}
         />,
       );
@@ -195,7 +195,7 @@ describe('PerpsMarketSortDropdowns', () => {
 
       rerender(
         <PerpsMarketSortDropdowns
-          selectedOptionId="priceChange-desc"
+          selectedOptionId="priceChange"
           onSortPress={newOnSortPress}
         />,
       );
@@ -216,7 +216,7 @@ describe('PerpsMarketSortDropdowns', () => {
     it('handles all sort option values', () => {
       const sortOptions: SortOptionId[] = [
         'volume',
-        'priceChange-desc',
+        'priceChange',
         'fundingRate',
       ];
 
@@ -261,7 +261,7 @@ describe('PerpsMarketSortDropdowns', () => {
 
       rerender(
         <PerpsMarketSortDropdowns
-          selectedOptionId="priceChange-desc"
+          selectedOptionId="priceChange"
           onSortPress={mockOnSortPress}
         />,
       );
