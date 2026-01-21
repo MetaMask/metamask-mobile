@@ -8,7 +8,6 @@ import {
   NetworkControllerRpcEndpointDegradedEvent,
   NetworkControllerRpcEndpointUnavailableEvent,
 } from '@metamask/network-controller';
-import type { ConnectivityControllerGetStateAction } from '@metamask/connectivity-controller';
 import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerState,
@@ -27,12 +26,9 @@ import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 export function getNetworkControllerMessenger(
   rootMessenger: RootMessenger,
 ): NetworkControllerMessenger {
-  type NetworkControllerActions =
-    | MessengerActions<NetworkControllerMessenger>
-    | ConnectivityControllerGetStateAction;
   const messenger = new Messenger<
     'NetworkController',
-    NetworkControllerActions,
+    MessengerActions<NetworkControllerMessenger>,
     MessengerEvents<NetworkControllerMessenger>,
     RootMessenger
   >({
