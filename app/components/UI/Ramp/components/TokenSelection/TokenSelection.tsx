@@ -35,7 +35,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
 import useAnalytics from '../../hooks/useAnalytics';
-import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import {
   getRampRoutingDecision,
   getDetectedGeolocation,
@@ -66,9 +65,6 @@ function TokenSelection() {
   const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
 
-  // Initialize user region from RampsController (fetches on mount)
-  // todo: remove this when implementing ramps controller initialization
-  useRampsUserRegion();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
   const networksByCaipChainId = useSelector(
