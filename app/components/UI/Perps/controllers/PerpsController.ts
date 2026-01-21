@@ -1173,9 +1173,9 @@ export class PerpsController extends BaseController<
    * @private
    *
    * @example
-   * this.logError(error, this.getErrorContext('placeOrder', { coin: 'BTC', operation: 'validate' }));
+   * this.logError(error, this.getErrorContext('placeOrder', { symbol: 'BTC', operation: 'validate' }));
    * // Creates searchable tags: feature:perps, provider:hyperliquid, network:mainnet
-   * // Creates searchable context: perps_controller.method:placeOrder, perps_controller.coin:BTC, perps_controller.operation:validate
+   * // Creates searchable context: perps_controller.method:placeOrder, perps_controller.symbol:BTC, perps_controller.operation:validate
    */
   private getErrorContext(
     method: string,
@@ -1295,8 +1295,8 @@ export class PerpsController extends BaseController<
       provider,
       params,
       context: this.createServiceContext('placeOrder', {
-        saveTradeConfiguration: (coin: string, leverage: number) =>
-          this.saveTradeConfiguration(coin, leverage),
+        saveTradeConfiguration: (symbol: string, leverage: number) =>
+          this.saveTradeConfiguration(symbol, leverage),
       }),
       reportOrderToDataLake: (dataLakeParams) =>
         this.reportOrderToDataLake(dataLakeParams),
@@ -1412,7 +1412,7 @@ export class PerpsController extends BaseController<
 
     return this.tradingService.updateMargin({
       provider,
-      coin: params.coin,
+      symbol: params.symbol,
       amount: params.amount,
       context: this.createServiceContext('updateMargin'),
     });
@@ -1898,7 +1898,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    */
   async fetchHistoricalCandles(
-    coin: string,
+    symbol: string,
     interval: CandlePeriod,
     limit: number = 100,
     endTime?: number,
@@ -1906,7 +1906,7 @@ export class PerpsController extends BaseController<
     const provider = this.getActiveProvider();
     return this.marketDataService.fetchHistoricalCandles({
       provider,
-      coin,
+      symbol,
       interval,
       limit,
       endTime,
@@ -2342,7 +2342,7 @@ export class PerpsController extends BaseController<
       this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToCandles', {
-          coin: params.coin,
+          symbol: params.symbol,
           interval: params.interval,
           duration: params.duration,
         }),
@@ -2590,14 +2590,14 @@ export class PerpsController extends BaseController<
   /**
    * Get saved trade configuration for a market
    */
-  getTradeConfiguration(coin: string): { leverage?: number } | undefined {
+  getTradeConfiguration(symbol: string): { leverage?: number } | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
-    const config = this.state.tradeConfigurations[network]?.[coin];
+    const config = this.state.tradeConfigurations[network]?.[symbol];
 
     if (!config?.leverage) return undefined;
 
     this.debugLog('PerpsController: Retrieved trade config', {
-      coin,
+      symbol,
       network,
       leverage: config.leverage,
     });
@@ -2607,14 +2607,14 @@ export class PerpsController extends BaseController<
 
   /**
    * Save trade configuration for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @param leverage - Leverage value
    */
-  saveTradeConfiguration(coin: string, leverage: number): void {
+  saveTradeConfiguration(symbol: string, leverage: number): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
     this.debugLog('PerpsController: Saving trade configuration', {
-      coin,
+      symbol,
       network,
       leverage,
       timestamp: new Date().toISOString(),
@@ -2625,8 +2625,8 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
-      const existingConfig = state.tradeConfigurations[network][coin] || {};
-      state.tradeConfigurations[network][coin] = {
+      const existingConfig = state.tradeConfigurations[network][symbol] || {};
+      state.tradeConfigurations[network][symbol] = {
         ...existingConfig,
         leverage,
       };
@@ -2636,11 +2636,11 @@ export class PerpsController extends BaseController<
   /**
    * Save pending trade configuration for a market
    * This is a temporary configuration that expires after 5 minutes
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @param config - Pending trade configuration
    */
   savePendingTradeConfiguration(
-    coin: string,
+    symbol: string,
     config: {
       amount?: string;
       leverage?: number;
@@ -2653,7 +2653,7 @@ export class PerpsController extends BaseController<
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
     this.debugLog('PerpsController: Saving pending trade configuration', {
-      coin,
+      symbol,
       network,
       config,
       timestamp: new Date().toISOString(),
@@ -2664,8 +2664,8 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
-      const existingConfig = state.tradeConfigurations[network][coin] || {};
-      state.tradeConfigurations[network][coin] = {
+      const existingConfig = state.tradeConfigurations[network][symbol] || {};
+      state.tradeConfigurations[network][symbol] = {
         ...existingConfig,
         pendingConfig: {
           ...config,
@@ -2678,10 +2678,10 @@ export class PerpsController extends BaseController<
   /**
    * Get pending trade configuration for a market
    * Returns undefined if config doesn't exist or has expired (more than 5 minutes old)
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @returns Pending trade configuration or undefined
    */
-  getPendingTradeConfiguration(coin: string):
+  getPendingTradeConfiguration(symbol: string):
     | {
         amount?: string;
         leverage?: number;
@@ -2693,7 +2693,7 @@ export class PerpsController extends BaseController<
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
     const config =
-      this.state.tradeConfigurations[network]?.[coin]?.pendingConfig;
+      this.state.tradeConfigurations[network]?.[symbol]?.pendingConfig;
 
     if (!config) {
       return undefined;
@@ -2706,22 +2706,22 @@ export class PerpsController extends BaseController<
 
     if (age > FIVE_MINUTES_MS) {
       this.debugLog('PerpsController: Pending trade config expired', {
-        coin,
+        symbol,
         network,
         age,
         timestamp: config.timestamp,
       });
       // Clear expired config
       this.update((state) => {
-        if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
-          delete state.tradeConfigurations[network][coin].pendingConfig;
+        if (state.tradeConfigurations[network]?.[symbol]?.pendingConfig) {
+          delete state.tradeConfigurations[network][symbol].pendingConfig;
         }
       });
       return undefined;
     }
 
     this.debugLog('PerpsController: Retrieved pending trade config', {
-      coin,
+      symbol,
       network,
       config,
       age,
@@ -2734,20 +2734,20 @@ export class PerpsController extends BaseController<
 
   /**
    * Clear pending trade configuration for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    */
-  clearPendingTradeConfiguration(coin: string): void {
+  clearPendingTradeConfiguration(symbol: string): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
     this.debugLog('PerpsController: Clearing pending trade configuration', {
-      coin,
+      symbol,
       network,
       timestamp: new Date().toISOString(),
     });
 
     this.update((state) => {
-      if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
-        delete state.tradeConfigurations[network][coin].pendingConfig;
+      if (state.tradeConfigurations[network]?.[symbol]?.pendingConfig) {
+        delete state.tradeConfigurations[network][symbol].pendingConfig;
       }
     });
   }
@@ -2779,17 +2779,17 @@ export class PerpsController extends BaseController<
 
   /**
    * Get saved order book grouping for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @returns The saved grouping value or undefined if not set
    */
-  getOrderBookGrouping(coin: string): number | undefined {
+  getOrderBookGrouping(symbol: string): number | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
     const grouping =
-      this.state.tradeConfigurations[network]?.[coin]?.orderBookGrouping;
+      this.state.tradeConfigurations[network]?.[symbol]?.orderBookGrouping;
 
     if (grouping !== undefined) {
       this.debugLog('PerpsController: Retrieved order book grouping', {
-        coin,
+        symbol,
         network,
         grouping,
       });
@@ -2800,14 +2800,14 @@ export class PerpsController extends BaseController<
 
   /**
    * Save order book grouping for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @param grouping - Price grouping value
    */
-  saveOrderBookGrouping(coin: string, grouping: number): void {
+  saveOrderBookGrouping(symbol: string, grouping: number): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
     this.debugLog('PerpsController: Saving order book grouping', {
-      coin,
+      symbol,
       network,
       grouping,
       timestamp: new Date().toISOString(),
@@ -2818,8 +2818,8 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
-      const existingConfig = state.tradeConfigurations[network][coin] || {};
-      state.tradeConfigurations[network][coin] = {
+      const existingConfig = state.tradeConfigurations[network][symbol] || {};
+      state.tradeConfigurations[network][symbol] = {
         ...existingConfig,
         orderBookGrouping: grouping,
       };
@@ -2877,7 +2877,7 @@ export class PerpsController extends BaseController<
    */
   protected async reportOrderToDataLake(params: {
     action: 'open' | 'close';
-    coin: string;
+    symbol: string;
     sl_price?: number;
     tp_price?: number;
     retryCount?: number;
@@ -2885,7 +2885,7 @@ export class PerpsController extends BaseController<
   }): Promise<{ success: boolean; error?: string }> {
     return this.dataLakeService.reportOrder({
       action: params.action,
-      coin: params.coin,
+      symbol: params.symbol,
       sl_price: params.sl_price,
       tp_price: params.tp_price,
       isTestnet: this.state.isTestnet,

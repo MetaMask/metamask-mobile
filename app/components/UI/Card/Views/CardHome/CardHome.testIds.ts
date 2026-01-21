@@ -9,6 +9,7 @@ export const CardHomeSelectors = {
   ADVANCED_CARD_MANAGEMENT_ITEM: 'advanced-card-management-item',
   TRAVEL_ITEM: 'travel-item',
   CARD_TOS_ITEM: 'card-tos-item',
+  LOGOUT_ITEM: 'logout-item',
   ENABLE_CARD_BUTTON: 'enable-card-button',
   ENABLE_ASSETS_BUTTON: 'enable-assets-button',
   MANAGE_SPENDING_LIMIT_ITEM: 'manage-spending-limit-item',

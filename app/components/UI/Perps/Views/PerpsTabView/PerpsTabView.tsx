@@ -216,11 +216,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             const directionSegment = getPositionDirection(position.size);
             return (
               <View
-                key={`${position.coin}-${index}`}
-                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+                key={`${position.symbol}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.symbol}-${position.leverage.value}x-${directionSegment}-${index}`}
               >
                 <PerpsCard
-                  key={`${position.coin}-${index}`}
+                  key={`${position.symbol}-${index}`}
                   position={position}
                   source={PerpsEventValues.SOURCE.POSITION_TAB}
                 />

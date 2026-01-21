@@ -23,5 +23,10 @@ After implementing, provide a summary of:
 1. Files changed and why
 2. Key implementation decisions
 3. Any potential risks or considerations for reviewers
+4. **Changelog entry** (REQUIRED): A single line in conventional commit format for our release notes. This should be user-friendly, describing what changed from the user's perspective. Format: `CHANGELOG: type: description`
+   - Use `fix:` for bug fixes
+   - Use `feat:` for new features
+   - Use `chore:` for internal changes (not user-facing)
+   - Example: `CHANGELOG: fix: resolved issue where token name showed as "Unknown" during transaction review`
 
 Do NOT create the pull request yourself - the workflow will handle that.

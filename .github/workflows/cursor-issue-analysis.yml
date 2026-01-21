@@ -12,11 +12,9 @@ permissions:
 jobs:
   analyze-issue:
     runs-on: ubuntu-latest
-    # TEMPORARILY DISABLED - Re-enable after holidays by removing the 'false &&' below
     # Check if issue has team-confirmations AND (Sev1-high OR Sev2-normal) AND NOT external-contributor
     # Note: Only maintainers can add labels, providing first line of defense
     if: |
-      false &&
       contains(github.event.issue.labels.*.name, 'team-confirmations') &&
       (contains(github.event.issue.labels.*.name, 'Sev1-high') || contains(github.event.issue.labels.*.name, 'Sev2-normal')) &&
       !contains(github.event.issue.labels.*.name, 'external-contributor')

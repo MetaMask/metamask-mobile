@@ -19,6 +19,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
         "flexShrink": 1,
       }
     }
+    testID="predict-market-details-screen"
   >
     <View
       style={

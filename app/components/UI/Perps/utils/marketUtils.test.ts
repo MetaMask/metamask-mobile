@@ -227,7 +227,7 @@ describe('marketUtils', () => {
     const fortyEightHoursAgo = now - 48 * 60 * 60 * 1000;
 
     const mockCandleData: CandleData = {
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: CandlePeriod.ONE_HOUR,
       candles: [
         {
@@ -280,7 +280,7 @@ describe('marketUtils', () => {
 
     it('should handle empty candles array', () => {
       const emptyData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [],
       };
@@ -290,7 +290,7 @@ describe('marketUtils', () => {
 
     it('should use all candles if none are within 24h', () => {
       const oldCandleData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -309,7 +309,7 @@ describe('marketUtils', () => {
 
     it('should handle candles with string values', () => {
       const stringCandleData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
@@ -328,7 +328,7 @@ describe('marketUtils', () => {
 
     it('should handle single candle within 24h', () => {
       const singleCandleData: CandleData = {
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
