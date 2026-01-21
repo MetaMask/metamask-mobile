@@ -95,6 +95,8 @@ describe('ramps controller init', () => {
       providers: [],
       tokens: null,
       requests: {},
+      paymentMethods: [],
+      selectedPaymentMethod: null,
     };
 
     initRequestMock.persistedState = {
