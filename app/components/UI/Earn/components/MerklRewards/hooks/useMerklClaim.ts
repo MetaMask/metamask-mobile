@@ -99,21 +99,35 @@ export const useMerklClaim = ({
         origin: 'merkl-claim',
       });
 
-      // Wait for transaction hash (submission)
-      await result.result;
       const { id: transactionId } = result.transactionMeta;
       pendingTransactionIdRef.current = transactionId;
 
       // Wait for transaction confirmation (mined in a block)
       // Contract state changes (like updating the claimed mapping) only happen after confirmation
       // We use transactionStatusUpdated to handle all status changes in one place
-      await new Promise<void>((resolve, reject) => {
+      // IMPORTANT: Subscribe BEFORE awaiting result.result to avoid race condition
+      // on fast L2 chains where tx can confirm before subscription is set up
+      const confirmationPromise = new Promise<void>((resolve, reject) => {
         let isResolved = false;
-        const handleTransactionStatusUpdate = ({
+
+        // Define handler type for use in unsubscribe before handler is assigned
+        type StatusHandler = ({
           transactionMeta,
         }: {
           transactionMeta: TransactionMeta;
-        }) => {
+        }) => void;
+
+        // eslint-disable-next-line prefer-const
+        let handleTransactionStatusUpdate: StatusHandler;
+
+        const unsubscribe = () => {
+          Engine.controllerMessenger.unsubscribe(
+            'TransactionController:transactionStatusUpdated',
+            handleTransactionStatusUpdate,
+          );
+        };
+
+        handleTransactionStatusUpdate = ({ transactionMeta }) => {
           // Only handle if this is our transaction
           if (transactionMeta.id !== transactionId || isResolved) {
             return;
@@ -121,10 +135,7 @@ export const useMerklClaim = ({
 
           if (transactionMeta.status === TransactionStatus.confirmed) {
             isResolved = true;
-            Engine.controllerMessenger.unsubscribe(
-              'TransactionController:transactionStatusUpdated',
-              handleTransactionStatusUpdate,
-            );
+            unsubscribe();
             pendingTransactionIdRef.current = null;
             // Update UI state immediately
             setIsClaiming(false);
@@ -137,9 +148,11 @@ export const useMerklClaim = ({
             // Add a small delay to allow blockchain state to propagate after transaction confirmation
             // Then update balances with retry mechanism to ensure they're refreshed
             // Also detect tokens to ensure the token is in the tokens list
-            const updateBalancesWithRetry = async (retries = 2) => {
+            const updateBalancesWithRetry = async (
+              retries = 2,
+            ): Promise<void> => {
               // Wait 1 second for blockchain state to propagate
-              await new Promise((resolve) => setTimeout(resolve, 1000));
+              await new Promise((r) => setTimeout(r, 1000));
 
               try {
                 await Promise.all([
@@ -157,13 +170,13 @@ export const useMerklClaim = ({
                       ])
                     : Promise.resolve(),
                 ]);
-              } catch (error) {
+              } catch (err) {
                 // Retry if we have retries left
                 if (retries > 0) {
-                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                  await new Promise((r) => setTimeout(r, 1000));
                   return updateBalancesWithRetry(retries - 1);
                 }
-                throw error;
+                throw err;
               }
             };
 
@@ -185,10 +198,7 @@ export const useMerklClaim = ({
             transactionMeta.status === TransactionStatus.rejected
           ) {
             isResolved = true;
-            Engine.controllerMessenger.unsubscribe(
-              'TransactionController:transactionStatusUpdated',
-              handleTransactionStatusUpdate,
-            );
+            unsubscribe();
             pendingTransactionIdRef.current = null;
             // Update UI state immediately
             setIsClaiming(false);
@@ -201,11 +211,29 @@ export const useMerklClaim = ({
           }
         };
 
+        // Subscribe BEFORE checking current state to avoid missing events
         Engine.controllerMessenger.subscribe(
           'TransactionController:transactionStatusUpdated',
           handleTransactionStatusUpdate,
         );
+
+        // Check if transaction is already in a terminal state (handles fast L2 chains)
+        // This must happen AFTER subscribing to avoid race condition
+        const currentTxMeta =
+          Engine.context.TransactionController.state.transactions.find(
+            (tx) => tx.id === transactionId,
+          );
+        if (currentTxMeta && !isResolved) {
+          // Manually invoke the handler with the current state
+          handleTransactionStatusUpdate({ transactionMeta: currentTxMeta });
+        }
       });
+
+      // Wait for transaction hash (submission)
+      await result.result;
+
+      // Wait for confirmation (subscription already set up above)
+      await confirmationPromise;
 
       return result;
     } catch (e) {

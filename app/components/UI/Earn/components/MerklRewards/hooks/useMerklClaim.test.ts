@@ -44,6 +44,11 @@ jest.mock('../../../../../../core/Engine', () => ({
         return undefined;
       }),
     },
+    TransactionController: {
+      state: {
+        transactions: [],
+      },
+    },
   },
 }));
 
@@ -144,6 +149,13 @@ describe('useMerklClaim', () => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
     transactionStatusUpdateCallbacks = [];
+
+    // Reset TransactionController state
+    (
+      Engine.context.TransactionController as {
+        state: { transactions: TransactionMeta[] };
+      }
+    ).state.transactions = [];
 
     // Mock subscribe to capture transactionStatusUpdated callbacks
     mockSubscribe.mockImplementation((event, callback) => {
@@ -665,5 +677,90 @@ describe('useMerklClaim', () => {
       }),
     );
     await waitFor(() => expect(mockRefresh).toHaveBeenCalledWith(['mainnet']));
+  });
+
+  it('handles race condition when transaction is already confirmed before subscription check', async () => {
+    // This test verifies the fix for the race condition where on fast L2 chains,
+    // the transaction can be confirmed before the subscription is set up.
+    // The fix checks the current transaction state after subscribing.
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
+
+    const mockTransactionId = 'tx-already-confirmed';
+
+    // Pre-populate TransactionController with an already-confirmed transaction
+    const alreadyConfirmedTx = createMockTransactionMeta(
+      mockTransactionId,
+      TransactionStatus.confirmed,
+    );
+    (
+      Engine.context.TransactionController as {
+        state: { transactions: TransactionMeta[] };
+      }
+    ).state.transactions = [alreadyConfirmedTx];
+
+    mockAddTransaction.mockResolvedValueOnce({
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: mockTransactionId },
+    } as never);
+
+    const mockOnClaimSuccess = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() =>
+      useMerklClaim({ asset: mockAsset, onClaimSuccess: mockOnClaimSuccess }),
+    );
+
+    // Execute claim - should complete immediately because tx is already confirmed
+    await act(async () => {
+      await result.current.claimRewards();
+    });
+
+    // Should have completed successfully without hanging
+    expect(result.current.isClaiming).toBe(false);
+    expect(result.current.error).toBe(null);
+    // onClaimSuccess should have been called
+    await waitFor(() => expect(mockOnClaimSuccess).toHaveBeenCalledTimes(1));
+  });
+
+  it('handles race condition when transaction already failed before subscription check', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
+
+    const mockTransactionId = 'tx-already-failed';
+
+    // Pre-populate TransactionController with an already-failed transaction
+    const alreadyFailedTx = createMockTransactionMeta(
+      mockTransactionId,
+      TransactionStatus.failed,
+      { error: { name: 'Error', message: 'Transaction out of gas' } },
+    );
+    (
+      Engine.context.TransactionController as {
+        state: { transactions: TransactionMeta[] };
+      }
+    ).state.transactions = [alreadyFailedTx];
+
+    mockAddTransaction.mockResolvedValueOnce({
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: mockTransactionId },
+    } as never);
+
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
+
+    // Execute claim - should reject immediately because tx is already failed
+    await act(async () => {
+      try {
+        await result.current.claimRewards();
+      } catch (e) {
+        // Expected to throw
+      }
+    });
+
+    // Should have completed with error
+    expect(result.current.isClaiming).toBe(false);
+    expect(result.current.error).toBe('Transaction out of gas');
   });
 });
