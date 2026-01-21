@@ -350,7 +350,7 @@ describe('retryWithDelay', () => {
   });
 
   describe('edge cases', () => {
-    it('handles maxRetries of 0', async () => {
+    it('throws if maxRetries is 0', async () => {
       const error = new Error('status: [500]');
       const operation = jest.fn().mockRejectedValue(error);
 
@@ -361,7 +361,7 @@ describe('retryWithDelay', () => {
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
-    it('handles negative maxRetries (normalizes to 0)', async () => {
+    it('throws if maxRetries is negative', async () => {
       const error = new Error('status: [500]');
       const operation = jest.fn().mockRejectedValue(error);
 
@@ -372,7 +372,7 @@ describe('retryWithDelay', () => {
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
-    it('uses default values when options are not provided', async () => {
+    it('throws if options are not provided', async () => {
       const error = new Error('status: [500]');
       const operation = jest.fn().mockRejectedValue(error);
       const onRetry = jest.fn();
