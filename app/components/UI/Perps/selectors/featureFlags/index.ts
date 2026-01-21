@@ -174,7 +174,7 @@ export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const localFlag = process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED === 'true';
     const remoteFlag =
-      remoteFeatureFlags?.perpsTradeWithAnyTokenEnabled as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },

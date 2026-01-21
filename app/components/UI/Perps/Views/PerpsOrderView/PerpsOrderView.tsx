@@ -393,6 +393,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const context = useUnifiedSwapBridgeContext();
   const quotes = useSelector(selectBridgeQuotes);
 
+  console.log('isTradeWithAnyTokenEnabled', isTradeWithAnyTokenEnabled);
+
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
     if (!isOrderTypeVisible && shouldOpenLimitPrice) {
@@ -552,9 +554,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [marginRequired, orderForm.amount]);
 
   const { updatePositionTPSL } = usePerpsTrading();
-  const contractBalancesPerChainId = useSelector(
-    selectContractBalancesPerChainId,
-  );
+
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -1255,16 +1255,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, {
-        asset: getPerpsDisplaySymbol(orderForm.asset),
-      });
+      asset: getPerpsDisplaySymbol(orderForm.asset),
+    });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
-      !isStopLossSafeFromLiquidation(
-        orderForm.stopLossPrice,
-        liquidationPrice,
-        orderForm.direction,
-      ),
+    !isStopLossSafeFromLiquidation(
+      orderForm.stopLossPrice,
+      liquidationPrice,
+      orderForm.direction,
+    ),
   );
 
   let rewardAnimationState = RewardAnimationState.Idle;
@@ -1395,10 +1395,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         color={TextColor.Default}
                       >
                         {orderForm.limitPrice !== undefined &&
-                        orderForm.limitPrice !== null
+                          orderForm.limitPrice !== null
                           ? formatPerpsFiat(orderForm.limitPrice, {
-                              ranges: PRICE_RANGES_UNIVERSAL,
-                            })
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })
                           : 'Set price'}
                       </Text>
                     </ListItemColumn>
@@ -1407,30 +1407,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
-            {/* Deposit Amount Input */}
-            <View style={[styles.detailItem, styles.detailItemMiddle]}>
-              <View style={styles.amountInputContainer}>
-                {/* Deposit Amount Input */}
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.amountInput}
-                    value={depositAmount}
-                    onChangeText={setDepositAmount}
-                    placeholder="Amount to trade with any token"
-                    placeholderTextColor={colors.text.alternative}
-                    keyboardType="decimal-pad"
-                    testID="perps-order-deposit-amount-input"
-                  />
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.tokenSymbolLabel}
-                  >
-                    USD
-                  </Text>
-                </View>
-              </View>
-            </View>
+
 
             {/* Combined TP/SL row - Hidden when modifying existing position */}
             {!hideTPSL && (
@@ -1519,8 +1496,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
@@ -1547,8 +1524,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
@@ -1575,25 +1552,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !hasValidAmount || feeResults.isLoadingMetamaskFee
                   ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
                   : formatPerpsFiat(estimatedFees, {
-                      ranges: PRICE_RANGES_MINIMAL_VIEW,
-                    })
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
               }
               variant={TextVariant.BodySM}
             />
           </View>
-          {/* Perps Balance - Available to Trade */}
-          <View style={styles.infoRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              Available to Trade:
-            </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {isLoadingAccount
-                ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
-                : formatPerpsFiat(availableBalance, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })}
-            </Text>
-          </View>
+
 
           {isTradeWithAnyTokenEnabled &&
             depositAmount &&
@@ -1886,11 +1851,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           data={
             selectedTooltip === 'fees'
               ? {
-                  metamaskFeeRate: feeResults.metamaskFeeRate,
-                  protocolFeeRate: feeResults.protocolFeeRate,
-                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
-                }
+                metamaskFeeRate: feeResults.metamaskFeeRate,
+                protocolFeeRate: feeResults.protocolFeeRate,
+                originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                feeDiscountPercentage: feeResults.feeDiscountPercentage,
+              }
               : undefined
           }
         />

@@ -1,3 +1,9 @@
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { toCaipAssetType } from '@metamask/utils';
 import React, {
   ReactNode,
   memo,
@@ -5,37 +11,46 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { Alert } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import EngineService from '../../../../../core/EngineService';
+import { Box } from '../../../../UI/Box/Box';
+import { AlignItems } from '../../../../UI/Box/box.types';
+import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { ConfirmationFooterSelectorIDs } from '../../../../Views/confirmations/ConfirmationView.testIds';
+import { AlertMessage } from '../../../../Views/confirmations/components/alerts/alert-message';
 import {
-  PayTokenAmount,
-  PayTokenAmountSkeleton,
+  DepositKeyboardSkeleton
+} from '../../../../Views/confirmations/components/deposit-keyboard';
+import {
+  PayTokenAmountSkeleton
 } from '../../../../Views/confirmations/components/pay-token-amount';
+import { BridgeFeeRow } from '../../../../Views/confirmations/components/rows/bridge-fee-row';
+import { BridgeTimeRow } from '../../../../Views/confirmations/components/rows/bridge-time-row';
 import {
   PayWithRow,
   PayWithRowSkeleton,
 } from '../../../../Views/confirmations/components/rows/pay-with-row';
-import { BridgeFeeRow } from '../../../../Views/confirmations/components/rows/bridge-fee-row';
-import { BridgeTimeRow } from '../../../../Views/confirmations/components/rows/bridge-time-row';
-import { TotalRow } from '../../../../Views/confirmations/components/rows/total-row';
 import { PercentageRow } from '../../../../Views/confirmations/components/rows/percentage-row';
+import { TotalRow } from '../../../../Views/confirmations/components/rows/total-row';
 import {
-  DepositKeyboard,
-  DepositKeyboardSkeleton,
-} from '../../../../Views/confirmations/components/deposit-keyboard';
-import { Box } from '../../../../UI/Box/Box';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './PerpsInlineDeposit.styles';
-import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
-import { useTransactionCustomAmountAlerts } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmountAlerts';
-import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
+  CustomAmountSkeleton
+} from '../../../../Views/confirmations/components/transactions/custom-amount';
+import { useAlerts } from '../../../../Views/confirmations/context/alert-system-context';
 import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
-import { AlertMessage } from '../../../../Views/confirmations/components/alerts/alert-message';
-import {
-  CustomAmount,
-  CustomAmountSkeleton,
-} from '../../../../Views/confirmations/components/transactions/custom-amount';
+import { useTransactionPayAvailableTokens } from '../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -43,33 +58,16 @@ import {
   useTransactionPaySourceAmounts,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
-import { useTransactionPayAvailableTokens } from '../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
-import { useAccountTokens } from '../../../../Views/confirmations/hooks/send/useAccountTokens';
-import { toCaipAssetType } from '@metamask/utils';
-import { AlignItems } from '../../../../UI/Box/box.types';
-import { strings } from '../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
-import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { useAlerts } from '../../../../Views/confirmations/context/alert-system-context';
-import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
-import EngineService from '../../../../../core/EngineService';
-import { ConfirmationFooterSelectorIDs } from '../../../../Views/confirmations/ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useAccountTokens } from '../../../../Views/confirmations/hooks/send/useAccountTokens';
+import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
+import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
+import { useTransactionCustomAmountAlerts } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmountAlerts';
+import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
+import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './PerpsInlineDeposit.styles';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -77,25 +75,10 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
-  /**
-   * Optional render function that overrides the default content.
-   * When set, automatically hides PayTokenAmount, PayWithRow, and children.
-   */
   overrideContent?: (amountHuman: string) => ReactNode;
   defaultValue?: string;
-  minimalView?: boolean;
-  /**
-   * If true, skips navigation after transaction confirmation.
-   * Useful when the confirmation screen is used as a modal and should stay on the current screen.
-   */
   skipNavigation?: boolean;
-  /**
-   * Optional token name to display in the confirm button.
-   */
   tokenName?: string;
-  /**
-   * Optional callback to be called when the user confirms the transaction.
-   */
   onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
 }
 
@@ -104,11 +87,8 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
     children,
     currency,
     disablePay,
-    hasMax,
-    overrideContent,
     preferredToken,
     defaultValue,
-    minimalView = true,
     skipNavigation = false,
     tokenName,
     onConfirmCallback,
@@ -120,8 +100,6 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
 
-    const { isNative: isNativePayToken } = useTransactionPayToken();
-    const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
@@ -131,13 +109,9 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const {
-      amountFiat,
-      amountHuman,
       amountHumanDebounced,
-      hasInput,
       isInputChanged,
       updatePendingAmount,
-      updatePendingAmountPercentage,
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
@@ -159,36 +133,14 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible(false);
     }, [updateTokenAmount]);
 
-    const handleAmountPress = useCallback(() => {
-      setIsKeyboardVisible(true);
-    }, []);
 
     return (
-      <Box style={[!minimalView && styles.container]}>
-        <Box style={[!minimalView && styles.inputContainer]}>
-          {!minimalView && (
-            <CustomAmount
-              amountFiat={amountFiat}
-              currency={currency}
-              hasAlert={Boolean(alertMessage)}
-              onPress={handleAmountPress}
-              disabled={!hasTokens}
-            />
-          )}
-          {!minimalView && overrideContent ? (
-            overrideContent(amountHuman)
-          ) : (
-            <>
-              {!minimalView && disablePay !== true && (
-                <PayTokenAmount
-                  amountHuman={amountHuman}
-                  disabled={!hasTokens}
-                />
-              )}
-              {children}
-              {disablePay !== true && hasTokens && <PayWithRow />}
-            </>
-          )}
+      <Box >
+        <Box>
+
+          {children}
+          {disablePay !== true && hasTokens && <PayWithRow />}
+
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -200,18 +152,8 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
               <PercentageRow />
             </Box>
           )}
-          {isKeyboardVisible && hasTokens && !minimalView && (
-            <DepositKeyboard
-              alertMessage={alertTitle}
-              value={amountFiat}
-              onChange={updatePendingAmount}
-              onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
-              hasInput={hasInput}
-              hasMax={hasMax && !isNativePayToken}
-            />
-          )}
-          {minimalView && !isResultReady && (
+
+          {!isResultReady && (
             <Box>
               <Button
                 label="Confirm"
@@ -222,13 +164,7 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
               />
             </Box>
           )}
-          {!minimalView && (
-            <Box>
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                {amountFiat}
-              </Text>
-            </Box>
-          )}
+
           {!hasTokens && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
@@ -271,7 +207,7 @@ function BuySection() {
   const asset = tokens.find(
     (token) =>
       token.address?.toLowerCase() ===
-        primaryRequiredToken?.address.toLowerCase() &&
+      primaryRequiredToken?.address.toLowerCase() &&
       token.chainId === primaryRequiredToken?.chainId,
   );
 
@@ -345,6 +281,8 @@ function ConfirmButton({
       ? 'Execute trade ' + payToken.symbol
       : label;
 
+
+
   return (
     <Button
       style={[disabled && styles.disabledButton]}
@@ -353,7 +291,10 @@ function ConfirmButton({
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
       disabled={disabled}
-      onPress={onConfirm}
+      onPress={() => {
+        Alert.alert('Confirm');
+        onConfirm();
+      }}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     />
   );
