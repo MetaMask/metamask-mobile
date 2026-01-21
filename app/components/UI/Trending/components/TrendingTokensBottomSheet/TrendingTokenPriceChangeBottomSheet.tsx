@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
@@ -15,7 +15,6 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 export enum PriceChangeOption {
   PriceChange = 'price_change',
@@ -54,28 +53,11 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
   isVisible,
   onClose,
   onPriceChangeSelect,
-  selectedOption: initialSelectedOption,
-  sortDirection: initialSortDirection,
+  selectedOption = PriceChangeOption.PriceChange,
+  sortDirection = SortDirection.Descending,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
-  // Default to "Price change" if no selection
-  const [selectedOption, setSelectedOption] = useState<PriceChangeOption>(
-    initialSelectedOption || PriceChangeOption.PriceChange,
-  );
-  const [sortDirection, setSortDirection] = useState<SortDirection>(
-    initialSortDirection || SortDirection.Descending,
-  );
-
-  // Sync selectedOption and sortDirection when initial values change
-  useEffect(() => {
-    if (initialSelectedOption) {
-      setSelectedOption(initialSelectedOption);
-    }
-    if (initialSortDirection) {
-      setSortDirection(initialSortDirection);
-    }
-  }, [initialSelectedOption, initialSortDirection]);
 
   // Open bottom sheet when isVisible becomes true
   useEffect(() => {
@@ -104,28 +86,6 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       alignItems: 'center',
       gap: 8,
     },
-    applyButton: {
-      height: 48,
-      paddingVertical: 4,
-      paddingHorizontal: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexShrink: 0,
-      alignSelf: 'stretch',
-      borderRadius: 12,
-      backgroundColor: colors.icon.default,
-      marginHorizontal: 16,
-      marginTop: 16,
-      marginBottom: 32,
-    },
-    applyButtonText: {
-      color: colors.icon.inverse,
-      textAlign: 'center',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '500',
-      lineHeight: undefined, // normal
-    },
   });
 
   const handleClose = useCallback(() => {
@@ -138,33 +98,33 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
     onClose();
   }, [onClose]);
 
-  const handleApply = useCallback(() => {
-    // Apply the current selection and close
-    if (onPriceChangeSelect) {
-      onPriceChangeSelect(selectedOption, sortDirection);
-    }
-    sheetRef.current?.onCloseBottomSheet(() => {
-      onClose();
-    });
-  }, [onPriceChangeSelect, selectedOption, sortDirection, onClose]);
-
   const onOptionPress = useCallback(
     (option: PriceChangeOption) => {
+      let newDirection: SortDirection;
+      let newOption: PriceChangeOption;
+
       // If clicking the same option, toggle sort direction
       if (selectedOption === option) {
-        const newDirection =
+        newDirection =
           sortDirection === SortDirection.Ascending
             ? SortDirection.Descending
             : SortDirection.Ascending;
-        setSortDirection(newDirection);
+        newOption = option;
       } else {
         // If clicking a different option, select it with descending direction
-        setSelectedOption(option);
-        setSortDirection(SortDirection.Descending);
+        newOption = option;
+        newDirection = SortDirection.Descending;
       }
-      // Don't call the callback here - wait for Apply button
+
+      // Apply the selection immediately and close the sheet
+      if (onPriceChangeSelect) {
+        onPriceChangeSelect(newOption, newDirection);
+      }
+      sheetRef.current?.onCloseBottomSheet(() => {
+        onClose();
+      });
     },
-    [selectedOption, sortDirection],
+    [selectedOption, sortDirection, onPriceChangeSelect, onClose],
   );
 
   if (!isVisible) return null;
@@ -285,15 +245,6 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           )}
         </TouchableOpacity>
       </View>
-      <ButtonBase
-        label={
-          <Text style={optionStyles.applyButtonText}>
-            {strings('trending.apply')}
-          </Text>
-        }
-        onPress={handleApply}
-        style={optionStyles.applyButton}
-      />
     </BottomSheet>
   );
 };

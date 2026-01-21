@@ -76,26 +76,6 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
-  () => {
-    const { TouchableOpacity, View } = jest.requireActual('react-native');
-    return ({
-      children,
-      onPress,
-      label,
-    }: {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      label?: React.ReactNode;
-    }) => (
-      <TouchableOpacity testID="apply-button" onPress={onPress}>
-        <View>{label || children}</View>
-      </TouchableOpacity>
-    );
-  },
-);
-
 describe('TrendingTokenPriceChangeBottomSheet', () => {
   const mockOnClose = jest.fn();
 
@@ -126,13 +106,12 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     expect(getByText('Market cap')).toBeOnTheScreen();
   });
 
-  it('renders Apply button', () => {
-    const { getByTestId, getByText } = render(
+  it('does not render Apply button', () => {
+    const { queryByText } = render(
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByTestId('apply-button')).toBeOnTheScreen();
-    expect(getByText('Apply')).toBeOnTheScreen();
+    expect(queryByText('Apply')).toBeNull();
   });
 
   it('displays "High to low" and down arrow for descending sort', () => {
@@ -143,25 +122,15 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     expect(getByText('High to low')).toBeOnTheScreen();
   });
 
-  it('toggles sort direction when same option is pressed', () => {
-    const { getByText, queryByText } = render(
-      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
-    );
+  it('calls onPriceChangeSelect immediately when option is pressed', () => {
+    const mockOnPriceChangeSelect = jest.fn();
 
-    const priceChangeOption = getByText('Price change');
-    expect(getByText('High to low')).toBeOnTheScreen();
-
-    const parent = priceChangeOption.parent;
-    if (!parent) throw new Error('Parent element not found');
-    fireEvent.press(parent);
-
-    expect(getByText('Low to high')).toBeOnTheScreen();
-    expect(queryByText('High to low')).toBeNull();
-  });
-
-  it('selects new option with descending direction when different option is pressed', () => {
     const { getByText } = render(
-      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+      />,
     );
 
     const volumeOption = getByText('Volume');
@@ -169,38 +138,22 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     if (!parent) throw new Error('Parent element not found');
     fireEvent.press(parent);
 
-    expect(getByText('Volume')).toBeOnTheScreen();
-    expect(getByText('High to low')).toBeOnTheScreen();
-  });
-
-  it('calls onPriceChangeSelect with correct values when Apply is pressed', () => {
-    const mockOnPriceChangeSelect = jest.fn();
-
-    const { getByTestId } = render(
-      <TrendingTokenPriceChangeBottomSheet
-        isVisible
-        onClose={mockOnClose}
-        onPriceChangeSelect={mockOnPriceChangeSelect}
-      />,
-    );
-
-    const applyButton = getByTestId('apply-button');
-    fireEvent.press(applyButton);
-
     expect(mockOnPriceChangeSelect).toHaveBeenCalledWith(
-      PriceChangeOption.PriceChange,
+      PriceChangeOption.Volume,
       SortDirection.Descending,
     );
   });
 
-  it('calls onPriceChangeSelect with updated sort direction after toggle', () => {
+  it('toggles sort direction and applies immediately when same option is pressed', () => {
     const mockOnPriceChangeSelect = jest.fn();
 
-    const { getByText, getByTestId } = render(
+    const { getByText } = render(
       <TrendingTokenPriceChangeBottomSheet
         isVisible
         onClose={mockOnClose}
         onPriceChangeSelect={mockOnPriceChangeSelect}
+        selectedOption={PriceChangeOption.PriceChange}
+        sortDirection={SortDirection.Descending}
       />,
     );
 
@@ -209,19 +162,16 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     if (!parent) throw new Error('Parent element not found');
     fireEvent.press(parent);
 
-    const applyButton = getByTestId('apply-button');
-    fireEvent.press(applyButton);
-
     expect(mockOnPriceChangeSelect).toHaveBeenCalledWith(
       PriceChangeOption.PriceChange,
       SortDirection.Ascending,
     );
   });
 
-  it('closes bottom sheet when Apply is pressed', () => {
+  it('closes bottom sheet when option is pressed', () => {
     const mockOnPriceChangeSelect = jest.fn();
 
-    const { getByTestId } = render(
+    const { getByText } = render(
       <TrendingTokenPriceChangeBottomSheet
         isVisible
         onClose={mockOnClose}
@@ -229,8 +179,10 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
       />,
     );
 
-    const applyButton = getByTestId('apply-button');
-    fireEvent.press(applyButton);
+    const volumeOption = getByText('Volume');
+    const parent = volumeOption.parent;
+    if (!parent) throw new Error('Parent element not found');
+    fireEvent.press(parent);
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
@@ -301,15 +253,52 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
 
     expect(mockOnOpenBottomSheet).toHaveBeenCalled();
   });
-  it('selects MarketCap option when pressed', () => {
+
+  it('selects MarketCap option and applies immediately when pressed', () => {
+    const mockOnPriceChangeSelect = jest.fn();
+
     const { getByText } = render(
-      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+      />,
     );
+
     const marketCapOption = getByText('Market cap');
     const parent = marketCapOption.parent;
     if (!parent) throw new Error('Parent element not found');
     fireEvent.press(parent);
-    expect(getByText('Market cap')).toBeOnTheScreen();
-    expect(getByText('High to low')).toBeOnTheScreen();
+
+    expect(mockOnPriceChangeSelect).toHaveBeenCalledWith(
+      PriceChangeOption.MarketCap,
+      SortDirection.Descending,
+    );
+    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('toggles ascending to descending when same option is pressed', () => {
+    const mockOnPriceChangeSelect = jest.fn();
+
+    const { getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+        selectedOption={PriceChangeOption.Volume}
+        sortDirection={SortDirection.Ascending}
+      />,
+    );
+
+    const volumeOption = getByText('Volume');
+    const parent = volumeOption.parent;
+    if (!parent) throw new Error('Parent element not found');
+    fireEvent.press(parent);
+
+    expect(mockOnPriceChangeSelect).toHaveBeenCalledWith(
+      PriceChangeOption.Volume,
+      SortDirection.Descending,
+    );
   });
 });
