@@ -591,10 +591,17 @@ export class CardSDK {
 
   private async makeRequest(
     endpoint: string,
-    options: RequestInit & { query?: string } = {},
-    authenticated: boolean = false,
-    location: CardLocation = this.userCardLocation,
-    timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
+    {
+      fetchOptions = {},
+      authenticated = false,
+      location = this.userCardLocation,
+      timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+    }: {
+      fetchOptions?: RequestInit & { query?: string };
+      authenticated?: boolean;
+      location?: CardLocation;
+      timeoutMs?: number;
+    } = {},
   ): Promise<Response> {
     const apiKey = this.cardBaanxApiKey;
 
@@ -632,7 +639,7 @@ export class CardSDK {
     }
 
     const url = `${this.cardBaanxApiBaseUrl}${endpoint}${
-      options.query ? `?${options.query}` : ''
+      fetchOptions.query ? `?${fetchOptions.query}` : ''
     }`;
 
     // Create AbortController for timeout handling
@@ -644,10 +651,10 @@ export class CardSDK {
     try {
       const response = await fetch(url, {
         credentials: 'omit',
-        ...options,
+        ...fetchOptions,
         headers: {
           ...headers,
-          ...options.headers,
+          ...fetchOptions.headers,
         },
         signal: controller.signal,
       });
@@ -710,11 +717,13 @@ export class CardSDK {
     const response = await this.makeRequest(
       '/v1/auth/oauth/authorize/initiate',
       {
-        method: 'GET',
-        query: queryParamsString.toString(),
+        fetchOptions: {
+          method: 'GET',
+          query: queryParamsString.toString(),
+        },
+        authenticated: false,
+        location: queryParams.location,
       },
-      false,
-      queryParams.location,
     );
 
     return this.handleApiResponse<CardLoginInitiateResponse>(
@@ -733,9 +742,8 @@ export class CardSDK {
   }): Promise<CardLoginResponse> => {
     const { email, password, otpCode, location } = body;
 
-    const response = await this.makeRequest(
-      '/v1/auth/login',
-      {
+    const response = await this.makeRequest('/v1/auth/login', {
+      fetchOptions: {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -743,9 +751,9 @@ export class CardSDK {
           ...(otpCode ? { otpCode } : {}),
         }),
       },
-      false,
+      authenticated: false,
       location,
-    );
+    });
 
     if (!response.ok) {
       let responseBody = null;
@@ -836,15 +844,14 @@ export class CardSDK {
     location: CardLocation;
   }): Promise<void> => {
     const { userId } = body;
-    const response = await this.makeRequest(
-      '/v1/auth/login/otp',
-      {
+    const response = await this.makeRequest('/v1/auth/login/otp', {
+      fetchOptions: {
         method: 'POST',
         body: JSON.stringify({ userId }),
       },
-      false,
-      body.location,
-    );
+      authenticated: false,
+      location: body.location,
+    });
 
     if (!response.ok) {
       throw this.logAndCreateError(
@@ -863,9 +870,8 @@ export class CardSDK {
     location: CardLocation;
   }): Promise<CardAuthorizeResponse> => {
     const { initiateAccessToken, loginAccessToken, location } = body;
-    const response = await this.makeRequest(
-      '/v1/auth/oauth/authorize',
-      {
+    const response = await this.makeRequest('/v1/auth/oauth/authorize', {
+      fetchOptions: {
         method: 'POST',
         body: JSON.stringify({
           token: initiateAccessToken,
@@ -874,9 +880,9 @@ export class CardSDK {
           Authorization: `Bearer ${loginAccessToken}`,
         },
       },
-      false,
+      authenticated: false,
       location,
-    );
+    });
 
     return this.handleApiResponse<CardAuthorizeResponse>(
       response,
@@ -910,18 +916,17 @@ export class CardSDK {
       };
     }
 
-    const response = await this.makeRequest(
-      '/v1/auth/oauth/token',
-      {
+    const response = await this.makeRequest('/v1/auth/oauth/token', {
+      fetchOptions: {
         method: 'POST',
         body: JSON.stringify(requestBody),
         headers: {
           'x-secret-key': this.cardBaanxApiKey || '',
         },
       },
-      false,
-      body.location,
-    );
+      authenticated: false,
+      location: body.location,
+    });
 
     if (!response.ok) {
       const errorType =
@@ -951,11 +956,10 @@ export class CardSDK {
   };
 
   getUserDetails = async (): Promise<UserResponse> => {
-    const response = await this.makeRequest(
-      '/v1/user',
-      { method: 'GET' },
-      true,
-    );
+    const response = await this.makeRequest('/v1/user', {
+      fetchOptions: { method: 'GET' },
+      authenticated: true,
+    });
 
     return this.handleApiResponse<UserResponse>(
       response,
@@ -966,11 +970,10 @@ export class CardSDK {
   };
 
   getCardDetails = async (): Promise<CardDetailsResponse> => {
-    const response = await this.makeRequest(
-      '/v1/card/status',
-      { method: 'GET' },
-      true,
-    );
+    const response = await this.makeRequest('/v1/card/status', {
+      fetchOptions: { method: 'GET' },
+      authenticated: true,
+    });
 
     if (!response.ok) {
       // Special case: 404 means user has no card (not an error to log)
@@ -1002,8 +1005,14 @@ export class CardSDK {
     delegationSettings: DelegationSettingsNetwork[],
   ): Promise<CardExternalWalletDetailsResponse> => {
     const promises = [
-      this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
-      this.makeRequest('/v1/wallet/external/priority', { method: 'GET' }, true),
+      this.makeRequest('/v1/wallet/external', {
+        fetchOptions: { method: 'GET' },
+        authenticated: true,
+      }),
+      this.makeRequest('/v1/wallet/external/priority', {
+        fetchOptions: { method: 'GET' },
+        authenticated: true,
+      }),
     ];
 
     const responses = await Promise.all(promises);
@@ -1302,17 +1311,13 @@ export class CardSDK {
 
     const requestBody = { wallets };
 
-    const response = await this.makeRequest(
-      '/v1/wallet/external/priority',
-      {
+    const response = await this.makeRequest('/v1/wallet/external/priority', {
+      fetchOptions: {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(requestBody),
       },
-      true,
-    );
+      authenticated: true,
+    });
 
     if (!response.ok) {
       throw this.logAndCreateError(
@@ -1338,15 +1343,19 @@ export class CardSDK {
   generateDelegationToken = async (
     network: CardNetwork,
     address: string,
+    faucet?: boolean,
   ): Promise<{
     token: string;
     expiresAt: string;
     nonce: string;
   }> => {
     const response = await this.makeRequest(
-      `/v1/delegation/token?network=${network}&address=${address}`,
-      { method: 'GET' },
-      true,
+      `/v1/delegation/token?network=${network}&address=${address}${faucet ? '&faucet=true' : ''}`,
+      {
+        fetchOptions: { method: 'GET' },
+        authenticated: true,
+        timeoutMs: 30000,
+      },
     );
 
     if (!response.ok) {
@@ -1410,10 +1419,12 @@ export class CardSDK {
     const response = await this.makeRequest(
       '/v1/delegation/evm/post-approval',
       {
-        method: 'POST',
-        body: JSON.stringify(params),
+        fetchOptions: {
+          method: 'POST',
+          body: JSON.stringify(params),
+        },
+        authenticated: true,
       },
-      true,
     );
 
     if (!response.ok) {
@@ -1449,8 +1460,10 @@ export class CardSDK {
         const queryParams = network ? `?network=${network}` : '';
         const response = await this.makeRequest(
           `/v1/delegation/chain/config${queryParams}`,
-          { method: 'GET' },
-          true,
+          {
+            fetchOptions: { method: 'GET' },
+            authenticated: true,
+          },
         );
 
         if (!response.ok) {
@@ -1548,13 +1561,12 @@ export class CardSDK {
         const response = await this.makeRequest(
           '/v1/auth/register/email/send',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+            fetchOptions: {
+              method: 'POST',
+              body: JSON.stringify(request),
             },
-            body: JSON.stringify(request),
+            authenticated: false,
           },
-          false, // not authenticated
         );
 
         return this.handleApiResponse<EmailVerificationSendResponse>(
@@ -1585,13 +1597,12 @@ export class CardSDK {
         const response = await this.makeRequest(
           '/v1/auth/register/email/verify',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+            fetchOptions: {
+              method: 'POST',
+              body: JSON.stringify(request),
             },
-            body: JSON.stringify(request),
+            authenticated: false,
           },
-          false, // not authenticated
         );
 
         return this.handleApiResponse<EmailVerificationVerifyResponse>(
@@ -1617,13 +1628,12 @@ export class CardSDK {
         const response = await this.makeRequest(
           '/v1/auth/register/phone/send',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+            fetchOptions: {
+              method: 'POST',
+              body: JSON.stringify(request),
             },
-            body: JSON.stringify(request),
+            authenticated: false,
           },
-          false,
         );
 
         return this.handleApiResponse<PhoneVerificationSendResponse>(
@@ -1649,13 +1659,12 @@ export class CardSDK {
         const response = await this.makeRequest(
           '/v1/auth/register/phone/verify',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+            fetchOptions: {
+              method: 'POST',
+              body: JSON.stringify(request),
             },
-            body: JSON.stringify(request),
+            authenticated: false,
           },
-          false,
         );
 
         return this.handleApiResponse<RegisterUserResponse>(
@@ -1681,13 +1690,12 @@ export class CardSDK {
         const response = await this.makeRequest(
           '/v1/auth/register/verification',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+            fetchOptions: {
+              method: 'POST',
+              body: JSON.stringify(request),
             },
-            body: JSON.stringify(request),
+            authenticated: false,
           },
-          false,
         );
 
         return this.handleApiResponse<StartUserVerificationResponse>(
@@ -1715,13 +1723,12 @@ export class CardSDK {
         const response = await this.makeRequest(
           '/v1/auth/register/personal-details',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+            fetchOptions: {
+              method: 'POST',
+              body: JSON.stringify(request),
             },
-            body: JSON.stringify(request),
+            authenticated: false,
           },
-          false,
         );
 
         return this.handleApiResponse<RegisterUserResponse>(
@@ -1746,17 +1753,13 @@ export class CardSDK {
       'auth/register/address',
       'Failed to register address',
       async () => {
-        const response = await this.makeRequest(
-          '/v1/auth/register/address',
-          {
+        const response = await this.makeRequest('/v1/auth/register/address', {
+          fetchOptions: {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
             body: JSON.stringify(request),
           },
-          false,
-        );
+          authenticated: false,
+        });
 
         return this.handleApiResponse<RegisterAddressResponse>(
           response,
@@ -1783,13 +1786,12 @@ export class CardSDK {
         const response = await this.makeRequest(
           '/v1/auth/register/mailing-address',
           {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+            fetchOptions: {
+              method: 'POST',
+              body: JSON.stringify(request),
             },
-            body: JSON.stringify(request),
+            authenticated: false,
           },
-          false,
         );
 
         return this.handleApiResponse<RegisterAddressResponse>(
@@ -1808,13 +1810,10 @@ export class CardSDK {
       'auth/settings',
       'Failed to get registration settings',
       async () => {
-        const response = await this.makeRequest(
-          '/v1/auth/settings',
-          {
-            method: 'GET',
-          },
-          false, // not authenticated
-        );
+        const response = await this.makeRequest('/v1/auth/settings', {
+          fetchOptions: { method: 'GET' },
+          authenticated: false,
+        });
 
         const data = await this.handleApiResponse<RegistrationSettingsResponse>(
           response,
@@ -1837,9 +1836,9 @@ export class CardSDK {
         const response = await this.makeRequest(
           `/v1/auth/register?onboardingId=${onboardingId}`,
           {
-            method: 'GET',
+            fetchOptions: { method: 'GET' },
+            authenticated: false,
           },
-          false, // not authenticated
         );
 
         const data = await this.handleApiResponse<UserResponse>(
@@ -1865,9 +1864,9 @@ export class CardSDK {
         const response = await this.makeRequest(
           `/v2/consent/onboarding/${onboardingId}`,
           {
-            method: 'GET',
+            fetchOptions: { method: 'GET' },
+            authenticated: false,
           },
-          false, // not authenticated
         );
 
         // Special case: 404 means consent not found (not an error)
@@ -1907,18 +1906,16 @@ export class CardSDK {
       'consent/onboarding',
       'Failed to create onboarding consent',
       async () => {
-        const response = await this.makeRequest(
-          '/v2/consent/onboarding',
-          {
+        const response = await this.makeRequest('/v2/consent/onboarding', {
+          fetchOptions: {
             method: 'POST',
             body: JSON.stringify(requestBody),
             headers: {
-              'Content-Type': 'application/json',
               'x-secret-key': this.cardBaanxApiKey || '',
             },
           },
-          false, // not authenticated
-        );
+          authenticated: false,
+        });
 
         const data =
           await this.handleApiResponse<CreateOnboardingConsentResponse>(
@@ -1951,14 +1948,15 @@ export class CardSDK {
         const response = await this.makeRequest(
           `/v2/consent/onboarding/${consentSetId}`,
           {
-            method: 'PATCH',
-            body: JSON.stringify(request),
-            headers: {
-              'Content-Type': 'application/json',
-              'x-secret-key': this.cardBaanxApiKey || '',
+            fetchOptions: {
+              method: 'PATCH',
+              body: JSON.stringify(request),
+              headers: {
+                'x-secret-key': this.cardBaanxApiKey || '',
+              },
             },
+            authenticated: false,
           },
-          false, // not authenticated
         );
 
         const data = await this.handleApiResponse<LinkUserToConsentResponse>(
