@@ -70,38 +70,23 @@ export const normalizeDappUrl = (
   url: string | undefined | null,
   defaultProtocol = 'https://',
 ): string => {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return '';
+  }
+
+  const trimmedUrl = url.trim();
+
+  // Add protocol if missing
+  const normalizedUrl = trimmedUrl.includes('://')
+    ? trimmedUrl
+    : `${defaultProtocol}${trimmedUrl}`;
+
+  // Validate the URL
   try {
-    if (!url || typeof url !== 'string' || url.trim() === '') {
-      return '';
-    }
-
-    const trimmedUrl = url.trim();
-
-    // Check if URL already has a protocol
-    if (trimmedUrl.includes('://')) {
-      // Validate that it's a proper URL
-      try {
-        new URL(trimmedUrl);
-        return trimmedUrl;
-      } catch (e) {
-        DevLogger.log('Invalid URL format:', trimmedUrl);
-        return '';
-      }
-    }
-
-    // URL doesn't have a protocol, add the default one
-    const normalizedUrl = `${defaultProtocol}${trimmedUrl}`;
-
-    // Validate the resulting URL
-    try {
-      new URL(normalizedUrl);
-      return normalizedUrl;
-    } catch (e) {
-      DevLogger.log('Unable to normalize URL:', trimmedUrl);
-      return '';
-    }
-  } catch (error) {
-    DevLogger.log('Error in normalizeDappUrl:', error);
+    new URL(normalizedUrl);
+    return normalizedUrl;
+  } catch {
+    DevLogger.log('Invalid URL format:', trimmedUrl);
     return '';
   }
 };
