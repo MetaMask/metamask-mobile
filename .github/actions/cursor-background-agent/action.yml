@@ -1,0 +1,170 @@
+# Cursor Background Agent Action
+# Launches a Cursor Background Agent via the API and polls for completion
+# Returns working web URLs for viewing the agent session
+
+name: 'Cursor Background Agent'
+description: 'Launch a Cursor Background Agent and wait for completion'
+
+inputs:
+  cursor-api-key:
+    description: 'Cursor API key'
+    required: true
+  prompt:
+    description: 'The prompt/instructions for the agent (base64-encoded to handle special characters)'
+    required: true
+  repository:
+    description: 'GitHub repository URL (e.g., https://github.com/owner/repo)'
+    required: true
+  ref:
+    description: 'Git ref (branch/tag) to use as base'
+    required: true
+  model:
+    description: 'Model to use (e.g., opus-4.5-thinking)'
+    required: false
+    default: 'opus-4.5-thinking'
+  branch-name:
+    description: 'Branch name for changes (optional, for implementation tasks)'
+    required: false
+  auto-create-pr:
+    description: 'Whether to auto-create a PR (true/false)'
+    required: false
+    default: 'false'
+  timeout-minutes:
+    description: 'Maximum time to wait for completion (in minutes)'
+    required: false
+    default: '10'
+
+outputs:
+  agent-id:
+    description: 'The ID of the launched agent'
+    value: ${{ steps.launch.outputs.agent_id }}
+  agent-url:
+    description: 'Web URL to view the agent session'
+    value: ${{ steps.launch.outputs.agent_url }}
+  status:
+    description: 'Final status of the agent (COMPLETED, FAILED, CANCELLED, TIMEOUT)'
+    value: ${{ steps.poll.outputs.status }}
+  summary:
+    description: 'Summary/name from the agent response'
+    value: ${{ steps.poll.outputs.summary }}
+  pr-url:
+    description: 'URL of the created PR (if auto-create-pr was enabled)'
+    value: ${{ steps.poll.outputs.pr_url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Launch Background Agent
+      id: launch
+      shell: bash
+      env:
+        CURSOR_API_KEY: ${{ inputs.cursor-api-key }}
+        PROMPT_B64: ${{ inputs.prompt }}
+        REPOSITORY: ${{ inputs.repository }}
+        REF: ${{ inputs.ref }}
+        MODEL: ${{ inputs.model }}
+        BRANCH_NAME: ${{ inputs.branch-name }}
+        AUTO_CREATE_PR: ${{ inputs.auto-create-pr }}
+      run: |
+        # Decode base64-encoded prompt
+        PROMPT=$(printf '%s' "$PROMPT_B64" | base64 -d)
+
+        # Build the request body
+        if [ -n "$BRANCH_NAME" ]; then
+          REQUEST_BODY=$(jq -n \
+            --arg prompt "$PROMPT" \
+            --arg repo "$REPOSITORY" \
+            --arg ref "$REF" \
+            --arg model "$MODEL" \
+            --arg branch "$BRANCH_NAME" \
+            --argjson autoCreatePr "$AUTO_CREATE_PR" \
+            '{
+              prompt: { text: $prompt },
+              source: { repository: $repo, ref: $ref },
+              model: $model,
+              target: {
+                branchName: $branch,
+                autoCreatePr: $autoCreatePr
+              }
+            }')
+        else
+          REQUEST_BODY=$(jq -n \
+            --arg prompt "$PROMPT" \
+            --arg repo "$REPOSITORY" \
+            --arg ref "$REF" \
+            --arg model "$MODEL" \
+            '{
+              prompt: { text: $prompt },
+              source: { repository: $repo, ref: $ref },
+              model: $model
+            }')
+        fi
+
+        # Launch the agent
+        RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.cursor.com/v0/agents \
+          -H "Authorization: Bearer $CURSOR_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d "$REQUEST_BODY")
+
+        # Extract HTTP status code and response body
+        HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+        BODY=$(echo "$RESPONSE" | sed '$d')
+
+        if [ "$HTTP_CODE" != "201" ]; then
+          echo "::error::Failed to launch agent: HTTP $HTTP_CODE"
+          echo "$BODY"
+          exit 1
+        fi
+
+        # Extract agent ID and URL
+        AGENT_ID=$(echo "$BODY" | jq -r '.id')
+        AGENT_URL=$(echo "$BODY" | jq -r '.target.url')
+
+        echo "agent_id=$AGENT_ID" >> "$GITHUB_OUTPUT"
+        echo "agent_url=$AGENT_URL" >> "$GITHUB_OUTPUT"
+
+        echo "Launched agent: $AGENT_ID"
+        echo "View at: $AGENT_URL"
+
+    - name: Poll for Completion
+      id: poll
+      shell: bash
+      env:
+        CURSOR_API_KEY: ${{ inputs.cursor-api-key }}
+        AGENT_ID: ${{ steps.launch.outputs.agent_id }}
+        TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
+      run: |
+        # Calculate iterations (poll every 10 seconds)
+        MAX_ITERATIONS=$((TIMEOUT_MINUTES * 6))
+
+        echo "Waiting for agent to complete (max ${TIMEOUT_MINUTES} minutes)..."
+        
+        STATUS="TIMEOUT"
+        for i in $(seq 1 $MAX_ITERATIONS); do
+          STATUS_RESPONSE=$(curl -s -X GET "https://api.cursor.com/v0/agents/$AGENT_ID" \
+            -H "Authorization: Bearer $CURSOR_API_KEY")
+
+          STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.status')
+          echo "Status: $STATUS (attempt $i/$MAX_ITERATIONS)"
+
+          if [ "$STATUS" = "COMPLETED" ] || [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "CANCELLED" ]; then
+            break
+          fi
+
+          sleep 10
+        done
+
+        echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+
+        # Extract summary and PR URL from final response
+        SUMMARY=$(echo "$STATUS_RESPONSE" | jq -r '.summary // .name // "Complete"')
+        # Use base64 encoding to handle multiline summaries safely
+        SUMMARY_B64=$(printf '%s' "$SUMMARY" | base64 -w 0)
+        echo "summary=$SUMMARY_B64" >> "$GITHUB_OUTPUT"
+
+        PR_URL=$(echo "$STATUS_RESPONSE" | jq -r '.pullRequest.url // empty')
+        if [ -n "$PR_URL" ]; then
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+        fi
+
+        echo "Final status: $STATUS"
