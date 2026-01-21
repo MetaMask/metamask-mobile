@@ -34,7 +34,7 @@ describe('PercentageRow', () => {
   it('renders label, tooltip and APY when not loading', () => {
     const { getByText, getByTestId } = render();
 
-    expect(getByText(strings('earn.bonus'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.claimable_bonus'))).toBeOnTheScreen();
     expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
     expect(getByText(`${MUSD_CONVERSION_APY}%`)).toBeOnTheScreen();
   });
@@ -47,7 +47,7 @@ describe('PercentageRow', () => {
     const { queryByText, queryByTestId } = render();
 
     expect(queryByTestId('percentage-row-skeleton')).toBeNull();
-    expect(queryByText(strings('earn.bonus'))).toBeNull();
+    expect(queryByText(strings('earn.claimable_bonus'))).toBeNull();
     expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
   });
 
@@ -57,7 +57,7 @@ describe('PercentageRow', () => {
     const { queryByText, queryByTestId } = render();
 
     expect(queryByTestId('percentage-row-skeleton')).toBeNull();
-    expect(queryByText(strings('earn.bonus'))).toBeNull();
+    expect(queryByText(strings('earn.claimable_bonus'))).toBeNull();
     expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
   });
 
