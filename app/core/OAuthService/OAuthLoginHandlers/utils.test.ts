@@ -268,51 +268,6 @@ describe('retryWithDelay', () => {
     });
   });
 
-  describe('abort signal', () => {
-    it('aborts before first attempt if signal is already aborted', async () => {
-      const operation = jest.fn().mockResolvedValue('success');
-      const abortController = new AbortController();
-      abortController.abort();
-
-      await expect(
-        retryWithDelay(operation, {
-          maxRetries: 3,
-          abortSignal: abortController.signal,
-          ...fastRetryOptions,
-        }),
-      ).rejects.toThrow('Operation aborted');
-
-      expect(operation).not.toHaveBeenCalled();
-    });
-
-    it('aborts during delay between retries', async () => {
-      const error = new Error('status: [500]');
-      const operation = jest.fn().mockRejectedValue(error);
-      const abortController = new AbortController();
-
-      // Set up abort to trigger after first failure
-      operation.mockImplementation(() => {
-        // Abort after first call
-        if (operation.mock.calls.length === 1) {
-          setTimeout(() => abortController.abort(), 5);
-        }
-        return Promise.reject(error);
-      });
-
-      await expect(
-        retryWithDelay(operation, {
-          maxRetries: 3,
-          baseDelayMs: 50, // Long enough for abort to happen
-          maxDelayMs: 100,
-          jitterFactor: 0,
-          abortSignal: abortController.signal,
-        }),
-      ).rejects.toThrow('Operation aborted');
-
-      expect(operation).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('delay calculation', () => {
     it('uses exponential backoff', async () => {
       const error = new Error('status: [500]');

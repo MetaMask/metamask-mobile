@@ -36,8 +36,6 @@ export interface RetryOptions {
   shouldRetry?: (error: unknown) => boolean;
   /** Callback fired on each retry attempt (for logging/observability) */
   onRetry?: (context: RetryContext) => void;
-  /** AbortSignal to cancel retries (e.g., when component unmounts) */
-  abortSignal?: AbortSignal;
 }
 
 /**
@@ -96,7 +94,6 @@ export function isRetryableError(error: unknown): boolean {
  * - Exponential backoff with configurable base delay
  * - Jitter to prevent thundering herd problem
  * - Smart error classification (doesn't retry 4xx client errors by default)
- * - Cancellation support via AbortSignal
  * - Observability via onRetry callback
  *
  * @param operation - Async function to execute on each attempt
@@ -129,17 +126,11 @@ export async function retryWithDelay<T>(
     jitterFactor = 0.3,
     shouldRetry = isRetryableError,
     onRetry,
-    abortSignal,
   } = options;
 
   const normalizedMaxRetries = Math.max(0, maxRetries);
 
   for (let attempt = 0; attempt <= normalizedMaxRetries; attempt++) {
-    // Check for cancellation before each attempt
-    if (abortSignal?.aborted) {
-      throw new Error('Operation aborted');
-    }
-
     try {
       return await operation();
     } catch (error) {
@@ -163,38 +154,9 @@ export async function retryWithDelay<T>(
         throw error;
       }
 
-      // Wait before the next retry with cancellation support
+      // Wait before the next retry
       if (delayMs > 0) {
-        await new Promise<void>((resolve, reject) => {
-          let abortHandler: (() => void) | undefined;
-
-          const onTimeout = () => {
-            // Clean up abort listener when timeout completes normally
-            if (abortSignal && abortHandler) {
-              abortSignal.removeEventListener('abort', abortHandler);
-            }
-            resolve();
-          };
-
-          const timeoutId = setTimeout(onTimeout, delayMs);
-
-          // If we have an abort signal, listen for cancellation during the delay
-          if (abortSignal) {
-            // Check if already aborted before setting up listener
-            if (abortSignal.aborted) {
-              clearTimeout(timeoutId);
-              reject(new Error('Operation aborted'));
-              return;
-            }
-
-            abortHandler = () => {
-              clearTimeout(timeoutId);
-              reject(new Error('Operation aborted'));
-            };
-
-            abortSignal.addEventListener('abort', abortHandler, { once: true });
-          }
-        });
+        await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
       }
     }
   }

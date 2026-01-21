@@ -106,7 +106,6 @@ export abstract class BaseLoginHandler {
    *
    * @param params - The params from the login handler
    * @param authServerUrl - The url of the auth server
-   * @param abortSignal - Optional AbortSignal to cancel the operation
    * @returns Promise resolving to the auth response
    */
   getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
