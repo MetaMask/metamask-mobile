@@ -15,6 +15,26 @@ jest.mock('../controllers/perpsErrorCodes', () => ({
     MARKETS_FAILED: 'MARKETS_FAILED',
     UNKNOWN_ERROR: 'UNKNOWN_ERROR',
     ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
+    IOC_CANCEL: 'IOC_CANCEL',
+    CONNECTION_TIMEOUT: 'CONNECTION_TIMEOUT',
+    WITHDRAW_INSUFFICIENT_BALANCE: 'WITHDRAW_INSUFFICIENT_BALANCE',
+    // New error codes for better UX
+    TRANSFER_FAILED: 'TRANSFER_FAILED',
+    SWAP_FAILED: 'SWAP_FAILED',
+    SPOT_PAIR_NOT_FOUND: 'SPOT_PAIR_NOT_FOUND',
+    PRICE_UNAVAILABLE: 'PRICE_UNAVAILABLE',
+    BATCH_CANCEL_FAILED: 'BATCH_CANCEL_FAILED',
+    BATCH_CLOSE_FAILED: 'BATCH_CLOSE_FAILED',
+    INSUFFICIENT_MARGIN: 'INSUFFICIENT_MARGIN',
+    REDUCE_ONLY_VIOLATION: 'REDUCE_ONLY_VIOLATION',
+    POSITION_WOULD_FLIP: 'POSITION_WOULD_FLIP',
+    MARGIN_ADJUSTMENT_FAILED: 'MARGIN_ADJUSTMENT_FAILED',
+    TPSL_UPDATE_FAILED: 'TPSL_UPDATE_FAILED',
+    ORDER_REJECTED: 'ORDER_REJECTED',
+    SLIPPAGE_EXCEEDED: 'SLIPPAGE_EXCEEDED',
+    RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+    NETWORK_ERROR: 'NETWORK_ERROR',
   },
 }));
 
@@ -371,12 +391,14 @@ describe('handlePerpsError', () => {
   });
 
   describe('with non-error-code strings', () => {
-    it('should return string as-is', () => {
+    it('should return unknown error for unrecognized strings (for better UX)', () => {
       const result = handlePerpsError({
         error: 'Custom error message',
       });
 
-      expect(result).toBe('Custom error message');
+      // Unrecognized error strings now return the generic unknown error for better UX
+      // instead of showing raw technical error messages to users
+      expect(result).toBe('perps.errors.unknownError');
     });
 
     it('should use fallback message for empty string', () => {
@@ -456,7 +478,8 @@ describe('handlePerpsError', () => {
     });
 
     it('should use fallbackMessage for Error object without valid error code', () => {
-      const error = new Error('Network timeout');
+      // Use an unrecognizable error string that won't match any pattern
+      const error = new Error('Something unexpected happened xyz123');
       const result = handlePerpsError({
         error,
         fallbackMessage: 'Connection error, please try again',
@@ -536,6 +559,73 @@ describe('handlePerpsError', () => {
           providerId: 'dydx',
         },
       );
+    });
+  });
+
+  describe('with API error pattern matching', () => {
+    it('should translate insufficient margin error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Not enough margin available for this order',
+      });
+
+      expect(result).toBe('perps.errors.insufficientMargin');
+    });
+
+    it('should translate reduce only violation error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Reduce only order rejected',
+      });
+
+      expect(result).toBe('perps.errors.reduceOnlyViolation');
+    });
+
+    it('should translate insufficient liquidity error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Insufficient liquidity for this trade',
+      });
+
+      expect(result).toBe('perps.errors.insufficientLiquidity');
+    });
+
+    it('should translate transfer failed error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Transfer failed with status: error',
+      });
+
+      expect(result).toBe('perps.errors.transferFailed');
+    });
+
+    it('should translate slippage exceeded error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Price moved too much during execution',
+      });
+
+      expect(result).toBe('perps.errors.slippageExceeded');
+    });
+
+    it('should translate rate limit error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Rate limit exceeded, please try again later',
+      });
+
+      expect(result).toBe('perps.errors.rateLimitExceeded');
+    });
+
+    it('should translate timeout error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Connection timed out',
+      });
+
+      expect(result).toBe('perps.errors.connectionTimeout');
+    });
+
+    it('should use fallback for unrecognized patterns', () => {
+      const result = handlePerpsError({
+        error: 'Completely random error xyz123',
+        fallbackMessage: 'Something went wrong',
+      });
+
+      expect(result).toBe('Something went wrong');
     });
   });
 });

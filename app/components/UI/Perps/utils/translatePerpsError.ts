@@ -85,7 +85,134 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED]: 'perps.errors.noAccountSelected',
   [PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT]:
     'perps.errors.invalidAddressFormat',
+  // Transfer/swap errors
+  [PERPS_ERROR_CODES.TRANSFER_FAILED]: 'perps.errors.transferFailed',
+  [PERPS_ERROR_CODES.SWAP_FAILED]: 'perps.errors.swapFailed',
+  [PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND]: 'perps.errors.spotPairNotFound',
+  [PERPS_ERROR_CODES.PRICE_UNAVAILABLE]: 'perps.errors.priceUnavailable',
+  // Batch operation errors
+  [PERPS_ERROR_CODES.BATCH_CANCEL_FAILED]: 'perps.errors.batchCancelFailed',
+  [PERPS_ERROR_CODES.BATCH_CLOSE_FAILED]: 'perps.errors.batchCloseFailed',
+  // Position/margin errors
+  [PERPS_ERROR_CODES.INSUFFICIENT_MARGIN]: 'perps.errors.insufficientMargin',
+  [PERPS_ERROR_CODES.REDUCE_ONLY_VIOLATION]: 'perps.errors.reduceOnlyViolation',
+  [PERPS_ERROR_CODES.POSITION_WOULD_FLIP]: 'perps.errors.positionWouldFlip',
+  [PERPS_ERROR_CODES.MARGIN_ADJUSTMENT_FAILED]:
+    'perps.errors.marginAdjustmentFailed',
+  [PERPS_ERROR_CODES.TPSL_UPDATE_FAILED]: 'perps.errors.tpslUpdateFailed',
+  // Order execution errors
+  [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
+  [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
+  [PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'perps.errors.rateLimitExceeded',
+  // Network/service errors
+  [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',
+  [PERPS_ERROR_CODES.NETWORK_ERROR]: 'perps.errors.networkErrorSimple',
 };
+
+/**
+ * Pattern matching for common HyperLiquid API error messages.
+ * Maps regex patterns to error codes for user-friendly translation.
+ * Order matters - more specific patterns should come before general ones.
+ */
+const API_ERROR_PATTERNS: {
+  pattern: RegExp;
+  errorCode: PerpsErrorCode;
+}[] = [
+  // Margin/balance errors
+  {
+    pattern: /margin available|not enough margin|insufficient margin/i,
+    errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+  },
+  {
+    pattern: /insufficient balance|not enough balance/i,
+    errorCode: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
+  },
+  // Order execution errors
+  {
+    pattern: /reduce only|reduceOnly/i,
+    errorCode: PERPS_ERROR_CODES.REDUCE_ONLY_VIOLATION,
+  },
+  {
+    pattern: /position would flip|would flip position/i,
+    errorCode: PERPS_ERROR_CODES.POSITION_WOULD_FLIP,
+  },
+  {
+    pattern: /slippage|price moved too much/i,
+    errorCode: PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED,
+  },
+  {
+    pattern: /insufficient liquidity|no liquidity|IOC.*cancel/i,
+    errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+  },
+  {
+    pattern: /order rejected|rejected order/i,
+    errorCode: PERPS_ERROR_CODES.ORDER_REJECTED,
+  },
+  // Transfer/swap errors
+  {
+    pattern: /transfer failed/i,
+    errorCode: PERPS_ERROR_CODES.TRANSFER_FAILED,
+  },
+  {
+    pattern: /swap failed/i,
+    errorCode: PERPS_ERROR_CODES.SWAP_FAILED,
+  },
+  {
+    pattern:
+      /spot pair not found|trading pair not found|USDH.*USDC.*not found/i,
+    errorCode: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND,
+  },
+  {
+    pattern: /no price available|price unavailable|price data unavailable/i,
+    errorCode: PERPS_ERROR_CODES.PRICE_UNAVAILABLE,
+  },
+  // Batch operation errors
+  {
+    pattern: /batch cancel failed|cancel.*failed/i,
+    errorCode: PERPS_ERROR_CODES.BATCH_CANCEL_FAILED,
+  },
+  {
+    pattern: /batch close failed|close.*failed/i,
+    errorCode: PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
+  },
+  // Rate limiting
+  {
+    pattern: /rate limit|too many requests|throttl/i,
+    errorCode: PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED,
+  },
+  // Network/service errors
+  {
+    pattern: /timeout|timed out/i,
+    errorCode: PERPS_ERROR_CODES.CONNECTION_TIMEOUT,
+  },
+  {
+    pattern: /service unavailable|503|temporarily unavailable/i,
+    errorCode: PERPS_ERROR_CODES.SERVICE_UNAVAILABLE,
+  },
+  {
+    pattern: /network error|fetch failed|connection failed/i,
+    errorCode: PERPS_ERROR_CODES.NETWORK_ERROR,
+  },
+  // Leverage errors
+  {
+    pattern: /cannot reduce.*leverage|leverage reduction/i,
+    errorCode: PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+  },
+];
+
+/**
+ * Attempts to match an error string against known API error patterns.
+ * @param errorString - The error message to match
+ * @returns The matched error code or null if no match found
+ */
+function matchApiErrorPattern(errorString: string): PerpsErrorCode | null {
+  for (const { pattern, errorCode } of API_ERROR_PATTERNS) {
+    if (pattern.test(errorString)) {
+      return errorCode;
+    }
+  }
+  return null;
+}
 
 /**
  * Translates an error code to a localized message
@@ -115,11 +242,23 @@ export function translatePerpsError(
       const i18nKey = ERROR_CODE_TO_I18N_KEY[error.message as PerpsErrorCode];
       return strings(i18nKey, data || {});
     }
+    // Try pattern matching for API error messages
+    const matchedErrorCode = matchApiErrorPattern(error.message);
+    if (matchedErrorCode) {
+      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
+      return strings(i18nKey, data || {});
+    }
     return error.message;
   }
 
   // Handle string errors that might be error codes
   if (typeof error === 'string') {
+    // Try pattern matching for API error messages
+    const matchedErrorCode = matchApiErrorPattern(error);
+    if (matchedErrorCode) {
+      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
+      return strings(i18nKey, data || {});
+    }
     return error;
   }
 
@@ -224,11 +363,35 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     return strings(i18nKey, errorParams);
   }
 
-  // For any other error/error string that was not matched, use fallback if provided
+  // Try pattern matching for API error messages
   if (errorString) {
-    return fallbackMessage || errorString;
+    const matchedErrorCode = matchApiErrorPattern(errorString);
+    if (matchedErrorCode) {
+      debugLogger?.log('PerpsErrorHandler: Matched error pattern', {
+        originalError: errorString,
+        matchedCode: matchedErrorCode,
+      });
+
+      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
+      // Pass through any provided context for interpolation
+      return strings(i18nKey, context || {});
+    }
   }
 
-  // if we ever get here, return fallback or unknown error
-  return fallbackMessage || strings('perps.errors.unknownError');
+  // For any other error/error string that was not matched, use fallback
+  // Important: Always prefer fallback over raw error strings for better UX
+  if (fallbackMessage) {
+    debugLogger?.log('PerpsErrorHandler: Using fallback message', {
+      originalError: errorString,
+      fallbackMessage,
+    });
+    return fallbackMessage;
+  }
+
+  // Last resort: return the generic unknown error message
+  // Avoid showing raw technical error strings to users
+  debugLogger?.log('PerpsErrorHandler: No match found, using generic error', {
+    originalError: errorString,
+  });
+  return strings('perps.errors.unknownError');
 }
