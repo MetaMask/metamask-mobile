@@ -30,11 +30,11 @@ describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
         await WalletView.tapOnToken('Tron');
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
-        await SendView.checkInvalidValueError();
+        await SendView.checkInvalidAddressError();
       },
     );
   });
-  it('shows insufficient balance to cover fees error', async () => {
+  it('shows wrong address error', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -53,7 +53,8 @@ describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
         await TokenOverview.tapSendButton();
         await SendView.pressFiftyPercentButton();
         await SendView.pressContinueButton();
-        await SendView.checkInsufficientBalanceToCoverFeesError();
+        await SendView.inputRecipientAddress('TJY');
+        await SendView.checkInvalidAddressError();
       },
     );
   });
