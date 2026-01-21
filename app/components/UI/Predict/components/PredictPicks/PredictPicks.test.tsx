@@ -22,11 +22,16 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
 jest.mock('../../hooks/useLivePositions', () => ({
-  useLivePositions: jest.fn((positions) => ({
-    livePositions: positions,
+  useLivePositions: jest.fn((positions: unknown[]) => ({
+    livePositions: positions ?? [],
     isConnected: false,
     lastUpdateTime: null,
   })),
+}));
+jest.mock('../../hooks/usePredictOptimisticPositionRefresh', () => ({
+  usePredictOptimisticPositionRefresh: jest.fn(
+    ({ position }: { position: unknown }) => position,
+  ),
 }));
 jest.mock('../../utils/format');
 

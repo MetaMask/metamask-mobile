@@ -194,7 +194,7 @@ export class AccountService {
         // Track withdrawal transaction executed
         const completionDuration = this.deps.performance.now() - startTime;
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+          PerpsAnalyticsEvent.WithdrawalTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
             [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
@@ -257,7 +257,7 @@ export class AccountService {
       // Track withdrawal transaction failed
       const completionDuration = this.deps.performance.now() - startTime;
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+        PerpsAnalyticsEvent.WithdrawalTransaction,
         {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
           [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
@@ -315,7 +315,7 @@ export class AccountService {
       // Track withdrawal transaction failed (catch block)
       const completionDuration = this.deps.performance.now() - startTime;
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.WITHDRAWAL_TRANSACTION,
+        PerpsAnalyticsEvent.WithdrawalTransaction,
         {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
           [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,

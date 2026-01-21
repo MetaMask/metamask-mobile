@@ -18,6 +18,16 @@ const TRENDING_TOKENS_RESPONSE = [
 export const TRENDING_API_MOCKS: MockEventsObject = {
   GET: [
     {
+      urlEndpoint:
+        /https:\/\/price\.api\.cx\.metamask\.io\/v3\/historical-prices.*/,
+      responseCode: 200,
+      response: [
+        [1704067200000, 1.0],
+        [1704153600000, 1.01],
+      ],
+      priority: 1000,
+    },
+    {
       urlEndpoint: /\/v3\/tokens\/trending.*/,
       responseCode: 200,
       response: TRENDING_TOKENS_RESPONSE,
@@ -160,6 +170,14 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
           },
         ],
       ],
+      priority: 1000,
+    },
+    {
+      urlEndpoint: /\/info.*/, // Hyperliquid /info endpoint
+      responseCode: 200,
+      response: {
+        status: 'ok',
+      },
       priority: 1000,
     },
   ],

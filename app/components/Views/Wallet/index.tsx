@@ -571,7 +571,7 @@ const Wallet = ({
 
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
+    location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
   });
 
@@ -1280,7 +1280,7 @@ const Wallet = ({
         ) : null}
         <BannerAlert
           severity={BannerAlertSeverity.Info}
-          title="this is ota update banner v5"
+          title="this is ota update banner v6"
         />
         <NetworkConnectionBanner />
       </View>
