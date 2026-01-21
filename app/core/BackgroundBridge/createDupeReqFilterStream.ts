@@ -11,7 +11,7 @@ export const THREE_MINUTES = inMilliseconds(3, Duration.Minute);
 const makeExpirySet = () => {
   const map: Map<string | number | null, number> = new Map();
 
-  setInterval(() => {
+  const timerId = setInterval(() => {
     const cutoffTime = Date.now() - THREE_MINUTES;
 
     for (const [id, timestamp] of map.entries()) {
@@ -37,6 +37,14 @@ const makeExpirySet = () => {
       }
       return false;
     },
+
+    /**
+     * Destroy the set and tear down the underlying timer.
+     */
+    destroy() {
+      map.clear();
+      clearInterval(timerId);
+    },
   };
 };
 
@@ -61,6 +69,10 @@ export default function createDupeReqFilterStream() {
         console.debug(`RPC request with id "${chunk.id}" already seen.`);
         cb();
       }
+    },
+    destroy(error, cb) {
+      seenRequestIds.destroy();
+      cb(error);
     },
     objectMode: true,
   });
