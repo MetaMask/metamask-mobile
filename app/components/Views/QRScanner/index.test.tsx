@@ -1362,7 +1362,9 @@ describe('QrScanner', () => {
         expect(mockGoBack).toHaveBeenCalled();
 
         // Navigates to send flow but does not call EVM methods
-        expect(mockNavigateToSendPage).toHaveBeenCalled();
+        await waitFor(() => {
+          expect(mockNavigateToSendPage).toHaveBeenCalled();
+        });
         expect(mockDispatch).not.toHaveBeenCalled();
       });
 
@@ -1391,6 +1393,23 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
           });
         });
+      });
+    });
+    ///: END:ONLY_INCLUDE_IF
+
+    describe('Callback-based origin handling', () => {
+      beforeEach(() => {
+        const multichainModule = jest.requireMock(
+          '../../../core/Multichain/utils',
+        );
+        (multichainModule.isTronAddress as jest.Mock).mockReturnValue(true);
+        (multichainModule.isBtcMainnetAddress as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        mockDerivePredefinedRecipientParams.mockImplementation(
+          (address: string) => ({ address, chainType: 'tron' }),
+        );
       });
 
       it('passes Tron address to onScanSuccess callback when origin is SendTo', async () => {
@@ -1455,7 +1474,6 @@ describe('QrScanner', () => {
         expect(mockNavigateToSendPage).not.toHaveBeenCalled();
       });
     });
-    ///: END:ONLY_INCLUDE_IF
 
     describe('Camera State Management', () => {
       it('sets isCameraActive to false when scanning address', async () => {
