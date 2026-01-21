@@ -6,7 +6,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
@@ -304,7 +304,7 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
 jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
   usePerpsLiveCandles: () => ({
     candleData: {
-      coin: 'BTC',
+      symbol: 'BTC',
       interval: '1h',
       candles: [
         {
@@ -430,7 +430,7 @@ jest.mock('../../components/PerpsMarketStatisticsCard', () => {
   const { View, TouchableOpacity } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   const { PerpsMarketDetailsViewSelectorsIDs: SelectorsIDs } =
-    jest.requireActual('../../../../../../e2e/selectors/Perps/Perps.selectors');
+    jest.requireActual('../../Perps.testIds');
 
   return {
     __esModule: true,
@@ -817,7 +817,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
@@ -958,7 +958,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',
@@ -1701,7 +1701,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         existingPosition: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '44000',
           positionValue: '22000',

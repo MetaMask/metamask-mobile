@@ -497,7 +497,6 @@ class ErrorBoundary extends Component {
     return this.state.backupSeedphrase
       ? this.renderWithSafeArea(
           <RevealPrivateCredential
-            credentialName={'seed_phrase'}
             cancel={this.cancelExportSeedphrase}
             navigation={this.props.navigation}
           />,

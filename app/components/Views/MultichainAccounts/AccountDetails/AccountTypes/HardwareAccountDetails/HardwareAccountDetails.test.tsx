@@ -4,7 +4,7 @@ import { HardwareAccountDetails } from './HardwareAccountDetails';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase/HeaderBase.constants';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 

@@ -8,7 +8,6 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
 import {
   useIsTransactionPayQuoteLoading,
@@ -20,6 +19,7 @@ import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();

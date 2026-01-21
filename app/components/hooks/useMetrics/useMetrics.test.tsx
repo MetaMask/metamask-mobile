@@ -9,8 +9,21 @@ import useMetrics from './useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { IUseMetricsHook } from './useMetrics.types';
+import { analytics } from '../../../util/analytics/analytics';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+    optIn: jest.fn(() => Promise.resolve()),
+    optOut: jest.fn(() => Promise.resolve()),
+    identify: jest.fn(() => Promise.resolve()),
+    getAnalyticsId: jest.fn(() =>
+      Promise.resolve('4d657461-4d61-436b-8e73-46756e212121'),
+    ),
+    isEnabled: jest.fn(() => true),
+  },
+}));
 
 // allows runAfterInteractions to return immediately
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
@@ -48,6 +61,7 @@ const mockMetrics = {
   getMetaMetricsId: jest.fn(() =>
     Promise.resolve('4d657461-4d61-436b-8e73-46756e212121'),
   ),
+  updateDataRecordingFlag: jest.fn(),
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
@@ -75,17 +89,17 @@ describe('useMetrics', () => {
     const { result } = renderHook(() => useMetrics());
     expect(result.current).toMatchInlineSnapshot(`
       {
-        "addTraitsToUser": [MockFunction],
+        "addTraitsToUser": [Function],
         "checkDataDeleteStatus": [MockFunction],
         "createDataDeletionTask": [MockFunction],
         "createEventBuilder": [MockFunction],
-        "enable": [MockFunction],
+        "enable": [Function],
         "getDeleteRegulationCreationDate": [MockFunction],
         "getDeleteRegulationId": [MockFunction],
-        "getMetaMetricsId": [MockFunction],
+        "getMetaMetricsId": [Function],
         "isDataRecorded": [MockFunction],
-        "isEnabled": [MockFunction],
-        "trackEvent": [MockFunction],
+        "isEnabled": [Function],
+        "trackEvent": [Function],
       }
     `);
   });
@@ -132,9 +146,12 @@ describe('useMetrics', () => {
       isEnabledValue = isEnabled();
     });
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(event);
-    expect(mockMetrics.enable).toHaveBeenCalledWith(true);
-    expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({});
+    // trackEvent now converts ITrackingEvent to AnalyticsTrackingEvent and calls analytics.trackEvent
+    expect(analytics.trackEvent).toHaveBeenCalled();
+    // enable now calls analytics.optIn/optOut
+    expect(analytics.optIn).toHaveBeenCalled();
+    // addTraitsToUser now calls analytics.identify
+    expect(analytics.identify).toHaveBeenCalledWith({});
 
     expect(mockMetrics.createDataDeletionTask).toHaveBeenCalled();
     expect(deletionTaskIdValue).toEqual(expectedDataDeletionTaskResponse);
@@ -151,18 +168,21 @@ describe('useMetrics', () => {
     expect(mockMetrics.isDataRecorded).toHaveBeenCalled();
     expect(isDataRecordedValue).toEqual(true);
 
-    expect(mockMetrics.isEnabled).toHaveBeenCalled();
+    // isEnabled now calls analytics.isEnabled
+    expect(analytics.isEnabled).toHaveBeenCalled();
     expect(isEnabledValue).toBeTruthy();
   });
 
   it('keeps the same reference to the functions after every call', async () => {
-    const {
-      result: { current: firstResult },
-    } = renderHook(() => useMetrics());
-    const {
-      result: { current: secondResult },
-    } = renderHook(() => useMetrics());
+    const { result, rerender } = renderHook(() => useMetrics());
+    const firstResult = result.current;
 
+    // Trigger a re-render
+    rerender();
+    const secondResult = result.current;
+
+    // Functions should maintain reference stability within the same hook instance
+    // Note: Different hook instances will have different function references due to useMemo
     (Object.keys(firstResult) as (keyof IUseMetricsHook)[]).forEach((key) => {
       expect(firstResult[key]).toBe(secondResult[key]);
     });

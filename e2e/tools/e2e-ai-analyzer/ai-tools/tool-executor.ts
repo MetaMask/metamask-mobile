@@ -13,15 +13,22 @@ import { handleGrepCodebase } from './handlers/grep-codebase';
 import { handleFinalizeTagSelection } from './handlers/finalize-tag-selection';
 
 /**
+ * Tool execution context
+ */
+export interface ToolContext {
+  baseDir: string;
+  baseBranch: string;
+  prNumber?: number;
+  githubRepo?: string;
+}
+
+/**
  * Executes a tool call and returns the result
  */
 export async function executeTool(
   toolName: string,
   input: ToolInput,
-  context: {
-    baseDir: string;
-    baseBranch: string;
-  },
+  context: ToolContext,
 ): Promise<string> {
   try {
     switch (toolName) {
@@ -29,7 +36,7 @@ export async function executeTool(
         return handleReadFile(input, context.baseDir);
 
       case 'get_git_diff':
-        return handleGitDiff(input, context.baseDir, context.baseBranch);
+        return handleGitDiff(input, context);
 
       case 'find_related_files':
         return handleRelatedFiles(input, context.baseDir);

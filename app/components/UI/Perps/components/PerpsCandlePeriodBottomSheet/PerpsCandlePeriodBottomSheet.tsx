@@ -15,7 +15,7 @@ import {
   TimeDuration,
   CANDLE_PERIODS,
 } from '../../constants/chartConfig';
-import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { getPerpsCandlePeriodBottomSheetSelector } from '../../Perps.testIds';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';

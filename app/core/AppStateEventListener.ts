@@ -1,7 +1,8 @@
 import { AppState, AppStateStatus } from 'react-native';
 import Logger from '../util/Logger';
-import { MetaMetrics, MetaMetricsEvents } from './Analytics';
-import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from './Analytics';
+import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../util/analytics/analytics';
 import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
@@ -15,6 +16,7 @@ export class AppStateEventListener {
   // TODO: The AppStateEventListener should be feature agnostic and shouldn't include deeplinks. Abstract this into a deeplink service instead
   public currentDeeplink: string | null = null;
   public pendingDeeplink: string | null = null;
+  public pendingDeeplinkSource: string | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -30,15 +32,21 @@ export class AppStateEventListener {
       'change',
       this.handleAppStateChange,
     );
+
+    // Identify user on app launch
+    // This ensures user is identified with full traits including chain_id_list when the app starts
+    this.identifyUserOnAppStart();
   }
 
-  public setCurrentDeeplink(deeplink: string | null) {
+  public setCurrentDeeplink(deeplink: string | null, source?: string) {
     this.currentDeeplink = deeplink;
     this.pendingDeeplink = deeplink;
+    this.pendingDeeplinkSource = source ?? null;
   }
 
   public clearPendingDeeplink() {
     this.pendingDeeplink = null;
+    this.pendingDeeplinkSource = null;
   }
 
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -51,27 +59,34 @@ export class AppStateEventListener {
     this.lastAppState = nextAppState;
   };
 
+  private identifyUserOnAppStart = () => {
+    try {
+      // Identify user with full traits on app start
+      // This ensures all traits including chain_id_list are sent on initial launch
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      analytics.identify(consolidatedTraits);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'AppStateManager: Error identifying user on app start',
+      );
+    }
+  };
+
   private processAppStateChange = () => {
     try {
       const attribution = processAttribution({
         currentDeeplink: this.currentDeeplink,
         store: ReduxService.store,
       });
-      const metrics = MetaMetrics.getInstance();
-      // identify user with the latest traits
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      metrics.addTraitsToUser(consolidatedTraits).catch((error) => {
-        Logger.error(
-          error as Error,
-          'AppStateManager: Error adding traits to user',
-        );
-      });
-      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(
+      // Note: User identification is handled when settings change individually
+      // We only track the APP_OPENED event on app state transitions
+      const appOpenedEventBuilder = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.APP_OPENED,
-      );
+      ).setSaveDataRecording(true);
       if (attribution) {
         const { attributionId, ...utmParams } = attribution;
         DevLogger.log(
@@ -80,7 +95,7 @@ export class AppStateEventListener {
         );
         appOpenedEventBuilder.addProperties({ ...attribution });
       }
-      metrics.trackEvent(appOpenedEventBuilder.build());
+      analytics.trackEvent(appOpenedEventBuilder.build());
     } catch (error) {
       Logger.error(
         error as Error,

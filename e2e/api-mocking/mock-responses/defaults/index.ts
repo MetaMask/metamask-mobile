@@ -26,6 +26,7 @@ import { CHAINS_NETWORK_MOCK_RESPONSE } from '../chains-network-mocks';
 import { DEFAULT_REWARDS_MOCKS } from './rewards';
 import { ACL_EXECUTION_MOCKS } from './acl-execution';
 import { CONTENTFUL_BANNERS_MOCKS } from './contentful-banners';
+import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -264,6 +265,47 @@ export const DEFAULT_MOCKS = {
         },
       },
     },
+    // TX Sentinel single network endpoint (for chainId-specific requests)
+    {
+      urlEndpoint:
+        'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/network',
+      responseCode: 200,
+      response: {
+        name: 'Mainnet',
+        group: 'ethereum',
+        chainID: 1,
+        nativeCurrency: {
+          name: 'ETH',
+          symbol: 'ETH',
+          decimals: 18,
+        },
+        network: 'ethereum-mainnet',
+        explorer: 'https://etherscan.io',
+        confirmations: true,
+        smartTransactions: true,
+        relayTransactions: true,
+        hidden: false,
+        sendBundle: true,
+      },
+    },
+    {
+      urlEndpoint:
+        'https://tx-sentinel-arbitrum-mainnet.api.cx.metamask.io/network',
+      responseCode: 200,
+      response: {
+        name: 'Arbitrum Mainnet',
+        group: 'arbitrum',
+        chainID: 42161,
+        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+        network: 'arbitrum-mainnet',
+        explorer: 'https://arbiscan.io/',
+        confirmations: true,
+        smartTransactions: true,
+        relayTransactions: true,
+        hidden: false,
+        sendBundle: false,
+      },
+    },
   ],
   POST: [
     ...(authMocks.POST || []),
@@ -306,6 +348,7 @@ export const DEFAULT_MOCKS = {
       },
     },
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
+    ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
   ],
   PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],

@@ -3,13 +3,14 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import CardWelcome from './CardWelcome';
-import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
+import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 // Mocks
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -23,6 +24,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -70,6 +72,7 @@ describe('CardWelcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockGoBack.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
   });
@@ -129,7 +132,7 @@ describe('CardWelcome', () => {
   });
 
   describe('Interactions', () => {
-    it('navigates to wallet home when "Not Now" is pressed', () => {
+    it('navigates back when "Not Now" is pressed', () => {
       store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -139,7 +142,7 @@ describe('CardWelcome', () => {
 
       fireEvent.press(getByTestId('predict-gtm-not-now-button'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 

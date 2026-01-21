@@ -9,7 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { ToastSelectorsIDs } from '../../../../../e2e/selectors/wallet/ToastModal.selectors';
+import { ToastSelectorsIDs } from '../../../../component-library/components/Toast/ToastModal.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -10,7 +10,7 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
 import { usePushNotificationSettingsToggle } from './PushNotificationToggle.hooks';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 export const PUSH_NOTIFICATION_TOGGLE_TEST_ID = 'push-notification-toggle';
 

@@ -6,6 +6,7 @@ app/component-library/               @MetaMask/design-system-engineers
 tailwind.config.js                   @MetaMask/design-system-engineers
 
 # Platform Team
+.github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform

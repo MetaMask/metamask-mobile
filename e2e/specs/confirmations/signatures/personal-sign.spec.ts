@@ -1,6 +1,5 @@
 import Browser from '../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -66,7 +65,7 @@ describe(RegressionConfirmations('Personal Sign'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapPersonalSignButton();

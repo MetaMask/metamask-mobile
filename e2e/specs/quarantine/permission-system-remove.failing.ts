@@ -5,7 +5,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 
 import { PopularNetworksList } from '../../resources/networks.e2e';
@@ -43,7 +43,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
       async () => {
         // Setup: Navigate to browser and login
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         // Connect to DApp and configure network permissions
@@ -65,7 +65,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkListModal.tapDeleteButton();
 
         // Verify permission cleanup
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(
           PermissionSummaryBottomSheet.addNetworkPermissionContainer,
         );

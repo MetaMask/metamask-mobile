@@ -1,4 +1,4 @@
-import { AccountListBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import { regex, hasDecimals } from '.';
 
 describe('REGEX :: hasDecimals', () => {

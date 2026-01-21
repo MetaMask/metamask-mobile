@@ -31,7 +31,7 @@ import { getPositionDirection } from '../../utils/positionCalculations';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PerpsPositionsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
@@ -120,8 +120,8 @@ const PerpsPositionsView: React.FC = () => {
           const directionSegment = getPositionDirection(position.size);
           return (
             <View
-              key={`${position.coin}-${index}`}
-              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+              key={`${position.symbol}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.symbol}-${position.leverage.value}x-${directionSegment}-${index}`}
             >
               <PerpsPositionCard position={position} />
             </View>

@@ -113,7 +113,7 @@ export type PredictCategory =
   | 'politics';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl';
+export type PredictSportsLeague = 'nfl' | 'nba';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -128,15 +128,37 @@ export interface PredictSportTeam {
   alias: string; // Team alias (e.g., "Seahawks")
 }
 
+// Parsed score data
+export interface PredictGameScore {
+  away: number;
+  home: number;
+  raw: string; // Original "away-home" format (e.g., "21-14")
+}
+
+export type PredictGamePeriod =
+  | 'NS' // Not Started
+  | 'Q1' // First Quarter
+  | 'End Q1' // End of First Quarter
+  | 'Q2' // Second Quarter
+  | 'HT' // Halftime
+  | 'Q3' // Third Quarter
+  | 'End Q3' // End of Third Quarter
+  | 'Q4' // Fourth Quarter
+  | 'End Q4' // End of Fourth Quarter
+  | 'OT' // Overtime
+  | 'FT' // Final
+  | 'VFT'; // Verified fulltime (when closed=true)
+
 // Game data attached to market
 export interface PredictMarketGame {
   id: string;
   startTime: string;
+  endTime?: string; // ISO date when game ended, available for ended games
   status: PredictGameStatus;
   league: PredictSportsLeague;
-  elapsed: string; // Game clock
-  period: string; // Current period (Q1, Q2, HT, Q3, Q4, OT, FT)
-  score: string; // "away-home" format (e.g., "21-14")
+  elapsed: string | null; // Game clock, null if not available
+  period: PredictGamePeriod | null; // Current period, null if not available
+  score: PredictGameScore | null; // Parsed score with away/home values, null if not available
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
   turn?: string; // Team abbreviation with possession
@@ -147,7 +169,7 @@ export interface GameUpdate {
   gameId: string;
   score: string;
   elapsed: string;
-  period: string;
+  period: PredictGamePeriod;
   status: PredictGameStatus;
   turn?: string;
 }
@@ -257,6 +279,8 @@ export interface GetPriceHistoryParams {
   providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  startTs?: number;
+  endTs?: number;
 }
 
 /**

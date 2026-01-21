@@ -47,7 +47,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   const { track } = usePerpsEventTracking();
 
   // Determine which type of data we have
-  const symbol = position?.coin || order?.symbol || '';
+  const symbol = position?.symbol || order?.symbol || '';
 
   // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
@@ -62,7 +62,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   if (position) {
     const leverage = position.leverage.value;
     const isLong = parseFloat(position.size) > 0;
-    const displaySymbol = getPerpsDisplaySymbol(position.coin);
+    const displaySymbol = getPerpsDisplaySymbol(position.symbol);
     primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
     secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
 

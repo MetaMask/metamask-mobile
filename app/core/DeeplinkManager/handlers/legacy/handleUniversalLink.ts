@@ -27,6 +27,7 @@ import handleFastOnboarding from './handleFastOnboarding';
 import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
+import { handleTrendingUrl } from './handleTrendingUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 
 const {
@@ -56,6 +57,7 @@ enum SUPPORTED_ACTIONS {
   ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
   CARD_ONBOARDING = ACTIONS.CARD_ONBOARDING,
   CARD_HOME = ACTIONS.CARD_HOME,
+  TRENDING = ACTIONS.TRENDING,
   // MetaMask SDK specific actions
   ANDROID_SDK = ACTIONS.ANDROID_SDK,
   CONNECT = ACTIONS.CONNECT,
@@ -70,6 +72,9 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
+  SUPPORTED_ACTIONS.PERPS,
+  SUPPORTED_ACTIONS.PERPS_MARKETS,
+  SUPPORTED_ACTIONS.PERPS_ASSET,
 ];
 
 /**
@@ -81,9 +86,7 @@ const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.MMSDK,
 ];
 
-const interstitialWhitelistUrls = [
-  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
-] as const;
+const interstitialWhitelistUrls = [] as const;
 
 // This is used when links originate from within the app itself
 const inAppLinkSources = [
@@ -91,6 +94,7 @@ const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+  AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
 ] as string[];
 
 async function handleUniversalLink({
@@ -317,6 +321,13 @@ async function handleUniversalLink({
       });
       break;
     }
+    case SUPPORTED_ACTIONS.PERPS_ASSET: {
+      // perps-asset URLs need screen=asset injected since actionBasedRampPath is just '?symbol=X'
+      handlePerpsUrl({
+        perpsPath: `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`,
+      });
+      break;
+    }
     case SUPPORTED_ACTIONS.REWARDS: {
       handleRewardsUrl({
         rewardsPath: actionBasedRampPath,
@@ -353,6 +364,10 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.CARD_HOME: {
       handleCardHome();
+      break;
+    }
+    case SUPPORTED_ACTIONS.TRENDING: {
+      handleTrendingUrl();
       break;
     }
   }

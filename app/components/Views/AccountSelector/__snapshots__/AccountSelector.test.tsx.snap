@@ -1051,9 +1051,9 @@ exports[`AccountSelector should render correctly 1`] = `
                             style={
                               {
                                 "flexDirection": "row",
-                                "marginHorizontal": 16,
-                                "marginVertical": 16,
-                                "paddingHorizontal": 8,
+                                "paddingBottom": 16,
+                                "paddingHorizontal": 16,
+                                "paddingTop": 24,
                                 "paddingVertical": 4,
                               }
                             }

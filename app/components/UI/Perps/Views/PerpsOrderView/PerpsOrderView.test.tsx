@@ -45,7 +45,7 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
@@ -843,7 +843,7 @@ describe('PerpsOrderView', () => {
     const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
     const mockGetPositions = jest
       .fn()
-      .mockResolvedValue([{ coin: 'ETH', size: 0.1, leverage: 3 }]);
+      .mockResolvedValue([{ symbol: 'ETH', size: 0.1, leverage: 3 }]);
 
     (usePerpsTrading as jest.Mock).mockReturnValue({
       ...defaultMockHooks.usePerpsTrading,
@@ -2586,7 +2586,7 @@ describe('PerpsOrderView', () => {
 
   describe('Leverage from existing position', () => {
     interface MockPosition {
-      coin: string;
+      symbol: string;
       size: string;
       entryPrice: string;
       positionValue: string;
@@ -2628,7 +2628,7 @@ describe('PerpsOrderView', () => {
             // Simulate position data for ETH with leverage 15
             callback([
               {
-                coin: 'ETH',
+                symbol: 'ETH',
                 size: '0.5',
                 entryPrice: '3000',
                 positionValue: '1500',
@@ -2736,7 +2736,7 @@ describe('PerpsOrderView', () => {
             const { callback } = params;
             callback([
               {
-                coin: 'BTC',
+                symbol: 'BTC',
                 size: '0.1',
                 entryPrice: '50000',
                 positionValue: '5000',

@@ -45,7 +45,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
@@ -571,7 +571,7 @@ const Wallet = ({
 
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
+    location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
   });
 

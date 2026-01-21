@@ -16,7 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { SuccessImportAccountIDs } from '../../../../e2e/selectors/ImportAccount/SuccessImportAccount.selectors';
+import { SuccessImportAccountIDs } from './SuccessImportAccount.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

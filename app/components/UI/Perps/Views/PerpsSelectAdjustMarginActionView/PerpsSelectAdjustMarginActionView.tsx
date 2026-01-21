@@ -12,6 +12,11 @@ import PerpsAdjustMarginActionSheet, {
 } from '../../components/PerpsAdjustMarginActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 interface PerpsSelectAdjustMarginActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;
@@ -31,6 +36,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
     useRoute<
       RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>
     >();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
@@ -41,6 +47,23 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   const handleActionSelect = useCallback(
     (action: AdjustMarginAction) => {
       if (!position) return;
+
+      // Track UI interaction for add/remove margin selection
+      const interactionType = {
+        add_margin: PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN,
+        reduce_margin: PerpsEventValues.INTERACTION_TYPE.REMOVE_MARGIN,
+      }[action];
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+          .addProperties({
+            [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
+            [PerpsEventProperties.ASSET]: position.symbol,
+            [PerpsEventProperties.SOURCE]:
+              PerpsEventValues.SOURCE.POSITION_SCREEN,
+          })
+          .build(),
+      );
 
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
       switch (action) {
@@ -57,7 +80,14 @@ const PerpsSelectAdjustMarginActionView: React.FC<
         onExternalClose?.();
       });
     },
-    [position, sheetRef, onExternalClose, navigateToAdjustMargin],
+    [
+      position,
+      sheetRef,
+      onExternalClose,
+      navigateToAdjustMargin,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleClose = useCallback(() => {

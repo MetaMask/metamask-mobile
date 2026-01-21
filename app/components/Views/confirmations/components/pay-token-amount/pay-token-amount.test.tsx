@@ -7,11 +7,16 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
+import {
+  useTransactionPayIsMaxAmount,
+  useIsTransactionPayLoading,
+} from '../../hooks/pay/useTransactionPayData';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../hooks/pay/useTransactionPayToken');
+jest.mock('../../hooks/pay/useTransactionPayData');
 
 const ASSET_AMOUNT_MOCK = '100';
 const ASSET_FIAT_RATE_MOCK = 10;
@@ -36,6 +41,12 @@ function render({ disabled = false } = {}) {
 describe('PayTokenAmount', () => {
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionPayIsMaxAmountMock = jest.mocked(
+    useTransactionPayIsMaxAmount,
+  );
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -52,6 +63,9 @@ describe('PayTokenAmount', () => {
         symbol: PAY_TOKEN_SYMBOL_MOCK,
       },
     } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    useTransactionPayIsMaxAmountMock.mockReturnValue(false);
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
   });
 
   it('renders equivalent pay token value', () => {
@@ -75,5 +89,14 @@ describe('PayTokenAmount', () => {
   it('returns fixed value if disabled', () => {
     const { getByText } = render({ disabled: true });
     expect(getByText('0 ETH')).toBeDefined();
+  });
+
+  it('renders skeleton if isMaxAmount and quotes loading', () => {
+    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('pay-token-amount-skeleton')).toBeDefined();
   });
 });

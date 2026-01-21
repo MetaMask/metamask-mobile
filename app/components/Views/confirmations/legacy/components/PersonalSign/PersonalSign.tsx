@@ -20,7 +20,7 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
 import { PersonalSignProps } from './types';
 
-import { SigningBottomSheetSelectorsIDs } from '../../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../SigningBottomSheet.testIds';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../../core/AppConstants';
 import Logger from '../../../../../../util/Logger';
