@@ -29,7 +29,14 @@ export const trackEvent = (
       eventBuilder.addProperties(properties);
     }
     const analyticsEvent = eventBuilder.build();
-    initMessenger.call('AnalyticsController:trackEvent', analyticsEvent);
+    (
+      initMessenger as ControllerMessenger & {
+        call: (
+          action: 'AnalyticsController:trackEvent',
+          event: typeof analyticsEvent,
+        ) => void;
+      }
+    ).call('AnalyticsController:trackEvent', analyticsEvent);
   } catch (error) {
     // Analytics tracking failures should not break controller functionality
     // Error is logged but not thrown
