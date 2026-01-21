@@ -194,7 +194,7 @@ class AppInformation extends PureComponent {
   };
 
   onSendSentryTestError = () => {
-    captureException(new Error('OTA update Sentry test error v4'));
+    captureException(new Error('OTA update Sentry test error v6'));
   };
 
   render = () => {
