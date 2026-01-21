@@ -1,9 +1,11 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { act } from '@testing-library/react-native';
 import WebviewModal from './WebviewModal';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import Logger from '../../../../../../../util/Logger';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -29,14 +31,30 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
 const mockWebViewProps = {
   onNavigationStateChange: jest.fn(),
   onHttpError: jest.fn(),
+  onShouldStartLoadWithRequest: jest.fn(),
 };
 
 jest.mock('@metamask/react-native-webview', () => ({
-  WebView: jest.fn(({ onNavigationStateChange, onHttpError }) => {
-    mockWebViewProps.onNavigationStateChange = onNavigationStateChange;
-    mockWebViewProps.onHttpError = onHttpError;
-    return null;
-  }),
+  WebView: jest.fn(
+    ({
+      onNavigationStateChange,
+      onHttpError,
+      onShouldStartLoadWithRequest,
+    }) => {
+      mockWebViewProps.onNavigationStateChange = onNavigationStateChange;
+      mockWebViewProps.onHttpError = onHttpError;
+      mockWebViewProps.onShouldStartLoadWithRequest =
+        onShouldStartLoadWithRequest;
+      return null;
+    },
+  ),
+}));
+
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Linking: {
+    openURL: jest.fn(),
+  },
 }));
 
 describe('WebviewModal Component', () => {
@@ -129,5 +147,108 @@ describe('WebviewModal Component', () => {
     expect(mockHandleNavigationStateChange).toHaveBeenLastCalledWith(
       differentNavigationState,
     );
+  });
+
+  describe('onShouldStartLoadWithRequest', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('opens UPI payment URL via Linking and blocks webview navigation', () => {
+      renderWithProvider(WebviewModal);
+
+      const result = mockWebViewProps.onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'upi://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('opens Paytm payment URL via Linking and blocks webview navigation', () => {
+      renderWithProvider(WebviewModal);
+
+      const result = mockWebViewProps.onShouldStartLoadWithRequest({
+        url: 'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'paytmmp://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('opens PhonePe payment URL via Linking and blocks webview navigation', () => {
+      renderWithProvider(WebviewModal);
+
+      const result = mockWebViewProps.onShouldStartLoadWithRequest({
+        url: 'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'phonepe://pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('opens Google Pay payment URL via Linking and blocks webview navigation', () => {
+      renderWithProvider(WebviewModal);
+
+      const result = mockWebViewProps.onShouldStartLoadWithRequest({
+        url: 'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      });
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'gpay://upi/pay?pa=company@ypbiz&cu=INR&am=1100.00',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('allows HTTPS URLs to load in webview', () => {
+      renderWithProvider(WebviewModal);
+
+      const result = mockWebViewProps.onShouldStartLoadWithRequest({
+        url: 'https://example.com/payment',
+      });
+
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('allows HTTP URLs to load in webview', () => {
+      renderWithProvider(WebviewModal);
+
+      const result = mockWebViewProps.onShouldStartLoadWithRequest({
+        url: 'http://example.com/payment',
+      });
+
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('logs error when Linking.openURL fails', async () => {
+      const mockError = new Error('Failed to open URL');
+      (Linking.openURL as jest.Mock).mockRejectedValueOnce(mockError);
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+
+      renderWithProvider(WebviewModal);
+
+      const result = mockWebViewProps.onShouldStartLoadWithRequest({
+        url: 'upi://pay?pa=company@ypbiz',
+      });
+
+      expect(result).toBe(false);
+
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        'Failed to open payment URL: upi://pay?pa=company@ypbiz',
+      );
+    });
   });
 });

@@ -137,6 +137,8 @@ export const trustedProtocolToDeeplink = [
   'itms-apps:',
 ];
 
+export const paymentProtocolList = ['paytmmp:', 'phonepe:', 'gpay:', 'upi:'];
+
 /**
  * Returns translated warning message for the
  * warning dialog box the user sees when the to be loaded

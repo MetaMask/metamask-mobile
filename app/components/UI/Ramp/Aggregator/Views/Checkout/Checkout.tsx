@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Linking } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import URLParse from 'url-parse';
 import { useTheme } from '../../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useRampSDK, SDK } from '../../sdk';
@@ -41,6 +43,7 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
+import { paymentProtocolList } from '../../../../../../util/browser';
 
 interface CheckoutParams {
   url: string;
@@ -181,6 +184,22 @@ const CheckoutWebView = () => {
     }
   };
 
+  const handleShouldStartLoadWithRequest = useCallback(
+    ({ url }: { url: string }) => {
+      const { protocol } = new URLParse(url);
+
+      if (paymentProtocolList.includes(protocol)) {
+        Linking.openURL(url).catch((err) => {
+          Logger.error(err, `Failed to open payment URL: ${url}`);
+        });
+        return false;
+      }
+
+      return true;
+    },
+    [],
+  );
+
   if (sdkError) {
     return (
       <BottomSheet
@@ -294,6 +313,7 @@ const CheckoutWebView = () => {
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
           testID="checkout-webview"
         />
