@@ -1301,8 +1301,6 @@ describe('QrScanner', () => {
         expect(newAssetTransaction).not.toHaveBeenCalled();
       });
     });
-    ///: END:ONLY_INCLUDE_IF
-
     describe('Tron Address Scanning', () => {
       beforeEach(() => {
         const multichainModule = jest.requireMock(
@@ -1457,6 +1455,7 @@ describe('QrScanner', () => {
         expect(mockNavigateToSendPage).not.toHaveBeenCalled();
       });
     });
+    ///: END:ONLY_INCLUDE_IF
 
     describe('Camera State Management', () => {
       it('sets isCameraActive to false when scanning address', async () => {
