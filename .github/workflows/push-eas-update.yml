@@ -98,24 +98,11 @@ jobs:
           node-version: '20'
 
       - name: Validate artifact compatibility (PR commit)
-        run: |
-          NODE_VERSION=$(node --version | sed 's/v//')
-          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-          EXPECTED_ARTIFACT="node-modules-eas-update-pr-node${NODE_VERSION}-${OS_NAME}"
-          
-          echo "🔍 Validating PR artifact compatibility..."
-          echo "  Expected artifact: $EXPECTED_ARTIFACT"
-          echo "  Actual artifact:   ${{ env.PR_ARTIFACT_NAME }}"
-          
-          if [ "$EXPECTED_ARTIFACT" != "${{ env.PR_ARTIFACT_NAME }}" ]; then
-            echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
-            echo "❌ The node_modules artifact was built with different Node version or OS"
-            echo "   This could cause issues with native node modules"
-            echo "   Expected: $EXPECTED_ARTIFACT"
-            echo "   Actual:   ${{ env.PR_ARTIFACT_NAME }}"
-            exit 1
-          fi
-          echo "✅ PR artifact compatibility validated"
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.PR_ARTIFACT_NAME }}
+          artifact-prefix: node-modules-eas-update-pr
+          validation-context: PR commit
 
       - name: Download node_modules artifact (PR commit)
         uses: actions/download-artifact@v4
@@ -123,13 +110,7 @@ jobs:
           name: ${{ env.PR_ARTIFACT_NAME }}
 
       - name: Restore executable permissions
-        run: |
-          echo "🔧 Restoring executable permissions..."
-          find node_modules/.bin -type f -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -type f -name "*.node" -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -path "*/bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -path "*/sdks/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          echo "✅ Permissions restored"
+        uses: ./.github/actions/restore-node-modules-permissions
 
       - name: Verify downloaded artifacts
         run: |
@@ -153,24 +134,11 @@ jobs:
           echo "Target PR fingerprint: $FINGERPRINT"
 
       - name: Validate artifact compatibility (base branch)
-        run: |
-          NODE_VERSION=$(node --version | sed 's/v//')
-          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-          EXPECTED_ARTIFACT="node-modules-eas-update-base-node${NODE_VERSION}-${OS_NAME}"
-          
-          echo "🔍 Validating base branch artifact compatibility..."
-          echo "  Expected artifact: $EXPECTED_ARTIFACT"
-          echo "  Actual artifact:   ${{ env.BASE_ARTIFACT_NAME }}"
-          
-          if [ "$EXPECTED_ARTIFACT" != "${{ env.BASE_ARTIFACT_NAME }}" ]; then
-            echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
-            echo "❌ The node_modules artifact was built with different Node version or OS"
-            echo "   This could cause issues with native node modules"
-            echo "   Expected: $EXPECTED_ARTIFACT"
-            echo "   Actual:   ${{ env.BASE_ARTIFACT_NAME }}"
-            exit 1
-          fi
-          echo "✅ Base branch artifact compatibility validated"
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.BASE_ARTIFACT_NAME }}
+          artifact-prefix: node-modules-eas-update-base
+          validation-context: base branch
 
       - name: Download node_modules artifact (base branch)
         uses: actions/download-artifact@v4
@@ -179,14 +147,9 @@ jobs:
           path: main
 
       - name: Restore executable permissions (base branch)
-        working-directory: main
-        run: |
-          echo "🔧 Restoring executable permissions..."
-          find node_modules/.bin -type f -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -type f -name "*.node" -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -path "*/bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -path "*/sdks/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          echo "✅ Permissions restored"
+        uses: ./.github/actions/restore-node-modules-permissions
+        with:
+          working-directory: main
 
       - name: Generate fingerprint (base branch)
         id: main_fingerprint
@@ -265,10 +228,10 @@ jobs:
     if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Await approval from mobile platform team
+      - name: Await approval from mobile release team
         uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
         with:
-          team: mobile-platform
+          team: release-team
           pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
@@ -345,24 +308,11 @@ jobs:
           node-version: '20'
 
       - name: Validate artifact compatibility
-        run: |
-          NODE_VERSION=$(node --version | sed 's/v//')
-          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-          EXPECTED_ARTIFACT="node-modules-eas-update-pr-node${NODE_VERSION}-${OS_NAME}"
-          
-          echo "🔍 Validating artifact compatibility..."
-          echo "  Expected artifact: $EXPECTED_ARTIFACT"
-          echo "  Actual artifact:   ${{ env.ARTIFACT_NAME }}"
-          
-          if [ "$EXPECTED_ARTIFACT" != "${{ env.ARTIFACT_NAME }}" ]; then
-            echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
-            echo "❌ The node_modules artifact was built with different Node version or OS"
-            echo "   This could cause issues with native node modules"
-            echo "   Expected: $EXPECTED_ARTIFACT"
-            echo "   Actual:   ${{ env.ARTIFACT_NAME }}"
-            exit 1
-          fi
-          echo "✅ Artifact compatibility validated"
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.ARTIFACT_NAME }}
+          artifact-prefix: node-modules-eas-update-pr
+          validation-context: artifact
 
       - name: Download node_modules artifact
         uses: actions/download-artifact@v4
@@ -370,13 +320,7 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
 
       - name: Restore executable permissions
-        run: |
-          echo "🔧 Restoring executable permissions..."
-          find node_modules/.bin -type f -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -type f -name "*.node" -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -path "*/bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          find node_modules -path "*/sdks/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          echo "✅ Permissions restored"
+        uses: ./.github/actions/restore-node-modules-permissions
 
       - name: Verify downloaded artifacts
         run: |
