@@ -126,6 +126,10 @@ jest.mock('../../../util/accounts', () => ({
   ),
 }));
 
+// Mock DeviceEventEmitter
+const mockDeviceEventEmitterAddListener = jest.fn();
+const mockDeviceEventEmitterRemove = jest.fn();
+
 // Mock React Native components and StyleSheet
 jest.mock('react-native', () => {
   const RN = jest.requireActual(
@@ -140,6 +144,9 @@ jest.mock('react-native', () => {
     },
     InteractionManager: {
       runAfterInteractions: jest.fn((callback: () => void) => callback()),
+    },
+    DeviceEventEmitter: {
+      addListener: mockDeviceEventEmitterAddListener,
     },
   };
 });
@@ -2389,5 +2396,177 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.retry();
 
     expect(instance.setState).toHaveBeenCalled();
+  });
+});
+
+describe('UnconnectedTransactions Scroll to MerklRewards', () => {
+  let mockScrollToOffset: jest.Mock;
+  let instance: UnconnectedTransactions;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    mockDeviceEventEmitterAddListener.mockClear();
+    mockDeviceEventEmitterRemove.mockClear();
+
+    mockScrollToOffset = jest.fn();
+
+    // Setup mock listener return value
+    mockDeviceEventEmitterAddListener.mockReturnValue({
+      remove: mockDeviceEventEmitterRemove,
+    });
+
+    // Create instance with mocked FlatList ref
+    instance = new UnconnectedTransactions(defaultTestProps);
+    instance.flatList = {
+      current: {
+        scrollToOffset: mockScrollToOffset,
+      },
+    };
+    instance.mounted = true;
+    instance.scrollTimeout = null;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    if (instance.scrollToMerklRewardsListener) {
+      instance.scrollToMerklRewardsListener.remove();
+    }
+  });
+
+  it('adds scroll listener in componentDidMount', () => {
+    instance.componentDidMount();
+
+    expect(mockDeviceEventEmitterAddListener).toHaveBeenCalledWith(
+      'scrollToMerklRewards',
+      expect.any(Function),
+    );
+  });
+
+  it('scrolls to offset when scroll event is received', () => {
+    instance.componentDidMount();
+
+    // Get the callback passed to addListener
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    // Simulate scroll event
+    scrollCallback({ y: 500 });
+
+    // Fast-forward timers to trigger setTimeout
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 500,
+      animated: true,
+    });
+  });
+
+  it('debounces multiple rapid scroll events', () => {
+    instance.componentDidMount();
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    // Trigger multiple rapid events
+    scrollCallback({ y: 500 });
+    scrollCallback({ y: 600 });
+    scrollCallback({ y: 700 });
+
+    // Only advance timers for the last one
+    jest.advanceTimersByTime(100);
+
+    // Should only be called once (last one)
+    expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 700,
+      animated: true,
+    });
+  });
+
+  it('does not scroll if FlatList ref is not available', () => {
+    instance.flatList = { current: null };
+    instance.componentDidMount();
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    scrollCallback({ y: 500 });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('does not scroll if component is not mounted', () => {
+    instance.mounted = false;
+    instance.componentDidMount();
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    scrollCallback({ y: 500 });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('handles scroll errors gracefully', () => {
+    const mockError = new Error('Scroll failed');
+    mockScrollToOffset.mockImplementation(() => {
+      throw mockError;
+    });
+
+    instance.componentDidMount();
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    scrollCallback({ y: 500 });
+    jest.advanceTimersByTime(100);
+
+    // Should not crash, error should be logged
+    expect(Logger.error).toHaveBeenCalledWith(
+      mockError,
+      'Failed to scroll to MerklRewards',
+      {
+        y: 500,
+      },
+    );
+  });
+
+  it('removes listener in componentWillUnmount', () => {
+    instance.componentDidMount();
+    instance.componentWillUnmount();
+
+    expect(mockDeviceEventEmitterRemove).toHaveBeenCalled();
+  });
+
+  it('clears scroll timeout in componentWillUnmount', () => {
+    instance.componentDidMount();
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    // Trigger scroll to set timeout
+    scrollCallback({ y: 500 });
+
+    // Unmount before timeout fires
+    instance.componentWillUnmount();
+    jest.advanceTimersByTime(100);
+
+    // Should not scroll after unmount
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('ensures scroll offset is not negative', () => {
+    instance.componentDidMount();
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    scrollCallback({ y: -100 });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).toHaveBeenCalledWith({
+      offset: 0, // Math.max(0, -100) = 0
+      animated: true,
+    });
+  });
+
+  it('handles undefined y value', () => {
+    instance.componentDidMount();
+    const scrollCallback = mockDeviceEventEmitterAddListener.mock.calls[0][1];
+
+    scrollCallback({ y: undefined });
+    jest.advanceTimersByTime(100);
+
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
   });
 });

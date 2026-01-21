@@ -29,10 +29,11 @@ jest.mock('../../../Stake/components/StakeButton', () => ({
 }));
 
 // Mock dependencies
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
   }),
 }));
 
@@ -98,6 +99,25 @@ jest.mock('../../../Earn/hooks/useMusdCtaVisibility', () => ({
     shouldShowTokenListItemCta: mockShouldShowTokenListItemCta,
   }),
 }));
+
+// Mock MerklRewards hooks
+let mockClaimableReward: string | null = null;
+const mockIsEligibleForMerklRewards = jest.fn<
+  boolean,
+  [string, string | undefined]
+>();
+
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
+  () => ({
+    useMerklRewards: jest.fn(() => ({
+      claimableReward: mockClaimableReward,
+    })),
+    isEligibleForMerklRewards: jest.fn((chainId, address) =>
+      mockIsEligibleForMerklRewards(chainId, address),
+    ),
+  }),
+);
 
 jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: jest.fn(() => ({
@@ -773,6 +793,173 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+  });
+
+  describe('Claim Bonus CTA', () => {
+    const musdAsset: TokenI = {
+      ...defaultAsset,
+      address: '0x8d652c6d4a8f3db96cd866c1a9220b1447f29898',
+      chainId: '0xe708', // Linea Mainnet
+      symbol: 'mUSD',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockClaimableReward = null;
+      mockIsEligibleForMerklRewards.mockReturnValue(false);
+      mockShouldShowTokenListItemCta.mockReturnValue(false);
+      mockUseTokenPricePercentageChange.mockReturnValue(5.67);
+      mockNavigate.mockClear();
+    });
+
+    it('shows "Claim bonus" CTA when token has claimable reward and is eligible', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      // Assert
+      expect(getByText(strings('earn.claim_bonus'))).toBeTruthy();
+    });
+
+    it('does not show "Claim bonus" CTA when token has no claimable reward', () => {
+      // Arrange
+      mockClaimableReward = null;
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      // Assert
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+    });
+
+    it('does not show "Claim bonus" CTA when token is not eligible', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(false);
+      prepareMocks({
+        asset: musdAsset,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      // Assert
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+    });
+
+    it('navigates with scrollToMerklRewards when "Claim bonus" CTA is pressed', async () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+        ...musdAsset,
+        scrollToMerklRewards: true,
+      });
+    });
+
+    it('shows "Claim bonus" CTA instead of percentage change when claimable bonus exists', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+        pricePercentChange1d: 5.67,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      // Assert - Claim bonus should be shown, not percentage change
+      expect(getByText(strings('earn.claim_bonus'))).toBeTruthy();
+      expect(queryByText('+5.67%')).toBeNull();
     });
   });
 });

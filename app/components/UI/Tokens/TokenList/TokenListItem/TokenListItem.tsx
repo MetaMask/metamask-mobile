@@ -48,6 +48,10 @@ import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import {
+  useMerklRewards,
+  isEligibleForMerklRewards,
+} from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -129,6 +133,24 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
+    // Check for claimable Merkl rewards
+    const { claimableReward } = useMerklRewards({
+      asset: asset as TokenI,
+    });
+
+    const isEligibleForMerkl = useMemo(
+      () =>
+        asset?.chainId && asset?.address
+          ? isEligibleForMerklRewards(
+              asset.chainId as Hex,
+              asset.address as Hex | undefined,
+            )
+          : false,
+      [asset?.chainId, asset?.address],
+    );
+
+    const hasClaimableBonus = Boolean(claimableReward && isEligibleForMerkl);
+
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
     const handleConvertToMUSD = useCallback(async () => {
@@ -204,7 +226,38 @@ export const TokenListItem = React.memo(
       pricePercentChange1d !== undefined &&
       Number.isFinite(pricePercentChange1d);
 
+    const onItemPress = useCallback(
+      (token: TokenI, scrollToMerklRewards?: boolean) => {
+        trace({ name: TraceName.AssetDetails });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+            .addProperties({
+              source: isFullView
+                ? 'mobile-token-list-page'
+                : 'mobile-token-list',
+              chain_id: token.chainId,
+              token_symbol: token.symbol,
+            })
+            .build(),
+        );
+
+        navigation.navigate('Asset', {
+          ...token,
+          scrollToMerklRewards,
+        });
+      },
+      [isFullView, trackEvent, createEventBuilder, navigation],
+    );
+
     const secondaryBalanceDisplay = useMemo(() => {
+      if (hasClaimableBonus) {
+        return {
+          text: strings('earn.claim_bonus'),
+          color: TextColor.Primary,
+          onPress: asset ? () => onItemPress(asset as TokenI, true) : undefined,
+        };
+      }
+
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -236,6 +289,9 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
+      hasClaimableBonus,
+      asset,
+      onItemPress,
       handleConvertToMUSD,
       hasPercentageChange,
       pricePercentChange1d,
@@ -248,23 +304,6 @@ export const TokenListItem = React.memo(
       () => (chainId ? NetworkBadgeSource(chainId) : null),
       [chainId],
     );
-
-    const onItemPress = (token: TokenI) => {
-      trace({ name: TraceName.AssetDetails });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-          .addProperties({
-            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
-            chain_id: token.chainId,
-            token_symbol: token.symbol,
-          })
-          .build(),
-      );
-
-      navigation.navigate('Asset', {
-        ...token,
-      });
-    };
 
     const isStakeable = useSelector((state: RootState) =>
       selectIsStakeableToken(state, asset as TokenI),
