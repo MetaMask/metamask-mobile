@@ -213,6 +213,8 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      build_type: 'main'
+      metamask_environment: 'qa'
     secrets: inherit
 
   ramps-ios-smoke:
@@ -229,6 +231,8 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      build_type: 'main'
+      metamask_environment: 'qa'
     secrets: inherit
 
   report-ios-smoke-tests:
