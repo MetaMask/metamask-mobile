@@ -20,7 +20,7 @@ const mockGetInstance = () => ({
   }),
   getMockPositions: () => [
     {
-      coin: 'BTC',
+      symbol: 'BTC',
       entryPrice: '60000.00',
       size: '0.1',
       positionValue: '6000.00',

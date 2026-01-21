@@ -21,7 +21,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
-import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import {
   resetOnboardingState,
   selectOnboardingId,
@@ -62,6 +61,7 @@ const PersonalDetails = () => {
   const [nationalityKey, setNationalityKey] = useState(''); // ISO 3166-1 alpha-2 country code
   const [SSN, setSSN] = useState('');
   const [isSSNError, setIsSSNError] = useState(false);
+  const [isSSNTouched, setIsSSNTouched] = useState(false);
 
   // Get registration settings data
   const { data: registrationSettings } = useRegistrationSettings();
@@ -162,27 +162,25 @@ const PersonalDetails = () => {
     [resetRegisterPersonalDetails],
   );
 
-  const debouncedSSN = useDebouncedValue(SSN, 1000);
-
   const handleSSNChange = useCallback(
     (text: string) => {
       resetRegisterPersonalDetails();
       const cleanedText = text.replace(/\D/g, '');
       setSSN(cleanedText);
+      // Clear error when user starts typing again
+      if (isSSNError) {
+        setIsSSNError(false);
+      }
     },
-    [resetRegisterPersonalDetails],
+    [resetRegisterPersonalDetails, isSSNError],
   );
 
-  useEffect(() => {
-    if (!debouncedSSN) {
-      return;
+  const handleSSNBlur = useCallback(() => {
+    setIsSSNTouched(true);
+    if (SSN) {
+      setIsSSNError(!/^\d{9}$/.test(SSN));
     }
-
-    setIsSSNError(
-      // 9 digits
-      !/^\d{9}$/.test(debouncedSSN),
-    );
-  }, [debouncedSSN]);
+  }, [SSN]);
 
   // Age validation useEffect
   useEffect(() => {
@@ -387,18 +385,20 @@ const PersonalDetails = () => {
           <TextField
             autoCapitalize={'none'}
             onChangeText={handleSSNChange}
+            onBlur={handleSSNBlur}
             numberOfLines={1}
             size={TextFieldSize.Lg}
             value={SSN}
             keyboardType="number-pad"
+            secureTextEntry
             maxLength={9}
             accessibilityLabel={strings(
               'card.card_onboarding.personal_details.ssn_label',
             )}
-            isError={!!debouncedSSN && isSSNError}
+            isError={isSSNTouched && isSSNError}
             testID="personal-details-ssn-input"
           />
-          {debouncedSSN.length > 0 && isSSNError && (
+          {isSSNTouched && isSSNError && (
             <Text
               variant={TextVariant.BodySm}
               testID="personal-details-ssn-error"
