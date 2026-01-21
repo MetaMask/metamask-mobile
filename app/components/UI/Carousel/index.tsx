@@ -43,7 +43,7 @@ import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
-import { isInternalDeepLink } from '../../../util/deeplinks';
+import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
 
 const MAX_CAROUSEL_SLIDES = 8;
