@@ -54,6 +54,9 @@ export const LedgerContextProvider: React.FC<{
   }, []);
 
   const closeLedgerSignModal = useCallback(() => {
+    console.log(
+      '[DEBUG LedgerContext] closeLedgerSignModal called - setting ledgerSignModalOpen to false',
+    );
     setLedgerSignModalOpen(false);
   }, [setLedgerSignModalOpen]);
 

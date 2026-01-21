@@ -1,22 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothPermissions from '../../../components/hooks/useBluetoothPermissions';
 import ConfirmationStep from './Steps/ConfirmationStep';
-import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  BluetoothPermissionErrors,
-  LedgerCommunicationErrors,
-} from '../../../core/Ledger/ledgerErrors';
+import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import {
+  useHardwareWalletError,
+  HardwareWalletType,
+} from '../../../core/HardwareWallet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -56,10 +55,9 @@ const LedgerConfirmationModal = ({
     ledgerLogicToRun,
     error: ledgerError,
   } = useLedgerBluetooth(deviceId);
-  const [errorDetails, setErrorDetails] = useState<{
-    title: string;
-    subtitle: string;
-  }>();
+
+  // Use centralized error handling with bottom sheet
+  const { parseAndShowError } = useHardwareWalletError();
 
   const {
     hasBluetoothPermissions,
@@ -71,8 +69,12 @@ const LedgerConfirmationModal = ({
   );
 
   const connectLedger = () => {
+    console.log('[DEBUG LedgerConfirmationModal] connectLedger called');
     try {
       ledgerLogicToRun(async () => {
+        console.log(
+          '[DEBUG LedgerConfirmationModal] Inside ledgerLogicToRun callback',
+        );
         await onConfirmation();
       });
     } catch (_e) {
@@ -135,77 +137,18 @@ const LedgerConfirmationModal = ({
   }, [completeClose, delayClose, isSendingLedgerCommands]);
 
   useEffect(() => {
+    console.log(
+      '[DEBUG LedgerConfirmationModal] ledgerError changed:',
+      ledgerError,
+    );
     if (ledgerError) {
-      switch (ledgerError) {
-        case LedgerCommunicationErrors.FailedToOpenApp:
-          setErrorDetails({
-            title: strings('ledger.failed_to_open_eth_app'),
-            subtitle: strings('ledger.ethereum_app_open_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.FailedToCloseApp:
-          setErrorDetails({
-            title: strings('ledger.running_app_close'),
-            subtitle: strings('ledger.running_app_close_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.AppIsNotInstalled:
-          setErrorDetails({
-            title: strings('ledger.ethereum_app_not_installed'),
-            subtitle: strings('ledger.ethereum_app_not_installed_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.LedgerIsLocked:
-          setErrorDetails({
-            title: strings('ledger.ledger_is_locked'),
-            subtitle: strings('ledger.unlock_ledger_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.BlindSignError:
-          setErrorDetails({
-            title: strings('ledger.blind_sign_error'),
-            subtitle: strings('ledger.blind_sign_error_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.UserRefusedConfirmation:
-          setErrorDetails({
-            title: strings('ledger.user_reject_transaction'),
-            subtitle: strings('ledger.user_reject_transaction_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.LedgerHasPendingConfirmation:
-          setErrorDetails({
-            title: strings('ledger.ledger_pending_confirmation'),
-            subtitle: strings('ledger.ledger_pending_confirmation_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.NotSupported:
-          setErrorDetails({
-            title: strings('ledger.not_supported'),
-            subtitle: strings('ledger.not_supported_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.UnknownError:
-          setErrorDetails({
-            title: strings('ledger.unknown_error'),
-            subtitle: strings('ledger.unknown_error_message'),
-          });
-          break;
-        case LedgerCommunicationErrors.NonceTooLow:
-          setErrorDetails({
-            title: strings('ledger.nonce_too_low'),
-            subtitle: strings('ledger.nonce_too_low_error'),
-          });
-          break;
-        case LedgerCommunicationErrors.LedgerDisconnected:
-        default:
-          setErrorDetails({
-            title: strings('ledger.ledger_disconnected'),
-            subtitle: strings('ledger.ledger_disconnected_error'),
-          });
-          break;
-      }
+      // Show error in centralized bottom sheet (except for user cancellation)
       if (ledgerError !== LedgerCommunicationErrors.UserRefusedConfirmation) {
+        console.log(
+          '[DEBUG LedgerConfirmationModal] Calling parseAndShowError with:',
+          ledgerError,
+        );
+        parseAndShowError(ledgerError, HardwareWalletType.Ledger);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({
@@ -214,30 +157,22 @@ const LedgerConfirmationModal = ({
             })
             .build(),
         );
+        // Close the modal so user can see the error bottom sheet
+        console.log(
+          '[DEBUG LedgerConfirmationModal] Calling onRejection to close modal',
+        );
+        onRejection();
+      } else {
+        // User cancelled - just close the modal without showing error
+        console.log(
+          '[DEBUG LedgerConfirmationModal] User cancelled, calling onRejection',
+        );
+        onRejection();
       }
     }
 
     if (bluetoothPermissionError && !permissionErrorShown) {
-      switch (bluetoothPermissionError) {
-        case BluetoothPermissionErrors.LocationAccessBlocked:
-          setErrorDetails({
-            title: strings('ledger.location_access_blocked'),
-            subtitle: strings('ledger.location_access_blocked_error'),
-          });
-          break;
-        case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
-          setErrorDetails({
-            title: strings('ledger.nearbyDevices_access_blocked'),
-            subtitle: strings('ledger.nearbyDevices_access_blocked_message'),
-          });
-          break;
-        case BluetoothPermissionErrors.BluetoothAccessBlocked:
-          setErrorDetails({
-            title: strings('ledger.bluetooth_access_blocked'),
-            subtitle: strings('ledger.bluetooth_access_blocked_message'),
-          });
-          break;
-      }
+      parseAndShowError(bluetoothPermissionError, HardwareWalletType.Ledger);
       setPermissionErrorShown(true);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
@@ -250,11 +185,10 @@ const LedgerConfirmationModal = ({
     }
 
     if (bluetoothConnectionError) {
-      setErrorDetails({
-        title: strings('ledger.bluetooth_off'),
-        subtitle: strings('ledger.bluetooth_off_message'),
-      });
-
+      parseAndShowError(
+        new Error('BluetoothDisabled'),
+        HardwareWalletType.Ledger,
+      );
       trackEvent(
         createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
           .addProperties({
@@ -264,46 +198,29 @@ const LedgerConfirmationModal = ({
           .build(),
       );
     }
-
-    if (
-      !ledgerError &&
-      !bluetoothPermissionError &&
-      !bluetoothConnectionError &&
-      !permissionErrorShown
-    ) {
-      setErrorDetails(undefined);
-    }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     ledgerError,
     bluetoothConnectionError,
     bluetoothPermissionError,
     permissionErrorShown,
+    onRejection,
+    parseAndShowError,
+    trackEvent,
+    createEventBuilder,
   ]);
 
-  if (errorDetails) {
+  // Check if there's an error state that should prevent the modal from showing the signing flow
+  const hasError =
+    ledgerError || bluetoothPermissionError || bluetoothConnectionError;
+
+  // When an error occurs, show the searching step (spinner) while the error bottom sheet is displayed
+  // This prevents showing "confirm on your ledger" when the device is actually locked/disconnected
+  if (hasError) {
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.contentWrapper}>
-          <ErrorStep
-            onReject={onReject}
-            onRetry={onRetry}
-            title={errorDetails?.title}
-            subTitle={errorDetails?.subtitle}
-            showViewSettings={
-              permissionErrorShown ||
-              !!bluetoothConnectionError ||
-              !!bluetoothPermissionError
-            }
-            isRetryHide={
-              ledgerError === LedgerCommunicationErrors.UnknownError ||
-              ledgerError === LedgerCommunicationErrors.NonceTooLow ||
-              ledgerError === LedgerCommunicationErrors.NotSupported ||
-              ledgerError === LedgerCommunicationErrors.BlindSignError ||
-              ledgerError === LedgerCommunicationErrors.UserRefusedConfirmation
-            }
-          />
+          <SearchingForDeviceStep />
         </View>
       </SafeAreaView>
     );

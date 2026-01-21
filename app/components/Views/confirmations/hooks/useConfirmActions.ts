@@ -59,7 +59,14 @@ export const useConfirmActions = () => {
   );
 
   const onConfirm = useCallback(async () => {
+    console.log(
+      '[DEBUG useConfirmActions] onConfirm called, ledgerSigningInProgress:',
+      ledgerSigningInProgress,
+      'isTransactionReq:',
+      isTransactionReq,
+    );
     if (ledgerSigningInProgress) {
+      console.log('[DEBUG useConfirmActions] Opening Ledger sign modal');
       openLedgerSignModal();
       return;
     }
@@ -70,7 +77,8 @@ export const useConfirmActions = () => {
     }
 
     if (isTransactionReq) {
-      onTransactionConfirm();
+      console.log('[DEBUG useConfirmActions] Calling onTransactionConfirm');
+      await onTransactionConfirm();
       return;
     }
 

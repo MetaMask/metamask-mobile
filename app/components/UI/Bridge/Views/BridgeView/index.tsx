@@ -85,6 +85,10 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/feat
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
+import {
+  useHardwareWalletError,
+  getHardwareWalletTypeForAddress,
+} from '../../../../../core/HardwareWallet';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -107,6 +111,7 @@ const BridgeView = () => {
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { parseAndShowError } = useHardwareWalletError();
 
   // Needed to get gas fee estimates
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
@@ -347,7 +352,15 @@ const BridgeView = () => {
         });
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error submitting bridge tx', error);
+      // Show hardware wallet errors in the centralized error bottom sheet
+      const hwType = selectedAddress
+        ? getHardwareWalletTypeForAddress(selectedAddress)
+        : undefined;
+      if (hwType) {
+        parseAndShowError(error, hwType);
+      }
     } finally {
       dispatch(setIsSubmittingTx(false));
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
