@@ -183,7 +183,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const createMockRouteParams = (overrides = {}) => ({
   params: {
     position: {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '0.5',
       entryPrice: '50000',
       unrealizedPnl: '5000',
