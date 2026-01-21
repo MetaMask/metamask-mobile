@@ -219,17 +219,27 @@ export const useTokensWithBalance: ({
         const evmTokenFiatAmount = evmBalances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
 
+        // Safely get token icon URL - formatAddressToAssetId may throw for unsupported chains
+        let tokenImage = token.image;
+        try {
+          const assetId = formatAddressToAssetId(token.address, chainId);
+          if (assetId) {
+            tokenImage =
+              getTokenIconUrl(assetId, isNonEvmChainId(chainId)) || token.image;
+          }
+        } catch (error) {
+          // formatAddressToAssetId can throw for chains not supported by XChain Swaps
+          // (e.g., Linea Sepolia, Hyperliquid). Fall back to token.image
+          tokenImage = token.image;
+        }
+
         return {
           address: token.address,
           name: token.name,
           decimals: token.decimals,
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
           chainId,
-          image:
-            getTokenIconUrl(
-              formatAddressToAssetId(token.address, chainId),
-              isNonEvmChainId(chainId),
-            ) || token.image,
+          image: tokenImage,
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
