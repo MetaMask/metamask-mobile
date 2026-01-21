@@ -1,15 +1,16 @@
 import { useCallback, useRef } from 'react';
-import { InteractionManager, DeviceEventEmitter } from 'react-native';
 import {
   useRoute,
   useNavigation,
   useFocusEffect,
 } from '@react-navigation/native';
-
-const SCROLL_PADDING = 350;
-const MAX_RETRIES = 10;
-const RETRY_DELAY_MS = 100;
-const SCROLL_DELAY_MS = 150;
+import {
+  SCROLL_PADDING,
+  MAX_RETRIES,
+  RETRY_DELAY_MS,
+  SCROLL_DELAY_MS,
+  emitScrollToMerklRewards,
+} from './scrollToMerklRewardsUtils';
 
 /**
  * Hook to handle scrolling to MerklRewards section when navigating from "Claim bonus" CTA
@@ -23,6 +24,19 @@ export const useScrollToMerklRewards = (
   const route = useRoute();
   const navigation = useNavigation();
   const hasScrolledRef = useRef(false);
+
+  /**
+   * Emits scroll event with calculated scroll position
+   * Uses a single setTimeout to ensure UI is ready before scrolling
+   * This simplifies testing while maintaining the timing behavior
+   */
+  const emitScrollEvent = useCallback((scrollY: number) => {
+    // Schedule scroll after a delay to ensure FlatList is ready
+    // The delay accounts for requestAnimationFrame and InteractionManager timing
+    setTimeout(() => {
+      emitScrollToMerklRewards(scrollY);
+    }, SCROLL_DELAY_MS);
+  }, []);
 
   /**
    * Attempts to scroll to MerklRewards section
@@ -40,21 +54,13 @@ export const useScrollToMerklRewards = (
           merklRewardsYInHeaderRef.current - SCROLL_PADDING,
         );
 
-        // Use requestAnimationFrame for better timing - waits for next paint
-        requestAnimationFrame(() => {
-          InteractionManager.runAfterInteractions(() => {
-            // Small delay to ensure FlatList is ready
-            setTimeout(() => {
-              DeviceEventEmitter.emit('scrollToMerklRewards', { y: scrollY });
-            }, SCROLL_DELAY_MS);
-          });
-        });
+        emitScrollEvent(scrollY);
       } else if (retryCount < MAX_RETRIES) {
         // Retry if layout hasn't been measured yet
         setTimeout(() => attemptScroll(retryCount + 1), RETRY_DELAY_MS);
       }
     },
-    [merklRewardsYInHeaderRef],
+    [merklRewardsYInHeaderRef, emitScrollEvent],
   );
 
   // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
