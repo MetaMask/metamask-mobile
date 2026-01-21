@@ -6755,6 +6755,12 @@
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
+      "messages": {
+        "card_provisioning": {
+          "title": "Card being created",
+          "description": "Your card is being created. This may take a few moments."
+        }
+      },
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
@@ -6782,7 +6788,7 @@
         "manage_card": "Manage card",
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
-        "travel_description": "Travel the world, earn points, live life",
+        "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions"
       }
     },

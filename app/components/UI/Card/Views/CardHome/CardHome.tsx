@@ -47,7 +47,7 @@ import {
   CardStatus,
   CardType,
   CardStateWarning,
-  CardWarningBoxType,
+  CardMessageBoxType,
 } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
@@ -71,7 +71,7 @@ import {
   clearAllCache,
   resetAuthenticatedData,
 } from '../../../../../core/redux/slices/card';
-import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
@@ -429,6 +429,19 @@ const CardHome = () => {
     return { needsSetup, canEnable, isKYCPending, setupTestId };
   }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
 
+  /**
+   * Check if the card is being provisioned.
+   * Show info box when: VERIFIED + has delegated assets + card not yet provisioned
+   */
+  const isCardProvisioning = useMemo(
+    () =>
+      isAuthenticated &&
+      kycStatus?.verificationState === 'VERIFIED' &&
+      warning === CardStateWarning.NoCard &&
+      (externalWalletDetailsData?.mappedWalletDetails?.length ?? 0) > 0,
+    [isAuthenticated, kycStatus, warning, externalWalletDetailsData],
+  );
+
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
       return (
@@ -697,8 +710,8 @@ const CardHome = () => {
         {strings('card.card_home.title')}
       </Text>
       {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onConfirm={() => {
             navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
               flow: 'enable',
@@ -714,7 +727,10 @@ const CardHome = () => {
         />
       )}
       {cardSetupState.isKYCPending && (
-        <CardWarningBox warning={CardWarningBoxType.KYCPending} />
+        <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
+      )}
+      {isCardProvisioning && (
+        <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
       )}
       <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
         <Box twClassName="w-full">

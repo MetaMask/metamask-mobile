@@ -21,12 +21,21 @@ export enum CardStateWarning {
 }
 
 /**
- * Card warning box types - used for UI display in CardWarningBox component
- * These are user-facing warnings that render as visual warning boxes
+ * Card message box variants - determines the visual style of the message box
  */
-export enum CardWarningBoxType {
+export enum CardMessageBoxVariant {
+  Warning = 'warning',
+  Info = 'info',
+}
+
+/**
+ * Card message box types - used for UI display in CardMessageBox component
+ * These are user-facing messages that render as visual message boxes
+ */
+export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
+  CardProvisioning = 'card_provisioning',
 }
 
 export type CardUserPhase =

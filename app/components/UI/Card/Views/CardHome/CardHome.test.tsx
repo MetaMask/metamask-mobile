@@ -1570,7 +1570,7 @@ describe('CardHome Component', () => {
       expect(assetElement).toBeNull();
     });
 
-    it('displays CardWarningBox when warning exists', () => {
+    it('displays CardMessageBox when warning exists', () => {
       // Given: warning exists
       setupLoadCardDataMock({
         warning: CardStateWarning.NeedDelegation,
@@ -1580,8 +1580,6 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should display warning box
-      // Note: The warning box text depends on CardWarningBox component implementation
-      // This test verifies the warning prop is passed
       expect(useLoadCardData).toHaveBeenCalled();
     });
   });
