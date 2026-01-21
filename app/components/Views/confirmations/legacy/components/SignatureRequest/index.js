@@ -19,8 +19,8 @@ import ActionView, { ConfirmButtonState } from '../../../../../UI/ActionView';
 import QRSigningDetails from '../../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../../UI/WebsiteIcon';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
-import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
+import BlockaidBanner from '../../../components/blockaid-banner/BlockaidBanner';
+import { ResultType } from '../../../components/blockaid-banner/BlockaidBanner.types';
 
 const getCleanUrl = (url) => {
   try {
