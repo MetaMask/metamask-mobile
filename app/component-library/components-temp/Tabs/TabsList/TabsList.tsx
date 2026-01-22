@@ -15,6 +15,7 @@ import { InteractionManager } from 'react-native';
 
 import TabsBar from '../TabsBar';
 import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
+import { isE2E } from '../../../../util/test/utils';
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
@@ -67,6 +68,17 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const isAlreadyLoaded = loadedTabs.has(activeIndex);
 
         if (isAlreadyLoaded) {
+          return;
+        }
+
+        // Skip InteractionManager during E2E tests to prevent pending timers
+        // that cause Detox synchronization issues
+        if (isE2E) {
+          setLoadedTabs((prev) => {
+            const newLoadedTabs = new Set(prev);
+            newLoadedTabs.add(activeIndex);
+            return newLoadedTabs.size !== prev.size ? newLoadedTabs : prev;
+          });
           return;
         }
 

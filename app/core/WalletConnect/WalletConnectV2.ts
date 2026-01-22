@@ -17,6 +17,7 @@ import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
+import { isE2E } from '../../util/test/utils';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
 import {
@@ -309,6 +310,8 @@ export class WC2Manager {
 
   public static async getInstance(): Promise<WC2Manager> {
     let waitCount = 1;
+    // Use shorter polling interval during E2E tests to reduce pending timers
+    const pollInterval = isE2E ? 10 : 100;
     return new Promise((resolve) => {
       const interval = setInterval(() => {
         if (this.instance) {
@@ -321,7 +324,7 @@ export class WC2Manager {
           resolve(this.instance);
         }
         waitCount += 1;
-      }, 100);
+      }, pollInterval);
     });
   }
 

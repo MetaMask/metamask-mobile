@@ -50,6 +50,7 @@ import {
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
+import { isE2E } from '../../util/test/utils';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
@@ -611,10 +612,12 @@ export class Engine {
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
+          // Use shorter delay during E2E tests to prevent pending timer issues
+          const delay = isE2E ? 0 : 500;
           setTimeout(() => {
             this.configureControllersOnNetworkChange();
             currentChainId = getGlobalChainId(networkController);
-          }, 500);
+          }, delay);
         }
       },
     );

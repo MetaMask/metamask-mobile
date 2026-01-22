@@ -5,6 +5,7 @@ import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import FoxAnimationRive from '../../../animations/fox_appear.riv';
+import { isE2E } from '../../../util/test/utils';
 
 const getFoxAnimationHeight = (hasFooter: boolean) => {
   if (hasFooter) {
@@ -94,6 +95,12 @@ const FoxAnimation = ({
       showFoxAnimation();
     }
   }, [showFoxAnimation, isPlaying]);
+
+  // Skip Rive animation during E2E tests to prevent pending animation updates
+  // that cause Detox synchronization issues
+  if (isE2E) {
+    return <View style={[styles.foxAnimationWrapper]} testID="fox-animation" />;
+  }
 
   return (
     <View style={[styles.foxAnimationWrapper]}>

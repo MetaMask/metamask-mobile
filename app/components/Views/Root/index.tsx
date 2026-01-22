@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTest } from '../../../util/test/utils';
+import { isTest, isE2E } from '../../../util/test/utils';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -31,16 +31,18 @@ const Root = ({ foxCode }: RootProps) => {
   /**
    * Wait for store to be initialized in Detox tests
    * Note: This is a workaround for an issue with Detox where the store is not initialized
+   * Use shorter interval during E2E tests to reduce pending timers that cause Detox sync issues
    */
   const waitForStore = () =>
     new Promise((resolve) => {
+      const pollInterval = isE2E ? 10 : 100;
       const intervalId = setInterval(() => {
         if (store && persistor) {
           clearInterval(intervalId);
           setIsStoreLoading(false);
           resolve(null);
         }
-      }, 100);
+      }, pollInterval);
     });
 
   useEffect(() => {
