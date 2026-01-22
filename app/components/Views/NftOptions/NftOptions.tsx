@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useRef } from 'react';
-import { Alert, TouchableOpacity, View } from 'react-native';
+import React, { useContext, useRef } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../component-library/hooks';
@@ -8,6 +8,11 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { useTheme } from '../../../util/theme';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -47,6 +52,8 @@ const NftOptions = (props: Props) => {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
 
   const goToWalletPage = () => {
     navigation.navigate(Routes.WALLET.HOME, {
@@ -102,10 +109,16 @@ const NftOptions = (props: Props) => {
       collectible.tokenId.toString(),
       nftNetworkClientId,
     );
-    Alert.alert(
-      strings('wallet.collectible_removed_title'),
-      strings('wallet.collectible_removed_desc'),
-    );
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        { label: strings('wallet.collectible_removed_title') },
+      ],
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
+      backgroundColor: colors.success.muted,
+      hasNoTimeout: false,
+    });
     // Redirect to home after removing NFT
     goToWalletPage();
   };

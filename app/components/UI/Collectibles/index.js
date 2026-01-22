@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Alert,
   ScrollView,
   RefreshControl,
   FlatList,
@@ -16,6 +15,7 @@ import Engine from '../../../core/Engine';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import NotificationManager from '../../../core/NotificationManager';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -162,10 +162,12 @@ export default class Collectibles extends PureComponent {
       this.longPressedCollectible.tokenId,
       selectedNetworkClientId,
     );
-    Alert.alert(
-      strings('wallet.collectible_removed_title'),
-      strings('wallet.collectible_removed_desc'),
-    );
+    NotificationManager.showSimpleNotification({
+      status: 'simple_notification',
+      duration: 5000,
+      title: strings('wallet.collectible_removed_title'),
+      description: strings('wallet.collectible_removed_desc'),
+    });
   };
 
   createActionSheetRef = (ref) => {

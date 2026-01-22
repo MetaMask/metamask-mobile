@@ -7,16 +7,32 @@ import { Nft } from '@metamask/assets-controllers';
 
 const mockStore = configureMockStore();
 
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Alert: {
-    alert: jest.fn(),
-  },
-}));
+// Create mock for showToast function
+const mockShowToast = jest.fn();
+
+// Mock Toast component with a functional context that uses the mockShowToast
+jest.mock('../../../component-library/components/Toast', () => {
+  const ReactActual = jest.requireActual('react');
+  const MockToastContext = ReactActual.createContext({
+    toastRef: { current: { showToast: (...args: unknown[]) => mockShowToast(...args) } },
+  });
+  return {
+    ToastContext: MockToastContext,
+    ToastVariants: {
+      Icon: 'Icon',
+    },
+  };
+});
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
     themeAppearance: 'light',
+    colors: {
+      success: {
+        default: '#28a745',
+        muted: '#d4edda',
+      },
+    },
   }),
 }));
 
@@ -168,5 +184,12 @@ describe('NftGridItemActionSheet', () => {
     expect(
       Engine.context.NftController.removeAndIgnoreNft,
     ).toHaveBeenCalledWith('0x123', '456', 'mainnet');
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: 'Icon',
+        labelOptions: [{ label: 'wallet.collectible_removed_title' }],
+      }),
+    );
   });
 });

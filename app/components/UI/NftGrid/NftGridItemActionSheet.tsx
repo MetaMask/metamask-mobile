@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { Alert } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { useTheme } from '../../../util/theme';
 import { toHex } from '@metamask/controller-utils';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const NftGridItemActionSheet = ({
   actionSheetRef,
@@ -14,7 +18,8 @@ const NftGridItemActionSheet = ({
   actionSheetRef: React.RefObject<typeof ActionSheet>;
   longPressedCollectible: Nft | null;
 }) => {
-  const { themeAppearance } = useTheme();
+  const { themeAppearance, colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
   const getNetworkClientIdForNft = (nft: Nft) => {
     if (!nft.chainId) return undefined;
@@ -36,10 +41,14 @@ const NftGridItemActionSheet = ({
       networkClientId,
     );
 
-    Alert.alert(
-      strings('wallet.collectible_removed_title'),
-      strings('wallet.collectible_removed_desc'),
-    );
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings('wallet.collectible_removed_title') }],
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
+      backgroundColor: colors.success.muted,
+      hasNoTimeout: false,
+    });
   };
 
   const refreshMetadata = () => {
