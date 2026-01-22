@@ -137,17 +137,6 @@ export const APP_CONFIG = {
     keywords: ['Controller', 'Engine'],
 
     /** Path segments that indicate critical areas (checked with file.includes(path)) */
-    paths: [
-      'app/core/',
-      'e2e/framework/',
-      'e2e/api-mocking/',
-      'e2e/fixtures/',
-      'e2e/utils/',
-      'e2e/pages/',
-      'e2e/selectors/',
-      'e2e/tools/',
-      '.github/workflows/',
-      '.github/actions/',
-    ],
+    paths: ['app/core/', 'e2e/*', '.github/workflows/', '.github/actions/'],
   },
 };

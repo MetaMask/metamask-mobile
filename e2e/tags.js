@@ -123,13 +123,6 @@ const flaskTags = {
   },
 };
 
-const performanceTags = {
-  performance: {
-    tag: 'Performance:',
-    description: 'Performance tests',
-  },
-};
-
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   regressionAccounts: 'RegressionAccounts:',
