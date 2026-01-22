@@ -57,7 +57,6 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID_2,
   DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
-import { toLowerCaseEquals } from '../../../util/general';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
