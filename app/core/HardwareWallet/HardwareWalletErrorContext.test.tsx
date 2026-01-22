@@ -333,27 +333,29 @@ describe('HardwareWalletErrorContext', () => {
         .spyOn(Linking, 'openURL')
         .mockResolvedValue(undefined);
 
-      const { getByTestId } = render(
-        <HardwareWalletErrorProvider>
-          <TestConsumer />
-        </HardwareWalletErrorProvider>,
-      );
+      try {
+        const { getByTestId } = render(
+          <HardwareWalletErrorProvider>
+            <TestConsumer />
+          </HardwareWalletErrorProvider>,
+        );
 
-      // Trigger an error to get the callbacks
-      await act(async () => {
-        getByTestId('trigger-error').props.onPress();
-        jest.advanceTimersByTime(100);
-      });
+        // Trigger an error to get the callbacks
+        await act(async () => {
+          getByTestId('trigger-error').props.onPress();
+          jest.advanceTimersByTime(100);
+        });
 
-      // Now call onOpenBluetoothSettings
-      await act(async () => {
-        capturedCallbacks.onOpenBluetoothSettings?.();
-      });
+        // Now call onOpenBluetoothSettings
+        await act(async () => {
+          capturedCallbacks.onOpenBluetoothSettings?.();
+        });
 
-      expect(mockOpenURL).toHaveBeenCalledWith('App-Prefs:Bluetooth');
-
-      Platform.OS = originalPlatform;
-      mockOpenURL.mockRestore();
+        expect(mockOpenURL).toHaveBeenCalledWith('App-Prefs:Bluetooth');
+      } finally {
+        Platform.OS = originalPlatform;
+        mockOpenURL.mockRestore();
+      }
     });
 
     it('handleOpenBluetoothSettings opens Android settings on Android', async () => {
@@ -363,27 +365,29 @@ describe('HardwareWalletErrorContext', () => {
         .spyOn(Linking, 'openSettings')
         .mockResolvedValue();
 
-      const { getByTestId } = render(
-        <HardwareWalletErrorProvider>
-          <TestConsumer />
-        </HardwareWalletErrorProvider>,
-      );
+      try {
+        const { getByTestId } = render(
+          <HardwareWalletErrorProvider>
+            <TestConsumer />
+          </HardwareWalletErrorProvider>,
+        );
 
-      // Trigger an error to get the callbacks
-      await act(async () => {
-        getByTestId('trigger-error').props.onPress();
-        jest.advanceTimersByTime(100);
-      });
+        // Trigger an error to get the callbacks
+        await act(async () => {
+          getByTestId('trigger-error').props.onPress();
+          jest.advanceTimersByTime(100);
+        });
 
-      // Now call onOpenBluetoothSettings
-      await act(async () => {
-        capturedCallbacks.onOpenBluetoothSettings?.();
-      });
+        // Now call onOpenBluetoothSettings
+        await act(async () => {
+          capturedCallbacks.onOpenBluetoothSettings?.();
+        });
 
-      expect(linkingOpenSettings).toHaveBeenCalled();
-
-      Platform.OS = originalPlatform;
-      linkingOpenSettings.mockRestore();
+        expect(linkingOpenSettings).toHaveBeenCalled();
+      } finally {
+        Platform.OS = originalPlatform;
+        linkingOpenSettings.mockRestore();
+      }
     });
 
     it('onClose clears error', async () => {
