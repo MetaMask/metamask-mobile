@@ -1270,7 +1270,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.closePosition(closeParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Position not found for BTC');
+      expect(result.error).toContain('No position found for BTC');
     });
 
     it('should handle short position close with TP/SL', async () => {
@@ -2202,7 +2202,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.closePosition(closeParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Position not found for BTC');
+      expect(result.error).toContain('No position found for BTC');
     });
   });
 

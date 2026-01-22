@@ -122,8 +122,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Client Initialization', () => {
-    it('should initialize clients successfully with dual transports', () => {
-      service.initialize(mockWallet);
+    it('should initialize clients successfully with dual transports', async () => {
+      await service.initialize(mockWallet);
 
       expect(service.isInitialized()).toBe(true);
 
@@ -174,22 +174,22 @@ describe('HyperLiquidClientService', () => {
       });
     });
 
-    it('should handle initialization errors', () => {
+    it('should handle initialization errors', async () => {
       const { ExchangeClient } = require('@nktkas/hyperliquid');
       ExchangeClient.mockImplementationOnce(() => {
         throw new Error('Client initialization failed');
       });
 
-      expect(() => service.initialize(mockWallet)).toThrow(
+      await expect(service.initialize(mockWallet)).rejects.toThrow(
         'Client initialization failed',
       );
     });
 
-    it('should initialize with testnet configuration', () => {
+    it('should initialize with testnet configuration', async () => {
       const testnetService = new HyperLiquidClientService(mockDeps, {
         isTestnet: true,
       });
-      testnetService.initialize(mockWallet);
+      await testnetService.initialize(mockWallet);
 
       const {
         ExchangeClient,
@@ -221,8 +221,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Client Access', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
     });
 
     it('should provide access to exchange client', () => {
@@ -293,14 +293,14 @@ describe('HyperLiquidClientService', () => {
       expect(service.isInitialized()).toBe(false);
     });
 
-    it('should report initialized after setup', () => {
-      service.initialize(mockWallet);
+    it('should report initialized after setup', async () => {
+      await service.initialize(mockWallet);
 
       expect(service.isInitialized()).toBe(true);
     });
 
-    it('should ensure initialization succeeds when clients are ready', () => {
-      service.initialize(mockWallet);
+    it('should ensure initialization succeeds when clients are ready', async () => {
+      await service.initialize(mockWallet);
 
       expect(() => service.ensureInitialized()).not.toThrow();
     });
@@ -311,17 +311,19 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should ensure subscription client is available', () => {
-      service.initialize(mockWallet);
+    it('should ensure subscription client is available', async () => {
+      await service.initialize(mockWallet);
 
-      expect(() => service.ensureSubscriptionClient(mockWallet)).not.toThrow();
+      await expect(
+        service.ensureSubscriptionClient(mockWallet),
+      ).resolves.not.toThrow();
     });
 
-    it('should reinitialize when subscription client is missing', () => {
+    it('should reinitialize when subscription client is missing', async () => {
       // Start with partial initialization to simulate missing subscription client
       const uninitializedService = new HyperLiquidClientService(mockDeps);
 
-      uninitializedService.ensureSubscriptionClient(mockWallet);
+      await uninitializedService.ensureSubscriptionClient(mockWallet);
 
       expect(uninitializedService.isInitialized()).toBe(true);
     });
@@ -350,8 +352,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Disconnection', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
     });
 
     it('should disconnect successfully and close only WebSocket transport', async () => {
@@ -395,18 +397,18 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle transport creation errors', () => {
+    it('should handle transport creation errors', async () => {
       const { WebSocketTransport } = require('@nktkas/hyperliquid');
       WebSocketTransport.mockImplementationOnce(() => {
         throw new Error('Transport creation failed');
       });
 
-      expect(() => service.initialize(mockWallet)).toThrow(
+      await expect(service.initialize(mockWallet)).rejects.toThrow(
         'Transport creation failed',
       );
     });
 
-    it('should maintain network state through errors', () => {
+    it('should maintain network state through errors', async () => {
       service.setTestnetMode(true);
 
       try {
@@ -414,7 +416,7 @@ describe('HyperLiquidClientService', () => {
         ExchangeClient.mockImplementationOnce(() => {
           throw new Error('Initialization failed');
         });
-        service.initialize(mockWallet);
+        await service.initialize(mockWallet);
       } catch {
         // Expected error
       }
@@ -422,11 +424,21 @@ describe('HyperLiquidClientService', () => {
       expect(service.isTestnetMode()).toBe(true);
       expect(service.getNetwork()).toBe('testnet');
     });
+
+    it('should handle transport ready timeout', async () => {
+      // Make transport.ready() reject with abort error
+      mockWsTransportReady.mockRejectedValueOnce(new Error('Aborted'));
+
+      await expect(service.initialize(mockWallet)).rejects.toThrow(
+        'WebSocket initialization failed',
+      );
+      expect(service.isInitialized()).toBe(false);
+    });
   });
 
   describe('Logging and Debugging', () => {
-    it('should log initialization events', () => {
-      service.initialize(mockWallet);
+    it('should log initialization events', async () => {
+      await service.initialize(mockWallet);
 
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'HyperLiquid SDK clients initialized',
@@ -439,7 +451,7 @@ describe('HyperLiquidClientService', () => {
     });
 
     it('should log disconnect events', async () => {
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
 
       await service.disconnect();
 
@@ -452,8 +464,8 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
-    it('should log transport creation events', () => {
-      service.initialize(mockWallet);
+    it('should log transport creation events', async () => {
+      await service.initialize(mockWallet);
 
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'HyperLiquid: Creating transports',
@@ -466,8 +478,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('fetchHistoricalCandles', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
     });
 
     it('should fetch historical candles successfully', async () => {
@@ -621,7 +633,7 @@ describe('HyperLiquidClientService', () => {
       const testnetService = new HyperLiquidClientService(mockDeps, {
         isTestnet: true,
       });
-      testnetService.initialize(mockWallet);
+      await testnetService.initialize(mockWallet);
 
       const mockResponse: any[] = [];
 
@@ -657,8 +669,8 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('subscribeToCandles', () => {
-    beforeEach(() => {
-      service.initialize(mockWallet);
+    beforeEach(async () => {
+      await service.initialize(mockWallet);
       jest.clearAllMocks();
     });
 
@@ -676,10 +688,10 @@ describe('HyperLiquidClientService', () => {
       ).toThrow('CLIENT_NOT_INITIALIZED');
     });
 
-    it('throws error when subscription client unavailable', () => {
+    it('throws error when subscription client unavailable', async () => {
       // Arrange
       const serviceWithNoSubClient = new HyperLiquidClientService(mockDeps);
-      serviceWithNoSubClient.initialize(mockWallet);
+      await serviceWithNoSubClient.initialize(mockWallet);
       // Force subscription client to be undefined
       (serviceWithNoSubClient as any).subscriptionClient = undefined;
 
@@ -1174,19 +1186,23 @@ describe('HyperLiquidClientService', () => {
       expect(() => service.setOnReconnectCallback(callback)).not.toThrow();
     });
 
-    it('starts health check monitoring after initialization', () => {
-      service.initialize(mockWallet);
+    it('starts health check monitoring after initialization', async () => {
+      await service.initialize(mockWallet);
 
       // Health check monitoring should start (interval is set)
       // Fast-forward time to trigger health check
       jest.advanceTimersByTime(5000);
 
       // Verify transport.ready was called (health check executed)
+      // Called once during init (ensureTransportReady) and once during health check
       expect(mockWsTransportReady).toHaveBeenCalled();
     });
 
     it('skips health check when already running', async () => {
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
+
+      // Reset mock after initialization
+      mockWsTransportReady.mockClear();
 
       // Make health check take a long time
       let resolveReady: () => void = () => {
@@ -1221,21 +1237,27 @@ describe('HyperLiquidClientService', () => {
 
     it('handles connection drop and triggers reconnection callback', async () => {
       const reconnectCallback = jest.fn().mockResolvedValue(undefined);
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
       service.setOnReconnectCallback(reconnectCallback);
 
+      // Reset the mock after initialization
+      mockWsTransportReady.mockClear();
+
       // Make health check fail (simulate connection drop)
-      mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
+      // But transport.ready on the NEW transport should succeed (so callback gets called)
+      mockWsTransportReady
+        .mockRejectedValueOnce(new Error('Connection lost')) // Health check fails
+        .mockResolvedValue(undefined); // Transport ready succeeds after reconnection
 
       // Fast-forward to trigger health check
       jest.advanceTimersByTime(5000);
 
-      // Wait for the promise to resolve
-      await Promise.resolve();
-
-      // Fast-forward a bit more to allow async operations
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
+      // Flush microtask queue multiple times to allow async operations to complete
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      for (let i = 0; i < 10; i++) {
+        await Promise.resolve();
+        jest.advanceTimersByTime(100);
+      }
 
       // Verify reconnection callback was called
       expect(reconnectCallback).toHaveBeenCalled();
@@ -1248,7 +1270,7 @@ describe('HyperLiquidClientService', () => {
       } = require('@nktkas/hyperliquid');
       const reconnectCallback = jest.fn().mockResolvedValue(undefined);
 
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
       service.setOnReconnectCallback(reconnectCallback);
 
       // Track initial subscription client creation
@@ -1274,8 +1296,11 @@ describe('HyperLiquidClientService', () => {
     it('stops health check monitoring when reconnection fails', async () => {
       const reconnectCallback = jest.fn().mockResolvedValue(undefined);
 
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
       service.setOnReconnectCallback(reconnectCallback);
+
+      // Reset mock after initialization
+      mockWsTransportReady.mockClear();
 
       // Make health check fail
       mockWsTransportReady.mockRejectedValueOnce(new Error('Connection lost'));
@@ -1301,7 +1326,7 @@ describe('HyperLiquidClientService', () => {
     });
 
     it('handles connection drop when already connecting', async () => {
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
 
       // Simulate connection drop while already connecting
       // Make health check fail
@@ -1322,7 +1347,7 @@ describe('HyperLiquidClientService', () => {
     });
 
     it('updates last successful health check timestamp on success', async () => {
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
 
       // Fast-forward to trigger health check
       jest.advanceTimersByTime(5000);
@@ -1337,7 +1362,7 @@ describe('HyperLiquidClientService', () => {
     });
 
     it('clears health check timeout on completion', async () => {
-      service.initialize(mockWallet);
+      await service.initialize(mockWallet);
 
       // Make health check resolve quickly
       mockWsTransportReady.mockResolvedValueOnce(undefined);
@@ -1352,6 +1377,39 @@ describe('HyperLiquidClientService', () => {
 
       // Timeout should be cleared (no errors thrown)
       expect(mockWsTransportReady).toHaveBeenCalled();
+    });
+  });
+
+  describe('ensureTransportReady', () => {
+    it('resolves immediately when transport is ready', async () => {
+      await service.initialize(mockWallet);
+
+      // Should resolve without error
+      await expect(service.ensureTransportReady()).resolves.toBeUndefined();
+    });
+
+    it('throws error when subscription client not initialized', async () => {
+      // Service not initialized - subscription client is undefined
+      await expect(service.ensureTransportReady()).rejects.toThrow(
+        'Subscription client not initialized',
+      );
+    });
+
+    it('throws timeout error when transport not ready', async () => {
+      await service.initialize(mockWallet);
+
+      // Reset mock and make it never resolve (simulating timeout)
+      mockWsTransportReady.mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            // The AbortController will abort after timeout
+            setTimeout(() => reject(new Error('Aborted')), 100);
+          }),
+      );
+
+      await expect(service.ensureTransportReady(50)).rejects.toThrow(
+        'WebSocket transport ready timeout',
+      );
     });
   });
 });

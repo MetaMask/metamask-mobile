@@ -71,8 +71,13 @@ export class HyperLiquidClientService {
 
   /**
    * Initialize all HyperLiquid SDK clients
+   *
+   * IMPORTANT: This method awaits transport.ready() to ensure the WebSocket is
+   * in OPEN state before marking initialization complete. This prevents race
+   * conditions where subscriptions are attempted before the WebSocket handshake
+   * completes (which would cause "subscribe error: undefined" errors).
    */
-  public initialize(wallet: {
+  public async initialize(wallet: {
     signTypedData: (params: {
       domain: {
         name: string;
@@ -87,7 +92,7 @@ export class HyperLiquidClientService {
       message: Record<string, unknown>;
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
-  }): void {
+  }): Promise<void> {
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
       this.createTransports();
@@ -114,6 +119,20 @@ export class HyperLiquidClientService {
       this.subscriptionClient = new SubscriptionClient({
         transport: this.wsTransport,
       });
+
+      // CRITICAL: Wait for WebSocket to be actually ready before marking initialized
+      // This prevents race conditions where subscriptions are attempted before
+      // the WebSocket handshake completes (causing "subscribe error: undefined")
+      try {
+        await this.ensureTransportReady(10000); // 10s timeout for initial connection
+      } catch (readyError) {
+        // Clean up on failure
+        this.subscriptionClient = undefined;
+        this.connectionState = WebSocketConnectionState.DISCONNECTED;
+        throw new Error(
+          `WebSocket initialization failed: ${ensureError(readyError).message}`,
+        );
+      }
 
       this.connectionState = WebSocketConnectionState.CONNECTED;
 
@@ -203,7 +222,7 @@ export class HyperLiquidClientService {
     getChainId?: () => Promise<number>;
   }): Promise<HyperLiquidNetwork> {
     this.isTestnet = !this.isTestnet;
-    this.initialize(wallet);
+    await this.initialize(wallet);
     return this.isTestnet ? 'testnet' : 'mainnet';
   }
 
@@ -231,7 +250,7 @@ export class HyperLiquidClientService {
   /**
    * Recreate subscription client if needed (for reconnection scenarios)
    */
-  public ensureSubscriptionClient(wallet: {
+  public async ensureSubscriptionClient(wallet: {
     signTypedData: (params: {
       domain: {
         name: string;
@@ -246,12 +265,12 @@ export class HyperLiquidClientService {
       message: Record<string, unknown>;
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
-  }): void {
+  }): Promise<void> {
     if (!this.subscriptionClient) {
       this.deps.debugLogger.log(
         'HyperLiquid: Recreating subscription client after disconnect',
       );
-      this.initialize(wallet);
+      await this.initialize(wallet);
     }
   }
 
@@ -298,6 +317,41 @@ export class HyperLiquidClientService {
       return undefined;
     }
     return this.subscriptionClient;
+  }
+
+  /**
+   * Ensures the WebSocket transport is in OPEN state and ready for subscriptions.
+   * This MUST be called before any subscription operations to prevent race conditions.
+   *
+   * The SDK's `transport.ready()` method:
+   * - Returns immediately if WebSocket is already in OPEN state
+   * - Waits for the "open" event if WebSocket is in CONNECTING state
+   * - Supports AbortSignal for timeout/cancellation
+   *
+   * @param timeoutMs - Maximum time to wait for transport ready (default 5000ms)
+   * @throws Error if transport not ready within timeout or subscription client unavailable
+   */
+  public async ensureTransportReady(timeoutMs: number = 5000): Promise<void> {
+    const subscriptionClient = this.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      await subscriptionClient.config_.transport.ready(controller.signal);
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new Error(
+          `WebSocket transport ready timeout after ${timeoutMs}ms`,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   /**
@@ -782,6 +836,10 @@ export class HyperLiquidClientService {
   /**
    * Handle detected connection drop
    * Recreates WebSocket transport and notifies callback to restore subscriptions
+   *
+   * IMPORTANT: This method awaits transport.ready() BEFORE calling the reconnect
+   * callback to ensure subscriptions are not attempted while the WebSocket is
+   * still in CONNECTING state.
    */
   private async handleConnectionDrop(): Promise<void> {
     // Prevent multiple simultaneous reconnection attempts
@@ -791,6 +849,11 @@ export class HyperLiquidClientService {
 
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
+
+      this.deps.debugLogger.log(
+        'HyperLiquid: Handling connection drop, recreating transport',
+        { timestamp: new Date().toISOString() },
+      );
 
       // Close existing WebSocket transport
       if (this.wsTransport) {
@@ -813,9 +876,28 @@ export class HyperLiquidClientService {
         transport: this.wsTransport,
       });
 
+      // CRITICAL: Wait for WebSocket to be ready BEFORE restoring subscriptions
+      // This prevents "subscribe error: undefined" caused by calling socket.send()
+      // while the WebSocket is still in CONNECTING state
+      try {
+        await this.ensureTransportReady(5000);
+      } catch (readyError) {
+        this.deps.debugLogger.log(
+          'Transport not ready after reconnect, will retry via health check',
+          { error: ensureError(readyError).message },
+        );
+        this.connectionState = WebSocketConnectionState.DISCONNECTED;
+        return; // Health check will trigger another reconnection attempt
+      }
+
       this.connectionState = WebSocketConnectionState.CONNECTED;
 
-      // Notify callback to restore subscriptions
+      this.deps.debugLogger.log(
+        'HyperLiquid: Transport ready, restoring subscriptions',
+        { timestamp: new Date().toISOString() },
+      );
+
+      // NOW safe to restore subscriptions
       if (this.onReconnectCallback) {
         await this.onReconnectCallback();
       }

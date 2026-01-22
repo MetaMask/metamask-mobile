@@ -347,6 +347,7 @@ describe('HyperLiquidSubscriptionService', () => {
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       isTestnetMode: jest.fn(() => false),
+      ensureTransportReady: jest.fn().mockResolvedValue(undefined),
     } as any;
 
     // Mock wallet service
