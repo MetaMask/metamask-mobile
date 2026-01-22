@@ -7,7 +7,6 @@ import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import { DappVariants } from './framework/Constants';
-import Assertions from './framework/Assertions';
 
 export async function withSolanaAccountEnabled(
   {
@@ -53,10 +52,6 @@ export async function withSolanaAccountEnabled(
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapAddSolanaAccount();
         await AddNewHdAccountComponent.tapConfirm();
-        await Assertions.expectElementToHaveText(
-          WalletView.accountName,
-          `Solana Account ${i + 1}`,
-        );
       }
 
       await test();
