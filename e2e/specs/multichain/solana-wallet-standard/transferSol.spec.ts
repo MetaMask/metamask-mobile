@@ -12,7 +12,7 @@ describe(
     });
 
     it('Should sign a transaction', async () => {
-      await withSolanaAccountEnabled({ numberOfAccounts: 0 }, async () => {
+      await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();
         await connectSolanaTestDapp();
 
