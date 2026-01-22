@@ -8,7 +8,7 @@ import { setupRemoteFeatureFlagsMock } from './api-mocking/helpers/remoteFeature
 
 export async function withSolanaAccountEnabled(
   {
-    solanaAccountPermitted,
+    solanaAccountPermitted = true,
     evmAccountPermitted,
     dappVariant,
   }: {

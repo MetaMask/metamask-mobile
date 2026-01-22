@@ -65,8 +65,8 @@ class SendView {
     return Matchers.getElementByText('Insufficient balance to cover fees');
   }
 
-  get invalidAddressError(): DetoxElement {
-    return Matchers.getElementByText('Invalid address');
+  get insufficientFundsError(): DetoxElement {
+    return Matchers.getElementByText('Insufficient funds');
   }
 
   async selectEthereumToken(): Promise<void> {
@@ -160,9 +160,9 @@ class SendView {
     );
   }
 
-  async checkInvalidAddressError(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.invalidAddressError, {
-      description: 'Invalid value error message',
+  async checkInsufficientFundsError(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.insufficientFundsError, {
+      description: 'Insufficient funds error message',
     });
   }
 }

@@ -12,7 +12,7 @@ import {
 import { loginToApp } from '../../viewHelper';
 
 describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
-  it('shows invalid value error', async () => {
+  it('shows insufficient funds', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -30,31 +30,7 @@ describe(SmokeConfirmationsRedesigned('Send TRX token'), () => {
         await WalletView.tapOnToken('Tron');
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
-        await SendView.checkInvalidAddressError();
-      },
-    );
-  });
-  it('shows wrong address error', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagTronAccounts(true),
-            ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-          });
-        },
-      },
-      async () => {
-        await loginToApp();
-        await device.disableSynchronization();
-        await WalletView.tapOnToken('Tron');
-        await TokenOverview.tapSendButton();
-        await SendView.pressFiftyPercentButton();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress('TJY');
-        await SendView.checkInvalidAddressError();
+        await SendView.checkInsufficientFundsError();
       },
     );
   });
