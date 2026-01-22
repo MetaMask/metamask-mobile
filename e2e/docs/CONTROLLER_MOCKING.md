@@ -10,7 +10,7 @@ This document explains when and how to mock controller logic during E2E tests. T
 
 ## Perps + HyperLiquid Controller Mixin (Specific Case)
 
-- File: `e2e/controller-mocking/mock-config/perps-controller-mixin.ts`
+- File: `tests/controller-mocking/mock-config/perps-controller-mixin.ts`
 - Purpose: Replace HyperLiquid provider SDK touchpoints for E2E with safe, deterministic alternatives so the Perps connection lifecycle (initialization, subscriptions, reconnection) can be exercised without relying on the live SDK backend.
 
 Key behaviors:
@@ -36,7 +36,7 @@ Only consider controller-level mocking when:
 
 ## How to Apply Controller Mocks
 
-1. Implement a feature-scoped mixin/override under `e2e/controller-mocking/mock-config/`.
+1. Implement a feature-scoped mixin/override under `tests/controller-mocking/mock-config/`.
 2. Use your E2E bridge/initializer to inject the mixin into the running app for tests that require it.
 3. Keep overrides minimal and focused on stabilizing provider interactions. Avoid changing unrelated business logic.
 
