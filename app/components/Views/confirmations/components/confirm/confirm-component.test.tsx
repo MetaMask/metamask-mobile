@@ -58,6 +58,9 @@ jest.mock(
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../hooks/alerts/useConfirmationAlerts');
+jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
+  useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
 
 const mockSetOptions = jest.fn();
 const mockNavigation = {

@@ -20,6 +20,7 @@ import {
   resetOnboardingState,
   selectContactVerificationId,
   selectSelectedCountry,
+  selectUserCardLocation,
   setSelectedCountry,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
@@ -36,6 +37,8 @@ import {
 import { TouchableOpacity } from 'react-native';
 import { useCardSDK } from '../../sdk';
 
+const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
+
 const SetPhoneNumber = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -44,6 +47,7 @@ const SetPhoneNumber = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: registrationSettings } = useRegistrationSettings();
   const { user } = useCardSDK();
+  const userCardLocation = useSelector(selectUserCardLocation);
 
   const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
@@ -75,11 +79,22 @@ const SetPhoneNumber = () => {
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
+  const [isUsPhoneNumberError, setIsUsPhoneNumberError] = useState(false);
   const [selectedCountryAreaCode, setSelectedCountryAreaCode] =
     useState<string>(selectedCountry?.areaCode || '');
   const [selectedCountryEmoji, setSelectedCountryEmoji] = useState<string>(
     selectedCountry?.emoji || '',
   );
+
+  const isUsUser = userCardLocation === 'us';
+
+  // For US users, only show US in the region selector
+  const availableRegions = useMemo(() => {
+    if (isUsUser) {
+      return regions.filter((region) => region.key === 'US');
+    }
+    return regions;
+  }, [regions, isUsUser]);
 
   // Sync local state when selectedCountry changes (e.g., after regions load)
   useEffect(() => {
@@ -119,6 +134,12 @@ const SetPhoneNumber = () => {
       return;
     }
 
+    // Validate US phone number format for US users
+    if (isUsUser && !US_PHONE_REGEX.test(phoneNumber)) {
+      setIsUsPhoneNumberError(true);
+      return;
+    }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -154,6 +175,7 @@ const SetPhoneNumber = () => {
 
   const handleCountrySelect = useCallback(() => {
     resetPhoneVerificationSend();
+    setIsUsPhoneNumberError(false);
 
     setOnValueChange((region) => {
       setSelectedCountryAreaCode(region.areaCode || '');
@@ -162,36 +184,51 @@ const SetPhoneNumber = () => {
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        regions,
+        regions: availableRegions,
         renderAreaCode: true,
       }),
     );
-  }, [navigation, regions, resetPhoneVerificationSend]);
+  }, [navigation, availableRegions, resetPhoneVerificationSend]);
 
   const handlePhoneNumberChange = (text: string) => {
     resetPhoneVerificationSend();
+    setIsUsPhoneNumberError(false);
     const cleanedText = text.replace(/\D/g, '');
     setPhoneNumber(cleanedText);
   };
 
   useEffect(() => {
     if (!debouncedPhoneNumber) {
+      setIsPhoneNumberError(false);
+      setIsUsPhoneNumberError(false);
       return;
     }
 
-    setIsPhoneNumberError(!/^\d{4,15}$/.test(debouncedPhoneNumber));
-  }, [debouncedPhoneNumber]);
+    const isValidGenericFormat = /^\d{4,15}$/.test(debouncedPhoneNumber);
+    setIsPhoneNumberError(!isValidGenericFormat);
+
+    // Validate US phone format for US users
+    if (isUsUser && isValidGenericFormat) {
+      setIsUsPhoneNumberError(!US_PHONE_REGEX.test(debouncedPhoneNumber));
+    } else {
+      setIsUsPhoneNumberError(false);
+    }
+  }, [debouncedPhoneNumber, isUsUser]);
 
   const isDisabled = useMemo(() => {
     const isCurrentPhoneNumberValid = phoneNumber
       ? /^\d{4,15}$/.test(phoneNumber)
       : false;
 
+    // For US users, also check US phone format
+    const isUsPhoneValid = isUsUser ? US_PHONE_REGEX.test(phoneNumber) : true;
+
     return (
       !phoneNumber ||
       !selectedCountryAreaCode ||
       !contactVerificationId ||
       !isCurrentPhoneNumberValid ||
+      !isUsPhoneValid ||
       phoneVerificationIsLoading ||
       phoneVerificationIsError
     );
@@ -201,6 +238,7 @@ const SetPhoneNumber = () => {
     contactVerificationId,
     phoneVerificationIsLoading,
     phoneVerificationIsError,
+    isUsUser,
   ]);
 
   useEffect(() => () => clearOnValueChange(), []);
@@ -241,6 +279,8 @@ const SetPhoneNumber = () => {
               'card.card_onboarding.set_phone_number.phone_number_label',
             )}
             testID="set-phone-number-phone-number-input"
+            onSubmitEditing={handleContinue}
+            returnKeyType="done"
           />
         </Box>
       </Box>
@@ -260,6 +300,16 @@ const SetPhoneNumber = () => {
         >
           {strings(
             'card.card_onboarding.set_phone_number.invalid_phone_number',
+          )}
+        </Text>
+      ) : isUsPhoneNumberError ? (
+        <Text
+          variant={TextVariant.BodySm}
+          testID="set-phone-number-us-phone-error"
+          twClassName="text-error-default"
+        >
+          {strings(
+            'card.card_onboarding.set_phone_number.invalid_us_phone_number',
           )}
         </Text>
       ) : null}
@@ -294,6 +344,7 @@ const SetPhoneNumber = () => {
       description={strings('card.card_onboarding.set_phone_number.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      stickyActions
     />
   );
 };

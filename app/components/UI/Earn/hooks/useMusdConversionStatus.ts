@@ -4,12 +4,16 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import useEarnToasts from './useEarnToasts';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { decodeTransferData } from '../../../../util/transactions';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import NetworkList from '../../../../util/networks';
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -27,20 +31,67 @@ import useEarnToasts from './useEarnToasts';
  * navigating away from the conversion screen.
  */
 export const useMusdConversionStatus = () => {
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const shownToastsRef = useRef<Set<string>>(new Set());
   const tokensCacheRef = useRef(tokensChainsCache);
   tokensCacheRef.current = tokensChainsCache;
 
+  const getNetworkName = useCallback(
+    (chainId?: Hex) => {
+      if (!chainId) return 'Unknown Network';
+
+      const nickname = networkConfigurations[chainId]?.name;
+
+      const name = Object.values(NetworkList).find(
+        (network: { chainId?: Hex; shortName: string }) =>
+          network.chainId === chainId,
+      )?.shortName;
+
+      return name ?? nickname ?? chainId;
+    },
+    [networkConfigurations],
+  );
+
+  const submitConversionEvent = useCallback(
+    (
+      transactionMeta: TransactionMeta,
+      token: { name: string; symbol: string },
+    ) => {
+      const [, amountDecimalString, amountHexString] = decodeTransferData(
+        'transfer',
+        transactionMeta?.txParams?.data || '',
+      );
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED)
+          .addProperties({
+            transaction_id: transactionMeta.id,
+            transaction_status: transactionMeta.status,
+            transaction_type: transactionMeta.type,
+            asset_symbol: token.symbol,
+            network_chain_id: transactionMeta?.chainId,
+            network_name: getNetworkName(transactionMeta?.chainId),
+            amount_decimal: amountDecimalString,
+            amount_hex: amountHexString,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getNetworkName, trackEvent],
+  );
+
   useEffect(() => {
-    const getTokenData = (
-      chainId: Hex,
-      tokenAddress: string,
-    ): { symbol: string; iconUrl?: string } => {
+    const getTokenData = (chainId: Hex, tokenAddress: string) => {
       const chainTokens = tokensCacheRef.current?.[chainId]?.data;
-      if (!chainTokens) return { symbol: '' };
+      if (!chainTokens) return { symbol: '', name: '' };
 
       const checksumAddress = safeToChecksumAddress(tokenAddress);
       const tokenData =
@@ -50,6 +101,7 @@ export const useMusdConversionStatus = () => {
       return {
         symbol: tokenData?.symbol || '',
         iconUrl: tokenData?.iconUrl,
+        name: tokenData?.name || '',
       };
     };
 
@@ -72,24 +124,25 @@ export const useMusdConversionStatus = () => {
         return;
       }
 
+      const tokenData = payTokenAddress
+        ? getTokenData(payChainId as Hex, payTokenAddress)
+        : { symbol: '', name: '' };
+
       switch (status) {
         case TransactionStatus.approved: {
+          submitConversionEvent(transactionMeta, tokenData);
           // Get token info for the in-progress toast
           // Using 'approved' status to show toast immediately after user confirms
-          const tokenData = payTokenAddress
-            ? getTokenData(payChainId as Hex, payTokenAddress)
-            : { symbol: '' };
-          const tokenSymbol = tokenData.symbol;
-
           showToast(
             EarnToastOptions.mUsdConversion.inProgress({
-              tokenSymbol: tokenSymbol || 'Token',
+              tokenSymbol: tokenData.symbol || 'Token',
             }),
           );
           shownToastsRef.current.add(toastKey);
           break;
         }
         case TransactionStatus.confirmed:
+          submitConversionEvent(transactionMeta, tokenData);
           showToast(EarnToastOptions.mUsdConversion.success);
           shownToastsRef.current.add(toastKey);
           // Clean up entries for this transaction after final status
@@ -103,6 +156,7 @@ export const useMusdConversionStatus = () => {
           }, 5000);
           break;
         case TransactionStatus.failed:
+          submitConversionEvent(transactionMeta, tokenData);
           showToast(EarnToastOptions.mUsdConversion.failed);
           shownToastsRef.current.add(toastKey);
           // Clean up entries for this transaction after final status
@@ -131,5 +185,5 @@ export const useMusdConversionStatus = () => {
         handleTransactionStatusUpdated,
       );
     };
-  }, [showToast, EarnToastOptions.mUsdConversion]);
+  }, [showToast, EarnToastOptions.mUsdConversion, submitConversionEvent]);
 };

@@ -14,6 +14,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
@@ -74,7 +75,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectBrowserFullscreen } from '../../../selectors/browser';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
@@ -315,53 +315,6 @@ const ExploreHome = () => (
       component={ExploreFeed}
       options={{ headerShown: false }}
     />
-    <Stack.Screen
-      name={Routes.EXPLORE_SEARCH}
-      component={ExploreSearchScreen}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
-    <Stack.Screen
-      name={Routes.SITES_FULL_VIEW}
-      component={SitesFullView}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
-
-    {/* Trending Browser Stack (uses existing browser flow) */}
-    <Stack.Screen
-      name={Routes.BROWSER.HOME}
-      component={BrowserFlow}
-      options={{ headerShown: false }}
-    />
   </Stack.Navigator>
 );
 
@@ -533,6 +486,11 @@ const SettingsFlow = () => (
       component={BackupAndSyncSettings}
       options={BackupAndSyncSettings.navigationOptions}
     />
+    <Stack.Screen
+      name={Routes.SETTINGS.REGION_SELECTOR}
+      component={RegionSelector}
+      options={RegionSelector.navigationOptions}
+    />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
@@ -569,8 +527,6 @@ const HomeTabs = () => {
   const amountOfBrowserOpenTabs = useSelector(
     (state) => state.browser.tabs.length,
   );
-
-  const isBrowserFullscreen = useSelector(selectBrowserFullscreen);
 
   const options = {
     home: {
@@ -682,13 +638,13 @@ const HomeTabs = () => {
       return null;
     }
 
-    // Hide tab bar when browser is in fullscreen mode
+    // Hide tab bar when in browser
     const currentStackRouteName =
       currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
     const isInBrowser =
       currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
       currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
-    if (isBrowserFullscreen && isInBrowser) {
+    if (isInBrowser) {
       return null;
     }
 
@@ -923,6 +879,10 @@ const MainNavigator = () => {
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
+  );
+  // Get feature flag state for conditional Trending Tokens screen registration
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -1236,6 +1196,70 @@ const MainNavigator = () => {
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
             options={clearStackNavigatorOptions}
+          />
+        </>
+      )}
+      {isAssetsTrendingTokensEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.EXPLORE_SEARCH}
+            component={ExploreSearchScreen}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
+          />
+          <Stack.Screen
+            name={Routes.SITES_FULL_VIEW}
+            component={SitesFullView}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
+          />
+          <Stack.Screen
+            name={Routes.BROWSER.HOME}
+            component={BrowserFlow}
+            options={{
+              headerShown: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
+            }}
           />
         </>
       )}

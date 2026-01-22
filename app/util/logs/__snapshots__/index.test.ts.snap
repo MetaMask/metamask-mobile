@@ -7,9 +7,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accountsByChainId": {
-          "0x1": {},
-        },
+        "accountsByChainId": {},
       },
       "AccountTreeController": {
         "accountGroupsMetadata": {},
@@ -29,6 +27,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "AddressBookController": {
         "addressBook": {},
+      },
+      "AnalyticsController": {
+        "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+        "optedIn": false,
       },
       "ApprovalController": {
         "approvalFlows": [],
@@ -53,6 +55,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "ConnectivityController": {
+        "connectivityStatus": "online",
       },
       "CronjobController": {
         "events": {},
@@ -124,6 +129,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "gasFeeEstimates": {},
         "gasFeeEstimatesByChainId": {},
         "nonRPCGasFeeApisDisabled": false,
+      },
+      "GatorPermissionsController": {
+        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
+        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "isFetchingGatorPermissions": false,
+        "isGatorPermissionsEnabled": false,
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -503,10 +514,19 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "marketFilterPreferences": {},
+        "marketFilterPreferences": {
+          "direction": "desc",
+          "optionId": "volume",
+        },
         "perpsBalances": {},
-        "tradeConfigurations": {},
-        "watchlistMarkets": [],
+        "tradeConfigurations": {
+          "mainnet": {},
+          "testnet": {},
+        },
+        "watchlistMarkets": {
+          "mainnet": [],
+          "testnet": [],
+        },
         "withdrawInProgress": false,
         "withdrawalProgress": {
           "activeWithdrawalId": null,
@@ -572,8 +592,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "syncQueue": {},
       },
       "RampsController": {
-        "eligibility": null,
+        "paymentMethods": [],
+        "preferredProvider": null,
+        "providers": [],
         "requests": {},
+        "selectedPaymentMethod": null,
         "tokens": null,
         "userRegion": null,
       },
@@ -786,9 +809,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accountsByChainId": {
-          "0x1": {},
-        },
+        "accountsByChainId": {},
       },
       "AccountTreeController": {
         "accountGroupsMetadata": {},
@@ -808,6 +829,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AddressBookController": {
         "addressBook": {},
+      },
+      "AnalyticsController": {
+        "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+        "optedIn": false,
       },
       "ApprovalController": {
         "approvalFlows": [],
@@ -832,6 +857,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "ConnectivityController": {
+        "connectivityStatus": "online",
       },
       "CronjobController": {
         "events": {},
@@ -903,6 +931,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "gasFeeEstimates": {},
         "gasFeeEstimatesByChainId": {},
         "nonRPCGasFeeApisDisabled": false,
+      },
+      "GatorPermissionsController": {
+        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
+        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "isFetchingGatorPermissions": false,
+        "isGatorPermissionsEnabled": false,
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -1282,10 +1316,19 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "marketFilterPreferences": {},
+        "marketFilterPreferences": {
+          "direction": "desc",
+          "optionId": "volume",
+        },
         "perpsBalances": {},
-        "tradeConfigurations": {},
-        "watchlistMarkets": [],
+        "tradeConfigurations": {
+          "mainnet": {},
+          "testnet": {},
+        },
+        "watchlistMarkets": {
+          "mainnet": [],
+          "testnet": [],
+        },
         "withdrawInProgress": false,
         "withdrawalProgress": {
           "activeWithdrawalId": null,
@@ -1351,8 +1394,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "syncQueue": {},
       },
       "RampsController": {
-        "eligibility": null,
+        "paymentMethods": [],
+        "preferredProvider": null,
+        "providers": [],
         "requests": {},
+        "selectedPaymentMethod": null,
         "tokens": null,
         "userRegion": null,
       },
