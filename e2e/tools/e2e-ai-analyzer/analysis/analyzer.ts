@@ -29,7 +29,9 @@ import {
 
 /**
  * Mode Registry
- * Each mode defines its metadata and prompt builders.
+ *
+ * Each mode defines its handlers for processing and output.
+ * Similar to main branch structure - handlers only, no skills config.
  */
 export const MODES = {
   'select-tags': {
@@ -46,10 +48,9 @@ export const MODES = {
   // 'suggest-migration': {
   //   description: 'Identify E2E tests that could be unit/integration tests',
   //   finalizeToolName: 'finalize_migration_suggestions',
-  //   systemPromptBuilder: buildMigrationSystemPrompt,
   //   taskPromptBuilder: buildMigrationTaskPrompt,
   //   processAnalysis: migrationHandlers.processAnalysis,
-  //   createConservativeFallback: migrationHandlers.createConservativeFallback,
+  //   createConservativeResult: migrationHandlers.createConservativeResult,
   //   createEmptyResult: migrationHandlers.createEmptyResult,
   //   outputAnalysis: migrationHandlers.outputAnalysis,
   // },
@@ -91,6 +92,7 @@ export interface AnalysisContext {
  * @param criticalFiles - List of critical files that need special attention
  * @param mode - The analysis mode to use
  * @param context - Analysis context (baseDir, baseBranch, prNumber, githubRepo)
+ * @param skillContent - Combined skill content to append as additional context to system prompt
  */
 export async function analyzeWithAgent<M extends ModeKey>(
   provider: ILLMProvider,
@@ -98,10 +100,18 @@ export async function analyzeWithAgent<M extends ModeKey>(
   criticalFiles: string[],
   mode: M,
   context: AnalysisContext,
+  skillContent: string,
 ): Promise<ModeAnalysisResult<M>> {
-  // Get mode configuration with prompt builders
+  // Get mode configuration
   const modeConfig = MODES[mode];
-  const systemPrompt = modeConfig.systemPromptBuilder();
+
+  // Build base system prompt and combine with skills
+  const baseSystemPrompt = modeConfig.systemPromptBuilder();
+  const systemPrompt = skillContent
+    ? `${baseSystemPrompt}\n\n# ADDITIONAL CONTEXT\n\n${skillContent}`
+    : baseSystemPrompt;
+
+  // Build dynamic task prompt
   const taskPrompt = modeConfig.taskPromptBuilder(
     allChangedFiles,
     criticalFiles,

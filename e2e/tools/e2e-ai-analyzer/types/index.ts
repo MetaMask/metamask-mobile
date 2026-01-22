@@ -2,6 +2,26 @@
  * Shared TypeScript types for AI E2E Tags Selector
  */
 
+/**
+ * Skill metadata from frontmatter
+ */
+export interface SkillMetadata {
+  name: string;
+  description: string;
+  tools?: string;
+  extends?: string;
+  includes?: string[];
+}
+
+/**
+ * Loaded skill with metadata and content
+ */
+export interface Skill {
+  name: string;
+  metadata: SkillMetadata;
+  content: string;
+}
+
 export interface SelectTagsAnalysis {
   selectedTags: string[];
   confidence: number;
@@ -19,6 +39,8 @@ export interface ParsedArgs {
   prNumber?: number;
   mode?: string;
   provider?: string;
+  skills?: string;
+  listSkills?: boolean;
 }
 
 export interface ToolInput {

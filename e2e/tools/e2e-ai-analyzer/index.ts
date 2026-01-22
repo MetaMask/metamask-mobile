@@ -24,6 +24,11 @@ import {
   getSupportedProviders,
   ProviderType,
 } from './providers';
+import {
+  loadSkills,
+  combineSkills,
+  listAvailableSkills,
+} from './utils/skill-loader';
 
 /**
  * Validates provided files against actual git changes
@@ -61,6 +66,7 @@ function parseArgs(args: string[]): ParsedArgs {
   const options: ParsedArgs = {
     baseBranch: APP_CONFIG.defaultBaseBranch,
     mode: 'select-tags',
+    // skills:'risk-assessment' // by default use this skill.
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -94,6 +100,18 @@ function parseArgs(args: string[]): ParsedArgs {
       case '--provider':
       case '-p':
         options.provider = args[++i];
+        break;
+      case '--skills':
+      case '-s': {
+        const additionalSkills = args[++i];
+        // Append to existing skills (don't replace)
+        options.skills = options.skills
+          ? `${options.skills},${additionalSkills}`
+          : additionalSkills;
+        break;
+      }
+      case '--list-skills':
+        options.listSkills = true;
         break;
     }
   }
@@ -141,6 +159,9 @@ Options:
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
   -p, --provider <provider>     Force specific provider (anthropic, openai, google)
+  -s, --skills <skills>         Add additional skills to defaults (comma-separated: skill1,skill2)
+  --no-auto-detect              Disable automatic skill detection
+  --list-skills                 List all available skills
   -h, --help                    Show this help message
 
 Output:
@@ -195,6 +216,32 @@ function getProviderOrder(forcedProvider?: ProviderType): ProviderType[] {
   return LLM_CONFIG.providerPriority;
 }
 
+/**
+ * Load skills based on options
+ *
+ * Simple loading strategy:
+ * 1. Parse comma-separated skill names from options.skills
+ * 2. Load each skill from disk
+ * 3. Combine into single prompt
+ *
+ * Default skill is set in parseArgs, CLI --skills appends to it.
+ *
+ * @param options - Parsed CLI arguments containing skills string
+ * @returns Combined skill content string
+ */
+async function loadSkillsForMode(options: ParsedArgs): Promise<string> {
+  if (!options.skills) {
+    console.log('⚠️  No skills specified, using empty prompt');
+    return '';
+  }
+
+  console.log('📋 Loading skills...');
+  const skillNames = options.skills.split(',').map((s) => s.trim());
+  const skills = await loadSkills(skillNames);
+
+  return combineSkills(skills);
+}
+
 async function main() {
   console.log('🤖 Starting E2E AI analysis...');
 
@@ -205,6 +252,22 @@ async function main() {
   }
 
   const options = parseArgs(args);
+
+  // Handle --list-skills
+  if (options.listSkills) {
+    const availableSkills = listAvailableSkills();
+    console.log('\n📚 Available Skills:\n');
+    if (availableSkills.length === 0) {
+      console.log('  No skills found in skills/ directory');
+    } else {
+      availableSkills.forEach((skill) => {
+        console.log(`  - ${skill}`);
+      });
+    }
+    console.log('\nUse: --skills skill1, skill2 to add to defaults\n');
+    process.exit(0);
+  }
+
   const mode = validateMode(options.mode);
   const forcedProvider = validateProvider(options.provider);
   const baseBranch = options.baseBranch;
@@ -241,6 +304,12 @@ async function main() {
   const criticalFiles = identifyCriticalFiles(allChangedFiles);
   if (criticalFiles.length > 0) {
     console.log(`⚠️  ${criticalFiles.length} critical files detected`);
+  }
+
+  // Load skills from options (default + CLI appended)
+  const skillContent = await loadSkillsForMode(options);
+  if (skillContent) {
+    console.log('Skills loaded\n');
   }
 
   // Build analysis context
@@ -307,6 +376,7 @@ async function main() {
         criticalFiles,
         mode,
         analysisContext,
+        skillContent,
       );
 
       // Success - output results and exit
