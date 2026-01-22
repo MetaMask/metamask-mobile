@@ -539,6 +539,12 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
                 throw new Error('Missing ID proof metadata');
               }
 
+              trackEvent('RAMPS_KYC_STARTED', {
+                ramp_type: 'DEPOSIT',
+                kyc_type: 'STANDARD',
+                region: selectedRegion?.isoCode || '',
+              });
+
               navigateToAdditionalVerificationCallback({
                 quote,
                 kycUrl: metadata.kycUrl,
