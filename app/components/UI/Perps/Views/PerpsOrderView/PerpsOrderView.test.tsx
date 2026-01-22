@@ -146,7 +146,17 @@ jest.mock('../../hooks', () => ({
     ETH: { price: '3000', percentChange24h: '2.5' },
     BTC: { price: '3000', percentChange24h: '2.5' },
   })),
-  usePerpsPaymentTokens: jest.fn(),
+  usePerpsPaymentTokens: jest.fn(() => [
+    {
+      symbol: 'USDC',
+      address: '0xusdc',
+      decimals: 6,
+      balance: '1000000000',
+      balanceFiat: '$1000.00',
+      chainId: '0x1',
+      name: 'USD Coin',
+    },
+  ]),
   usePerpsConnection: jest.fn(() => ({
     isConnected: true,
     isConnecting: false,
@@ -202,6 +212,12 @@ jest.mock('../../hooks', () => ({
   usePerpsOrderExecution: jest.fn(() => ({
     placeOrder: jest.fn().mockResolvedValue({ success: true }),
     isPlacing: false,
+  })),
+  usePerpsOrderDepositTracking: jest.fn(() => ({
+    handleDepositConfirm: jest.fn(),
+  })),
+  usePerpsOrderWithdrawTracking: jest.fn(() => ({
+    handleWithdrawConfirm: jest.fn(),
   })),
   useHasExistingPosition: jest.fn(() => ({
     hasPosition: false,
@@ -282,6 +298,32 @@ jest.mock('../../hooks', () => ({
     },
   })),
 }));
+
+// Mock direct hook imports (when imported from specific file paths)
+jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
+  usePerpsPaymentTokens: jest.fn(() => [
+    {
+      symbol: 'USDC',
+      address: '0xusdc',
+      decimals: 6,
+      balance: '1000000000',
+      balanceFiat: '$1000.00',
+      chainId: '0x1',
+      name: 'USD Coin',
+    },
+  ]),
+}));
+
+jest.mock('../../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
+  useAddToken: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+  () => ({
+    useTransactionMetadataRequest: jest.fn(() => undefined),
+  }),
+);
 
 // Mock tokensController selectors
 jest.mock('../../../../../selectors/tokensController', () => ({
@@ -527,6 +569,8 @@ const defaultMockHooks = {
   },
   usePerpsTrading: {
     placeOrder: jest.fn(),
+    depositWithConfirmation: jest.fn(),
+    withdrawWithConfirmation: jest.fn(),
     getMarkets: jest.fn().mockResolvedValue([
       {
         name: 'ETH',
