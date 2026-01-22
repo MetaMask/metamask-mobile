@@ -578,4 +578,162 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.markets.length).toBeGreaterThan(0);
     });
   });
+
+  describe('Market Counts', () => {
+    it('returns correct counts for crypto-only markets', () => {
+      // All markets without marketType are crypto
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: mockMarketsWithValidVolume as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      expect(result.current.marketCounts).toEqual({
+        crypto: 3,
+        equity: 0,
+        commodity: 0,
+        forex: 0,
+      });
+    });
+
+    it('returns correct counts for mixed market types', () => {
+      const mixedMarkets = [
+        { ...createMockMarket('BTC', '$1B') }, // crypto (no marketType)
+        { ...createMockMarket('ETH', '$500M') }, // crypto (no marketType)
+        { ...createMockMarket('AAPL', '$2B'), marketType: 'equity' as const },
+        {
+          ...createMockMarket('GOOGL', '$1.5B'),
+          marketType: 'equity' as const,
+        },
+        {
+          ...createMockMarket('GOLD', '$800M'),
+          marketType: 'commodity' as const,
+        },
+        { ...createMockMarket('EURUSD', '$3B'), marketType: 'forex' as const },
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: mixedMarkets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        isSearchVisible: false,
+        setIsSearchVisible: jest.fn(),
+        toggleSearchVisibility: jest.fn(),
+        filteredMarkets: mixedMarkets,
+        clearSearch: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      expect(result.current.marketCounts).toEqual({
+        crypto: 2,
+        equity: 2,
+        commodity: 1,
+        forex: 1,
+      });
+    });
+
+    it('returns zero counts for empty markets', () => {
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [] as unknown as ReturnType<typeof usePerpsMarkets>['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        isSearchVisible: false,
+        setIsSearchVisible: jest.fn(),
+        toggleSearchVisibility: jest.fn(),
+        filteredMarkets: [],
+        clearSearch: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      expect(result.current.marketCounts).toEqual({
+        crypto: 0,
+        equity: 0,
+        commodity: 0,
+        forex: 0,
+      });
+    });
+
+    it('updates counts when markets change', () => {
+      const initialMarkets = [createMockMarket('BTC', '$1B')];
+      const updatedMarkets = [
+        ...initialMarkets,
+        { ...createMockMarket('AAPL', '$2B'), marketType: 'equity' as const },
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: initialMarkets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        isSearchVisible: false,
+        setIsSearchVisible: jest.fn(),
+        toggleSearchVisibility: jest.fn(),
+        filteredMarkets: initialMarkets,
+        clearSearch: jest.fn(),
+      });
+
+      const { result, rerender } = renderHook(() => usePerpsMarketListView());
+
+      expect(result.current.marketCounts.crypto).toBe(1);
+      expect(result.current.marketCounts.equity).toBe(0);
+
+      // Update markets
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: updatedMarkets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        isSearchVisible: false,
+        setIsSearchVisible: jest.fn(),
+        toggleSearchVisibility: jest.fn(),
+        filteredMarkets: updatedMarkets,
+        clearSearch: jest.fn(),
+      });
+
+      rerender();
+
+      expect(result.current.marketCounts.crypto).toBe(1);
+      expect(result.current.marketCounts.equity).toBe(1);
+    });
+  });
 });
