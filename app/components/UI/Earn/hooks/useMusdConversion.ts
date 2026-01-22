@@ -193,6 +193,8 @@ export const useMusdConversion = () => {
 
         const { TransactionPayController } = Engine.context;
 
+        TransactionPayController.setIsMaxAmount(transactionId, true);
+
         // Set payment token - this triggers automatic Relay quote fetching
         Logger.log('[mUSD Max Conversion] Setting payment token:', {
           transactionId,
