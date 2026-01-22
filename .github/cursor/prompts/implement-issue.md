@@ -16,17 +16,14 @@ You are implementing a GitHub issue for the MetaMask Mobile repository.
 - Add appropriate comments where needed
 - Keep changes focused on the issue scope - don't over-engineer
 
-## Output
+## Pull Request
 
-After implementing, provide a summary of:
+When creating the PR, read and use the template from `.github/pull-request-template.md`.
 
-1. Files changed and why
-2. Key implementation decisions
-3. Any potential risks or considerations for reviewers
-4. **Changelog entry** (REQUIRED): A single line in conventional commit format for our release notes. This should be user-friendly, describing what changed from the user's perspective. Format: `CHANGELOG: type: description`
-   - Use `fix:` for bug fixes
-   - Use `feat:` for new features
-   - Use `chore:` for internal changes (not user-facing)
-   - Example: `CHANGELOG: fix: resolved issue where token name showed as "Unknown" during transaction review`
+**Important**: Follow all instructions marked with `AI agent:` in the template comments. These provide specific guidance on:
 
-Do NOT create the pull request yourself - the workflow will handle that.
+- Format requirements (changelog format, issue linking)
+- Content requirements (specific vs generic descriptions)
+- Checklist handling (which boxes to check/uncheck)
+
+The template is the source of truth - use it as the structure and fill it out completely following the AI agent instructions.
