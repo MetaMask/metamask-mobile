@@ -14,6 +14,7 @@ import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
+import { createMockInfrastructure } from '../__mocks__/serviceMocks';
 
 // Mock HyperLiquid SDK types
 interface MockSubscription {
@@ -23,7 +24,7 @@ interface MockSubscription {
 // Mock adapter
 jest.mock('../utils/hyperLiquidAdapter', () => ({
   adaptPositionFromSDK: jest.fn((assetPos: any) => ({
-    coin: 'BTC',
+    symbol: 'BTC',
     size: assetPos.position.szi,
     entryPrice: '50000',
     positionValue: '5000',
@@ -96,10 +97,12 @@ describe('HyperLiquidSubscriptionService', () => {
   let mockWalletService: jest.Mocked<HyperLiquidWalletService>;
   let mockSubscriptionClient: any;
   let mockWalletAdapter: any;
+  let mockDeps: ReturnType<typeof createMockInfrastructure>;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockDeps = createMockInfrastructure();
 
     // Mock subscription client
     const mockSubscription: MockSubscription = {
@@ -355,6 +358,7 @@ describe('HyperLiquidSubscriptionService', () => {
     service = new HyperLiquidSubscriptionService(
       mockClientService,
       mockWalletService,
+      mockDeps,
       true, // hip3Enabled - test expects webData3
     );
   });
@@ -901,7 +905,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // New subscriber should get cached data immediately
       expect(newCallback).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.objectContaining({ coin: 'BTC' })]),
+        expect.arrayContaining([expect.objectContaining({ symbol: 'BTC' })]),
       );
 
       unsubscribe();
@@ -919,6 +923,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const serviceWithoutHip3 = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         false, // hip3Enabled = false
         [], // enabledDexs
       );
@@ -1013,7 +1018,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(positionCallback).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            coin: 'BTC',
+            symbol: 'BTC',
             size: '1.5',
           }),
         ]),
@@ -1132,7 +1137,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           price: expect.any(String),
           timestamp: expect.any(Number),
           percentChange24h: expect.any(String),
@@ -1349,7 +1354,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Check that market data fields are undefined
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           price: expect.any(String),
           timestamp: expect.any(Number),
           funding: undefined,
@@ -1406,7 +1411,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Check that market data fields are included
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           price: expect.any(String),
           timestamp: expect.any(Number),
           funding: 0.0001,
@@ -1464,7 +1469,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(lastCall).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            coin: 'BTC',
+            symbol: 'BTC',
             bestBid: '49900',
             bestAsk: '50100',
           }),
@@ -1630,7 +1635,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(lastCall).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            coin: 'BTC',
+            symbol: 'BTC',
             bestBid: '49900',
             bestAsk: '50100',
             spread: '200.00000', // 50100 - 49900
@@ -1717,7 +1722,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Should receive position with takeProfitPrice set
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000',
           takeProfitCount: 1,
           stopLossCount: 0,
@@ -1798,7 +1803,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Should receive position with stopLossPrice set
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           stopLossPrice: '45000',
           takeProfitCount: 0,
           stopLossCount: 1,
@@ -1915,7 +1920,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Should receive position with correct counts but only last TP/SL prices
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitCount: 2,
           stopLossCount: 1,
           // Should have the last processed prices
@@ -1933,7 +1938,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Mock the adapter to include entryPrice
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
       mockAdapter.adaptPositionFromSDK.mockImplementationOnce(() => ({
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '1.0',
         entryPrice: '50000',
         positionValue: '50000',
@@ -2039,7 +2044,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // With the fix, ambiguous 'Trigger' orders are now counted correctly using price-based fallback
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000', // Above entry price
           stopLossPrice: '45000', // Below entry price
           takeProfitCount: 1, // Ambiguous orders now counted via price-based fallback
@@ -2056,7 +2061,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Mock the adapter for short position
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
       mockAdapter.adaptPositionFromSDK.mockImplementationOnce(() => ({
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '-1.0', // Short position
         entryPrice: '50000',
         positionValue: '50000',
@@ -2162,7 +2167,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // With the fix, ambiguous 'Trigger' orders are now counted correctly using price-based fallback
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '45000', // Below entry price for short
           stopLossPrice: '55000', // Above entry price for short
           takeProfitCount: 1, // Ambiguous orders now counted via price-based fallback
@@ -2180,6 +2185,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true, // hip3Enabled
         [], // enabledDexs - empty but we'll call updateFeatureFlags
       );
@@ -2294,7 +2300,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
       mockAdapter.adaptPositionFromSDK
         .mockImplementationOnce((_assetPos: any) => ({
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '1.0',
           entryPrice: '50000',
           positionValue: '50000',
@@ -2309,7 +2315,7 @@ describe('HyperLiquidSubscriptionService', () => {
           stopLossCount: 0,
         }))
         .mockImplementationOnce(() => ({
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2.0',
           entryPrice: '3000',
           positionValue: '6000',
@@ -2396,13 +2402,13 @@ describe('HyperLiquidSubscriptionService', () => {
       // Should handle positions with and without TP/SL
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           takeProfitPrice: '55000',
           takeProfitCount: 1,
           stopLossCount: 0,
         }),
         expect.objectContaining({
-          coin: 'ETH',
+          symbol: 'ETH',
           takeProfitPrice: undefined,
           stopLossPrice: undefined,
           takeProfitCount: 0,
@@ -2418,10 +2424,10 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback = jest.fn();
       let clearinghouseStateCallback: (data: any) => void = () => undefined;
 
-      // Setup adapter to return positions with coin matching the orders
+      // Setup adapter to return positions with symbol matching the orders
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
       mockAdapter.adaptPositionFromSDK.mockImplementation((assetPos: any) => ({
-        coin: assetPos.position.coin || assetPos.coin,
+        symbol: assetPos.position.coin || assetPos.coin,
         size: assetPos.position.szi,
         entryPrice: '50000',
         positionValue: '50000',
@@ -2551,7 +2557,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(lastCall[0]).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            coin: 'BTC',
+            symbol: 'BTC',
             takeProfitPrice: '60000',
             stopLossPrice: '40000',
             takeProfitCount: 1,
@@ -2570,7 +2576,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
       mockAdapter.adaptPositionFromSDK.mockImplementation(
         (assetPos: { position: { szi: string } }) => ({
-          coin: 'BTC',
+          symbol: 'BTC',
           size: assetPos.position.szi, // Use actual size from input
           entryPrice: '50000',
           positionValue: '50000',
@@ -2685,7 +2691,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            coin: 'BTC',
+            symbol: 'BTC',
             takeProfitPrice: '55000',
             stopLossPrice: '45000',
           }),
@@ -2729,7 +2735,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            coin: 'BTC',
+            symbol: 'BTC',
             takeProfitPrice: '55000', // Should persist
             stopLossPrice: '45000', // Should persist
           }),
@@ -2919,11 +2925,11 @@ describe('HyperLiquidSubscriptionService', () => {
     // Should call callback with zero prices to enable UI state
     expect(mockCallback).toHaveBeenCalledWith([
       expect.objectContaining({
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '0',
       }),
       expect.objectContaining({
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '0',
       }),
     ]);
@@ -2936,6 +2942,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true, // hip3Enabled
         ['dex1', 'dex2'], // enabledDexs
       );
@@ -2947,6 +2954,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const subscriptionService = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         false, // hip3Enabled
         [],
       );
@@ -3242,6 +3250,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true,
         ['failingdex'],
       );
@@ -3288,6 +3297,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
+        mockDeps,
         true,
         ['testdex'],
       );
