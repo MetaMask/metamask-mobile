@@ -115,7 +115,7 @@ jobs:
               // Fill in the issue number
               .replace(/Fixes:\s*$/, `Fixes: #${issueNumber}`)
               .replace(/Fixes:\n/, `Fixes: #${issueNumber}\n`)
-              // Check author checklist boxes
+              // Check author checklist boxes (template uses curly apostrophes)
               .replace(/- \[ \] I've followed/g, "- [x] I've followed")
               .replace(/- \[ \] I've completed/g, "- [x] I've completed")
               .replace(/- \[ \] I've included tests/g, "- [x] I've included tests")
