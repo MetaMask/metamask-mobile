@@ -414,7 +414,23 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
+  const onCardDetailsImageError = useCallback(() => {
+    clearCardDetailsImageUrl();
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        { label: strings('card.card_home.view_card_details_error') },
+      ],
+      hasNoTimeout: false,
+      iconName: IconName.Warning,
+    });
+  }, [clearCardDetailsImageUrl, toastRef]);
+
   const viewCardDetailsAction = useCallback(async () => {
+    if (isCardDetailsLoading || isCardDetailsImageLoading) {
+      return;
+    }
+
     if (cardDetailsImageUrl) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -449,6 +465,8 @@ const CardHome = () => {
       });
     }
   }, [
+    isCardDetailsLoading,
+    isCardDetailsImageLoading,
     cardDetailsImageUrl,
     clearCardDetailsImageUrl,
     fetchCardDetailsToken,
@@ -822,6 +840,7 @@ const CardHome = () => {
                 style={tw.style('w-full h-full')}
                 resizeMode="cover"
                 onLoad={onCardDetailsImageLoad}
+                onError={onCardDetailsImageError}
                 testID={CardHomeSelectors.CARD_DETAILS_IMAGE}
               />
             </Box>

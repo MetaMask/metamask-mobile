@@ -3355,6 +3355,39 @@ describe('CardHome Component', () => {
           expect(mockFetchCardDetailsToken).not.toHaveBeenCalled();
         });
       });
+
+      it('clears image and shows error when image fails to load', async () => {
+        // Given: Authenticated user with card and image URL returned (image loading)
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // Mock hook to return imageUrl (image is being displayed)
+        (useCardDetailsToken as jest.Mock).mockReturnValueOnce({
+          fetchCardDetailsToken: mockFetchCardDetailsToken,
+          isLoading: false,
+          isImageLoading: false,
+          onImageLoad: mockOnCardDetailsImageLoad,
+          error: null,
+          imageUrl: 'https://example.com/image',
+          clearImageUrl: mockClearCardDetailsImageUrl,
+        });
+
+        // When: component renders and image fails to load
+        render();
+        const image = screen.getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE);
+        fireEvent(image, 'error');
+
+        // Then: clearImageUrl is called to reset the state
+        await waitFor(() => {
+          expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
+        });
+      });
     });
   });
 });
