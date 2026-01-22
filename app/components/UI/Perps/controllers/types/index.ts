@@ -114,7 +114,7 @@ export interface TPSLTrackingData {
 
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
-  coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  symbol: string; // Asset identifier (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
   size: string; // Order size as string (derived for validation, provider recalculates from usdAmount)
   orderType: OrderType; // Order type
@@ -151,7 +151,7 @@ export type OrderResult = {
 };
 
 export type Position = {
-  coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  symbol: string; // Asset identifier (e.g., 'ETH', 'BTC')
   size: string; // Signed position size (+ = LONG, - = SHORT)
   entryPrice: string; // Average entry price
   positionValue: string; // Total position value in USD
@@ -206,7 +206,7 @@ export type AccountState = {
 };
 
 export type ClosePositionParams = {
-  coin: string; // Asset symbol to close
+  symbol: string; // Asset identifier to close
   size?: string; // Size to close (omit for full close)
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
@@ -222,7 +222,7 @@ export type ClosePositionParams = {
 };
 
 export type ClosePositionsParams = {
-  coins?: string[]; // Optional: specific coins to close (omit or empty array to close all)
+  symbols?: string[]; // Optional: specific symbols to close (omit or empty array to close all)
   closeAll?: boolean; // Explicitly close all positions
 };
 
@@ -231,14 +231,14 @@ export type ClosePositionsResult = {
   successCount: number; // Number of positions closed successfully
   failureCount: number; // Number of positions that failed to close
   results: {
-    coin: string;
+    symbol: string;
     success: boolean;
     error?: string;
   }[];
 };
 
 export type UpdateMarginParams = {
-  coin: string; // Asset symbol (e.g., 'BTC', 'ETH')
+  symbol: string; // Asset identifier (e.g., 'BTC', 'ETH')
   amount: string; // Amount to adjust as string (positive = add, negative = remove)
 };
 
@@ -248,7 +248,7 @@ export type MarginResult = {
 };
 
 export type FlipPositionParams = {
-  coin: string; // Asset symbol to flip
+  symbol: string; // Asset identifier to flip
   position: Position; // Current position to flip
 };
 
@@ -376,7 +376,7 @@ export interface SwitchProviderResult {
 
 export interface CancelOrderParams {
   orderId: string; // Order ID to cancel
-  coin: string; // Asset symbol
+  symbol: string; // Asset identifier
 }
 
 export interface CancelOrderResult {
@@ -387,11 +387,11 @@ export interface CancelOrderResult {
 
 export type BatchCancelOrdersParams = {
   orderId: string;
-  coin: string;
+  symbol: string;
 }[];
 
 export type CancelOrdersParams = {
-  coins?: string[]; // Optional: specific coins (omit to cancel all orders)
+  symbols?: string[]; // Optional: specific symbols (omit to cancel all orders)
   orderIds?: string[]; // Optional: specific order IDs (omit to cancel all orders for specified coins)
   cancelAll?: boolean; // Explicitly cancel all orders
 };
@@ -402,7 +402,7 @@ export type CancelOrdersResult = {
   failureCount: number; // Number of orders that failed to cancel
   results: {
     orderId: string;
-    coin: string;
+    symbol: string;
     success: boolean;
     error?: string;
   }[];
@@ -523,7 +523,7 @@ export interface PerpsControllerConfig {
 }
 
 export interface PriceUpdate {
-  coin: string; // Asset symbol
+  symbol: string; // Asset identifier
   price: string; // Current mid price (average of best bid and ask)
   timestamp: number; // Update timestamp
   percentChange24h?: string; // 24h price change percentage
@@ -653,7 +653,7 @@ export interface SubscribeOICapsParams {
 }
 
 export interface SubscribeCandlesParams {
-  coin: string;
+  symbol: string;
   interval: CandlePeriod;
   duration?: TimeDuration;
   callback: (data: CandleData) => void;
@@ -729,7 +729,7 @@ export interface FeeCalculationParams {
   orderType: 'market' | 'limit';
   isMaker?: boolean;
   amount?: string;
-  coin: string; // Required: Asset symbol for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
+  symbol: string; // Required: Asset identifier for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
 }
 
 export interface FeeCalculationResult {
@@ -755,7 +755,7 @@ export interface FeeCalculationResult {
 }
 
 export interface UpdatePositionTPSLParams {
-  coin: string; // Asset symbol
+  symbol: string; // Asset identifier
   takeProfitPrice?: string; // Optional: undefined to remove
   stopLossPrice?: string; // Optional: undefined to remove
   // Optional tracking data for MetaMetrics events
@@ -957,14 +957,14 @@ export interface IPerpsLogger {
  * When migrating to core monorepo, this enum travels with PerpsController.
  */
 export enum PerpsAnalyticsEvent {
-  WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
-  TRADE_TRANSACTION = 'Perp Trade Transaction',
-  POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
-  ORDER_CANCEL_TRANSACTION = 'Perp Order Cancel Transaction',
-  SCREEN_VIEWED = 'Perp Screen Viewed',
-  UI_INTERACTION = 'Perp UI Interaction',
-  RISK_MANAGEMENT = 'Perp Risk Management',
-  ERROR = 'Perp Error',
+  WithdrawalTransaction = 'Perp Withdrawal Transaction',
+  TradeTransaction = 'Perp Trade Transaction',
+  PositionCloseTransaction = 'Perp Position Close Transaction',
+  OrderCancelTransaction = 'Perp Order Cancel Transaction',
+  ScreenViewed = 'Perp Screen Viewed',
+  UiInteraction = 'Perp UI Interaction',
+  RiskManagement = 'Perp Risk Management',
+  PerpsError = 'Perp Error',
 }
 
 /**
@@ -1088,11 +1088,6 @@ export type PerpsAnalyticsProperties = Record<
  * Allows core package to work with different analytics backends.
  */
 export interface IPerpsMetrics {
-  /**
-   * @deprecated Use trackPerpsEvent instead for type-safe event tracking.
-   * This method uses 'unknown' for backward compatibility with legacy code.
-   */
-  trackEvent(event: unknown, saveDataRecording?: boolean): void;
   isEnabled(): boolean;
 
   /**
@@ -1304,40 +1299,3 @@ export interface IPerpsPlatformDependencies {
   // === Controller Access (ALL controllers consolidated) ===
   controllers: IPerpsControllerAccess;
 }
-
-/**
- * @deprecated Use IPerpsNetworkOperations and IPerpsTransactionOperations via
- * deps.controllers.network and deps.controllers.transaction instead.
- * This interface is preserved for backward compatibility during migration.
- */
-export interface IPerpsExternalServices {
-  getChainIdForNetwork(networkClientId: string): Hex;
-  findNetworkClientIdForChain(chainId: Hex): string | undefined;
-  submitTransaction(
-    txParams: {
-      from: string;
-      to?: string;
-      value?: string;
-      data?: string;
-    },
-    options: {
-      networkClientId: string;
-      origin?: string;
-      type?: string;
-      skipInitialGasEstimate?: boolean;
-      gasFeeToken?: Hex;
-    },
-  ): Promise<{
-    result: Promise<string>;
-    transactionMeta: { id: string; hash?: string };
-  }>;
-  getFeeDiscount?(
-    caipAccountId: `${string}:${string}:${string}`,
-  ): Promise<number>;
-}
-
-/**
- * @deprecated Use IPerpsPlatformDependencies instead.
- * This alias is provided for backward compatibility during migration.
- */
-export type IPerpsInfrastructure = IPerpsPlatformDependencies;
