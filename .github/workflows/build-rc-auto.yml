@@ -12,7 +12,6 @@ on:
     branches:
       - 'release/*'
 
-
 jobs:
   validate-and-check-label:
     name: Validate branch and check PR label
@@ -20,22 +19,14 @@ jobs:
     outputs:
       semver: ${{ steps.extract-version.outputs.semver }}
       has-label: ${{ steps.check-label.outputs.has-label }}
-      branch-name: ${{ steps.extract-version.outputs.branch-name }}
-      pr-number: ${{ steps.check-label.outputs.pr-number }}
     permissions:
       pull-requests: read
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
-
       - name: Extract semver from branch name
         id: extract-version
         run: |
           BRANCH_NAME="${{ github.ref_name }}"
           echo "Checking branch: $BRANCH_NAME"
-          echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
           # Validate branch matches release/x.y.z format (semantic versioning)
           if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -64,7 +55,6 @@ jobs:
           fi
 
           echo "Found PR #$PR_NUMBER"
-          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
           # Check if PR has the auto-rc-builds label
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name' || echo "")
@@ -78,70 +68,41 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  bump-version:
-    uses: ./.github/workflows/update-latest-build-version.yml
-    needs: validate-and-check-label
-    if: needs.validate-and-check-label.outputs.has-label == 'true'
-    with:
-      base-branch: ${{ github.ref_name }}
-    secrets:
-      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
     permissions:
       id-token: write
-      contents: write
+    needs: validate-and-check-label
+    if: needs.validate-and-check-label.outputs.has-label == 'true'
 
-  trigger-rc-build:
+  bump-version-and-build-rc:
     runs-on: ubuntu-latest
     needs:
       - validate-and-check-label
-      - bump-version
+      - generate-build-version
     if: needs.validate-and-check-label.outputs.has-label == 'true'
-    outputs:
-      android-public-url: ${{ steps.rc-build.outputs.android-public-url }}
-      bitrise-pipeline-url: ${{ steps.rc-build.outputs.bitrise-pipeline-url }}
-      build-number: ${{ steps.rc-build.outputs.build-number }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
-      - name: Trigger RC Build
-        id: rc-build
+          token: ${{ secrets.PR_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build RC
         env:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          GH_REF_NAME: ${{ github.ref_name }}
-          COMMIT_HASH: ${{ needs.bump-version.outputs.commit-hash }}
-          BUILD_NUMBER: ${{ needs.bump-version.outputs.build-version }}
+          BUILD_NUMBER: ${{ needs.generate-build-version.outputs.build-version }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
-        run: ./.github/scripts/rc-builds.sh
-
-  post-rc-build-comment:
-    name: Post RC Build Comment
-    runs-on: ubuntu-latest
-    needs:
-      - validate-and-check-label
-      - trigger-rc-build
-    if: always() && needs.trigger-rc-build.result == 'success' && needs.validate-and-check-label.outputs.pr-number != ''
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install dependencies
-        run: yarn install --immutable
-      - name: Post RC Build Comment
-        run: node scripts/post-rc-build-comment.mjs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.validate-and-check-label.outputs.pr-number }}
-          SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          BUILD_NUMBER: ${{ needs.trigger-rc-build.outputs.build-number }}
-          ANDROID_PUBLIC_URL: ${{ needs.trigger-rc-build.outputs.android-public-url }}
-          BITRISE_PIPELINE_URL: ${{ needs.trigger-rc-build.outputs.bitrise-pipeline-url }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: ./scripts/rc-builds.sh
