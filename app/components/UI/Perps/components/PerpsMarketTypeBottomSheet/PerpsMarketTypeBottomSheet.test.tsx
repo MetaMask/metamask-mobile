@@ -1,5 +1,4 @@
 import React from 'react';
-import { View, TouchableOpacity, Text as RNText } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTypeBottomSheet from './PerpsMarketTypeBottomSheet';
 import type { MarketTypeFilter } from '../../controllers/types';
@@ -22,19 +21,25 @@ const mockOnOpenBottomSheet = jest.fn();
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const MockBottomSheet = React.forwardRef<
-      { onOpenBottomSheet: () => void },
-      {
-        children: React.ReactNode;
-        testID?: string;
-        onClose: () => void;
-      }
-    >(({ children, testID }, ref) => {
-      React.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: mockOnOpenBottomSheet,
-      }));
-      return <View testID={testID}>{children}</View>;
-    });
+    const MockReact = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    const MockBottomSheet = MockReact.forwardRef(
+      (
+        {
+          children,
+          testID,
+        }: {
+          children: React.ReactNode;
+          testID?: string;
+        },
+        ref: React.Ref<{ onOpenBottomSheet: () => void }>,
+      ) => {
+        MockReact.useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: mockOnOpenBottomSheet,
+        }));
+        return <View testID={testID}>{children}</View>;
+      },
+    );
     MockBottomSheet.displayName = 'MockBottomSheet';
     return {
       __esModule: true,
@@ -46,66 +51,78 @@ jest.mock(
 // Mock BottomSheetHeader component
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => ({
-    __esModule: true,
-    default: ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose: () => void;
-    }) => (
-      <View>
-        {children}
-        <TouchableOpacity testID="bottom-sheet-close" onPress={onClose}>
-          <RNText>Close</RNText>
-        </TouchableOpacity>
-      </View>
-    ),
-  }),
+  () => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        children,
+        onClose,
+      }: {
+        children: React.ReactNode;
+        onClose: () => void;
+      }) => (
+        <View>
+          {children}
+          <TouchableOpacity testID="bottom-sheet-close" onPress={onClose}>
+            <Text>Close</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    };
+  },
 );
 
 // Mock Icon component
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: ({ name, testID }: { name: string; testID?: string }) => (
-    <RNText testID={testID}>{name}</RNText>
-  ),
-  IconName: {
-    Check: 'Check',
-  },
-  IconSize: { Md: 'md' },
-}));
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ name, testID }: { name: string; testID?: string }) => (
+      <Text testID={testID}>{name}</Text>
+    ),
+    IconName: {
+      Check: 'Check',
+    },
+    IconSize: { Md: 'md' },
+  };
+});
 
 // Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => <RNText testID={testID}>{children}</RNText>,
-  TextVariant: { HeadingMD: 'HeadingMD', BodyMD: 'BodyMD' },
-}));
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
+  const { Text: RNText } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      testID,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => <RNText testID={testID}>{children}</RNText>,
+    TextVariant: { HeadingMD: 'HeadingMD', BodyMD: 'BodyMD' },
+  };
+});
 
 // Mock Box component
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: ({
-    children,
-    testID,
-    style,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-    style?: object;
-  }) => (
-    <View testID={testID} style={style}>
-      {children}
-    </View>
-  ),
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    Box: ({
+      children,
+      testID,
+      style,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+      style?: object;
+    }) => (
+      <View testID={testID} style={style}>
+        {children}
+      </View>
+    ),
+  };
+});
 
 describe('PerpsMarketTypeBottomSheet', () => {
   const mockOnClose = jest.fn();
