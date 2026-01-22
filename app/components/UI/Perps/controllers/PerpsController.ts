@@ -47,6 +47,7 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
 import { type PerpsStreamChannelKey } from '../providers/PerpsStreamManager';
+import { WebSocketConnectionState } from '../services/HyperLiquidClientService';
 import {
   PerpsAnalyticsEvent,
   type AccountState,
