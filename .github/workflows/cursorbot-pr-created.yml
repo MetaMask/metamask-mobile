@@ -19,10 +19,11 @@ jobs:
     steps:
       - name: Extract issue number
         id: extract
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           # Extract issue number from branch name (cursorbot/issue-12345)
-          BRANCH="${{ github.head_ref }}"
-          ISSUE_NUMBER="${BRANCH#cursorbot/issue-}"
+          ISSUE_NUMBER="${HEAD_REF#cursorbot/issue-}"
           echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
           echo "Extracted issue number: $ISSUE_NUMBER"
 
