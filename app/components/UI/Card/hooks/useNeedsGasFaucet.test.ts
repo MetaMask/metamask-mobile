@@ -94,7 +94,7 @@ describe('useNeedsGasFaucet', () => {
   });
 
   describe('initial state', () => {
-    it('initializes with loading state true', () => {
+    it('initializes with not loading state when no token is provided', () => {
       const { result } = renderHook(() => useNeedsGasFaucet(null));
 
       // Initial state should show not loading when no token
