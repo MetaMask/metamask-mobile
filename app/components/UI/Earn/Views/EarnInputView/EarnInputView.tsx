@@ -988,7 +988,7 @@ const EarnInputView = () => {
   return (
     <ScreenLayout style={styles.container}>
       <HeaderCenter
-        title={'headerTitle'}
+        title={headerTitle}
         onBack={handleBackPress}
         endButtonIconProps={
           isStablecoinLendingEnabled
