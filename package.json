@@ -391,7 +391,7 @@
     "humanize-duration": "^3.27.2",
     "is-url": "^1.2.4",
     "js-sha3": "0.9.3",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "lottie-react-native": "6.7.2",
     "luxon": "^3.5.0",
     "mockttp": "^3.15.2",
