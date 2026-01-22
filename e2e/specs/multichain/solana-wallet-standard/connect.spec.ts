@@ -69,7 +69,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   it.skip('Switching between 2 accounts should reflect in the dapp', async () => {
     await withSolanaAccountEnabled(
       {
-        numberOfAccounts: 2,
+        //numberOfAccounts: 2, // This was removed as parameter since current functionality does not support Solana account creation, instead, a new wallet would need to be created.
       },
       async () => {
         await navigateToSolanaTestDApp();
