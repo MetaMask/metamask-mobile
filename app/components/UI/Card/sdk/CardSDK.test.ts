@@ -3957,4 +3957,158 @@ describe('CardSDK', () => {
       });
     });
   });
+
+  describe('generateCardDetailsToken', () => {
+    const mockTokenResponse = {
+      token: 'test-token-uuid-123',
+      imageUrl:
+        'https://cards.baanx.com/details-image?token=test-token-uuid-123',
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'test-access-token' },
+      });
+    });
+
+    it('generates card details token successfully', async () => {
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockTokenResponse),
+      });
+
+      // When: generateCardDetailsToken is called
+      const result = await cardSDK.generateCardDetailsToken();
+
+      // Then: Returns token response
+      expect(result).toEqual(mockTokenResponse);
+    });
+
+    it('generates card details token with custom CSS', async () => {
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockTokenResponse),
+      });
+
+      const customCss = {
+        cardBackgroundColor: '#FF5C16',
+        cardTextColor: '#FFFFFF',
+        panBackgroundColor: '#EFEFEF',
+        panTextColor: '#000000',
+      };
+
+      // When: generateCardDetailsToken is called with custom CSS
+      const result = await cardSDK.generateCardDetailsToken({ customCss });
+
+      // Then: Returns token response
+      expect(result).toEqual(mockTokenResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/details/token'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ customCss }),
+        }),
+      );
+    });
+
+    it('throws INVALID_CREDENTIALS error on 401 response', async () => {
+      // Given: API returns 401 response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+      });
+
+      // When/Then: Throws INVALID_CREDENTIALS error
+      try {
+        await cardSDK.generateCardDetailsToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(
+          CardErrorType.INVALID_CREDENTIALS,
+        );
+      }
+    });
+
+    it('throws INVALID_CREDENTIALS error on 403 response', async () => {
+      // Given: API returns 403 response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+      });
+
+      // When/Then: Throws INVALID_CREDENTIALS error
+      try {
+        await cardSDK.generateCardDetailsToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(
+          CardErrorType.INVALID_CREDENTIALS,
+        );
+      }
+    });
+
+    it('throws NO_CARD error on 404 response', async () => {
+      // Given: API returns 404 response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      });
+
+      // When/Then: Throws NO_CARD error
+      try {
+        await cardSDK.generateCardDetailsToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(CardErrorType.NO_CARD);
+      }
+    });
+
+    it('throws SERVER_ERROR on 500 response', async () => {
+      // Given: API returns 500 response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+
+      // When/Then: Throws SERVER_ERROR
+      try {
+        await cardSDK.generateCardDetailsToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(CardErrorType.SERVER_ERROR);
+      }
+    });
+
+    it('sends authenticated request with bearer token', async () => {
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockTokenResponse),
+      });
+
+      // When: generateCardDetailsToken is called
+      await cardSDK.generateCardDetailsToken();
+
+      // Then: Request includes authorization header
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-access-token',
+          }),
+        }),
+      );
+    });
+  });
 });

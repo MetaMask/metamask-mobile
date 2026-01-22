@@ -441,3 +441,30 @@ export interface DelegationSettingsResponse {
     self: string;
   };
 }
+
+/**
+ * Request body for generating card details token
+ * Used to customize the visual appearance of the card details image
+ */
+export interface CardDetailsTokenRequest {
+  customCss?: {
+    /** Background color of the card image (hex format, e.g., "#000000") */
+    cardBackgroundColor?: string;
+    /** Text color for card information (hex format) */
+    cardTextColor?: string;
+    /** Background color for the PAN number display area (hex format) */
+    panBackgroundColor?: string;
+    /** Text color for PAN number (hex format) */
+    panTextColor?: string;
+  };
+}
+
+/**
+ * Response from generating card details token
+ */
+export interface CardDetailsTokenResponse {
+  /** Secure, time-limited token (UUID format) - valid for ~10 minutes, single-use */
+  token: string;
+  /** URL that renders card details as a secure image */
+  imageUrl: string;
+}

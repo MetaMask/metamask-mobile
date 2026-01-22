@@ -47,6 +47,8 @@ import {
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
   GetOnboardingConsentResponse,
+  CardDetailsTokenRequest,
+  CardDetailsTokenResponse,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -999,6 +1001,44 @@ export class CardSDK {
     }
 
     return (await response.json()) as CardDetailsResponse;
+  };
+
+  /**
+   * Generate a secure token for displaying sensitive card details through an image-based display.
+   * The token is time-limited (~10 minutes) and single-use.
+   *
+   * @param request - Optional customization for the card details image appearance
+   * @returns Promise containing the token and imageUrl for displaying card details
+   */
+  generateCardDetailsToken = async (
+    request?: CardDetailsTokenRequest,
+  ): Promise<CardDetailsTokenResponse> => {
+    const response = await this.makeRequest('/v1/card/details/token', {
+      fetchOptions: {
+        method: 'POST',
+        ...(request && { body: JSON.stringify(request) }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to generate card details token. Please try again.',
+        'generateCardDetailsToken',
+        'card/details/token',
+        response.status,
+      );
+    }
+
+    return (await response.json()) as CardDetailsTokenResponse;
   };
 
   getCardExternalWalletDetails = async (

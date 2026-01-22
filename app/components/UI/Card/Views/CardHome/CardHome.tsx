@@ -9,6 +9,7 @@ import React, {
 import {
   ActivityIndicator,
   Alert,
+  Image,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
@@ -76,6 +77,7 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import useLoadCardData from '../../hooks/useLoadCardData';
+import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
@@ -112,6 +114,14 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const {
+    fetchCardDetailsToken,
+    isLoading: isCardDetailsLoading,
+    isImageLoading: isCardDetailsImageLoading,
+    onImageLoad: onCardDetailsImageLoad,
+    imageUrl: cardDetailsImageUrl,
+    clearImageUrl: clearCardDetailsImageUrl,
+  } = useCardDetailsToken();
   const hasTrackedCardHomeView = useRef(false);
   const hasLoadedCardHomeView = useRef(false);
   const hasCompletedInitialFetchRef = useRef(false);
@@ -403,6 +413,32 @@ const CardHome = () => {
       ],
     );
   }, [logoutFromProvider, navigation]);
+
+  const viewCardDetailsAction = useCallback(async () => {
+    if (cardDetailsImageUrl) {
+      clearCardDetailsImageUrl();
+      return;
+    }
+
+    try {
+      await fetchCardDetailsToken(cardDetails?.type);
+    } catch {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.card_home.view_card_details_error') },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [
+    cardDetailsImageUrl,
+    clearCardDetailsImageUrl,
+    fetchCardDetailsToken,
+    toastRef,
+    cardDetails?.type,
+  ]);
 
   const cardSetupState = useMemo(() => {
     const needsSetup =
@@ -733,13 +769,44 @@ const CardHome = () => {
         <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
       )}
       <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
-        <Box twClassName="w-full">
-          {isLoading ? (
-            <Skeleton
-              height={240}
-              width={'100%'}
-              style={tw.style('rounded-xl')}
-            />
+        <Box twClassName="w-full relative">
+          {isLoading || isCardDetailsLoading ? (
+            <Box
+              twClassName="w-full rounded-xl overflow-hidden"
+              style={{ aspectRatio: 851 / 540 }}
+            >
+              <Skeleton
+                height={'100%'}
+                width={'100%'}
+                style={tw.style('rounded-xl')}
+                testID={
+                  isCardDetailsLoading
+                    ? CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON
+                    : undefined
+                }
+              />
+            </Box>
+          ) : cardDetailsImageUrl ? (
+            <Box
+              twClassName="w-full rounded-xl overflow-hidden"
+              style={{ aspectRatio: 851 / 540 }}
+            >
+              {isCardDetailsImageLoading && (
+                <Skeleton
+                  height={'100%'}
+                  width={'100%'}
+                  style={tw.style('rounded-xl absolute inset-0 z-10')}
+                  testID={CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON}
+                />
+              )}
+              <Image
+                source={{ uri: cardDetailsImageUrl }}
+                style={tw.style('w-full h-full')}
+                resizeMode="cover"
+                onLoad={onCardDetailsImageLoad}
+                testID={CardHomeSelectors.CARD_DETAILS_IMAGE}
+              />
+            </Box>
           ) : (
             <CardImage
               type={cardDetails?.type ?? CardType.VIRTUAL}
@@ -846,6 +913,20 @@ const CardHome = () => {
       </Box>
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
+        {isAuthenticated && !isLoading && cardDetails && (
+          <ManageCardListItem
+            title={strings(
+              cardDetailsImageUrl
+                ? 'card.card_home.manage_card_options.hide_card_details'
+                : 'card.card_home.manage_card_options.view_card_details',
+            )}
+            description={strings(
+              'card.card_home.manage_card_options.view_card_details_description',
+            )}
+            onPress={viewCardDetailsAction}
+            testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
+          />
+        )}
         {isBaanxLoginEnabled &&
           !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
             <ManageCardListItem

@@ -6727,6 +6727,7 @@
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
       "enable_card_error": "Failed to enable card. Please try again later.",
+      "view_card_details_error": "Unable to load card details. Please try again.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6782,6 +6783,9 @@
         "ok_button": "OK"
       },
       "manage_card_options": {
+        "view_card_details": "View card details",
+        "hide_card_details": "Hide card details",
+        "view_card_details_description": "Card number, expiration and CVV",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
