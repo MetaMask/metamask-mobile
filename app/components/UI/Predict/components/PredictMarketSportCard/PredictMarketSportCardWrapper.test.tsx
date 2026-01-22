@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictMarketSportCardWrapper from './PredictMarketSportCardWrapper';
@@ -256,6 +257,50 @@ describe('PredictMarketSportCardWrapper', () => {
 
       const tree = toJSON();
       expect(tree).not.toBeNull();
+    });
+
+    it('renders close button when onDismiss is provided', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCardWrapper
+          marketId="test-market-id"
+          testID="wrapper-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('wrapper-card-close-button')).toBeOnTheScreen();
+    });
+
+    it('calls onDismiss when close button is pressed', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCardWrapper
+          marketId="test-market-id"
+          testID="wrapper-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('wrapper-card-close-button'));
+
+      expect(mockOnDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render close button when onDismiss is not provided', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PredictMarketSportCardWrapper
+          marketId="test-market-id"
+          testID="wrapper-card"
+        />,
+        { state: initialState },
+      );
+
+      expect(queryByTestId('wrapper-card-close-button')).toBeNull();
     });
   });
 
