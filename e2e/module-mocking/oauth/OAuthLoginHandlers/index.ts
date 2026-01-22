@@ -64,7 +64,6 @@ abstract class MockBaseLoginHandler {
 
   /**
    * REAL getAuthTokens - calls Auth Server
-   * In E2E, this is intercepted by Mockttp → proxied to backend QA mock
    */
   async getAuthTokens(
     params: LoginHandlerResult & { web3AuthNetwork: string },
@@ -154,7 +153,6 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
       login_provider: this.authConnection,
       network: params.web3AuthNetwork,
       code_verifier: params.codeVerifier,
-      // Include E2E email for backend QA mock scenario selection
       email: params.email || E2EOAuthHelpers.getE2EEmail(),
     };
   }
@@ -182,7 +180,6 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
     // Simulate brief delay
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    // Create mock ID token with E2E email
     const mockIdToken = this.createMockIdToken(email);
 
     return {
@@ -219,7 +216,6 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
       id_token: params.idToken,
       login_provider: this.authConnection,
       network: params.web3AuthNetwork,
-      // Include E2E email for backend QA mock scenario selection
       email: params.email || E2EOAuthHelpers.getE2EEmail(),
     };
   }

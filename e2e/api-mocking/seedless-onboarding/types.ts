@@ -9,11 +9,6 @@ export interface OAuthMockttpServiceOptions {
   /**
    * User email - if provided, simulates existing user
    * If not provided (undefined), simulates new user
-   *
-   * For backend QA mock integration, use E2E email patterns:
-   * - *newuser+e2e@web3auth.io -> New user flow
-   * - *existinguser+e2e@web3auth.io -> Existing user flow
-   * - *error.*+e2e@web3auth.io -> Error scenarios
    */
   userEmail?: string;
 
@@ -30,7 +25,6 @@ export interface OAuthMockttpServiceOptions {
   /**
    * Whether to mock metadata service endpoints
    * Default: true
-   * Set to false if backend handles metadata mocking
    */
   mockMetadataService?: boolean;
 

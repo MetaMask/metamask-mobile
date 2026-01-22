@@ -1,8 +1,5 @@
 /**
  * OAuth Mockttp Service for Seedless Onboarding E2E Tests
- *
- * This service proxies Auth Server calls to the backend QA mock endpoints,
- * which generate cryptographically valid tokens using real SignerService.
  */
 
 import { Mockttp } from 'mockttp';
@@ -44,10 +41,6 @@ export class OAuthMockttpService {
       email: E2E_EMAILS.GOOGLE_NEW_USER,
     };
   }
-
-  // ============================================
-  // CONFIGURATION METHODS
-  // ============================================
 
   /**
    * Configure for Google New User flow
@@ -149,10 +142,6 @@ export class OAuthMockttpService {
     return this;
   }
 
-  // ============================================
-  // GETTERS
-  // ============================================
-
   /**
    * Get current configuration
    */
@@ -192,10 +181,6 @@ export class OAuthMockttpService {
   getLoginProvider(): E2ELoginProvider {
     return this.config.loginProvider;
   }
-
-  // ============================================
-  // SETUP METHODS
-  // ============================================
 
   /**
    * MAIN SETUP METHOD - Register mock handlers
@@ -481,7 +466,6 @@ export class OAuthMockttpService {
         message: 'Metadata set successfully',
       });
 
-    // Get metadata - returns encrypted SRP for existing users
     await server
       .forPost('/proxy')
       .matching((request) => {
@@ -495,7 +479,6 @@ export class OAuthMockttpService {
         ids: this.isExistingUser() ? ['', PasswordChangeItemId] : [],
       });
 
-    // Acquire lock
     await server
       .forPost('/proxy')
       .matching((request) => {
@@ -509,7 +492,6 @@ export class OAuthMockttpService {
         id: 'E2E_MOCK_LOCK_ID',
       });
 
-    // Release lock
     await server
       .forPost('/proxy')
       .matching((request) => {
@@ -522,7 +504,6 @@ export class OAuthMockttpService {
         status: 1,
       });
 
-    // Batch set
     await server
       .forPost('/proxy')
       .matching((request) => {
@@ -542,7 +523,7 @@ export class OAuthMockttpService {
   private async setupToprfSssNodeMocks(server: Mockttp): Promise<void> {
     console.log('[E2E MockServer] Setting up TOPRF SSS node mocks');
 
-    // Mock all 5 SSS nodes via the /proxy endpoint
+    // Mock all 5 SSS nodes
     await server
       .forPost('/proxy')
       .matching((request) => {
