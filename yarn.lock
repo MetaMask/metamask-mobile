@@ -9191,29 +9191,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@npm:14.5.0":
-  version: 14.5.0
-  resolution: "@metamask/react-native-webview@npm:14.5.0"
+"@metamask/react-native-webview@npm:^14.6.0":
+  version: 14.6.0
+  resolution: "@metamask/react-native-webview@npm:14.6.0"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/c78b2d059af8172c64b6be599cd1576c5a8649f96a5ab1fcdf43254c880e50108c6884de78d05fc516a7c00a48a21f0533f65cf3e7b583bbe0f3bef88f5ad928
-  languageName: node
-  linkType: hard
-
-"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch":
-  version: 14.5.0
-  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch::version=14.5.0&hash=c6e87d"
-  dependencies:
-    escape-string-regexp: "npm:^4.0.0"
-    invariant: "npm:2.2.4"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 10/f22bae5e15763e77ec0e21f34b31d97a48fadb35590a5e75341c93b269cbdb702fcafb4bd7d4b9041977ca525b03b49b558a3800126faadf08e64b8787fb1cb3
+  checksum: 10/e3c993afb0c9750970d66090e4dee0a0a3dac95e1a8d236950cb5be11f68d5cf726bad51c8361b18ba7d95ef7a69d61067840c07ea8abd5f308f1c869ca51093
   languageName: node
   linkType: hard
 
@@ -34789,7 +34776,7 @@ __metadata:
     "@metamask/react-native-button": "npm:^3.0.0"
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch"
+    "@metamask/react-native-webview": "npm:^14.6.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
