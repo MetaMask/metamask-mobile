@@ -482,7 +482,7 @@ describe('PerpsController', () => {
   describe('constructor', () => {
     it('initializes with default state', () => {
       // Constructor no longer auto-starts initialization (moved to Engine.ts)
-      expect(controller.state.activeProvider).toBe('aggregated');
+      expect(controller.state.activeProvider).toBe('hyperliquid');
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
       expect(controller.state.initializationError).toBeNull();
