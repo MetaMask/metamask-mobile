@@ -10,7 +10,7 @@ import {
   fetchMerklRewardsForAsset,
   getClaimedAmountFromContract,
 } from '../merkl-client';
-import { AGLAMERKL_ADDRESS } from '../constants';
+import { AGLAMERKL_ADDRESS_MAINNET } from '../constants';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -47,7 +47,7 @@ const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
   symbol: 'aglaMerkl',
-  address: AGLAMERKL_ADDRESS,
+  address: AGLAMERKL_ADDRESS_MAINNET,
   chainId: CHAIN_IDS.MAINNET,
   decimals: 18,
   aggregators: [],
@@ -82,7 +82,7 @@ describe('isEligibleForMerklRewards', () => {
     const unsupportedChainId = '0x999' as Hex;
     const result = isEligibleForMerklRewards(
       unsupportedChainId,
-      AGLAMERKL_ADDRESS as Hex,
+      AGLAMERKL_ADDRESS_MAINNET as Hex,
     );
 
     expect(result).toBe(false);
@@ -100,7 +100,7 @@ describe('isEligibleForMerklRewards', () => {
   });
 
   it('returns true for eligible tokens on mainnet', () => {
-    const eligibleAddress = AGLAMERKL_ADDRESS as Hex;
+    const eligibleAddress = AGLAMERKL_ADDRESS_MAINNET as Hex;
     const result = isEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       eligibleAddress,
@@ -110,7 +110,7 @@ describe('isEligibleForMerklRewards', () => {
   });
 
   it('performs case-insensitive address comparison', () => {
-    const upperCaseAddress = AGLAMERKL_ADDRESS.toUpperCase() as Hex;
+    const upperCaseAddress = AGLAMERKL_ADDRESS_MAINNET.toUpperCase() as Hex;
     const result = isEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       upperCaseAddress,
@@ -202,7 +202,7 @@ describe('useMerklRewards', () => {
   it('fetches and sets claimableReward when eligible', async () => {
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,
@@ -248,12 +248,12 @@ describe('useMerklRewards', () => {
     // Use uppercase address to verify case-insensitive comparison works
     const upperCaseAsset: TokenI = {
       ...mockAsset,
-      address: AGLAMERKL_ADDRESS.toUpperCase() as `0x${string}`, // All uppercase
+      address: AGLAMERKL_ADDRESS_MAINNET.toUpperCase() as `0x${string}`, // All uppercase
     };
 
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,
@@ -342,7 +342,7 @@ describe('useMerklRewards', () => {
   it('finds matching reward in second data array element', async () => {
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS, // Matching token
+        address: AGLAMERKL_ADDRESS_MAINNET, // Matching token
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,
@@ -381,7 +381,7 @@ describe('useMerklRewards', () => {
   it('handles zero unclaimed amounts', async () => {
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,
@@ -414,7 +414,7 @@ describe('useMerklRewards', () => {
   it('handles very small amounts that round to zero', async () => {
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,
@@ -446,7 +446,7 @@ describe('useMerklRewards', () => {
   it('resets claimableReward when switching assets', async () => {
     const mockRewardData1 = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,
@@ -530,7 +530,7 @@ describe('useMerklRewards', () => {
 
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18, // API returns 18 decimals
@@ -576,7 +576,7 @@ describe('useMerklRewards', () => {
 
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: undefined as unknown as number, // API doesn't provide decimals
@@ -613,7 +613,7 @@ describe('useMerklRewards', () => {
   it('falls back to API claimed value when contract call fails', async () => {
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,
@@ -653,7 +653,7 @@ describe('useMerklRewards', () => {
   it('uses contract value when available, even if API has different claimed value', async () => {
     const mockRewardData = {
       token: {
-        address: AGLAMERKL_ADDRESS,
+        address: AGLAMERKL_ADDRESS_MAINNET,
         chainId: 1,
         symbol: 'aglaMerkl',
         decimals: 18,

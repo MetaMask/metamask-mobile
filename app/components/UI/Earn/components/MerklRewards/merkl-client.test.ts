@@ -6,7 +6,7 @@ import { Provider } from '@metamask/network-controller';
 import Engine from '../../../../../core/Engine';
 import { getClaimedAmountFromContract } from './merkl-client';
 import {
-  AGLAMERKL_ADDRESS,
+  AGLAMERKL_ADDRESS_MAINNET,
   MERKL_DISTRIBUTOR_ADDRESS,
   DISTRIBUTOR_CLAIMED_ABI,
 } from './constants';
@@ -61,7 +61,7 @@ const mockNetworkController: {
 
 describe('getClaimedAmountFromContract', () => {
   const mockUserAddress = '0x1234567890123456789012345678901234567890';
-  const mockTokenAddress = AGLAMERKL_ADDRESS as Hex;
+  const mockTokenAddress = AGLAMERKL_ADDRESS_MAINNET as Hex;
   const mockChainId = MAINNET_CHAIN_ID;
   const mockNetworkClientId = 'mainnet';
   const mockProvider = { send: jest.fn() } as unknown as Provider;
