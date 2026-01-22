@@ -56,7 +56,9 @@ function extractStatusCode(error: unknown): number | null {
     message = String(error);
   }
 
-  const hexMatch = message.match(/0x[0-9a-fA-F]{4}/);
+  // Match exactly 4 hex digits, not followed by more hex digits
+  // (prevents matching beginning of Ethereum addresses like 0x6985abc...)
+  const hexMatch = message.match(/0x[0-9a-fA-F]{4}(?![0-9a-fA-F])/);
   if (hexMatch) {
     return parseInt(hexMatch[0], 16);
   }
@@ -171,7 +173,7 @@ function parseLedgerStatusCode(
     // Special handling for 0x6985 which can mean user rejected OR blind signing
     if (hexCode === '0x6985' && originalError) {
       const message = originalError.message?.toLowerCase() || '';
-      if (message.includes('blind') || message.includes('sign')) {
+      if (message.includes('blind sign') || message.includes('blind signing')) {
         return createHardwareWalletError(
           ErrorCode.DeviceStateBlindSignNotSupported,
           walletType,
