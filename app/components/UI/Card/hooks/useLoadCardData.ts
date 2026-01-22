@@ -106,8 +106,6 @@ const useLoadCardData = () => {
     error: cardDetailsError,
     warning: cardDetailsWarning,
     fetchCardDetails,
-    pollCardStatusUntilProvisioned,
-    isLoadingPollCardStatusUntilProvisioned,
   } = useCardDetails();
 
   // Determine which tokens list to use based on authentication status
@@ -229,11 +227,6 @@ const useLoadCardData = () => {
     isBaanxLoginEnabled,
     // Fetch functions
     fetchAllData,
-    fetchPriorityToken,
-    fetchCardDetails,
-    // Card provisioning
-    pollCardStatusUntilProvisioned,
-    isLoadingPollCardStatusUntilProvisioned,
   };
 };
 

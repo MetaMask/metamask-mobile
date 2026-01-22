@@ -41,7 +41,7 @@ export class E2EControllerOverrides {
 
   // Mock order placement
   async placeOrder(params: OrderParams): Promise<OrderResult> {
-    console.log('E2E Mock: Intercepted placeOrder:', params.coin);
+    console.log('E2E Mock: Intercepted placeOrder:', params.symbol);
     const result = this.mockService.mockPlaceOrder(params);
 
     // Update Redux state to reflect the new position/balance
@@ -129,12 +129,15 @@ export class E2EControllerOverrides {
   // Mock close position
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
     console.log('E2E Mock: Intercepted closePosition:', {
-      coin: params.coin,
+      symbol: params.symbol,
       size: params.size,
       orderType: params.orderType,
     });
 
-    const result = this.mockService.mockClosePosition(params.coin, params.size);
+    const result = this.mockService.mockClosePosition(
+      params.symbol,
+      params.size,
+    );
 
     // Update Redux state to reflect the position closure
     const mockAccount = this.mockService.getMockAccountState();

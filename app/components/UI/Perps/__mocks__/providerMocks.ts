@@ -85,7 +85,7 @@ export const createMockOrder = (overrides = {}) => ({
 });
 
 export const createMockPosition = (overrides = {}) => ({
-  coin: 'BTC',
+  symbol: 'BTC',
   size: '0.5',
   entryPrice: '50000',
   positionValue: '25000',
