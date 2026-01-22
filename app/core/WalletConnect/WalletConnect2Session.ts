@@ -34,7 +34,7 @@ import {
   getNetworkClientIdForCaipChainId,
   getChainIdForCaipChainId,
   getHostname,
-  normalizeDappUrl,
+  isValidUrl,
 } from './wc-utils';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
@@ -72,7 +72,6 @@ class WalletConnect2Session {
   private lastChainId: Hex;
   private isHandlingChainChange = false;
   private _isHandlingRequest = false;
-  private normalizedUrl: string;
 
   public session: SessionTypes.Struct;
 
@@ -105,24 +104,22 @@ class WalletConnect2Session {
       navigation,
     );
 
-    const rawUrl = session.peer.metadata.url;
+    const url = session.peer.metadata.url;
     const name = session.peer.metadata.name;
     const icons = session.peer.metadata.icons;
 
-    const normalizedUrl = normalizeDappUrl(rawUrl);
-    if (!normalizedUrl) {
-      throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+    if (!isValidUrl(url)) {
+      throw new Error(`Invalid dApp URL in session metadata: ${url}`);
     }
 
-    this.normalizedUrl = normalizedUrl;
 
     DevLogger.log(
-      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${normalizedUrl} name=${name} icons=${icons}`,
+      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
     );
 
     this.backgroundBridge = backgroundBridgeFactory.create({
       webview: null,
-      url: normalizedUrl,
+      url,
       isWalletConnect: true,
       channelId,
       wcRequestActions: {

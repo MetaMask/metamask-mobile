@@ -60,6 +60,26 @@ export const getHostname = (uri: string): string => {
 };
 
 /**
+ * Validates a URL.
+ *
+ * @param url - The URL string to validate
+ * @returns true if the URL is valid, false otherwise
+ */
+export const isValidUrl = (url: string | undefined | null): boolean => {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return false;
+  }
+
+  // Validate the URL
+  try {
+    new URL(url.trim());
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Normalizes a dApp URL by ensuring it has a valid protocol.
  *
  * @param url - The URL string to normalize

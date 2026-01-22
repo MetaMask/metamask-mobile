@@ -9,6 +9,7 @@ import {
   networkModalOnboardingConfig,
   getHostname,
   normalizeDappUrl,
+  isValidUrl,
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -277,6 +278,44 @@ describe('WalletConnect Utils', () => {
     it('returns original URI when no protocol separator is found', () => {
       const noProtocolUri = 'example-with-no-protocol';
       expect(getHostname(noProtocolUri)).toBe(noProtocolUri);
+    });
+  });
+
+  describe('isValidUrl', () => {
+    it('returns false for null or undefined URL', () => {
+      expect(isValidUrl(null)).toBe(false);
+      expect(isValidUrl(undefined)).toBe(false);
+      expect(isValidUrl('')).toBe(false);
+    });
+
+    it('returns false for whitespace-only URL', () => {
+      expect(isValidUrl('   ')).toBe(false);
+      expect(isValidUrl('\t\n')).toBe(false);
+    });
+
+    it('returns true for valid URLs with https protocol', () => {
+      expect(isValidUrl('https://example.com')).toBe(true);
+      expect(isValidUrl('https://example.com/path?query=1')).toBe(true);
+    });
+
+    it('returns true for valid URLs with http protocol', () => {
+      expect(isValidUrl('http://example.com')).toBe(true);
+    });
+
+    it('returns false for URLs without protocol', () => {
+      expect(isValidUrl('example.com')).toBe(false);
+      expect(isValidUrl('example.com/path')).toBe(false);
+      expect(isValidUrl('subdomain.example.com')).toBe(false);
+    });
+
+    it('returns false for invalid URLs', () => {
+      expect(isValidUrl('not a valid url with spaces')).toBe(false);
+      expect(isValidUrl('://invalid')).toBe(false);
+    });
+
+    it('validates URLs with ports', () => {
+      expect(isValidUrl('https://example.com:8080')).toBe(true);
+      expect(isValidUrl('http://example.com:3000')).toBe(true);
     });
   });
 

@@ -36,7 +36,7 @@ import {
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
-  normalizeDappUrl,
+  isValidUrl,
 } from './wc-utils';
 
 import {
@@ -440,15 +440,15 @@ export class WC2Manager {
 
     const { proposer } = params;
     const { metadata } = proposer;
-    const rawUrl = metadata.url ?? '';
+    const url = metadata.url ?? '';
     const name = metadata.description ?? '';
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
-    const normalizedUrl = normalizeDappUrl(rawUrl);
-    if (!normalizedUrl) {
+    // Validate new session proposal URL without normalizing - reject if invalid.
+    if (!isValidUrl(url)) {
       console.warn(
-        `WC2::session_proposal rejected - invalid dApp URL: ${rawUrl}`,
+        `WC2::session_proposal rejected - invalid dApp URL: ${url}`,
       );
       await this.web3Wallet.rejectSession({
         id: proposal.id,
@@ -457,9 +457,9 @@ export class WC2Manager {
       return;
     }
 
-    if (rawUrl === ORIGIN_METAMASK) {
+    if (url === ORIGIN_METAMASK) {
       console.warn(
-        `WC2::session_proposal rejected - invalid url: ${normalizedUrl}`,
+        `WC2::session_proposal rejected - invalid url: ${url}`,
       );
       await this.web3Wallet.rejectSession({
         id: proposal.id,
@@ -469,17 +469,17 @@ export class WC2Manager {
     }
 
     // Extract the hostname to ensure we're consistent with permission checks
-    const hostname = getHostname(normalizedUrl);
+    const hostname = getHostname(url);
     // Keep the full url for logging and UI display
-    const origin = normalizedUrl;
+    const origin = url;
 
     DevLogger.log(
-      `WC2::session_proposal metadata url=${origin} normalized to hostname=${hostname}`,
+      `WC2::session_proposal metadata url=${origin} hostname=${hostname}`,
     );
 
     // Save Connection info to redux store to be retrieved in ui.
     store.dispatch(
-      updateWC2Metadata({ url: normalizedUrl, name, icon, id: `${id}` }),
+      updateWC2Metadata({ url, name, icon, id: `${id}` }),
     );
 
     // Get the current chain ID to include in permissions

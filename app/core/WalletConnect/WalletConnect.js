@@ -24,7 +24,11 @@ import NotificationManager from '../NotificationManager';
 import { msBetweenDates, msToHours } from '../../util/date';
 import { addTransaction } from '../../util/transaction-controller';
 import URL from 'url-parse';
-import { parseWalletConnectUri, normalizeDappUrl } from './wc-utils';
+import {
+  parseWalletConnectUri,
+  normalizeDappUrl,
+  isValidUrl,
+} from './wc-utils';
 import { store } from '../../store';
 import { selectEvmChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
@@ -332,21 +336,26 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    // For existing sessions from storage, URL should already be normalized.
-    // However we still normalize here as a safety measure for legacy data.
     const rawUrl = sessionData.peerMeta?.url;
-    const normalizedUrl = normalizeDappUrl(rawUrl);
 
-    if (!normalizedUrl) {
-      Logger.log('WC: Rejecting session with invalid dApp URL:', rawUrl);
-      if (existing) {
+    let normalizedUrl;
+    if (existing) {
+      // For existing sessions from storage, normalize URL as a safety measure for legacy data.
+      normalizedUrl = normalizeDappUrl(rawUrl);
+      if (!normalizedUrl) {
+        Logger.log('WC: Rejecting persisted session with invalid dApp URL:', rawUrl);
         this.killSession();
+        throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
       }
-      throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+    } else {
+      if (!isValidUrl(rawUrl)) {
+        Logger.log('WC: Rejecting new session with invalid dApp URL:', rawUrl);
+        throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+      }
+      normalizedUrl = rawUrl;
     }
 
-    // normalizeDappUrl already validates the URL, so this should always succeed.
-    // We keep this for type safety to get the hostname.
+    // Get hostname from the normalized/validated URL
     const hostname = new URL(normalizedUrl).hostname;
 
     const chainId = selectEvmChainId(store.getState());
@@ -413,15 +422,14 @@ class WalletConnect {
     const { ApprovalController } = Engine.context;
     try {
       const rawUrl = peerInfo.peerMeta?.url;
-      const normalizedUrl = normalizeDappUrl(rawUrl);
 
-      if (!normalizedUrl) {
+      if (!isValidUrl(rawUrl)) {
         throw new Error(`Invalid dApp URL: ${rawUrl}`);
       }
 
       return await ApprovalController.add({
         id: random(),
-        origin: new URL(normalizedUrl).host,
+        origin: new URL(rawUrl).host,
         requestData: peerInfo,
         type: ApprovalTypes.WALLET_CONNECT,
       });
