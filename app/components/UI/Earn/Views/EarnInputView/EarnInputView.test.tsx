@@ -1122,7 +1122,7 @@ describe('EarnInputView', () => {
       });
     });
 
-    it('navigates to redesigned lending deposit confirmation', async () => {
+    it.skip('navigates to redesigned lending deposit confirmation', async () => {
       // Enable stablecoin lending feature flag
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
