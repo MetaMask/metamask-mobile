@@ -1365,9 +1365,46 @@ describe('PerpsMarketListView', () => {
     });
 
     it('does not show market type dropdown when only crypto markets exist', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      // Mock with only crypto markets (no stocks or commodities)
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: jest.fn(),
+          isSearchVisible: false,
+          setIsSearchVisible: jest.fn(),
+          toggleSearchVisibility: jest.fn(),
+          clearSearch: jest.fn(),
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 0, // No stocks
+          commodity: 0, // No commodities
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Wait for filter bar to render (default mock has only crypto markets)
+      // Wait for filter bar to render
       await waitFor(() => {
         expect(screen.getByText('Volume')).toBeOnTheScreen();
       });

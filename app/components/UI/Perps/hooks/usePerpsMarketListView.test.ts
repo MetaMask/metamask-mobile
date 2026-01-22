@@ -6,8 +6,19 @@ import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsMarketData } from '../controllers/types';
-import type { SortField, SortDirection } from '../utils/sortMarkets';
+import {
+  sortMarkets,
+  type SortField,
+  type SortDirection,
+} from '../utils/sortMarkets';
 import Engine from '../../../../core/Engine';
+
+// Mock sortMarkets utility
+jest.mock('../utils/sortMarkets', () => ({
+  sortMarkets: jest.fn(({ markets }) => markets),
+}));
+
+const mockSortMarkets = sortMarkets as jest.MockedFunction<typeof sortMarkets>;
 
 // Mock dependencies
 jest.mock('./usePerpsMarkets');
@@ -65,6 +76,9 @@ const mockAllMarkets = [
 describe('usePerpsMarketListView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset sortMarkets mock to pass through by default
+    mockSortMarkets.mockImplementation(({ markets }) => markets);
 
     // Default mock implementations
     // Mock usePerpsMarkets to filter markets based on showZeroVolume parameter
@@ -348,19 +362,20 @@ describe('usePerpsMarketListView', () => {
         mockMarketsWithValidVolume[0],
       ];
 
-      const mockSortMarketsList = jest.fn(() => mockSortedMarkets);
+      // Mock sortMarkets utility to return sorted markets
+      mockSortMarkets.mockReturnValue(mockSortedMarkets);
 
       mockUsePerpsSorting.mockReturnValue({
         selectedOptionId: 'volume',
         sortBy: 'volume' as SortField,
         direction: 'asc' as SortDirection,
         handleOptionChange: jest.fn(),
-        sortMarketsList: mockSortMarketsList,
+        sortMarketsList: jest.fn((markets) => markets),
       });
 
       const { result } = renderHook(() => usePerpsMarketListView());
 
-      expect(mockSortMarketsList).toHaveBeenCalled();
+      expect(mockSortMarkets).toHaveBeenCalled();
       expect(result.current.markets).toEqual(mockSortedMarkets);
     });
   });
@@ -477,16 +492,15 @@ describe('usePerpsMarketListView', () => {
         clearSearch: jest.fn(),
       });
 
-      const mockSortMarketsList = jest.fn((markets) =>
-        markets.slice().reverse(),
-      );
+      // Mock sortMarkets utility to pass through (sorting applied)
+      mockSortMarkets.mockImplementation(({ markets }) => markets);
 
       mockUsePerpsSorting.mockReturnValue({
         selectedOptionId: 'priceChange-asc',
         sortBy: 'priceChange' as SortField,
         direction: 'asc' as SortDirection,
         handleOptionChange: jest.fn(),
-        sortMarketsList: mockSortMarketsList,
+        sortMarketsList: jest.fn((markets) => markets),
       });
 
       const { result } = renderHook(() =>
@@ -499,7 +513,7 @@ describe('usePerpsMarketListView', () => {
       // All filters applied
       expect(result.current.markets).toHaveLength(1);
       expect(result.current.markets[0].symbol).toBe('ETH');
-      expect(mockSortMarketsList).toHaveBeenCalled();
+      expect(mockSortMarkets).toHaveBeenCalled();
     });
   });
 
