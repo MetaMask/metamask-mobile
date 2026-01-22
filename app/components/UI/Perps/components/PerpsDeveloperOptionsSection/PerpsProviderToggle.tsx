@@ -50,17 +50,9 @@ const PerpsProviderToggleContent = () => {
 
     const nextProvider = isAggregated ? 'hyperliquid' : 'aggregated';
 
-    // eslint-disable-next-line no-console
-    console.log(
-      `[PerpsProviderToggle] Switching from ${currentProvider} to ${nextProvider}`,
-    );
-
     const result = await switchProvider(nextProvider);
 
     setIsLoading(false);
-
-    // eslint-disable-next-line no-console
-    console.log(`[PerpsProviderToggle] Switch result:`, result);
 
     if (result.success) {
       return;
@@ -94,6 +86,7 @@ const PerpsProviderToggleContent = () => {
       <Switch
         value={isAggregated}
         onValueChange={handleProviderToggle}
+        disabled={isLoading}
         testID={PerpsProviderToggleSelectorsIDs.SWITCH}
       />
       {isLoading ? (
