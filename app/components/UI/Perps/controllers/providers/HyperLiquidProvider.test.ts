@@ -308,6 +308,11 @@ describe('HyperLiquidProvider', () => {
     // Reset all mocks
     jest.clearAllMocks();
 
+    // Initialize mock stream manager instance
+    mockStreamManagerInstance = {
+      clearAllChannels: jest.fn(),
+    };
+
     // Create mocked service instances using factory functions
     mockClientService = {
       initialize: jest.fn(),
@@ -323,6 +328,7 @@ describe('HyperLiquidProvider', () => {
       ensureSubscriptionClient: jest.fn().mockResolvedValue(undefined),
       getSubscriptionClient: jest.fn(),
       setOnReconnectCallback: jest.fn(),
+      setOnTerminateCallback: jest.fn(),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
@@ -357,6 +363,7 @@ describe('HyperLiquidProvider', () => {
       setDexMetaCache: jest.fn(),
       setDexAssetCtxsCache: jest.fn(),
       getDexAssetCtxsCache: jest.fn().mockReturnValue(undefined),
+      restoreSubscriptions: jest.fn().mockResolvedValue(undefined),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 
     // Mock constructors

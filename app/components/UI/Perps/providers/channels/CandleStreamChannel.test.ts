@@ -1124,7 +1124,7 @@ describe('CandleStreamChannel', () => {
 
       // Subscribe to ETH-USD (coin with hyphen)
       channel.subscribe({
-        coin: 'ETH-USD',
+        symbol: 'ETH-USD',
         interval: CandlePeriod.ONE_HOUR,
         duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
@@ -1132,7 +1132,7 @@ describe('CandleStreamChannel', () => {
 
       // Subscribe to BTC (coin without hyphen)
       channel.subscribe({
-        coin: 'BTC',
+        symbol: 'BTC',
         interval: CandlePeriod.ONE_DAY,
         duration: TimeDuration.ONE_WEEK,
         callback: jest.fn(),
@@ -1150,7 +1150,7 @@ describe('CandleStreamChannel', () => {
       // Verify ETH-USD subscription was reconnected correctly
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'ETH-USD',
+          symbol: 'ETH-USD',
           interval: CandlePeriod.ONE_HOUR,
         }),
       );
@@ -1158,7 +1158,7 @@ describe('CandleStreamChannel', () => {
       // Verify BTC subscription was reconnected correctly
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'BTC',
+          symbol: 'BTC',
           interval: CandlePeriod.ONE_DAY,
         }),
       );
@@ -1176,21 +1176,21 @@ describe('CandleStreamChannel', () => {
 
       // Subscribe to multiple coins with hyphens
       channel.subscribe({
-        coin: 'ETH-USD',
+        symbol: 'ETH-USD',
         interval: CandlePeriod.ONE_HOUR,
         duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'BTC-USD',
+        symbol: 'BTC-USD',
         interval: CandlePeriod.TWO_HOURS,
         duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       channel.subscribe({
-        coin: 'SOL-USD',
+        symbol: 'SOL-USD',
         interval: CandlePeriod.FOUR_HOURS,
         duration: TimeDuration.ONE_WEEK,
         callback: jest.fn(),
@@ -1206,19 +1206,19 @@ describe('CandleStreamChannel', () => {
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(3);
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'ETH-USD',
+          symbol: 'ETH-USD',
           interval: CandlePeriod.ONE_HOUR,
         }),
       );
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'BTC-USD',
+          symbol: 'BTC-USD',
           interval: CandlePeriod.TWO_HOURS,
         }),
       );
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
-          coin: 'SOL-USD',
+          symbol: 'SOL-USD',
           interval: CandlePeriod.FOUR_HOURS,
         }),
       );
