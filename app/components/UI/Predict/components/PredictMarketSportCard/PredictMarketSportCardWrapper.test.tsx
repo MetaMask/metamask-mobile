@@ -328,4 +328,102 @@ describe('PredictMarketSportCardWrapper', () => {
       });
     });
   });
+
+  describe('onLoad callback', () => {
+    it('calls onLoad when market data is available', () => {
+      const mockOnLoad = jest.fn();
+      mockUsePredictMarket.mockReturnValue({
+        market: mockMarket,
+        isFetching: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictMarketSportCardWrapper
+          marketId="test-market-id"
+          onLoad={mockOnLoad}
+        />,
+        { state: initialState },
+      );
+
+      expect(mockOnLoad).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onLoad when fetching', () => {
+      const mockOnLoad = jest.fn();
+      mockUsePredictMarket.mockReturnValue({
+        market: null,
+        isFetching: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictMarketSportCardWrapper
+          marketId="test-market-id"
+          onLoad={mockOnLoad}
+        />,
+        { state: initialState },
+      );
+
+      expect(mockOnLoad).not.toHaveBeenCalled();
+    });
+
+    it('does not call onLoad when error occurs', () => {
+      const mockOnLoad = jest.fn();
+      mockUsePredictMarket.mockReturnValue({
+        market: null,
+        isFetching: false,
+        error: 'Failed to fetch',
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictMarketSportCardWrapper
+          marketId="test-market-id"
+          onLoad={mockOnLoad}
+        />,
+        { state: initialState },
+      );
+
+      expect(mockOnLoad).not.toHaveBeenCalled();
+    });
+
+    it('does not call onLoad when market is null', () => {
+      const mockOnLoad = jest.fn();
+      mockUsePredictMarket.mockReturnValue({
+        market: null,
+        isFetching: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictMarketSportCardWrapper
+          marketId="test-market-id"
+          onLoad={mockOnLoad}
+        />,
+        { state: initialState },
+      );
+
+      expect(mockOnLoad).not.toHaveBeenCalled();
+    });
+
+    it('does not call onLoad when onLoad is not provided', () => {
+      mockUsePredictMarket.mockReturnValue({
+        market: mockMarket,
+        isFetching: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictMarketSportCardWrapper marketId="test-market-id" />,
+        { state: initialState },
+      );
+
+      expect(mockUsePredictMarket).toHaveBeenCalled();
+    });
+  });
 });

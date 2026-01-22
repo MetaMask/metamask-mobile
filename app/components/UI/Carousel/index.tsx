@@ -649,9 +649,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
   }, [currentSlide, trackEvent, createEventBuilder]);
 
-  // Track predict-superbowl slide display (filtered out of visibleSlides but rendered separately)
-  useEffect(() => {
-    if (predictSuperbowlSlide && predictSuperbowlMarketId) {
+  const handlePredictSuperbowlLoad = useCallback(() => {
+    if (predictSuperbowlSlide) {
       trackEvent(
         createEventBuilder({
           category: 'Banner Display',
@@ -662,12 +661,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         }).build(),
       );
     }
-  }, [
-    predictSuperbowlSlide,
-    predictSuperbowlMarketId,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [predictSuperbowlSlide, trackEvent, createEventBuilder]);
 
   if (predictSuperbowlMarketId) {
     return (
@@ -676,6 +670,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         testID={predictSuperbowlSlide?.testID}
         entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
         onDismiss={handleSportCardDismiss}
+        onLoad={handlePredictSuperbowlLoad}
       />
     );
   }

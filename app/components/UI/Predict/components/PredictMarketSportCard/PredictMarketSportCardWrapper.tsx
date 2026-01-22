@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import PredictMarketSportCard from './PredictMarketSportCard';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { PredictEntryPoint } from '../../types/navigation';
@@ -9,15 +9,24 @@ interface PredictMarketSportCardWrapperProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   onDismiss?: () => void;
+  onLoad?: () => void;
 }
 
 const PredictMarketSportCardWrapper: React.FC<
   PredictMarketSportCardWrapperProps
-> = ({ marketId, testID, entryPoint, onDismiss }) => {
+> = ({ marketId, testID, entryPoint, onDismiss, onLoad }) => {
   const { market, isFetching, error } = usePredictMarket({
     id: marketId,
     enabled: Boolean(marketId),
   });
+  const hasCalledOnLoad = useRef(false);
+
+  useEffect(() => {
+    if (!isFetching && !error && market && onLoad && !hasCalledOnLoad.current) {
+      hasCalledOnLoad.current = true;
+      onLoad();
+    }
+  }, [isFetching, error, market, onLoad]);
 
   if (isFetching || error || !market) {
     return null;
