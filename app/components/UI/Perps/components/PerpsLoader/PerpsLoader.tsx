@@ -7,7 +7,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import ScreenView from '../../../../Base/ScreenView';
 import { createStyles } from './PerpsLoader.styles';
-import { PerpsLoaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsLoaderSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsLoaderProps {
   message?: string;

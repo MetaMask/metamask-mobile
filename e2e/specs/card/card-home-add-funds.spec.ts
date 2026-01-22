@@ -10,7 +10,7 @@ import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-describe.skip(SmokeCard('CardHome - Add Funds'), () => {
+describe(SmokeCard('CardHome - Add Funds'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
@@ -57,9 +57,6 @@ describe.skip(SmokeCard('CardHome - Add Funds'), () => {
       await WalletView.tapNavbarCardButton();
       await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
       await CardHomeView.tapAddFundsButton();
-      await Assertions.expectElementToBeVisible(
-        CardHomeView.addFundsBottomSheet,
-      );
       await Assertions.expectElementToBeVisible(
         CardHomeView.addFundsBottomSheetDepositOption,
       );

@@ -1216,17 +1216,17 @@ export const MOCK_NETWORK_CONTROLLER_STATE = {
         },
       ],
     },
-    '0x18c6': {
-      blockExplorerUrls: ['https://megaexplorer.xyz'],
-      chainId: '0x18c6',
+    '0x18c7': {
+      blockExplorerUrls: ['https://megaeth-testnet-v2.blockscout.com'],
+      chainId: '0x18c7',
       defaultRpcEndpointIndex: 0,
       defaultBlockExplorerUrlIndex: 0,
-      name: 'Mega Testnet',
+      name: 'MegaETH Testnet',
       nativeCurrency: 'MegaETH',
       rpcEndpoints: [
         {
           failoverUrls: [],
-          networkClientId: 'megaeth-testnet',
+          networkClientId: 'megaeth-testnet-v2',
           type: 'custom',
           url: 'https://carrot.megaeth.com/rpc',
         },

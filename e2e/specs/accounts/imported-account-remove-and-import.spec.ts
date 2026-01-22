@@ -10,7 +10,7 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsText } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import { Mockttp } from 'mockttp';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';

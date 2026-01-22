@@ -104,7 +104,6 @@ import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-import TokenInsightsSheet from '../../UI/Bridge/components/TokenInsightsSheet';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
@@ -572,10 +571,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen
-      name={Routes.SHEET.TOKEN_INSIGHTS}
-      component={TokenInsightsSheet}
-    />
     <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}

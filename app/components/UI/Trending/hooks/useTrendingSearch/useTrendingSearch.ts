@@ -1,26 +1,62 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import { PriceChangeOption } from '../../components/TrendingTokensBottomSheet';
+import { isEqual } from 'lodash';
+
+const useStableReference = <T>(value: T) => {
+  const [stableValue, setStableValue] = useState(value);
+
+  useEffect(() => {
+    if (!isEqual(stableValue, value)) {
+      setStableValue(value);
+    }
+  }, [value, stableValue]);
+
+  return stableValue;
+};
 
 /**
- * Hook for handling trending tokens search that returns trending tokens and tokens from search API
- * @returns {Object} An object containing the trending tokens results, token search results, loading state, error, and a function to trigger fetch
+ * Hook for trending tokens search with optional debouncing.
+ *
+ * @param searchQuery - Search query string
+ * @param sortBy - Sort option for trending tokens
+ * @param chainIds - Chain IDs to filter by
+ * @param enableDebounce - Whether to debounce (default: true)
+ * @returns Trending/search results, loading state, and refetch function
  */
-export const useTrendingSearch = (
-  searchQuery?: string,
-  sortBy?: SortTrendingBy,
-  chainIds?: CaipChainId[] | null,
-) => {
-  // Trending will return tokens that have just been created which wont be picked up by search API
-  // so if you see a token on trending and search on omnisearch which uses the search endpoint...
+export const useTrendingSearch = (opts?: {
+  searchQuery?: string;
+  sortBy?: SortTrendingBy;
+  chainIds?: CaipChainId[] | null;
+  enableDebounce?: boolean;
+}) => {
+  const {
+    searchQuery,
+    sortBy,
+    chainIds,
+    enableDebounce = true,
+  } = useStableReference(opts ?? {});
+
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+
+  // Debounce the search query
+  useEffect(() => {
+    if (!enableDebounce) {
+      setDebouncedQuery(searchQuery);
+      return;
+    }
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery, enableDebounce]);
+
   // There is a chance you will get 0 results
   const { results: searchResults, isLoading: isSearchLoading } =
     useSearchRequest({
-      query: searchQuery || '',
+      query: debouncedQuery || '',
       limit: 20,
       chainIds: chainIds ?? undefined,
       includeMarketData: true,
@@ -36,19 +72,17 @@ export const useTrendingSearch = (
   });
 
   const data = useMemo(() => {
-    if (!searchQuery?.trim()) {
+    if (!debouncedQuery?.trim()) {
       return sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange);
     }
 
-    const query = searchQuery.toLowerCase().trim();
-
+    const query = debouncedQuery.toLowerCase().trim();
     const filteredTrendingResults = trendingResults.filter(
       (item) =>
         item.symbol?.toLowerCase().includes(query) ||
         item.name?.toLowerCase().includes(query),
     );
 
-    // Combine trending and search results, avoiding duplicates
     const resultMap = new Map(
       filteredTrendingResults.map((result) => [result.assetId, result]),
     );
@@ -71,11 +105,19 @@ export const useTrendingSearch = (
     });
 
     return Array.from(resultMap.values());
-  }, [searchQuery, trendingResults, searchResults]);
+  }, [debouncedQuery, trendingResults, searchResults]);
 
-  return {
-    data,
-    isLoading: searchQuery ? isSearchLoading : isTrendingLoading,
-    refetch: fetchTrendingTokens,
-  };
+  // Loading state: show loading while waiting for results
+  const prevDebouncedQuery = useRef(debouncedQuery);
+  useEffect(() => {
+    prevDebouncedQuery.current = debouncedQuery;
+  });
+
+  const isLoading = debouncedQuery?.trim()
+    ? searchQuery !== debouncedQuery ||
+      prevDebouncedQuery.current !== debouncedQuery ||
+      isSearchLoading
+    : isTrendingLoading;
+
+  return { data, isLoading, refetch: fetchTrendingTokens };
 };

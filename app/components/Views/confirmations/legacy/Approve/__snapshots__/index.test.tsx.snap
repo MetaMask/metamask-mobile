@@ -675,7 +675,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                             }
                                                           }
                                                         >
-                                                          Verify third party details
+                                                          Verify third-party details
                                                         </Text>
                                                       </Text>
                                                       <View

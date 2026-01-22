@@ -1,8 +1,9 @@
+import { BridgeQuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
+import { handleIntentTransaction } from '../../../lib/transaction/intent';
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
@@ -11,12 +12,16 @@ export default function useSubmitBridgeTx() {
   const submitBridgeTx = async ({
     quoteResponse,
   }: {
-    quoteResponse: QuoteResponse & QuoteMetadata;
+    quoteResponse: BridgeQuoteResponse;
   }) => {
+    // check whether quoteResponse is an intent transaction
+    if (quoteResponse.quote.intent) {
+      return handleIntentTransaction(quoteResponse, walletAddress);
+    }
     if (!walletAddress) {
       throw new Error('Wallet address is not set');
     }
-    const txResult = await Engine.context.BridgeStatusController.submitTx(
+    return Engine.context.BridgeStatusController.submitTx(
       walletAddress,
       {
         ...quoteResponse,
@@ -24,8 +29,6 @@ export default function useSubmitBridgeTx() {
       },
       stxEnabled,
     );
-
-    return txResult;
   };
 
   return { submitBridgeTx };

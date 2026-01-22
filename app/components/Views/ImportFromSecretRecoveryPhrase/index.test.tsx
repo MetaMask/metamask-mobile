@@ -5,10 +5,10 @@ import renderWithProvider, {
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';

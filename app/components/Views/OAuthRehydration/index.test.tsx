@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';

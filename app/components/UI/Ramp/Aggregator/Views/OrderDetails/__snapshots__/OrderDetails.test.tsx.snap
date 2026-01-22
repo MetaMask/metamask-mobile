@@ -36,85 +36,27 @@ exports[`OrderDetails renders a cancelled order 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -169,14 +111,12 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -188,8 +128,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -198,43 +138,56 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -888,7 +841,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -1515,85 +1468,27 @@ exports[`OrderDetails renders a completed order 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -1648,14 +1543,12 @@ exports[`OrderDetails renders a completed order 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -1667,8 +1560,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1677,43 +1570,56 @@ exports[`OrderDetails renders a completed order 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -2385,7 +2291,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -3012,85 +2918,27 @@ exports[`OrderDetails renders a created order 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -3145,14 +2993,12 @@ exports[`OrderDetails renders a created order 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -3164,8 +3010,8 @@ exports[`OrderDetails renders a created order 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3174,43 +3020,56 @@ exports[`OrderDetails renders a created order 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -3897,7 +3756,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -4487,85 +4346,27 @@ exports[`OrderDetails renders a failed order 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -4620,14 +4421,12 @@ exports[`OrderDetails renders a failed order 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -4639,8 +4438,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -4649,43 +4448,56 @@ exports[`OrderDetails renders a failed order 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -5339,7 +5151,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -5966,85 +5778,27 @@ exports[`OrderDetails renders a pending order 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -6099,14 +5853,12 @@ exports[`OrderDetails renders a pending order 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -6118,8 +5870,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -6128,43 +5880,56 @@ exports[`OrderDetails renders a pending order 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -6851,7 +6616,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -7441,85 +7206,27 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -7574,14 +7281,12 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -7593,8 +7298,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -7603,43 +7308,56 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -7900,85 +7618,27 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -8033,14 +7693,12 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -8052,8 +7710,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -8062,43 +7720,56 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -8548,85 +8219,27 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -8681,14 +8294,12 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -8700,8 +8311,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -8710,43 +8321,56 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -9448,7 +9072,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -10088,85 +9712,27 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -10221,14 +9787,12 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -10240,8 +9804,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -10250,43 +9814,56 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -10985,7 +10562,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -11631,85 +11208,27 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -11764,14 +11283,12 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -11783,8 +11300,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -11793,43 +11310,56 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -12516,7 +12046,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View
@@ -13106,85 +12636,27 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "height": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -13239,14 +12711,12 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 2,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
                   testID="button-icon"
@@ -13258,8 +12728,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -13268,43 +12738,56 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order details
-                </Text>
-              </TouchableOpacity>
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Order details
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -14006,7 +13489,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     }
                                                   }
                                                 >
-                                                  Date and Time
+                                                  Date and time
                                                 </Text>
                                               </View>
                                               <View

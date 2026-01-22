@@ -22,7 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -43,7 +43,7 @@ import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
-import { isInternalDeepLink } from '../../../util/deeplinks';
+import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
 
 const MAX_CAROUSEL_SLIDES = 8;

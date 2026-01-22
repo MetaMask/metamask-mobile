@@ -13,7 +13,7 @@ import {
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 
 declare global {

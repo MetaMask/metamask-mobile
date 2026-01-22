@@ -55,82 +55,19 @@ export function useEVMNfts(): Nft[] {
 
       const transformedResults: Nft[] = [];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const missingCollectionNfts: any[] = [];
 
       for (const nft of rawNfts) {
-        if (nft.collection) {
-          const transformed = await transformNftWithCollection(
-            nft,
-            evmAccount.address,
-            AssetsContractController,
-            NetworkController,
-          );
-          if (transformed) {
-            transformedResults.push(transformed);
-          }
-        } else {
-          missingCollectionNfts.push(nft);
-        }
-      }
-
-      if (missingCollectionNfts.length > 0) {
-        const groupedByChain = missingCollectionNfts.reduce(
-          (acc, nft) => {
-            if (!acc[nft.chainId]) {
-              acc[nft.chainId] = [];
-            }
-            acc[nft.chainId].push(nft);
-            return acc;
-          },
-          {} as Record<string, typeof missingCollectionNfts>,
+        const transformed = await transformNft(
+          nft,
+          evmAccount.address,
+          AssetsContractController,
+          NetworkController,
         );
-
-        for (const [chainId, nfts] of Object.entries(groupedByChain)) {
-          const typedNfts = nfts as typeof missingCollectionNfts;
-          try {
-            const contractAddresses = [
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ...new Set(typedNfts.map((nft: any) => nft.address)),
-            ];
-            const collectionsResult = await NftController.getNFTContractInfo(
-              contractAddresses,
-              chainId as Hex,
-            );
-
-            const collectionsMap = new Map();
-            contractAddresses.forEach((address, index) => {
-              if (collectionsResult.collections[index]) {
-                collectionsMap.set(
-                  address?.toLowerCase(),
-                  collectionsResult.collections[index],
-                );
-              }
-            });
-
-            for (const nft of typedNfts) {
-              const collection = collectionsMap.get(nft.address.toLowerCase());
-              if (collection) {
-                const nftWithCollection = { ...nft, collection };
-                const transformed = await transformNftWithCollection(
-                  nftWithCollection,
-                  evmAccount.address,
-                  AssetsContractController,
-                  NetworkController,
-                );
-                if (transformed) {
-                  transformedResults.push(transformed);
-                }
-              }
-            }
-          } catch (error) {
-            console.warn(
-              'Failed to fetch collection info for chain',
-              chainId,
-              error,
-            );
-          }
+        if (transformed) {
+          transformedResults.push(transformed);
         }
       }
+
       setTransformedNfts(transformedResults);
     };
 
@@ -161,7 +98,7 @@ function getValidImageUrl(
   return undefined;
 }
 
-async function transformNftWithCollection(
+async function transformNft(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nft: any,
   userAddress: string,

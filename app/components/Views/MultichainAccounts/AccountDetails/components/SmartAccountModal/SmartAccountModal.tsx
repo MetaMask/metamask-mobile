@@ -20,7 +20,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 
-import { SwitchAccountModalSelectorIDs } from '../../../../../../../e2e/selectors/wallet/SwitchAccountModal.selectors';
+import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import AppConstants from '../../../../../../core/AppConstants';
 import HeaderBase from '../../../../../../component-library/components/HeaderBase';
 import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';

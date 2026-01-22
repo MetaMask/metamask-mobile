@@ -19,7 +19,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
-import { EVENT_LOCATIONS } from '../../../Earn/constants/events';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 import useEarnings from '../../../Earn/hooks/useEarnings';
 import {
   selectPooledStakingServiceInterruptionBannerEnabledFlag,

@@ -6,20 +6,57 @@ import {
   RampsController,
   RampsControllerMessenger,
   RampsControllerState,
+  type UserRegion,
 } from '@metamask/ramps-controller';
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-const mockUpdateGeolocation = jest.fn().mockResolvedValue('US');
+const createMockUserRegion = (regionCode: string): UserRegion => {
+  const parts = regionCode.toLowerCase().split('-');
+  const countryCode = parts[0].toUpperCase();
+  const stateCode = parts[1]?.toUpperCase();
+
+  return {
+    country: {
+      isoCode: countryCode,
+      flag: '🏳️',
+      name: countryCode,
+      phone: { prefix: '', placeholder: '', template: '' },
+      currency: '',
+      supported: true,
+    },
+    state: stateCode
+      ? {
+          stateId: stateCode,
+          name: stateCode,
+          supported: true,
+        }
+      : null,
+    regionCode: regionCode.toLowerCase(),
+  };
+};
+
+const mockInit = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@metamask/ramps-controller', () => {
   const actual = jest.requireActual('@metamask/ramps-controller');
 
+  const MockRampsControllerSpy = jest.fn().mockImplementation(() => {
+    const instance = Object.create(MockRampsControllerSpy.prototype);
+    instance.constructor = MockRampsControllerSpy;
+    instance.init = mockInit;
+    return instance;
+  });
+
+  MockRampsControllerSpy.prototype = Object.create(
+    actual.RampsController.prototype,
+  );
+  MockRampsControllerSpy.prototype.constructor = MockRampsControllerSpy;
+  Object.setPrototypeOf(MockRampsControllerSpy, actual.RampsController);
+
   return {
     ...actual,
-    RampsController: jest.fn(() => ({
-      updateGeolocation: mockUpdateGeolocation,
-    })),
+    RampsController: MockRampsControllerSpy,
   };
 });
 
@@ -31,7 +68,7 @@ describe('ramps controller init', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUpdateGeolocation.mockResolvedValue('US');
+    mockInit.mockResolvedValue(undefined);
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -53,9 +90,13 @@ describe('ramps controller init', () => {
 
   it('uses initial state when initial state is passed in', () => {
     const initialRampsControllerState: RampsControllerState = {
-      geolocation: 'US-CA',
-      eligibility: null,
+      userRegion: createMockUserRegion('us-ca'),
+      preferredProvider: null,
+      providers: [],
+      tokens: null,
       requests: {},
+      paymentMethods: [],
+      selectedPaymentMethod: null,
     };
 
     initRequestMock.persistedState = {
@@ -71,21 +112,21 @@ describe('ramps controller init', () => {
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
   });
 
-  it('calls updateGeolocation at startup', async () => {
+  it('calls init at startup', async () => {
     rampsControllerInit(initRequestMock);
 
     await waitFor(() => {
-      expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+      expect(mockInit).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('does not throw when updateGeolocation fails', async () => {
-    mockUpdateGeolocation.mockRejectedValue(new Error('Network error'));
+  it('handles init failure gracefully', async () => {
+    mockInit.mockRejectedValue(new Error('Network error'));
 
     expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
 
     await waitFor(() => {
-      expect(mockUpdateGeolocation).toHaveBeenCalledTimes(1);
+      expect(mockInit).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,8 +1,7 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 jest.setTimeout(150_000);
@@ -17,7 +16,7 @@ describe(FlaskBuildTests('Snap RPC Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectBip32Button');

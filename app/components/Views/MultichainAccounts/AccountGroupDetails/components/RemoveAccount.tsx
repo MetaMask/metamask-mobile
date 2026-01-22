@@ -13,7 +13,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../AccountDetails.testIds';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../AccountGroupDetails.styles';
 

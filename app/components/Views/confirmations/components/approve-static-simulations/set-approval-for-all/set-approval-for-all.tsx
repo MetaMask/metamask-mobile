@@ -4,7 +4,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { TokenStandard } from '../../../types/token';

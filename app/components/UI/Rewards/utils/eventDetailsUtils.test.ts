@@ -167,6 +167,66 @@ describe('eventDetailsUtils', () => {
       // Then it should return zero
       expect(result).toBe('0');
     });
+
+    it('formats 1 million with compact notation', () => {
+      // Given 1 million (1,000,000) with 18 decimals
+      const amount = '1000000000000000000000000';
+      const decimals = 18;
+
+      // When formatting the asset amount
+      const result = formatAssetAmount(amount, decimals);
+
+      // Then it should return compact notation
+      expect(result).toBe('1M');
+    });
+
+    it('formats 10 million with compact notation', () => {
+      // Given 10 million (10,000,000) with 18 decimals
+      const amount = '10000000000000000000000000';
+      const decimals = 18;
+
+      // When formatting the asset amount
+      const result = formatAssetAmount(amount, decimals);
+
+      // Then it should return compact notation
+      expect(result).toBe('10M');
+    });
+
+    it('formats 1.5 million with compact notation and decimals', () => {
+      // Given 1.5 million (1,500,000) with 18 decimals
+      const amount = '1500000000000000000000000';
+      const decimals = 18;
+
+      // When formatting the asset amount
+      const result = formatAssetAmount(amount, decimals);
+
+      // Then it should return compact notation with decimals
+      expect(result).toBe('1.5M');
+    });
+
+    it('formats 1 billion with compact notation', () => {
+      // Given 1 billion (1,000,000,000) with 18 decimals
+      const amount = '1000000000000000000000000000';
+      const decimals = 18;
+
+      // When formatting the asset amount
+      const result = formatAssetAmount(amount, decimals);
+
+      // Then it should return compact notation
+      expect(result).toBe('1B');
+    });
+
+    it('formats amounts below 1 million without compact notation', () => {
+      // Given 999,999 with 18 decimals (below 1M threshold)
+      const amount = '999999000000000000000000';
+      const decimals = 18;
+
+      // When formatting the asset amount
+      const result = formatAssetAmount(amount, decimals);
+
+      // Then it should return standard notation with thousand separators
+      expect(result).toBe('999,999');
+    });
   });
 
   describe('hasValidAsset', () => {
@@ -454,7 +514,7 @@ describe('eventDetailsUtils', () => {
       expect(result).toBe('1.5 ETH to 2.5 USDC');
     });
 
-    it('formats swap details with large amounts', () => {
+    it('formats swap details with large amounts using compact notation', () => {
       // Given a swap payload with large amounts
       const payload = createMockSwapPayload({
         srcAsset: {
@@ -474,8 +534,8 @@ describe('eventDetailsUtils', () => {
       // When formatting swap details with destination amount
       const result = formatSwapDetails(payload, true);
 
-      // Then it should return formatted large amounts with thousand separators
-      expect(result).toBe('1,000,000 ETH to 1,000,000 USDC');
+      // Then it should return formatted large amounts with compact notation
+      expect(result).toBe('1M ETH to 1M USDC');
     });
 
     it('formats swap details with zero amounts', () => {
@@ -1117,7 +1177,7 @@ describe('eventDetailsUtils', () => {
         });
       });
 
-      it('handles PERPS event with very large amount', () => {
+      it('handles PERPS event with very large amount using compact notation', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
@@ -1133,7 +1193,7 @@ describe('eventDetailsUtils', () => {
 
         expect(result).toEqual({
           title: 'Opened position',
-          details: 'Long 1,000,000 ETH',
+          details: 'Long 1M ETH',
           icon: IconName.Candlestick,
         });
       });

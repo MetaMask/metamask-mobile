@@ -104,6 +104,10 @@ jest.mock('../../../../core/Engine', () => ({
             providerFee: 0.02,
             waiveList: [],
           },
+          predictLiveSports: {
+            enabled: false,
+            leagues: [],
+          },
         },
       },
     },
@@ -218,6 +222,7 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      getMarketsByIds: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
       getActivity: jest.fn(),
@@ -538,6 +543,7 @@ describe('PredictController', () => {
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-1',
+          liveSportsLeagues: [],
         });
       });
     });
@@ -562,6 +568,7 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-2',
+          liveSportsLeagues: [],
         });
       });
     });
@@ -633,6 +640,7 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: '123',
+          liveSportsLeagues: [],
         });
       });
     });
@@ -1775,6 +1783,403 @@ describe('PredictController', () => {
             providerId: 'nonexistent-provider',
           }),
         ).rejects.toThrow('Provider not available');
+      });
+    });
+  });
+
+  describe('getMarkets with market highlights', () => {
+    const createMockMarket = (id: string, category = 'trending') => ({
+      id,
+      providerId: 'polymarket',
+      title: `Market ${id}`,
+      category,
+      outcomes: ['YES', 'NO'],
+    });
+
+    const setMarketHighlightsFlag = (flag: {
+      enabled: boolean;
+      highlights: { category: string; markets: string[] }[];
+    }) => {
+      (
+        Engine.context.RemoteFeatureFlagController as any
+      ).state.remoteFeatureFlags.predictMarketHighlights = flag;
+    };
+
+    const clearMarketHighlightsFlag = () => {
+      delete (Engine.context.RemoteFeatureFlagController as any).state
+        .remoteFeatureFlags.predictMarketHighlights;
+    };
+
+    afterEach(() => {
+      clearMarketHighlightsFlag();
+    });
+
+    it('prepends highlighted markets when flag is enabled and offset is 0', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [
+          { category: 'trending', markets: ['highlight-1', 'highlight-2'] },
+        ],
+      });
+
+      const regularMarkets = [
+        createMockMarket('regular-1'),
+        createMockMarket('regular-2'),
+      ];
+      const highlightedMarkets = [
+        createMockMarket('highlight-1'),
+        createMockMarket('highlight-2'),
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(4);
+        expect(result[0].id).toBe('highlight-1');
+        expect(result[1].id).toBe('highlight-2');
+        expect(result[2].id).toBe('regular-1');
+        expect(result[3].id).toBe('regular-2');
+        expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith(
+          ['highlight-1', 'highlight-2'],
+          [],
+        );
+      });
+    });
+
+    it('skips highlights when offset is greater than 0', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 10,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('skips highlights when flag is disabled', async () => {
+      setMarketHighlightsFlag({
+        enabled: false,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('skips highlights when category is not provided', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+        });
+
+        expect(result).toHaveLength(1);
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('skips highlights when category has no configured highlights', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'crypto', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('filters duplicates from regular results when highlighted market appears in both', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['duplicate-market'] }],
+      });
+
+      const regularMarkets = [
+        createMockMarket('regular-1'),
+        createMockMarket('duplicate-market'),
+        createMockMarket('regular-2'),
+      ];
+      const highlightedMarkets = [createMockMarket('duplicate-market')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(3);
+        expect(result[0].id).toBe('duplicate-market');
+        expect(result[1].id).toBe('regular-1');
+        expect(result[2].id).toBe('regular-2');
+      });
+    });
+
+    it('handles empty highlights array gracefully', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: [] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles getMarketsByIds failure gracefully', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue([]);
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+      });
+    });
+
+    it('uses default flag when predictMarketHighlights is not in remote config', async () => {
+      clearMarketHighlightsFlag();
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('fetches highlights for first page when offset is undefined', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [{ category: 'trending', markets: ['highlight-1'] }],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+      const highlightedMarkets = [createMockMarket('highlight-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].id).toBe('highlight-1');
+        expect(result[1].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalled();
+      });
+    });
+
+    it('preserves order of highlighted markets from config', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [
+          { category: 'trending', markets: ['third', 'first', 'second'] },
+        ],
+      });
+
+      const regularMarkets = [createMockMarket('regular-1')];
+      const highlightedMarkets = [
+        createMockMarket('third'),
+        createMockMarket('first'),
+        createMockMarket('second'),
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          highlightedMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result[0].id).toBe('third');
+        expect(result[1].id).toBe('first');
+        expect(result[2].id).toBe('second');
+      });
+    });
+
+    it('handles missing highlights array in flag gracefully', async () => {
+      (
+        Engine.context.RemoteFeatureFlagController as any
+      ).state.remoteFeatureFlags.predictMarketHighlights = { enabled: true };
+
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarkets as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('regular-1');
+        expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+      });
+    });
+
+    it('keeps market in regular results when highlight fetch fails for that market', async () => {
+      setMarketHighlightsFlag({
+        enabled: true,
+        highlights: [
+          { category: 'trending', markets: ['highlight-1', 'highlight-2'] },
+        ],
+      });
+
+      const regularMarketsIncludingFailedHighlight = [
+        createMockMarket('highlight-1'),
+        createMockMarket('regular-1'),
+      ];
+      const onlySuccessfullyFetchedHighlights = [
+        createMockMarket('highlight-2'),
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          regularMarketsIncludingFailedHighlight as any,
+        );
+        mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
+          onlySuccessfullyFetchedHighlights as any,
+        );
+
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+          category: 'trending',
+          offset: 0,
+        });
+
+        expect(result).toHaveLength(3);
+        expect(result[0].id).toBe('highlight-2');
+        expect(result[1].id).toBe('highlight-1');
+        expect(result[2].id).toBe('regular-1');
       });
     });
   });
@@ -3841,7 +4246,19 @@ describe('PredictController', () => {
         expect(result).toBeDefined();
         expect(result?.updateTransaction).toBeDefined();
 
-        const testTransaction = {
+        const testTransaction: {
+          txParams: {
+            from: string;
+            to: string;
+            data: string;
+            gas?: string;
+            gasLimit?: string;
+          };
+          assetsFiatValues?: {
+            receiving?: string;
+            sending?: string;
+          };
+        } = {
           txParams: {
             from: '0xFrom',
             to: '0xOldTarget',
@@ -3853,6 +4270,9 @@ describe('PredictController', () => {
 
         expect(testTransaction.txParams.data).toBe('0xmodifieddata');
         expect(testTransaction.txParams.to).toBe('0xPredictAddress');
+        expect(testTransaction.assetsFiatValues).toEqual({
+          receiving: '100',
+        });
       });
     });
 
@@ -4909,6 +5329,141 @@ describe('PredictController', () => {
           },
         },
       );
+    });
+  });
+
+  describe('WebSocket subscription methods', () => {
+    describe('subscribeToGameUpdates', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToGameUpdates = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToGameUpdates,
+          ).toHaveBeenCalledWith('game123', mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.subscribeToGameUpdates = undefined;
+
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+
+      it('returns no-op function for unknown provider', () => {
+        withController(({ controller }) => {
+          const unsubscribe = controller.subscribeToGameUpdates(
+            'game123',
+            jest.fn(),
+            'unknown-provider',
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
+    describe('subscribeToMarketPrices', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToMarketPrices = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToMarketPrices(
+            ['token1', 'token2'],
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToMarketPrices,
+          ).toHaveBeenCalledWith(['token1', 'token2'], mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.subscribeToMarketPrices = undefined;
+
+          const unsubscribe = controller.subscribeToMarketPrices(
+            ['token1'],
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
+    describe('getConnectionStatus', () => {
+      it('returns connection status from provider', () => {
+        withController(({ controller }) => {
+          mockPolymarketProvider.getConnectionStatus = jest
+            .fn()
+            .mockReturnValue({
+              sportsConnected: true,
+              marketConnected: false,
+            });
+
+          const status = controller.getConnectionStatus();
+
+          expect(mockPolymarketProvider.getConnectionStatus).toHaveBeenCalled();
+          expect(status).toEqual({
+            sportsConnected: true,
+            marketConnected: false,
+          });
+        });
+      });
+
+      it('returns disconnected status when provider lacks method', () => {
+        withController(({ controller }) => {
+          // @ts-expect-error Testing undefined method scenario
+          mockPolymarketProvider.getConnectionStatus = undefined;
+
+          const status = controller.getConnectionStatus();
+
+          expect(status).toEqual({
+            sportsConnected: false,
+            marketConnected: false,
+          });
+        });
+      });
+
+      it('returns disconnected status for unknown provider', () => {
+        withController(({ controller }) => {
+          const status = controller.getConnectionStatus('unknown-provider');
+
+          expect(status).toEqual({
+            sportsConnected: false,
+            marketConnected: false,
+          });
+        });
+      });
     });
   });
 });

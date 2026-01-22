@@ -21,7 +21,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { regex } from '../../../../app/util/regex';
 import {
   getBlockExplorerAddressUrl,

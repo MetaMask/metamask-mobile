@@ -413,8 +413,8 @@ export const MARKET_SORTING_CONFIG = {
   ] as const,
 
   // Sort options for the bottom sheet
-  // Each option combines field + direction into a single selectable item
-  // Only Price Change has both directions as separate options
+  // Only Price Change can be toggled for direction (similar to trending tokens pattern)
+  // Other options (volume, open interest, funding rate) use descending sort only
   SORT_OPTIONS: [
     {
       id: 'volume',
@@ -423,16 +423,10 @@ export const MARKET_SORTING_CONFIG = {
       direction: 'desc',
     },
     {
-      id: 'priceChange-desc',
-      labelKey: 'perps.sort.price_change_high_to_low',
+      id: 'priceChange',
+      labelKey: 'perps.sort.price_change',
       field: 'priceChange',
       direction: 'desc',
-    },
-    {
-      id: 'priceChange-asc',
-      labelKey: 'perps.sort.price_change_low_to_high',
-      field: 'priceChange',
-      direction: 'asc',
     },
     {
       id: 'openInterest',
@@ -452,7 +446,7 @@ export const MARKET_SORTING_CONFIG = {
 /**
  * Type for valid sort option IDs
  * Derived from SORT_OPTIONS to ensure type safety
- * Valid values: 'volume' | 'priceChange-desc' | 'priceChange-asc' | 'openInterest' | 'fundingRate'
+ * Valid values: 'volume' | 'priceChange' | 'openInterest' | 'fundingRate'
  */
 export type SortOptionId =
   (typeof MARKET_SORTING_CONFIG.SORT_OPTIONS)[number]['id'];
@@ -483,6 +477,15 @@ export const SUPPORT_CONFIG = {
   URL: 'https://support.metamask.io',
   TITLE_KEY: 'perps.support.title',
   DESCRIPTION_KEY: 'perps.support.description',
+} as const;
+
+/**
+ * Feedback survey configuration
+ * External survey for collecting user feedback on Perps trading experience
+ */
+export const FEEDBACK_CONFIG = {
+  URL: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
+  TITLE_KEY: 'perps.feedback.title',
 } as const;
 
 /**
