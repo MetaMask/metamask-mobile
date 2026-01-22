@@ -26,7 +26,7 @@ module.exports = {
         'tests/**/*.{js,ts}',
         'appwright/**/*.{js,ts}',
       ],
-      extends: ['./e2e/framework/.eslintrc.js'],
+      extends: ['./tests/framework/.eslintrc.js'],
     },
     {
       files: ['*.{ts,tsx}'],

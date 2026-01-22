@@ -132,6 +132,11 @@ export const APP_CONFIG = {
     keywords: ['Controller', 'Engine'],
 
     /** Path segments that indicate critical areas (checked with file.includes(path)) */
-    paths: ['app/core/', 'e2e/framework/', 'e2e/api-mocking/', 'e2e/fixtures/'],
+    paths: [
+      'app/core/',
+      'tests/framework/',
+      'tests/api-mocking/',
+      'e2e/fixtures/',
+    ],
   },
 };

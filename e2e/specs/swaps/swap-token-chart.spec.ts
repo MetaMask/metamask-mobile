@@ -1,20 +1,20 @@
 'use strict';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../framework/types';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../../tests/framework/types';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../helpers';
 import { RegressionTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap from Token view'), (): void => {
