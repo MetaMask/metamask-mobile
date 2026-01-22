@@ -33,20 +33,20 @@ import {
 /**
  * Transform MetaMask Perps API OrderParams to HyperLiquid SDK format
  * @param order - MetaMask Perps order parameters
- * @param coinToAssetId - Mapping from coin symbols to asset IDs
+ * @param symbolToAssetId - Mapping from symbols to asset IDs
  * @returns HyperLiquid SDK-compatible order parameters
  */
 export function adaptOrderToSDK(
   order: PerpsOrderParams,
-  coinToAssetId: Map<string, number>,
+  symbolToAssetId: Map<string, number>,
 ): SDKOrderParams {
-  const assetId = coinToAssetId.get(order.coin);
+  const assetId = symbolToAssetId.get(order.symbol);
   if (assetId === undefined) {
     // Extract available DEX names from asset map for helpful error message
     const availableDexs = new Set<string>();
-    coinToAssetId.forEach((_, coin) => {
-      if (coin.includes(':')) {
-        const dex = coin.split(':')[0];
+    symbolToAssetId.forEach((_, symbol) => {
+      if (symbol.includes(':')) {
+        const dex = symbol.split(':')[0];
         availableDexs.add(dex);
       }
     });
@@ -57,7 +57,7 @@ export function adaptOrderToSDK(
         : ' No HIP-3 DEXs currently available.';
 
     throw new Error(
-      `Asset ${order.coin} not found in asset mapping.${dexHint} Check console logs for "HyperLiquidProvider: Asset mapping built" to see available assets.`,
+      `Asset ${order.symbol} not found in asset mapping.${dexHint} Check console logs for "HyperLiquidProvider: Asset mapping built" to see available assets.`,
     );
   }
 
@@ -90,7 +90,7 @@ export function adaptOrderToSDK(
 export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
   const pos = assetPosition.position;
   return {
-    coin: pos.coin,
+    symbol: pos.coin, // HyperLiquid API uses 'coin', we normalize to 'symbol'
     size: pos.szi,
     entryPrice: pos.entryPx,
     positionValue: pos.positionValue,
@@ -327,12 +327,12 @@ export function buildAssetMapping(params: {
   dex?: string | null;
   perpDexIndex: number;
 }): {
-  coinToAssetId: Map<string, number>;
-  assetIdToCoin: Map<number, string>;
+  symbolToAssetId: Map<string, number>;
+  assetIdToSymbol: Map<number, string>;
 } {
   const { metaUniverse, perpDexIndex } = params;
-  const coinToAssetId = new Map<string, number>();
-  const assetIdToCoin = new Map<number, string>();
+  const symbolToAssetId = new Map<string, number>();
+  const assetIdToSymbol = new Map<number, string>();
 
   metaUniverse.forEach((asset, index) => {
     // Calculate global asset ID using HIP-3 formula
@@ -344,11 +344,11 @@ export function buildAssetMapping(params: {
     // - Main DEX: asset.name = "BTC", "ETH", etc. (no prefix)
     // - HIP-3 DEX: asset.name = "xyz:XYZ100", "xyz:XYZ200", etc. (already prefixed!)
     // We use asset.name as-is - no manual prefixing needed
-    coinToAssetId.set(asset.name, assetId);
-    assetIdToCoin.set(assetId, asset.name);
+    symbolToAssetId.set(asset.name, assetId);
+    assetIdToSymbol.set(assetId, asset.name);
   });
 
-  return { coinToAssetId, assetIdToCoin };
+  return { symbolToAssetId, assetIdToSymbol };
 }
 
 /**

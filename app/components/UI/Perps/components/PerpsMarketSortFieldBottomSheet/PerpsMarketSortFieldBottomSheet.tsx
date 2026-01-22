@@ -1,49 +1,78 @@
-import React, { useRef, useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { Box } from '@metamask/design-system-react-native';
+import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { strings } from '../../../../../../locales/i18n';
 import { styleSheet } from './PerpsMarketSortFieldBottomSheet.styles';
 import type { PerpsMarketSortFieldBottomSheetProps } from './PerpsMarketSortFieldBottomSheet.types';
-import { MARKET_SORTING_CONFIG } from '../../constants/perpsConfig';
+import {
+  MARKET_SORTING_CONFIG,
+  type SortOptionId,
+} from '../../constants/perpsConfig';
+import type { SortDirection } from '../../utils/sortMarkets';
 
 /**
  * PerpsMarketSortFieldBottomSheet Component
  *
- * Simple list-based bottom sheet for selecting market sort options.
- * Each option combines field + direction into a single selectable item.
+ * Bottom sheet for selecting market sort options with apply button.
+ * Similar to trending tokens sort pattern.
  *
  * Features:
  * - Flat list of sort options
- * - Checkmark icon on selected option
- * - Auto-closes on selection
+ * - Direction toggle for price change only (tap to toggle high-to-low / low-to-high)
+ * - Other options (volume, open interest, funding rate) show checkmark when selected
+ * - Apply button to confirm selection
  *
  * @example
  * ```tsx
  * <PerpsMarketSortFieldBottomSheet
  *   isVisible={showSortSheet}
  *   onClose={() => setShowSortSheet(false)}
- *   selectedOptionId="priceChange-desc"
+ *   selectedOptionId="priceChange"
+ *   sortDirection="desc"
  *   onOptionSelect={handleSortChange}
  * />
  * ```
  */
 const PerpsMarketSortFieldBottomSheet: React.FC<
   PerpsMarketSortFieldBottomSheetProps
-> = ({ isVisible, onClose, selectedOptionId, onOptionSelect, testID }) => {
+> = ({
+  isVisible,
+  onClose,
+  selectedOptionId: initialSelectedOptionId,
+  sortDirection: initialSortDirection,
+  onOptionSelect,
+  testID,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  // Local state for selection (not applied until Apply button is pressed)
+  const [selectedOption, setSelectedOption] = useState(initialSelectedOptionId);
+  const [sortDirection, setSortDirection] =
+    useState<SortDirection>(initialSortDirection);
+
+  // Sync local state when props change or when sheet opens
+  // This ensures uncommitted changes are reset when reopening the sheet
+  useEffect(() => {
+    if (isVisible) {
+      setSelectedOption(initialSelectedOptionId);
+      setSortDirection(initialSortDirection);
+    }
+  }, [initialSelectedOptionId, initialSortDirection, isVisible]);
 
   useEffect(() => {
     if (isVisible) {
@@ -52,17 +81,37 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   }, [isVisible]);
 
   /**
-   * Handle option selection - selects the option and closes the sheet
+   * Handle option press - either select new option or toggle direction (only for priceChange)
    */
-  const handleOptionSelect = (optionId: string) => {
+  const handleOptionPress = useCallback(
+    (optionId: SortOptionId) => {
+      // If clicking the same option AND it's priceChange, toggle sort direction
+      if (selectedOption === optionId && optionId === 'priceChange') {
+        const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        setSortDirection(newDirection);
+      } else {
+        // If clicking a different option, select it with descending direction
+        setSelectedOption(optionId);
+        setSortDirection('desc');
+      }
+    },
+    [selectedOption, sortDirection],
+  );
+
+  /**
+   * Handle apply button - applies selection and closes sheet
+   */
+  const handleApply = useCallback(() => {
     const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
-      (opt) => opt.id === optionId,
+      (opt) => opt.id === selectedOption,
     );
     if (option) {
-      onOptionSelect(option.id, option.field, option.direction);
-      onClose();
+      onOptionSelect(option.id, option.field, sortDirection);
     }
-  };
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      onClose();
+    });
+  }, [selectedOption, sortDirection, onOptionSelect, onClose]);
 
   if (!isVisible) return null;
 
@@ -79,21 +128,47 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
           {strings('perps.sort.sort_by')}
         </Text>
       </BottomSheetHeader>
-      <Box style={styles.optionsList}>
+      <View style={styles.optionsList}>
         {/* Render sort options */}
         {MARKET_SORTING_CONFIG.SORT_OPTIONS.map((option) => {
-          const isSelected = selectedOptionId === option.id;
+          const isSelected = selectedOption === option.id;
           return (
             <TouchableOpacity
               key={option.id}
               style={[styles.optionRow, isSelected && styles.optionRowSelected]}
-              onPress={() => handleOptionSelect(option.id)}
+              activeOpacity={1}
+              onPress={() => handleOptionPress(option.id)}
               testID={testID ? `${testID}-option-${option.id}` : undefined}
             >
               <Text variant={TextVariant.BodyMD}>
                 {strings(option.labelKey)}
               </Text>
-              {isSelected && (
+              {isSelected && option.id === 'priceChange' && (
+                <View
+                  style={styles.arrowContainer}
+                  testID={testID ? `${testID}-direction-indicator` : undefined}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Alternative}
+                    testID={testID ? `${testID}-direction-text` : undefined}
+                  >
+                    {sortDirection === 'asc'
+                      ? strings('perps.sort.low_to_high')
+                      : strings('perps.sort.high_to_low')}
+                  </Text>
+                  <Icon
+                    name={
+                      sortDirection === 'asc'
+                        ? IconName.Arrow2Up
+                        : IconName.Arrow2Down
+                    }
+                    size={IconSize.Md}
+                    color={IconColor.Alternative}
+                  />
+                </View>
+              )}
+              {isSelected && option.id !== 'priceChange' && (
                 <Icon
                   name={IconName.Check}
                   size={IconSize.Md}
@@ -105,7 +180,17 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
             </TouchableOpacity>
           );
         })}
-      </Box>
+      </View>
+      <ButtonBase
+        label={
+          <Text style={styles.applyButtonText}>
+            {strings('perps.sort.apply')}
+          </Text>
+        }
+        onPress={handleApply}
+        style={styles.applyButton}
+        testID={testID ? `${testID}-apply-button` : undefined}
+      />
     </BottomSheet>
   );
 };

@@ -43,7 +43,7 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarBrowserButton);
-        await Assertions.expectElementToBeVisible(BrowserView.homeButton);
+        await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
       },
       {
         timeout: 10000,

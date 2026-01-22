@@ -34,7 +34,7 @@ export function enrichPositionsWithLivePnL(
   }
 
   return positions.map((position) => {
-    const priceUpdate = priceData[position.coin];
+    const priceUpdate = priceData[position.symbol];
     if (!priceUpdate) {
       return position;
     }

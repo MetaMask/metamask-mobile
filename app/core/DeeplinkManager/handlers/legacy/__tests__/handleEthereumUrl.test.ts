@@ -127,10 +127,17 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ url, origin });
 
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      'SendView',
-      expect.any(Object),
-    );
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
+      screen: 'Recipient',
+      params: {
+        txMeta: expect.objectContaining({
+          function_name: ETH_ACTIONS.TRANSFER,
+          chain_id: 1,
+          action: 'send-token',
+          source: url,
+        }),
+      },
+    });
   });
 
   it('shows alert when there is a network switch error', () => {
@@ -184,10 +191,17 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ url, origin });
 
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      'SendFlowView',
-      expect.any(Object),
-    );
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
+      screen: 'Recipient',
+      params: {
+        txMeta: expect.objectContaining({
+          function_name: 'unknownAction',
+          chain_id: 1,
+          parameters: {},
+          source: url,
+        }),
+      },
+    });
   });
 
   it('calls addTransactionForDeeplink if deeplink is compatible with redesigned confirmation', () => {
@@ -256,10 +270,17 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ url, origin });
 
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      'SendFlowView',
-      expect.any(Object),
-    );
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
+      screen: 'Recipient',
+      params: {
+        txMeta: expect.objectContaining({
+          function_name: 'unknown',
+          chain_id: 1,
+          parameters: {},
+          source: url,
+        }),
+      },
+    });
   });
 
   it('shows alert when there is a generic error during network switch', () => {
@@ -321,10 +342,17 @@ describe('handleEthereumUrl', () => {
 
     handleEthereumUrl({ url, origin });
 
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      'SendView',
-      expect.any(Object), // The exact expectations here depend on the intended behavior
-    );
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
+      screen: 'Recipient',
+      params: {
+        txMeta: expect.objectContaining({
+          function_name: ETH_ACTIONS.TRANSFER,
+          chain_id: 1,
+          action: 'send-token',
+          source: url,
+        }),
+      },
+    });
   });
 
   it('switches to mainnet when isEvmSelected is false', async () => {

@@ -115,7 +115,7 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
-    REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET: 'MetalCardClaimBottomSheet',
+    REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -160,6 +160,7 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
+    REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -324,6 +325,7 @@ const Routes = {
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      TRX_LEARN_MORE: 'TrxLearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
       EARN_TOKEN_LIST: 'EarnTokenList',

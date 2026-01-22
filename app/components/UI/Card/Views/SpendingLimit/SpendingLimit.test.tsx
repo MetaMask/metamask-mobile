@@ -322,6 +322,8 @@ describe('SpendingLimit Component', () => {
       skip: mockSkip,
       isValid: true,
       isSolanaSelected: false,
+      needsFaucet: false,
+      isFaucetCheckLoading: false,
     });
   });
 
@@ -579,6 +581,8 @@ describe('SpendingLimit Component', () => {
         skip: mockSkip,
         isValid: true,
         isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
@@ -693,6 +697,8 @@ describe('SpendingLimit Component', () => {
         skip: mockSkip,
         isValid: true,
         isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
@@ -735,6 +741,8 @@ describe('SpendingLimit Component', () => {
         skip: mockSkip,
         isValid: true,
         isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
@@ -855,6 +863,8 @@ describe('SpendingLimit Component', () => {
         skip: mockSkip,
         isValid: true,
         isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
@@ -1066,6 +1076,8 @@ describe('SpendingLimit Component', () => {
         skip: mockSkip,
         isValid: true,
         isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       const onboardingWithToken: MockRoute = {

@@ -1,4 +1,9 @@
-import { useTrendingRequest } from './useTrendingRequest';
+import {
+  useTrendingRequest,
+  getMinLiquidityForChains,
+  getMinVolume24hForChains,
+  MULTI_CHAIN_BASELINE_THRESHOLDS,
+} from './useTrendingRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
@@ -6,6 +11,7 @@ import * as assetsControllers from '@metamask/assets-controllers';
 import { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { ImageSourcePropType } from 'react-native';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 
 // Mock the TRENDING_NETWORKS_LIST constant
 jest.mock('../../utils/trendingNetworksList', () => {
@@ -447,6 +453,253 @@ describe('useTrendingRequest', () => {
 
       spyGetTrendingTokens.mockRestore();
       unmount();
+    });
+  });
+
+  describe('getMinLiquidityForChains', () => {
+    it('returns multi-chain baseline threshold for multiple chains', () => {
+      const chainIds: CaipChainId[] = [
+        NetworkToCaipChainId.ETHEREUM,
+        NetworkToCaipChainId.SEI,
+        NetworkToCaipChainId.ARBITRUM,
+      ];
+
+      const result = getMinLiquidityForChains(chainIds);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity); // $200k baseline
+    });
+
+    it('returns specific threshold for single chain - SEI', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.SEI];
+
+      const result = getMinLiquidityForChains(chainIds);
+
+      expect(result).toBe(100000); // SEI: $100k
+    });
+
+    it('returns specific threshold for single chain - Solana', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.SOLANA];
+
+      const result = getMinLiquidityForChains(chainIds);
+
+      expect(result).toBe(200000); // Solana: $200k
+    });
+
+    it('returns specific threshold for single chain - Base', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.BASE];
+
+      const result = getMinLiquidityForChains(chainIds);
+
+      expect(result).toBe(200000); // Base: $200k
+    });
+
+    it('returns multi-chain baseline for empty chain array', () => {
+      const result = getMinLiquidityForChains([]);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity); // $200k baseline
+    });
+
+    it('returns multi-chain baseline for single unknown chain', () => {
+      const unknownChainIds: CaipChainId[] = ['eip155:9999' as CaipChainId];
+
+      const result = getMinLiquidityForChains(unknownChainIds);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity); // Fallback to baseline
+    });
+
+    it('returns multi-chain baseline for multiple unknown chains', () => {
+      const unknownChainIds: CaipChainId[] = [
+        'eip155:9999' as CaipChainId,
+        'eip155:8888' as CaipChainId,
+      ];
+
+      const result = getMinLiquidityForChains(unknownChainIds);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity); // Fallback to baseline
+    });
+  });
+
+  describe('getMinVolume24hForChains', () => {
+    it('returns multi-chain baseline threshold for multiple chains', () => {
+      const chainIds: CaipChainId[] = [
+        NetworkToCaipChainId.ETHEREUM,
+        NetworkToCaipChainId.SEI,
+        NetworkToCaipChainId.ARBITRUM,
+      ];
+
+      const result = getMinVolume24hForChains(chainIds);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h); // $1M baseline
+    });
+
+    it('returns specific threshold for single chain - BASE', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.BASE];
+
+      const result = getMinVolume24hForChains(chainIds);
+
+      expect(result).toBe(500000); // Base: $500k
+    });
+
+    it('returns specific threshold for single chain - Solana', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.SOLANA];
+
+      const result = getMinVolume24hForChains(chainIds);
+
+      expect(result).toBe(500000); // Solana: $500k
+    });
+
+    it('returns specific threshold for single chain - Arbitrum', () => {
+      const chainIds: CaipChainId[] = [NetworkToCaipChainId.ARBITRUM];
+
+      const result = getMinVolume24hForChains(chainIds);
+
+      expect(result).toBe(25000); // Arbitrum: $25k
+    });
+
+    it('returns multi-chain baseline for empty chain array', () => {
+      const result = getMinVolume24hForChains([]);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h); // $1M baseline
+    });
+
+    it('returns multi-chain baseline for single unknown chain', () => {
+      const unknownChainIds: CaipChainId[] = ['eip155:9999' as CaipChainId];
+
+      const result = getMinVolume24hForChains(unknownChainIds);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h); // Fallback to baseline
+    });
+
+    it('returns multi-chain baseline for multiple unknown chains', () => {
+      const unknownChainIds: CaipChainId[] = [
+        'eip155:9999' as CaipChainId,
+        'eip155:8888' as CaipChainId,
+      ];
+
+      const result = getMinVolume24hForChains(unknownChainIds);
+
+      expect(result).toBe(MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h); // Fallback to baseline
+    });
+  });
+
+  describe('per-network threshold integration', () => {
+    it('uses per-network liquidity threshold when single chainId provided - Ethereum', async () => {
+      const spyGetTrendingTokens = jest.spyOn(
+        assetsControllers,
+        'getTrendingTokens',
+      );
+      spyGetTrendingTokens.mockResolvedValue([] as never);
+
+      renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds: [NetworkToCaipChainId.ETHEREUM],
+        }),
+      );
+
+      await waitFor(() => {
+        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minLiquidity: 100000, // Ethereum: $100k - Matches Phantom
+          minVolume24hUsd: 500000, // Ethereum: $500k - Matches Phantom
+        }),
+      );
+
+      spyGetTrendingTokens.mockRestore();
+    });
+
+    it('uses per-network volume threshold when single chainId provided - SEI', async () => {
+      const spyGetTrendingTokens = jest.spyOn(
+        assetsControllers,
+        'getTrendingTokens',
+      );
+      spyGetTrendingTokens.mockResolvedValue([] as never);
+
+      renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds: [NetworkToCaipChainId.SEI],
+        }),
+      );
+
+      await waitFor(() => {
+        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minLiquidity: 100000, // SEI: $100k
+          minVolume24hUsd: 25000, // SEI: $25k
+        }),
+      );
+
+      spyGetTrendingTokens.mockRestore();
+    });
+
+    it('uses multi-chain baseline when multiple chains provided', async () => {
+      const spyGetTrendingTokens = jest.spyOn(
+        assetsControllers,
+        'getTrendingTokens',
+      );
+      spyGetTrendingTokens.mockResolvedValue([] as never);
+
+      const chainIds: CaipChainId[] = [
+        NetworkToCaipChainId.ETHEREUM,
+        NetworkToCaipChainId.SEI,
+        NetworkToCaipChainId.BASE,
+      ];
+
+      renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minLiquidity: MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity, // $200k baseline
+          minVolume24hUsd: MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h, // $1M baseline
+        }),
+      );
+
+      spyGetTrendingTokens.mockRestore();
+    });
+
+    it('allows overriding per-network thresholds with provided values', async () => {
+      const spyGetTrendingTokens = jest.spyOn(
+        assetsControllers,
+        'getTrendingTokens',
+      );
+      spyGetTrendingTokens.mockResolvedValue([] as never);
+
+      const customMinLiquidity = 999999;
+      const customMinVolume = 888888;
+
+      renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds: [NetworkToCaipChainId.ETHEREUM],
+          minLiquidity: customMinLiquidity,
+          minVolume24hUsd: customMinVolume,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minLiquidity: customMinLiquidity,
+          minVolume24hUsd: customMinVolume,
+        }),
+      );
+
+      spyGetTrendingTokens.mockRestore();
     });
   });
 });
