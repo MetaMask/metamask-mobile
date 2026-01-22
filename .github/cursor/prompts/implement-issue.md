@@ -60,7 +60,7 @@ Then [specific expected outcome]
 - [x] I've completed the PR template to the best of my ability
 - [x] I've included tests if applicable
 - [x] I've documented my code using JSDoc format if applicable
-- [ ] I've applied the right labels on the PR (see labeling guidelines). Not required for external contributors.
+- [x] I've applied the right labels on the PR (see labeling guidelines). Not required for external contributors.
 
 ## **Pre-merge reviewer checklist**
 
