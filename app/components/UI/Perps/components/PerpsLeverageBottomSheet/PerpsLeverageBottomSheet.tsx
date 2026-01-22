@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -64,10 +64,6 @@ import {
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks';
-import PerpsTokenSelectorBottomSheet from '../PerpsTokenSelectorBottomSheet';
-import PerpsTokenLogo from '../PerpsTokenLogo';
-import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
-import type { PerpsToken } from '../../types/perps-types';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -349,18 +345,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
   const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
-  const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
-  const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
-    undefined,
-  );
-
-  // Get available payment tokens and set default if none selected
-  const paymentTokens = usePerpsPaymentTokens();
-  useEffect(() => {
-    if (!selectedToken && paymentTokens.length > 0) {
-      setSelectedToken(paymentTokens[0]);
-    }
-  }, [paymentTokens, selectedToken]);
 
   const currentLivePrice = usePerpsLivePrices({
     symbols: [asset],
@@ -609,11 +593,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.container}>
         {/* Large leverage display */}
         <View style={styles.leverageDisplay}>
           <Text
@@ -706,49 +686,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           </View>
         )}
 
-        {/* Token Selector */}
-        <View style={styles.tokenSelectorContainer}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.tokenSelectorLabel}
-          >
-            {strings('perps.order.payment_token')}
-          </Text>
-          <TouchableOpacity
-            style={styles.tokenSelectorButton}
-            onPress={() => setIsTokenSelectorVisible(true)}
-          >
-            {selectedToken ? (
-              <View style={styles.tokenSelectorContent}>
-                <PerpsTokenLogo
-                  symbol={selectedToken.symbol}
-                  size={24}
-                  style={styles.tokenSelectorLogo}
-                />
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Default}
-                >
-                  {selectedToken.symbol}
-                </Text>
-              </View>
-            ) : (
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={TextColor.Alternative}
-              >
-                {strings('perps.order.select_token')}
-              </Text>
-            )}
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.Default}
-            />
-          </TouchableOpacity>
-        </View>
-
         {/* Custom Leverage Slider */}
         <View style={styles.sliderContainer}>
           <LeverageSlider
@@ -825,17 +762,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
+      </View>
 
       <BottomSheetFooter buttonPropsArray={footerButtonProps} />
-
-      {/* Token Selector Bottom Sheet */}
-      <PerpsTokenSelectorBottomSheet
-        isVisible={isTokenSelectorVisible}
-        onClose={() => setIsTokenSelectorVisible(false)}
-        onSelect={setSelectedToken}
-        selectedToken={selectedToken}
-      />
     </BottomSheet>
   );
 };

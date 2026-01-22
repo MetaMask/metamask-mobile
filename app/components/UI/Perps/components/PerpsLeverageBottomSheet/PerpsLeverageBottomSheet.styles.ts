@@ -9,9 +9,6 @@ import {
 
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
-    scrollContainer: {
-      flex: 1,
-    },
     container: {
       paddingHorizontal: 16,
       paddingBottom: 16,
@@ -189,31 +186,5 @@ export const createStyles = (colors: Theme['colors']) =>
       backgroundColor: colors.border.muted,
       borderRadius: 2,
       top: 2,
-    },
-    tokenSelectorContainer: {
-      marginBottom: 24,
-      marginHorizontal: 12,
-    },
-    tokenSelectorLabel: {
-      marginBottom: 8,
-    },
-    tokenSelectorButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: colors.background.section,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    },
-    tokenSelectorContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
-    tokenSelectorLogo: {
-      marginRight: 8,
     },
   });
