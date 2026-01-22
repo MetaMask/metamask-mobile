@@ -24,8 +24,6 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import {
   selectStablecoinLendingEnabledFlag,
   selectMerklCampaignClaimingEnabledFlag,
