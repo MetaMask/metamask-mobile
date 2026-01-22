@@ -1880,9 +1880,9 @@ export class PerpsController extends BaseController<
       // Note: 'aggregated' mode uses activeProviderInstance directly, not the providers map
       const { activeProvider } = this.state;
       let provider =
-        activeProvider !== 'aggregated'
-          ? this.providers.get(activeProvider)
-          : undefined;
+        activeProvider === 'aggregated'
+          ? undefined
+          : this.providers.get(activeProvider);
       // Create a temporary provider instance for readOnly queries
       // The readOnly path in provider creates a standalone InfoClient without full init
       provider ??= new HyperLiquidProvider({

@@ -165,7 +165,7 @@ describe('SubscriptionMultiplexer', () => {
       ]);
 
       // After second emission, should have both prices
-      const lastCall = callback.mock.calls[callback.mock.calls.length - 1][0];
+      const lastCall = callback.mock.calls.at(-1)?.[0];
       expect(lastCall).toHaveLength(2);
       expect(lastCall).toContainEqual(
         expect.objectContaining({ providerId: 'hyperliquid', price: '50000' }),
@@ -197,7 +197,7 @@ describe('SubscriptionMultiplexer', () => {
       ]);
 
       // Should return MYX price (smaller spread)
-      const lastCall = callback.mock.calls[callback.mock.calls.length - 1][0];
+      const lastCall = callback.mock.calls.at(-1)?.[0];
       expect(lastCall).toHaveLength(1);
       expect(lastCall[0]).toMatchObject({
         providerId: 'myx',
@@ -287,7 +287,7 @@ describe('SubscriptionMultiplexer', () => {
       mockHLProvider._emitPositions([createMockPosition('BTC', '0.1')]);
       mockMYXProvider._emitPositions([createMockPosition('ETH', '1.0')]);
 
-      const lastCall = callback.mock.calls[callback.mock.calls.length - 1][0];
+      const lastCall = callback.mock.calls.at(-1)?.[0];
       expect(lastCall).toHaveLength(2);
       expect(lastCall).toContainEqual(
         expect.objectContaining({ symbol: 'BTC', providerId: 'hyperliquid' }),
@@ -350,7 +350,7 @@ describe('SubscriptionMultiplexer', () => {
       mockHLProvider._emitOrders([createMockOrder('hl-order', 'BTC')]);
       mockMYXProvider._emitOrders([createMockOrder('myx-order', 'ETH')]);
 
-      const lastCall = callback.mock.calls[callback.mock.calls.length - 1][0];
+      const lastCall = callback.mock.calls.at(-1)?.[0];
       expect(lastCall).toHaveLength(2);
       expect(lastCall).toContainEqual(
         expect.objectContaining({
@@ -464,7 +464,7 @@ describe('SubscriptionMultiplexer', () => {
       mockHLProvider._emitAccount(createMockAccount('10000'));
       mockMYXProvider._emitAccount(createMockAccount('5000'));
 
-      const lastCall = callback.mock.calls[callback.mock.calls.length - 1][0];
+      const lastCall = callback.mock.calls.at(-1)?.[0];
       expect(lastCall).toHaveLength(2);
       expect(lastCall).toContainEqual(
         expect.objectContaining({
