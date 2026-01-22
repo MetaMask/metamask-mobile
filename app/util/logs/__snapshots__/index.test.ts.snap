@@ -514,7 +514,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "marketFilterPreferences": "volume",
+        "marketFilterPreferences": {
+          "direction": "desc",
+          "optionId": "volume",
+        },
         "perpsBalances": {},
         "tradeConfigurations": {
           "mainnet": {},
@@ -589,9 +592,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "syncQueue": {},
       },
       "RampsController": {
+        "paymentMethods": [],
         "preferredProvider": null,
         "providers": [],
         "requests": {},
+        "selectedPaymentMethod": null,
         "tokens": null,
         "userRegion": null,
       },
@@ -1311,7 +1316,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "marketFilterPreferences": "volume",
+        "marketFilterPreferences": {
+          "direction": "desc",
+          "optionId": "volume",
+        },
         "perpsBalances": {},
         "tradeConfigurations": {
           "mainnet": {},
@@ -1386,9 +1394,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "syncQueue": {},
       },
       "RampsController": {
+        "paymentMethods": [],
         "preferredProvider": null,
         "providers": [],
         "requests": {},
+        "selectedPaymentMethod": null,
         "tokens": null,
         "userRegion": null,
       },

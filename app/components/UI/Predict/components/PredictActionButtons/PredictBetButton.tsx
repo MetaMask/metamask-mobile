@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Text, TextColor } from '@metamask/design-system-react-native';
+import { Button, Text } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import { PredictBetButtonProps } from './PredictActionButtons.types';
@@ -25,13 +25,11 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
     return variant === 'yes' ? colors.success.muted : colors.error.muted;
   };
 
-  const getTextColor = (): TextColor => {
+  const getTextColor = (): string => {
     if (hasTeamColor) {
-      return TextColor.TextDefault;
+      return 'text-white';
     }
-    return variant === 'yes'
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault;
+    return variant === 'yes' ? 'text-success-default' : 'text-error-default';
   };
 
   return (
@@ -42,7 +40,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       style={{ backgroundColor: getBackgroundColor() }}
       isFullWidth
     >
-      <Text color={getTextColor()} style={tw.style('font-medium')}>
+      <Text style={tw.style('font-medium ', getTextColor())}>
         {label.toUpperCase()} · {price}¢
       </Text>
     </Button>

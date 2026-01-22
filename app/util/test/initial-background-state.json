@@ -513,7 +513,10 @@
       "mainnet": {},
       "testnet": {}
     },
-    "marketFilterPreferences": "volume",
+    "marketFilterPreferences": {
+      "optionId": "volume",
+      "direction": "desc"
+    },
     "hip3ConfigVersion": 0,
     "perpsBalances": {}
   },
@@ -759,9 +762,11 @@
     "accountMeta": {}
   },
   "RampsController": {
+    "paymentMethods": [],
     "userRegion": null,
     "preferredProvider": null,
     "providers": [],
+    "selectedPaymentMethod": null,
     "tokens": null,
     "requests": {}
   }
