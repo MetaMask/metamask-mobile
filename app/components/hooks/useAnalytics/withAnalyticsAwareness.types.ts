@@ -1,5 +1,5 @@
-import type { IUseAnalyticsHook } from './useAnalytics.types';
+import type { UseAnalyticsHook } from './useAnalytics.types';
 
 export interface IWithAnalyticsAwarenessProps {
-  metrics: IUseAnalyticsHook;
+  metrics: UseAnalyticsHook;
 }

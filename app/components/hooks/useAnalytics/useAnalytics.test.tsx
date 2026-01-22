@@ -1,18 +1,27 @@
 import { act, renderHook } from '@testing-library/react-hooks';
-import { DataDeleteResponseStatus, DataDeleteStatus } from '../../../core/Analytics';
+import {
+  DataDeleteResponseStatus,
+  DataDeleteStatus,
+} from '../../../core/Analytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import type {
   DataDeleteDate,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IMetaMetrics,
-  ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
-import { useAnalytics } from './useAnalytics';
-import type { IUseAnalyticsHook } from './useAnalytics.types';
+import type { UseAnalyticsHook } from './useAnalytics.types';
+
+// Unmock to test the real implementation
+jest.unmock('./useAnalytics');
+
+// Import after unmocking
+const { useAnalytics } = jest.requireActual('./useAnalytics');
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -122,7 +131,7 @@ describe('useAnalytics', () => {
   });
 
   it('tracks events through analytics and updates data recording flag', () => {
-    const event: ITrackingEvent = {
+    const event: AnalyticsTrackingEvent = {
       name: 'test-event',
       properties: {},
       sensitiveProperties: {},
@@ -140,7 +149,9 @@ describe('useAnalytics', () => {
       result.current.trackEvent(event, false);
     });
 
-    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(event);
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      event,
+    );
     expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(false);
     expect(analytics.trackEvent).toHaveBeenCalledWith(mockAnalyticsEvent);
     expect(mockMetaMetrics.updateDataRecordingFlag).toHaveBeenCalledWith(false);
@@ -198,9 +209,9 @@ describe('useAnalytics', () => {
     expect(deletionTask).toEqual(expectedDataDeletionTaskResponse);
     expect(mockMetaMetrics.checkDataDeleteStatus).toHaveBeenCalledTimes(1);
     expect(dataDeleteStatus).toEqual(expectedDataDeleteStatus);
-    expect(mockMetaMetrics.getDeleteRegulationCreationDate).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(
+      mockMetaMetrics.getDeleteRegulationCreationDate,
+    ).toHaveBeenCalledTimes(1);
     expect(deletionDate).toEqual(expectedDate);
     expect(mockMetaMetrics.getDeleteRegulationId).toHaveBeenCalledTimes(1);
     expect(regulationId).toEqual(expectedDataDeleteRegulationId);
@@ -222,7 +233,7 @@ describe('useAnalytics', () => {
 
     let analyticsId;
     await act(async () => {
-      analyticsId = await result.current.getMetaMetricsId();
+      analyticsId = await result.current.getAnalyticsId();
     });
 
     expect(analytics.getAnalyticsId).toHaveBeenCalledTimes(1);
@@ -236,7 +247,7 @@ describe('useAnalytics', () => {
     rerender();
     const secondResult = result.current;
 
-    (Object.keys(firstResult) as (keyof IUseAnalyticsHook)[]).forEach((key) => {
+    (Object.keys(firstResult) as (keyof UseAnalyticsHook)[]).forEach((key) => {
       expect(firstResult[key]).toBe(secondResult[key]);
     });
   });

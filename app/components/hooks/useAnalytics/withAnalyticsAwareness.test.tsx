@@ -1,35 +1,37 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
-import { withAnalyticsAwareness } from './withAnalyticsAwareness';
-import { useAnalytics } from './useAnalytics';
-import type { IUseAnalyticsHook } from './useAnalytics.types';
 import type { IWithAnalyticsAwarenessProps } from './withAnalyticsAwareness.types';
 
-jest.mock('./useAnalytics', () => ({
-  useAnalytics: jest.fn(),
-}));
+// Unmock both to test the real implementation
+jest.unmock('./withAnalyticsAwareness');
+jest.unmock('./useAnalytics');
+
+// Import after unmocking
+const { withAnalyticsAwareness } = jest.requireActual(
+  './withAnalyticsAwareness',
+);
 
 describe('withAnalyticsAwareness', () => {
   it('injects metrics prop from useAnalytics', () => {
-    const mockAnalytics = {
-      someProp: 'someValue',
-    } as unknown as IUseAnalyticsHook;
     const renderSpy = jest.fn();
-    const mockUseAnalytics = useAnalytics as jest.MockedFunction<
-      typeof useAnalytics
-    >;
     const MockComponent = ({ metrics }: IWithAnalyticsAwarenessProps) => {
       renderSpy(metrics);
       return <View />;
     };
 
-    mockUseAnalytics.mockReturnValue(mockAnalytics);
-
     const MockComponentWithAnalytics = withAnalyticsAwareness(MockComponent);
 
     render(<MockComponentWithAnalytics />);
 
-    expect(renderSpy).toHaveBeenCalledWith(mockAnalytics);
+    // Verify the metrics prop was passed and has the expected structure
+    expect(renderSpy).toHaveBeenCalledTimes(1);
+    const metricsProp = renderSpy.mock.calls[0][0];
+    expect(metricsProp).toBeDefined();
+    expect(metricsProp).toHaveProperty('trackEvent');
+    expect(metricsProp).toHaveProperty('createEventBuilder');
+    expect(metricsProp).toHaveProperty('isEnabled');
+    expect(metricsProp).toHaveProperty('enable');
+    expect(metricsProp).toHaveProperty('addTraitsToUser');
   });
 });

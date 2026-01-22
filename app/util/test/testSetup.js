@@ -212,6 +212,9 @@ jest.mock('../../core/NotificationManager', () => ({
 const createMockAnalyticsEventBuilder = () => ({
   addProperties: jest.fn().mockReturnThis(),
   addSensitiveProperties: jest.fn().mockReturnThis(),
+  removeProperties: jest.fn().mockReturnThis(),
+  removeSensitiveProperties: jest.fn().mockReturnThis(),
+  setSaveDataRecording: jest.fn().mockReturnThis(),
   build: jest.fn(() => ({})),
 });
 
@@ -221,7 +224,9 @@ const mockUseAnalytics = {
   isEnabled: jest.fn().mockReturnValue(true),
   enable: jest.fn().mockResolvedValue(undefined),
   addTraitsToUser: jest.fn().mockResolvedValue(undefined),
-  createDataDeletionTask: jest.fn().mockResolvedValue({ regulationId: 'mock-id' }),
+  createDataDeletionTask: jest
+    .fn()
+    .mockResolvedValue({ regulationId: 'mock-id' }),
   checkDataDeleteStatus: jest.fn().mockResolvedValue({ status: 'pending' }),
   getDeleteRegulationCreationDate: jest.fn().mockReturnValue(new Date()),
   getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
