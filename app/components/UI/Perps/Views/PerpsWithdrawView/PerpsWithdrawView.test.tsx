@@ -150,6 +150,26 @@ jest.mock('@metamask/design-system-react-native', () => ({
   IconColor: {
     PrimaryDefault: 'PrimaryDefault',
   },
+  Text: 'Text',
+  TextVariant: {
+    HeadingSm: 'HeadingSm',
+    HeadingLg: 'HeadingLg',
+    HeadingMd: 'HeadingMd',
+    BodyMd: 'BodyMd',
+    BodySm: 'BodySm',
+  },
+  TextColor: {
+    TextDefault: 'TextDefault',
+    TextAlternative: 'TextAlternative',
+  },
+  FontWeight: {
+    Bold: 'Bold',
+    Medium: 'Medium',
+  },
+  IconName: {
+    ArrowLeft: 'ArrowLeft',
+    Close: 'Close',
+  },
 }));
 
 // Mock Text component
