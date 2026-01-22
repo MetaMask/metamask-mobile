@@ -32,6 +32,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import Section, { RefreshConfig } from './components/Sections/Section';
+import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 
 /**
  * Custom hook to track boolean state for each section
@@ -135,15 +136,28 @@ export const ExploreFeed: React.FC = () => {
   );
 
   const handleBrowserPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: portfolioUrl.href,
-        timestamp: Date.now(),
-        fromTrending: true,
-      },
-    });
-  }, [navigation, portfolioUrl.href]);
+    if (browserTabsCount > 0) {
+      // If tabs exist, show the tabs view directly
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          showTabsView: true,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    } else {
+      // If no tabs exist, open a new tab with portfolio URL
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: portfolioUrl.href,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    }
+  }, [navigation, portfolioUrl.href, browserTabsCount]);
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -173,8 +187,11 @@ export const ExploreFeed: React.FC = () => {
   const isAnySectionLoading = loadingSections.size > 0;
 
   return (
-    <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="px-4 py-3 flex-row items-center justify-between">
+    <Box
+      style={{ marginTop: insets.top }}
+      twClassName="flex-1 bg-default gap-4"
+    >
+      <Box twClassName="px-4 flex-row items-center justify-between">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
@@ -183,7 +200,7 @@ export const ExploreFeed: React.FC = () => {
         )}
       </Box>
 
-      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+      <Box twClassName="flex-row items-center gap-2 px-4">
         <Box twClassName="flex-1">
           <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
@@ -213,6 +230,7 @@ export const ExploreFeed: React.FC = () => {
 
       {isBasicFunctionalityEnabled ? (
         <ScrollView
+          testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
           style={tw.style('flex-1 px-4')}
           showsVerticalScrollIndicator={false}
           refreshControl={

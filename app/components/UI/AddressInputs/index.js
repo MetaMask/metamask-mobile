@@ -15,7 +15,6 @@ import { strings } from '../../../../locales/i18n';
 import { hasZeroWidthPoints } from '../../../util/confusables';
 import { useTheme } from '../../../util/theme';
 import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -339,7 +338,6 @@ export const AddressTo = (props) => {
               onBlur={onInputBlur}
               onSubmitEditing={onSubmit}
               value={toSelectedAddress}
-              testID={SendViewSelectorsIDs.ADDRESS_INPUT}
               keyboardAppearance={themeAppearance}
             />
           </View>
@@ -355,11 +353,7 @@ export const AddressTo = (props) => {
               />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity
-              onPress={onClear}
-              style={styles.iconWrapper}
-              testID={SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON}
-            >
+            <TouchableOpacity onPress={onClear} style={styles.iconWrapper}>
               <AntIcon
                 name="close"
                 size={20}
@@ -443,7 +437,6 @@ export const AddressTo = (props) => {
                   onBlur={onInputBlur}
                   onSubmitEditing={onSubmit}
                   value={toAddressName}
-                  testID={SendViewSelectorsIDs.ADDRESS_INPUT}
                   keyboardAppearance={themeAppearance}
                 />
               ) : (
@@ -469,11 +462,7 @@ export const AddressTo = (props) => {
           </View>
           {!!onClear && (
             <View style={styles.checkCleanWrapper}>
-              <TouchableOpacity
-                onPress={onClear}
-                style={styles.iconWrapper}
-                testID={SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON}
-              >
+              <TouchableOpacity onPress={onClear} style={styles.iconWrapper}>
                 <AntIcon
                   name="close"
                   size={20}

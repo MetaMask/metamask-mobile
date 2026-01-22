@@ -20,11 +20,6 @@ export type ConfirmationRedesignRemoteFlags = {
   transfer: boolean;
 };
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SendRedesignFlags = {
-  enabled: boolean;
-};
-
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
@@ -128,29 +123,9 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
   };
 };
 
-export const selectSendRedesignFlagsFromRemoteFeatureFlags = (
-  remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
-): SendRedesignFlags => {
-  const remoteValues = remoteFeatureFlags.sendRedesign as SendRedesignFlags;
-
-  const isEnabled = getFeatureFlagValue(
-    process.env.MM_SEND_REDESIGN_ENABLED,
-    remoteValues?.enabled !== false,
-  );
-
-  return {
-    enabled: isEnabled,
-  };
-};
-
 export const selectConfirmationRedesignFlags = createSelector(
   selectRemoteFeatureFlags,
   selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
-);
-
-export const selectSendRedesignFlags = createSelector(
-  selectRemoteFeatureFlags,
-  selectSendRedesignFlagsFromRemoteFeatureFlags,
 );
 
 export const selectMetaMaskPayFlags = createSelector(

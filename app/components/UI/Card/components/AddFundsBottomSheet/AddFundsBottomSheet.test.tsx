@@ -11,7 +11,7 @@ import { CardTokenAllowance, AllowanceState } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
 // Mock hooks first - must be hoisted before imports

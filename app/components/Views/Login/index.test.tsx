@@ -2,7 +2,7 @@ import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import {
   InteractionManager,
   BackHandler,

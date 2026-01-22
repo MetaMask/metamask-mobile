@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -52,6 +58,8 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+
+const VERIFICATION_POLLING_INTERVAL_MS = 3000;
 
 export const AddressFields = ({
   addressLine1,
@@ -239,7 +247,22 @@ const PhysicalAddress = () => {
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [electronicConsent, setElectronicConsent] = useState(false);
+  const [isPollingVerification, setIsPollingVerification] = useState(false);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
   const { data: registrationSettings } = useRegistrationSettings();
+
+  // Cleanup polling interval on unmount
+  useEffect(
+    () => () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    },
+    [],
+  );
 
   const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
@@ -366,6 +389,7 @@ const PhysicalAddress = () => {
       registerIsError ||
       consentLoading ||
       consentIsError ||
+      isPollingVerification ||
       !onboardingId ||
       !user?.id ||
       !addressLine1 ||
@@ -378,6 +402,7 @@ const PhysicalAddress = () => {
       registerIsError,
       consentLoading,
       consentIsError,
+      isPollingVerification,
       onboardingId,
       user?.id,
       addressLine1,
@@ -479,60 +504,90 @@ const PhysicalAddress = () => {
         }
 
         // Step 11: Check KYC status and navigate accordingly
-        // Fetch fresh user data to get the latest verification state
-        let verificationState = updatedUser.verificationState;
+        // Start polling to check verification state before navigating
+        setIsPollingVerification(true);
 
-        // If verification state is not in the response, fetch it from the API
-        if (!verificationState && sdk) {
+        // Track whether we should continue polling (used to prevent interval setup after navigation)
+        let shouldContinuePolling = true;
+
+        const stopPollingAndNavigate = (route: {
+          name: string;
+          params?: Record<string, unknown>;
+        }) => {
+          shouldContinuePolling = false;
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setIsPollingVerification(false);
+          dispatch(resetOnboardingState());
+          navigation.reset({
+            index: 0,
+            routes: [route],
+          });
+        };
+
+        const pollVerificationState = async (): Promise<void> => {
+          if (!sdk) {
+            // No SDK available, redirect to Card Home
+            stopPollingAndNavigate({ name: Routes.CARD.HOME });
+            return;
+          }
+
           try {
             const userDetails = await sdk.getUserDetails();
-            verificationState = userDetails.verificationState;
+            const currentVerificationState = userDetails.verificationState;
             // Update user in context with fresh data
             setUser(userDetails);
+
+            if (currentVerificationState === 'VERIFIED') {
+              if (location === 'us') {
+                stopPollingAndNavigate({
+                  name: Routes.CARD.CHOOSE_YOUR_CARD,
+                });
+              } else {
+                stopPollingAndNavigate({
+                  name: Routes.CARD.SPENDING_LIMIT,
+                  params: { flow: 'onboarding' },
+                });
+              }
+            } else if (currentVerificationState === 'REJECTED') {
+              // KYC rejected - show failure screen
+              stopPollingAndNavigate({
+                name: Routes.CARD.ONBOARDING.ROOT,
+                params: { screen: Routes.CARD.ONBOARDING.KYC_FAILED },
+              });
+            }
+            // For PENDING or any other status, continue polling
+            // The interval will trigger the next poll
           } catch (fetchError) {
             Logger.log(
               'PhysicalAddress: Failed to fetch user details for KYC status',
               fetchError,
             );
-            // Continue with the flow even if fetch fails - user can retry from SpendingLimit
+            // On error, redirect to Card Home to avoid stuck state
+            stopPollingAndNavigate({ name: Routes.CARD.HOME });
           }
+        };
+
+        // Execute first poll immediately
+        await pollVerificationState();
+
+        // Only set up interval if we should continue polling (not already navigated)
+        if (shouldContinuePolling) {
+          pollingIntervalRef.current = setInterval(() => {
+            pollVerificationState();
+          }, VERIFICATION_POLLING_INTERVAL_MS);
+
+          // Set a timeout to stop polling after a reasonable time and redirect to Card Home
+          // This prevents infinite polling if the status never changes
+          setTimeout(() => {
+            if (pollingIntervalRef.current) {
+              stopPollingAndNavigate({ name: Routes.CARD.HOME });
+            }
+          }, VERIFICATION_POLLING_INTERVAL_MS * 2); // Poll 2 times max (6 seconds total)
         }
 
-        // Reset onboarding state since registration is complete
-        dispatch(resetOnboardingState());
-
-        // Navigate based on KYC status
-        if (verificationState === 'REJECTED') {
-          // KYC rejected - show failure screen
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.CARD.ONBOARDING.ROOT,
-                params: { screen: Routes.CARD.ONBOARDING.KYC_FAILED },
-              },
-            ],
-          });
-        } else if (location === 'us') {
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.CARD.CHOOSE_YOUR_CARD,
-              },
-            ],
-          });
-        } else {
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.CARD.SPENDING_LIMIT,
-                params: { flow: 'onboarding' },
-              },
-            ],
-          });
-        }
         return;
       }
 
@@ -635,7 +690,7 @@ const PhysicalAddress = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
-        loading={registerLoading}
+        loading={registerLoading || isPollingVerification}
         testID="physical-address-continue-button"
       />
     </Box>

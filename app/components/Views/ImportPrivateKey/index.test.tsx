@@ -6,7 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
-import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 import { Alert } from 'react-native';
 
 // Mock dependencies

@@ -26,7 +26,7 @@ import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
-import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,

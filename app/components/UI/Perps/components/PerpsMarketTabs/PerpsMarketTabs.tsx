@@ -42,7 +42,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
@@ -78,7 +78,7 @@ const PositionTabContent: React.FC<PositionTabContentProps> = ({
       testID={PerpsMarketTabsSelectorsIDs.POSITION_CONTENT}
     >
       <PerpsPositionCard
-        key={`${position.coin}`}
+        key={`${position.symbol}`}
         position={position}
         showIcon={showIcon}
         onAutoClosePress={onAutoClosePress}
@@ -242,7 +242,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   });
 
   const position = useMemo(
-    () => positions.find((p) => p.coin === symbol) || null,
+    () => positions.find((p) => p.symbol === symbol) || null,
     [positions, symbol],
   );
   const unfilledOrders = useMemo(
@@ -323,7 +323,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!position) return;
 
     navigation.navigate(Routes.PERPS.TPSL, {
-      asset: position.coin,
+      asset: position.symbol,
       currentPrice,
       position,
       initialTakeProfitPrice: position.takeProfitPrice,
@@ -544,7 +544,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
         const result = await controller.cancelOrder({
           orderId: orderToCancel.orderId,
-          coin: orderToCancel.symbol,
+          symbol: orderToCancel.symbol,
         });
 
         // Order cancellation successful

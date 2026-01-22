@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -82,7 +82,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
+  // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [
@@ -216,11 +216,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             const directionSegment = getPositionDirection(position.size);
             return (
               <View
-                key={`${position.coin}-${index}`}
-                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+                key={`${position.symbol}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.symbol}-${position.leverage.value}x-${directionSegment}-${index}`}
               >
                 <PerpsCard
-                  key={`${position.coin}-${index}`}
+                  key={`${position.symbol}-${index}`}
                   position={position}
                   source={PerpsEventValues.SOURCE.POSITION_TAB}
                 />

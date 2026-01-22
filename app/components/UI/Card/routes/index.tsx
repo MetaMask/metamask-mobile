@@ -22,7 +22,6 @@ import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { colors } from '../../../../styles/common';
-import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
@@ -186,11 +185,6 @@ const MainRoutes = () => {
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
         options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.CARD.VERIFYING_REGISTRATION}
-        component={VerifyingRegistration}
-        options={cardDefaultNavigationOptions}
       />
     </Stack.Navigator>
   );

@@ -20,6 +20,7 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { Json } from '@metamask/utils';
+import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
@@ -30,7 +31,7 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   }),
 }));
 
-function render() {
+function render(options: { type?: TransactionType } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
@@ -41,7 +42,7 @@ function render() {
   (
     state.engine.backgroundState
       .TransactionController as TransactionControllerState
-  ).transactions[0].type = TransactionType.perpsDeposit;
+  ).transactions[0].type = options.type ?? TransactionType.perpsDeposit;
 
   return renderWithProvider(<BridgeFeeRow />, { state });
 }
@@ -74,6 +75,30 @@ describe('BridgeFeeRow', () => {
   it('renders transaction fee', async () => {
     const { getByText } = render();
     expect(getByText('$1.23')).toBeDefined();
+  });
+
+  it('renders network fee row when transaction type is musdConversion', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = render({
+      type: TransactionType.musdConversion,
+    });
+
+    expect(getByTestId(ConfirmationRowComponentIDs.NETWORK_FEE)).toBeDefined();
+    expect(getByText('$0.23')).toBeDefined();
+    expect(queryByText('$1.23')).toBeNull();
+    expect(queryByTestId('bridge-fee-row')).toBeNull();
+    expect(queryByTestId('metamask-fee-row')).toBeNull();
+  });
+
+  it('renders skeleton if musdConversion network fee is loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId, queryByText } = render({
+      type: TransactionType.musdConversion,
+    });
+
+    expect(getByTestId('network-fee-row-skeleton')).toBeDefined();
+    expect(queryByTestId(ConfirmationRowComponentIDs.NETWORK_FEE)).toBeNull();
+    expect(queryByText('$0.23')).toBeNull();
   });
 
   it('renders network fee in tooltip', async () => {

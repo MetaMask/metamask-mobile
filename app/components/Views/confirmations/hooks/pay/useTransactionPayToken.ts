@@ -7,8 +7,8 @@ import { selectTransactionPaymentTokenByTransactionId } from '../../../../../sel
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import EngineService from '../../../../../core/EngineService';
-import { getNativeTokenAddress } from '../../utils/asset';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export function useTransactionPayToken(): {
   isNative?: boolean;

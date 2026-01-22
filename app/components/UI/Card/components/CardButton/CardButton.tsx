@@ -6,7 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import React, { useEffect } from 'react';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 interface CardButtonProps {

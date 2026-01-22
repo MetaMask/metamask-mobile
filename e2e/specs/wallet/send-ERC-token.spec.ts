@@ -1,8 +1,7 @@
 import { RegressionWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
+import RedesignedSendView from '../../pages/Send/RedesignedSendView';
 import { loginToApp } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
@@ -94,12 +93,9 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         await WalletView.tapOnToken('100 TST');
         await Assertions.expectElementToBeVisible(TokenOverview.tokenPrice);
         await TokenOverview.tapSendButton();
-        await SendView.inputAddress(SEND_ADDRESS);
-        await TestHelpers.delay(1000);
-        await SendView.tapNextButton();
-        await AmountView.typeInTransactionAmount('0.000001');
-        await TestHelpers.delay(5000);
-        await AmountView.tapNextButton();
+        await RedesignedSendView.inputRecipientAddress(SEND_ADDRESS);
+        await RedesignedSendView.typeInTransactionAmount('0.000001');
+        await RedesignedSendView.pressReviewButton();
         await TransactionConfirmationView.tapConfirmButton();
         await Assertions.expectTextDisplayed('Confirmed', {
           timeout: 30000,

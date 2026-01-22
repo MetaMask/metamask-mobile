@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
-import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   createMockInternalAccount,
@@ -669,7 +669,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(getByText('Switch to Smart account')).toBeTruthy();
+      expect(getByText('Switch to smart account')).toBeTruthy();
     });
 
     it('calls navigate function when option to switch account type is clicked', () => {
@@ -677,7 +677,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      fireEvent.press(getByText('Switch to Smart account'));
+      fireEvent.press(getByText('Switch to smart account'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'ConfirmationSwitchAccountType',

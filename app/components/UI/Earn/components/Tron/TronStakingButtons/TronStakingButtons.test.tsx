@@ -5,6 +5,7 @@ import TronStakingButtons from './TronStakingButtons';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
+import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -62,6 +63,11 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
+jest.mock('../../../../Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
@@ -76,12 +82,23 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   },
 }));
 
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
+
 describe('TronStakingButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockUseSelector.mockImplementation(() => undefined);
     mockSelectAsset.mockReset();
+
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
   });
 
   const baseAsset = {
@@ -154,6 +171,34 @@ describe('TronStakingButtons', () => {
     });
   });
 
+  it('does not render stake button when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<TronStakingButtons asset={baseAsset} />);
+
+    expect(queryByTestId('stake-more-button')).toBeNull();
+  });
+
+  it('renders unstake button when user is not eligible and has active staked position', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { queryByTestId } = render(
+      <TronStakingButtons asset={baseAsset} showUnstake hasStakedPositions />,
+    );
+
+    expect(queryByTestId('unstake-button')).toBeOnTheScreen();
+  });
+
   describe('CTA section', () => {
     it('renders CTA title and description without aprText when hasStakedPositions is false', () => {
       const { getByText } = render(
@@ -189,5 +234,35 @@ describe('TronStakingButtons', () => {
 
       expect(queryByText('Stake your TRX')).toBeNull();
     });
+
+    it('does not render CTA section when user is not eligible', () => {
+      mockUseStakingEligibility.mockReturnValue({
+        isEligible: false,
+        isLoadingEligibility: false,
+        error: null,
+        refreshPooledStakingEligibility: jest.fn(),
+      });
+
+      const { queryByText } = render(
+        <TronStakingButtons asset={baseAsset} hasStakedPositions={false} />,
+      );
+
+      expect(queryByText('Stake your TRX')).toBeNull();
+    });
+  });
+
+  it('renders nothing when user is not eligible and has no active positions', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { toJSON } = render(
+      <TronStakingButtons asset={baseAsset} hasStakedPositions={false} />,
+    );
+
+    expect(toJSON()).toBeNull();
   });
 });

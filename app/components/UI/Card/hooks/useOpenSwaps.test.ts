@@ -18,12 +18,12 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
-  SwapBridgeNavigationLocation: {
-    TokenDetails: 'TokenDetails',
-    TabBar: 'TabBar',
-    Swaps: 'Swaps',
-  },
   useSwapBridgeNavigation: jest.fn(),
+  SwapBridgeNavigationLocation: {
+    MainView: 'Main View',
+    TokenView: 'Token View',
+    Rewards: 'Rewards',
+  },
 }));
 
 jest.mock('../util/buildTokenIconUrl', () => ({
@@ -273,7 +273,7 @@ describe('useOpenSwaps', () => {
 
   it('uses custom location and sourcePage when provided', () => {
     const customOptions = {
-      location: SwapBridgeNavigationLocation.TabBar,
+      location: SwapBridgeNavigationLocation.MainView,
       sourcePage: '/custom-page',
     };
 

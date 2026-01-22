@@ -4,9 +4,9 @@ import { SnapAccountDetails } from './SnapAccountDetails';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { ExportCredentialsIds } from '../../ExportCredentials.testIds';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 

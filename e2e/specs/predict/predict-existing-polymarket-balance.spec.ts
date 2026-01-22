@@ -66,6 +66,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container, {
           description: 'Wallet container should be visible',
         });
+
         await WalletView.tapOnPredictionsTab();
         await Assertions.expectElementToBeVisible(
           WalletView.PredictionsTabContainer,

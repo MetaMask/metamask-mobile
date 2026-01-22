@@ -1,4 +1,4 @@
-import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

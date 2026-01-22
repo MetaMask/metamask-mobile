@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
-import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
+import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();

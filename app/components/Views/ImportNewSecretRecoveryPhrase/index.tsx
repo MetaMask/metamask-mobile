@@ -24,7 +24,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
-import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
+import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
   TextVariant,

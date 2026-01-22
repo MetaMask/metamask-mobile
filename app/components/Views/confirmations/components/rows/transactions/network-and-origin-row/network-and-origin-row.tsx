@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import { useSDKV2Connection } from '../../../../../../hooks/useSDKV2Connection';

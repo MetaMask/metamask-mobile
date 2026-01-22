@@ -121,7 +121,7 @@ const mockUsePerpsRewardAccountOptedIn =
 describe('PerpsCloseAllPositionsView', () => {
   const mockPositions = [
     {
-      coin: 'BTC',
+      symbol: 'BTC',
       size: '0.5',
       entryPrice: '50000',
       positionValue: '25000',

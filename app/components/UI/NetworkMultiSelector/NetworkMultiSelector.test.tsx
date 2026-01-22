@@ -83,8 +83,15 @@ jest.mock('../../hooks/useNetworksToUse/useNetworksToUse', () => ({
   useNetworksToUse: jest.fn(),
 }));
 
+jest.mock('../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: jest.fn(() => ({
+    addPopularNetwork: jest.fn(),
+  })),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(() => jest.fn()),
   Provider: jest.requireActual('react-redux').Provider,
 }));
 

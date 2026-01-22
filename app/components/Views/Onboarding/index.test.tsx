@@ -36,7 +36,7 @@ import Onboarding from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
