@@ -117,7 +117,7 @@ export class TradingService {
     // Build base properties
     const properties: PerpsAnalyticsProperties = {
       [PerpsEventProperties.STATUS]: status,
-      [PerpsEventProperties.ASSET]: params.coin,
+      [PerpsEventProperties.ASSET]: params.symbol,
       [PerpsEventProperties.DIRECTION]: params.isBuy
         ? PerpsEventValues.DIRECTION.LONG
         : PerpsEventValues.DIRECTION.SHORT,
@@ -187,7 +187,7 @@ export class TradingService {
     }
 
     this.deps.metrics.trackPerpsEvent(
-      PerpsAnalyticsEvent.TRADE_TRANSACTION,
+      PerpsAnalyticsEvent.TradeTransaction,
       properties,
     );
   }
@@ -200,7 +200,7 @@ export class TradingService {
     context: ServiceContext;
     reportOrderToDataLake: (params: {
       action: 'open' | 'close';
-      coin: string;
+      symbol: string;
       sl_price?: number;
       tp_price?: number;
     }) => Promise<{ success: boolean; error?: string }>;
@@ -216,13 +216,13 @@ export class TradingService {
 
     // Save executed trade configuration for this market
     if (params.leverage && context.saveTradeConfiguration) {
-      context.saveTradeConfiguration(params.coin, params.leverage);
+      context.saveTradeConfiguration(params.symbol, params.leverage);
     }
 
     // Report to data lake (fire-and-forget with retry)
     reportOrderToDataLake({
       action: 'open',
-      coin: params.coin,
+      symbol: params.symbol,
       sl_price: params.stopLossPrice
         ? parseFloat(params.stopLossPrice)
         : undefined,
@@ -241,7 +241,7 @@ export class TradingService {
           data: {
             method: context.errorContext.method,
             operation: 'reportOrderToDataLake',
-            coin: params.coin,
+            symbol: params.symbol,
           },
         },
       });
@@ -294,7 +294,7 @@ export class TradingService {
     context: ServiceContext;
     reportOrderToDataLake: (params: {
       action: 'open' | 'close';
-      coin: string;
+      symbol: string;
       sl_price?: number;
       tp_price?: number;
     }) => Promise<{ success: boolean; error?: string }>;
@@ -315,7 +315,7 @@ export class TradingService {
         tags: {
           provider: context.tracingContext.provider,
           orderType: params.orderType,
-          market: params.coin,
+          market: params.symbol,
           leverage: String(params.leverage || 1),
           isTestnet: String(context.tracingContext.isTestnet),
         },
@@ -336,7 +336,7 @@ export class TradingService {
       this.deps.debugLogger.log(
         'TradingService: Submitting order to provider',
         {
-          coin: params.coin,
+          symbol: params.symbol,
           orderType: params.orderType,
           isBuy: params.isBuy,
           size: params.size,
@@ -407,7 +407,7 @@ export class TradingService {
           name: context.errorContext.controller,
           data: {
             method: context.errorContext.method,
-            coin: params.coin,
+            symbol: params.symbol,
             orderType: params.orderType,
           },
         },
@@ -432,17 +432,17 @@ export class TradingService {
    * Load position data with performance measurement
    */
   private async loadPositionData(options: {
-    coin: string;
+    symbol: string;
     context: ServiceContext;
   }): Promise<Position | undefined> {
-    const { coin, context } = options;
+    const { symbol, context } = options;
 
     const positionLoadStart = this.deps.performance.now();
     try {
       const positions = context.getPositions
         ? await context.getPositions()
         : [];
-      const position = positions.find((p) => p.coin === coin);
+      const position = positions.find((p) => p.symbol === symbol);
 
       this.deps.tracer.setMeasurement(
         PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
@@ -526,7 +526,7 @@ export class TradingService {
   ): Record<string, unknown> {
     const baseProperties = {
       [PerpsEventProperties.STATUS]: status,
-      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ASSET]: position.symbol,
       [PerpsEventProperties.DIRECTION]: metrics.direction,
       [PerpsEventProperties.ORDER_TYPE]: metrics.orderType,
       [PerpsEventProperties.ORDER_SIZE]: metrics.requestedSize,
@@ -637,7 +637,7 @@ export class TradingService {
       );
 
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+        PerpsAnalyticsEvent.PositionCloseTransaction,
         {
           ...partialProperties,
           [PerpsEventProperties.AMOUNT_FILLED]: metrics.filledSize,
@@ -667,7 +667,7 @@ export class TradingService {
     );
 
     this.deps.metrics.trackPerpsEvent(
-      PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+      PerpsAnalyticsEvent.PositionCloseTransaction,
       {
         ...eventProperties,
         [PerpsEventProperties.COMPLETION_DURATION]: duration,
@@ -681,14 +681,14 @@ export class TradingService {
   private handleDataLakeReporting(
     reportOrderToDataLake: (params: {
       action: 'open' | 'close';
-      coin: string;
+      symbol: string;
     }) => Promise<{ success: boolean; error?: string }>,
-    coin: string,
+    symbol: string,
     context: ServiceContext,
   ): void {
     reportOrderToDataLake({
       action: 'close',
-      coin,
+      symbol,
     }).catch((error) => {
       this.deps.logger.error(ensureError(error), {
         tags: {
@@ -701,7 +701,7 @@ export class TradingService {
           data: {
             method: context.errorContext.method,
             operation: 'reportOrderToDataLake',
-            coin,
+            symbol,
           },
         },
       });
@@ -781,7 +781,7 @@ export class TradingService {
         tags: {
           provider: context.tracingContext.provider,
           orderType: params.newOrder.orderType,
-          market: params.newOrder.coin,
+          market: params.newOrder.symbol,
           leverage: String(params.newOrder.leverage || 1),
           isTestnet: String(context.tracingContext.isTestnet),
         },
@@ -814,7 +814,7 @@ export class TradingService {
         // Track order edit executed
         const editExecutedProps: PerpsAnalyticsProperties = {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.ASSET]: params.newOrder.coin,
+          [PerpsEventProperties.ASSET]: params.newOrder.symbol,
           [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT,
@@ -829,7 +829,7 @@ export class TradingService {
           );
         }
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.TRADE_TRANSACTION,
+          PerpsAnalyticsEvent.TradeTransaction,
           editExecutedProps,
         );
 
@@ -837,10 +837,10 @@ export class TradingService {
       } else {
         // Track order edit failed
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.TRADE_TRANSACTION,
+          PerpsAnalyticsEvent.TradeTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.newOrder.coin,
+            [PerpsEventProperties.ASSET]: params.newOrder.symbol,
             [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
@@ -861,9 +861,9 @@ export class TradingService {
       const completionDuration = this.deps.performance.now() - startTime;
 
       // Track order edit exception
-      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TRADE_TRANSACTION, {
+      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: params.newOrder.coin,
+        [PerpsEventProperties.ASSET]: params.newOrder.symbol,
         [PerpsEventProperties.DIRECTION]: params.newOrder.isBuy
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
@@ -928,7 +928,7 @@ export class TradingService {
         op: PerpsTraceOperations.ORDER_SUBMISSION,
         tags: {
           provider: context.tracingContext.provider,
-          market: params.coin,
+          market: params.symbol,
           isTestnet: String(context.tracingContext.isTestnet),
         },
         data: {
@@ -950,10 +950,10 @@ export class TradingService {
 
         // Track order cancel executed
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+          PerpsAnalyticsEvent.OrderCancelTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.ASSET]: params.symbol,
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
           },
         );
@@ -962,10 +962,10 @@ export class TradingService {
       } else {
         // Track order cancel failed
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+          PerpsAnalyticsEvent.OrderCancelTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.coin,
+            [PerpsEventProperties.ASSET]: params.symbol,
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
               result.error || 'Unknown error',
@@ -981,10 +981,10 @@ export class TradingService {
 
       // Track order cancel exception
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+        PerpsAnalyticsEvent.OrderCancelTransaction,
         {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.ASSET]: params.coin,
+          [PerpsEventProperties.ASSET]: params.symbol,
           [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
           [PerpsEventProperties.ERROR_MESSAGE]:
             error instanceof Error ? error.message : 'Unknown error',
@@ -993,7 +993,7 @@ export class TradingService {
 
       this.deps.logger.error(
         ensureError(error),
-        this.getErrorContext('cancelOrder', { coin: params.coin }),
+        this.getErrorContext('cancelOrder', { symbol: params.symbol }),
       );
 
       traceData = {
@@ -1042,7 +1042,7 @@ export class TradingService {
         },
         data: {
           cancelAll: params.cancelAll ? 'true' : 'false',
-          coinCount: params.coins?.length || 0,
+          symbolCount: params.symbols?.length || 0,
           orderIdCount: params.orderIds?.length || 0,
         },
       });
@@ -1057,7 +1057,7 @@ export class TradingService {
 
         // Filter orders based on params
         let ordersToCancel = orders;
-        if (params.cancelAll || (!params.coins && !params.orderIds)) {
+        if (params.cancelAll || (!params.symbols && !params.orderIds)) {
           // Cancel all orders (excluding TP/SL orders for positions)
           ordersToCancel = orders.filter(
             (o) => !isTPSLOrder(o.detailedOrderType),
@@ -1067,10 +1067,10 @@ export class TradingService {
           ordersToCancel = orders.filter((o) =>
             params.orderIds?.includes(o.orderId),
           );
-        } else if (params.coins && params.coins.length > 0) {
-          // Cancel orders for specific coins
+        } else if (params.symbols && params.symbols.length > 0) {
+          // Cancel orders for specific symbols
           ordersToCancel = orders.filter((o) =>
-            params.coins?.includes(o.symbol),
+            params.symbols?.includes(o.symbol),
           );
         }
 
@@ -1087,7 +1087,7 @@ export class TradingService {
         if (provider.cancelOrders) {
           return await provider.cancelOrders(
             ordersToCancel.map((order) => ({
-              coin: order.symbol,
+              symbol: order.symbol,
               orderId: order.orderId,
             })),
           );
@@ -1098,7 +1098,7 @@ export class TradingService {
           ordersToCancel.map((order) =>
             this.cancelOrder({
               provider,
-              params: { coin: order.symbol, orderId: order.orderId },
+              params: { symbol: order.symbol, orderId: order.orderId },
               context,
             }),
           ),
@@ -1127,7 +1127,7 @@ export class TradingService {
 
             return {
               orderId: ordersToCancel[index].orderId,
-              coin: ordersToCancel[index].symbol,
+              symbol: ordersToCancel[index].symbol,
               success: !!(
                 result.status === 'fulfilled' && result.value.success
               ),
@@ -1162,7 +1162,7 @@ export class TradingService {
           operationError.message;
       }
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.ORDER_CANCEL_TRANSACTION,
+        PerpsAnalyticsEvent.OrderCancelTransaction,
         batchCancelProps,
       );
 
@@ -1183,7 +1183,7 @@ export class TradingService {
     context: ServiceContext;
     reportOrderToDataLake: (params: {
       action: 'open' | 'close';
-      coin: string;
+      symbol: string;
     }) => Promise<{ success: boolean; error?: string }>;
   }): Promise<OrderResult> {
     const { provider, params, context, reportOrderToDataLake } = options;
@@ -1202,7 +1202,7 @@ export class TradingService {
         op: PerpsTraceOperations.POSITION_MANAGEMENT,
         tags: {
           provider: context.tracingContext.provider,
-          coin: params.coin,
+          symbol: params.symbol,
           closeSize: params.size || 'full',
           isTestnet: String(context.tracingContext.isTestnet),
         },
@@ -1210,7 +1210,7 @@ export class TradingService {
 
       // Load position data with measurement
       position = await this.loadPositionData({
-        coin: params.coin,
+        symbol: params.symbol,
         context,
       });
 
@@ -1237,7 +1237,7 @@ export class TradingService {
         // Report to data lake (fire-and-forget)
         this.handleDataLakeReporting(
           reportOrderToDataLake,
-          params.coin,
+          params.symbol,
           context,
         );
 
@@ -1284,7 +1284,7 @@ export class TradingService {
           name: context.errorContext.controller,
           data: {
             method: context.errorContext.method,
-            coin: params.coin,
+            symbol: params.symbol,
           },
         },
       });
@@ -1328,7 +1328,7 @@ export class TradingService {
         },
         data: {
           closeAll: params.closeAll ? 'true' : 'false',
-          coinCount: params.coins?.length || 0,
+          symbolCount: params.symbols?.length || 0,
         },
       });
 
@@ -1362,9 +1362,9 @@ export class TradingService {
         const positions = await context.getPositions();
 
         const positionsToClose =
-          params.closeAll || !params.coins || params.coins.length === 0
+          params.closeAll || !params.symbols || params.symbols.length === 0
             ? positions
-            : positions.filter((p) => params.coins?.includes(p.coin));
+            : positions.filter((p) => params.symbols?.includes(p.symbol));
 
         if (positionsToClose.length === 0) {
           operationResult = {
@@ -1380,7 +1380,7 @@ export class TradingService {
           positionsToClose.map((position) =>
             this.closePosition({
               provider,
-              params: { coin: position.coin },
+              params: { symbol: position.symbol },
               context,
               reportOrderToDataLake: () => Promise.resolve({ success: true }), // No-op for batch fallback
             }),
@@ -1409,7 +1409,7 @@ export class TradingService {
             }
 
             return {
-              coin: positionsToClose[index].coin,
+              symbol: positionsToClose[index].symbol,
               success: !!(
                 result.status === 'fulfilled' && result.value.success
               ),
@@ -1426,7 +1426,7 @@ export class TradingService {
       this.deps.logger.error(
         ensureError(error),
         this.getErrorContext('closePositions', {
-          coins: params.coins?.length || 0,
+          symbols: params.symbols?.length || 0,
           closeAll: params.closeAll,
         }),
       );
@@ -1447,7 +1447,7 @@ export class TradingService {
           operationError.message;
       }
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.POSITION_CLOSE_TRANSACTION,
+        PerpsAnalyticsEvent.PositionCloseTransaction,
         batchCloseProps,
       );
 
@@ -1491,7 +1491,7 @@ export class TradingService {
         op: PerpsTraceOperations.POSITION_MANAGEMENT,
         tags: {
           provider: context.tracingContext.provider,
-          market: params.coin,
+          market: params.symbol,
           isTestnet: String(context.tracingContext.isTestnet),
         },
         data: {
@@ -1545,7 +1545,7 @@ export class TradingService {
         [PerpsEventProperties.STATUS]: result?.success
           ? PerpsEventValues.STATUS.EXECUTED
           : PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: params.coin,
+        [PerpsEventProperties.ASSET]: params.symbol,
         [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
         [PerpsEventProperties.SOURCE]: source,
         [PerpsEventProperties.SCREEN_TYPE]: screenType,
@@ -1583,7 +1583,7 @@ export class TradingService {
 
       // Track event once with all properties
       this.deps.metrics.trackPerpsEvent(
-        PerpsAnalyticsEvent.RISK_MANAGEMENT,
+        PerpsAnalyticsEvent.RiskManagement,
         eventProperties,
       );
 
@@ -1600,11 +1600,11 @@ export class TradingService {
    */
   async updateMargin(options: {
     provider: IPerpsProvider;
-    coin: string;
+    symbol: string;
     amount: string;
     context: ServiceContext;
   }): Promise<{ success: boolean; error?: string }> {
-    const { provider, coin, amount, context } = options;
+    const { provider, symbol, amount, context } = options;
     const traceId = uuidv4();
     const startTime = this.deps.performance.now();
 
@@ -1615,14 +1615,14 @@ export class TradingService {
         op: PerpsTraceOperations.POSITION_MANAGEMENT,
         tags: {
           provider: context.tracingContext.provider,
-          coin,
+          symbol,
           isAdd: String(parseFloat(amount) > 0),
           isTestnet: String(context.tracingContext.isTestnet),
         },
       });
 
       // Call provider method
-      const result = await provider.updateMargin?.({ coin, amount });
+      const result = await provider.updateMargin?.({ symbol, amount });
 
       if (!result) {
         throw new Error('Provider does not support margin adjustment');
@@ -1639,9 +1639,9 @@ export class TradingService {
         }
 
         // Track success analytics
-        this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RISK_MANAGEMENT, {
+        this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RiskManagement, {
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.ASSET]: coin,
+          [PerpsEventProperties.ASSET]: symbol,
           [PerpsEventProperties.ACTION]:
             parseFloat(amount) > 0 ? 'add_margin' : 'remove_margin',
           [PerpsEventProperties.MARGIN_USED]: Math.abs(parseFloat(amount)),
@@ -1663,13 +1663,13 @@ export class TradingService {
 
       this.deps.logger.error(
         ensureError(error),
-        this.getErrorContext('updateMargin', { coin, amount }),
+        this.getErrorContext('updateMargin', { symbol, amount }),
       );
 
       // Track failure analytics
-      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RISK_MANAGEMENT, {
+      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.RiskManagement, {
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: coin,
+        [PerpsEventProperties.ASSET]: symbol,
         [PerpsEventProperties.ACTION]:
           parseFloat(amount) > 0 ? 'add_margin' : 'remove_margin',
         [PerpsEventProperties.MARGIN_USED]: Math.abs(parseFloat(amount)),
@@ -1706,7 +1706,7 @@ export class TradingService {
         op: PerpsTraceOperations.POSITION_MANAGEMENT,
         tags: {
           provider: context.tracingContext.provider,
-          coin: position.coin,
+          symbol: position.symbol,
           isTestnet: String(context.tracingContext.isTestnet),
         },
       });
@@ -1740,7 +1740,7 @@ export class TradingService {
       // Create order params for flip
       // Use 2x position size: 1x to close current position + 1x to open opposite position
       const orderParams: OrderParams = {
-        coin: position.coin,
+        symbol: position.symbol,
         isBuy: oppositeDirection,
         size: flipSize.toString(),
         orderType: 'market',
@@ -1763,10 +1763,10 @@ export class TradingService {
 
         // Track success analytics
         this.deps.metrics.trackPerpsEvent(
-          PerpsAnalyticsEvent.TRADE_TRANSACTION,
+          PerpsAnalyticsEvent.TradeTransaction,
           {
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-            [PerpsEventProperties.ASSET]: position.coin,
+            [PerpsEventProperties.ASSET]: position.symbol,
             [PerpsEventProperties.DIRECTION]: oppositeDirection
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
@@ -1793,13 +1793,13 @@ export class TradingService {
 
       this.deps.logger.error(
         ensureError(error),
-        this.getErrorContext('flipPosition', { coin: position.coin }),
+        this.getErrorContext('flipPosition', { symbol: position.symbol }),
       );
 
       // Track failure analytics
-      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TRADE_TRANSACTION, {
+      this.deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.ASSET]: position.coin,
+        [PerpsEventProperties.ASSET]: position.symbol,
         [PerpsEventProperties.ACTION]: 'flip_position',
         [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
         [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,

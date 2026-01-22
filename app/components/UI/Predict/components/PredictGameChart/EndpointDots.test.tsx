@@ -91,8 +91,8 @@ describe('EndpointDots', () => {
       const textElements = getAllByTestId('svg-text');
       const textContents = textElements.map((el) => el.children[0]);
 
-      expect(textContents).toContain('Team A');
-      expect(textContents).toContain('Team B');
+      expect(textContents).toContain('TEAM A');
+      expect(textContents).toContain('TEAM B');
     });
 
     it('renders values with percentage format', () => {

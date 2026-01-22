@@ -168,7 +168,7 @@ describe('PerpsChartFullscreenModal', () => {
   };
 
   const mockCandleData: CandleData = {
-    coin: 'BTC',
+    symbol: 'BTC',
     interval: CandlePeriod.ONE_HOUR,
     candles: [
       {

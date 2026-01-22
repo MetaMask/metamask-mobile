@@ -1419,6 +1419,7 @@
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
       "failed_to_toggle_network": "Failed to toggle network",
+      "failed_to_switch_provider": "Failed to switch provider",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1814,7 +1815,8 @@
       "price_change_low_to_high": "Price change: low to high",
       "past_hour": "Past hour",
       "past_24_hours": "Past 24 hours",
-      "time": "Time"
+      "time": "Time",
+      "apply": "Apply"
     },
     "perps_markets": "Perps markets",
     "volume": "Volume",
@@ -1831,6 +1833,7 @@
     "mainnet": "Mainnet",
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "provider_mode_toggle": "Provider Mode",
       "simulate_connection_error": "Simulate connection error"
     },
     "transactions": {
@@ -2979,6 +2982,7 @@
       "description": "Region & more...",
       "current_region": "Current region",
       "reset_region": "Reset region",
+      "change_region": "Change region",
       "no_region_selected": "No region selected",
       "sdk_activation_keys": "SDK activation keys",
       "activation_keys_description": "Activation keys will enable specific features or providers.",
@@ -3270,6 +3274,11 @@
     "bridge": "Bridge",
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
+    "merkl_rewards": {
+      "annual_bonus": "{{apy}}% bonus",
+      "claimable_bonus": "Claimable bonus",
+      "claim": "Claim"
+    },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -4847,6 +4856,7 @@
       "title": "Select your region",
       "description": "The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.",
       "sell_description": "Cash destination options and tokens may vary depending on your region.",
+      "region_variation_notice": "Payment methods and available tokens may vary based on your region and our providers.",
       "search_by_country": "Search by country",
       "search_by_state": "Search by state",
       "no_region_results": "No region matches",
@@ -5710,6 +5720,7 @@
     },
     "musd_conversion": {
       "convert_to_musd": "Convert to mUSD",
+      "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
@@ -5718,15 +5729,16 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "Boost Earnings with mUSD",
-        "description": "Get an automatic mUSD bonus when you convert your stablecoins to mUSD, MetaMask’s dollar-backed stable.",
-        "primary_button": "Convert to mUSD",
+        "heading": "GET {{percentage}}% ON STABLECOINS",
+        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus. Terms apply.",
+        "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "boost_title": "Boost your stablecoin balance",
-      "boost_description": "Earn a bonus every time you convert stablecoins to"
+      "boost_description": "Earn a bonus every time you convert stablecoins to",
+      "powered_by_relay": "Powered by Relay"
     },
     "rewards": {
       "rewards_tag_label": "Rewards",
@@ -6047,7 +6059,8 @@
       },
       "title": {
         "transaction_fee": "Fees"
-      }
+      },
+      "network_fee": "Network fees depend on how busy the network is and how complex your transaction is."
     },
     "spending_cap": "Spending cap",
     "withdraw": "Withdraw",
@@ -6543,6 +6556,7 @@
       "title": "Spend\nand\nEarn",
       "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% cashback.",
       "apply_now_button": "Apply now",
+      "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
@@ -6700,22 +6714,24 @@
       }
     },
     "card_home": {
+      "title": "Card",
+      "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
       "try_again": "Try again",
-      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
       "enable_card_button_label": "Enable card",
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "logout": "Log out",
-      "logout_description": "Log out from your MetaMask Card account",
       "logout_confirmation_title": "Log out of Card?",
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
       "enable_card_error": "Failed to enable card. Please try again later.",
+      "view_card_details_error": "Unable to load card details. Please try again.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -6744,6 +6760,12 @@
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
         }
       },
+      "messages": {
+        "card_provisioning": {
+          "title": "Card being created",
+          "description": "Your card is being created. This may take a few moments."
+        }
+      },
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
@@ -6765,15 +6787,17 @@
         "ok_button": "OK"
       },
       "manage_card_options": {
-        "manage_spending_limit": "Manage spending limit",
+        "view_card_details": "View card details",
+        "hide_card_details": "Hide card details",
+        "view_card_details_description": "Card number, expiration and CVV",
+        "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See card details, transactions and more",
+        "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
-        "travel_description": "Book hotels with up to 60% discounts vs. Expedia",
-        "card_tos_title": "Card Terms and Conditions",
-        "card_tos_description": "Read the card provider's terms"
+        "travel_description": "Book hotels with up to 70% discounts",
+        "card_tos_title": "Terms and conditions"
       }
     },
     "card_spending_limit": {

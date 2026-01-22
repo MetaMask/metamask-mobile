@@ -96,7 +96,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Get market data for szDecimals with automatic error toast handling
   const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
-    asset: position.coin,
+    asset: position.symbol,
     showErrorToast: true,
   });
 
@@ -120,11 +120,11 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
-    symbols: [position.coin],
+    symbols: [position.symbol],
     throttleMs: 1000,
   });
-  const currentPrice = priceData[position.coin]?.price
-    ? parseFloat(priceData[position.coin].price)
+  const currentPrice = priceData[position.symbol]?.price
+    ? parseFloat(priceData[position.symbol].price)
     : parseFloat(position.entryPrice);
 
   // Use ref to access latest price without triggering fee recalculations
@@ -134,7 +134,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({
-    symbol: position.coin,
+    symbol: position.symbol,
   });
 
   // Subscribe to live position updates for this coin
@@ -143,7 +143,7 @@ const PerpsClosePositionView: React.FC = () => {
     throttleMs: 1000,
   });
   const livePosition = useMemo(
-    () => livePositions.find((p) => p.coin === position.coin) || position,
+    () => livePositions.find((p) => p.symbol === position.symbol) || position,
     [livePositions, position],
   );
 
@@ -252,7 +252,7 @@ const PerpsClosePositionView: React.FC = () => {
   const feeResults = usePerpsOrderFees({
     orderType,
     amount: closingValueString,
-    coin: position.coin,
+    symbol: position.symbol,
     isClosing: true,
     limitPrice,
     direction: isLong ? 'short' : 'long',
@@ -292,7 +292,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
-    asset: position.coin,
+    asset: position.symbol,
   });
 
   // Calculate remaining position value after partial close
@@ -301,7 +301,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Use the validation hook
   const validationResult = usePerpsClosePositionValidation({
-    coin: position.coin,
+    symbol: position.symbol,
     closePercentage,
     closeAmount: closeAmount.toString(),
     orderType,
@@ -329,7 +329,7 @@ const PerpsClosePositionView: React.FC = () => {
     properties: {
       [PerpsEventProperties.SCREEN_TYPE]:
         PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
-      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ASSET]: position.symbol,
       [PerpsEventProperties.DIRECTION]: isLong
         ? PerpsEventValues.DIRECTION.LONG
         : PerpsEventValues.DIRECTION.SHORT,
@@ -394,7 +394,7 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
       },
-      marketPrice: priceData[position.coin]?.price,
+      marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context
       // For 100% closes, omit usdAmount to bypass $10 minimum validation
       slippage: {
@@ -565,10 +565,10 @@ const PerpsClosePositionView: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <PerpsOrderHeader
-        asset={position.coin}
+        asset={position.symbol}
         price={currentPrice}
         priceChange={parseFloat(
-          priceData[position.coin]?.percentChange24h ?? '0',
+          priceData[position.symbol]?.percentChange24h ?? '0',
         )}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
@@ -592,14 +592,14 @@ const PerpsClosePositionView: React.FC = () => {
           isActive={isInputFocused}
           tokenAmount={formatPositionSize(closeAmount, marketData?.szDecimals)}
           hasError={filteredErrors.length > 0}
-          tokenSymbol={position.coin}
+          tokenSymbol={position.symbol}
           showMaxAmount={false}
         />
 
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.coin)}`}
+            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
         </View>
 
@@ -769,7 +769,7 @@ const PerpsClosePositionView: React.FC = () => {
           // Close after confirmation explicitly
           setIsLimitPriceVisible(false);
         }}
-        asset={position.coin}
+        asset={position.symbol}
         limitPrice={limitPrice}
         currentPrice={currentPrice}
         direction={isLong ? 'short' : 'long'} // Opposite direction for closing

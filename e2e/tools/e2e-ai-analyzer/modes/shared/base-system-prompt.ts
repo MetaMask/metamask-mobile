@@ -40,6 +40,7 @@ export function buildReasoningSection(): string {
   - TabBar/Navigation: Most tests navigate between screens
   - Modals/BottomSheets: Confirmations, permissions, transaction flows
   - Confirmations: Send, swap, signature tests
+- For CI/workflow/infrastructure changes (.github/workflows/, e2e/fixtures/, e2e/pages/, e2e/utils/, build configs), consider whether tests should run to validate the pipeline still works
 - Investigate thoroughly before finalising - review diffs and trace dependencies`;
 }
 
