@@ -712,12 +712,48 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.batchCancelFailed');
     });
 
+    it('translates cancel all error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Failed to cancel all orders',
+      });
+
+      expect(result).toBe('perps.errors.batchCancelFailed');
+    });
+
+    it('does not match single order cancellation as batch cancel', () => {
+      const result = handlePerpsError({
+        error: 'Order cancellation failed',
+        fallbackMessage: 'Order operation failed',
+      });
+
+      // Should NOT match batch cancel pattern - should use fallback
+      expect(result).toBe('Order operation failed');
+    });
+
     it('translates batch close failed error pattern', () => {
       const result = handlePerpsError({
         error: 'Batch close failed: some positions still open',
       });
 
       expect(result).toBe('perps.errors.batchCloseFailed');
+    });
+
+    it('translates close all error pattern', () => {
+      const result = handlePerpsError({
+        error: 'Failed to close all positions',
+      });
+
+      expect(result).toBe('perps.errors.batchCloseFailed');
+    });
+
+    it('does not match single position close as batch close', () => {
+      const result = handlePerpsError({
+        error: 'Position close failed',
+        fallbackMessage: 'Position operation failed',
+      });
+
+      // Should NOT match batch close pattern - should use fallback
+      expect(result).toBe('Position operation failed');
     });
 
     it('translates service unavailable error pattern', () => {

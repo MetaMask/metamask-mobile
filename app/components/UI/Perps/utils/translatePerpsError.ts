@@ -167,13 +167,14 @@ const API_ERROR_PATTERNS: {
     pattern: /no price available|price unavailable|price data unavailable/i,
     errorCode: PERPS_ERROR_CODES.PRICE_UNAVAILABLE,
   },
-  // Batch operation errors
+  // Batch operation errors - use specific patterns to avoid matching single-order errors
+  // e.g., "Order cancellation failed" should NOT match batch cancel
   {
-    pattern: /batch cancel failed|cancel.*failed/i,
+    pattern: /batch cancel|cancel all|bulk cancel|multiple.*cancel/i,
     errorCode: PERPS_ERROR_CODES.BATCH_CANCEL_FAILED,
   },
   {
-    pattern: /batch close failed|close.*failed/i,
+    pattern: /batch close|close all|bulk close|multiple.*close/i,
     errorCode: PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
   },
   // Rate limiting
