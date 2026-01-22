@@ -83,10 +83,6 @@ function isRedesignedTransaction({
     return confirmationRedesignFlags?.contract_deployment;
   }
 
-  if(transactionType === TransactionType.lendingDeposit) {
-    return true;
-  }
-
   return false;
 }
 
