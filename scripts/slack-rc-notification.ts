@@ -139,12 +139,12 @@ function formatChangesForSlack(changes: ReleaseChanges, maxEntries = 15): string
   ];
 
   const categoryEmojis: Record<ChangeCategory, string> = {
-    Added: '✨',
-    Fixed: '🐛',
-    Changed: '🔄',
-    Deprecated: '⚠️',
-    Removed: '🗑️',
-    Uncategorized: '📝',
+    Added: '•',
+    Fixed: '•',
+    Changed: '•',
+    Deprecated: '•',
+    Removed: '•',
+    Uncategorized: '•',
   };
 
   for (const category of categoryOrder) {
