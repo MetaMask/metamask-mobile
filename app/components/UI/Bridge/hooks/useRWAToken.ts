@@ -16,6 +16,8 @@ export function useRWAToken() {
     return Number.isFinite(ms) ? ms : null;
   }
 
+  // TODO: Borrowed isRwaTokenTradable function from crosschain API src/utils/tokens.ts file.
+  // To be removed once `isOpen` flag is also available from token API
   /**
    * Checks if the token is trading open
    * @param token - The token to check
@@ -23,11 +25,7 @@ export function useRWAToken() {
    */
   const isTokenTradingOpen = useCallback(
     async (token: BridgeToken) => {
-      if (!isRWAEnabled) {
-        return true;
-      }
-      // compare the current time against the token metadata
-      if (!token.rwaData) {
+      if (!isRWAEnabled || !token.rwaData) {
         return true;
       }
       const nextOpenMs = toMs(token.rwaData?.market?.nextOpen);
@@ -36,7 +34,12 @@ export function useRWAToken() {
 
       const nowMs = new Date().getTime();
 
-      const marketIsOpen = nextCloseMs < nextOpenMs && nowMs < nextCloseMs;
+      let marketIsOpen;
+      if (nextCloseMs > nextOpenMs) {
+        marketIsOpen = nowMs >= nextOpenMs && nowMs < nextCloseMs;
+      } else {
+        marketIsOpen = nowMs < nextCloseMs || nowMs >= nextOpenMs;
+      }
 
       const pauseStartMs = toMs(token.rwaData?.nextPause?.start);
       const pauseEndMs = toMs(token.rwaData?.nextPause?.end);
