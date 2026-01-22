@@ -72,16 +72,18 @@ describe('onRpcEndpointUnavailable', () => {
 
       // The names of Segment properties have a particular case.
       /* eslint-disable @typescript-eslint/naming-convention */
-      expect(trackEvent).toHaveBeenCalledWith({
-        event: {
-          category: 'RPC Service Unavailable',
-        },
-        properties: {
-          chain_id_caip: 'eip155:11155111',
-          rpc_endpoint_url: 'example.com',
-          rpc_domain: 'example.com',
-        },
-      });
+      expect(trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'RPC Service Unavailable',
+          properties: {
+            chain_id_caip: 'eip155:11155111',
+            rpc_endpoint_url: 'example.com',
+            rpc_domain: 'example.com',
+          },
+          sensitiveProperties: {},
+          saveDataRecording: false,
+        }),
+      );
       /* eslint-enable @typescript-eslint/naming-convention */
     });
 
@@ -102,17 +104,19 @@ describe('onRpcEndpointUnavailable', () => {
 
       // The names of Segment properties have a particular case.
       /* eslint-disable @typescript-eslint/naming-convention */
-      expect(trackEvent).toHaveBeenCalledWith({
-        event: {
-          category: 'RPC Service Unavailable',
-        },
-        properties: {
-          chain_id_caip: 'eip155:11155111',
-          http_status: 420,
-          rpc_endpoint_url: 'example.com',
-          rpc_domain: 'example.com',
-        },
-      });
+      expect(trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'RPC Service Unavailable',
+          properties: {
+            chain_id_caip: 'eip155:11155111',
+            http_status: 420,
+            rpc_endpoint_url: 'example.com',
+            rpc_domain: 'example.com',
+          },
+          sensitiveProperties: {},
+          saveDataRecording: false,
+        }),
+      );
       /* eslint-enable @typescript-eslint/naming-convention */
     });
 
@@ -133,16 +137,18 @@ describe('onRpcEndpointUnavailable', () => {
 
       // The names of Segment properties have a particular case.
       /* eslint-disable @typescript-eslint/naming-convention */
-      expect(trackEvent).toHaveBeenCalledWith({
-        event: {
-          category: 'RPC Service Unavailable',
-        },
-        properties: {
-          chain_id_caip: 'eip155:11155111',
-          rpc_endpoint_url: 'custom',
-          rpc_domain: 'custom',
-        },
-      });
+      expect(trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'RPC Service Unavailable',
+          properties: {
+            chain_id_caip: 'eip155:11155111',
+            rpc_endpoint_url: 'custom',
+            rpc_domain: 'custom',
+          },
+          sensitiveProperties: {},
+          saveDataRecording: false,
+        }),
+      );
       /* eslint-enable @typescript-eslint/naming-convention */
     });
   });
@@ -232,16 +238,18 @@ describe('onRpcEndpointDegraded', () => {
 
       // The names of Segment properties have a particular case.
       /* eslint-disable @typescript-eslint/naming-convention */
-      expect(trackEvent).toHaveBeenCalledWith({
-        event: {
-          category: 'RPC Service Degraded',
-        },
-        properties: {
-          chain_id_caip: 'eip155:11155111',
-          rpc_endpoint_url: 'example.com',
-          rpc_domain: 'example.com',
-        },
-      });
+      expect(trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'RPC Service Degraded',
+          properties: {
+            chain_id_caip: 'eip155:11155111',
+            rpc_endpoint_url: 'example.com',
+            rpc_domain: 'example.com',
+          },
+          sensitiveProperties: {},
+          saveDataRecording: false,
+        }),
+      );
       /* eslint-enable @typescript-eslint/naming-convention */
     });
 
@@ -262,17 +270,19 @@ describe('onRpcEndpointDegraded', () => {
 
       // The names of Segment properties have a particular case.
       /* eslint-disable @typescript-eslint/naming-convention */
-      expect(trackEvent).toHaveBeenCalledWith({
-        event: {
-          category: 'RPC Service Degraded',
-        },
-        properties: {
-          chain_id_caip: 'eip155:11155111',
-          http_status: 420,
-          rpc_endpoint_url: 'example.com',
-          rpc_domain: 'example.com',
-        },
-      });
+      expect(trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'RPC Service Degraded',
+          properties: {
+            chain_id_caip: 'eip155:11155111',
+            http_status: 420,
+            rpc_endpoint_url: 'example.com',
+            rpc_domain: 'example.com',
+          },
+          sensitiveProperties: {},
+          saveDataRecording: false,
+        }),
+      );
       /* eslint-enable @typescript-eslint/naming-convention */
     });
 
@@ -293,16 +303,18 @@ describe('onRpcEndpointDegraded', () => {
 
       // The names of Segment properties have a particular case.
       /* eslint-disable @typescript-eslint/naming-convention */
-      expect(trackEvent).toHaveBeenCalledWith({
-        event: {
-          category: 'RPC Service Degraded',
-        },
-        properties: {
-          chain_id_caip: 'eip155:11155111',
-          rpc_endpoint_url: 'custom',
-          rpc_domain: 'custom',
-        },
-      });
+      expect(trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'RPC Service Degraded',
+          properties: {
+            chain_id_caip: 'eip155:11155111',
+            rpc_endpoint_url: 'custom',
+            rpc_domain: 'custom',
+          },
+          sensitiveProperties: {},
+          saveDataRecording: false,
+        }),
+      );
       /* eslint-enable @typescript-eslint/naming-convention */
     });
   });
