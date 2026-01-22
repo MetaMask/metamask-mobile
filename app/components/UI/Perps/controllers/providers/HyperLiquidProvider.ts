@@ -3384,7 +3384,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const position = positions.find((p) => p.symbol === symbol);
 
       if (!position) {
-        throw new Error(`No position found for ${symbol}`);
+        // Position may have been closed/liquidated between UI render and action
+        this.deps.debugLogger.log(
+          `[updatePositionTPSL] No position found for ${symbol} - may have been closed`,
+        );
+        return {
+          success: false,
+          error: `Position not found for ${symbol} - it may have been closed or liquidated`,
+        };
       }
 
       const positionSize = Math.abs(parseFloat(position.size));
@@ -3624,7 +3631,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const position = positions.find((p) => p.symbol === params.symbol);
 
       if (!position) {
-        throw new Error(`No position found for ${params.symbol}`);
+        // Position may have been closed/liquidated between UI render and action
+        this.deps.debugLogger.log(
+          `[closePosition] No position found for ${params.symbol} - may have been closed`,
+        );
+        return {
+          success: false,
+          error: `Position not found for ${params.symbol} - it may have been closed or liquidated`,
+        };
       }
 
       const positionSize = parseFloat(position.size);
@@ -3764,7 +3778,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const position = positions.find((p) => p.symbol === symbol);
 
       if (!position) {
-        throw new Error(`No position found for ${symbol}`);
+        // Position may have been closed/liquidated between UI render and action
+        this.deps.debugLogger.log(
+          `[updateMargin] No position found for ${symbol} - may have been closed`,
+        );
+        return {
+          success: false,
+          error: `Position not found for ${symbol} - it may have been closed or liquidated`,
+        };
       }
 
       // Determine position direction

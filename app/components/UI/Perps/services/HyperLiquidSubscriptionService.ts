@@ -973,7 +973,11 @@ export class HyperLiquidSubscriptionService {
     const subscriptionClient = this.clientService.getSubscriptionClient();
 
     if (!subscriptionClient) {
-      throw new Error('Subscription client not initialized');
+      // Gracefully skip during reconnection - subscription will be retried when client is ready
+      this.deps.debugLogger.log(
+        '[SubscriptionService] createUserDataSubscription: Subscription client not available - skipping',
+      );
+      return;
     }
 
     const userAddress =
@@ -1264,7 +1268,15 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      throw new Error('Subscription client not available');
+      // Gracefully skip during reconnection - subscription will be retried when client is ready
+      this.deps.debugLogger.log(
+        '[SubscriptionService] clearinghouseState: Subscription client not available - skipping',
+        {
+          dex: dexName || 'main',
+          userAddress: userAddress.slice(0, 10) + '...',
+        },
+      );
+      return;
     }
 
     try {
@@ -1357,7 +1369,15 @@ export class HyperLiquidSubscriptionService {
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
-      throw new Error('Subscription client not available');
+      // Gracefully skip during reconnection - subscription will be retried when client is ready
+      this.deps.debugLogger.log(
+        '[SubscriptionService] openOrders: Subscription client not available - skipping',
+        {
+          dex: dexName || 'main',
+          userAddress: userAddress.slice(0, 10) + '...',
+        },
+      );
+      return;
     }
 
     try {
@@ -1739,7 +1759,11 @@ export class HyperLiquidSubscriptionService {
       );
       const client = this.clientService.getSubscriptionClient();
       if (!client) {
-        throw new Error('SubscriptionClient not available');
+        // Gracefully skip during reconnection - subscription will be retried when client is ready
+        this.deps.debugLogger.log(
+          '[SubscriptionService] ensureOrderFillSubscription: Subscription client not available - skipping',
+        );
+        return;
       }
       return this.ensureOrderFillISubscription(accountId);
     }
@@ -2224,7 +2248,12 @@ export class HyperLiquidSubscriptionService {
     const subscriptionClient = this.clientService.getSubscriptionClient();
 
     if (!subscriptionClient) {
-      throw new Error('Subscription client not initialized');
+      // Gracefully skip during reconnection - subscription will be retried when client is ready
+      this.deps.debugLogger.log(
+        '[SubscriptionService] createAssetCtxsSubscription: Subscription client not available - skipping',
+        { dex: dex || 'main' },
+      );
+      return;
     }
 
     const dexKey = dex || '';
