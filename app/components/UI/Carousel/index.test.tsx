@@ -98,15 +98,22 @@ jest.mock('./fetchCarouselSlidesFromContentful', () => ({
 }));
 
 jest.mock('../Predict/components/PredictMarketSportCard', () => {
+  const { useEffect } = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
     PredictMarketSportCardWrapper: function MockPredictMarketSportCardWrapper({
       marketId,
       testID,
+      onLoad,
     }: {
       marketId: string;
       testID?: string;
+      onLoad?: () => void;
     }) {
+      useEffect(() => {
+        onLoad?.();
+      }, [onLoad]);
+
       return (
         <View testID={testID ?? 'predict-sport-card-wrapper'}>
           <Text testID="predict-sport-card-market-id">{marketId}</Text>

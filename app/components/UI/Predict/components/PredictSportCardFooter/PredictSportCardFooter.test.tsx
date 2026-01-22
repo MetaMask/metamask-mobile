@@ -699,5 +699,31 @@ describe('PredictSportCardFooter', () => {
 
       expect(screen.getByTestId('mock-action-buttons')).toBeOnTheScreen();
     });
+
+    it('renders picks without testID when testID prop is not provided', () => {
+      const market = createMockMarket({ status: PredictMarketStatus.OPEN });
+      const positions = [createMockPosition({ claimable: false })];
+      setupPositionsMock({ activePositions: positions });
+
+      render(<PredictSportCardFooter market={market} />);
+
+      expect(screen.getByTestId('mock-picks-for-card')).toBeOnTheScreen();
+    });
+
+    it('renders claim button without testID when testID prop is not provided', () => {
+      const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
+      const claimablePositions = [
+        createMockPosition({ claimable: true, currentValue: 50 }),
+      ];
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
+      });
+
+      render(<PredictSportCardFooter market={market} />);
+
+      expect(screen.getByTestId('mock-action-buttons')).toBeOnTheScreen();
+      expect(screen.getByText('Claim $50')).toBeOnTheScreen();
+    });
   });
 });
