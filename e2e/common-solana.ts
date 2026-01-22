@@ -6,7 +6,7 @@ import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import { DappVariants } from './framework/Constants';
+import { DappVariants } from '../tests/framework/Constants';
 
 export async function withSolanaAccountEnabled(
   {
