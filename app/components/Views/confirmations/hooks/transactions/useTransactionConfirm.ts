@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { resetTransaction } from '../../../../../actions/transaction';
@@ -35,7 +35,6 @@ export function useTransactionConfirm(options?: {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const navigationState = useNavigationState((state) => state);
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
@@ -147,20 +146,9 @@ export function useTransactionConfirm(options?: {
     }
 
     if (type === TransactionType.perpsDeposit) {
-      // If we can go back (e.g., from PerpsOrderView), go back to previous screen
-      // Otherwise, navigate to Perps home (e.g., when initiated from home screen)
-      const canGoBack = navigation.canGoBack();
-      const previousRoute =
-        navigationState?.routes?.[navigationState.index - 1];
-      const isFromPerpsOrder = previousRoute?.name === Routes.PERPS.ORDER;
-
-      if (canGoBack && (isFromPerpsOrder || isFullScreenConfirmation)) {
-        navigation.goBack();
-      } else {
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
-      }
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+      });
     } else if (type === TransactionType.musdConversion) {
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
@@ -188,7 +176,6 @@ export function useTransactionConfirm(options?: {
     isFullScreenConfirmation,
     isGaslessSupportedSTX,
     navigation,
-    navigationState,
     onConfirmCallback,
     onRequestConfirm,
     selectedGasFeeToken,
