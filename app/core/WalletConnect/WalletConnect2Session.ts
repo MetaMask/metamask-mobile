@@ -145,7 +145,7 @@ class WalletConnect2Session {
           fromHomepage: { current: false },
           injectHomePageScripts: () => false,
           navigation: this.navigation,
-          url: { current: normalizedUrl },
+          url: { current: url },
           title: { current: name },
           icon: { current: icons?.[0] as ImageSourcePropType },
           toggleUrlModal: () => null,
@@ -167,7 +167,7 @@ class WalletConnect2Session {
   }
 
   private get origin() {
-    return this.normalizedUrl;
+    return this.session.peer.metadata.url;
   }
 
   private get hostname() {
