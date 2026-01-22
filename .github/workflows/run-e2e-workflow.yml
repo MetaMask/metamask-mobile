@@ -108,6 +108,7 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: |
+            set -e
             echo "📱 Installing Android system images for E2E tests..."
             "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
             echo "✅ System images installed"
