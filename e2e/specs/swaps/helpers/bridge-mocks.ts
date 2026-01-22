@@ -1,6 +1,6 @@
 import { Mockttp } from 'mockttp';
-import { TestSpecificMock } from '../../../framework';
-import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { TestSpecificMock } from '../../../../tests/framework';
+import { setupMockRequest } from '../../../../tests/api-mocking/helpers/mockHelpers';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_SOLANA_RESPONSE,
