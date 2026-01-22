@@ -209,6 +209,31 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+const createMockAnalyticsEventBuilder = () => ({
+  addProperties: jest.fn().mockReturnThis(),
+  addSensitiveProperties: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({})),
+});
+
+const mockUseAnalytics = {
+  trackEvent: jest.fn(),
+  createEventBuilder: jest.fn(() => createMockAnalyticsEventBuilder()),
+  isEnabled: jest.fn().mockReturnValue(true),
+  enable: jest.fn().mockResolvedValue(undefined),
+  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
+  createDataDeletionTask: jest.fn().mockResolvedValue({ regulationId: 'mock-id' }),
+  checkDataDeleteStatus: jest.fn().mockResolvedValue({ status: 'pending' }),
+  getDeleteRegulationCreationDate: jest.fn().mockReturnValue(new Date()),
+  getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
+  isDataRecorded: jest.fn().mockReturnValue(true),
+  getMetaMetricsId: jest.fn().mockResolvedValue('mock-analytics-id'),
+};
+
+jest.mock('../../components/hooks/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => mockUseAnalytics),
+  withAnalyticsAwareness: jest.fn((Component) => Component),
+}));
+
 let mockState = {};
 
 jest.mock('../../store', () => ({
