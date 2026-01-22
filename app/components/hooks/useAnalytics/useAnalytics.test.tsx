@@ -112,7 +112,7 @@ describe('useAnalytics', () => {
     const mockGetInstance = MetaMetrics.getInstance as jest.MockedFunction<
       typeof MetaMetrics.getInstance
     >;
-    mockGetInstance.mockReturnValue(mockMetaMetrics as IMetaMetrics);
+    mockGetInstance.mockReturnValue(mockMetaMetrics as unknown as IMetaMetrics);
 
     mockAnalyticsEvent = buildAnalyticsEvent(false);
     mockEventBuilder = createMockEventBuilder(mockAnalyticsEvent);
