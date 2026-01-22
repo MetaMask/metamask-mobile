@@ -294,7 +294,10 @@ jobs:
       ${{
         github.event_name != 'merge_group' &&
         needs.needs_e2e_build.outputs.android_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        (
+          !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') ||
+          needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+        )
       }}
     permissions:
       contents: read
@@ -330,7 +333,10 @@ jobs:
       ${{
         github.event_name != 'merge_group' &&
         needs.needs_e2e_build.outputs.ios_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        (
+          !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') ||
+          needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+        )
       }}
     permissions:
       contents: read
