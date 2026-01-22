@@ -429,6 +429,7 @@ class WalletConnect {
       const rawUrl = peerInfo.peerMeta?.url;
 
       if (!isValidUrl(rawUrl)) {
+        Logger.log('WC: Rejecting new session with invalid dApp URL:', rawUrl);
         throw new Error(`Invalid dApp URL: ${rawUrl}`);
       }
 
