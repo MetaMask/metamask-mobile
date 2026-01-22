@@ -343,7 +343,10 @@ class WalletConnect {
       // For existing sessions from storage, normalize URL as a safety measure for legacy data.
       normalizedUrl = normalizeDappUrl(rawUrl);
       if (!normalizedUrl) {
-        Logger.log('WC: Rejecting persisted session with invalid dApp URL:', rawUrl);
+        Logger.log(
+          'WC: Rejecting persisted session with invalid dApp URL:',
+          rawUrl,
+        );
         this.killSession();
         throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
       }
@@ -446,19 +449,28 @@ const instance = {
       const sessions = JSON.parse(sessionData);
 
       sessions.forEach((session) => {
-        if (session.lastTimeConnected) {
-          const sessionDate = new Date(session.lastTimeConnected);
-          const diffBetweenDatesInMs = msBetweenDates(sessionDate);
-          const diffInHours = msToHours(diffBetweenDatesInMs);
+        try {
+          if (session.lastTimeConnected) {
+            const sessionDate = new Date(session.lastTimeConnected);
+            const diffBetweenDatesInMs = msBetweenDates(sessionDate);
+            const diffInHours = msToHours(diffBetweenDatesInMs);
 
-          if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
-            connectors.push(new WalletConnect({ session }, true));
+            if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
+              connectors.push(new WalletConnect({ session }, true));
+            } else {
+              const connector = new WalletConnect({ session }, true);
+              connector.killSession();
+            }
           } else {
-            const connector = new WalletConnect({ session }, true);
-            connector.killSession();
+            connectors.push(new WalletConnect({ session }, true));
           }
-        } else {
-          connectors.push(new WalletConnect({ session }, true));
+        } catch (error) {
+          // If a session fails to initialize (e.g., invalid URL), log the error
+          // and continue processing remaining sessions instead of stopping the loop
+          Logger.log(
+            `WC: Failed to initialize session during init: ${error.message}`,
+            session,
+          );
         }
       });
     }

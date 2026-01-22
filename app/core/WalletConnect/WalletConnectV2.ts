@@ -447,9 +447,7 @@ export class WC2Manager {
 
     // Validate new session proposal URL without normalizing - reject if invalid.
     if (!isValidUrl(url)) {
-      console.warn(
-        `WC2::session_proposal rejected - invalid dApp URL: ${url}`,
-      );
+      console.warn(`WC2::session_proposal rejected - invalid dApp URL: ${url}`);
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -458,9 +456,7 @@ export class WC2Manager {
     }
 
     if (url === ORIGIN_METAMASK) {
-      console.warn(
-        `WC2::session_proposal rejected - invalid url: ${url}`,
-      );
+      console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -478,9 +474,7 @@ export class WC2Manager {
     );
 
     // Save Connection info to redux store to be retrieved in ui.
-    store.dispatch(
-      updateWC2Metadata({ url, name, icon, id: `${id}` }),
-    );
+    store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
     // Get the current chain ID to include in permissions
     const walletChainIdHex = selectEvmChainId(store.getState());

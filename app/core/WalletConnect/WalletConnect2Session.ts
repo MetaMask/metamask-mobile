@@ -112,7 +112,6 @@ class WalletConnect2Session {
       throw new Error(`Invalid dApp URL in session metadata: ${url}`);
     }
 
-
     DevLogger.log(
       `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
     );
