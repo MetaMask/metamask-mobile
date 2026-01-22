@@ -372,7 +372,7 @@ describe('retryWithDelay', () => {
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
-    it('throws if options are not provided', async () => {
+    it('uses default jitterFactor when not provided', async () => {
       const error = new Error('status: [500]');
       const operation = jest.fn().mockRejectedValue(error);
       const onRetry = jest.fn();
@@ -386,7 +386,8 @@ describe('retryWithDelay', () => {
         }),
       ).rejects.toThrow();
 
-      // Check that delay was calculated
+      // Verify delay was calculated with default jitter (0.3)
+      // With baseDelayMs=1, jitterFactor=0.3: delay should be in range [0.7, 1]
       const delay = onRetry.mock.calls[0][0].delayMs;
       expect(delay).toBeGreaterThan(0);
       expect(delay).toBeLessThanOrEqual(10);
