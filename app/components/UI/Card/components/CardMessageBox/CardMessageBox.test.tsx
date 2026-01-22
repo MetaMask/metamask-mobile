@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import CardWarningBox from './CardWarningBox';
-import { CardWarningBoxType } from '../../types';
+import CardMessageBox from './CardMessageBox';
+import { CardMessageBoxType } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
@@ -17,6 +17,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.warnings.kyc_pending.title': 'Verification in Progress',
       'card.card_home.warnings.kyc_pending.description':
         'Your identity verification is still being reviewed.',
+      'card.card_home.messages.card_provisioning.title':
+        'Card being provisioned',
+      'card.card_home.messages.card_provisioning.description':
+        'Your card is being automatically provisioned. This may take a few moments.',
       'card.card_spending_limit.dismiss': 'Dismiss',
     };
     return mockStrings[key] || key;
@@ -27,7 +31,7 @@ function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
     component,
     {
-      name: 'CardWarningBox',
+      name: 'CardMessageBox',
     },
     {
       state: {
@@ -39,7 +43,7 @@ function renderWithProvider(component: React.ComponentType) {
   );
 }
 
-describe('CardWarningBox', () => {
+describe('CardMessageBox', () => {
   const mockOnConfirm = jest.fn();
   const mockOnDismiss = jest.fn();
 
@@ -50,7 +54,7 @@ describe('CardWarningBox', () => {
   describe('CloseSpendingLimit warning', () => {
     it('renders warning icon', () => {
       const { getByTestId } = renderWithProvider(() => (
-        <CardWarningBox warning={CardWarningBoxType.CloseSpendingLimit} />
+        <CardMessageBox messageType={CardMessageBoxType.CloseSpendingLimit} />
       ));
 
       expect(getByTestId('icon')).toBeOnTheScreen();
@@ -58,7 +62,7 @@ describe('CardWarningBox', () => {
 
     it('renders title and description', () => {
       const { getByText } = renderWithProvider(() => (
-        <CardWarningBox warning={CardWarningBoxType.CloseSpendingLimit} />
+        <CardMessageBox messageType={CardMessageBoxType.CloseSpendingLimit} />
       ));
 
       expect(getByText('Close Spending Limit')).toBeOnTheScreen();
@@ -71,8 +75,8 @@ describe('CardWarningBox', () => {
 
     it('renders confirm button when onConfirm is provided', () => {
       const { getByText } = renderWithProvider(() => (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onConfirm={mockOnConfirm}
         />
       ));
@@ -82,8 +86,8 @@ describe('CardWarningBox', () => {
 
     it('calls onConfirm when confirm button is pressed', () => {
       const { getByTestId } = renderWithProvider(() => (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onConfirm={mockOnConfirm}
         />
       ));
@@ -94,8 +98,8 @@ describe('CardWarningBox', () => {
 
     it('shows loading state on confirm button when onConfirmLoading is true', () => {
       const { getByTestId } = renderWithProvider(() => (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onConfirm={mockOnConfirm}
           onConfirmLoading
         />
@@ -109,7 +113,7 @@ describe('CardWarningBox', () => {
   describe('KYCPending warning', () => {
     it('renders warning icon', () => {
       const { getByTestId } = renderWithProvider(() => (
-        <CardWarningBox warning={CardWarningBoxType.KYCPending} />
+        <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
 
       expect(getByTestId('icon')).toBeOnTheScreen();
@@ -117,7 +121,7 @@ describe('CardWarningBox', () => {
 
     it('renders title and description', () => {
       const { getByText } = renderWithProvider(() => (
-        <CardWarningBox warning={CardWarningBoxType.KYCPending} />
+        <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
 
       expect(getByText('Verification in Progress')).toBeOnTheScreen();
@@ -128,8 +132,8 @@ describe('CardWarningBox', () => {
 
     it('does not render confirm button since KYCPending has no confirmButtonLabel', () => {
       const { queryByTestId } = renderWithProvider(() => (
-        <CardWarningBox
-          warning={CardWarningBoxType.KYCPending}
+        <CardMessageBox
+          messageType={CardMessageBoxType.KYCPending}
           onConfirm={mockOnConfirm}
         />
       ));
@@ -138,11 +142,53 @@ describe('CardWarningBox', () => {
     });
   });
 
+  describe('CardProvisioning info', () => {
+    it('renders info icon', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
+      ));
+
+      expect(getByTestId('icon')).toBeOnTheScreen();
+    });
+
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
+      ));
+
+      expect(getByText('Card being provisioned')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Your card is being automatically provisioned. This may take a few moments.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render confirm button since CardProvisioning has no confirmButtonLabel', () => {
+      const { queryByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CardProvisioning}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      expect(queryByTestId('confirm-button')).toBeNull();
+    });
+
+    it('renders with info variant styling (blue background)', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
+      ));
+
+      expect(getByTestId('card-message-box')).toBeOnTheScreen();
+    });
+  });
+
   describe('common behaviors', () => {
     it('renders dismiss button when onDismiss is provided', () => {
       const { getByTestId } = renderWithProvider(() => (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onDismiss={mockOnDismiss}
         />
       ));
@@ -152,8 +198,8 @@ describe('CardWarningBox', () => {
 
     it('renders both buttons when both callbacks are provided', () => {
       const { getByTestId } = renderWithProvider(() => (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onConfirm={mockOnConfirm}
           onDismiss={mockOnDismiss}
         />
@@ -165,7 +211,7 @@ describe('CardWarningBox', () => {
 
     it('does not render buttons when callbacks are not provided', () => {
       const { queryByTestId } = renderWithProvider(() => (
-        <CardWarningBox warning={CardWarningBoxType.CloseSpendingLimit} />
+        <CardMessageBox messageType={CardMessageBoxType.CloseSpendingLimit} />
       ));
 
       expect(queryByTestId('confirm-button')).toBeNull();
@@ -174,8 +220,8 @@ describe('CardWarningBox', () => {
 
     it('calls onDismiss when dismiss button is pressed', () => {
       const { getByTestId } = renderWithProvider(() => (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onDismiss={mockOnDismiss}
         />
       ));
@@ -184,15 +230,16 @@ describe('CardWarningBox', () => {
       expect(mockOnDismiss).toHaveBeenCalledTimes(1);
     });
 
-    it('renders all warning types with icon and content', () => {
-      const allWarningTypes = [
-        CardWarningBoxType.CloseSpendingLimit,
-        CardWarningBoxType.KYCPending,
+    it('renders all message types with icon and content', () => {
+      const allMessageTypes = [
+        CardMessageBoxType.CloseSpendingLimit,
+        CardMessageBoxType.KYCPending,
+        CardMessageBoxType.CardProvisioning,
       ];
 
-      allWarningTypes.forEach((warning) => {
+      allMessageTypes.forEach((messageType) => {
         const { getByTestId } = renderWithProvider(() => (
-          <CardWarningBox warning={warning} />
+          <CardMessageBox messageType={messageType} />
         ));
 
         expect(getByTestId('icon')).toBeOnTheScreen();
