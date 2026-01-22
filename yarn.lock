@@ -7012,6 +7012,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ledgerhq/devices@npm:8.10.0":
+  version: 8.10.0
+  resolution: "@ledgerhq/devices@npm:8.10.0"
+  dependencies:
+    "@ledgerhq/errors": "npm:^6.29.0"
+    "@ledgerhq/logs": "npm:^6.14.0"
+    rxjs: "npm:7.8.2"
+    semver: "npm:7.7.3"
+  checksum: 10/8e8f64be325610bb8abb72b1e376c2b1a803f35f23295335a6f26faa626144af8159cbe1970da127deb99ffc8a377c5b880a5f33843a727170dd8d518358e2a9
+  languageName: node
+  linkType: hard
+
 "@ledgerhq/devices@npm:8.4.6":
   version: 8.4.6
   resolution: "@ledgerhq/devices@npm:8.4.6"
@@ -7055,6 +7067,13 @@ __metadata:
   version: 6.28.0
   resolution: "@ledgerhq/errors@npm:6.28.0"
   checksum: 10/5a9497c5dc092ecba369cf60ef576c4d1efdaa7862e31e8d53fa3587d479b2aa79756b5df6ab64316c98bfc2dcc383e8a7f6ff7082a08ff65018a0671d5ae62a
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/errors@npm:^6.29.0":
+  version: 6.29.0
+  resolution: "@ledgerhq/errors@npm:6.29.0"
+  checksum: 10/0c82f1d50ceb474f9ca158c6709c77a0ecc4e8ef2eaedc76f128a55ad38967afcb9613ca6a54c805fdb78615c1ddea027a30802569e67d162dc57562b1cdf11e
   languageName: node
   linkType: hard
 
@@ -7117,7 +7136,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/hw-transport@npm:6.31.15, @ledgerhq/hw-transport@npm:^6.31.4, @ledgerhq/hw-transport@npm:^6.31.5, @ledgerhq/hw-transport@npm:^6.31.6":
+"@ledgerhq/hw-transport@npm:6.32.0":
+  version: 6.32.0
+  resolution: "@ledgerhq/hw-transport@npm:6.32.0"
+  dependencies:
+    "@ledgerhq/devices": "npm:8.10.0"
+    "@ledgerhq/errors": "npm:^6.29.0"
+    "@ledgerhq/logs": "npm:^6.14.0"
+    events: "npm:^3.3.0"
+  checksum: 10/5f98044fe23aa9684717f4e0884673e026b61168d7a6ac445c9396844923c2844ee80edfe3d72dfe1ba3d8c8f79b776228704bb005bcc66b3fdfe931916527e1
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/hw-transport@npm:^6.31.4, @ledgerhq/hw-transport@npm:^6.31.5, @ledgerhq/hw-transport@npm:^6.31.6":
   version: 6.31.15
   resolution: "@ledgerhq/hw-transport@npm:6.31.15"
   dependencies:
@@ -7146,18 +7177,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/react-native-hw-transport-ble@npm:^6.35.6":
-  version: 6.36.0
-  resolution: "@ledgerhq/react-native-hw-transport-ble@npm:6.36.0"
+"@ledgerhq/logs@npm:^6.14.0":
+  version: 6.14.0
+  resolution: "@ledgerhq/logs@npm:6.14.0"
+  checksum: 10/b30b6aeef9df181efe99476a84f95b89ada695c038fbc3f915410f0bae244a342df642f003582c71222b4388cdc58d281e88ae2532ba85911f580d0cbfa4bd3a
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/react-native-hw-transport-ble@npm:^6.37.0":
+  version: 6.37.0
+  resolution: "@ledgerhq/react-native-hw-transport-ble@npm:6.37.0"
   dependencies:
-    "@ledgerhq/devices": "npm:8.8.0"
-    "@ledgerhq/errors": "npm:^6.28.0"
-    "@ledgerhq/hw-transport": "npm:6.31.15"
-    "@ledgerhq/logs": "npm:^6.13.0"
+    "@ledgerhq/devices": "npm:8.10.0"
+    "@ledgerhq/errors": "npm:^6.29.0"
+    "@ledgerhq/hw-transport": "npm:6.32.0"
+    "@ledgerhq/logs": "npm:^6.14.0"
     react-native-ble-plx: "npm:3.4.0"
     rxjs: "npm:7.8.2"
     uuid: "npm:^9.0.1"
-  checksum: 10/2310cea0672e0b03d14befa83a5cb71d2b636a3f73b1d33884ee0bbe7a6e26cc7ef966209ab14cf61a98a1927c809b99f20101b49f137379b8ff2ef04c64d623
+  checksum: 10/ad2a41b8c11f0321f691db6fd2ea5b70318ab44280488d51e2f281fc4d94125a9e38925a08d226b893bb6362e064899ad3d7601d7495800eae73150e81cc2cf9
   languageName: node
   linkType: hard
 
@@ -34660,7 +34698,7 @@ __metadata:
     "@lavamoat/allow-scripts": "npm:^3.0.4"
     "@lavamoat/git-safe-dependencies": "npm:^0.2.1"
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
-    "@ledgerhq/react-native-hw-transport-ble": "npm:^6.35.6"
+    "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^0.12.0"
     "@metamask/account-tree-controller": "npm:^3.0.0"
