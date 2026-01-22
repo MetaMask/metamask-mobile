@@ -47,10 +47,8 @@ import {
 } from '../../../util/trace';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
-import { passwordRequirementsMet } from '../../../util/password';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import {
-  PASSWORD_REQUIREMENTS_NOT_MET,
   PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
@@ -446,11 +444,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     });
 
     try {
-      const locked = !passwordRequirementsMet(password);
-      if (locked) {
-        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
-      }
-      if (finalLoading || locked) return;
+      if (finalLoading) return;
 
       setLoading(true);
 
@@ -502,11 +496,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const newGlobalPasswordLogin = useCallback(async () => {
     try {
-      const locked = !passwordRequirementsMet(password);
-      if (locked) {
-        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
-      }
-      if (finalLoading || locked) return;
+      if (finalLoading) return;
 
       setLoading(true);
 

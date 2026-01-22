@@ -65,11 +65,6 @@ jest.mock('../../../util/errorHandling', () => ({
     error.message.includes(message),
 }));
 
-jest.mock('../../../util/password', () => ({
-  passwordRequirementsMet: (password: string) =>
-    password && password.length >= 8,
-}));
-
 // Mock useMetrics
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../hooks/useMetrics', () => ({
@@ -411,26 +406,6 @@ describe('OAuthRehydration', () => {
       // Arrange
       mockUnlockWallet.mockRejectedValue(
         new Error('Error: Error: BAD_DECRYPT'),
-      );
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      });
-    });
-
-    it('handles password requirements not met error', async () => {
-      // Arrange
-      mockUnlockWallet.mockRejectedValue(
-        new Error('Error: password requirement not met'),
       );
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
