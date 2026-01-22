@@ -3,7 +3,8 @@ import useMetrics from './useMetrics';
 import { IWithMetricsAwarenessProps } from './withMetricsAwareness.types';
 
 /**
- * @deprecated Use withAnalyticsAwareness from app/components/hooks/useAnalytics
+ * @deprecated Use withAnalyticsAwareness from
+ * app/components/hooks/useAnalytics/withAnalyticsAwareness
  * to stop new MetaMetrics usage.
  */
 const withMetricsAwareness =

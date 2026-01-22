@@ -11,7 +11,7 @@ import type {
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
-import useAnalytics from './useAnalytics';
+import { useAnalytics } from './useAnalytics';
 import type { IUseAnalyticsHook } from './useAnalytics.types';
 
 jest.mock('../../../core/Analytics/MetaMetrics');

@@ -1,8 +1,8 @@
 import React, { ComponentType } from 'react';
-import useAnalytics from './useAnalytics';
+import { useAnalytics } from './useAnalytics';
 import { IWithAnalyticsAwarenessProps } from './withAnalyticsAwareness.types';
 
-const withAnalyticsAwareness = <P extends IWithAnalyticsAwarenessProps>(
+export const withAnalyticsAwareness = <P extends IWithAnalyticsAwarenessProps>(
   Child: ComponentType<P>,
 ) => {
   const ComponentWithAnalytics = (
@@ -11,5 +11,3 @@ const withAnalyticsAwareness = <P extends IWithAnalyticsAwarenessProps>(
 
   return ComponentWithAnalytics;
 };
-
-export default withAnalyticsAwareness;

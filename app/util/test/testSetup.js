@@ -229,8 +229,11 @@ const mockUseAnalytics = {
   getMetaMetricsId: jest.fn().mockResolvedValue('mock-analytics-id'),
 };
 
-jest.mock('../../components/hooks/useAnalytics', () => ({
+jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => mockUseAnalytics),
+}));
+
+jest.mock('../../components/hooks/useAnalytics/withAnalyticsAwareness', () => ({
   withAnalyticsAwareness: jest.fn((Component) => Component),
 }));
 

@@ -1,16 +1,20 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
-import withAnalyticsAwareness from './withAnalyticsAwareness';
-import useAnalytics from './useAnalytics';
+import { withAnalyticsAwareness } from './withAnalyticsAwareness';
+import { useAnalytics } from './useAnalytics';
 import type { IUseAnalyticsHook } from './useAnalytics.types';
 import type { IWithAnalyticsAwarenessProps } from './withAnalyticsAwareness.types';
 
-jest.mock('./useAnalytics');
+jest.mock('./useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 describe('withAnalyticsAwareness', () => {
   it('injects metrics prop from useAnalytics', () => {
-    const mockAnalytics = { someProp: 'someValue' } as unknown as IUseAnalyticsHook;
+    const mockAnalytics = {
+      someProp: 'someValue',
+    } as unknown as IUseAnalyticsHook;
     const renderSpy = jest.fn();
     const mockUseAnalytics = useAnalytics as jest.MockedFunction<
       typeof useAnalytics

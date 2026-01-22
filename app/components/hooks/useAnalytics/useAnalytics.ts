@@ -12,7 +12,7 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * Provides analytics utilities backed by the analytics helper to keep the
  * existing hook API while migrating off MetaMetrics internals.
  */
-const useAnalytics = (): IUseAnalyticsHook =>
+export const useAnalytics = (): IUseAnalyticsHook =>
   useMemo(
     () => ({
       trackEvent: (
@@ -54,5 +54,3 @@ const useAnalytics = (): IUseAnalyticsHook =>
     }),
     [],
   );
-
-export default useAnalytics;
