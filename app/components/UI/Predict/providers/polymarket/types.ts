@@ -171,6 +171,7 @@ export interface PolymarketApiEvent {
   title: string;
   description: string;
   icon: string;
+  startDate?: string;
   endDate?: string;
   closed: boolean;
   series: PolymarketApiSeries[];

@@ -89,6 +89,7 @@ export type PredictMarket = {
   slug: string;
   title: string;
   description: string;
+  startDate?: string;
   endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';

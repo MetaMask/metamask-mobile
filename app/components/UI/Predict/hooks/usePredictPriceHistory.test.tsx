@@ -493,7 +493,6 @@ describe('usePredictPriceHistory', () => {
       PredictPriceHistoryInterval.ONE_DAY,
       PredictPriceHistoryInterval.ONE_WEEK,
       PredictPriceHistoryInterval.ONE_MONTH,
-      PredictPriceHistoryInterval.MAX,
     ];
 
     intervals.forEach((interval) => {
@@ -514,9 +513,161 @@ describe('usePredictPriceHistory', () => {
           interval,
           fidelity: undefined,
           providerId: undefined,
+          startTs: undefined,
+          endTs: undefined,
         });
         expect(result.current.priceHistories).toEqual([mockPriceHistory]);
       });
+    });
+  });
+
+  describe('dynamic fidelity calculation for MAX interval', () => {
+    const MAX_HISTORY_SAMPLES = 100;
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    it('calculates fidelity based on marketStartDate for MAX interval', async () => {
+      // Market started 30 days ago
+      const thirtyDaysAgo = new Date(Date.now() - 30 * DAY_IN_MS).toISOString();
+      const expectedRangeMinutes = 30 * 24 * 60; // 43200 minutes
+      const expectedFidelity = Math.ceil(
+        expectedRangeMinutes / MAX_HISTORY_SAMPLES,
+      ); // ~432
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPriceHistory({
+          marketIds: ['market-1'],
+          interval: PredictPriceHistoryInterval.MAX,
+          marketStartDate: thirtyDaysAgo,
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      const callArgs = (
+        Engine.context.PredictController.getPriceHistory as jest.Mock
+      ).mock.calls[0][0];
+      expect(callArgs.interval).toBe(PredictPriceHistoryInterval.MAX);
+      // Allow tolerance due to time passing during test execution
+      expect(callArgs.fidelity).toBeGreaterThanOrEqual(expectedFidelity - 5);
+      expect(callArgs.fidelity).toBeLessThanOrEqual(expectedFidelity + 5);
+    });
+
+    it('calculates higher fidelity (larger interval) for older markets', async () => {
+      // Market started 90 days ago
+      const ninetyDaysAgo = new Date(Date.now() - 90 * DAY_IN_MS).toISOString();
+      const expectedRangeMinutes = 90 * 24 * 60;
+      const expectedFidelity = Math.ceil(
+        expectedRangeMinutes / MAX_HISTORY_SAMPLES,
+      ); // ~1296
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPriceHistory({
+          marketIds: ['market-1'],
+          interval: PredictPriceHistoryInterval.MAX,
+          marketStartDate: ninetyDaysAgo,
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      const callArgs = (
+        Engine.context.PredictController.getPriceHistory as jest.Mock
+      ).mock.calls[0][0];
+      expect(callArgs.fidelity).toBeGreaterThanOrEqual(expectedFidelity - 10);
+      expect(callArgs.fidelity).toBeLessThanOrEqual(expectedFidelity + 10);
+    });
+
+    it('calculates lower fidelity (smaller interval) for newer markets', async () => {
+      // Market started 1 day ago
+      const oneDayAgo = new Date(Date.now() - 1 * DAY_IN_MS).toISOString();
+      const expectedRangeMinutes = 24 * 60; // 1440 minutes
+      const expectedFidelity = Math.ceil(
+        expectedRangeMinutes / MAX_HISTORY_SAMPLES,
+      ); // ~15
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPriceHistory({
+          marketIds: ['market-1'],
+          interval: PredictPriceHistoryInterval.MAX,
+          marketStartDate: oneDayAgo,
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      const callArgs = (
+        Engine.context.PredictController.getPriceHistory as jest.Mock
+      ).mock.calls[0][0];
+      expect(callArgs.fidelity).toBeGreaterThanOrEqual(expectedFidelity - 3);
+      expect(callArgs.fidelity).toBeLessThanOrEqual(expectedFidelity + 3);
+    });
+
+    it('ensures fidelity is at least 1 minute for very new markets', async () => {
+      // Market started 30 minutes ago (less than MAX_HISTORY_SAMPLES)
+      const thirtyMinutesAgo = new Date(
+        Date.now() - 30 * 60 * 1000,
+      ).toISOString();
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPriceHistory({
+          marketIds: ['market-1'],
+          interval: PredictPriceHistoryInterval.MAX,
+          marketStartDate: thirtyMinutesAgo,
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      const callArgs = (
+        Engine.context.PredictController.getPriceHistory as jest.Mock
+      ).mock.calls[0][0];
+      // Should be at least 1 minute fidelity
+      expect(callArgs.fidelity).toBeGreaterThanOrEqual(1);
+    });
+
+    it('uses 1 year fallback when marketStartDate is not provided', async () => {
+      const expectedRangeMinutes = 365 * 24 * 60;
+      const expectedFidelity = Math.ceil(
+        expectedRangeMinutes / MAX_HISTORY_SAMPLES,
+      ); // ~5256
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPriceHistory({
+          marketIds: ['market-1'],
+          interval: PredictPriceHistoryInterval.MAX,
+          marketStartDate: undefined,
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      const callArgs = (
+        Engine.context.PredictController.getPriceHistory as jest.Mock
+      ).mock.calls[0][0];
+      // Allow tolerance for the 1-year fallback calculation
+      expect(callArgs.fidelity).toBeGreaterThanOrEqual(expectedFidelity - 50);
+      expect(callArgs.fidelity).toBeLessThanOrEqual(expectedFidelity + 50);
+    });
+
+    it('uses fidelity override when provided even for MAX interval', async () => {
+      const overrideFidelity = 720;
+
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPriceHistory({
+          marketIds: ['market-1'],
+          interval: PredictPriceHistoryInterval.MAX,
+          marketStartDate: new Date(Date.now() - 30 * DAY_IN_MS).toISOString(),
+          fidelity: overrideFidelity,
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      const callArgs = (
+        Engine.context.PredictController.getPriceHistory as jest.Mock
+      ).mock.calls[0][0];
+      // Should use the override, not the calculated value
+      expect(callArgs.fidelity).toBe(overrideFidelity);
     });
   });
 });
