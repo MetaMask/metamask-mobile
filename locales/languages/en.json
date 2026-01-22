@@ -1009,6 +1009,7 @@
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
       "set_button": "Set"
     },
+    "confirm": "Confirm",
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",

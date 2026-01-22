@@ -152,7 +152,7 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
           {!isResultReady && (
             <Box>
               <Button
-                label="Confirm"
+                label={strings('perps.confirm')}
                 onPress={handleDone}
                 variant={ButtonVariants.Primary}
                 width={ButtonWidthTypes.Full}
@@ -265,7 +265,7 @@ function ConfirmButton({
   });
   const disabled = hasBlockingAlerts || isLoading;
 
-  const label = alertTitle ?? strings('confirm.confirm');
+  const label = alertTitle ?? strings('perps.confirm');
 
 
   return (
