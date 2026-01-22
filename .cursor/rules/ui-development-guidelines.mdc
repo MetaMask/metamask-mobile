@@ -94,37 +94,6 @@ When implementing UI that is specific to a feature (e.g., Perps, Predictions, Br
    - **DON'T**: Duplicate functionality - check for existing components first
    - **DON'T**: Make feature components overly generic - they serve specific feature needs
 
-### Example Directory Structure
-```
-app/
-├── features/
-│   ├── perps/
-│   │   └── components/
-│   │       ├── PerpsTradingCard/
-│   │       ├── PerpsPositionPanel/
-│   │       └── PerpsOrderForm/
-│   ├── predictions/
-│   │   └── components/
-│   │       ├── PredictionMarketCard/
-│   │       └── PredictionOutcomeSelector/
-│   └── bridge/
-│       └── components/
-│           └── BridgeInputSelector/
-└── components/
-    └── Views/
-        └── Stake/
-            └── components/
-                └── StakeInputView/
-```
-
-### Workflow: Implementing a Feature Component
-
-1. **Identify the feature** - Determine which feature this component belongs to (Perps, Predictions, Bridge, etc.)
-2. **Search the codebase** - Use Glob/Grep to find if a similar component already exists in the feature's directory
-3. **Reuse or build** - If found, reuse it. If not, build it with design system primitives
-4. **Place correctly** - Put it in the appropriate feature directory
-5. **Document** - Add clear props and purpose if it's a new component
-
 ## Required Imports for React Native
 
 ```tsx
