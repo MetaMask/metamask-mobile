@@ -491,15 +491,7 @@ export class HyperLiquidSubscriptionService {
   }
 
   private hashAccountState(account: AccountState): string {
-    // Normalize numeric values to ensure consistent hash comparison
-    // Parse and format to avoid string formatting differences (e.g., "100" vs "100.0")
-    const normalizeValue = (value: string): string => {
-      const num = Number.parseFloat(value || '0');
-      // Use toFixed with enough precision, then remove trailing zeros
-      return num.toFixed(10).replace(/\.?0+$/, '') || '0';
-    };
-
-    return `${normalizeValue(account.availableBalance)}:${normalizeValue(account.totalBalance)}:${normalizeValue(account.marginUsed)}:${normalizeValue(account.unrealizedPnl)}:${normalizeValue(account.returnOnEquity)}`;
+    return `${account.availableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
   }
 
   // Cache hashes to avoid recomputation

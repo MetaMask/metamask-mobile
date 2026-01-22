@@ -6,18 +6,15 @@ import {
 } from '@react-navigation/native';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
 import {
-  Alert,
   ScrollView,
-  TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import {
   SafeAreaView,
@@ -25,19 +22,9 @@ import {
 } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
-import {
-  formatAddressToCaipReference,
-  type GenericQuoteRequest,
-} from '@metamask/bridge-controller';
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
-import {
-  CHAIN_IDS,
-  TransactionMeta,
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
-import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -60,37 +47,18 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { ToastContext } from '../../../../../component-library/components/Toast';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
-import {
-  selectBridgeQuotes,
-  setDestToken,
-  setSelectedDestChainId,
-  setSourceToken,
-} from '../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
-import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
-import { calcTokenValue } from '../../../../../util/transactions';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { CustomAmountInfo } from '../../../../Views/confirmations/components/info/custom-amount-info';
 import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
-import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { DefaultSwapDestTokens } from '../../../Bridge/constants/default-swap-dest-tokens';
-import { useUnifiedSwapBridgeContext } from '../../../Bridge/hooks/useUnifiedSwapBridgeContext';
-import { type BridgeToken } from '../../../Bridge/types';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -106,17 +74,11 @@ import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsTokenSelectorBottomSheet from '../../components/PerpsTokenSelectorBottomSheet';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID_HEX,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_DECIMALS,
-} from '../../constants/hyperLiquidConfig';
 import {
   DECIMAL_PRECISION_CONFIG,
   ORDER_SLIPPAGE_CONFIG,
@@ -139,6 +101,7 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsMarkets,
+  usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderFees,
   usePerpsOrderValidation,
@@ -151,18 +114,13 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
-import {
-  markTransactionSkipDefaultToast,
-  unmarkTransactionSkipDefaultToast,
-} from '../../hooks/usePerpsDepositStatus';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
-  selectPerpsButtonColorTestVariant,
-  selectPerpsTradeWithAnyTokenEnabledFlag,
+  selectPerpsButtonColorTestVariant
 } from '../../selectors/featureFlags';
 import type { PerpsToken } from '../../types/perps-types';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
@@ -182,8 +140,8 @@ import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
-import createStyles from './PerpsOrderView.styles';
 import { PerpsInlineDeposit } from './PerpsInlineDeposit';
+import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -350,7 +308,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { markets } = usePerpsMarkets();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { toastRef } = useContext(ToastContext);
 
   // Find formatted market data for navigation
   const navigationMarketData = useMemo(
@@ -372,7 +329,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
     undefined,
   );
-  const [swapAmount, setSwapAmount] = useState<string>('');
   const [depositAmount, setDepositAmount] = useState<string>('');
 
   // Get available payment tokens and set default if none selected
@@ -382,18 +338,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       setSelectedToken(paymentTokens[0]);
     }
   }, [paymentTokens, selectedToken]);
-
-  // Get wallet address and hooks
-  const walletAddress = useSelector(selectSelectedInternalAccountAddress);
-  const dispatch = useDispatch();
-  const { submitBridgeTx } = useSubmitBridgeTx();
-  const isTradeWithAnyTokenEnabled = useSelector(
-    selectPerpsTradeWithAnyTokenEnabledFlag,
-  );
-  const context = useUnifiedSwapBridgeContext();
-  const quotes = useSelector(selectBridgeQuotes);
-
-  console.log('isTradeWithAnyTokenEnabled', isTradeWithAnyTokenEnabled);
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -1028,205 +972,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     buttonColorVariant,
   ]);
 
-  const handlePlaceOrderRef = useRef<() => void>(handlePlaceOrder);
-  handlePlaceOrderRef.current = handlePlaceOrder;
-
-  // Track deposit status and show toast until funds arrive
-  const expectingDepositRef = useRef(false);
-  const prevAvailableBalanceRef = useRef<string>('0');
-  const depositTransactionIdRef = useRef<string | null>(null);
-  const hasShownDepositToastRef = useRef<string | null>(null);
-
-  // Callback to show toast when user confirms the deposit
-  const handleDepositConfirm = useCallback(
-    (transactionMeta: TransactionMeta) => {
-      // Only handle perps deposit transactions
-      if (transactionMeta.type === TransactionType.perpsDeposit) {
-        const transactionId = transactionMeta.id;
-
-        // Prevent showing toast multiple times for the same transaction
-        if (hasShownDepositToastRef.current === transactionId) {
-          return;
-        }
-
-        // Mark this transaction to skip default toast from usePerpsDepositStatus
-        // Do this immediately so usePerpsDepositStatus won't show its toast
-        markTransactionSkipDefaultToast(transactionId);
-
-        // Set up deposit tracking
-        expectingDepositRef.current = true;
-        prevAvailableBalanceRef.current =
-          account?.availableBalance?.toString() || '0';
-        depositTransactionIdRef.current = transactionId;
-        hasShownDepositToastRef.current = transactionId;
-
-        // Show "depositing your funds" toast that stays on screen
-        showToast({
-          ...PerpsToastOptions.accountManagement.deposit.inProgress(
-            0,
-            transactionId,
-          ),
-          labelOptions: [{ label: 'Depositing your funds', isBold: true }],
-          hasNoTimeout: true, // Keep toast visible until funds arrive
-        });
-      }
-    },
-    [account?.availableBalance, showToast, PerpsToastOptions],
-  );
-
-  // Listen for deposit transaction submission (approved) and show toast
-  useEffect(() => {
-    // Listen for transaction approval (when user submits the deposit)
-    const handleTransactionStatusUpdated = ({
-      transactionMeta: updatedTransactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
-      // Only handle perps deposit transactions
-      if (
-        updatedTransactionMeta.type === TransactionType.perpsDeposit &&
-        updatedTransactionMeta.status === TransactionStatus.approved
-      ) {
-        const transactionId = updatedTransactionMeta.id;
-
-        // Prevent showing toast multiple times for the same transaction
-        if (hasShownDepositToastRef.current === transactionId) {
-          return;
-        }
-
-        // Mark this transaction to skip default toast from usePerpsDepositStatus
-        // Do this immediately so usePerpsDepositStatus won't show its toast
-        markTransactionSkipDefaultToast(transactionId);
-
-        // Set up deposit tracking
-        expectingDepositRef.current = true;
-        prevAvailableBalanceRef.current =
-          account?.availableBalance?.toString() || '0';
-        depositTransactionIdRef.current = transactionId;
-        hasShownDepositToastRef.current = transactionId;
-
-        // Show "depositing your funds" toast that stays on screen
-        showToast({
-          ...PerpsToastOptions.accountManagement.deposit.inProgress(
-            0,
-            transactionId,
-          ),
-          labelOptions: [{ label: 'Depositing your funds', isBold: true }],
-          hasNoTimeout: true, // Keep toast visible until funds arrive
-        });
-      }
-    };
-
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionStatusUpdated',
-      handleTransactionStatusUpdated,
-    );
-
-    // Handle failed transactions
-    const handleTransactionFailed = ({
-      transactionMeta: failedTransactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
-      if (failedTransactionMeta?.type === TransactionType.perpsDeposit) {
-        const transactionId = failedTransactionMeta.id;
-        if (hasShownDepositToastRef.current === transactionId) {
-          expectingDepositRef.current = false;
-          depositTransactionIdRef.current = null;
-          hasShownDepositToastRef.current = null;
-          // Close the depositing toast
-          toastRef?.current?.closeToast();
-          showToast(PerpsToastOptions.accountManagement.deposit.error);
-        }
-      }
-    };
-
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionFailed',
-      handleTransactionFailed,
-    );
-
-    // Check if there's already an approved transaction when effect runs
-    if (
-      activeTransactionMeta?.type === TransactionType.perpsDeposit &&
-      activeTransactionMeta.status === TransactionStatus.approved &&
-      hasShownDepositToastRef.current !== activeTransactionMeta.id
-    ) {
-      const transactionId = activeTransactionMeta.id;
-      expectingDepositRef.current = true;
-      prevAvailableBalanceRef.current =
-        account?.availableBalance?.toString() || '0';
-      depositTransactionIdRef.current = transactionId;
-      hasShownDepositToastRef.current = transactionId;
-
-      showToast({
-        ...PerpsToastOptions.accountManagement.deposit.inProgress(
-          0,
-          transactionId,
-        ),
-        labelOptions: [{ label: 'Depositing your funds', isBold: true }],
-        hasNoTimeout: true,
-      });
-    }
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionStatusUpdated',
-        handleTransactionStatusUpdated,
-      );
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionFailed',
-        handleTransactionFailed,
-      );
-    };
-  }, [
+  // Track deposit status and execute order when funds arrive
+  const { handleDepositConfirm } = usePerpsOrderDepositTracking({
+    onDepositComplete: handlePlaceOrder,
     activeTransactionMeta,
-    account?.availableBalance,
-    showToast,
-    PerpsToastOptions,
-    toastRef,
-  ]);
-
-  // Monitor balance changes to detect when funds arrive
-  useEffect(() => {
-    if (!expectingDepositRef.current || !account) {
-      return;
-    }
-
-    const currentBalance = Number.parseFloat(
-      account.availableBalance?.toString() || '0',
-    );
-    const previousBalance = Number.parseFloat(
-      prevAvailableBalanceRef.current || '0',
-    );
-
-    // Check if balance increased (funds have arrived)
-    if (currentBalance > previousBalance) {
-      // Close the "depositing your funds" toast
-      toastRef?.current?.closeToast();
-
-      // Show "Your funds have arrived" toast
-      showToast({
-        ...PerpsToastOptions.accountManagement.deposit.success(
-          account.availableBalance?.toString(),
-        ),
-        labelOptions: [{ label: 'Your funds have arrived', isBold: true }],
-      });
-
-      // Reset state
-      expectingDepositRef.current = false;
-      prevAvailableBalanceRef.current =
-        account.availableBalance?.toString() || '0';
-      if (depositTransactionIdRef.current) {
-        unmarkTransactionSkipDefaultToast(depositTransactionIdRef.current);
-      }
-      depositTransactionIdRef.current = null;
-      hasShownDepositToastRef.current = null;
-
-      // Execute trade after funds arrive
-      handlePlaceOrderRef?.current();
-    }
-  }, [account, showToast, PerpsToastOptions, toastRef]);
+  });
 
   // Memoize the tooltip handlers to prevent recreating them on every render
   const handleTooltipPress = useCallback(
