@@ -118,7 +118,6 @@ describe('useLoadCardData', () => {
   const mockFetchCardDetails = jest.fn();
   const mockFetchExternalWalletDetails = jest.fn();
   const mockFetchDelegationSettings = jest.fn();
-  const mockPollCardStatusUntilProvisioned = jest.fn();
   const mockFetchKYCStatus = jest.fn();
 
   beforeEach(() => {
@@ -165,8 +164,6 @@ describe('useLoadCardData', () => {
       error: null,
       warning: null,
       fetchCardDetails: mockFetchCardDetails,
-      pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-      isLoadingPollCardStatusUntilProvisioned: false,
     });
 
     mockUseGetUserKYCStatus.mockReturnValue({
@@ -224,8 +221,6 @@ describe('useLoadCardData', () => {
         error: null,
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -274,8 +269,6 @@ describe('useLoadCardData', () => {
         error: new Error(CardErrorType.UNKNOWN_ERROR),
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -322,8 +315,6 @@ describe('useLoadCardData', () => {
         error: null,
         warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -338,16 +329,6 @@ describe('useLoadCardData', () => {
       expect(result.current.isBaanxLoginEnabled).toBe(true);
     });
 
-    it('calls fetchPriorityToken when fetchAllData is invoked', async () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.fetchAllData();
-      });
-
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-    });
-
     it('does not call fetchExternalWalletDetails in unauthenticated mode', async () => {
       const { result } = renderHook(() => useLoadCardData());
 
@@ -356,40 +337,6 @@ describe('useLoadCardData', () => {
       });
 
       expect(mockFetchExternalWalletDetails).not.toHaveBeenCalled();
-    });
-
-    it('exposes pollCardStatusUntilProvisioned function', () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.pollCardStatusUntilProvisioned).toBe(
-        mockPollCardStatusUntilProvisioned,
-      );
-    });
-
-    it('exposes isLoadingPollCardStatusUntilProvisioned state', () => {
-      const mockCardDetailsForLoading: CardDetailsResponse = {
-        id: 'card-456',
-        holderName: 'Jane Smith',
-        expiryDate: '12/29',
-        panLast4: '5678',
-        status: CardStatus.ACTIVE,
-        type: CardType.VIRTUAL,
-        orderedAt: '2024-02-01T00:00:00.000Z',
-      };
-
-      mockUseCardDetails.mockReturnValue({
-        cardDetails: mockCardDetailsForLoading,
-        isLoading: false,
-        error: null,
-        warning: null,
-        fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: true,
-      });
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.isLoadingPollCardStatusUntilProvisioned).toBe(true);
     });
   });
 
@@ -530,8 +477,6 @@ describe('useLoadCardData', () => {
         error: null,
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -599,8 +544,6 @@ describe('useLoadCardData', () => {
         error: new Error(CardErrorType.UNKNOWN_ERROR),
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -624,8 +567,6 @@ describe('useLoadCardData', () => {
         error: null,
         warning: CardStateWarning.Frozen,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
@@ -889,26 +830,6 @@ describe('useLoadCardData', () => {
       mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
       mockFetchCardDetails.mockReset().mockResolvedValue(undefined);
       mockFetchExternalWalletDetails.mockReset().mockResolvedValue(undefined);
-    });
-
-    it('exposes fetchPriorityToken function', async () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.fetchPriorityToken();
-      });
-
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-    });
-
-    it('exposes fetchCardDetails function', async () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      await act(async () => {
-        await result.current.fetchCardDetails();
-      });
-
-      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
     });
 
     it('fetchAllData executes all fetches in parallel for unauthenticated mode', async () => {
@@ -1205,8 +1126,6 @@ describe('useLoadCardData', () => {
         error: null,
         warning: CardStateWarning.NoCard,
         fetchCardDetails: mockFetchCardDetails,
-        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
-        isLoadingPollCardStatusUntilProvisioned: false,
       });
 
       const { result } = renderHook(() => useLoadCardData());
