@@ -33,7 +33,7 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
       alignItems: 'center',
-      borderRadius: 20,
+      borderRadius: 12,
     },
     amountHighlighted: {
       flex: 1,
@@ -44,19 +44,38 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
       alignItems: 'center',
-      borderRadius: 20,
+      borderRadius: 12,
+    },
+    amountPrimary: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      borderRadius: 12,
+    },
+    amountDisabled: {
+      flex: 1,
+      backgroundColor: colors.background.muted,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      borderRadius: 12,
+      opacity: 0.5,
     },
   });
 
 interface AmountProps {
   amount: QuickAmount;
+  disabled?: boolean;
   onPress: (amount: QuickAmount) => void;
   onMaxPress?: () => void;
-  disabled?: boolean;
 }
 
 const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
-  const { value, label, isHighlighted } = amount;
+  const { value, label, isHighlighted, disabled, isPrimary } = amount;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -72,6 +91,20 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
     onPress(amount);
   }, [value, onMaxPress, amount, onPress]);
 
+  const getButtonStyle = () => {
+    if (disabled) return styles.amountDisabled;
+    if (isPrimary) return styles.amountPrimary;
+    if (isHighlighted) return styles.amountHighlighted;
+    return styles.amount;
+  };
+
+  const getLabelColor = () => {
+    if (disabled) return TextColor.Muted;
+    if (isPrimary) return colors.background.default;
+    if (isHighlighted) return TextColor.Primary;
+    return TextColor.Default;
+  };
+
   return (
     <>
       <ButtonBase
@@ -79,12 +112,13 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
         size={ButtonSize.Md}
         width={ButtonWidthTypes.Full}
         label={label}
-        labelColor={isHighlighted ? TextColor.Primary : TextColor.Default}
+        labelColor={getLabelColor()}
         labelTextVariant={TextVariant.BodyMDMedium}
+        isDisabled={disabled}
         {...(value === 1 && !isStablecoinLendingEnabled
           ? { startIconName: IconName.Sparkle }
           : {})}
-        style={isHighlighted ? styles.amountHighlighted : styles.amount}
+        style={getButtonStyle()}
       />
     </>
   );

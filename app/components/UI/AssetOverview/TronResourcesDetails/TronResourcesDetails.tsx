@@ -8,12 +8,13 @@ import {
   BoxJustifyContent,
   IconName,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import ResourceRing from './ResourceRing';
 import { useTronResources } from './useTronResources';
 
-const TronEnergyBandwidthDetail = () => {
+const TronResourcesDetails = () => {
   const { energy, bandwidth } = useTronResources();
 
   // Info about how much energy and bandwidth is needed for a TRC20 transfer and a TRX transfer
@@ -28,11 +29,15 @@ const TronEnergyBandwidthDetail = () => {
   );
   return (
     <Box twClassName="w-full bg-default p-4 mt-4 mb-4">
-      <Text variant={TextVariant.BodyLg}>
-        {strings('asset_overview.tron.daily_resource')}
+      <Text variant={TextVariant.HeadingMd}>
+        {strings('asset_overview.tron.daily_resources')}
       </Text>
-      <Text variant={TextVariant.BodyMd} twClassName="text-alternative mt-2">
-        {strings('asset_overview.tron.daily_resource_description')}
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="mt-2"
+      >
+        {strings('asset_overview.tron.daily_resources_description')}
       </Text>
 
       <Box
@@ -51,17 +56,23 @@ const TronEnergyBandwidthDetail = () => {
             progress={energy.percentage / 100}
           />
           <Box>
-            <Text variant={TextVariant.BodyLg}>
+            <Text variant={TextVariant.BodyMd}>
               {strings('asset_overview.tron.energy')}
             </Text>
             {usdtTransfersCovered === 1 ? (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_usdt_transfer',
                 )}
               </Text>
             ) : (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_usdt_transfers',
                   {
@@ -73,10 +84,14 @@ const TronEnergyBandwidthDetail = () => {
           </Box>
         </Box>
         <Box flexDirection={BoxFlexDirection.Row}>
-          <Text variant={TextVariant.BodyLg}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {energy.current ? energy.current.toLocaleString() : '0'}
           </Text>
-          <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             /{energy.max.toLocaleString()}
           </Text>
         </Box>
@@ -98,17 +113,23 @@ const TronEnergyBandwidthDetail = () => {
             progress={bandwidth.percentage / 100}
           />
           <Box>
-            <Text variant={TextVariant.BodyLg}>
+            <Text variant={TextVariant.BodyMd}>
               {strings('asset_overview.tron.bandwidth')}
             </Text>
             {trxTxsCovered === 1 ? (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_trx_transfer',
                 )}
               </Text>
             ) : (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_trx_transfers',
                   { amount: trxTxsCovered },
@@ -118,10 +139,14 @@ const TronEnergyBandwidthDetail = () => {
           </Box>
         </Box>
         <Box flexDirection={BoxFlexDirection.Row}>
-          <Text variant={TextVariant.BodyLg}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {bandwidth.current ? bandwidth.current.toLocaleString() : '0'}
           </Text>
-          <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             /{bandwidth.max.toLocaleString()}
           </Text>
         </Box>
@@ -130,4 +155,4 @@ const TronEnergyBandwidthDetail = () => {
   );
 };
 
-export default TronEnergyBandwidthDetail;
+export default TronResourcesDetails;

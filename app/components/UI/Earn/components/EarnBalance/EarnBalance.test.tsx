@@ -35,6 +35,13 @@ jest.mock('../Tron/TronStakingButtons', () => ({
   default: jest.fn(() => null),
 }));
 
+jest.mock('../Tron/TronStakingCta', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
+
+import TronStakingCta from '../Tron/TronStakingCta';
+
 jest.mock('../../../../../selectors/earnController', () => ({
   ...jest.requireActual('../../../../../selectors/earnController'),
   earnSelectors: {
@@ -243,7 +250,7 @@ describe('EarnBalance', () => {
     const mockTronResources =
       selectTronResourcesBySelectedAccountGroup as unknown as jest.Mock;
 
-    it('renders TRON stake button with aprText for TRX without staked positions', () => {
+    it('renders TronStakingCta with aprText for TRX without staked positions', () => {
       const trx: Partial<TokenI> = {
         chainId: 'tron:728126428',
         ticker: 'TRX',
@@ -255,15 +262,13 @@ describe('EarnBalance', () => {
 
       renderWithProvider(<EarnBalance asset={trx as TokenI} />);
 
-      expect(TronStakingButtons).toHaveBeenCalled();
-      const props = (TronStakingButtons as jest.Mock).mock.calls[0][0];
+      expect(TronStakingCta).toHaveBeenCalled();
+      const props = (TronStakingCta as jest.Mock).mock.calls[0][0];
       expect(props.asset).toBe(trx);
       expect(props.aprText).toBe('4.5%');
-      expect(props.showUnstake).toBeUndefined();
-      expect(props.hasStakedPositions).toBeUndefined();
     });
 
-    it('renders TRON stake more and unstake for sTRX with staked positions', () => {
+    it('renders TronStakingButtons for sTRX with staked positions', () => {
       const strx: Partial<TokenI> = {
         chainId: 'tron:728126428',
         ticker: 'sTRX',
@@ -282,8 +287,6 @@ describe('EarnBalance', () => {
       expect(TronStakingButtons).toHaveBeenCalled();
       const props = (TronStakingButtons as jest.Mock).mock.calls[0][0];
       expect(props.asset).toBe(strx);
-      expect(props.showUnstake).toBe(true);
-      expect(props.hasStakedPositions).toBe(true);
     });
   });
 

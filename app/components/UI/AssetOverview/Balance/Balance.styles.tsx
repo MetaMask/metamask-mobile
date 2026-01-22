@@ -12,7 +12,10 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       flex: 1,
       paddingHorizontal: 16,
-      paddingTop: 24,
+    },
+    title: {
+      paddingTop: 16,
+      paddingBottom: 16,
     },
     badgeWrapper: {
       alignSelf: 'center',

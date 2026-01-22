@@ -192,17 +192,22 @@ const EarnInputView = () => {
   // Preview visibility: when true, hide keypad/quick amounts and show the Tron preview box
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
-  // Build quick-amounts list, replacing the last "Max" with "Done" when editing and a value is entered
+  // Build quick-amounts list for Tron: "25%, 50%, Max, Done"
+  // Done is disabled when input is empty, enabled when there's a value (never highlighted)
   const quickAmounts = React.useMemo(() => {
-    // Only adjust for TRON staking flow; otherwise, use defaults
-    if (isTronEnabled && isTronNative && !isPreviewVisible && isNonZeroAmount) {
-      const modified = [...percentageOptions];
-      modified[modified.length - 1] = {
-        ...modified[modified.length - 1],
-        label: strings('onboarding_success.done'),
-        isHighlighted: true,
-      };
-      return modified;
+    // For TRON staking flow: show 25%, 50%, Max, Done
+    if (isTronEnabled && isTronNative && !isPreviewVisible) {
+      return [
+        { value: 0.25, label: '25%' },
+        { value: 0.5, label: '50%' },
+        { value: 1, label: strings('stake.max') },
+        {
+          value: -1, // sentinel value for Done button
+          label: strings('onboarding_success.done'),
+          disabled: !isNonZeroAmount,
+          isPrimary: isNonZeroAmount,
+        },
+      ];
     }
     return percentageOptions;
   }, [
@@ -267,6 +272,12 @@ const EarnInputView = () => {
 
   const handleQuickAmountPressWithTracking = useCallback(
     ({ value }: { value: number }) => {
+      // Handle Done button for Tron (value=-1)
+      if (value === -1 && isTronEnabled && isTronNative && isNonZeroAmount) {
+        setIsPreviewVisible(true);
+        return;
+      }
+
       lastQuickAmountButtonPressed.current = `${value * 100}%`;
 
       // call the original handler first
@@ -310,6 +321,9 @@ const EarnInputView = () => {
       network?.name,
       balanceValue,
       isFiat,
+      isTronEnabled,
+      isTronNative,
+      isNonZeroAmount,
     ],
   );
 
@@ -729,28 +743,18 @@ const EarnInputView = () => {
     isFiat,
   ]);
 
-  // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
+  // Right action press: handles Max button press
+  // For Tron: directly set max (skip MaxInputModal which is EVM-specific)
+  // For non-Tron: use the tracking handler which may show a modal
   const onRightActionPress = React.useCallback(() => {
-    // For TRON: if we have a non-zero amount, show preview; otherwise just set max directly (skip modal)
     if (isTronEnabled && isTronNative) {
-      if (isNonZeroAmount && !isPreviewVisible) {
-        setIsPreviewVisible(true);
-      } else {
-        // Directly call handleMax for Tron - the MaxInputModal is EVM-specific
-        lastQuickAmountButtonPressed.current = 'MAX';
-        handleMax();
-      }
+      // Directly call handleMax for Tron - the MaxInputModal is EVM-specific
+      lastQuickAmountButtonPressed.current = 'MAX';
+      handleMax();
       return;
     }
     handleMaxPressWithTracking();
-  }, [
-    isTronEnabled,
-    isTronNative,
-    isNonZeroAmount,
-    isPreviewVisible,
-    handleMaxPressWithTracking,
-    handleMax,
-  ]);
+  }, [isTronEnabled, isTronNative, handleMaxPressWithTracking, handleMax]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
     // Call the original handler first

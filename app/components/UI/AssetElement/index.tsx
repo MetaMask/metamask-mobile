@@ -46,8 +46,9 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     itemWrapper: {
       flexDirection: 'row',
-      height: 64,
+      minHeight: 64,
       alignItems: 'center',
+      paddingVertical: 16,
     },
     arrow: {
       flexShrink: 0,

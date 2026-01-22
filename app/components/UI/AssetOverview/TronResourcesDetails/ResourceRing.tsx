@@ -1,5 +1,10 @@
 import React, { useEffect } from 'react';
-import { Box, Icon, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, {
@@ -21,8 +26,8 @@ export interface ResourceRingProps {
 
 const ResourceRing: React.FC<ResourceRingProps> = ({
   icon,
-  size = 52,
-  strokeWidth = 6,
+  size = 40,
+  strokeWidth = 2,
   progress = 0,
   indeterminate = false,
 }) => {
@@ -68,7 +73,7 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
             cx={cx}
             cy={cy}
             r={radius}
-            stroke={colors.primary.default}
+            stroke={colors.icon.default}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={`${circumference} ${circumference}`}
@@ -80,13 +85,13 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
 
       <Box
         testID="resource-ring-icon-container"
-        twClassName="items-center justify-center rounded-full bg-muted"
+        twClassName="items-center justify-center rounded-full"
         style={{
           width: size - strokeWidth * 2,
           height: size - strokeWidth * 2,
         }}
       >
-        <Icon testID="resource-ring-icon" name={icon} />
+        <Icon testID="resource-ring-icon" name={icon} size={IconSize.Md} />
       </Box>
     </Box>
   );
