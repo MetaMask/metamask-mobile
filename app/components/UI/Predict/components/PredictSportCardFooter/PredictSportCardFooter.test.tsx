@@ -585,6 +585,34 @@ describe('PredictSportCardFooter', () => {
         );
       });
     });
+
+    it('navigates through PREDICT.ROOT when entry point is CAROUSEL', async () => {
+      mockIsFromTrending.mockReturnValue(false);
+      const market = createMockMarket();
+      setupPositionsMock();
+      mockExecuteGuardedAction.mockImplementation((callback) => callback());
+
+      render(
+        <PredictSportCardFooter
+          market={market}
+          entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+          testID="footer"
+        />,
+      );
+      fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome: market.outcomes[0],
+            outcomeToken: market.outcomes[0].tokens[0],
+            entryPoint: PredictEventValues.ENTRY_POINT.CAROUSEL,
+          },
+        });
+      });
+    });
   });
 
   describe('handleClaimPress', () => {

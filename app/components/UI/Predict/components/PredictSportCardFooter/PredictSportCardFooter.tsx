@@ -69,12 +69,26 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     (token: PredictOutcomeToken) => {
       executeGuardedAction(
         () => {
-          navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          });
+          // When accessed from Carousel, we're outside the Predict navigator,
+          // so we need to navigate through the ROOT first
+          if (resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL) {
+            navigation.navigate(Routes.PREDICT.ROOT, {
+              screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+              params: {
+                market,
+                outcome,
+                outcomeToken: token,
+                entryPoint: resolvedEntryPoint,
+              },
+            });
+          } else {
+            navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+              market,
+              outcome,
+              outcomeToken: token,
+              entryPoint: resolvedEntryPoint,
+            });
+          }
         },
         {
           checkBalance: true,

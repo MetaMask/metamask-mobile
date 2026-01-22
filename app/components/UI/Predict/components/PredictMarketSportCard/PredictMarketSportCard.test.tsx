@@ -424,4 +424,64 @@ describe('PredictMarketSportCard', () => {
       );
     });
   });
+
+  describe('onDismiss', () => {
+    it('does not render close button when onDismiss is not provided', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PredictMarketSportCard market={mockMarket} testID="sport-card" />,
+        { state: initialState },
+      );
+
+      expect(queryByTestId('sport-card-close-button')).toBeNull();
+    });
+
+    it('renders close button when onDismiss is provided', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('sport-card-close-button')).toBeOnTheScreen();
+    });
+
+    it('calls onDismiss when close button is pressed', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('sport-card-close-button'));
+
+      expect(mockOnDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate when close button is pressed', () => {
+      const mockOnDismiss = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <PredictMarketSportCard
+          market={mockMarket}
+          testID="sport-card"
+          onDismiss={mockOnDismiss}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('sport-card-close-button'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
 });

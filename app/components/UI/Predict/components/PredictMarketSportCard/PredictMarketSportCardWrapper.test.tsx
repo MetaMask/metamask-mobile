@@ -1,5 +1,4 @@
 import React from 'react';
-import { Animated } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictMarketSportCardWrapper from './PredictMarketSportCardWrapper';
@@ -118,19 +117,6 @@ const mockMarket: PredictMarketType = {
   },
 };
 
-const createAnimatedValue = (value: number) => new Animated.Value(value);
-
-const defaultAnimationProps = {
-  isCurrentCard: true,
-  currentCardOpacity: createAnimatedValue(1),
-  currentCardScale: createAnimatedValue(1),
-  currentCardTranslateY: createAnimatedValue(0),
-  nextCardOpacity: createAnimatedValue(0.7),
-  nextCardScale: createAnimatedValue(0.96),
-  nextCardTranslateY: createAnimatedValue(8),
-  width: 350,
-};
-
 const initialState = {
   engine: {
     backgroundState,
@@ -162,10 +148,7 @@ describe('PredictMarketSportCardWrapper', () => {
       });
 
       const { toJSON } = renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="test-market-id"
-          {...defaultAnimationProps}
-        />,
+        <PredictMarketSportCardWrapper marketId="test-market-id" />,
         { state: initialState },
       );
 
@@ -183,10 +166,7 @@ describe('PredictMarketSportCardWrapper', () => {
       });
 
       const { toJSON } = renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="test-market-id"
-          {...defaultAnimationProps}
-        />,
+        <PredictMarketSportCardWrapper marketId="test-market-id" />,
         { state: initialState },
       );
 
@@ -204,10 +184,7 @@ describe('PredictMarketSportCardWrapper', () => {
       });
 
       const { toJSON } = renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="test-market-id"
-          {...defaultAnimationProps}
-        />,
+        <PredictMarketSportCardWrapper marketId="test-market-id" />,
         { state: initialState },
       );
 
@@ -227,10 +204,7 @@ describe('PredictMarketSportCardWrapper', () => {
 
     it('renders PredictMarketSportCard when market data is available', () => {
       const { getByText } = renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="test-market-id"
-          {...defaultAnimationProps}
-        />,
+        <PredictMarketSportCardWrapper marketId="test-market-id" />,
         { state: initialState },
       );
 
@@ -239,10 +213,7 @@ describe('PredictMarketSportCardWrapper', () => {
 
     it('calls usePredictMarket with correct marketId', () => {
       renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="custom-market-id"
-          {...defaultAnimationProps}
-        />,
+        <PredictMarketSportCardWrapper marketId="custom-market-id" />,
         { state: initialState },
       );
 
@@ -257,7 +228,6 @@ describe('PredictMarketSportCardWrapper', () => {
         <PredictMarketSportCardWrapper
           marketId="test-market-id"
           testID="wrapper-test-id"
-          {...defaultAnimationProps}
         />,
         { state: initialState },
       );
@@ -271,73 +241,29 @@ describe('PredictMarketSportCardWrapper', () => {
           marketId="test-market-id"
           testID="wrapper-test-id"
           entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
-          {...defaultAnimationProps}
         />,
         { state: initialState },
       );
 
       expect(getByTestId('wrapper-test-id')).toBeOnTheScreen();
     });
-  });
 
-  describe('animation props', () => {
-    beforeEach(() => {
-      mockUsePredictMarket.mockReturnValue({
-        market: mockMarket,
-        isFetching: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-    });
-
-    it('renders with current card animation styles when isCurrentCard is true', () => {
+    it('renders without Animated.View wrapper', () => {
       const { toJSON } = renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="test-market-id"
-          isCurrentCard
-          currentCardOpacity={createAnimatedValue(1)}
-          currentCardScale={createAnimatedValue(1)}
-          currentCardTranslateY={createAnimatedValue(0)}
-          nextCardOpacity={createAnimatedValue(0.7)}
-          nextCardScale={createAnimatedValue(0.96)}
-          nextCardTranslateY={createAnimatedValue(8)}
-          width={350}
-        />,
+        <PredictMarketSportCardWrapper marketId="test-market-id" />,
         { state: initialState },
       );
 
-      expect(toJSON()).not.toBeNull();
-    });
-
-    it('renders with next card animation styles when isCurrentCard is false', () => {
-      const { toJSON } = renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="test-market-id"
-          isCurrentCard={false}
-          currentCardOpacity={createAnimatedValue(1)}
-          currentCardScale={createAnimatedValue(1)}
-          currentCardTranslateY={createAnimatedValue(0)}
-          nextCardOpacity={createAnimatedValue(0.7)}
-          nextCardScale={createAnimatedValue(0.96)}
-          nextCardTranslateY={createAnimatedValue(8)}
-          width={350}
-        />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).not.toBeNull();
+      const tree = toJSON();
+      expect(tree).not.toBeNull();
     });
   });
 
   describe('hook enabled state', () => {
     it('disables hook when marketId is empty string', () => {
-      renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId=""
-          {...defaultAnimationProps}
-        />,
-        { state: initialState },
-      );
+      renderWithProvider(<PredictMarketSportCardWrapper marketId="" />, {
+        state: initialState,
+      });
 
       expect(mockUsePredictMarket).toHaveBeenCalledWith({
         id: '',
@@ -347,10 +273,7 @@ describe('PredictMarketSportCardWrapper', () => {
 
     it('enables hook when marketId is provided', () => {
       renderWithProvider(
-        <PredictMarketSportCardWrapper
-          marketId="valid-market-id"
-          {...defaultAnimationProps}
-        />,
+        <PredictMarketSportCardWrapper marketId="valid-market-id" />,
         { state: initialState },
       );
 

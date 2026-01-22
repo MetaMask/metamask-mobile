@@ -276,6 +276,22 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     dismissedBanners,
   ]);
 
+  const predictSuperbowlSlide = useMemo(
+    () =>
+      slidesConfig.find(
+        (slide) => slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME,
+      ),
+    [slidesConfig],
+  );
+
+  const predictSuperbowlMarketId = useMemo(() => {
+    if (!predictSuperbowlSlide) return null;
+    const metadata = predictSuperbowlSlide.metadata as
+      | PredictCarouselMetadata
+      | undefined;
+    return metadata?.marketId ?? null;
+  }, [predictSuperbowlSlide]);
+
   const visibleSlides = useMemo(() => {
     const filtered = slidesConfig.filter((slide: CarouselSlide) => {
       const active = isActive(slide);
@@ -289,6 +305,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         return false;
       }
       ///: END:ONLY_INCLUDE_IF
+
+      // We dont want to show the predict superbowl slide in the carousel
+      if (slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME) {
+        return false;
+      }
 
       return !dismissedBanners.includes(slide.id);
     });
@@ -309,22 +330,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     selectedAccount,
     ///: END:ONLY_INCLUDE_IF
   ]);
-
-  const predictSuperbowlSlide = useMemo(
-    () =>
-      visibleSlides.find(
-        (slide) => slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME,
-      ),
-    [visibleSlides],
-  );
-
-  const predictSuperbowlMarketId = useMemo(() => {
-    if (!predictSuperbowlSlide) return null;
-    const metadata = predictSuperbowlSlide.metadata as
-      | PredictCarouselMetadata
-      | undefined;
-    return metadata?.marketId ?? null;
-  }, [predictSuperbowlSlide]);
 
   // Ensure activeSlideIndex is within bounds after filtering
   const safeActiveSlideIndex = Math.min(
@@ -557,6 +562,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
   }, [transitionToEmpty, onEmptyState]);
 
+  const handleSportCardDismiss = useCallback(() => {
+    if (!predictSuperbowlSlide) return;
+    dispatch(dismissBanner(predictSuperbowlSlide.id));
+  }, [predictSuperbowlSlide, dispatch]);
+
   const renderCard = useCallback(
     (slide: CarouselSlide, isCurrentCard: boolean) => {
       const isEmptyCard = slide.variableName === 'empty';
@@ -654,6 +664,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           marketId={predictSuperbowlMarketId}
           testID={predictSuperbowlSlide?.testID}
           entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+          onDismiss={handleSportCardDismiss}
         />
       </Box>
     );
