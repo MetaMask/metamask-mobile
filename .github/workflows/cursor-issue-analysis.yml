@@ -79,7 +79,7 @@ jobs:
           prompt: ${{ steps.prompt.outputs.prompt }}
           repository: https://github.com/${{ github.repository }}
           ref: ${{ github.event.repository.default_branch }}
-          model: opus-4.5-thinking
+          model: claude-4.5-opus-high-thinking
           timeout-minutes: '10'
 
       - name: Post analysis comment
