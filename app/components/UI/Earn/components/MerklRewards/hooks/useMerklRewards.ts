@@ -42,7 +42,7 @@ export const isEligibleForMerklRewards = (
 };
 
 interface UseMerklRewardsOptions {
-  asset: TokenI;
+  asset: TokenI | undefined;
   exchangeRate?: number;
 }
 
@@ -63,6 +63,12 @@ export const useMerklRewards = ({
   );
 
   useEffect(() => {
+    // Guard against undefined asset (can happen during race conditions)
+    if (!asset) {
+      setClaimableReward(null);
+      return;
+    }
+
     const isEligible = isEligibleForMerklRewards(
       asset.chainId as Hex,
       asset.address as Hex | undefined,
