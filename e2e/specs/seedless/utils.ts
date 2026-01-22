@@ -17,9 +17,12 @@ import ForgotPasswordModal from '../../pages/Common/ForgotPasswordModalView';
 export const TEST_PASSWORD = 'Test123!@#';
 
 /**
- * Google new user onboarding flow
+ * Social login new user onboarding flow
+ * @param provider - The login provider ('google' or 'apple')
  */
-export const completeGoogleNewUserOnboarding = async (): Promise<void> => {
+export const completeSocialLoginOnboarding = async (
+  provider: 'google' | 'apple',
+): Promise<void> => {
   await Assertions.expectElementToBeVisible(OnboardingView.container, {
     description: 'Onboarding screen should be visible',
   });
@@ -30,7 +33,12 @@ export const completeGoogleNewUserOnboarding = async (): Promise<void> => {
     description: 'Onboarding sheet with social login options should appear',
   });
 
-  await OnboardingSheet.tapGoogleLoginButton();
+  // Tap the appropriate login button based on provider
+  if (provider === 'google') {
+    await OnboardingSheet.tapGoogleLoginButton();
+  } else {
+    await OnboardingSheet.tapAppleLoginButton();
+  }
 
   const isIOS = device.getPlatform() === 'ios';
 
@@ -88,75 +96,16 @@ export const completeGoogleNewUserOnboarding = async (): Promise<void> => {
 };
 
 /**
+ * Google new user onboarding flow
+ */
+export const completeGoogleNewUserOnboarding = (): Promise<void> =>
+  completeSocialLoginOnboarding('google');
+
+/**
  * Apple new user onboarding flow
  */
-export const completeAppleNewUserOnboarding = async (): Promise<void> => {
-  await Assertions.expectElementToBeVisible(OnboardingView.container, {
-    description: 'Onboarding screen should be visible',
-  });
-
-  await OnboardingView.tapCreateWallet();
-
-  await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-    description: 'Onboarding sheet with social login options should appear',
-  });
-
-  await OnboardingSheet.tapAppleLoginButton();
-
-  const isIOS = device.getPlatform() === 'ios';
-
-  if (isIOS) {
-    await SocialLoginView.isIosNewUserScreenVisible();
-    await SocialLoginView.tapIosNewUserSetPinButton();
-  }
-
-  await Assertions.expectElementToBeVisible(CreatePasswordView.container, {
-    description: 'Password creation screen should be visible',
-  });
-
-  await CreatePasswordView.enterPassword(TEST_PASSWORD);
-  await CreatePasswordView.reEnterPassword(TEST_PASSWORD);
-
-  try {
-    await TermsOfUseModal.tapAgreeCheckBox();
-    await TermsOfUseModal.tapAcceptButton();
-  } catch {
-    // Terms modal may not appear in all flows
-  }
-
-  await CreatePasswordView.tapCreatePasswordButton();
-
-  try {
-    await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
-      description: 'MetaMetrics opt-in screen',
-      timeout: 10000,
-    });
-    await MetaMetricsOptInView.tapAgreeButton();
-  } catch {
-    // May not appear in all flows
-  }
-
-  try {
-    await ExperienceEnhancerBottomSheet.tapIAgree();
-  } catch {
-    // May not appear in all flows
-  }
-
-  try {
-    await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-      description: 'Onboarding success screen should be visible',
-      timeout: 30000,
-    });
-    await OnboardingSuccessView.tapDone();
-  } catch {
-    // May go directly to home in some flows
-  }
-
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet view should be visible after onboarding',
-    timeout: 30000,
-  });
-};
+export const completeAppleNewUserOnboarding = (): Promise<void> =>
+  completeSocialLoginOnboarding('apple');
 
 /**
  * Locks the app from Settings

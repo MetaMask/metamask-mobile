@@ -1,43 +1,14 @@
 import { OAuthLoginResultType } from '../../../app/core/OAuthService/OAuthInterface';
 
-/**
- * E2E Test Email Patterns
- */
-export const E2E_EMAILS = {
-  // Google Login
-  GOOGLE_NEW_USER: 'google.newuser+e2e@web3auth.io',
-  GOOGLE_EXISTING_USER: 'google.existinguser+e2e@web3auth.io',
+// Import shared constants
+import {
+  E2E_EMAILS,
+  E2EScenario,
+  E2ELoginProvider,
+} from '../../api-mocking/seedless-onboarding/constants';
 
-  // Apple Login
-  APPLE_NEW_USER: 'apple.newuser+e2e@web3auth.io',
-  APPLE_EXISTING_USER: 'apple.existinguser+e2e@web3auth.io',
-
-  // Error scenarios
-  ERROR_TIMEOUT: 'error.timeout+e2e@web3auth.io',
-  ERROR_INVALID_TOKEN: 'error.invalid+e2e@web3auth.io',
-  ERROR_NETWORK: 'error.network+e2e@web3auth.io',
-  ERROR_AUTH_FAILED: 'error.authfailed+e2e@web3auth.io',
-} as const;
-
-/**
- * E2E Test Scenarios
- */
-export enum E2EScenario {
-  NEW_USER = 'new_user',
-  EXISTING_USER = 'existing_user',
-  ERROR_TIMEOUT = 'error_timeout',
-  ERROR_INVALID = 'error_invalid',
-  ERROR_NETWORK = 'error_network',
-  ERROR_AUTH_FAILED = 'error_auth_failed',
-}
-
-/**
- * Login Providers
- */
-export enum E2ELoginProvider {
-  GOOGLE = 'google',
-  APPLE = 'apple',
-}
+// Re-export for consumers
+export { E2E_EMAILS, E2EScenario, E2ELoginProvider };
 
 /**
  * E2E OAuth Configuration
