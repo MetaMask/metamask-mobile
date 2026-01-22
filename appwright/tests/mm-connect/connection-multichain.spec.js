@@ -7,7 +7,6 @@ import {
 } from '../../utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import MultiChainTestDapp from '../../../wdio/screen-objects/MultiChainTestDapp.js';
-import MultiChainEvmTestDapp from '../../../wdio/screen-objects/MultiChainEvmTestDapp.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
