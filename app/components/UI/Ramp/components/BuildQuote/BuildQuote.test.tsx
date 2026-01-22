@@ -30,12 +30,6 @@ const mockTokenNetworkInfo = {
 };
 
 const mockGetTokenNetworkInfo = jest.fn(() => mockTokenNetworkInfo);
-const mockUseRampTokens = jest.fn(() => ({
-  allTokens: [createMockToken()],
-  topTokens: [createMockToken()],
-  isLoading: false,
-  error: null,
-}));
 const mockGetRampsBuildQuoteNavbarOptions = jest.fn(
   (_navigation: unknown, _options: unknown) => ({}),
 );
@@ -67,10 +61,6 @@ jest.mock('../../utils/formatCurrency', () => ({
   formatCurrency: (amount: number) => `$${amount}`,
 }));
 
-jest.mock('../../hooks/useRampTokens', () => ({
-  useRampTokens: () => mockUseRampTokens(),
-}));
-
 jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
 }));
@@ -95,11 +85,19 @@ const defaultUserRegion: MockUserRegion = {
 
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
 let mockPreferredProvider: unknown = null;
+let mockTokens: {
+  allTokens: ReturnType<typeof createMockToken>[];
+  topTokens: ReturnType<typeof createMockToken>[];
+} | null = {
+  allTokens: [createMockToken()],
+  topTokens: [createMockToken()],
+};
 
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
     preferredProvider: mockPreferredProvider,
+    tokens: mockTokens,
   }),
 }));
 
@@ -115,12 +113,10 @@ describe('BuildQuote', () => {
     jest.clearAllMocks();
     mockUserRegion = defaultUserRegion;
     mockPreferredProvider = null;
-    mockUseRampTokens.mockReturnValue({
+    mockTokens = {
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
-      isLoading: false,
-      error: null,
-    });
+    };
     mockGetTokenNetworkInfo.mockReturnValue(mockTokenNetworkInfo);
   });
 
@@ -207,12 +203,10 @@ describe('BuildQuote', () => {
   });
 
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
-    mockUseRampTokens.mockReturnValue({
+    mockTokens = {
       allTokens: [],
       topTokens: [],
-      isLoading: false,
-      error: null,
-    });
+    };
 
     renderWithTheme(<BuildQuote />);
 

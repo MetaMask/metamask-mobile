@@ -25,7 +25,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { useRampTokens } from '../../hooks/useRampTokens';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 
@@ -44,22 +43,21 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
 
-  // Get user region and preferred provider from RampsController
-  const { userRegion, preferredProvider } = useRampsController();
+  // Get user region, preferred provider, and tokens from RampsController
+  const { userRegion, preferredProvider, tokens } = useRampsController();
 
   // Get currency and quick amounts from user's region
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
-  // Get token and network info for the navbar
-  const { allTokens } = useRampTokens();
+  // Get network info helper
   const getTokenNetworkInfo = useTokenNetworkInfo();
 
   // Find the selected token from assetId param
   const selectedToken = useMemo(() => {
-    if (!assetId || !allTokens) return null;
-    return allTokens.find((token) => token.assetId === assetId) ?? null;
-  }, [assetId, allTokens]);
+    if (!assetId || !tokens?.allTokens) return null;
+    return tokens.allTokens.find((token) => token.assetId === assetId) ?? null;
+  }, [assetId, tokens?.allTokens]);
 
   // Get network info for the selected token
   const networkInfo = useMemo(() => {
