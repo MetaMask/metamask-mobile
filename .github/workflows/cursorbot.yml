@@ -127,8 +127,6 @@ jobs:
                 '',
                 `🌐 **[View Agent Session](${agentUrl})**`,
                 '',
-                `🖥️ [Open in Cursor App](https://cursor.com/bg/${agentId})`,
-                '',
                 '*Automated implementation by Cursorbot*'
               ].filter(line => line !== null).join('\n');
             } else {
@@ -149,8 +147,6 @@ jobs:
                 '---',
                 '',
                 `🌐 **[View Agent Session](${agentUrl})**`,
-                '',
-                `🖥️ [Open in Cursor App](https://cursor.com/bg/${agentId})`,
                 '',
                 '*Automated analysis by Cursorbot*'
               ].filter(line => line !== null).join('\n');
@@ -193,8 +189,6 @@ jobs:
               '---',
               '',
               `🌐 **[View Agent Session](${agentUrl})**`,
-              '',
-              `🖥️ [Open in Cursor App](https://cursor.com/bg/${agentId})`,
               '',
               '*Automated analysis by Cursorbot*'
             ].filter(line => line !== null).join('\n');
