@@ -44,6 +44,12 @@ import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-c
 import { SelectedNetworkControllerGetNetworkClientIdForDomainAction } from '@metamask/selected-network-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
+import {
+  StorageServiceClearAction,
+  StorageServiceGetItemAction,
+  StorageServiceRemoveItemAction,
+  StorageServiceSetItemAction,
+} from '@metamask/storage-service';
 
 type Actions =
   | GetEndowments
@@ -72,7 +78,11 @@ type Actions =
   | CreateInterface
   | GetInterface
   | NetworkControllerGetNetworkClientByIdAction
-  | SelectedNetworkControllerGetNetworkClientIdForDomainAction;
+  | SelectedNetworkControllerGetNetworkClientIdForDomainAction
+  | StorageServiceSetItemAction
+  | StorageServiceGetItemAction
+  | StorageServiceRemoveItemAction
+  | StorageServiceClearAction;
 
 type Events =
   | ErrorMessageEvent
@@ -130,6 +140,10 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
       `SnapInterfaceController:getInterface`,
       'NetworkController:getNetworkClientById',
       'SelectedNetworkController:getNetworkClientIdForDomain',
+      'StorageService:setItem',
+      'StorageService:getItem',
+      'StorageService:removeItem',
+      'StorageService:clear',
     ],
     events: [
       'ExecutionService:unhandledError',
