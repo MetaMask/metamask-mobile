@@ -13,6 +13,7 @@ import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingControllerState } from '@metamask/phishing-controller';
+import { RampsControllerState } from '@metamask/ramps-controller';
 import { TransactionControllerState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalControllerState } from '@metamask/approval-controller';
@@ -35,6 +36,7 @@ export interface EngineState {
       NetworkController: NetworkState;
       PreferencesController: PreferencesState;
       PhishingController: PhishingControllerState;
+      RampsController: RampsControllerState;
       TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesControllerState;
       TransactionController: TransactionControllerState;

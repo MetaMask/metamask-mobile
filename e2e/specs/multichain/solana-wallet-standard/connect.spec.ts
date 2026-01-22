@@ -12,6 +12,7 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import { Utilities } from '../../../framework';
+import { navigateToBrowserView } from '../../../viewHelper';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
@@ -82,7 +83,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
         await WalletView.tapCurrentMainWalletAccountActions();
 
         await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
 
         const accountAfterSwitch = await header.getAccount();
         await Assertions.checkIfTextMatches(accountAfterSwitch, account1Short);

@@ -40,6 +40,7 @@ export function getSnapInterfaceControllerMessenger(
       'AccountsController:getSelectedMultichainAccount',
       'AccountsController:getAccountByAddress',
       'AccountsController:listMultichainAccounts',
+      'PermissionController:hasPermission',
     ],
     events: ['NotificationServicesController:notificationsListUpdated'],
     messenger,

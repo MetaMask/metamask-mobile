@@ -38,48 +38,53 @@ test('Predict Market Details - Load Time Performance', async ({
   await login(device);
   await TabBarModal.tapActionButton();
 
-  // Timer 2: Open predictions tab
+  // Timer 2: Open predictions tab (threshold: 5000ms + 10% = 5500ms)
   const timer2 = new TimerHelper(
     'Time since user taps Predict button until Predict Market List is displayed',
+    { ios: 2800, android: 4000 },
+    device,
   );
-  timer2.start();
-  await WalletActionModal.tapPredictButton();
-  await PredictMarketListScreen.isContainerDisplayed();
-  timer2.stop();
+  await timer2.measure(async () => {
+    await WalletActionModal.tapPredictButton();
+    await PredictMarketListScreen.isContainerDisplayed();
+  });
 
-  // Timer 3: Open market details
+  // Timer 3: Open market details (threshold: 5000ms + 10% = 5500ms)
   const timer3 = new TimerHelper(
     'Time since user taps market card until Market Details screen is visible',
+    { ios: 17000, android: 13000 },
+    device,
   );
-  timer3.start();
-  await PredictMarketListScreen.tapMarketCard('trending', 1);
-  await PredictDetailsScreen.isVisible();
-  timer3.stop();
+  await timer3.measure(async () => {
+    await PredictMarketListScreen.tapMarketCard('trending', 1);
+    await PredictDetailsScreen.isVisible();
+  });
 
-  // Timer 4: Load About tab
+  // Timer 4: Load About tab (threshold: 3000ms + 10% = 3300ms)
   const timer4 = new TimerHelper(
     'Time since user taps About tab until About tab content is loaded and Volume text is visible',
+    { ios: 7800, android: 7800 },
+    device,
   );
-  timer4.start();
-  await PredictDetailsScreen.tapAboutTab();
-  await PredictDetailsScreen.isAboutTabContentDisplayed();
-  await PredictDetailsScreen.verifyVolumeTextDisplayed();
-  timer4.stop();
+  await timer4.measure(async () => {
+    await PredictDetailsScreen.tapAboutTab();
+    await PredictDetailsScreen.isAboutTabContentDisplayed();
+    await PredictDetailsScreen.verifyVolumeTextDisplayed();
+  });
 
-  // Timer 5: Load Outcomes tab
+  // Timer 5: Load Outcomes tab (threshold: 3000ms + 10% = 3300ms)
   const timer5 = new TimerHelper(
     'Time since user taps Outcomes tab until Outcomes tab content is loaded and Yes/No options are visible',
+    { ios: 6000, android: 6000 },
+    device,
   );
-  timer5.start();
   await PredictDetailsScreen.tapOutcomesTab();
-  await PredictDetailsScreen.isOutcomesTabContentDisplayed();
-  timer5.stop();
+  await timer5.measure(async () => {
+    await PredictDetailsScreen.isOutcomesTabContentDisplayed();
+  });
 
   // Add all timers to performance tracker
-  await performanceTracker.addTimer(timer2);
-  await performanceTracker.addTimer(timer3);
-  await performanceTracker.addTimer(timer4);
-  await performanceTracker.addTimer(timer5);
+  performanceTracker.addTimers(timer2, timer3, timer4, timer5);
 
   // Attach performance metrics to test report
   await performanceTracker.attachToTest(testInfo);

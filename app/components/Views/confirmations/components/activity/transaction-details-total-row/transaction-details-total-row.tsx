@@ -8,6 +8,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 
 const FALLBACK_TYPES = [TransactionType.predictWithdraw];
 
@@ -39,7 +40,7 @@ export function TransactionDetailsTotalRow() {
 
   return (
     <TransactionDetailsRow label={label}>
-      <Text>{totalFormatted}</Text>
+      <Text testID={TransactionDetailsSelectorIDs.TOTAL}>{totalFormatted}</Text>
     </TransactionDetailsRow>
   );
 }

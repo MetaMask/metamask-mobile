@@ -5,25 +5,10 @@ import { SeasonTierDto } from '../../../../../core/Engine/controllers/rewards-co
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { AppThemeKey } from '../../../../../util/theme/models';
 
-// Mock theme
-const mockUseTheme = jest.fn();
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => mockUseTheme(),
-  useAssetFromTheme: jest.requireActual('../../../../../util/theme')
-    .useAssetFromTheme,
-  AppThemeKey: {
-    os: 'os',
-    light: 'light',
-    dark: 'dark',
-  },
-}));
-
 // Mock Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
     const mockTw = jest.fn(() => ({}));
-    // Add the style method to the mock function
     Object.assign(mockTw, {
       style: jest.fn((styles) => {
         if (Array.isArray(styles)) {
@@ -73,7 +58,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       Column: 'column',
     },
     TextVariant: {
-      BodyLg: 'BodyLg',
+      HeadingSm: 'HeadingSm',
       BodyMd: 'BodyMd',
     },
     FontWeight: {
@@ -81,10 +66,10 @@ jest.mock('@metamask/design-system-react-native', () => {
       Medium: 'medium',
     },
     IconName: {
-      Star: 'Star',
+      Rocket: 'Rocket',
     },
     IconSize: {
-      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -118,20 +103,6 @@ jest.mock('./PreviousSeasonSummaryTile', () => {
   return PreviousSeasonSummaryTile;
 });
 
-// Mock RewardsThemeImageComponent
-jest.mock('../ThemeImageComponent', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  const RewardsThemeImageComponent = (props: {
-    themeImage?: unknown;
-    style?: unknown;
-    [key: string]: unknown;
-  }) => ReactActual.createElement(View, { testID: 'theme-image', ...props });
-
-  return RewardsThemeImageComponent;
-});
-
 describe('PreviousSeasonLevel', () => {
   const mockSeasonId = 'season-123';
   const mockCurrentTier: SeasonTierDto = {
@@ -144,14 +115,6 @@ describe('PreviousSeasonLevel', () => {
     },
     levelNumber: 'Level 1',
     rewards: [],
-  };
-
-  const mockTheme = {
-    themeAppearance: AppThemeKey.light,
-    brandColors: {
-      grey100: '#F5F5F5',
-      grey700: '#4A4A4A',
-    },
   };
 
   const defaultState = {
@@ -167,7 +130,6 @@ describe('PreviousSeasonLevel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
   });
 
   it('returns null when seasonId is missing', () => {
@@ -227,7 +189,7 @@ describe('PreviousSeasonLevel', () => {
     ).toBeNull();
   });
 
-  it('renders component with tier image when image exists', () => {
+  it('renders component with rocket icon', () => {
     const state = {
       ...defaultState,
       rewards: {
@@ -238,37 +200,17 @@ describe('PreviousSeasonLevel', () => {
       },
     };
 
-    const { getByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
-      state,
-    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <PreviousSeasonLevel />,
+      {
+        state,
+      },
+    );
 
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
     ).toBeOnTheScreen();
-    expect(getByTestId('theme-image')).toBeOnTheScreen();
-  });
-
-  it('renders fallback icon when image does not exist', () => {
-    const tierWithoutImage: SeasonTierDto = {
-      ...mockCurrentTier,
-      image: null as unknown as SeasonTierDto['image'],
-    };
-
-    const state = {
-      ...defaultState,
-      rewards: {
-        seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
-        currentTier: tierWithoutImage,
-      },
-    };
-
-    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
-      state,
-    });
-
-    expect(getByText('Icon-Star')).toBeOnTheScreen();
+    expect(getByText('Icon-Rocket')).toBeOnTheScreen();
   });
 
   it('renders tier level number', () => {
@@ -327,62 +269,6 @@ describe('PreviousSeasonLevel', () => {
     ).toBeNull();
   });
 
-  it('uses light theme colors for fallback icon background when theme is light', () => {
-    mockUseTheme.mockReturnValue({
-      ...mockTheme,
-      themeAppearance: AppThemeKey.light,
-    });
-
-    const tierWithoutImage: SeasonTierDto = {
-      ...mockCurrentTier,
-      image: null as unknown as SeasonTierDto['image'],
-    };
-
-    const state = {
-      ...defaultState,
-      rewards: {
-        seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
-        currentTier: tierWithoutImage,
-      },
-    };
-
-    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
-      state,
-    });
-
-    expect(getByText('Icon-Star')).toBeOnTheScreen();
-  });
-
-  it('uses dark theme colors for fallback icon background when theme is dark', () => {
-    mockUseTheme.mockReturnValue({
-      ...mockTheme,
-      themeAppearance: AppThemeKey.dark,
-    });
-
-    const tierWithoutImage: SeasonTierDto = {
-      ...mockCurrentTier,
-      image: null as unknown as SeasonTierDto['image'],
-    };
-
-    const state = {
-      ...defaultState,
-      rewards: {
-        seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
-        currentTier: tierWithoutImage,
-      },
-    };
-
-    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
-      state,
-    });
-
-    expect(getByText('Icon-Star')).toBeOnTheScreen();
-  });
-
   it('does not show loading state when seasonId exists even if loading', () => {
     const state = {
       ...defaultState,
@@ -400,5 +286,30 @@ describe('PreviousSeasonLevel', () => {
 
     const tile = getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL);
     expect(tile.props['data-loading']).toBe(false);
+  });
+
+  it('renders both level number and name together', () => {
+    const customTier: SeasonTierDto = {
+      ...mockCurrentTier,
+      levelNumber: 'Level 5',
+      name: 'Diamond',
+    };
+
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: customTier,
+      },
+    };
+
+    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
+
+    expect(getByText('Level 5')).toBeOnTheScreen();
+    expect(getByText('Diamond')).toBeOnTheScreen();
   });
 });

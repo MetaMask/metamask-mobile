@@ -1,6 +1,6 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { ImportFromSeedSelectorsIDs } from '../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
@@ -130,7 +130,7 @@ class ImportFromSeedScreen {
         await Gestures.waitAndTap(this.continueButton);
       } else {
         await AppwrightGestures.hideKeyboard(this.device);
-        await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
+        await AppwrightGestures.tap(await this.continueButton); // Use static tap method with retry logic
       }
     } else {
       if (!this._device) {
@@ -153,19 +153,17 @@ class ImportFromSeedScreen {
       if (!this._device) {
           await Gestures.waitAndTap(this.screenTitle);
       } else {
-        await AppwrightGestures.tap(this.screenTitle); // Use static tap method with retry logic
+        await AppwrightGestures.tap(await this.screenTitle); // Use static tap method with retry logic
       }
-    } else {
-      if (!this._device) {
+    } else if (!this._device)
         await Gestures.waitAndTap(this.screenTitle);
-    } else {
-      if (AppwrightSelectors.isIOS(this._device)) {
-        const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
-        await AppwrightGestures.tap(element);
-      } else {
-        await AppwrightGestures.hideKeyboard(this.device);
-      }
-    }
+    else {
+        if (AppwrightSelectors.isIOS(this._device)) {
+          const element = await AppwrightSelectors.getElementByText(this.device, 'Import a wallet');
+          await AppwrightGestures.tap(element);
+        } else {
+          await AppwrightGestures.hideKeyboard(this.device);
+        }
     }
   }
 }

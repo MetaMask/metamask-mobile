@@ -1,6 +1,6 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import { OnboardingSheetSelectorIDs } from '../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
+import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
@@ -52,7 +52,7 @@ class OnboardingSheet {
     if (!this.device) {
       await Gestures.waitAndTap(this.importSeedButton);
     } else {
-      await AppwrightGestures.tap(this.importSeedButton); 
+      await AppwrightGestures.tap(await this.importSeedButton); 
     }
   }
 

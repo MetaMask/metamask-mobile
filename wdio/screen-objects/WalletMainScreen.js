@@ -1,12 +1,12 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
-import { AccountActionsBottomSheetSelectorsIDs } from '../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
-import { ToastSelectorsIDs } from '../../e2e/selectors/wallet/ToastModal.selectors';
-import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../app/components/UI/ProtectYourWalletModal/ProtectWalletModal.testIds';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../app/components/Views/AccountActions/AccountActionsBottomSheet.testIds';
+import { ToastSelectorsIDs } from '../../app/component-library/components/Toast/ToastModal.testIds';
+import { TabBarSelectorIDs } from '../../app/components/Nav/Main/TabBar.testIds';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
-import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
@@ -152,6 +152,8 @@ class WalletMainScreen {
     }
   }
 
+  
+
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
     await importToken.waitForDisplayed();
@@ -224,14 +226,21 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(this.accountIcon); 
+      await AppwrightGestures.tap(await this.accountIcon); 
     }
   }
+
+  async checkActiveAccount(name) {
+    const element = await AppwrightSelectors.getElementByText(this.device, name);
+    await appwrightExpect(element).toBeVisible();
+  }
+
+
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); 
+      await AppwrightGestures.tap(await this.swapButton); 
     }
   }
 
@@ -240,7 +249,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(this.networkInNavBar); 
+      await AppwrightGestures.tap(await this.networkInNavBar); 
     }
   }
 
@@ -254,7 +263,8 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
+    const container = await this.WalletScreenContainer;
+    await appwrightExpect(container).toBeVisible();
   }
 
   async clickOnMainScreen() { // to close account actions bottom sheet
@@ -311,28 +321,66 @@ class WalletMainScreen {
 
   async waitForBalanceToStabilize(options = {}) {
     const { 
-      maxWaitTime = 60000,         // 1 minute timeout
+      maxWaitTime = 60000,
       pollInterval = 100, 
-      sameResultTimeout = 20000    // 20 seconds with the same result = stable
+      sameResultTimeout = 8000
     } = options;
 
     const startTime = Date.now();
+    const isIOS = AppwrightSelectors.isIOS(this._device);
+    
+
+    // iOS: Element lookups are extremely slow (15-30s each via Appwright).
+    // Skip stability loop and just wait for a valid balance once.
+    if (isIOS) {
+      let previousBalance = '';
+      while (Date.now() - startTime < maxWaitTime) {
+        try {
+          const balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
+          const rawBalance = await balanceElement.getText();
+          const balance = (rawBalance || '').trim();
+          previousBalance = balance;
+          
+          if (balance && balance !== '' && balance !== '$0.00') {
+            return balance;
+          }
+        } catch (error) {
+        }
+        await AppwrightGestures.wait(1000);
+      }
+      return previousBalance;
+    }
+
+    // Android: Fast element lookups, use stability polling
+    let balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
     let previousBalance = '';
     let sameResultStartTime = null;
 
     while (true) {
-      // Check if we exceeded the maximum wait time (1 minute)
-      if (Date.now() - startTime > maxWaitTime) {
-        console.log(`Max wait time (${maxWaitTime}ms) exceeded - returning current balance`);
+      const elapsedTime = Date.now() - startTime;
+
+      if (elapsedTime > maxWaitTime) {
         return previousBalance;
       }
 
-      const currentBalance = await this.getTotalBalanceText();
+      let rawBalance;
+      try {
+        rawBalance = await balanceElement.getText();
+      } catch (error) {
+        balanceElement = await AppwrightSelectors.getElementByID(this._device, 'total-balance-text');
+        await AppwrightGestures.wait(pollInterval);
+        continue;
+      }
 
-      if (currentBalance === previousBalance && previousBalance !== '') {
-        // Same result - check if 20 seconds have passed
+      const currentBalance = (rawBalance || '').trim();
+
+      if (!currentBalance || currentBalance === '' || currentBalance === '$0.00') {
+        await AppwrightGestures.wait(pollInterval);
+        continue;
+      }
+
+      if (currentBalance === previousBalance) {
         const timeSinceSameResult = Date.now() - sameResultStartTime;
-        
         if (timeSinceSameResult >= sameResultTimeout) {
           return currentBalance;
         }
@@ -368,7 +416,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(this.accountActionsButton); 
+      await AppwrightGestures.tap(await this.accountActionsButton); 
     }
   }
 

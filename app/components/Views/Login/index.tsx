@@ -13,6 +13,10 @@ import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardController,
+  AndroidSoftInputModes,
+} from 'react-native-keyboard-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -25,8 +29,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { setExistingUser } from '../../../actions/user';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -52,7 +55,7 @@ import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
@@ -100,6 +103,7 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -107,7 +111,6 @@ const EmptyRecordConstant = {};
 
 interface LoginRouteParams {
   locked: boolean;
-  isVaultRecovery?: boolean;
 }
 
 interface LoginProps {
@@ -138,15 +141,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
-  const dispatch = useDispatch();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-  // coming from vault recovery flow flag
-  const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -165,13 +165,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleBackPress = () => {
-    Authentication.lockApp();
+    Authentication.lockApp({ reset: false });
     return false;
   };
 
   const updateBiometryChoice = useCallback(
     async (newBiometryChoice: boolean) => {
-      await updateAuthTypeStorageFlags(newBiometryChoice);
       setBiometryChoice(newBiometryChoice);
     },
     [setBiometryChoice],
@@ -200,6 +199,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'android' && !isE2E) {
+      KeyboardController.setInputMode(
+        AndroidSoftInputModes.SOFT_INPUT_ADJUST_PAN,
+      );
+
+      return () => {
+        KeyboardController.setDefaultMode();
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -253,30 +264,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (backupResult.vault) {
         const vaultSeed = await parseVaultValue(password, backupResult.vault);
         if (vaultSeed) {
-          // get authType
-          const authData = await Authentication.componentAuthenticationType(
-            biometryChoice,
-            rememberMe,
+          navigation.replace(
+            ...createRestoreWalletNavDetailsNested({
+              previousScreen: Routes.ONBOARDING.LOGIN,
+            }),
           );
-          try {
-            await Authentication.storePassword(
-              password,
-              authData.currentAuthType,
-            );
-            navigation.replace(
-              ...createRestoreWalletNavDetailsNested({
-                previousScreen: Routes.ONBOARDING.LOGIN,
-              }),
-            );
-            setLoading(false);
-            setError(null);
-            return;
-          } catch (e) {
-            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
-          }
-        } else {
-          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
+          setLoading(false);
+          setError(null);
+          return;
         }
+        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
       } else if (backupResult.error) {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
@@ -293,7 +290,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
       setError(strings('login.invalid_password'));
     }
-  }, [password, biometryChoice, rememberMe, navigation]);
+  }, [password, navigation]);
 
   const navigateToHome = useCallback(async () => {
     navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -402,15 +399,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
         async () => {
           await Authentication.userEntryAuth(password, authType);
+          await updateAuthTypeStorageFlags(biometryChoice);
         },
       );
-
-      // CRITICAL: Set existingUser = true after successful vault unlock from recovery
-      // This prevents the vault recovery screen from appearing again on app restart
-      // Only set after successful unlock to ensure vault is unlocked and credentials are stored
-      if (isComingFromVaultRecovery) {
-        dispatch(setExistingUser(true));
-      }
 
       await checkMetricsUISeen();
 
@@ -426,8 +417,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     loading,
     handleLoginError,
     checkMetricsUISeen,
-    dispatch,
-    isComingFromVaultRecovery,
   ]);
 
   const handleLogin = async () => {
@@ -512,10 +501,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
-          resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
           contentContainerStyle={styles.scrollContentContainer}
           extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
+          enableOnAndroid
           enableResetScrollToCoords={false}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
@@ -605,6 +594,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
           </TouchableOpacity>
         )}
+        <ScreenshotDeterrent enabled isSRP={false} />
       </SafeAreaView>
     </ErrorBoundary>
   );

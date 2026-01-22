@@ -10,6 +10,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('../../../../../core/redux/slices/card', () => ({
+  resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
+}));
+
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {

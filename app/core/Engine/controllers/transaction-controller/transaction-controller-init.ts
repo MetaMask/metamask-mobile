@@ -17,8 +17,10 @@ import {
 } from '@metamask/smart-transactions-controller';
 
 import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
-import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import {
+  getSmartTransactionsFeatureFlagsForChain,
+  selectShouldUseSmartTransaction,
+} from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
 import {
   submitSmartTransactionHook,
@@ -50,7 +52,8 @@ import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -78,8 +81,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled: ({ type }) =>
-          REDESIGNED_TRANSACTION_TYPES.includes(type as TransactionType),
+        isAutomaticGasFeeUpdateEnabled,
         disableHistory: true,
         disableSendFlowHistory: true,
         disableSwaps: true,
@@ -262,12 +264,12 @@ async function publishHook({
   return { transactionHash: undefined };
 }
 
-function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {
+function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
   const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
     state,
     chainId,
   );
-  const featureFlags = selectSwapsChainFeatureFlags(state, chainId);
+  const featureFlags = getSmartTransactionsFeatureFlagsForChain(state, chainId);
 
   return {
     shouldUseSmartTransaction,
@@ -357,6 +359,23 @@ function beforeSign(
 ) {
   const predictController = request.getController('PredictController');
   return predictController.beforeSign(hookRequest);
+}
+
+function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
+  if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+    return false;
+  }
+
+  if (
+    transaction.origin === ORIGIN_METAMASK &&
+    transaction.type === TransactionType.tokenMethodApprove
+  ) {
+    return false;
+  }
+
+  return REDESIGNED_TRANSACTION_TYPES.includes(
+    transaction.type as TransactionType,
+  );
 }
 
 function addTransactionControllerListeners(

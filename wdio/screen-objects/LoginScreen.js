@@ -2,7 +2,7 @@ import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
 class LoginScreen {
@@ -115,7 +115,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.resetWalletButton);
     } else {
-      await AppwrightGestures.tap(this.resetWalletButton); 
+      await AppwrightGestures.tap(await this.resetWalletButton); 
     }
   }
 
@@ -136,7 +136,7 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      await AppwrightGestures.tap(this.unlockButton); 
+      await AppwrightGestures.tap(await this.unlockButton); 
     }
   }
 
@@ -144,7 +144,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.title);
     } else {
-      await AppwrightGestures.tap(this.title); 
+      await AppwrightGestures.tap(await this.title); 
     }
   }
 
@@ -152,7 +152,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.rememberMeToggle);
     } else {
-      await AppwrightGestures.tap(this.rememberMeToggle); 
+      await AppwrightGestures.tap(await this.rememberMeToggle); 
     }
   }
 }

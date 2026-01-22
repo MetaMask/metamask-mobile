@@ -9,16 +9,24 @@ jest.mock('./useSendType', () => ({
   useSendType: jest.fn(),
 }));
 
+jest.mock('../../context/send-context', () => ({
+  useSendContext: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/addressBookController', () => ({
   selectAddressBook: jest.fn(),
 }));
 
 import { useSelector } from 'react-redux';
 import { useSendType } from './useSendType';
+import { useSendContext } from '../../context/send-context';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseSendType = useSendType as jest.MockedFunction<typeof useSendType>;
+const mockUseSendContext = useSendContext as jest.MockedFunction<
+  typeof useSendContext
+>;
 
 function createMockUseSendType(
   returnValues: Partial<ReturnType<typeof useSendType>>,
@@ -92,6 +100,10 @@ describe('useContacts', () => {
     createMockUseSendType({
       isEvmSendType: true,
     });
+
+    mockUseSendContext.mockReturnValue({
+      chainId: '0x1',
+    } as unknown as ReturnType<typeof useSendContext>);
   });
 
   describe('when isEvmSendType is true', () => {
@@ -159,10 +171,10 @@ describe('useContacts', () => {
       createMockUseSendType({});
     });
 
-    it('returns all contacts without filtering', () => {
+    it('returns all contacts for the chain without filtering', () => {
       const { result } = renderHook(() => useContacts());
 
-      expect(result.current).toHaveLength(6);
+      expect(result.current).toHaveLength(2);
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
@@ -172,14 +184,6 @@ describe('useContacts', () => {
           {
             contactName: 'Jane Smith',
             address: '0x9876543210987654321098765432109876543210',
-          },
-          {
-            contactName: 'Solana Contact',
-            address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
-          },
-          {
-            contactName: 'Invalid Contact',
-            address: '0xinvalid',
           },
         ]),
       );
@@ -228,7 +232,7 @@ describe('useContacts', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectAddressBook) {
         return {
-          '1': {
+          '0x1': {
             contact1: mockEvmContact1,
           },
         };
@@ -248,7 +252,7 @@ describe('useContacts', () => {
 
   describe('edge cases for address validation', () => {
     const edgeCaseAddressBook = {
-      '1': {
+      '0x1': {
         validEvm: {
           contactName: 'Valid EVM',
           address: '0x1234567890123456789012345678901234567890',
@@ -297,7 +301,7 @@ describe('useContacts', () => {
 
     it('filters out zero address burn address', () => {
       const burnAddressBook = {
-        '1': {
+        '0x1': {
           contact1: mockEvmContact1,
           burnContact: {
             name: 'Burn Address',

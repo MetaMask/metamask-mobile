@@ -29,7 +29,7 @@ export interface UseOpenSwapsOptions {
 }
 
 export const useOpenSwaps = ({
-  location = SwapBridgeNavigationLocation.TokenDetails,
+  location = SwapBridgeNavigationLocation.TokenView,
   sourcePage = Routes.CARD.HOME,
   priorityToken,
 }: UseOpenSwapsOptions = {}) => {
@@ -72,7 +72,7 @@ export const useOpenSwaps = ({
       dispatch(setDestToken(destToken));
 
       const navigate = () => {
-        goToSwaps();
+        goToSwaps(sourceToken, destToken);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties({

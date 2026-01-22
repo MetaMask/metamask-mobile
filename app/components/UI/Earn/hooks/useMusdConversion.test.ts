@@ -10,6 +10,7 @@ import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
+import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -67,6 +68,26 @@ describe('useMusdConversion', () => {
     type: 'eip155:eoa',
   };
 
+  const setupUseSelectorMock = ({
+    selectedAccount = mockSelectedAccount,
+    hasSeenConversionEducationScreen = true,
+  }: {
+    selectedAccount?: typeof mockSelectedAccount | null;
+    hasSeenConversionEducationScreen?: boolean;
+  } = {}) => {
+    const mockAccountSelector = jest.fn(() => selectedAccount);
+    mockUseSelector.mockReset();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectMusdConversionEducationSeen) {
+        return hasSeenConversionEducationScreen;
+      }
+
+      return mockAccountSelector;
+    });
+
+    return { mockAccountSelector };
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -98,9 +119,7 @@ describe('useMusdConversion', () => {
     };
 
     it('navigates with correct params', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
         'mainnet',
@@ -127,9 +146,7 @@ describe('useMusdConversion', () => {
     });
 
     it('creates transaction with correct data structure', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
         'mainnet',
@@ -155,51 +172,12 @@ describe('useMusdConversion', () => {
           origin: MMM_ORIGIN,
           skipInitialGasEstimate: true,
           type: TransactionType.musdConversion,
-          nestedTransactions: [
-            {
-              to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-              data: '0xmockedTransferData',
-              value: '0x0',
-            },
-          ],
         },
       );
     });
 
-    it('includes nestedTransactions array structure for Relay', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
-
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-        'mainnet',
-      );
-      mockTransactionController.addTransaction.mockResolvedValue({
-        transactionMeta: { id: 'tx-123' },
-      });
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      await result.current.initiateConversion(mockConfig);
-
-      const addTransactionCall =
-        mockTransactionController.addTransaction.mock.calls[0];
-      const options = addTransactionCall[1];
-
-      expect(options.nestedTransactions).toBeDefined();
-      expect(Array.isArray(options.nestedTransactions)).toBe(true);
-      expect(options.nestedTransactions).toHaveLength(1);
-      expect(options.nestedTransactions[0]).toEqual({
-        to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-        data: '0xmockedTransferData',
-        value: '0x0',
-      });
-    });
-
     it('throws error when selectedAddress is missing', async () => {
-      const mockSelectorFn = jest.fn(() => null);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(null);
+      setupUseSelectorMock({ selectedAccount: null });
 
       const { result } = renderHook(() => useMusdConversion());
 
@@ -213,9 +191,7 @@ describe('useMusdConversion', () => {
     });
 
     it('throws error when networkClientId not found', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
         undefined,
@@ -233,9 +209,7 @@ describe('useMusdConversion', () => {
     });
 
     it('throws error when outputChainId is missing', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       const { result } = renderHook(() => useMusdConversion());
 
@@ -255,9 +229,7 @@ describe('useMusdConversion', () => {
     });
 
     it('throws error when preferredPaymentToken is missing', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       const { result } = renderHook(() => useMusdConversion());
 
@@ -276,10 +248,69 @@ describe('useMusdConversion', () => {
       });
     });
 
+    it('navigates to education and returns early when education has not been seen', async () => {
+      setupUseSelectorMock({
+        hasSeenConversionEducationScreen: false,
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      const transactionId = await result.current.initiateConversion(mockConfig);
+
+      expect(transactionId).toBeUndefined();
+      expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
+      expect(
+        mockNetworkController.findNetworkClientIdByChainId,
+      ).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          preferredPaymentToken: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+          },
+          outputChainId: '0x1',
+        },
+      });
+    });
+
+    it('bypasses education when skipEducationCheck is true', async () => {
+      setupUseSelectorMock({
+        hasSeenConversionEducationScreen: false,
+      });
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      const transactionId = await result.current.initiateConversion({
+        ...mockConfig,
+        skipEducationCheck: true,
+      });
+
+      expect(transactionId).toBe('tx-123');
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          loader: ConfirmationLoader.CustomAmount,
+          preferredPaymentToken: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+          },
+          outputChainId: '0x1',
+        },
+      });
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
+    });
+
     it('sets error state when transaction creation fails', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
         'mainnet',
@@ -302,9 +333,7 @@ describe('useMusdConversion', () => {
     });
 
     it('uses custom navigationStack when provided', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
         'mainnet',
@@ -322,16 +351,21 @@ describe('useMusdConversion', () => {
 
       await result.current.initiateConversion(configWithCustomStack);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'CustomStack',
-        expect.anything(),
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('CustomStack', {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          loader: ConfirmationLoader.CustomAmount,
+          preferredPaymentToken: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+          },
+          outputChainId: '0x1',
+        },
+      });
     });
 
     it('returns transaction ID on success', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
         'mainnet',
@@ -350,9 +384,7 @@ describe('useMusdConversion', () => {
 
   describe('error state', () => {
     it('initializes with null error', () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       const { result } = renderHook(() => useMusdConversion());
 
@@ -360,9 +392,7 @@ describe('useMusdConversion', () => {
     });
 
     it('clears error on successful conversion attempt', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
+      setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
         'mainnet',

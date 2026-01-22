@@ -22,5 +22,7 @@ export const image: UIComponentFactory<ImageElement> = ({ element: e }) => ({
   props: {
     value: e.props.src,
     borderRadius: generateBorderRadius(e.props.borderRadius),
+    width: e.props.width,
+    height: e.props.height,
   },
 });

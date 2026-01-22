@@ -5,7 +5,7 @@ import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
-} from '../../e2e/selectors/Predict/Predict.selectors';
+} from '../../app/components/UI/Predict/Predict.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
 class PredictDetailsScreen {
@@ -38,7 +38,7 @@ class PredictDetailsScreen {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, PredictMarketDetailsSelectorsIDs.ABOUT_TAB_LABEL);
+      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
     }
   }
 
@@ -54,7 +54,7 @@ class PredictDetailsScreen {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_LABEL);
+      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
     }
   }
 
@@ -89,7 +89,7 @@ class PredictDetailsScreen {
       const backButton = await this.backButton;
       await Gestures.waitAndTap(backButton);
     } else {
-      await AppwrightGestures.tap(this.backButton);
+      await AppwrightGestures.tap(await this.backButton);
     }
   }
 
@@ -107,7 +107,7 @@ class PredictDetailsScreen {
       const positionsTab = await this.positionsTab;
       await Gestures.waitAndTap(positionsTab);
     } else {
-      await AppwrightGestures.tap(this.positionsTab);
+      await AppwrightGestures.tap(await this.positionsTab);
     }
   }
 
@@ -116,7 +116,7 @@ class PredictDetailsScreen {
       const outcomesTab = await this.outcomesTab;
       await Gestures.waitAndTap(outcomesTab);
     } else {
-      await AppwrightGestures.tap(this.outcomesTab);
+      await AppwrightGestures.tap(await this.outcomesTab);
     }
   }
 

@@ -41,7 +41,7 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styleSheet from './Toast.styles';
-import { ToastSelectorsIDs } from '../../../../e2e/selectors/wallet/ToastModal.selectors';
+import { ToastSelectorsIDs } from './ToastModal.testIds';
 import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
 import { useStyles } from '../../hooks';
 import ButtonIcon from '../Buttons/ButtonIcon';

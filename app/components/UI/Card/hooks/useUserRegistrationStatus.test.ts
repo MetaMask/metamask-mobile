@@ -72,6 +72,7 @@ describe('useUserRegistrationStatus', () => {
       isLoading: false,
       logoutFromProvider: jest.fn(),
       fetchUserData: jest.fn(),
+      isReturningSession: false,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });

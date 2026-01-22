@@ -20,11 +20,11 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import {
   Box,
   Button,
@@ -105,7 +105,8 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     multichainCollectiblesByEnabledNetworksSelector,
   );
 
-  const { detectNfts, chainIdsToDetectNftsFor } = useNftDetection();
+  const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =
+    useNftDetection();
 
   const isInitialMount = useRef(true);
 
@@ -144,14 +145,16 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
     detectNfts();
   }, [chainIdsToDetectNftsFor, detectNfts]);
 
-  // Trigger NFT detection when the full view is focused
-  useFocusEffect(
-    useCallback(() => {
-      if (isFullView) {
-        detectNfts();
-      }
-    }, [isFullView, detectNfts]),
-  );
+  // Trigger NFT detection when the full view mounts
+  useEffect(() => {
+    if (isFullView) {
+      detectNfts(false);
+
+      // Cleanup: abort the detection when the screen is disposed
+      return abortDetection;
+    }
+    return undefined;
+  }, [isFullView, detectNfts, abortDetection]);
 
   useEffect(() => {
     if (longPressedCollectible) {

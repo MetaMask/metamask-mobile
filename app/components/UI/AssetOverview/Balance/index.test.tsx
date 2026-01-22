@@ -20,7 +20,7 @@ import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearn
 import { TokenI } from '../../Tokens/types';
 import { NetworkBadgeSource } from './Balance';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { ACCOUNT_TYPE_LABEL_TEST_ID } from '../../Tokens/TokenList/TokenListItem/TokenListItemBip44';
+import { ACCOUNT_TYPE_LABEL_TEST_ID } from '../../Tokens/TokenList/TokenListItem/TokenListItem';
 import { BtcAccountType } from '@metamask/keyring-api';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -47,6 +47,26 @@ jest.mock('../../Stake/hooks/useBalance', () => ({
   default: () => ({
     currentCurrency: 'usd',
     conversionRate: 1,
+  }),
+}));
+
+jest.mock('../../Earn/hooks/useMusdConversionTokens', () => ({
+  __esModule: true,
+  useMusdConversionTokens: () => ({
+    isConversionToken: jest.fn().mockReturnValue(false),
+    tokenFilter: jest.fn().mockReturnValue([]),
+    isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
+    getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
+    tokens: [],
+  }),
+}));
+
+jest.mock('../../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => ({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
   }),
 }));
 

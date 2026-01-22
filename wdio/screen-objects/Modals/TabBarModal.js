@@ -1,7 +1,7 @@
 import Selectors from '../../helpers/Selectors';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
-import { TabBarSelectorIDs } from '../../../e2e/selectors/wallet/TabBar.selectors';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
 import { expect as appwrightExpect } from 'appwright';
@@ -83,7 +83,7 @@ class TabBarModal {
       await appwrightExpect(walletIcon).toBeVisible();
 
       // Use static tap method with retry logic
-      await AppwrightGestures.tap(this.walletButton);
+      await AppwrightGestures.tap(walletIcon);
     }
   }
 
@@ -91,7 +91,7 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.browserButton);
     } else {
-      await AppwrightGestures.tap(this.browserButton); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.browserButton); // Use static tap method with retry logic
     }
   }
 
@@ -104,7 +104,7 @@ class TabBarModal {
     } else {
       const actionButton = await this.actionButton;
       await appwrightExpect(actionButton).toBeVisible();
-      await AppwrightGestures.tap(this.actionButton); // Use static tap method with retry logic
+      await AppwrightGestures.tap(actionButton); // Use static tap method with retry logic
     }
   }
 
@@ -112,7 +112,7 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.tradeButton);
     } else {
-      await AppwrightGestures.tap(this.tradeButton);
+      await AppwrightGestures.tap(await this.tradeButton);
     }
   }
 
@@ -121,7 +121,7 @@ class TabBarModal {
       await driver.pause(10000);
       await Gestures.waitAndTap(this.settingsButton);
     } else {
-      await AppwrightGestures.tap(this.settingsButton); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.settingsButton); // Use static tap method with retry logic
     }
   }
 
@@ -129,7 +129,7 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.activityButton);
     } else {
-      await AppwrightGestures.tap(this.activityButton); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.activityButton); // Use static tap method with retry logic
     }
   }
 }

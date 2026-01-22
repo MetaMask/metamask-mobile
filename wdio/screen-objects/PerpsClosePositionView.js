@@ -15,7 +15,7 @@ class PerpsClosePositionView {
   }
 
   async tapConfirmButton() {
-    await AppwrightGestures.tap(this.confirmButton);
+    await AppwrightGestures.tap(await this.confirmButton);
   }
 }
 

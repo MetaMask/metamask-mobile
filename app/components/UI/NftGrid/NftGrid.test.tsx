@@ -51,9 +51,12 @@ jest.mock('../../hooks/useMetrics');
 });
 
 // Mock useNftDetection
+const mockDetectNfts = jest.fn();
+const mockAbortDetection = jest.fn();
 jest.mock('../../hooks/useNftDetection', () => ({
   useNftDetection: () => ({
-    detectNfts: jest.fn(),
+    detectNfts: mockDetectNfts,
+    abortDetection: mockAbortDetection,
     chainIdsToDetectNftsFor: ['0x1'],
   }),
 }));
@@ -341,6 +344,8 @@ describe('NftGrid', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockDetectNfts.mockClear();
+    mockAbortDetection.mockClear();
   });
 
   afterEach(() => {
@@ -966,5 +971,81 @@ describe('NftGrid', () => {
       // View all button should NOT be present in full view
       expect(queryByTestId('view-all-nfts-button')).toBeNull();
     });
+  });
+
+  it('calls detectNfts with firstPageOnly false when full view mounts', () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: false,
+    });
+    const store = mockStore(initialState);
+
+    render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    expect(mockDetectNfts).toHaveBeenCalledWith(false);
+  });
+
+  it('calls abortDetection when full view component unmounts', () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: false,
+    });
+    const store = mockStore(initialState);
+
+    const { unmount } = render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    unmount();
+
+    expect(mockAbortDetection).toHaveBeenCalled();
+  });
+
+  it('does not call detectNfts with false when not in full view', () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: false,
+    });
+    const store = mockStore(initialState);
+
+    render(
+      <Provider store={store}>
+        <NftGrid isFullView={false} />
+      </Provider>,
+    );
+
+    expect(mockDetectNfts).not.toHaveBeenCalledWith(false);
+  });
+
+  it('does not call abortDetection when non-full view component unmounts', () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: false,
+    });
+    const store = mockStore(initialState);
+
+    const { unmount } = render(
+      <Provider store={store}>
+        <NftGrid isFullView={false} />
+      </Provider>,
+    );
+
+    unmount();
+
+    expect(mockAbortDetection).not.toHaveBeenCalled();
   });
 });

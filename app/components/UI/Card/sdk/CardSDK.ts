@@ -54,6 +54,7 @@ import { getCardBaanxToken } from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -596,6 +597,10 @@ export class CardSDK {
         );
       }
 
+      if (response.status === 400 && !!otpCode) {
+        throw new CardError(CardErrorType.INVALID_OTP_CODE, 'Invalid OTP code');
+      }
+
       // Handle specific HTTP status codes
       if (
         response.status === 401 ||
@@ -1016,25 +1021,73 @@ export class CardSDK {
     delegationSettings: DelegationSettingsNetwork[],
   ) => {
     const { network, currency } = cardWalletExternal;
+    const caipChainId = cardNetworkInfos[network]?.caipChainId;
+
+    // Get supported tokens for this network (used for fallback token details)
+    const supportedTokens = caipChainId
+      ? this.getSupportedTokensByChainId(caipChainId)
+      : [];
+
     const delegationSettingNetwork = delegationSettings.find(
       (delegationSetting) =>
         delegationSetting.network?.toLowerCase() === network?.toLowerCase(),
     );
 
+    // Fallback: Network not in delegation settings
+    // Use supported tokens for display, but disable delegation (empty contract)
     if (!delegationSettingNetwork) {
-      return null;
+      if (!caipChainId) {
+        return null;
+      }
+
+      const matchingToken = supportedTokens.find(
+        (token) => token.symbol?.toLowerCase() === currency?.toLowerCase(),
+      );
+
+      if (!matchingToken) {
+        return null;
+      }
+
+      const tokenDetails = this.mapSupportedTokenToCardToken(matchingToken);
+
+      return {
+        symbol: tokenDetails.symbol,
+        address: tokenDetails.address,
+        decimals: tokenDetails.decimals ?? 18,
+        decimalChainId: parseInt(caipChainId.split(':')[1], 10),
+        name: tokenDetails.name,
+        delegationContractAddress: '', // Empty - delegation disabled for this network
+        stagingTokenAddress: null,
+      };
     }
 
     const delegationSettingToken =
       delegationSettingNetwork.tokens[currency?.toLowerCase() ?? ''];
 
+    // Fallback: Token not in delegation settings for this network
+    // Use supported tokens for display, but disable delegation (empty contract)
     if (!delegationSettingToken) {
-      return null;
+      const matchingToken = supportedTokens.find(
+        (token) => token.symbol?.toLowerCase() === currency?.toLowerCase(),
+      );
+
+      if (!matchingToken) {
+        return null;
+      }
+
+      const tokenDetails = this.mapSupportedTokenToCardToken(matchingToken);
+
+      return {
+        symbol: tokenDetails.symbol,
+        address: tokenDetails.address,
+        decimals: tokenDetails.decimals ?? 18,
+        decimalChainId: delegationSettingNetwork.chainId,
+        name: tokenDetails.name,
+        delegationContractAddress: '',
+        stagingTokenAddress: null,
+      };
     }
 
-    const supportedTokens = this.getSupportedTokensByChainId(
-      cardNetworkInfos[cardWalletExternal.network].caipChainId,
-    );
     const tokenDetails = this.mapSupportedTokenToCardToken(
       supportedTokens.find(
         (token) =>
@@ -1149,9 +1202,15 @@ export class CardSDK {
     );
 
     if (!response.ok) {
+      let errorMessage = strings('card.card_home.enable_card_error');
+
       try {
         const errorResponse = await response.json();
         Logger.log(errorResponse, 'Failed to provision card.');
+
+        if (errorResponse?.message) {
+          errorMessage = errorResponse.message;
+        }
       } catch (error) {
         Logger.error(
           error as Error,
@@ -1159,10 +1218,7 @@ export class CardSDK {
         );
       }
 
-      throw new CardError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to provision card. Please try again.',
-      );
+      throw new CardError(CardErrorType.SERVER_ERROR, errorMessage);
     }
 
     return (await response.json()) as { success: boolean };
@@ -1230,14 +1286,10 @@ export class CardSDK {
     expiresAt: string;
     nonce: string;
   }> => {
-    // The endpoint only accepts linea or solana.
-    // linea-us can be mapped to linea.
-    const mapNetworkPropToEndpointParam =
-      network === 'solana' ? 'solana' : 'linea';
     const response = await this.makeRequest(
-      `/v1/delegation/token?network=${mapNetworkPropToEndpointParam}&address=${address}`,
+      `/v1/delegation/token?network=${network}&address=${address}`,
       { method: 'GET' },
-      true, // authenticated
+      true,
     );
 
     if (!response.ok) {
@@ -1303,7 +1355,7 @@ export class CardSDK {
     }
 
     // Validate network
-    if (!['linea', 'solana', 'base'].includes(params.network)) {
+    if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
       throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
     }
 
@@ -1419,10 +1471,8 @@ export class CardSDK {
       );
     }
 
-    const supportedNetworks = ['linea', 'linea-us', 'solana', 'base'];
-
     for (const network of responseData.networks) {
-      if (!supportedNetworks.includes(network.network)) {
+      if (!SUPPORTED_ASSET_NETWORKS.includes(network.network as CardNetwork)) {
         continue;
       }
 

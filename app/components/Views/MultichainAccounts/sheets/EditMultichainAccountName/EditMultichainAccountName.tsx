@@ -1,9 +1,5 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import {
@@ -14,25 +10,33 @@ import {
 } from '@react-navigation/native';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../UI/Box/Box';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import {
+import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
-import { Platform, TextInput } from 'react-native';
-import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import {
+  TextInput,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { useKeyboardHeight } from '../../../../hooks/useKeyboardHeight';
+import HeaderBase from '../../../../../component-library/components/HeaderBase/HeaderBase';
+import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
@@ -51,7 +55,6 @@ export const EditMultichainAccountName = () => {
   const route = useRoute<EditMultichainAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
   const navigation = useNavigation();
-  const sheetRef = useRef<BottomSheetRef>(null);
 
   const accountGroupFromSelector = useSelector((state: RootState) =>
     initialAccountGroup
@@ -65,8 +68,6 @@ export const EditMultichainAccountName = () => {
 
   const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
-
-  const keyboardHeight = useKeyboardHeight();
 
   const handleAccountNameChange = useCallback(() => {
     // Validate that account name is not empty
@@ -83,8 +84,8 @@ export const EditMultichainAccountName = () => {
       const { AccountTreeController } = Engine.context;
       AccountTreeController.setAccountGroupName(accountGroup.id, accountName);
       navigation.goBack();
-    } catch (error: unknown) {
-      const errorMessage = error as Error;
+    } catch (err: unknown) {
+      const errorMessage = err as Error;
       if (errorMessage?.message?.includes('name already exists')) {
         setError(
           strings('multichain_accounts.edit_account_name.error_duplicate_name'),
@@ -95,65 +96,65 @@ export const EditMultichainAccountName = () => {
     }
   }, [accountName, accountGroup, navigation]);
 
-  const handleOnBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleOnClose = useCallback(() => {
-    // Close the entire modal stack by going back to the parent
-    navigation.dangerouslyGetParent()?.goBack();
-  }, [navigation]);
-
-  const saveButtonProps: ButtonProps = {
-    variant: ButtonVariants.Primary,
-    label: strings('multichain_accounts.edit_account_name.confirm_button'),
-    size: ButtonSize.Lg,
-    onPress: handleAccountNameChange,
-    style: styles.saveButton,
-    testID: EditAccountNameIds.SAVE_BUTTON,
-  };
-
   return (
-    <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onBack={handleOnBack} onClose={handleOnClose}>
-        {accountGroup?.metadata?.name || 'Account Group'}
-      </BottomSheetHeader>
-      <Box
-        style={styles.container}
-        testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
+    <SafeAreaView style={styles.safeArea}>
+      <HeaderBase
+        style={styles.header}
+        startAccessory={
+          <ButtonLink
+            labelTextVariant={TextVariant.BodyMDMedium}
+            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
+            onPress={() => navigation.goBack()}
+          />
+        }
       >
-        <Text>
-          {strings('multichain_accounts.edit_account_name.account_name')}
-        </Text>
-        <TextInput
-          testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
-          style={styles.input}
-          value={accountName}
-          onChangeText={(newName: string) => {
-            setAccountName(newName);
-            // Clear error when user starts typing
-            if (error) {
-              setError(null);
-            }
-          }}
-          placeholder={initialName}
-          placeholderTextColor={colors.text.muted}
-          spellCheck={false}
-          keyboardAppearance={themeAppearance}
-          autoCapitalize="none"
-          autoFocus
-          editable
-        />
-        {error && <Text color={TextColor.Error}>{error}</Text>}
-      </Box>
-      <BottomSheetFooter
-        style={{
-          ...styles.footer,
-          ...(Platform.OS === 'android' && { marginBottom: keyboardHeight }),
-        }}
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={[saveButtonProps]}
-      />
-    </BottomSheet>
+        {accountGroup?.metadata?.name || 'Account Group'}
+      </HeaderBase>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Box
+          style={styles.contentContainer}
+          testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
+        >
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('multichain_accounts.edit_account_name.account_name')}
+          </Text>
+          <TextInput
+            testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
+            style={styles.input}
+            value={accountName}
+            onChangeText={(newName: string) => {
+              setAccountName(newName);
+              // Clear error when user starts typing
+              if (error) {
+                setError(null);
+              }
+            }}
+            placeholder={initialName}
+            placeholderTextColor={colors.text.muted}
+            spellCheck={false}
+            keyboardAppearance={themeAppearance}
+            autoCapitalize="none"
+            autoFocus
+            editable
+          />
+          {error && <Text color={TextColor.Error}>{error}</Text>}
+        </Box>
+        <Box style={styles.saveButtonContainer}>
+          <Button
+            width={ButtonWidthTypes.Full}
+            variant={ButtonVariants.Primary}
+            label={strings(
+              'multichain_accounts.edit_account_name.confirm_button',
+            )}
+            size={ButtonSize.Lg}
+            onPress={handleAccountNameChange}
+            testID={EditAccountNameIds.SAVE_BUTTON}
+          />
+        </Box>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };

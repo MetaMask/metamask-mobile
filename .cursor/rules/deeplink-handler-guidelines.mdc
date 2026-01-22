@@ -1,0 +1,380 @@
+---
+description: Guide for creating new deeplink handlers in MetaMask Mobile. Covers file locations, handler patterns, routing, testing, and common pitfalls.
+globs:
+  - "app/core/DeeplinkManager/**"
+  - "app/constants/deeplinks.ts"
+alwaysApply: false
+---
+
+# Creating New Deeplink Handlers
+
+This guide walks you through adding new deeplink handlers to MetaMask Mobile. Follow these steps exactly to ensure your handler integrates correctly with the existing architecture.
+
+## Quick Reference
+
+| File | Purpose |
+|------|---------|
+| `app/constants/deeplinks.ts` | Define action constants |
+| `app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts` | Add to SUPPORTED_ACTIONS enum and switch statement |
+| `app/core/DeeplinkManager/handlers/legacy/handleYourAction.ts` | Your handler implementation |
+| `app/core/DeeplinkManager/handlers/legacy/__tests__/handleYourAction.test.ts` | Unit tests |
+
+## Step 1: Define the Action Constant
+
+Add your action to the `ACTIONS` enum in `app/constants/deeplinks.ts`:
+
+```typescript
+export enum ACTIONS {
+  // ... existing actions
+  YOUR_NEW_ACTION = 'your-new-action',  // URL path: /your-new-action
+}
+```
+
+**Important**: The enum value becomes the URL path segment (e.g., `https://link.metamask.io/your-new-action`).
+
+Also add a prefix entry if needed:
+
+```typescript
+export const PREFIXES = {
+  // ... existing prefixes
+  [ACTIONS.YOUR_NEW_ACTION]: '',
+};
+```
+
+## Step 2: Create the Handler File
+
+Create `app/core/DeeplinkManager/handlers/legacy/handleYourAction.ts`:
+
+```typescript
+import NavigationService from '../../../NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
+
+interface HandleYourActionParams {
+  actionPath: string;
+}
+
+/**
+ * Interface for parsed navigation parameters
+ * Document all supported URL parameters here
+ */
+interface YourActionNavigationParams {
+  someParam?: string;
+  anotherParam?: string;
+}
+
+/**
+ * Parse URL parameters into typed navigation parameters
+ */
+const parseNavigationParams = (
+  actionPath: string,
+): YourActionNavigationParams => {
+  const urlParams = new URLSearchParams(
+    actionPath.includes('?') ? actionPath.split('?')[1] : '',
+  );
+
+  return {
+    someParam: urlParams.get('someParam') || undefined,
+    anotherParam: urlParams.get('anotherParam') || undefined,
+  };
+};
+
+/**
+ * Your action deeplink handler
+ *
+ * Supported URL formats:
+ * - https://link.metamask.io/your-new-action
+ * - https://link.metamask.io/your-new-action?someParam=value
+ * - https://link.metamask.io/your-new-action?someParam=value&anotherParam=value2
+ *
+ * @param params Object containing the action path
+ */
+export const handleYourAction = async ({
+  actionPath,
+}: HandleYourActionParams) => {
+  DevLogger.log(
+    '[handleYourAction] Starting deeplink handling with path:',
+    actionPath,
+  );
+
+  try {
+    const navParams = parseNavigationParams(actionPath);
+    DevLogger.log('[handleYourAction] Parsed parameters:', navParams);
+
+    // Navigate to your screen with parsed parameters
+    NavigationService.navigation.navigate(Routes.YOUR_SCREEN, {
+      someParam: navParams.someParam,
+      anotherParam: navParams.anotherParam,
+    });
+  } catch (error) {
+    DevLogger.log('Failed to handle your action deeplink:', error);
+    // Fallback navigation on error - typically wallet home
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+  }
+};
+```
+
+### Handler Pattern Requirements
+
+1. **Always use `DevLogger.log`** for debugging (not `console.log`)
+2. **Always wrap in try/catch** with fallback navigation
+3. **Define TypeScript interfaces** for params and navigation
+4. **Document supported URL formats** in TSDoc comments
+5. **Parse URLSearchParams** from the path (it includes the `?` prefix)
+
+## Step 3: Add to SUPPORTED_ACTIONS
+
+In `app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts`:
+
+### 3a. Import your handler
+
+```typescript
+import { handleYourAction } from './handleYourAction';
+```
+
+### 3b. Add to SUPPORTED_ACTIONS enum
+
+```typescript
+enum SUPPORTED_ACTIONS {
+  // ... existing actions
+  YOUR_NEW_ACTION = ACTIONS.YOUR_NEW_ACTION,
+}
+```
+
+### 3c. Add switch case (CRITICAL!)
+
+Add a case in the switch statement (around line 254+):
+
+```typescript
+switch (action) {
+  // ... existing cases
+  case SUPPORTED_ACTIONS.YOUR_NEW_ACTION: {
+    handleYourAction({
+      actionPath: actionBasedRampPath,
+    });
+    break;
+  }
+}
+```
+
+> ⚠️ **CRITICAL**: Forgetting this step is a common bug! Your action will be in SUPPORTED_ACTIONS (passing validation) but will silently do nothing without the switch case.
+
+## Step 4: Write Unit Tests
+
+Create `app/core/DeeplinkManager/handlers/legacy/__tests__/handleYourAction.test.ts`:
+
+```typescript
+import { handleYourAction } from '../handleYourAction';
+import NavigationService from '../../../../NavigationService';
+import Routes from '../../../../../constants/navigation/Routes';
+
+jest.mock('../../../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../SDKConnect/utils/DevLogger', () => ({
+  log: jest.fn(),
+}));
+
+describe('handleYourAction', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('navigates to YOUR_SCREEN with no parameters', async () => {
+    await handleYourAction({ actionPath: '' });
+
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+      Routes.YOUR_SCREEN,
+      expect.objectContaining({}),
+    );
+  });
+
+  it('navigates with someParam parameter', async () => {
+    await handleYourAction({ actionPath: '?someParam=testValue' });
+
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+      Routes.YOUR_SCREEN,
+      expect.objectContaining({
+        someParam: 'testValue',
+      }),
+    );
+  });
+
+  it('navigates with multiple parameters', async () => {
+    await handleYourAction({ 
+      actionPath: '?someParam=value1&anotherParam=value2' 
+    });
+
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+      Routes.YOUR_SCREEN,
+      expect.objectContaining({
+        someParam: 'value1',
+        anotherParam: 'value2',
+      }),
+    );
+  });
+
+  it('falls back to WALLET.HOME on error', async () => {
+    // Force an error by mocking navigate to throw
+    (NavigationService.navigation.navigate as jest.Mock)
+      .mockImplementationOnce(() => {
+        throw new Error('Navigation failed');
+      });
+
+    await handleYourAction({ actionPath: '?someParam=test' });
+
+    // Second call should be fallback
+    expect(NavigationService.navigation.navigate).toHaveBeenLastCalledWith(
+      Routes.WALLET.HOME,
+    );
+  });
+});
+```
+
+Run tests with: `yarn jest app/core/DeeplinkManager/handlers/legacy/__tests__/handleYourAction.test.ts --no-coverage`
+
+## Step 5: Optional Configurations
+
+### Whitelist Action (Skip Interstitial Modal)
+
+If your action needs to bypass the security interstitial (like WalletConnect does):
+
+```typescript
+// In handleUniversalLink.ts
+const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.WC,
+  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
+  SUPPORTED_ACTIONS.YOUR_NEW_ACTION,  // Add here
+];
+```
+
+> ⚠️ **Security Warning**: Only whitelist actions that have their own security mechanisms or don't access sensitive data.
+
+### Whitelist Specific URLs
+
+If only specific URL patterns should bypass the interstitial:
+
+```typescript
+// In handleUniversalLink.ts
+const interstitialWhitelistUrls = [
+  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
+  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.YOUR_NEW_ACTION}`,
+] as const;
+```
+
+### Handle in metamask:// Protocol
+
+If your action should also work with `metamask://your-new-action`, it will automatically work since `parseDeeplink.ts` converts `metamask://` to `https://link.metamask.io/`.
+
+## Common Pitfalls
+
+### ❌ Missing Switch Case
+
+```typescript
+// Action is in SUPPORTED_ACTIONS but NO case handler
+enum SUPPORTED_ACTIONS {
+  YOUR_ACTION = ACTIONS.YOUR_ACTION,  // ✅ Defined
+}
+
+switch (action) {
+  // ❌ No case for YOUR_ACTION - silently does nothing!
+}
+```
+
+### ❌ Wrong Path Parsing
+
+```typescript
+// WRONG - actionPath already includes the ?
+const urlParams = new URLSearchParams(actionPath);
+
+// CORRECT - split on ? first
+const urlParams = new URLSearchParams(
+  actionPath.includes('?') ? actionPath.split('?')[1] : '',
+);
+```
+
+### ❌ Forgetting Fallback Navigation
+
+```typescript
+// WRONG - no try/catch
+export const handleYourAction = async ({ actionPath }) => {
+  const params = parseParams(actionPath);  // Could throw!
+  NavigationService.navigation.navigate(Routes.YOUR_SCREEN, params);
+};
+
+// CORRECT - always have fallback
+export const handleYourAction = async ({ actionPath }) => {
+  try {
+    const params = parseParams(actionPath);
+    NavigationService.navigation.navigate(Routes.YOUR_SCREEN, params);
+  } catch (error) {
+    DevLogger.log('Failed:', error);
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+  }
+};
+```
+
+### ❌ Using console.log Instead of DevLogger
+
+```typescript
+// WRONG - won't appear in dev builds correctly
+console.log('handling deeplink');
+
+// CORRECT
+DevLogger.log('[handleYourAction] handling deeplink');
+```
+
+## Testing Deeplinks Manually
+
+### iOS Simulator
+
+```bash
+xcrun simctl openurl booted "https://link-test.metamask.io/your-new-action?someParam=test"
+```
+
+### Android Emulator
+
+```bash
+adb shell am start -W -a android.intent.action.VIEW \
+  -d "https://link-test.metamask.io/your-new-action?someParam=test" \
+  io.metamask.debug
+```
+
+### Using metamask:// Scheme
+
+```bash
+# iOS
+xcrun simctl openurl booted "metamask://your-new-action?someParam=test"
+
+# Android
+adb shell am start -W -a android.intent.action.VIEW \
+  -d "metamask://your-new-action?someParam=test" \
+  io.metamask.debug
+```
+
+## Checklist Before PR
+
+- [ ] Action added to `ACTIONS` enum in `app/constants/deeplinks.ts`
+- [ ] Prefix added to `PREFIXES` (if needed)
+- [ ] Handler file created in `handlers/legacy/`
+- [ ] Handler imported in `handleUniversalLink.ts`
+- [ ] Action added to `SUPPORTED_ACTIONS` enum
+- [ ] Switch case added for action (most commonly forgotten!)
+- [ ] Unit tests written and passing
+- [ ] Documentation updated in `docs/readme/deeplinking.md`
+- [ ] Test URLs documented in `docs/deeplink-test-urls.md`
+
+## References
+
+- [Main Deeplink Documentation](../../docs/readme/deeplinking.md)
+- [Visual Flow Diagrams](../../docs/readme/deeplinking-diagrams.md)
+- [Test URLs Reference](../../docs/deeplink-test-urls.md)
+- [Deeplink Constants](../../app/constants/deeplinks.ts)
+- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts)
+
+@app/constants/deeplinks.ts
+@app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+@docs/readme/deeplinking.md

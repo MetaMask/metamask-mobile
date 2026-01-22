@@ -64,6 +64,7 @@ const mockProps = {
   id: 1,
   updateTabInfo: jest.fn(),
   showTabs: jest.fn(),
+  newTab: jest.fn(),
 };
 
 const Stack = createStackNavigator();

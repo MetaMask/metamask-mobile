@@ -97,6 +97,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock(
+  '../PerpsFillTag',
+  () =>
+    function MockPerpsFillTag() {
+      return null;
+    },
+);
+
 describe('PerpsRecentActivityList', () => {
   const mockNavigate = jest.fn();
 
@@ -329,33 +337,33 @@ describe('PerpsRecentActivityList', () => {
       });
     });
 
-    it('navigates to market details when transaction item is pressed', () => {
+    it('navigates to position transaction detail when transaction item is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
       fireEvent.press(transactionItem.parent?.parent || transactionItem);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: 'BTC', name: 'BTC' },
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        {
+          transaction: mockTransactions[0],
         },
-      });
+      );
     });
 
-    it('navigates with correct market data for different transactions', () => {
+    it('navigates with correct transaction data for different transactions', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const ethTransaction = screen.getByText('Closed long');
       fireEvent.press(ethTransaction.parent?.parent || ethTransaction);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: 'ETH', name: 'ETH' },
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        {
+          transaction: mockTransactions[1],
         },
-      });
+      );
     });
 
     it('handles multiple presses on header', () => {

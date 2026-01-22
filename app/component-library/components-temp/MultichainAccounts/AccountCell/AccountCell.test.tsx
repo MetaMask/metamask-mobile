@@ -13,7 +13,7 @@ import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 import { Maskicon } from '@metamask/design-system-react-native';
 import JazzIcon from 'react-native-jazzicon';
 import { Image as RNImage } from 'react-native';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { AccountCellIds } from './AccountCell.testIds';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {

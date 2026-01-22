@@ -2,7 +2,7 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
 class WalletActionModal {
@@ -73,7 +73,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);
     } else {
-      await AppwrightGestures.tap(this.sendButton); 
+      await AppwrightGestures.tap(await this.sendButton); 
     }
   }
 
@@ -85,7 +85,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); 
+      await AppwrightGestures.tap(await this.swapButton); 
     }
   }
 
@@ -93,7 +93,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.bridgeButton);
     } else {
-      await AppwrightGestures.tap(this.bridgeButton); 
+      await AppwrightGestures.tap(await this.bridgeButton); 
     }
   }
 
@@ -101,7 +101,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.perpsButton);
     } else {
-      await AppwrightGestures.tap(this.perpsButton);
+      await AppwrightGestures.tap(await this.perpsButton);
     }
   }
 
@@ -109,7 +109,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.predictButton);
     } else {
-      await AppwrightGestures.tap(this.predictButton);
+      await AppwrightGestures.tap(await this.predictButton);
     }
   }
 }

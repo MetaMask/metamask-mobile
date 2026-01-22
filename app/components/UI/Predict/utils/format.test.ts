@@ -9,6 +9,8 @@ import {
   formatCents,
   formatPositionSize,
   calculateNetAmount,
+  formatPriceWithSubscriptNotation,
+  formatGameStartTime,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
 
@@ -1557,5 +1559,586 @@ describe('format utils', () => {
 
       expect(result).toBe('999925');
     });
+  });
+
+  describe('formatPriceWithSubscriptNotation', () => {
+    describe('Regular price formatting', () => {
+      it('formats regular price with 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(1.99);
+
+        // Assert
+        expect(result).toBe('$1.99');
+      });
+
+      it('formats price with 4 decimals when needed', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.144566);
+
+        // Assert
+        expect(result).toBe('$0.1446');
+      });
+
+      it('formats large price correctly', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(1234.56);
+
+        // Assert
+        expect(result).toBe('$1,234.56');
+      });
+
+      it('formats whole number with 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(100);
+
+        // Assert
+        expect(result).toBe('$100.00');
+      });
+
+      it('formats price with minimum 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(5.5);
+
+        // Assert
+        expect(result).toBe('$5.50');
+      });
+
+      it('formats very large price correctly', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(1000000.99);
+
+        // Assert
+        expect(result).toBe('$1,000,000.99');
+      });
+
+      it('formats price between 0.0001 and 1', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.5678);
+
+        // Assert
+        expect(result).toBe('$0.5678');
+      });
+    });
+
+    describe('Zero value', () => {
+      it('returns dash for zero number', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0);
+
+        // Assert
+        expect(result).toBe('—');
+      });
+
+      it('returns dash for zero string', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('0');
+
+        // Assert
+        expect(result).toBe('—');
+      });
+
+      it('returns dash for 0.00', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('0.00');
+
+        // Assert
+        expect(result).toBe('—');
+      });
+
+      it('returns dash for 0.0000', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.0);
+
+        // Assert
+        expect(result).toBe('—');
+      });
+    });
+
+    describe('Very small values with subscript notation', () => {
+      it('formats 0.00000614 with subscript notation (5 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00000614);
+
+        // Assert
+        expect(result).toBe('$0.0₅614');
+      });
+
+      it('formats 0.00001 with subscript notation (4 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00001);
+
+        // Assert
+        expect(result).toBe('$0.0₄1');
+      });
+
+      it('formats 0.000001 with subscript notation (5 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.000001);
+
+        // Assert
+        expect(result).toBe('$0.0₅1');
+      });
+
+      it('formats 0.0000001234 with subscript notation (6 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.0000001234);
+
+        // Assert
+        expect(result).toBe('$0.0₆1234');
+      });
+
+      it('formats 0.00000999 with subscript notation (5 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00000999);
+
+        // Assert
+        expect(result).toBe('$0.0₅999');
+      });
+
+      it('formats 0.000000001 with subscript notation (8 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.000000001);
+
+        // Assert
+        expect(result).toBe('$0.0₈1');
+      });
+
+      it('formats 0.0000000123 with subscript notation (7 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.0000000123);
+
+        // Assert
+        expect(result).toBe('$0.0₇123');
+      });
+
+      it('formats 0.00000005 with subscript notation (7 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00000005);
+
+        // Assert
+        expect(result).toBe('$0.0₇5');
+      });
+
+      it('formats 0.000000123456 with subscript notation showing 4 significant digits', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.000000123456);
+
+        // Assert
+        expect(result).toBe('$0.0₆1234');
+      });
+    });
+
+    describe('Boundary values', () => {
+      it('formats 0.0001 without subscript (at boundary)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.0001);
+
+        // Assert
+        expect(result).toBe('$0.0001');
+      });
+
+      it('formats 0.00009 with subscript (4 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00009);
+
+        // Assert
+        expect(result).toBe('$0.0₄9');
+      });
+
+      it('formats 0.0000999 with subscript (4 leading zeros)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.0000999);
+
+        // Assert
+        expect(result).toBe('$0.0₄999');
+      });
+
+      it('formats 0.00001 with subscript (4 leading zeros - at threshold)', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00001);
+
+        // Assert
+        expect(result).toBe('$0.0₄1');
+      });
+
+      it('formats 0.001 without subscript', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.001);
+
+        // Assert
+        expect(result).toBe('$0.001');
+      });
+
+      it('formats 0.01 without subscript', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.01);
+
+        // Assert
+        expect(result).toBe('$0.01');
+      });
+
+      it('formats 0.1 without subscript', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.1);
+
+        // Assert
+        expect(result).toBe('$0.10');
+      });
+
+      it('formats 1 with 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(1);
+
+        // Assert
+        expect(result).toBe('$1.00');
+      });
+    });
+
+    describe('String input', () => {
+      it('handles string input for regular price', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('1.99');
+
+        // Assert
+        expect(result).toBe('$1.99');
+      });
+
+      it('handles string input for very small value', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('0.00000614');
+
+        // Assert
+        expect(result).toBe('$0.0₅614');
+      });
+
+      it('handles string input with many decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('0.144566');
+
+        // Assert
+        expect(result).toBe('$0.1446');
+      });
+
+      it('handles string input for large value', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('1234.56');
+
+        // Assert
+        expect(result).toBe('$1,234.56');
+      });
+
+      it('handles string input for whole number', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('100');
+
+        // Assert
+        expect(result).toBe('$100.00');
+      });
+    });
+
+    describe('Invalid input', () => {
+      it('returns $0.00 for NaN string', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('not-a-number');
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+
+      it('returns $0.00 for invalid string', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('abc');
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+
+      it('returns $0.00 for empty string', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation('');
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+
+      it('returns $0.00 for NaN', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(NaN);
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+
+      it('returns $0.00 for undefined converted to NaN', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(
+          undefined as unknown as number,
+        );
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+    });
+
+    describe('Edge cases with trailing zeros', () => {
+      it('trims trailing zeros from significant digits', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00001);
+
+        // Assert
+        expect(result).toBe('$0.0₄1');
+      });
+
+      it('handles value with all trailing zeros after first digit', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00005);
+
+        // Assert
+        expect(result).toBe('$0.0₄5');
+      });
+
+      it('keeps at least 2 significant digits when all 4 are zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00001);
+
+        // Assert
+        expect(result).toBe('$0.0₄1');
+      });
+
+      it('handles value with 2 significant digits', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.000012);
+
+        // Assert
+        expect(result).toBe('$0.0₄12');
+      });
+
+      it('handles value with 3 significant digits', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.0000123);
+
+        // Assert
+        expect(result).toBe('$0.0₄123');
+      });
+
+      it('handles value with 4 significant digits and no trailing zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00001234);
+
+        // Assert
+        expect(result).toBe('$0.0₄1234');
+      });
+    });
+
+    describe('Subscript with different leading zero counts', () => {
+      it('uses subscript 4 for 4 leading zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00001);
+
+        // Assert
+        expect(result).toBe('$0.0₄1');
+      });
+
+      it('uses subscript 5 for 5 leading zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.000001);
+
+        // Assert
+        expect(result).toBe('$0.0₅1');
+      });
+
+      it('uses subscript 6 for 6 leading zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.0000001);
+
+        // Assert
+        expect(result).toBe('$0.0₆1');
+      });
+
+      it('uses subscript 7 for 7 leading zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00000001);
+
+        // Assert
+        expect(result).toBe('$0.0₇1');
+      });
+
+      it('uses subscript 8 for 8 leading zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.000000001);
+
+        // Assert
+        expect(result).toBe('$0.0₈1');
+      });
+
+      it('uses subscript 10 for 10 leading zeros', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(0.00000000001);
+
+        // Assert
+        expect(result).toBe('$0.0₁₀1');
+      });
+    });
+
+    describe('Negative values', () => {
+      it('formats negative regular price', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(-1.99);
+
+        // Assert
+        expect(result).toBe('-$1.99');
+      });
+
+      it('formats negative large price', () => {
+        // Arrange & Act
+        const result = formatPriceWithSubscriptNotation(-1234.56);
+
+        // Assert
+        expect(result).toBe('-$1,234.56');
+      });
+    });
+
+    it.each([
+      [0, '—'],
+      [0.01, '$0.01'],
+      [0.1, '$0.10'],
+      [1, '$1.00'],
+      [1.99, '$1.99'],
+      [5.5, '$5.50'],
+      [10, '$10.00'],
+      [100, '$100.00'],
+      [1234.56, '$1,234.56'],
+      [0.144566, '$0.1446'],
+      [0.5678, '$0.5678'],
+      [0.001, '$0.001'],
+      [0.0001, '$0.0001'],
+      [0.00001, '$0.0₄1'],
+      [0.000001, '$0.0₅1'],
+      [0.00000614, '$0.0₅614'],
+      [0.0000001234, '$0.0₆1234'],
+      [0.000000001, '$0.0₈1'],
+      [-1.99, '-$1.99'],
+      [-1234.56, '-$1,234.56'],
+    ])('formats %f as %s', (input, expected) => {
+      expect(formatPriceWithSubscriptNotation(input)).toBe(expected);
+    });
+  });
+
+  describe('formatGameStartTime', () => {
+    // Store original Intl.DateTimeFormat
+    const OriginalDateTimeFormat = Intl.DateTimeFormat;
+
+    beforeEach(() => {
+      // Mock Intl.DateTimeFormat for deterministic tests
+      const mockDateTimeFormat = jest.fn().mockImplementation((_, options) => ({
+        format: (date: Date) => {
+          if (options?.weekday) {
+            // Date format: "Sun, Feb 8"
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = [
+              'Jan',
+              'Feb',
+              'Mar',
+              'Apr',
+              'May',
+              'Jun',
+              'Jul',
+              'Aug',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dec',
+            ];
+            return `${weekdays[date.getUTCDay()]}, ${months[date.getUTCMonth()]} ${date.getUTCDate()}`;
+          }
+          if (options?.hour) {
+            // Time format: "3:30 PM"
+            const hours = date.getUTCHours();
+            const minutes = date.getUTCMinutes();
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const paddedMinutes = minutes.toString().padStart(2, '0');
+            return `${displayHours}:${paddedMinutes} ${period}`;
+          }
+          return date.toISOString();
+        },
+      }));
+      global.Intl.DateTimeFormat =
+        mockDateTimeFormat as unknown as typeof Intl.DateTimeFormat;
+    });
+
+    afterEach(() => {
+      // Restore original Intl.DateTimeFormat
+      global.Intl.DateTimeFormat = OriginalDateTimeFormat;
+    });
+
+    it('returns TBD and empty time for undefined input', () => {
+      const result = formatGameStartTime(undefined);
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('returns TBD and empty time for empty string', () => {
+      const result = formatGameStartTime('');
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('returns TBD and empty time for invalid date string', () => {
+      const result = formatGameStartTime('not-a-date');
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('returns TBD and empty time for malformed ISO string', () => {
+      const result = formatGameStartTime('2026-13-45T99:99:99Z');
+
+      expect(result).toEqual({ date: 'TBD', time: '' });
+    });
+
+    it('formats valid ISO 8601 datetime string', () => {
+      const result = formatGameStartTime('2026-02-08T20:30:00Z');
+
+      expect(result).toEqual({ date: 'Sun, Feb 8', time: '8:30 PM' });
+    });
+
+    it('formats ISO string with different date', () => {
+      const result = formatGameStartTime('2026-01-15T14:00:00Z');
+
+      expect(result).toEqual({ date: 'Thu, Jan 15', time: '2:00 PM' });
+    });
+
+    it('formats morning time correctly', () => {
+      const result = formatGameStartTime('2026-03-01T09:15:00Z');
+
+      expect(result).toEqual({ date: 'Sun, Mar 1', time: '9:15 AM' });
+    });
+
+    it('formats midnight correctly', () => {
+      const result = formatGameStartTime('2026-12-25T00:00:00Z');
+
+      expect(result).toEqual({ date: 'Fri, Dec 25', time: '12:00 AM' });
+    });
+
+    it('formats noon correctly', () => {
+      const result = formatGameStartTime('2026-07-04T12:00:00Z');
+
+      expect(result).toEqual({ date: 'Sat, Jul 4', time: '12:00 PM' });
+    });
+
+    it.each([
+      ['2026-02-08T20:30:00Z', { date: 'Sun, Feb 8', time: '8:30 PM' }],
+      ['2026-01-01T00:00:00Z', { date: 'Thu, Jan 1', time: '12:00 AM' }],
+      ['2026-06-15T18:45:00Z', { date: 'Mon, Jun 15', time: '6:45 PM' }],
+      [undefined, { date: 'TBD', time: '' }],
+      ['invalid', { date: 'TBD', time: '' }],
+    ])(
+      'formats %s as %o',
+      (input: string | undefined, expected: { date: string; time: string }) => {
+        const result = formatGameStartTime(input);
+
+        expect(result).toEqual(expected);
+      },
+    );
   });
 });

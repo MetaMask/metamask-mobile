@@ -11,10 +11,14 @@ const styleSheet = () =>
     assetInfo: {
       flexDirection: 'row',
       gap: 20,
+      alignItems: 'center',
     },
     button: {
       alignSelf: 'center',
       height: 32,
+    },
+    badge: {
+      alignSelf: 'center',
     },
   });
 

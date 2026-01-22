@@ -156,6 +156,30 @@ describe('selectCardFeatureFlag', () => {
     expect(result.chains).toBeDefined();
   });
 
+  it('returns default card feature flag when cardFeature is empty object', () => {
+    const stateWithEmptyCardFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {},
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectCardFeatureFlag(
+      stateWithEmptyCardFlag,
+    ) as CardFeatureFlag;
+
+    expect(result).toBeDefined();
+    expect(result.constants).toBeDefined();
+    expect(result.chains).toBeDefined();
+  });
+
   it('returns card feature flag when properly configured', () => {
     const result = selectCardFeatureFlag(mockedStateWithCardFeatureFlag);
 

@@ -32,10 +32,10 @@ jest.mock('@metamask/utils', () => ({
 
 describe('hyperLiquidAdapter', () => {
   describe('adaptOrderToSDK', () => {
-    let coinToAssetId: Map<string, number>;
+    let symbolToAssetId: Map<string, number>;
 
     beforeEach(() => {
-      coinToAssetId = new Map([
+      symbolToAssetId = new Map([
         ['BTC', 0],
         ['ETH', 1],
         ['SOL', 2],
@@ -44,13 +44,13 @@ describe('hyperLiquidAdapter', () => {
 
     it('should convert basic market order correctly', () => {
       const order: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.1',
         orderType: 'market',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result).toEqual({
         a: 0, // BTC asset ID
@@ -65,7 +65,7 @@ describe('hyperLiquidAdapter', () => {
 
     it('should convert limit order correctly', () => {
       const order: OrderParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         isBuy: false,
         size: '2.5',
         orderType: 'limit',
@@ -74,7 +74,7 @@ describe('hyperLiquidAdapter', () => {
         clientOrderId: '0x123abc',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result).toEqual({
         a: 1, // ETH asset ID
@@ -89,13 +89,13 @@ describe('hyperLiquidAdapter', () => {
 
     it('should handle missing price for limit order', () => {
       const order: OrderParams = {
-        coin: 'SOL',
+        symbol: 'SOL',
         isBuy: true,
         size: '10',
         orderType: 'limit',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result.p).toBe('0');
       expect(result.t).toEqual({ limit: { tif: 'Gtc' } });
@@ -103,27 +103,27 @@ describe('hyperLiquidAdapter', () => {
 
     it('should handle non-hex client order ID', () => {
       const order: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '1',
         orderType: 'market',
         clientOrderId: 'not-hex',
       };
 
-      const result = adaptOrderToSDK(order, coinToAssetId);
+      const result = adaptOrderToSDK(order, symbolToAssetId);
 
       expect(result.c).toBeUndefined();
     });
 
     it('should throw error for unknown coin', () => {
       const order: OrderParams = {
-        coin: 'UNKNOWN',
+        symbol: 'UNKNOWN',
         isBuy: true,
         size: '1',
         orderType: 'market',
       };
 
-      expect(() => adaptOrderToSDK(order, coinToAssetId)).toThrow(
+      expect(() => adaptOrderToSDK(order, symbolToAssetId)).toThrow(
         'Asset UNKNOWN not found in asset mapping',
       );
     });
@@ -194,7 +194,7 @@ describe('hyperLiquidAdapter', () => {
 
       expect(result).toEqual({
         orderId: '54321',
-        symbol: 'ETH',
+        symbol: 'ETH', // Output uses 'symbol' (internal type)
         side: 'sell',
         orderType: 'limit',
         size: '2.0',
@@ -287,6 +287,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Stop Market',
         isTrigger: true,
         reduceOnly: true,
+        triggerPrice: '25.50',
       });
     });
 
@@ -617,6 +618,94 @@ describe('hyperLiquidAdapter', () => {
       expect(result.stopLossPrice).toBe('0.4');
       expect(result.stopLossOrderId).toBe('88889');
     });
+
+    it('sets triggerPrice for trigger orders with both limitPx and triggerPx', () => {
+      // Take Profit Limit order: triggerPx is the condition price, limitPx is the execution price
+      const frontendOrder: FrontendOrder = {
+        oid: 99999,
+        coin: 'ETH',
+        side: 'A', // Sell (close long position)
+        sz: '1',
+        origSz: '1',
+        limitPx: '3500', // Execution price (different from trigger)
+        triggerPx: '3450', // Trigger condition price
+        orderType: 'Take Profit Limit',
+        timestamp: 1234567890000,
+        isTrigger: true,
+        reduceOnly: true,
+        triggerCondition: 'tp',
+        isPositionTpsl: true,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      // price should use limitPx (execution price) when available
+      expect(result.price).toBe('3500');
+      // triggerPrice should always be the trigger condition price
+      expect(result.triggerPrice).toBe('3450');
+      expect(result.isTrigger).toBe(true);
+      expect(result.detailedOrderType).toBe('Take Profit Limit');
+    });
+
+    it('sets triggerPrice for trigger orders with only triggerPx (market style)', () => {
+      // Take Profit Market order: only triggerPx is set
+      const frontendOrder: FrontendOrder = {
+        oid: 100000,
+        coin: 'BTC',
+        side: 'A', // Sell (close long position)
+        sz: '0.5',
+        origSz: '0.5',
+        limitPx: '', // No limit price for market-style trigger
+        triggerPx: '70000', // Trigger condition price
+        orderType: 'Take Profit Market',
+        timestamp: 1234567890000,
+        isTrigger: true,
+        reduceOnly: true,
+        triggerCondition: 'tp',
+        isPositionTpsl: true,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      // price should fall back to triggerPx when limitPx is empty
+      expect(result.price).toBe('70000');
+      // triggerPrice should be set to triggerPx
+      expect(result.triggerPrice).toBe('70000');
+      expect(result.isTrigger).toBe(true);
+    });
+
+    it('does not set triggerPrice for non-trigger orders', () => {
+      const frontendOrder: FrontendOrder = {
+        oid: 100001,
+        coin: 'ETH',
+        side: 'B',
+        sz: '1',
+        origSz: '1',
+        limitPx: '3000',
+        triggerPx: '', // No trigger price for regular limit order
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        children: [],
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.price).toBe('3000');
+      expect(result.triggerPrice).toBeUndefined();
+      expect(result.isTrigger).toBe(false);
+    });
   });
 
   describe('adaptPositionFromSDK', () => {
@@ -645,7 +734,7 @@ describe('hyperLiquidAdapter', () => {
       const result = adaptPositionFromSDK(assetPosition);
 
       expect(result).toEqual({
-        coin: 'BTC',
+        symbol: 'BTC', // Output uses 'symbol' (internal type), input was 'coin' (SDK type)
         size: '1.5',
         entryPrice: '50000',
         positionValue: '75000',
@@ -895,13 +984,13 @@ describe('hyperLiquidAdapter', () => {
         perpDexIndex: 0,
       });
 
-      expect(result.coinToAssetId.get('BTC')).toBe(0);
-      expect(result.coinToAssetId.get('ETH')).toBe(1);
-      expect(result.coinToAssetId.get('SOL')).toBe(2);
+      expect(result.symbolToAssetId.get('BTC')).toBe(0);
+      expect(result.symbolToAssetId.get('ETH')).toBe(1);
+      expect(result.symbolToAssetId.get('SOL')).toBe(2);
 
-      expect(result.assetIdToCoin.get(0)).toBe('BTC');
-      expect(result.assetIdToCoin.get(1)).toBe('ETH');
-      expect(result.assetIdToCoin.get(2)).toBe('SOL');
+      expect(result.assetIdToSymbol.get(0)).toBe('BTC');
+      expect(result.assetIdToSymbol.get(1)).toBe('ETH');
+      expect(result.assetIdToSymbol.get(2)).toBe('SOL');
     });
 
     it('should handle empty universe', () => {
@@ -910,8 +999,8 @@ describe('hyperLiquidAdapter', () => {
         perpDexIndex: 0,
       });
 
-      expect(result.coinToAssetId.size).toBe(0);
-      expect(result.assetIdToCoin.size).toBe(0);
+      expect(result.symbolToAssetId.size).toBe(0);
+      expect(result.assetIdToSymbol.size).toBe(0);
     });
   });
 
@@ -973,8 +1062,9 @@ describe('hyperLiquidAdapter', () => {
       );
 
       // Small decimal with many significant figures
+      // 0.123456 has 6 decimal digits, rounds to 5 sig figs = 0.12346
       expect(formatHyperLiquidPrice({ price: 0.123456, szDecimals: 0 })).toBe(
-        '0.1235',
+        '0.12346',
       );
     });
 

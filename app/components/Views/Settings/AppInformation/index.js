@@ -20,19 +20,18 @@ import {
   runtimeVersion,
   isEmbeddedLaunch,
   isEnabled as isOTAUpdatesEnabled,
-  url as otaUpdateUrl,
   updateId,
   checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { PROJECT_ID, getFullVersion } from '../../../../constants/ota';
+import { getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
+import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { isQa } from '../../../../util/test/utils';
 import {
   getFeatureFlagAppDistribution,
@@ -246,9 +245,6 @@ class AppInformation extends PureComponent {
                 {isOTAUpdatesEnabled && (
                   <>
                     <Text style={styles.branchInfo}>
-                      {`Expo Project ID: ${PROJECT_ID}`}
-                    </Text>
-                    <Text style={styles.branchInfo}>
                       {`Update ID: ${updateId || 'N/A'}`}
                     </Text>
                     <Text style={styles.branchInfo}>
@@ -256,9 +252,6 @@ class AppInformation extends PureComponent {
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update runtime version: ${runtimeVersion}`}
-                    </Text>
-                    <Text style={styles.branchInfo}>
-                      {`OTA Update URL: ${otaUpdateUrl}`}
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`Check Automatically: ${checkAutomatically}`}

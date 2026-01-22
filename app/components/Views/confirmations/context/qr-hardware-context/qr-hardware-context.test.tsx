@@ -1,7 +1,7 @@
 import React from 'react';
 import { userEvent } from '@testing-library/react-native';
 
-import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { Footer } from '../../components/footer';
@@ -170,7 +170,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    await userEvent.press(getByText('Get Signature'));
+    await userEvent.press(getByText('Get signature'));
     expect(
       getByText('Scan your hardware wallet to confirm the transaction'),
     ).toBeTruthy();

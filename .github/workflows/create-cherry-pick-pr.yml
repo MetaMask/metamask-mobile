@@ -19,21 +19,17 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout and setup high risk environment
+        uses: MetaMask/action-checkout-and-setup@v1
         with:
-          fetch-depth: 0
-          ref: ${{ vars.branch_name }}
-          token: ${{ secrets.BUG_REPORT_TOKEN }}
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+          is-high-risk-environment: false
       - name: Create Cherry Pick PR
         id: create-cherry-pick-pr
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME:  ${{ github.event.inputs.branch_name }}
+          COMMIT_HASH:  ${{ github.event.inputs.commit_hash }}
+          PR_NUMBER:    ${{ github.event.inputs.PR_number }}
         run: |
-          ./scripts/create-cherry-pick-pr.sh ${{ github.event.inputs.branch_name }} ${{ github.event.inputs.commit_hash }} ${{ github.event.inputs.PR_number }}
+          ./scripts/create-cherry-pick-pr.sh "$BRANCH_NAME" "$COMMIT_HASH" "$PR_NUMBER"

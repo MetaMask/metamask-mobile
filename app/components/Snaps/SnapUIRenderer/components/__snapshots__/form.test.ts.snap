@@ -148,7 +148,6 @@ exports[`SnapUIForm will render 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 20,
                           "opacity": 1,
                           "paddingVertical": 2,
                           "textAlignVertical": "center",
@@ -368,7 +367,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 20,
                           "opacity": 1,
                           "paddingVertical": 2,
                           "textAlignVertical": "center",
@@ -940,22 +938,20 @@ exports[`SnapUIForm will render with fields 1`] = `
                           style={
                             [
                               {
+                                "alignItems": "center",
                                 "flexDirection": "row",
                                 "gap": 16,
-                                "padding": 16,
+                                "height": 56,
                               },
                               false,
+                              {
+                                "paddingHorizontal": 16,
+                              },
                             ]
                           }
                           testID="header"
                         >
-                          <View
-                            style={
-                              {
-                                "width": undefined,
-                              }
-                            }
-                          >
+                          <View>
                             <View
                               onLayout={[Function]}
                             >
@@ -995,36 +991,41 @@ exports[`SnapUIForm will render with fields 1`] = `
                           </View>
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "flex": 1,
-                              }
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
-                                }
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 16,
+                                    "fontWeight": 700,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  },
+                                  {
+                                    "textAlign": "center",
+                                  },
+                                ]
                               }
                               testID="header-title"
                             >
                               Select an option
                             </Text>
                           </View>
-                          <View
-                            style={
-                              {
-                                "width": undefined,
-                              }
-                            }
-                          >
+                          <View>
                             <View
                               onLayout={[Function]}
                             />
@@ -1670,22 +1671,20 @@ exports[`SnapUIForm will render with fields 1`] = `
                           style={
                             [
                               {
+                                "alignItems": "center",
                                 "flexDirection": "row",
                                 "gap": 16,
-                                "padding": 16,
+                                "height": 56,
                               },
                               false,
+                              {
+                                "paddingHorizontal": 16,
+                              },
                             ]
                           }
                           testID="header"
                         >
-                          <View
-                            style={
-                              {
-                                "width": undefined,
-                              }
-                            }
-                          >
+                          <View>
                             <View
                               onLayout={[Function]}
                             >
@@ -1725,36 +1724,41 @@ exports[`SnapUIForm will render with fields 1`] = `
                           </View>
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "flex": 1,
-                              }
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             <Text
                               accessibilityRole="text"
                               style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
-                                }
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 16,
+                                    "fontWeight": 700,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  },
+                                  {
+                                    "textAlign": "center",
+                                  },
+                                ]
                               }
                               testID="header-title"
                             >
                               Select an option
                             </Text>
                           </View>
-                          <View
-                            style={
-                              {
-                                "width": undefined,
-                              }
-                            }
-                          >
+                          <View>
                             <View
                               onLayout={[Function]}
                             />

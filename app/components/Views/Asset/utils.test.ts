@@ -3,11 +3,6 @@ import { getIsSwapsAssetAllowed } from './utils';
 import { SolScope } from '@metamask/keyring-api';
 
 describe('getIsSwapsAssetAllowed', () => {
-  const mockSwapsTokens = {
-    '0xtoken1': { symbol: 'TOKEN1' },
-    '0xtoken2': { symbol: 'TOKEN2' },
-  };
-
   const mockSearchDiscoverySwapsTokens = ['0xtoken3', '0xtoken4'];
 
   describe('EVM assets', () => {
@@ -20,7 +15,6 @@ describe('getIsSwapsAssetAllowed', () => {
           chainId: '0x1',
         },
         searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
-        swapsTokens: mockSwapsTokens,
       });
       expect(result).toBe(true);
     });
@@ -34,7 +28,6 @@ describe('getIsSwapsAssetAllowed', () => {
           chainId: '0x1',
         },
         searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
-        swapsTokens: mockSwapsTokens,
       });
       expect(result).toBe(true);
     });
@@ -49,12 +42,11 @@ describe('getIsSwapsAssetAllowed', () => {
           isFromSearch: true,
         },
         searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
-        swapsTokens: mockSwapsTokens,
       });
       expect(result).toBe(true);
     });
 
-    it('should return true for tokens in swaps tokens list', () => {
+    it('should return true for all other EVM tokens', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: false,
@@ -63,35 +55,6 @@ describe('getIsSwapsAssetAllowed', () => {
           chainId: '0x1',
         },
         searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
-        swapsTokens: mockSwapsTokens,
-      });
-      expect(result).toBe(true);
-    });
-
-    it('should return false for tokens not in either list', () => {
-      const result = getIsSwapsAssetAllowed({
-        asset: {
-          isETH: false,
-          isNative: false,
-          address: '0xunknown',
-          chainId: '0x1',
-        },
-        searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
-        swapsTokens: mockSwapsTokens,
-      });
-      expect(result).toBe(false);
-    });
-
-    it('should handle case-insensitive address matching', () => {
-      const result = getIsSwapsAssetAllowed({
-        asset: {
-          isETH: false,
-          isNative: false,
-          address: '0XTOKEN1',
-          chainId: '0x1',
-        },
-        searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
-        swapsTokens: mockSwapsTokens,
       });
       expect(result).toBe(true);
     });
@@ -107,7 +70,6 @@ describe('getIsSwapsAssetAllowed', () => {
           chainId: SolScope.Mainnet,
         },
         searchDiscoverySwapsTokens: mockSearchDiscoverySwapsTokens,
-        swapsTokens: mockSwapsTokens,
       });
       expect(result).toBe(true);
     });

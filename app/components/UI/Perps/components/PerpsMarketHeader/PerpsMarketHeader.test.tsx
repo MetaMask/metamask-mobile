@@ -4,7 +4,7 @@ import { TouchableOpacity } from 'react-native';
 import PerpsMarketHeader from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import { PerpsMarketData } from '../../controllers/types';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 
@@ -28,11 +28,12 @@ const initialState = {
 };
 
 describe('PerpsMarketHeader', () => {
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
       />,
       { state: initialState },
     );
@@ -40,13 +41,14 @@ describe('PerpsMarketHeader', () => {
     expect(getByTestId(PerpsMarketHeaderSelectorsIDs.CONTAINER)).toBeTruthy();
   });
 
-  it('should handle back button press', () => {
+  it('handles back button press', () => {
     const onBackPress = jest.fn();
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
         onBackPress={onBackPress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
       />,
       { state: initialState },
     );
@@ -57,13 +59,14 @@ describe('PerpsMarketHeader', () => {
     expect(onBackPress).toHaveBeenCalled();
   });
 
-  it('should handle more button press', () => {
+  it('handles more button press', () => {
     const onMorePress = jest.fn();
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
         onMorePress={onMorePress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
       />,
       { state: initialState },
     );
@@ -72,5 +75,27 @@ describe('PerpsMarketHeader', () => {
     const moreButton = UNSAFE_getByType(TouchableOpacity);
     fireEvent.press(moreButton);
     expect(onMorePress).toHaveBeenCalled();
+  });
+
+  it('renders correctly without maxLeverage', () => {
+    const marketWithoutLeverage = {
+      ...mockMarket,
+      maxLeverage: undefined,
+    };
+
+    const { getByTestId, queryByText } = renderWithProvider(
+      <PerpsMarketHeader
+        market={marketWithoutLeverage as unknown as PerpsMarketData}
+        testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
+      />,
+      { state: initialState },
+    );
+
+    // Container should still render
+    expect(getByTestId(PerpsMarketHeaderSelectorsIDs.CONTAINER)).toBeTruthy();
+
+    // Leverage badge should not be rendered when maxLeverage is undefined
+    expect(queryByText('40x')).toBeNull();
   });
 });

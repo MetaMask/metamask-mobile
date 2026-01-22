@@ -1066,7 +1066,7 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
           }
           testID="earn-lending-confirmation-footer-risk-disclosure-button"
         >
-          Risk Disclosure
+          Risk disclosure
         </Text>
         <Text
           accessibilityRole="text"

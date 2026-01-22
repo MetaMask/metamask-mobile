@@ -4,11 +4,16 @@ describe('formatMarketDetails', () => {
   const mockOptions = {
     locale: 'en-US',
     currentCurrency: 'USD',
-    isEvmAssetSelected: true,
-    conversionRate: 1.5,
   };
 
-  it('should format market details correctly with all values', () => {
+  const mockOptionsWithConversion = {
+    locale: 'en-US',
+    currentCurrency: 'USD',
+    needsConversion: true,
+    conversionRate: 3000,
+  };
+
+  it('formats market details without conversion (API-fetched data)', () => {
     const marketData = {
       marketCap: 1000000,
       totalVolume: 500000,
@@ -21,17 +26,41 @@ describe('formatMarketDetails', () => {
     const result = formatMarketDetails(marketData, mockOptions);
 
     expect(result).toEqual({
-      marketCap: '$1.50M',
-      totalVolume: '$750.00K',
+      marketCap: '$1.00M',
+      totalVolume: '$500.00K',
       volumeToMarketCap: '50.00%',
       circulatingSupply: '1.00M',
-      allTimeHigh: '$150.00',
-      allTimeLow: '$75.00',
-      fullyDiluted: '$3.00M',
+      allTimeHigh: '$100.00',
+      allTimeLow: '$50.00',
+      fullyDiluted: '$2.00M',
     });
   });
 
-  it('should handle null values correctly', () => {
+  it('formats market details with conversion (cached EVM data)', () => {
+    const marketData = {
+      marketCap: 120000000, // 120M in ETH units
+      totalVolume: 6000000, // 6M in ETH units
+      circulatingSupply: 1000000,
+      allTimeHigh: 1500, // in ETH units
+      allTimeLow: 500, // in ETH units
+      dilutedMarketCap: 120000000,
+    };
+
+    const result = formatMarketDetails(marketData, mockOptionsWithConversion);
+
+    // 120M * 3000 = $360B
+    expect(result).toEqual({
+      marketCap: '$360.00B',
+      totalVolume: '$18.00B',
+      volumeToMarketCap: '5.00%',
+      circulatingSupply: '1.00M',
+      allTimeHigh: '$4,500,000.00',
+      allTimeLow: '$1,500,000.00',
+      fullyDiluted: '$360.00B',
+    });
+  });
+
+  it('returns null for zero or undefined values', () => {
     const marketData = {
       marketCap: 0,
       totalVolume: undefined,
@@ -54,36 +83,7 @@ describe('formatMarketDetails', () => {
     });
   });
 
-  it('should handle non-EVM network correctly', () => {
-    const marketData = {
-      marketCap: 1000000,
-      totalVolume: 500000,
-      circulatingSupply: 1000000,
-      allTimeHigh: 100,
-      allTimeLow: 50,
-      dilutedMarketCap: 2000000,
-    };
-
-    const nonEvmOptions = {
-      ...mockOptions,
-      isEvmAssetSelected: false,
-    };
-
-    const result = formatMarketDetails(marketData, nonEvmOptions);
-
-    expect(result).toEqual({
-      marketCap: '$1.00M',
-      totalVolume: '$500.00K',
-      volumeToMarketCap: '50.00%',
-      circulatingSupply: '1.00M',
-      allTimeHigh: '$100.00',
-      allTimeLow: '$50.00',
-      fullyDiluted: '$2.00M',
-    });
-  });
-
-  it('should format market details correctly for French locale', () => {
-    // Test data with realistic market values
+  it('formats market details with French locale and EUR currency', () => {
     const marketData = {
       marketCap: 1000000,
       totalVolume: 500000,
@@ -94,27 +94,51 @@ describe('formatMarketDetails', () => {
     };
 
     const frenchLocaleOptions = {
-      ...mockOptions,
       locale: 'fr-FR',
       currentCurrency: 'EUR',
     };
 
-    const formattedMarketDetails = formatMarketDetails(
-      marketData,
-      frenchLocaleOptions,
-    );
+    const result = formatMarketDetails(marketData, frenchLocaleOptions);
 
-    // Expected French-formatted values with currency
-    const expectedFormattedValues = {
-      marketCap: '1,50\xa0M\xa0€', // 1.5M EUR
-      totalVolume: '750,00\xa0k\xa0€', // 750K EUR
-      volumeToMarketCap: '50,00\xa0%', // 50% volume to market cap ratio
-      circulatingSupply: '1,00\xa0M', // 1M tokens
-      allTimeHigh: '150,00\xa0€', // 150 EUR
-      allTimeLow: '75,00\xa0€', // 75 EUR
-      fullyDiluted: '3,00\xa0M\xa0€', // 3M EUR
+    expect(result).toEqual({
+      marketCap: '1,00\xa0M\xa0€',
+      totalVolume: '500,00\xa0k\xa0€',
+      volumeToMarketCap: '50,00\xa0%',
+      circulatingSupply: '1,00\xa0M',
+      allTimeHigh: '100,00\xa0€',
+      allTimeLow: '50,00\xa0€',
+      fullyDiluted: '2,00\xa0M\xa0€',
+    });
+  });
+
+  it('does not convert when needsConversion is false even with conversionRate provided', () => {
+    const marketData = {
+      marketCap: 1000000,
+      totalVolume: 500000,
+      circulatingSupply: 1000000,
+      allTimeHigh: 100,
+      allTimeLow: 50,
+      dilutedMarketCap: 2000000,
     };
 
-    expect(formattedMarketDetails).toEqual(expectedFormattedValues);
+    const options = {
+      locale: 'en-US',
+      currentCurrency: 'USD',
+      needsConversion: false,
+      conversionRate: 3000,
+    };
+
+    const result = formatMarketDetails(marketData, options);
+
+    // No conversion applied
+    expect(result).toEqual({
+      marketCap: '$1.00M',
+      totalVolume: '$500.00K',
+      volumeToMarketCap: '50.00%',
+      circulatingSupply: '1.00M',
+      allTimeHigh: '$100.00',
+      allTimeLow: '$50.00',
+      fullyDiluted: '$2.00M',
+    });
   });
 });

@@ -10,6 +10,8 @@ import renderWithProvider, {
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -624,5 +626,44 @@ describe('PerpsPositionTransactionView', () => {
 
     // Should still render date row
     expect(getByText('Date')).toBeOnTheScreen();
+  });
+
+  it('navigates to market details when Trade again button is pressed', () => {
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
+      state: mockInitialState,
+    });
+
+    const tradeAgainButton = getByText('Trade again');
+    fireEvent.press(tradeAgainButton);
+
+    // PerpsPositionTransactionView passes minimal market data (symbol, name)
+    // PerpsMarketDetailsView will enrich it with full market data from usePerpsMarkets
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: { symbol: 'ETH', name: 'ETH' },
+        source: PerpsEventValues.SOURCE.TRADE_DETAILS,
+      },
+    });
+  });
+
+  it('does not render Trade again button when transaction asset is undefined', () => {
+    const transactionWithoutAsset = {
+      ...mockTransaction,
+      asset: undefined,
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: transactionWithoutAsset },
+    });
+
+    const { queryByText } = renderWithProvider(
+      <PerpsPositionTransactionView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(queryByText('Trade again')).toBeNull();
   });
 });

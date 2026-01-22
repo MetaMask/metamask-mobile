@@ -278,6 +278,7 @@ export interface MockApiEndpoint {
   ignoreFields?: string[];
   response: unknown;
   responseCode: number;
+  priority?: number;
 }
 
 export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;

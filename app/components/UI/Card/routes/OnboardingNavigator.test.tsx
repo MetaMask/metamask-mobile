@@ -8,8 +8,8 @@ import {
 } from '@react-navigation/native';
 import { Alert } from 'react-native';
 import OnboardingNavigator, {
-  KYCModalNavigationOptions,
-  PersonalDetailsNavigationOptions,
+  PostEmailNavigationOptions,
+  KYCStatusNavigationOptions,
 } from './OnboardingNavigator';
 import { useCardSDK } from '../sdk';
 import { CardSDK } from '../sdk/CardSDK';
@@ -34,6 +34,11 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => ({})),
 }));
 
+// Mock navigation functions - shared across tests
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
+
 // Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -43,9 +48,9 @@ jest.mock('@react-navigation/native', () => {
       children,
     useFocusEffect: jest.fn(),
     useNavigation: () => ({
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-      setOptions: jest.fn(),
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
     }),
   };
 });
@@ -84,11 +89,13 @@ jest.mock(
   () => 'ConfirmPhoneNumber',
 );
 jest.mock('../components/Onboarding/VerifyIdentity', () => 'VerifyIdentity');
-jest.mock('../components/Onboarding/ValidatingKYC', () => 'ValidatingKYC');
+jest.mock(
+  '../components/Onboarding/VerifyingVeriffKYC',
+  () => 'VerifyingVeriffKYC',
+);
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
-jest.mock('../components/Onboarding/MailingAddress', () => 'MailingAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
 jest.mock('../components/Onboarding/KYCWebview', () => 'KYCWebview');
 
@@ -152,14 +159,20 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       SET_PHONE_NUMBER: 'SET_PHONE_NUMBER',
       CONFIRM_PHONE_NUMBER: 'CONFIRM_PHONE_NUMBER',
       VERIFY_IDENTITY: 'VERIFY_IDENTITY',
-      VALIDATING_KYC: 'VALIDATING_KYC',
+      VERIFYING_VERIFF_KYC: 'VERIFYING_VERIFF_KYC',
       KYC_FAILED: 'KYC_FAILED',
       PERSONAL_DETAILS: 'PERSONAL_DETAILS',
       PHYSICAL_ADDRESS: 'PHYSICAL_ADDRESS',
-      MAILING_ADDRESS: 'MAILING_ADDRESS',
       COMPLETE: 'COMPLETE',
       WEBVIEW: 'WEBVIEW',
     },
+    MODALS: {
+      ID: 'CARD_MODALS',
+      CONFIRM_MODAL: 'CONFIRM_MODAL',
+    },
+  },
+  WALLET: {
+    HOME: 'WALLET_HOME',
   },
 }));
 
@@ -193,6 +206,7 @@ describe('OnboardingNavigator', () => {
       setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
       fetchUserData: jest.fn(),
+      isReturningSession: false,
     });
 
     // Default mock for useParams - returns empty object (no route params)
@@ -210,6 +224,7 @@ describe('OnboardingNavigator', () => {
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
           fetchUserData: jest.fn(),
+          isReturningSession: false,
         });
       });
 
@@ -239,6 +254,7 @@ describe('OnboardingNavigator', () => {
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -263,6 +279,7 @@ describe('OnboardingNavigator', () => {
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -286,7 +303,6 @@ describe('OnboardingNavigator', () => {
             user: {
               id: 'user-123',
               verificationState: 'PENDING',
-              countryOfNationality: 'US',
               // firstName is undefined
             },
             isLoading: false,
@@ -294,6 +310,7 @@ describe('OnboardingNavigator', () => {
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -307,20 +324,20 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns VERIFY_IDENTITY route when countryOfNationality is missing', () => {
+        it('returns VERIFYING_VERIFF_KYC route when firstName exists', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'PENDING',
               firstName: 'John',
-              // countryOfNationality is undefined
             },
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -330,81 +347,26 @@ describe('OnboardingNavigator', () => {
           const stackNavigator = queryByTestId('stack-navigator');
           expect(stackNavigator).not.toBeNull();
           expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
-          );
-        });
-
-        it('returns VALIDATING_KYC route when firstName and countryOfNationality exist', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'PENDING',
-              firstName: 'John',
-              countryOfNationality: 'US',
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.VALIDATING_KYC,
+            Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC,
           );
         });
       });
 
       describe('when user verification state is VERIFIED', () => {
-        it('returns PERSONAL_DETAILS route when firstName is missing', () => {
+        it('returns PHYSICAL_ADDRESS route when address is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'VERIFIED',
               countryOfNationality: 'US',
-              // firstName is undefined
             },
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
-          );
-        });
-
-        it('returns PHYSICAL_ADDRESS route when firstName and countryOfNationality exist but addressLine1 is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'VERIFIED',
-              firstName: 'John',
-              countryOfNationality: 'US',
-              // addressLine1 is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -418,21 +380,52 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns COMPLETE route when user has all required data', () => {
+        it('returns PERSONAL_DETAILS route when countryOfNationality is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'VERIFIED',
-              firstName: 'John',
-              countryOfNationality: 'US',
               addressLine1: '123 Main St',
+              city: 'New York',
+              zip: '10001',
             },
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
+            isReturningSession: false,
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          const stackNavigator = queryByTestId('stack-navigator');
+          expect(stackNavigator).not.toBeNull();
+          expect(stackNavigator?.props.initialRouteName).toBe(
+            Routes.CARD.ONBOARDING.PERSONAL_DETAILS,
+          );
+        });
+
+        it('returns COMPLETE route when all address data and countryOfNationality exists', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'VERIFIED',
+              addressLine1: '123 Main St',
+              city: 'New York',
+              zip: '10001',
+              countryOfNationality: 'US',
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -448,39 +441,12 @@ describe('OnboardingNavigator', () => {
       });
 
       describe('when user verification state is UNVERIFIED', () => {
-        it('returns SIGN_UP route when email is missing', () => {
+        it('returns SET_PHONE_NUMBER route when phoneNumber is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'UNVERIFIED',
-              // email is undefined
-            },
-            isLoading: false,
-            sdk: null,
-            setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
-            fetchUserData: jest.fn(),
-          });
-
-          const { queryByTestId } = renderWithNavigation(
-            <OnboardingNavigator />,
-          );
-
-          const stackNavigator = queryByTestId('stack-navigator');
-          expect(stackNavigator).not.toBeNull();
-          expect(stackNavigator?.props.initialRouteName).toBe(
-            Routes.CARD.ONBOARDING.SIGN_UP,
-          );
-        });
-
-        it('returns SET_PHONE_NUMBER route when email exists but phoneNumber is missing', () => {
-          mockUseSelector.mockReturnValue('onboarding-123');
-          mockUseCardSDK.mockReturnValue({
-            user: {
-              id: 'user-123',
-              verificationState: 'UNVERIFIED',
-              email: 'test@example.com',
               // phoneNumber is undefined
             },
             isLoading: false,
@@ -488,6 +454,7 @@ describe('OnboardingNavigator', () => {
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -501,13 +468,12 @@ describe('OnboardingNavigator', () => {
           );
         });
 
-        it('returns VERIFY_IDENTITY route when email and phoneNumber exist', () => {
+        it('returns VERIFY_IDENTITY route when phoneNumber exists', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'UNVERIFIED',
-              email: 'test@example.com',
               phoneNumber: '+1234567890',
             },
             isLoading: false,
@@ -515,6 +481,7 @@ describe('OnboardingNavigator', () => {
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
             fetchUserData: jest.fn(),
+            isReturningSession: false,
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -525,6 +492,34 @@ describe('OnboardingNavigator', () => {
           expect(stackNavigator).not.toBeNull();
           expect(stackNavigator?.props.initialRouteName).toBe(
             Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
+          );
+        });
+      });
+
+      describe('when user verification state is REJECTED', () => {
+        it('returns KYC_FAILED route', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'REJECTED',
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+            isReturningSession: false,
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          const stackNavigator = queryByTestId('stack-navigator');
+          expect(stackNavigator).not.toBeNull();
+          expect(stackNavigator?.props.initialRouteName).toBe(
+            Routes.CARD.ONBOARDING.KYC_FAILED,
           );
         });
       });
@@ -542,6 +537,7 @@ describe('OnboardingNavigator', () => {
         setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
+        isReturningSession: false,
       });
 
       const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -563,6 +559,7 @@ describe('OnboardingNavigator', () => {
         setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
+        isReturningSession: false,
       });
 
       const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -584,6 +581,7 @@ describe('OnboardingNavigator', () => {
         setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
+        isReturningSession: false,
       });
 
       const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -605,6 +603,7 @@ describe('OnboardingNavigator', () => {
         setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
+        isReturningSession: false,
       });
 
       const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -626,6 +625,7 @@ describe('OnboardingNavigator', () => {
         setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
+        isReturningSession: false,
       });
 
       const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -636,31 +636,10 @@ describe('OnboardingNavigator', () => {
         Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS,
       );
     });
-
-    it('routes to MAILING_ADDRESS when cardUserPhase is MAILING_ADDRESS', () => {
-      mockUseParams.mockReturnValue({ cardUserPhase: 'MAILING_ADDRESS' });
-      mockUseSelector.mockReturnValue('onboarding-123');
-      mockUseCardSDK.mockReturnValue({
-        user: { id: 'user-123', contactVerificationId: 'contact-123' },
-        isLoading: false,
-        sdk: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-        fetchUserData: jest.fn(),
-      });
-
-      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
-      const stackNavigator = queryByTestId('stack-navigator');
-      expect(stackNavigator).not.toBeNull();
-      expect(stackNavigator?.props.initialRouteName).toBe(
-        Routes.CARD.ONBOARDING.MAILING_ADDRESS,
-      );
-    });
   });
 
   describe('Navigation Options', () => {
-    describe('KYCModalNavigationOptions', () => {
+    describe('PostEmailNavigationOptions', () => {
       let mockNavigation: Partial<NavigationProp<ParamListBase>>;
 
       beforeEach(() => {
@@ -677,43 +656,43 @@ describe('OnboardingNavigator', () => {
       });
 
       it('renders close button in header right', () => {
-        const options = KYCModalNavigationOptions({
+        const options = PostEmailNavigationOptions({
           navigation: mockNavigation as NavigationProp<ParamListBase>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
         const { getByTestId } = render(headerRightElement);
 
-        expect(getByTestId('close-button')).toBeTruthy();
+        expect(getByTestId('exit-onboarding-button')).toBeTruthy();
       });
 
-      it('displays alert when close button is pressed', () => {
-        const options = KYCModalNavigationOptions({
+      it('displays exit confirmation alert when close button is pressed', () => {
+        const options = PostEmailNavigationOptions({
           navigation: mockNavigation as NavigationProp<ParamListBase>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
         const { getByTestId } = render(headerRightElement);
 
-        const closeButton = getByTestId('close-button');
+        const closeButton = getByTestId('exit-onboarding-button');
         fireEvent.press(closeButton);
 
         expect(Alert.alert).toHaveBeenCalledWith(
-          'mocked_card.card_onboarding.kyc_webview.close_confirmation_title',
-          'mocked_card.card_onboarding.kyc_webview.close_confirmation_message',
+          'mocked_card.card_onboarding.exit_confirmation.title',
+          'mocked_card.card_onboarding.exit_confirmation.message',
           expect.any(Array),
         );
       });
 
-      it('navigates to PERSONAL_DETAILS when close is confirmed in alert', () => {
-        const options = KYCModalNavigationOptions({
+      it('navigates to WALLET.HOME when exit is confirmed in alert', () => {
+        const options = PostEmailNavigationOptions({
           navigation: mockNavigation as NavigationProp<ParamListBase>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
         const { getByTestId } = render(headerRightElement);
 
-        const closeButton = getByTestId('close-button');
+        const closeButton = getByTestId('exit-onboarding-button');
         fireEvent.press(closeButton);
 
         const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
@@ -721,51 +700,29 @@ describe('OnboardingNavigator', () => {
 
         destructiveButton.onPress();
 
-        expect(mockNavigation.navigate).toHaveBeenCalledWith(
-          'PERSONAL_DETAILS',
-        );
-      });
-    });
-
-    describe('PersonalDetailsNavigationOptions', () => {
-      let mockNavigation: Partial<NavigationProp<ParamListBase>>;
-
-      beforeEach(() => {
-        mockNavigation = {
-          navigate: jest.fn(),
-          goBack: jest.fn(),
-        };
+        expect(mockNavigation.navigate).toHaveBeenCalledWith('WALLET_HOME');
       });
 
-      it('renders back button in header left', () => {
-        const options = PersonalDetailsNavigationOptions({
+      it('has gestureEnabled set to false', () => {
+        const options = PostEmailNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+
+        expect(options.gestureEnabled).toBe(false);
+      });
+
+      it('renders empty header left', () => {
+        const options = PostEmailNavigationOptions({
           navigation: mockNavigation as NavigationProp<ParamListBase>,
         });
         const HeaderLeft = options.headerLeft as () => React.ReactElement;
         const headerLeftElement = HeaderLeft();
-        const { getByTestId } = render(headerLeftElement);
 
-        expect(getByTestId('back-button')).toBeTruthy();
-      });
-
-      it('navigates to VERIFY_IDENTITY when back button is pressed', () => {
-        const options = PersonalDetailsNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderLeft = options.headerLeft as () => React.ReactElement;
-        const headerLeftElement = HeaderLeft();
-        const { getByTestId } = render(headerLeftElement);
-
-        const backButton = getByTestId('back-button');
-        fireEvent.press(backButton);
-
-        expect(mockNavigation.navigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
-        );
+        expect(headerLeftElement).toBeTruthy();
       });
 
       it('renders empty header title', () => {
-        const options = PersonalDetailsNavigationOptions({
+        const options = PostEmailNavigationOptions({
           navigation: mockNavigation as NavigationProp<ParamListBase>,
         });
         const HeaderTitle = options.headerTitle as () => React.ReactElement;
@@ -773,15 +730,76 @@ describe('OnboardingNavigator', () => {
 
         expect(headerTitleElement).toBeTruthy();
       });
+    });
 
-      it('renders empty header right', () => {
-        const options = PersonalDetailsNavigationOptions({
+    describe('KYCStatusNavigationOptions', () => {
+      let mockNavigation: Partial<NavigationProp<ParamListBase>>;
+
+      beforeEach(() => {
+        mockNavigation = {
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        };
+
+        jest.spyOn(Alert, 'alert');
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('renders close button in header right', () => {
+        const options = KYCStatusNavigationOptions({
           navigation: mockNavigation as NavigationProp<ParamListBase>,
         });
         const HeaderRight = options.headerRight as () => React.ReactElement;
         const headerRightElement = HeaderRight();
+        const { getByTestId } = render(headerRightElement);
 
-        expect(headerRightElement).toBeTruthy();
+        expect(getByTestId('exit-onboarding-button')).toBeTruthy();
+      });
+
+      it('navigates directly to WALLET.HOME without alert when close button is pressed', () => {
+        const options = KYCStatusNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderRight = options.headerRight as () => React.ReactElement;
+        const headerRightElement = HeaderRight();
+        const { getByTestId } = render(headerRightElement);
+
+        const closeButton = getByTestId('exit-onboarding-button');
+        fireEvent.press(closeButton);
+
+        expect(Alert.alert).not.toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalledWith('WALLET_HOME');
+      });
+
+      it('has gestureEnabled set to false', () => {
+        const options = KYCStatusNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+
+        expect(options.gestureEnabled).toBe(false);
+      });
+
+      it('renders empty header left', () => {
+        const options = KYCStatusNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderLeft = options.headerLeft as () => React.ReactElement;
+        const headerLeftElement = HeaderLeft();
+
+        expect(headerLeftElement).toBeTruthy();
+      });
+
+      it('renders empty header title', () => {
+        const options = KYCStatusNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderTitle = options.headerTitle as () => React.ReactElement;
+        const headerTitleElement = HeaderTitle();
+
+        expect(headerTitleElement).toBeTruthy();
       });
     });
   });
@@ -797,11 +815,111 @@ describe('OnboardingNavigator', () => {
         setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
         fetchUserData: mockFetchUserData,
+        isReturningSession: false,
       });
 
       renderWithNavigation(<OnboardingNavigator />);
 
       expect(mockFetchUserData).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Keep Going Modal', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+    });
+
+    it('shows keep going modal when isReturningSession is true and not on SIGN_UP route', () => {
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          verificationState: 'UNVERIFIED',
+          phoneNumber: '+1234567890',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: true,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.objectContaining({
+          screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+        }),
+      );
+    });
+
+    it('does not show keep going modal when isReturningSession is false', () => {
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          verificationState: 'UNVERIFIED',
+          phoneNumber: '+1234567890',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: false,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.anything(),
+      );
+    });
+
+    it('does not show keep going modal when initialRouteName is SIGN_UP', () => {
+      mockUseSelector.mockReturnValue(null); // No onboardingId means SIGN_UP route
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: true,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.anything(),
+      );
+    });
+
+    it('does not show keep going modal when user verificationState is REJECTED', () => {
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          verificationState: 'REJECTED',
+        },
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
+        isReturningSession: true,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.MODALS.ID,
+        expect.anything(),
+      );
     });
   });
 });

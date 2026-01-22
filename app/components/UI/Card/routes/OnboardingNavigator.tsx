@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -9,11 +9,10 @@ import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
 import SetPhoneNumber from '../components/Onboarding/SetPhoneNumber';
 import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
-import ValidatingKYC from '../components/Onboarding/ValidatingKYC';
+import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
-import MailingAddress from '../components/Onboarding/MailingAddress';
 import { cardDefaultNavigationOptions, headerStyle } from '.';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
@@ -23,10 +22,11 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import KYCWebview from '../components/Onboarding/KYCWebview';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
@@ -36,24 +36,23 @@ import Complete from '../components/Onboarding/Complete';
 
 const Stack = createStackNavigator();
 
-export const KYCModalNavigationOptions = ({
+export const PostEmailNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
 }): StackNavigationOptions => {
   const handleClosePress = () => {
     Alert.alert(
-      strings('card.card_onboarding.kyc_webview.close_confirmation_title'),
-      strings('card.card_onboarding.kyc_webview.close_confirmation_message'),
+      strings('card.card_onboarding.exit_confirmation.title'),
+      strings('card.card_onboarding.exit_confirmation.message'),
       [
         {
-          text: strings('card.card_onboarding.kyc_webview.cancel_button'),
+          text: strings('card.card_onboarding.exit_confirmation.cancel_button'),
           style: 'cancel',
         },
         {
-          text: strings('card.card_onboarding.kyc_webview.close_button'),
-          onPress: () =>
-            navigation.navigate(Routes.CARD.ONBOARDING.PERSONAL_DETAILS),
+          text: strings('card.card_onboarding.exit_confirmation.exit_button'),
+          onPress: () => navigation.navigate(Routes.WALLET.HOME),
           style: 'destructive',
         },
       ],
@@ -62,45 +61,39 @@ export const KYCModalNavigationOptions = ({
 
   return {
     headerLeft: () => <View />,
-    headerTitle: () => (
-      <Text
-        variant={TextVariant.HeadingSM}
-        style={headerStyle.title}
-        testID={'card-view-title'}
-      >
-        {strings('card.card')}
-      </Text>
-    ),
+    headerTitle: () => <View />,
     headerRight: () => (
       <ButtonIcon
         style={headerStyle.icon}
         size={ButtonIconSizes.Lg}
         iconName={IconName.Close}
-        testID="close-button"
+        testID="exit-onboarding-button"
         onPress={handleClosePress}
       />
     ),
+    gestureEnabled: false,
   };
 };
 
-export const PersonalDetailsNavigationOptions = ({
+// Navigation options for KYC status screens (VALIDATING_KYC, KYC_FAILED)
+// These screens should exit directly without confirmation alert
+export const KYCStatusNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
 }): StackNavigationOptions => ({
-  headerLeft: () => (
+  headerLeft: () => <View />,
+  headerTitle: () => <View />,
+  headerRight: () => (
     <ButtonIcon
       style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      testID="back-button"
-      onPress={() =>
-        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY)
-      }
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.Close}
+      testID="exit-onboarding-button"
+      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
     />
   ),
-  headerTitle: () => <View />,
-  headerRight: () => <View />,
+  gestureEnabled: false,
 });
 
 const OnboardingNavigator: React.FC = () => {
@@ -108,9 +101,10 @@ const OnboardingNavigator: React.FC = () => {
     cardUserPhase?: CardUserPhase;
   }>();
   const onboardingId = useSelector(selectOnboardingId);
-  const { user, isLoading, fetchUserData } = useCardSDK();
+  const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
-
+  const navigation = useNavigation();
+  const hasShownKeepGoingModal = useRef(false);
   // Fetch fresh user data on mount if user data is missing
   // This ensures we always have the most up-to-date onboarding information
   // when the navigator is accessed
@@ -123,7 +117,7 @@ const OnboardingNavigator: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 
-  const getInitialRouteName = useMemo(() => {
+  const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
       if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
@@ -138,18 +132,15 @@ const OnboardingNavigator: React.FC = () => {
       if (cardUserPhase === 'PHYSICAL_ADDRESS') {
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
       }
-      if (cardUserPhase === 'MAILING_ADDRESS') {
-        return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
-      }
     }
 
     // Priority 2: Use cached user data if available
     if (user?.verificationState && onboardingId) {
-      if (user.verificationState === 'UNVERIFIED') {
-        if (!user?.email) {
-          return Routes.CARD.ONBOARDING.SIGN_UP;
-        }
+      if (user.verificationState === 'REJECTED') {
+        return Routes.CARD.ONBOARDING.KYC_FAILED;
+      }
 
+      if (user.verificationState === 'UNVERIFIED') {
         if (!user?.phoneNumber) {
           return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
         }
@@ -158,19 +149,22 @@ const OnboardingNavigator: React.FC = () => {
       }
 
       if (user.verificationState === 'PENDING') {
-        if (!user.firstName || !user.countryOfNationality) {
+        if (!user.firstName) {
           return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
         }
 
-        return Routes.CARD.ONBOARDING.VALIDATING_KYC;
+        return Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC;
       }
 
       if (user.verificationState === 'VERIFIED') {
-        if (!user?.firstName || !user?.countryOfNationality) {
+        if (!user?.countryOfNationality) {
           return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
-        } else if (!user?.addressLine1) {
+        }
+
+        if (!user?.addressLine1 || !user?.city || !user?.zip) {
           return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
         }
+
         return Routes.CARD.ONBOARDING.COMPLETE;
       }
     }
@@ -178,6 +172,39 @@ const OnboardingNavigator: React.FC = () => {
     // Default to SIGN_UP route if no user data is available
     return Routes.CARD.ONBOARDING.SIGN_UP;
   }, [user, cardUserPhase, onboardingId]);
+
+  // Show "keep going" modal only when a returning user resumes an incomplete flow
+  // isReturningSession is determined at CardSDKProvider mount (when card flow starts),
+  // not when this navigator mounts, so it correctly identifies returning users
+  useEffect(() => {
+    if (
+      isReturningSession &&
+      initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
+      !hasShownKeepGoingModal.current &&
+      user?.verificationState !== 'REJECTED'
+    ) {
+      hasShownKeepGoingModal.current = true;
+      navigation.navigate(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+        params: {
+          title: strings('card.card_onboarding.keep_going.title'),
+          description: strings('card.card_onboarding.keep_going.description'),
+          confirmAction: {
+            label: strings('card.card_onboarding.keep_going.confirm_button'),
+            onPress: () => {
+              navigation.navigate(initialRouteName);
+            },
+          },
+          icon: IconName.ArrowDoubleRight,
+        },
+      });
+    }
+  }, [
+    isReturningSession,
+    initialRouteName,
+    navigation,
+    user?.verificationState,
+  ]);
 
   if (isLoading && !user) {
     return (
@@ -188,7 +215,7 @@ const OnboardingNavigator: React.FC = () => {
   }
 
   return (
-    <Stack.Navigator initialRouteName={getInitialRouteName}>
+    <Stack.Navigator initialRouteName={initialRouteName}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}
@@ -202,22 +229,37 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SET_PHONE_NUMBER}
         component={SetPhoneNumber}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER}
         component={ConfirmPhoneNumber}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
         component={VerifyIdentity}
-        options={cardDefaultNavigationOptions}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
-        name={Routes.CARD.ONBOARDING.VALIDATING_KYC}
-        component={ValidatingKYC}
-        options={cardDefaultNavigationOptions}
+        name={Routes.CARD.ONBOARDING.WEBVIEW}
+        component={KYCWebview}
+        options={PostEmailNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC}
+        component={VerifyingVeriffKYC}
+        options={KYCStatusNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
+        component={PersonalDetails}
+        options={PostEmailNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
+        component={PhysicalAddress}
+        options={PostEmailNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.COMPLETE}
@@ -227,27 +269,7 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_FAILED}
         component={KYCFailed}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.PERSONAL_DETAILS}
-        component={PersonalDetails}
-        options={PersonalDetailsNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS}
-        component={PhysicalAddress}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
-        component={MailingAddress}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.WEBVIEW}
-        component={KYCWebview}
-        options={KYCModalNavigationOptions}
+        options={KYCStatusNavigationOptions}
       />
     </Stack.Navigator>
   );

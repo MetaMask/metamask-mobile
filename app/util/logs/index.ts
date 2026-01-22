@@ -99,10 +99,6 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   // Remove Keyring controller data  so that encrypted vault is not included in logs
   delete fullState.engine.backgroundState.KeyringController;
 
-  if (!loggedIn) {
-    return JSON.stringify(fullState);
-  }
-
   const { KeyringController } = Engine.context;
   const newState = {
     ...fullState,
@@ -111,13 +107,18 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
       backgroundState: {
         ...fullState.engine.backgroundState,
         KeyringController: {
-          keyrings: KeyringController.state.keyrings,
-          isUnlocked: KeyringController.state.isUnlocked,
+          keyrings: KeyringController.state?.keyrings,
+          isUnlocked: KeyringController.state?.isUnlocked,
+          vaultExists:
+            KeyringController.state?.vault !== null &&
+            KeyringController.state?.vault !== undefined &&
+            KeyringController.state?.vault !== '',
         },
         SeedlessOnboardingController:
           getSanitizedSeedlessOnboardingControllerState(),
       },
     },
+    loggedIn,
   };
 
   return JSON.stringify(newState);

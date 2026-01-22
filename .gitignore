@@ -162,9 +162,8 @@ expo-env.d.ts
 github-tools/
 
 
-# Claude AI development files
-CLAUDE.md
-/CLAUDE.md
+# AI coding agents development files
+*.local.md
 temp/
 /temp/
 
@@ -172,3 +171,5 @@ temp/
 .reassure/
 
 tests/coverage-systems/
+
+runway-artifacts/

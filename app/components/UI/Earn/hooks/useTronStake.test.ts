@@ -134,6 +134,24 @@ describe('useTronStake', () => {
 
       expect(result.current.resourceType).toBe('bandwidth');
     });
+
+    it('returns tronAccountId from selected account', () => {
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.tronAccountId).toBe(mockAccount.id);
+    });
+
+    it('returns undefined tronAccountId when account is not selected', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(undefined);
+
+      const { result } = renderHook(() =>
+        useTronStake({ token: mockTrxToken }),
+      );
+
+      expect(result.current.tronAccountId).toBeUndefined();
+    });
   });
 
   describe('validate', () => {

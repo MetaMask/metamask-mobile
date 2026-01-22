@@ -75,7 +75,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.5',
         price: '45000',
@@ -101,7 +101,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const orderParams: OrderParams = {
-        coin: 'ETH',
+        symbol: 'ETH',
         isBuy: false,
         size: '1',
         orderType: 'market',
@@ -128,7 +128,7 @@ describe('usePerpsTrading', () => {
 
       const cancelParams: CancelOrderParams = {
         orderId: 'order123',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const response = await result.current.cancelOrder(cancelParams);
@@ -156,7 +156,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
       };
 
@@ -230,7 +230,7 @@ describe('usePerpsTrading', () => {
     it('should call PerpsController.getPositions and return positions', async () => {
       const mockPositions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '45000',
           positionValue: '22500',
@@ -531,7 +531,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const response = await result.current.calculateFees(params);
@@ -558,7 +558,7 @@ describe('usePerpsTrading', () => {
         orderType: 'limit' as const,
         isMaker: true,
         amount: '100000',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       const resultPromise = result.current.calculateFees(params);
@@ -583,7 +583,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market' as const,
         isMaker: false,
         amount: '100000',
-        coin: 'BTC',
+        symbol: 'BTC',
       };
 
       await expect(result.current.calculateFees(params)).rejects.toThrow(
@@ -612,7 +612,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market',
         isMaker: false,
         amount: '100000',
-        coin: 'BTC',
+        symbol: 'BTC',
       });
       expect(marketResult).toEqual(mockMarketFeeResult);
 
@@ -625,7 +625,7 @@ describe('usePerpsTrading', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
-        coin: 'BTC',
+        symbol: 'BTC',
       });
       expect(limitResult).toEqual(mockLimitFeeResult);
     });
@@ -641,7 +641,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.5',
         orderType: 'market',
@@ -667,7 +667,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const orderParams: OrderParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         isBuy: true,
         size: '0.00001',
         orderType: 'market',
@@ -691,7 +691,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const closeParams: ClosePositionParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         orderType: 'market',
       };
 
@@ -715,7 +715,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const closeParams: ClosePositionParams = {
-        coin: '',
+        symbol: '',
         orderType: 'market',
       };
 
@@ -779,7 +779,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const updateMarginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
       };
 
@@ -800,7 +800,7 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const updateMarginParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         amount: '100',
       };
 
@@ -825,9 +825,9 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const flipParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         position: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',
@@ -860,9 +860,9 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const flipParams = {
-        coin: 'BTC',
+        symbol: 'BTC',
         position: {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
           positionValue: '25000',

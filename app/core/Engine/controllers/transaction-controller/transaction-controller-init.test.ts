@@ -10,10 +10,9 @@ import {
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
-import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
@@ -124,9 +123,6 @@ describe('Transaction Controller Init', () => {
   const submitSmartTransactionHookMock = jest.mocked(
     submitSmartTransactionHook,
   );
-  const selectSwapsChainFeatureFlagsMock = jest.mocked(
-    selectSwapsChainFeatureFlags,
-  );
   const getGlobalChainIdMock = jest.mocked(getGlobalChainId);
   const handleTransactionApprovedEventForMetricsMock = jest.mocked(
     handleTransactionApprovedEventForMetrics,
@@ -174,7 +170,6 @@ describe('Transaction Controller Init', () => {
     jest.resetAllMocks();
 
     selectShouldUseSmartTransactionMock.mockReturnValue(true);
-    selectSwapsChainFeatureFlagsMock.mockReturnValue({});
     getGlobalChainIdMock.mockReturnValue('0x1');
     isSendBundleSupportedMock.mockResolvedValue(true);
 
@@ -306,7 +301,6 @@ describe('Transaction Controller Init', () => {
         undefined,
         MOCK_TRANSACTION_META.chainId,
       );
-      expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
       expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
         expect.objectContaining({
           transactionMeta: MOCK_TRANSACTION_META,
@@ -487,20 +481,87 @@ describe('Transaction Controller Init', () => {
     expect(updateTransactionsProp).toBe(true);
   });
 
-  it('determines if automatic gas fee update is enabled based on transaction type', () => {
-    const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
-    const isEnabledFn = option as ({ type }: { type: string }) => boolean;
+  describe('isAutomaticGasFeeUpdateEnabled', () => {
+    it('returns true for redesigned transaction types', () => {
+      const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+      const isEnabledFn = option as ({
+        type,
+      }: {
+        type: string;
+        origin?: string;
+      }) => boolean;
 
-    // Redesigned transaction types
-    expect(isEnabledFn({ type: TransactionType.stakingDeposit })).toBe(true);
-    expect(isEnabledFn({ type: TransactionType.stakingUnstake })).toBe(true);
-    expect(isEnabledFn({ type: TransactionType.stakingClaim })).toBe(true);
-    expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
-      true,
-    );
+      expect(isEnabledFn({ type: TransactionType.stakingDeposit })).toBe(true);
+      expect(isEnabledFn({ type: TransactionType.stakingUnstake })).toBe(true);
+      expect(isEnabledFn({ type: TransactionType.stakingClaim })).toBe(true);
+      expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
+        true,
+      );
+    });
 
-    // Non-redesigned transaction types
-    expect(isEnabledFn({ type: TransactionType.bridge })).toBe(false);
+    it('returns false for non-redesigned transaction types', () => {
+      const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+      const isEnabledFn = option as ({
+        type,
+      }: {
+        type: string;
+        origin?: string;
+      }) => boolean;
+
+      expect(isEnabledFn({ type: TransactionType.bridge })).toBe(false);
+    });
+
+    it('returns false for transaction with nested relayDeposit type', () => {
+      const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+      const isEnabledFn = option as (transaction: {
+        type: string;
+        origin?: string;
+        nestedTransactions?: { type: string }[];
+      }) => boolean;
+
+      const result = isEnabledFn({
+        type: TransactionType.contractInteraction,
+        nestedTransactions: [{ type: TransactionType.relayDeposit }],
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for tokenMethodApprove with ORIGIN_METAMASK', () => {
+      const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+      const isEnabledFn = option as ({
+        type,
+        origin,
+      }: {
+        type: string;
+        origin?: string;
+      }) => boolean;
+
+      const result = isEnabledFn({
+        type: TransactionType.tokenMethodApprove,
+        origin: ORIGIN_METAMASK,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true for tokenMethodApprove with non-MetaMask origin', () => {
+      const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+      const isEnabledFn = option as ({
+        type,
+        origin,
+      }: {
+        type: string;
+        origin?: string;
+      }) => boolean;
+
+      const result = isEnabledFn({
+        type: TransactionType.tokenMethodApprove,
+        origin: 'https://external-dapp.com',
+      });
+
+      expect(result).toBe(true);
+    });
   });
 
   it('gets network state from network controller on option getNetworkState', () => {

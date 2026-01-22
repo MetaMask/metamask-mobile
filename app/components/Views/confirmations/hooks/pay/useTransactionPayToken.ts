@@ -7,13 +7,22 @@ import { selectTransactionPaymentTokenByTransactionId } from '../../../../../sel
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import EngineService from '../../../../../core/EngineService';
+import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
-export function useTransactionPayToken() {
+export function useTransactionPayToken(): {
+  isNative?: boolean;
+  payToken: TransactionPaymentToken | undefined;
+  setPayToken: (newPayToken: { address: Hex; chainId: Hex }) => void;
+} {
   const { id: transactionId } = useTransactionMetadataRequest() || { id: '' };
 
   const payToken = useSelector((state: RootState) =>
     selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
+
+  const isNative =
+    payToken && payToken?.address === getNativeTokenAddress(payToken?.chainId);
 
   const setPayToken = useCallback(
     (newPayToken: { address: Hex; chainId: Hex }) => {
@@ -44,6 +53,7 @@ export function useTransactionPayToken() {
   );
 
   return {
+    isNative,
     payToken,
     setPayToken,
   };

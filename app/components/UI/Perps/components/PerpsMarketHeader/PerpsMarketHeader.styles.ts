@@ -58,6 +58,7 @@ export const styleSheet = ({
     },
     assetName: {
       fontWeight: '600',
+      flexShrink: 1,
     },
     fullscreenButton: {
       padding: 4,

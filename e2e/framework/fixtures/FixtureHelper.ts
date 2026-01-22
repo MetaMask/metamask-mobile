@@ -16,6 +16,7 @@ import {
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
+import { dismissDevScreens } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -614,6 +615,11 @@ export async function withFixtures(
       });
     }
 
+    // Dismiss dev screens if running locally (not in CI)
+    if (process.env.CI !== 'true') {
+      await dismissDevScreens();
+    }
+
     await testSuite({
       contractRegistry,
       mockServer: mockServerInstance.server,
@@ -660,6 +666,35 @@ export async function withFixtures(
       }
     }
 
+    // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
+    if (!skipReactNativeReload) {
+      try {
+        // Disable synchronization to prevent race conditions with pending timers
+        await device.disableSynchronization();
+        await device.reloadReactNative();
+        await device.enableSynchronization();
+      } catch (cleanupError) {
+        logger.warn('React Native reload failed (non-critical):', cleanupError);
+        // Ensure synchronization is re-enabled even on failure
+        try {
+          await device.enableSynchronization();
+        } catch {
+          // Ignore - best effort
+        }
+        // Don't add to cleanupErrors as this is a non-critical cleanup operation
+      }
+    }
+
+    if (mockServerInstance) {
+      try {
+        // Validate live requests
+        mockServerInstance.validateLiveRequests();
+      } catch (cleanupError) {
+        logger.error('Error during live request validation:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
     // Clean up the mock server
     if (mockServerInstance?.isStarted()) {
       try {
@@ -692,26 +727,6 @@ export async function withFixtures(
           );
           cleanupErrors.push(cleanupError as Error);
         }
-      }
-    }
-
-    if (!skipReactNativeReload) {
-      try {
-        // Force reload React Native to stop any lingering timers
-        await device.reloadReactNative();
-      } catch (cleanupError) {
-        logger.warn('React Native reload failed (non-critical):', cleanupError);
-        // Don't add to cleanupErrors as this is a non-critical cleanup operation
-      }
-    }
-
-    if (mockServerInstance) {
-      try {
-        // Validate live requests
-        mockServerInstance.validateLiveRequests();
-      } catch (cleanupError) {
-        logger.error('Error during live request validation:', cleanupError);
-        cleanupErrors.push(cleanupError as Error);
       }
     }
 

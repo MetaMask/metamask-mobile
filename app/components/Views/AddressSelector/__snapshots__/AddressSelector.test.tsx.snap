@@ -434,58 +434,61 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "padding": 16,
+                                  "height": 56,
                                 },
                                 false,
+                                {
+                                  "paddingHorizontal": 16,
+                                },
                               ]
                             }
                             testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               />
                             </View>
                             <View
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  }
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    {
+                                      "textAlign": "center",
+                                    },
+                                  ]
                                 }
                                 testID="header-title"
                               >
                                 Select an address
                               </Text>
                             </View>
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
+                            <View>
                               <View
                                 onLayout={[Function]}
                               >
@@ -707,21 +710,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             testID="multichain-address-row"
                                           >
                                             <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
                                               style={
                                                 {
                                                   "alignItems": "center",
@@ -903,21 +891,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             testID="multichain-address-row"
                                           >
                                             <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
                                               style={
                                                 {
                                                   "alignItems": "center",
@@ -1083,21 +1056,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             }
                                             testID="multichain-address-row"
                                           >
-                                            <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
                                             <View
                                               style={
                                                 {
@@ -1265,21 +1223,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             testID="multichain-address-row"
                                           >
                                             <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
                                               style={
                                                 {
                                                   "alignItems": "center",
@@ -1445,21 +1388,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             }
                                             testID="multichain-address-row"
                                           >
-                                            <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
                                             <View
                                               style={
                                                 {
@@ -1627,21 +1555,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             testID="multichain-address-row"
                                           >
                                             <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
                                               style={
                                                 {
                                                   "alignItems": "center",
@@ -1808,21 +1721,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             testID="multichain-address-row"
                                           >
                                             <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
                                               style={
                                                 {
                                                   "alignItems": "center",
@@ -1988,21 +1886,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                             }
                                             testID="multichain-address-row"
                                           >
-                                            <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
                                             <View
                                               style={
                                                 {

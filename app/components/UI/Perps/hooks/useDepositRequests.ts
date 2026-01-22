@@ -178,7 +178,7 @@ export const useDepositRequests = (
           id: `deposit-${update.hash}`,
           timestamp: update.time,
           amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
-          asset: update.delta.coin || 'USDC', // Default to USDC if coin is not specified
+          asset: update.delta.coin || 'USDC', // Default to USDC if symbol is not specified (API uses 'coin')
           accountAddress: currentAccountAddress, // Completed deposits belong to current account
           txHash: update.hash,
           success: true, // Completed deposits from ledger are successful

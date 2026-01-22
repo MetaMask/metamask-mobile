@@ -17,5 +17,5 @@ export function PerpsDepositInfo() {
     tokenAddress: ARBITRUM_USDC.address,
   });
 
-  return <CustomAmountInfo currency={PERPS_CURRENCY} />;
+  return <CustomAmountInfo currency={PERPS_CURRENCY} hasMax />;
 }

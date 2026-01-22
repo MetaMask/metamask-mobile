@@ -234,7 +234,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                     }
                   }
                 >
-                  Developer Options
+                  Developer options
                 </Text>
               </Text>
             </View>
@@ -428,6 +428,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "marginBottom": 32,
                           "padding": 24,
                           "paddingBottom": 48,
                         }
@@ -462,7 +463,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             }
                           }
                         >
-                          Generate a Developer Test Sentry trace.
+                          Generate a developer test Sentry trace.
                         </Text>
                         <TouchableOpacity
                           accessibilityRole="button"
@@ -500,7 +501,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Generate Trace Test
+                            Generate trace test
                           </Text>
                         </TouchableOpacity>
                         <Text
@@ -569,7 +570,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Navigate to Sample Feature
+                            Navigate to sample feature
                           </Text>
                         </TouchableOpacity>
                         <View
@@ -593,7 +594,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Perps Trading
+                            Perps trading
                           </Text>
                           <View
                             style={

@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { TokenListControlBar } from './TokenListControlBar';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 
 // Mock the feature flag
 jest.mock('../../../../util/networks', () => ({
@@ -71,8 +71,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 
 // Mock the navigation details creators
-jest.mock('../TokensBottomSheet', () => ({
-  createTokenBottomSheetFilterNavDetails: jest.fn(() => ['TokenFilter', {}]),
+jest.mock('../TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 
@@ -132,20 +131,6 @@ jest.mock('../../../../util/theme', () => ({
       text: { default: '#000000' },
       border: { muted: '#e0e0e0' },
     },
-  }),
-}));
-
-// Mock the styles
-jest.mock('../styles', () => ({
-  __esModule: true,
-  default: () => ({
-    actionBarWrapper: {},
-    controlButtonOuterWrapper: {},
-    controlButtonInnerWrapper: {},
-    controlButton: {},
-    controlButtonDisabled: {},
-    controlButtonText: {},
-    controlIconButton: {},
   }),
 }));
 

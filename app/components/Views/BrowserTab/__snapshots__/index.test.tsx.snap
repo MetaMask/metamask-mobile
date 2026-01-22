@@ -27,11 +27,91 @@ exports[`BrowserTab render Browser 1`] = `
             "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
+            "gap": 8,
           },
           undefined,
         ]
       }
     >
+      <View
+        style={
+          [
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+          ]
+        }
+      >
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 2,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 40,
+              },
+              undefined,
+            ]
+          }
+          testID="browser-tab-close-button"
+        >
+          <SvgMock
+            fill="currentColor"
+            name="Close"
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "height": 24,
+                  "width": 24,
+                },
+                undefined,
+              ]
+            }
+          />
+        </View>
+      </View>
       <View
         style={
           [
@@ -143,6 +223,59 @@ exports[`BrowserTab render Browser 1`] = `
               />
             </View>
           </View>
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 50,
+                  "justifyContent": "center",
+                  "paddingBottom": 12,
+                  "paddingTop": 12,
+                },
+                {
+                  "paddingLeft": 8,
+                  "paddingRight": 8,
+                },
+              ]
+            }
+            testID="browser-tabs-button"
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderColor": "#686e7d",
+                    "borderRadius": 6,
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "height": 30,
+                    "width": 30,
+                  },
+                ]
+              }
+            >
+              <Text
+                style={
+                  {
+                    "alignSelf": "center",
+                    "color": "#686e7d",
+                    "flex": 0,
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 15,
+                    "textAlign": "center",
+                  }
+                }
+                testID="show-tabs-number"
+              >
+                0
+              </Text>
+            </View>
+          </TouchableOpacity>
           <View
             style={
               {
@@ -413,336 +546,448 @@ exports[`BrowserTab render Browser 1`] = `
     </View>
     <View
       style={
-        {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#b7bbc866",
-          "borderTopWidth": 0.5,
-          "flex": 0,
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 0,
-        }
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc866",
+            "borderTopWidth": 1,
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "minHeight": 60,
+            "paddingBottom": 8,
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "paddingTop": 8,
+          },
+          {},
+        ]
       }
     >
-      <TouchableOpacity
-        disabled={true}
-        onPress={[Function]}
+      <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "height": 60,
-            "justifyContent": "space-around",
-            "textAlign": "center",
-            "width": 24,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": 16,
+            },
+            undefined,
+          ]
         }
-        testID="back-arrow-button"
-      >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 24,
-              },
-              [
-                {
-                  "color": "#121314",
-                  "height": 24,
-                  "textAlign": "center",
-                  "width": 24,
-                },
-                {
-                  "color": "#b7bbc8",
-                },
-              ],
-              {
-                "fontFamily": "FontAwesome",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        disabled={true}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "height": 60,
-            "justifyContent": "space-around",
-            "textAlign": "center",
-            "width": 24,
-          }
-        }
-        testID="go-forward-button"
-      >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 24,
-              },
-              [
-                {
-                  "color": "#121314",
-                  "height": 24,
-                  "textAlign": "center",
-                  "width": 24,
-                },
-                {
-                  "color": "#b7bbc8",
-                },
-              ],
-              {
-                "fontFamily": "FontAwesome",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "height": 60,
-            "justifyContent": "space-around",
-            "textAlign": "center",
-            "width": 24,
-          }
-        }
-        testID="search-button"
-      >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 24,
-              },
-              {
-                "color": "#121314",
-                "height": 24,
-                "textAlign": "center",
-                "width": 24,
-              },
-              {
-                "fontFamily": "Feather",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "height": 60,
-            "justifyContent": "space-around",
-            "textAlign": "center",
-            "width": 24,
-          }
-        }
-        testID="show-tabs-button"
       >
         <View
           style={
             [
               {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+              {
                 "alignItems": "center",
-                "borderColor": "#686e7d",
-                "borderRadius": 6,
-                "borderWidth": 2,
                 "justifyContent": "center",
               },
-              {
-                "height": 24,
-                "marginTop": 0,
-                "width": 24,
-              },
             ]
           }
         >
-          <Text
-            style={
+          <View
+            accessibilityState={
               {
-                "alignSelf": "center",
-                "color": "#686e7d",
-                "flex": 0,
-                "fontFamily": "Geist-Regular",
-                "fontSize": 15,
-                "textAlign": "center",
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": true,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            testID="show-tabs-number"
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "width": 40,
+                },
+                undefined,
+              ]
+            }
+            testID="back-arrow-button"
           >
-            0
-          </Text>
+            <SvgMock
+              fill="currentColor"
+              name="ArrowLeft"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        disabled={false}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "height": 60,
-            "justifyContent": "space-around",
-            "textAlign": "center",
-            "width": 24,
-          }
-        }
-        testID="home-button"
-      >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <View
           style={
             [
               {
-                "color": undefined,
-                "fontSize": 22,
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
               },
-              [
-                {
-                  "color": "#121314",
-                  "height": 24,
-                  "textAlign": "center",
-                  "width": 24,
-                },
-                false,
-              ],
               {
-                "fontFamily": "simple-line-icons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
+                "alignItems": "center",
+                "justifyContent": "center",
               },
-              {},
             ]
           }
         >
-          
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        disabled={false}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "height": 60,
-            "justifyContent": "space-around",
-            "textAlign": "center",
-            "width": 24,
-          }
-        }
-        testID="toggle-fullscreen-button"
-      >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": true,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "width": 40,
+                },
+                undefined,
+              ]
+            }
+            testID="go-forward-button"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="ArrowRight"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+        <View
           style={
             [
               {
-                "color": undefined,
-                "fontSize": 22,
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
               },
-              [
-                {
-                  "color": "#121314",
-                  "height": 24,
-                  "textAlign": "center",
-                  "width": 24,
-                },
-                {},
-              ],
               {
-                "fontFamily": "Material Icons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
+                "alignItems": "center",
+                "justifyContent": "center",
               },
-              {},
             ]
           }
         >
-          
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        disabled={false}
-        onPress={[Function]}
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 40,
+                },
+                undefined,
+              ]
+            }
+            testID="browser-reload-button"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Refresh"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+      <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "height": 60,
-            "justifyContent": "space-around",
-            "textAlign": "center",
-            "width": 24,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "gap": 16,
+            },
+            undefined,
+          ]
         }
-        testID="options-button"
       >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <View
           style={
             [
               {
-                "color": undefined,
-                "fontSize": 22,
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
               },
-              [
-                {
-                  "color": "#121314",
-                  "height": 24,
-                  "textAlign": "center",
-                  "width": 24,
-                },
-                false,
-              ],
               {
-                "fontFamily": "Material Icons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
+                "alignItems": "center",
+                "justifyContent": "center",
               },
-              {},
             ]
           }
         >
-          
-        </Text>
-      </TouchableOpacity>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": true,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "width": 40,
+                },
+                undefined,
+              ]
+            }
+            testID="browser-bookmark-button"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Star"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            [
+              {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 40,
+                },
+                undefined,
+              ]
+            }
+            testID="browser-new-tab-button"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Add"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 24,
+                    "width": 24,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
     </View>
   </View>
 </View>

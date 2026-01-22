@@ -43,7 +43,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -295,8 +295,7 @@ const Onboarding = () => {
       await Authentication.resetVault();
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
-      await Authentication.lockApp();
-      navigation.replace(Routes.ONBOARDING.LOGIN);
+      await Authentication.lockApp({ navigateToLogin: true });
     }
   }, [navigation, passwordSet]);
 
