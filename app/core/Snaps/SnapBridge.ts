@@ -240,9 +240,13 @@ export default class SnapBridge {
     engine.push(multichainMethodCallValidatorMiddleware);
 
     const middlewareMaker = makeMethodMiddlewareMaker([
+      // @ts-expect-error These types are currently incompatible, but work in practice.
       walletRevokeSession,
+      // @ts-expect-error These types are currently incompatible, but work in practice.
       walletGetSession,
+      // @ts-expect-error These types are currently incompatible, but work in practice.
       walletInvokeMethod,
+      // @ts-expect-error These types are currently incompatible, but work in practice.
       walletCreateSession,
     ]);
 
