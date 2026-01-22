@@ -109,7 +109,7 @@ describe(
       );
     });
 
-    it.only('should be able to request specific chains when connecting through the EVM provider with existing permissions', async () => {
+    it('should be able to request specific chains when connecting through the EVM provider with existing permissions', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().withSolanaAccountPermission().build(),
