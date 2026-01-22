@@ -189,7 +189,7 @@ describe('usePerpsPaymentTokens', () => {
   });
 
   describe('Token filtering by minimum balance', () => {
-    it('should filter tokens by minimum order amount on mainnet', () => {
+    it('should show all tokens regardless of balance on mainnet', () => {
       mockUsePerpsNetwork.mockReturnValue('mainnet');
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -197,10 +197,10 @@ describe('usePerpsPaymentTokens', () => {
       const tokenSymbols = result.current.map((token) => token.symbol);
       expect(tokenSymbols).toContain('USDC');
       expect(tokenSymbols).toContain('ETH');
-      expect(tokenSymbols).not.toContain('LOW');
+      expect(tokenSymbols).toContain('LOW');
     });
 
-    it('should filter tokens by minimum order amount on testnet', () => {
+    it('should show all tokens regardless of balance on testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -208,7 +208,7 @@ describe('usePerpsPaymentTokens', () => {
       const tokenSymbols = result.current.map((token) => token.symbol);
       expect(tokenSymbols).toContain('USDC');
       expect(tokenSymbols).toContain('ETH');
-      expect(tokenSymbols).not.toContain('LOW');
+      expect(tokenSymbols).toContain('LOW');
     });
 
     it('should exclude Hyperliquid chain tokens from other tokens list', () => {
@@ -376,7 +376,20 @@ describe('usePerpsPaymentTokens', () => {
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
-      expect(result.current).toHaveLength(1);
+      // Should include Hyperliquid USDC + 2 tokens with malformed fiat (with fallback values)
+      expect(result.current).toHaveLength(3);
+      // Token with invalid fiat value should still be included
+      const tokenWithInvalidFiat = result.current.find(
+        (token) => token.address === mockTokensWithBalance[0].address,
+      );
+      expect(tokenWithInvalidFiat).toBeDefined();
+      expect(tokenWithInvalidFiat?.balanceFiat).toBe('invalid-fiat-value');
+      // Token with undefined fiat should have fallback
+      const tokenWithUndefinedFiat = result.current.find(
+        (token) => token.address === mockTokensWithBalance[1].address,
+      );
+      expect(tokenWithUndefinedFiat).toBeDefined();
+      expect(tokenWithUndefinedFiat?.balanceFiat).toBe('$0.00');
     });
   });
 

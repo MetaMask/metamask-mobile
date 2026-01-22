@@ -71,7 +71,6 @@ import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import PerpsTokenSelectorBottomSheet from '../../components/PerpsTokenSelectorBottomSheet';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -328,7 +327,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
-  const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
   const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
     undefined,
   );
@@ -1580,14 +1578,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         currentOrderType={orderForm.type}
         asset={orderForm.asset}
         direction={orderForm.direction}
-      />
-
-      {/* Token Selector Bottom Sheet */}
-      <PerpsTokenSelectorBottomSheet
-        isVisible={isTokenSelectorVisible}
-        onClose={() => setIsTokenSelectorVisible(false)}
-        onSelect={setSelectedToken}
-        selectedToken={selectedToken}
       />
 
       {selectedTooltip && (
