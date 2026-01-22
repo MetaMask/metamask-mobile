@@ -135,5 +135,19 @@ describe('SiteRowItem', () => {
         getByText('metamask.io/portfolio?utm_source=mobile'),
       ).toBeOnTheScreen();
     });
+
+    it('renders site logo with logoNeedsPadding flag', () => {
+      const site = createSite({
+        logoUrl: 'https://example.com/logo.png',
+        logoNeedsPadding: true,
+      });
+
+      const { getByTestId } = render(
+        <SiteRowItem site={site} onPress={mockOnPress} />,
+      );
+
+      const image = getByTestId('site-logo-image');
+      expect(image).toBeOnTheScreen();
+    });
   });
 });

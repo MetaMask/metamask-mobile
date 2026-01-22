@@ -25,6 +25,7 @@ describe('smartTransactions', () => {
         NETWORKS_CHAIN_ID.LINEA_MAINNET,
         NETWORKS_CHAIN_ID.BSC,
         NETWORKS_CHAIN_ID.ARBITRUM,
+        NETWORKS_CHAIN_ID.POLYGON,
       ]);
     });
 
@@ -37,6 +38,7 @@ describe('smartTransactions', () => {
         NETWORKS_CHAIN_ID.LINEA_MAINNET,
         NETWORKS_CHAIN_ID.BSC,
         NETWORKS_CHAIN_ID.ARBITRUM,
+        NETWORKS_CHAIN_ID.POLYGON,
       ]);
     });
   });

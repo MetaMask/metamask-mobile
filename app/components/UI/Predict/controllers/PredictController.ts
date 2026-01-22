@@ -501,7 +501,10 @@ export class PredictController extends BaseController<
 
       const isFirstPage = !params.offset || params.offset === 0;
       const shouldFetchHighlights =
-        marketHighlightsFlag.enabled && isFirstPage && params.category;
+        marketHighlightsFlag.enabled &&
+        isFirstPage &&
+        params.category &&
+        !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =

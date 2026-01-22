@@ -384,6 +384,16 @@ export const PerpsTestnetToggleSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PROVIDER TOGGLE SELECTORS
+// ========================================
+
+export const PerpsProviderToggleSelectorsIDs = {
+  ROOT: 'perps-provider-toggle-root',
+  SWITCH: 'perps-provider-toggle-switch',
+  LOADING_INDICATOR: 'perps-provider-toggle-loading-indicator',
+};
+
+// ========================================
 // PERPS TRANSACTION SELECTORS
 // ========================================
 
@@ -635,6 +645,8 @@ export const PerpsOrderBookViewSelectorsIDs = {
   TABLE: 'perps-order-book-table',
   LONG_BUTTON: 'perps-order-book-long-button',
   SHORT_BUTTON: 'perps-order-book-short-button',
+  MODIFY_BUTTON: 'perps-order-book-modify-button',
+  CLOSE_BUTTON: 'perps-order-book-close-button',
   DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
   DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
   UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',

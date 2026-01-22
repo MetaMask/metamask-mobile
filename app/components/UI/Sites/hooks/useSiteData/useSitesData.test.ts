@@ -18,6 +18,7 @@ const EXPECTED_PORTFOLIO_SITE = {
   logoUrl:
     'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/logo.png',
   featured: true,
+  logoNeedsPadding: true,
 };
 
 describe('useSitesData', () => {
