@@ -7,17 +7,20 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
+  getNavigationOptionsTitle,
   getOnboardingNavbarOptions,
   getSettingsNavigationOptions,
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
   getStakingNavbar,
+  getMusdConversionTransactionDetailsNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
 import { strings } from '../../../../locales/i18n';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -72,26 +75,34 @@ jest.mock('../../../util/networks', () => ({
   getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
 }));
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => ({
-      trackEvent: jest.fn(),
-      updateDataRecordingFlag: jest.fn(),
-    })),
-    trackEvent: jest.fn(),
-  },
-  MetaMetricsEvents: {
-    SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
-  },
-  trackEvent: jest.fn(),
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({
-        build: jest.fn(() => ({})),
-      })),
-    })),
-  },
+const mockBuildEvent = jest.fn(() => ({ builtEvent: true }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn(() => ({
+    build: mockBuildEvent,
+  })),
+  build: mockBuildEvent,
 }));
+
+jest.mock('../../../core/Analytics/MetricsEventBuilder');
+
+jest.mock('../../../core/Analytics', () => {
+  const actualMockTrackEvent = jest.fn();
+
+  return {
+    __mockTrackEvent: actualMockTrackEvent,
+    MetaMetrics: {
+      getInstance: jest.fn(() => ({
+        trackEvent: actualMockTrackEvent,
+        updateDataRecordingFlag: jest.fn(),
+      })),
+      trackEvent: jest.fn(),
+    },
+    MetaMetricsEvents: {
+      SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
+    },
+    trackEvent: jest.fn(),
+  };
+});
 
 jest.mock('../../../util/blockaid', () => ({
   getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
@@ -100,6 +111,9 @@ jest.mock('../../../util/blockaid', () => ({
 jest.mock('../Stake/utils/metaMetrics/withMetaMetrics', () => ({
   withMetaMetrics: jest.fn((fn) => () => fn()),
 }));
+
+// Set up MetricsEventBuilder mock after jest.mock declaration
+MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -950,5 +964,106 @@ describe('getStakingNavbar', () => {
       properties: { from: 'header' },
     });
     expect(handleIconPress).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getMusdConversionTransactionDetailsNavbar', () => {
+  const mockNavigation = {
+    pop: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with headerTitle and headerLeft functions', () => {
+    const options = getMusdConversionTransactionDetailsNavbar(mockNavigation);
+
+    expect(options).toBeDefined();
+    expect(options.headerTitle).toBeInstanceOf(Function);
+    expect(options.headerLeft).toBeInstanceOf(Function);
+  });
+
+  it('returns expected navbar structure', () => {
+    const options = getMusdConversionTransactionDetailsNavbar(mockNavigation);
+
+    // Verify the structure matches expected navbar options
+    expect(Object.keys(options)).toEqual(
+      expect.arrayContaining(['headerTitle', 'headerLeft']),
+    );
+  });
+
+  it('calls navigation.pop when back button pressed', () => {
+    const options = getMusdConversionTransactionDetailsNavbar(mockNavigation);
+
+    // Get the headerLeft component and call its onPress directly
+    const HeaderLeftComponent = options.headerLeft();
+    HeaderLeftComponent.props.onPress();
+
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getNavigationOptionsTitle', () => {
+  const Stack = createStackNavigator();
+  const analyticsMocks = jest.requireMock('../../../core/Analytics');
+
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+
+  const renderNavigatorWithOptions = (options) => {
+    const TestNavigator = () => (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="TestScreen"
+          component={() => null}
+          options={options}
+        />
+      </Stack.Navigator>
+    );
+    return renderWithProvider(<TestNavigator />);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls trackEvent when navigationPopEvent is provided and close button pressed', () => {
+    const mockEvent = { category: 'test' };
+    const options = getNavigationOptionsTitle(
+      'Test Title',
+      mockNavigation,
+      true,
+      mockTheme.colors,
+      mockEvent,
+    );
+
+    const { getByTestId } = renderNavigatorWithOptions(options);
+
+    fireEvent.press(getByTestId('close-network-icon'));
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
+    expect(mockBuildEvent).toHaveBeenCalled();
+    expect(analyticsMocks.__mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('does not call trackEvent when navigationPopEvent is null', () => {
+    const options = getNavigationOptionsTitle(
+      'Test Title',
+      mockNavigation,
+      false,
+      mockTheme.colors,
+      null,
+    );
+
+    const { getByTestId } = renderNavigatorWithOptions(options);
+
+    fireEvent.press(getByTestId('back-arrow-button'));
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    expect(analyticsMocks.__mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
   });
 });

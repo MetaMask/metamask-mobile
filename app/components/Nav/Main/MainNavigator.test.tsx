@@ -145,4 +145,28 @@ describe('MainNavigator', () => {
       'FeatureFlagOverride',
     );
   });
+
+  describe('MUSD Conversion Transaction Details', () => {
+    it('has MUSD conversion transaction details route defined', () => {
+      // Verify the route constant is properly defined
+      expect(Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS).toBeDefined();
+      expect(Routes.EARN.MUSD.CONVERSION_TRANSACTION_DETAILS).toBe(
+        'MusdConversionTransactionDetails',
+      );
+    });
+
+    it('renders MainNavigator with transactions home containing MUSD route', () => {
+      // The MUSD route is nested in TransactionsHome stack which is part of HomeTabs
+      // Verify the MainNavigator renders successfully with the structure
+      const { toJSON } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      // Verify MainNavigator renders and includes the Home tab which contains TransactionsHome
+      expect(toJSON()).toBeDefined();
+      const json = JSON.stringify(toJSON());
+      // Home contains the activity tab which includes TransactionsHome with MUSD route
+      expect(json).toContain('Home');
+    });
+  });
 });
