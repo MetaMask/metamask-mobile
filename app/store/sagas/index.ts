@@ -304,6 +304,8 @@ export function* startAppServices() {
   yield put(setAppServicesReady());
 
   // Wait for the next frame to ensure that navigation stack is rendered.
+  // This is needed to prevent a race condition where the navigation container is ready BUT the navigation stacks are not yet rendered.
+  // TODO: Follow up on pre-rendering the navigation stacks.
   yield call(() => new Promise((resolve) => requestAnimationFrame(resolve)));
 
   // Request authentication on app start after the auth state machine is started
