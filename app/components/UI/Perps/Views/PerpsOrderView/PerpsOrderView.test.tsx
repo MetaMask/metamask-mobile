@@ -67,10 +67,20 @@ import {
 import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import PerpsOrderView from './PerpsOrderView';
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-  useRoute: jest.fn(),
-  useFocusEffect: jest.fn((callback) => callback()),
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: jest.fn(),
+    useRoute: jest.fn(),
+    useFocusEffect: jest.fn((callback) => callback()),
+  };
+});
+
+// Mock @react-navigation/compat to prevent issues with createNavigatorFactory
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+  withNavigationFocus: jest.fn((component) => component),
 }));
 
 // Mock i18n strings
@@ -275,6 +285,7 @@ jest.mock('../../hooks', () => ({
 
 // Mock Redux selectors
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn((selector) => {
     if (selector.toString().includes('selectTokenList')) {
       return {};
