@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
@@ -62,7 +63,7 @@ function BuildQuote() {
   // Get network info for the selected token
   const networkInfo = useMemo(() => {
     if (!selectedToken) return null;
-    return getTokenNetworkInfo(selectedToken.chainId);
+    return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
   // Update navigation options - shows skeleton when data is loading
