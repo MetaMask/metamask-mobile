@@ -20,7 +20,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should connect & disconnect from Solana test dapp', async () => {
-    await withSolanaAccountEnabled({ numberOfAccounts: 0 }, async () => {
+    await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
       await connectSolanaTestDapp();
@@ -46,7 +46,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should be able to cancel connection and connect again', async () => {
-    await withSolanaAccountEnabled({ numberOfAccounts: 0 }, async () => {
+    await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
       const header = SolanaTestDApp.getHeader();
@@ -92,7 +92,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   it('Should stay connected after page refresh', async () => {
-    await withSolanaAccountEnabled({ numberOfAccounts: 0 }, async () => {
+    await withSolanaAccountEnabled({}, async () => {
       await navigateToSolanaTestDApp();
 
       await connectSolanaTestDapp();

@@ -1831,18 +1831,12 @@ class FixtureBuilder {
   }
 
   /**
-   * Sets up a comprehensive Solana fixture with mainnet configuration.
-   * This includes MultichainNetworkController, AccountsController with a Solana account,
-   * AccountTreeController with BIP-44 multichain account groups, and network enablement.
+   * Sets up a minimal Solana fixture with mainnet configuration
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
    */
   withSolanaFixture() {
     const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-    const SOLANA_ACCOUNT_ID = '2db157f0-8619-4efb-9cbf-41188843fcdd';
-    const DEFAULT_EVM_ACCOUNT_ID = '4d7a5e0b-b261-4aed-8126-43972b0fa0a1';
-    const ACCOUNT_GROUP_ID = `${ENTROPY_WALLET_1_ID}/0`;
 
-    // Configure MultichainNetworkController with Solana selected
     this.fixture.state.engine.backgroundState.MultichainNetworkController = {
       selectedMultichainNetworkChainId: SolScope.Mainnet,
       multichainNetworkConfigurationsByChainId: {
@@ -1855,89 +1849,6 @@ class FixtureBuilder {
       },
       isEvmSelected: false,
     };
-
-    // Add Solana account to AccountsController
-    merge(this.fixture.state.engine.backgroundState.AccountsController, {
-      internalAccounts: {
-        accounts: {
-          [SOLANA_ACCOUNT_ID]: {
-            type: 'solana:data-account',
-            id: SOLANA_ACCOUNT_ID,
-            address: DEFAULT_SOLANA_FIXTURE_ACCOUNT,
-            options: {
-              scope: SolScope.Mainnet,
-              entropySource: MOCK_ENTROPY_SOURCE,
-              derivationPath: "m/44'/501'/0'/0'",
-              index: 0,
-            },
-            methods: [
-              'signAndSendTransaction',
-              'signTransaction',
-              'signMessage',
-              'signIn',
-            ],
-            scopes: [
-              SolScope.Mainnet,
-              'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-              'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-            ],
-            metadata: {
-              name: 'Solana Account 1',
-              importTime: 1684232000456,
-              keyring: {
-                type: 'Snap Keyring',
-              },
-              snap: {
-                id: 'npm:@metamask/solana-wallet-snap',
-                name: 'Solana',
-                enabled: true,
-              },
-            },
-          },
-        },
-        selectedAccount: SOLANA_ACCOUNT_ID,
-      },
-    });
-
-    // Configure AccountTreeController with BIP-44 multichain account group
-    this.fixture.state.engine.backgroundState.AccountTreeController = {
-      accountTree: {
-        wallets: {
-          [ENTROPY_WALLET_1_ID]: {
-            id: ENTROPY_WALLET_1_ID,
-            type: 'Entropy',
-            metadata: {
-              name: 'Secret Recovery Phrase 1',
-              entropySource: MOCK_ENTROPY_SOURCE,
-            },
-            groups: {
-              [ACCOUNT_GROUP_ID]: {
-                id: ACCOUNT_GROUP_ID,
-                type: 'MultichainAccount',
-                accounts: [DEFAULT_EVM_ACCOUNT_ID, SOLANA_ACCOUNT_ID],
-                metadata: {
-                  name: 'Account 1',
-                  pinned: false,
-                  hidden: false,
-                  entropy: { groupIndex: 0 },
-                },
-              },
-            },
-          },
-        },
-        selectedAccountGroup: ACCOUNT_GROUP_ID,
-      },
-    };
-
-    // Enable Solana network in NetworkEnablementController
-    merge(
-      this.fixture.state.engine.backgroundState.NetworkEnablementController,
-      {
-        enabledNetworkMap: {
-          [SolScope.Mainnet]: true,
-        },
-      },
-    );
 
     return this;
   }
