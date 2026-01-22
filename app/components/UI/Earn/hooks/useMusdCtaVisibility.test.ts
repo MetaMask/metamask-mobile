@@ -4,6 +4,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdCtaVisibility } from './useMusdCtaVisibility';
 import { useMusdBalance } from './useMusdBalance';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
+import { useMusdConversionEligibility } from './useMusdConversionEligibility';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNetworksByCustomNamespace } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
@@ -23,6 +24,7 @@ import type { AssetType } from '../../../Views/confirmations/types/token';
 
 jest.mock('./useMusdBalance');
 jest.mock('./useMusdConversionTokens');
+jest.mock('./useMusdConversionEligibility');
 jest.mock('../../../hooks/useCurrentNetworkInfo');
 jest.mock('../../../hooks/useNetworksByNamespace/useNetworksByNamespace');
 jest.mock('../../Ramp/hooks/useRampTokens');
@@ -60,8 +62,11 @@ const mockUseMusdConversionTokens =
   useMusdConversionTokens as jest.MockedFunction<
     typeof useMusdConversionTokens
   >;
+const mockUseMusdConversionEligibility =
+  useMusdConversionEligibility as jest.MockedFunction<
+    typeof useMusdConversionEligibility
+  >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
 describe('useMusdCtaVisibility', () => {
   const defaultNetworkInfo = {
     enabledNetworks: [],
@@ -179,6 +184,12 @@ describe('useMusdCtaVisibility', () => {
       isConversionToken: jest.fn(),
       isMusdSupportedOnChain: jest.fn(),
       getMusdOutputChainId: jest.fn(),
+    });
+    mockUseMusdConversionEligibility.mockReturnValue({
+      isEligible: true,
+      isLoading: false,
+      geolocation: 'US',
+      blockedCountries: [],
     });
   });
 
@@ -752,6 +763,115 @@ describe('useMusdCtaVisibility', () => {
       });
     });
 
+    describe('geo blocking', () => {
+      it('returns shouldShowCta false when user is geo-blocked in all networks view', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          isLoading: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('returns shouldShowCta false when user is geo-blocked on single supported chain', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          isLoading: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta, showNetworkIcon, selectedChainId } =
+          result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(false);
+        expect(showNetworkIcon).toBe(false);
+        expect(selectedChainId).toBeNull();
+      });
+
+      it('returns shouldShowCta true when user is not geo-blocked', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: true,
+          isLoading: false,
+          geolocation: 'US',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [
+            { chainId: CHAIN_IDS.MAINNET, enabled: true },
+            { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
+          ],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
+        // Provide tokens with chainId so canConvert is true
+        mockUseMusdConversionTokens.mockReturnValue({
+          tokens: [
+            createMockToken({
+              name: 'USDC',
+              symbol: 'USDC',
+              chainId: CHAIN_IDS.MAINNET,
+            }) as TokenI,
+          ],
+          filterAllowedTokens: jest.fn(),
+          isConversionToken: jest.fn().mockReturnValue(true),
+          isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+          getMusdOutputChainId: jest.fn().mockReturnValue(CHAIN_IDS.MAINNET),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+        const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
+
+        expect(shouldShowCta).toBe(true);
+      });
+    });
+
     describe('edge cases', () => {
       it('returns shouldShowCta false with empty enabledNetworks', () => {
         mockUseNetworksByCustomNamespace.mockReturnValue({
@@ -1108,6 +1228,91 @@ describe('useMusdCtaVisibility', () => {
 
       expect(isVisible).toBe(true);
     });
+
+    describe('geo blocking', () => {
+      it('returns false when user is geo-blocked', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          isLoading: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowTokenListItemCta(listItemToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns false when user is geo-blocked even with mUSD balance on single chain', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          isLoading: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: false,
+        });
+        mockUseCurrentNetworkInfo.mockReturnValue({
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest
+            .fn()
+            .mockImplementation(
+              (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
+            ),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowTokenListItemCta(listItemToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns true when user is not geo-blocked and conditions are met', () => {
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: true,
+          isLoading: false,
+          geolocation: 'US',
+          blockedCountries: ['GB'],
+        });
+        mockUseNetworksByCustomNamespace.mockReturnValue({
+          ...defaultNetworksByNamespace,
+          areAllNetworksSelected: true,
+        });
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowTokenListItemCta(listItemToken);
+
+        expect(isVisible).toBe(true);
+      });
+    });
   });
 
   describe('shouldShowAssetOverviewCta', () => {
@@ -1193,6 +1398,42 @@ describe('useMusdCtaVisibility', () => {
         result.current.shouldShowAssetOverviewCta(assetOverviewToken);
 
       expect(isVisible).toBe(false);
+    });
+
+    describe('geo blocking', () => {
+      it('returns false when user is geo-blocked', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: false,
+          isLoading: false,
+          geolocation: 'GB',
+          blockedCountries: ['GB'],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(false);
+      });
+
+      it('returns true when user is not geo-blocked and token is configured for CTA', () => {
+        mockIsMusdConversionAssetOverviewEnabled = true;
+        mockUseMusdConversionEligibility.mockReturnValue({
+          isEligible: true,
+          isLoading: false,
+          geolocation: 'US',
+          blockedCountries: ['GB'],
+        });
+
+        const { result } = renderHook(() => useMusdCtaVisibility());
+
+        const isVisible =
+          result.current.shouldShowAssetOverviewCta(assetOverviewToken);
+
+        expect(isVisible).toBe(true);
+      });
     });
   });
 });

@@ -25,6 +25,7 @@ import { toHexadecimal } from '../../../../util/number';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
+import { useMusdConversionEligibility } from './useMusdConversionEligibility';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
@@ -54,6 +55,7 @@ export const useMusdCtaVisibility = () => {
   const isMusdConversionAssetOverviewEnabled = useSelector(
     selectIsMusdConversionAssetOverviewEnabledFlag,
   );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const musdConversionAssetDetailCtasSeen = useSelector(
     selectMusdConversionAssetDetailCtasSeen,
   );
@@ -188,6 +190,15 @@ export const useMusdCtaVisibility = () => {
       return hiddenResult;
     }
 
+    // If user is geo-blocked, don't show the CTA
+    if (!isGeoEligible) {
+      return {
+        shouldShowCta: false,
+        showNetworkIcon: false,
+        selectedChainId: null,
+      };
+    }
+
     // If all networks are selected
     if (isPopularNetworksFilterSelected) {
       // Show the buy/get mUSD CTA without network icon if:
@@ -231,6 +242,7 @@ export const useMusdCtaVisibility = () => {
     canConvert,
     hasMusdBalanceOnAnyChain,
     hasMusdBalanceOnChain,
+    isGeoEligible,
     isEmptyWallet,
     isMusdBuyableOnAnyChain,
     isMusdBuyableOnChain,
@@ -242,6 +254,11 @@ export const useMusdCtaVisibility = () => {
   const shouldShowTokenListItemCta = useCallback(
     (asset?: TokenI) => {
       if (!isMusdConversionTokenListItemCtaEnabled || !asset?.chainId) {
+        return false;
+      }
+
+      // If user is geo-blocked, don't show the CTA
+      if (!isGeoEligible) {
         return false;
       }
 
@@ -263,6 +280,7 @@ export const useMusdCtaVisibility = () => {
     [
       hasMusdBalanceOnAnyChain,
       hasMusdBalanceOnChain,
+      isGeoEligible,
       isMusdConversionTokenListItemCtaEnabled,
       isPopularNetworksFilterSelected,
       isTokenWithCta,
@@ -285,12 +303,18 @@ export const useMusdCtaVisibility = () => {
         return false;
       }
 
+      // If user is geo-blocked, don't show the CTA
+      if (!isGeoEligible) {
+        return false;
+      }
+
       return isTokenWithCta(asset);
     },
     [
       isMusdConversionAssetOverviewEnabled,
       isTokenWithCta,
       musdConversionAssetDetailCtasSeen,
+      isGeoEligible,
     ],
   );
 

@@ -1,4 +1,4 @@
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '../../../AppConstants';
 
 const {
   MM_UNIVERSAL_LINK_HOST,

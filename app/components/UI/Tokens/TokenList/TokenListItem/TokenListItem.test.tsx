@@ -17,6 +17,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
 import { strings } from '../../../../../../locales/i18n';
 
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
   StakeButton: () => null,
@@ -72,8 +77,6 @@ jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   }),
 }));
 
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
-
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
   useMusdConversionTokens: jest.fn(() => ({
     isConversionToken: jest.fn().mockReturnValue(false),
@@ -96,6 +99,20 @@ jest.mock('../../../Earn/hooks/useMusdCtaVisibility', () => ({
   }),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: jest.fn(() => ({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
+  })),
+}));
+
+const mockUseMusdConversionEligibility =
+  useMusdConversionEligibility as jest.MockedFunction<
+    typeof useMusdConversionEligibility
+  >;
+
 jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
 }));
@@ -111,9 +128,6 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   default: () => ({ isStakingSupportedChain: false }),
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
-
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
@@ -249,6 +263,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
     isTokenWithCta?: boolean;
+    isGeoEligible?: boolean;
   }
 
   function prepareMocks({
@@ -256,6 +271,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
     isTokenWithCta = false,
+    isGeoEligible = true,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
@@ -267,7 +283,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     }));
 
     mockShouldShowTokenListItemCta.mockReturnValue(
-      isMusdConversionEnabled && isTokenWithCta,
+      isMusdConversionEnabled && isTokenWithCta && isGeoEligible,
     );
 
     // mUSD conversion mocks
@@ -280,6 +296,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       filterAllowedTokens: jest.fn(),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
+    });
+    mockUseMusdConversionEligibility.mockReturnValue({
+      isEligible: isGeoEligible,
+      isLoading: false,
+      geolocation: isGeoEligible ? 'US' : 'GB',
+      blockedCountries: isGeoEligible ? [] : ['GB'],
     });
 
     // Default mock setup
@@ -577,6 +599,28 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       expect(getByText('+3.20%')).toBeOnTheScreen();
       expect(queryByText('Get 3% mUSD bonus')).toBeNull();
+    });
+
+    it('hides mUSD conversion CTA when user is geo-blocked', () => {
+      prepareMocks({
+        asset: usdcAsset,
+        pricePercentChange1d: 1.5,
+        isMusdConversionEnabled: true,
+        isTokenWithCta: true,
+        isGeoEligible: false,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText('+1.50%')).toBeOnTheScreen();
+      expect(queryByText('Convert to mUSD')).toBeNull();
     });
 
     it('calls initiateConversion with correct parameters when secondary balance is pressed', async () => {

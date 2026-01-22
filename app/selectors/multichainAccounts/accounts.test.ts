@@ -1671,7 +1671,7 @@ describe('accounts selectors', () => {
       expect(result).toBe(polygonEvmAccount.address);
     });
 
-    it('throws when group has no accounts', () => {
+    it('returns empty string when group has no accounts', () => {
       const emptyGroupId = 'entropy:empty/0' as AccountGroupId;
       const state = createMockState(
         {
@@ -1694,9 +1694,8 @@ describe('accounts selectors', () => {
       );
 
       const selector = selectIconSeedAddressByAccountGroupId(emptyGroupId);
-      expect(() => selector(state)).toThrow(
-        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${emptyGroupId}`,
-      );
+      const result = selector(state);
+      expect(result).toBe('');
     });
 
     it('throws when no internal accounts resolve', () => {
@@ -1725,9 +1724,8 @@ describe('accounts selectors', () => {
       );
 
       const selector = selectIconSeedAddressByAccountGroupId(unresolvedGroupId);
-      expect(() => selector(state)).toThrow(
-        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${unresolvedGroupId}`,
-      );
+      const result = selector(state);
+      expect(result).toBe('');
     });
   });
 

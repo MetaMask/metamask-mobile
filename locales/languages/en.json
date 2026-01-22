@@ -6056,7 +6056,8 @@
       },
       "title": {
         "transaction_fee": "Fees"
-      }
+      },
+      "network_fee": "Network fees depend on how busy the network is and how complex your transaction is."
     },
     "spending_cap": "Spending cap",
     "withdraw": "Withdraw",
@@ -6552,6 +6553,7 @@
       "title": "Spend\nand\nEarn",
       "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% cashback.",
       "apply_now_button": "Apply now",
+      "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
@@ -6709,17 +6711,18 @@
       }
     },
     "card_home": {
+      "title": "Card",
+      "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
       "try_again": "Try again",
-      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
       "enable_card_button_label": "Enable card",
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "logout": "Log out",
-      "logout_description": "Log out from your MetaMask Card account",
       "logout_confirmation_title": "Log out of Card?",
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
@@ -6774,15 +6777,14 @@
         "ok_button": "OK"
       },
       "manage_card_options": {
-        "manage_spending_limit": "Manage spending limit",
+        "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
         "manage_card": "Manage card",
-        "advanced_card_management_description": "See card details, transactions and more",
+        "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
-        "travel_description": "Book hotels with up to 60% discounts vs. Expedia",
-        "card_tos_title": "Card Terms and Conditions",
-        "card_tos_description": "Read the card provider's terms"
+        "travel_description": "Travel the world, earn points, live life",
+        "card_tos_title": "Terms and conditions"
       }
     },
     "card_spending_limit": {
