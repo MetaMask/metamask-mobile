@@ -24,6 +24,7 @@ export const NETWORK_MULTI_SELECTOR_TEST_IDS = {
 } as const;
 
 export enum NetworkToCaipChainId {
+  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
   SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   ETHEREUM = 'eip155:1',
   LINEA = 'eip155:59144',

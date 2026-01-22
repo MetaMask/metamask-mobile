@@ -104,6 +104,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
   },
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   {
+    id: NetworkToCaipChainId.BITCOIN,
+    name: 'Bitcoin',
+    caipChainId: NetworkToCaipChainId.BITCOIN,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.BITCOIN,
+    }),
+  },
+  {
     id: NetworkToCaipChainId.SOLANA,
     name: 'Solana',
     caipChainId: NetworkToCaipChainId.SOLANA,
