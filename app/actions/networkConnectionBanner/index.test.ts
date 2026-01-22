@@ -86,7 +86,7 @@ describe('networkConnectionBanner actions', () => {
       ]);
     });
 
-    it('should include infuraEndpointIndex when provided', () => {
+    it('includes infuraEndpointIndex when provided', () => {
       const chainId = '0x89';
       const status: NetworkConnectionBannerStatus = 'degraded';
       const networkName = 'Polygon Mainnet';

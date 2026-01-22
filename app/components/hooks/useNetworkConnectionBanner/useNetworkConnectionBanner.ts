@@ -294,11 +294,7 @@ const useNetworkConnectionBanner = (): {
       return;
     }
 
-    const { chainId, infuraEndpointIndex, status } =
-      networkConnectionBannerState;
-    if (infuraEndpointIndex === undefined) {
-      return;
-    }
+    const { chainId, status } = networkConnectionBannerState;
 
     const networkConfiguration =
       Engine.context.NetworkController.getNetworkConfigurationByChainId(
@@ -308,11 +304,25 @@ const useNetworkConnectionBanner = (): {
       return;
     }
 
-    // Track the switch to Infura event
+    // Re-calculate infuraEndpointIndex from current config to avoid stale index
+    // The stored index may be outdated if endpoints were added/removed/reordered
+    const freshInfuraEndpointIndex =
+      networkConfiguration.rpcEndpoints.findIndex((endpoint) =>
+        getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
+      );
+    // Skip if no Infura endpoint found or it's already the default
+    if (
+      freshInfuraEndpointIndex === -1 ||
+      freshInfuraEndpointIndex === networkConfiguration.defaultRpcEndpointIndex
+    ) {
+      return;
+    }
+
+    // Track the switch to MetaMask default RPC event
     const sanitizedUrl = sanitizeRpcUrl(networkConnectionBannerState.rpcUrl);
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_INFURA_CLICKED,
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
       )
         .addProperties({
           banner_type: status,
@@ -329,12 +339,16 @@ const useNetworkConnectionBanner = (): {
         chainId,
         {
           ...networkConfiguration,
-          defaultRpcEndpointIndex: infuraEndpointIndex,
+          defaultRpcEndpointIndex: freshInfuraEndpointIndex,
         },
         {
-          replacementSelectedRpcEndpointIndex: infuraEndpointIndex,
+          replacementSelectedRpcEndpointIndex: freshInfuraEndpointIndex,
         },
       );
+
+      // Hide banner immediately to prevent stale "Switch to MetaMask default RPC" button
+      // The normal status check logic will re-show it with fresh data if network is still unavailable
+      dispatch(hideNetworkConnectionBanner());
 
       // Show success toast
       toastRef?.current?.showToast({
@@ -342,7 +356,7 @@ const useNetworkConnectionBanner = (): {
         labelOptions: [
           {
             label: strings(
-              'network_connection_banner.default_switched_to_infura',
+              'network_connection_banner.updated_to_metamask_default',
             ),
           },
         ],
@@ -353,7 +367,13 @@ const useNetworkConnectionBanner = (): {
       // Error is already handled by updateNetwork which shows a warning
       // Do not show success toast on failure
     }
-  }, [networkConnectionBannerState, trackEvent, createEventBuilder, toastRef]);
+  }, [
+    networkConnectionBannerState,
+    trackEvent,
+    createEventBuilder,
+    toastRef,
+    dispatch,
+  ]);
 
   return {
     networkConnectionBannerState,
