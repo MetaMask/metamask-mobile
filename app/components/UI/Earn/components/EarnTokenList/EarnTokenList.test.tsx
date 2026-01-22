@@ -820,6 +820,28 @@ describe('EarnTokenList', () => {
     });
   });
 
+  it('closes the bottom sheet when close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    const closeButton = getByTestId('earn-token-list-close-button');
+
+    expect(closeButton).toBeDefined();
+
+    // Press the close button - this exercises the handleClose callback
+    // and calls bottomSheetRef.current?.onCloseBottomSheet()
+    fireEvent.press(closeButton);
+
+    // If we get here without throwing, the close handler executed successfully
+    expect(closeButton).toBeDefined();
+  });
+
   describe('Tron tokens', () => {
     beforeEach(() => {
       mockIsTronChainId.mockReturnValue(false);

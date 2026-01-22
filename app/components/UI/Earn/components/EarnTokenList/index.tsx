@@ -382,7 +382,10 @@ const EarnTokenList = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'earn-token-list-close-button' }}
+      >
         <Text variant={TextVariant.HeadingSM}>
           {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')

@@ -201,6 +201,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     "width": 32,
                   }
                 }
+                testID="earn-token-list-close-button"
               >
                 <SvgMock
                   color="#121314"
