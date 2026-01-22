@@ -1,9 +1,5 @@
 import { OAuthLoginResultType } from '../../../app/core/OAuthService/OAuthInterface';
 
-// ============================================
-// E2E EMAIL PATTERNS
-// ============================================
-
 /**
  * E2E Test Email Patterns
  */
@@ -156,7 +152,7 @@ export const E2EOAuthHelpers = {
   },
 
   /**
-   * Reset to default state (Google new user)
+   * Reset to default state
    */
   reset: (): void => {
     currentConfig = {
@@ -200,14 +196,14 @@ export const E2EOAuthHelpers = {
   wasOAuthCalled: (): boolean => oauthCalled,
 
   /**
-   * Mark OAuth as called (used by login handlers)
+   * Mark OAuth as called
    */
   markOAuthCalled: (): void => {
     oauthCalled = true;
   },
 
   /**
-   * Get mock response (for compatibility)
+   * Get mock response
    */
   getMockResponse: () => ({
     type: currentConfig.shouldSucceed

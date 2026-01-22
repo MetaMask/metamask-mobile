@@ -1,7 +1,3 @@
-/**
- * Selectors for AccountStatus screens (Account Already Exists / Account Not Found)
- * Used in social login flows when existing/new user is detected
- */
 export const AccountStatusSelectorIDs = {
   // Account Already Exists (existing user detected during Create Wallet)
   ACCOUNT_FOUND_CONTAINER: 'account-status-found-container-id',

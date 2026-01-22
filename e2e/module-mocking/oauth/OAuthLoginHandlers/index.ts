@@ -1,9 +1,5 @@
 /**
  * Mock OAuthLoginHandlers for E2E Testing
- *
- * This module replaces app/core/OAuthService/OAuthLoginHandlers/index.ts
- * during E2E builds via metro.config.js aliasing.
- *
  */
 
 import { Platform } from 'react-native';

@@ -1,10 +1,3 @@
-/**
- * Page Object for Social Login flow screens
- *
- * This includes:
- * - SocialLoginIosUser (iOS new user / existing user confirmation screens)
- * - AccountStatus (Account Already Exists / Account Not Found screens)
- */
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
@@ -12,10 +5,6 @@ import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/
 import { AccountStatusSelectorIDs } from '../../selectors/Onboarding/AccountStatus.selectors';
 
 class SocialLoginView {
-  // ============================================
-  // iOS Social Login Success - New User
-  // ============================================
-
   get iosNewUserTitle(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE,
@@ -40,10 +29,6 @@ class SocialLoginView {
     });
   }
 
-  // ============================================
-  // iOS Social Login Success - Existing User
-  // ============================================
-
   get iosExistingUserTitle(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE,
@@ -67,10 +52,6 @@ class SocialLoginView {
       elemDescription: 'Secure your wallet button on iOS existing user screen',
     });
   }
-
-  // ============================================
-  // Account Already Exists (existing user during Create Wallet)
-  // ============================================
 
   get accountFoundContainer(): DetoxElement {
     return Matchers.getElementByID(
@@ -107,10 +88,6 @@ class SocialLoginView {
       elemDescription: 'Login button on Account Already Exists screen',
     });
   }
-
-  // ============================================
-  // Account Not Found (new user during Import Wallet)
-  // ============================================
 
   get accountNotFoundContainer(): DetoxElement {
     return Matchers.getElementByID(
