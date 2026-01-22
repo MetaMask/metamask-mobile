@@ -1,9 +1,9 @@
 # Cursor Background Agent Action
-# Launches a Cursor Background Agent via the API and polls for completion
-# Returns working web URLs for viewing the agent session
+# Launches a Cursor Background Agent via the API
+# Optionally polls for completion or returns immediately (fire-and-forget)
 
 name: 'Cursor Background Agent'
-description: 'Launch a Cursor Background Agent and wait for completion'
+description: 'Launch a Cursor Background Agent, optionally waiting for completion'
 
 inputs:
   cursor-api-key:
@@ -29,8 +29,12 @@ inputs:
     description: 'Whether to auto-create a PR (true/false)'
     required: false
     default: 'false'
+  wait-for-completion:
+    description: 'Whether to poll and wait for agent completion (true/false). Set to false for fire-and-forget mode.'
+    required: false
+    default: 'true'
   timeout-minutes:
-    description: 'Maximum time to wait for completion (in minutes)'
+    description: 'Maximum time to wait for completion (in minutes). Only used if wait-for-completion is true.'
     required: false
     default: '10'
 
@@ -42,13 +46,13 @@ outputs:
     description: 'Web URL to view the agent session'
     value: ${{ steps.launch.outputs.agent_url }}
   status:
-    description: 'Final status of the agent (COMPLETED, FAILED, CANCELLED, TIMEOUT)'
-    value: ${{ steps.poll.outputs.status }}
+    description: 'Final status of the agent (COMPLETED, FAILED, CANCELLED, TIMEOUT, or LAUNCHED if not waiting)'
+    value: ${{ steps.poll.outputs.status || 'LAUNCHED' }}
   summary:
-    description: 'Summary/name from the agent response'
+    description: 'Summary/name from the agent response (only available if wait-for-completion is true)'
     value: ${{ steps.poll.outputs.summary }}
   pr-url:
-    description: 'URL of the created PR (if auto-create-pr was enabled)'
+    description: 'URL of the created PR (only available if wait-for-completion is true)'
     value: ${{ steps.poll.outputs.pr_url }}
 
 runs:
@@ -134,6 +138,7 @@ runs:
 
     - name: Poll for Completion
       id: poll
+      if: inputs.wait-for-completion == 'true'
       shell: bash
       env:
         CURSOR_API_KEY: ${{ inputs.cursor-api-key }}
