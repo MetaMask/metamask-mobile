@@ -1,13 +1,13 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import {
   remoteFeatureFlagPredictEnabled,
   confirmationsRedesignedFeatureFlags,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -15,9 +15,9 @@ import {
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
   POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS,
-} from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictClaimPage from '../../pages/Predict/PredictClaimPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -26,12 +26,12 @@ import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
 import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
-} from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
+} from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-positions-response';
 import { PredictHelpers } from './helpers/predict-helpers';
-import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
-import Utilities from '../../framework/Utilities';
+import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-activity-response';
+import Utilities from '../../../tests/framework/Utilities';
 import { getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
+import SoftAssert from '../../../tests/framework/SoftAssert';
 
 /*
 Test Scenario: Claim winning positions

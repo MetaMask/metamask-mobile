@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import AmountScreen from './AmountScreen';
 import { expect as appwrightExpect } from 'appwright';
 import { splitAmountIntoDigits } from 'appwright/utils/Utils';
@@ -57,7 +57,7 @@ class PerpsOrderView {
   async setLeverage(leverage) {
     await AppwrightGestures.tap(await this.leverageButton);
     await AppwrightGestures.tap(await this.leverageOption(leverage));
-    await AppwrightGestures.tap(await this.confirmLeverageButton(leverage));    
+    await AppwrightGestures.tap(await this.confirmLeverageButton(leverage));
   }
 }
 
