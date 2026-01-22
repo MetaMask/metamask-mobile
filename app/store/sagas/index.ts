@@ -61,7 +61,7 @@ export function* appLockStateMachine() {
 export function* requestAuthOnAppStart() {
   try {
     yield call(Authentication.unlockWallet);
-  } catch (e) {
+  } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
     NavigationService.navigation?.reset({
