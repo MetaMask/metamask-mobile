@@ -2832,9 +2832,7 @@ describe('Authentication', () => {
         type: SecretType.Mnemonic,
       });
       expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
-      expect(result).toEqual({
-        id: 'test-keyring-id',
-      });
+      expect(result).toEqual('test-keyring-id');
     });
 
     it('handle KeyringController.addNewKeyring failure', async () => {
