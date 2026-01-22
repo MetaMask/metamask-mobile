@@ -18,13 +18,12 @@ You are implementing a GitHub issue for the MetaMask Mobile repository.
 
 ## Pull Request
 
-When creating the PR, read and use the template structure from `.github/pull-request-template.md`.
+When creating the PR, read and use the template from `.github/pull-request-template.md`.
 
-**Important guidance for filling out the template**:
+**Important**: Follow all instructions marked with `AI agent:` in the template comments. These provide specific guidance on:
 
-- **Description**: Be specific about what you changed and why. Include context about the fix/feature, not generic descriptions.
-- **Changelog**: Use format `CHANGELOG entry: [fix/feat/chore]: [User-facing description in past tense]`. Examples: `fix: resolved token name display issue`, `feat: added dark mode toggle`. For non-user-facing changes, use `CHANGELOG entry: null`.
-- **Related issues**: Replace with `Fixes: #[ISSUE_NUMBER]` using the actual issue number you're implementing.
-- **Manual testing steps**: Write specific, contextual Gherkin steps based on what you actually implemented. Do NOT use generic placeholders. Be concrete about the feature, scenario, and steps.
-- **Pre-merge author checklist**: Check ALL boxes in this section (mark all as `[x]`).
-- **Pre-merge reviewer checklist**: Leave ALL boxes unchecked (`[ ]`) - these are for reviewers to check, not the author.
+- Format requirements (changelog format, issue linking)
+- Content requirements (specific vs generic descriptions)
+- Checklist handling (which boxes to check/uncheck)
+
+The template is the source of truth - use it as the structure and fill it out completely following the AI agent instructions.
