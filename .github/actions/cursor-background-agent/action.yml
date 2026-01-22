@@ -19,9 +19,9 @@ inputs:
     description: 'Git ref (branch/tag) to use as base'
     required: true
   model:
-    description: 'Model to use (e.g., opus-4.5-thinking)'
+    description: 'Model to use (e.g., claude-4.5-opus-high-thinking, claude-4-sonnet-thinking)'
     required: false
-    default: 'opus-4.5-thinking'
+    default: 'claude-4.5-opus-high-thinking'
   branch-name:
     description: 'Branch name for changes (optional, for implementation tasks)'
     required: false

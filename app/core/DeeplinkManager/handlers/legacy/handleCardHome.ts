@@ -10,8 +10,9 @@ import {
   selectCardGeoLocation,
   setAlwaysShowCardButton,
 } from '../../../redux/slices/card';
-import { MetaMetrics, MetaMetricsEvents } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import {
   selectCardExperimentalSwitch,
   selectCardSupportedCountries,
@@ -55,8 +56,7 @@ export const handleCardHome = () => {
 
   let isAuthenticated = false;
   let hasCardLinkedAccount = false;
-  let destination: CardDeeplinkDestination =
-    CardDeeplinkDestination.CARD_WELCOME;
+  let destination: CardDeeplinkDestination;
 
   try {
     const state = ReduxService.store.getState();
@@ -206,8 +206,7 @@ function trackCardHomeDeeplinkEvent({
   error?: boolean;
 }): void {
   try {
-    const metrics = MetaMetrics.getInstance();
-    const event = MetricsEventBuilder.createEventBuilder(
+    const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.CARD_DEEPLINK_HANDLED,
     )
       .addProperties({
@@ -219,7 +218,7 @@ function trackCardHomeDeeplinkEvent({
       })
       .build();
 
-    metrics.trackEvent(event);
+    analytics.trackEvent(event);
     DevLogger.log('[handleCardHome] Analytics event tracked:', {
       deeplink_type: CardDeeplinkActions.CARD_HOME,
       authenticated: isAuthenticated,
