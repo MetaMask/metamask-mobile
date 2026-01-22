@@ -464,7 +464,10 @@ class ContactForm extends PureComponent {
           testID={AddContactViewSelectorsIDs.CONTAINER}
           edges={{ bottom: 'additive' }}
         >
-          <KeyboardAwareScrollView style={styles.informationWrapper} showsVerticalScrollIndicator={false}>
+          <KeyboardAwareScrollView
+            style={styles.informationWrapper}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.scrollWrapper}>
               <Text style={styles.label}>{strings('address_book.name')}</Text>
               <TextInput

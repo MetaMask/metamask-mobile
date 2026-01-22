@@ -1072,7 +1072,6 @@ class ResetPassword extends PureComponent {
                     }
                   />
                 </View>
-
               </View>
             </View>
           </KeyboardAwareScrollView>
@@ -1149,7 +1148,10 @@ class ResetPassword extends PureComponent {
           onBack={() => this.props.navigation.goBack()}
           includesTopInset
         />
-        <View style={styles.mainWrapper} testID={'account-backup-step-4-screen'}>
+        <View
+          style={styles.mainWrapper}
+          testID={'account-backup-step-4-screen'}
+        >
           {this.renderResetPassword()}
           {!loading && (
             <SafeAreaView edges={['bottom']}>
