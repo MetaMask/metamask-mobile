@@ -416,9 +416,25 @@ const CardHome = () => {
 
   const viewCardDetailsAction = useCallback(async () => {
     if (cardDetailsImageUrl) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.HIDE_CARD_DETAILS_BUTTON,
+          })
+          .build(),
+      );
       clearCardDetailsImageUrl();
       return;
     }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VIEW_CARD_DETAILS_BUTTON,
+          card_type: cardDetails?.type,
+        })
+        .build(),
+    );
 
     try {
       await fetchCardDetailsToken(cardDetails?.type);
@@ -438,6 +454,8 @@ const CardHome = () => {
     fetchCardDetailsToken,
     toastRef,
     cardDetails?.type,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const cardSetupState = useMemo(() => {
