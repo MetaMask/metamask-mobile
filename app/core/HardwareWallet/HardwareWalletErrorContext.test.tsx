@@ -99,7 +99,7 @@ describe('HardwareWalletErrorContext', () => {
         </HardwareWalletErrorProvider>,
       );
 
-      expect(getByText('Child content')).toBeDefined();
+      expect(getByText('Child content')).toBeOnTheScreen();
     });
 
     it('provides default context values', () => {
@@ -121,7 +121,7 @@ describe('HardwareWalletErrorContext', () => {
         </HardwareWalletErrorProvider>,
       );
 
-      expect(getByTestId('error-code')).toBeDefined();
+      expect(getByTestId('error-code')).toBeOnTheScreen();
     });
 
     it('provides parseAndShowError function', () => {
@@ -131,7 +131,7 @@ describe('HardwareWalletErrorContext', () => {
         </HardwareWalletErrorProvider>,
       );
 
-      expect(getByTestId('trigger-error')).toBeDefined();
+      expect(getByTestId('trigger-error')).toBeOnTheScreen();
     });
 
     it('provides clearError function', () => {
@@ -141,7 +141,7 @@ describe('HardwareWalletErrorContext', () => {
         </HardwareWalletErrorProvider>,
       );
 
-      expect(getByTestId('clear-error')).toBeDefined();
+      expect(getByTestId('clear-error')).toBeOnTheScreen();
     });
   });
 
@@ -258,15 +258,7 @@ describe('HardwareWalletErrorContext', () => {
       jest.clearAllMocks();
     });
 
-    it('calls onOpenBottomSheet after timeout when error is shown', async () => {
-      const mockOnOpenBottomSheet = jest.fn();
-      jest.spyOn(React, 'useRef').mockReturnValueOnce({
-        current: {
-          onOpenBottomSheet: mockOnOpenBottomSheet,
-          onCloseBottomSheet: jest.fn(),
-        },
-      });
-
+    it('shows bottom sheet when non-user-cancellation error occurs', async () => {
       const { getByTestId } = render(
         <HardwareWalletErrorProvider>
           <TestConsumer />

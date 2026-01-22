@@ -188,7 +188,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
         />,
       );
 
-      expect(getByTestId('bottom-sheet')).toBeDefined();
+      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
 
     it('displays error title', () => {
@@ -207,7 +207,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
 
       // The title comes from getTitleForErrorCode which calls strings()
       // Since we mock strings() to return 'Device Disconnected' for device_disconnected_title
-      expect(getByText('Device Disconnected')).toBeDefined();
+      expect(getByText('Device Disconnected')).toBeOnTheScreen();
     });
 
     it('displays error subtitle (userMessage)', () => {
@@ -224,7 +224,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
         />,
       );
 
-      expect(getByText('Please reconnect your device')).toBeDefined();
+      expect(getByText('Please reconnect your device')).toBeOnTheScreen();
     });
 
     it('does not display subtitle when userMessage is null', () => {
@@ -262,7 +262,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
       );
 
       // Icon should be rendered (name depends on error code mapping)
-      expect(getByTestId('icon-Plug')).toBeDefined();
+      expect(getByTestId('icon-Plug')).toBeOnTheScreen();
     });
   });
 
@@ -282,7 +282,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
         />,
       );
 
-      expect(getByText('Continue')).toBeDefined();
+      expect(getByText('Continue')).toBeOnTheScreen();
     });
 
     it('shows View Settings button for OPEN_APP_SETTINGS action', () => {
@@ -300,7 +300,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
         />,
       );
 
-      expect(getByText('View Settings')).toBeDefined();
+      expect(getByText('View Settings')).toBeOnTheScreen();
     });
 
     it('shows View Settings button for OPEN_BLUETOOTH_SETTINGS action', () => {
@@ -318,7 +318,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
         />,
       );
 
-      expect(getByText('View Settings')).toBeDefined();
+      expect(getByText('View Settings')).toBeOnTheScreen();
     });
   });
 
@@ -433,7 +433,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
       );
 
       // Should show Continue button (default for ACKNOWLEDGE)
-      expect(getByText('Continue')).toBeDefined();
+      expect(getByText('Continue')).toBeOnTheScreen();
     });
   });
 
@@ -452,7 +452,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
         />,
       );
 
-      expect(getByTestId('bottom-sheet')).toBeDefined();
+      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
 
     it('works with QR device type', () => {
@@ -469,7 +469,7 @@ describe('HardwareWalletErrorBottomSheet', () => {
         />,
       );
 
-      expect(getByTestId('bottom-sheet')).toBeDefined();
+      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
   });
 });

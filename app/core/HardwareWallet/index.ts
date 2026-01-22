@@ -4,6 +4,7 @@ export {
   isUserCancellation,
   getIconForErrorCode,
   getIconColorForErrorCode,
+  getTitleForErrorCode,
 } from './errors';
 
 export {
