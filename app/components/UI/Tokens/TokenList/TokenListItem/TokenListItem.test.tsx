@@ -19,7 +19,10 @@ import { strings } from '../../../../../../locales/i18n';
 
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectIsMusdConversionFlowEnabledFlag,
+  selectMerklCampaignClaimingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
@@ -50,10 +53,11 @@ jest.mock('../../../shared/StockBadge', () => {
 });
 
 // Mock dependencies
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
   }),
 }));
 
@@ -120,6 +124,25 @@ jest.mock('../../../Earn/hooks/useMusdCtaVisibility', () => ({
   }),
 }));
 
+// Mock MerklRewards hooks
+let mockClaimableReward: string | null = null;
+const mockIsEligibleForMerklRewards = jest.fn<
+  boolean,
+  [string, string | undefined]
+>();
+
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
+  () => ({
+    useMerklRewards: jest.fn(() => ({
+      claimableReward: mockClaimableReward,
+    })),
+    isEligibleForMerklRewards: jest.fn((chainId, address) =>
+      mockIsEligibleForMerklRewards(chainId, address),
+    ),
+  }),
+);
+
 jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: jest.fn(() => ({
     isEligible: true,
@@ -155,6 +178,7 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
+  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
@@ -286,6 +310,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
     isStockToken?: boolean;
+    isMerklCampaignClaimingEnabled?: boolean;
   }
 
   function prepareMocks({
@@ -295,6 +320,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isTokenWithCta = false,
     isGeoEligible = true,
     isStockToken = false,
+    isMerklCampaignClaimingEnabled = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
@@ -340,6 +366,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectIsMusdConversionFlowEnabledFlag) {
           return isMusdConversionEnabled;
+        }
+
+        if (selector === selectMerklCampaignClaimingEnabledFlag) {
+          return isMerklCampaignClaimingEnabled;
         }
 
         const selectorString = selector.toString();
@@ -827,6 +857,40 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       const { getByTestId } = renderWithProvider(
+  describe('Claim Bonus CTA', () => {
+    const musdAsset: TokenI = {
+      ...defaultAsset,
+      address: '0x8d652c6d4a8f3db96cd866c1a9220b1447f29898',
+      chainId: '0xe708', // Linea Mainnet
+      symbol: 'mUSD',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockClaimableReward = null;
+      mockIsEligibleForMerklRewards.mockReturnValue(false);
+      mockShouldShowTokenListItemCta.mockReturnValue(false);
+      mockUseTokenPricePercentageChange.mockReturnValue(5.67);
+      mockNavigate.mockClear();
+    });
+
+    it('shows "Claim bonus" CTA when token has claimable reward and is eligible', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { getByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -846,6 +910,27 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       const { queryByTestId } = renderWithProvider(
+      // Assert
+      expect(getByText(strings('earn.claim_bonus'))).toBeTruthy();
+    });
+
+    it('does not show "Claim bonus" CTA when token has no claimable reward', () => {
+      // Arrange
+      mockClaimableReward = null;
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { queryByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -865,6 +950,27 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       renderWithProvider(
+      // Assert
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+    });
+
+    it('does not show "Claim bonus" CTA when token is not eligible', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(false);
+      prepareMocks({
+        asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { queryByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -888,6 +994,27 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       const { getByText } = renderWithProvider(
+      // Assert
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+    });
+
+    it('does not show "Claim bonus" CTA when feature flag is disabled', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+        isMerklCampaignClaimingEnabled: false,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { queryByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -906,6 +1033,26 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       const { getByTestId, getByText } = renderWithProvider(
+      // Assert
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+    });
+
+    it('navigates with scrollToMerklRewards when "Claim bonus" CTA is pressed', async () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -952,6 +1099,36 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       const { queryByTestId } = renderWithProvider(
+      // Act
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+        ...musdAsset,
+        scrollToMerklRewards: true,
+      });
+    });
+
+    it('shows "Claim bonus" CTA instead of percentage change when claimable bonus exists', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+        pricePercentChange1d: 5.67,
+        isMerklCampaignClaimingEnabled: true,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { getByText, queryByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -961,6 +1138,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(queryByTestId('stock-badge')).toBeNull();
+      // Assert - Claim bonus should be shown, not percentage change
+      expect(getByText(strings('earn.claim_bonus'))).toBeTruthy();
+      expect(queryByText('+5.67%')).toBeNull();
     });
   });
 });
