@@ -6,7 +6,10 @@ import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../constants/musd';
-import { AGLAMERKL_ADDRESS } from '../constants';
+import {
+  AGLAMERKL_ADDRESS_MAINNET,
+  AGLAMERKL_ADDRESS_LINEA,
+} from '../constants';
 import {
   fetchMerklRewardsForAsset,
   getClaimedAmountFromContract,
@@ -16,8 +19,8 @@ const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 
 // Map of chains and eligible tokens
 export const eligibleTokens: Record<Hex, Hex[]> = {
-  [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS], // Testing
-  [CHAIN_IDS.LINEA_MAINNET]: [MUSD_ADDRESS], // Musd
+  [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET], // Testing
+  [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // Musd and AGLAMERKL
 };
 
 /**

@@ -5,7 +5,8 @@ import { Interface } from '@ethersproject/abi';
 import Engine from '../../../../../core/Engine';
 import { TokenI } from '../../../Tokens/types';
 import {
-  AGLAMERKL_ADDRESS,
+  AGLAMERKL_ADDRESS_MAINNET,
+  AGLAMERKL_ADDRESS_LINEA,
   MERKL_API_BASE_URL,
   MERKL_DISTRIBUTOR_ADDRESS,
   DISTRIBUTOR_CLAIMED_ABI,
@@ -52,7 +53,10 @@ const buildRewardsUrl = (
   let url = `${MERKL_API_BASE_URL}/users/${userAddress}/rewards?chainId=${Number(chainId)}`;
 
   // Add test parameter for test token (case-insensitive comparison)
-  if (tokenAddress.toLowerCase() === AGLAMERKL_ADDRESS.toLowerCase()) {
+  if (
+    tokenAddress.toLowerCase() === AGLAMERKL_ADDRESS_MAINNET.toLowerCase() ||
+    tokenAddress.toLowerCase() === AGLAMERKL_ADDRESS_LINEA.toLowerCase()
+  ) {
     url += '&test=true';
   }
 

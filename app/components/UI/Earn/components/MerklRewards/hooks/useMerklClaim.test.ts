@@ -596,55 +596,6 @@ describe('useMerklClaim', () => {
     },
   );
 
-  it('calls TokenBalancesController.updateBalances and AccountTrackerController.refresh on transaction confirmation', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => createMockRewardData(),
-    });
-
-    const mockTransactionId = 'tx-123';
-    mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve('0xabc123'),
-      transactionMeta: { id: mockTransactionId },
-    } as never);
-
-    const mockUpdateBalances = Engine.context.TokenBalancesController
-      .updateBalances as jest.MockedFunction<
-      typeof Engine.context.TokenBalancesController.updateBalances
-    >;
-    const mockRefresh = Engine.context.AccountTrackerController
-      .refresh as jest.MockedFunction<
-      typeof Engine.context.AccountTrackerController.refresh
-    >;
-
-    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
-
-    const claimPromise = act(async () => {
-      await result.current.claimRewards();
-    });
-
-    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
-
-    await act(async () => {
-      transactionStatusUpdateCallbacks.forEach((callback) => {
-        callback({
-          transactionMeta: createMockTransactionMeta(
-            mockTransactionId,
-            TransactionStatus.confirmed,
-          ),
-        });
-      });
-    });
-
-    await claimPromise;
-    await waitFor(() =>
-      expect(mockUpdateBalances).toHaveBeenCalledWith({
-        chainIds: [CHAIN_IDS.MAINNET],
-      }),
-    );
-    await waitFor(() => expect(mockRefresh).toHaveBeenCalledWith(['mainnet']));
-  });
-
   it('handles race condition when transaction is already confirmed before subscription check', async () => {
     // This test verifies the fix for the race condition where on fast L2 chains,
     // the transaction can be confirmed before the subscription is set up.

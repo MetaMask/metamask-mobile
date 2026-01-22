@@ -132,55 +132,9 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
           if (transactionMeta.status === TransactionStatus.confirmed) {
             isResolved = true;
             unsubscribe();
-            // Note: isClaiming stays true until all async work completes (handled by finally block)
-            // Update token balances and account balances to reflect the new balance after claiming
-            // This ensures AssetOverview shows the updated token balance immediately
-            const txNetworkClientId =
-              Engine.context.NetworkController.findNetworkClientIdByChainId(
-                transactionMeta.chainId,
-              );
-            // Add a small delay to allow blockchain state to propagate after transaction confirmation
-            // Then update balances with retry mechanism to ensure they're refreshed
-            // Also detect tokens to ensure the token is in the tokens list
-            const updateBalancesWithRetry = async (
-              retries = 2,
-            ): Promise<void> => {
-              // Wait 1 second for blockchain state to propagate
-              await new Promise((r) => setTimeout(r, 1000));
-
-              try {
-                await Promise.all([
-                  // Detect tokens first to ensure they're in the tokens list
-                  Engine.context.TokenDetectionController.detectTokens({
-                    chainIds: [transactionMeta.chainId],
-                  }),
-                  // Then update balances
-                  Engine.context.TokenBalancesController.updateBalances({
-                    chainIds: [transactionMeta.chainId],
-                  }),
-                  txNetworkClientId
-                    ? Engine.context.AccountTrackerController.refresh([
-                        txNetworkClientId,
-                      ])
-                    : Promise.resolve(),
-                ]);
-              } catch (err) {
-                // Retry if we have retries left
-                if (retries > 0) {
-                  await new Promise((r) => setTimeout(r, 1000));
-                  return updateBalancesWithRetry(retries - 1);
-                }
-                throw err;
-              }
-            };
-
-            updateBalancesWithRetry()
-              .catch(() => {
-                // Ignore balance update errors, but still resolve
-              })
-              .finally(() => {
-                resolve();
-              });
+            // Resolve immediately - navigation.replace() in ClaimMerklRewards
+            // will remount the screen and fetch fresh data from the contract
+            resolve();
           } else if (
             transactionMeta.status === TransactionStatus.failed ||
             transactionMeta.status === TransactionStatus.rejected
