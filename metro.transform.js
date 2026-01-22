@@ -60,21 +60,38 @@ const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
  * Gets the features for the current build type, used to determine which code
  * fences to remove.
  *
+ * Source of truth: CODE_FENCING_FEATURES env var (set by builds.yml via apply-build-config.js)
+ * Fallback: hardcoded logic for local dev without builds.yml config
+ *
  * @returns {Set<string>} The set of features to be included in the build.
  */
 function getBuildTypeFeatures() {
+  // Primary: load from builds.yml config (set by apply-build-config.js)
+  if (process.env.CODE_FENCING_FEATURES) {
+    try {
+      const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
+      const featureSet = new Set(features);
+
+      if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+        featureSet.add('sample-feature');
+      }
+
+      return featureSet;
+    } catch (error) {
+      console.warn('Failed to parse CODE_FENCING_FEATURES:', error.message);
+    }
+  }
+
+  // Fallback for local dev without builds.yml config
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   let features;
 
   switch (buildType) {
-    // TODO: Remove uppercase QA once we've consolidated build types
     case 'qa':
     case 'QA':
     case 'main':
-      // TODO: Refactor this once we've abstracted environment away from build type
       if (envType === 'exp') {
-        // Only include experimental features in experimental environment
         features = experimentalFeatureSet;
         break;
       }
@@ -87,12 +104,9 @@ function getBuildTypeFeatures() {
       features = flaskFeatureSet;
       break;
     default:
-      throw new Error(
-        `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
-      );
+      throw new Error(`Invalid METAMASK_BUILD_TYPE: ${buildType}`);
   }
 
-  // Add sample-feature only if explicitly enabled via env var
   if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
     features.add('sample-feature');
   }
@@ -109,9 +123,6 @@ module.exports.transform = async ({ src, filename, options }) => {
     return svgTransformer.transform({ src, filename, options });
   }
 
-  const environment = process.env.METAMASK_ENVIRONMENT ?? 'production';
-  const shouldLintFencedFiles = environment === 'production';
-
   /**
    * Params based on builds we're code splitting
    * i.e: flavorDimensions "version" productFlavors from android/app/build.gradle
@@ -125,7 +136,7 @@ module.exports.transform = async ({ src, filename, options }) => {
       active: getBuildTypeFeatures(),
     });
 
-    if (shouldLintFencedFiles && didModify) {
+    if (didModify) {
       await lintTransformedFile(getESLintInstance(), filename, processedSource);
     }
     return defaultTransformer.transform({

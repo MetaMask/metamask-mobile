@@ -1,0 +1,102 @@
+name: Build Mobile App
+
+on:
+  workflow_call:
+    inputs:
+      build_name:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string # android, ios, or both
+  workflow_dispatch:
+    inputs:
+      build_name:
+        required: true
+        type: choice
+        options:
+          - main-prod
+          - main-rc
+          - main-dev
+          - main-test
+          - flask-prod
+          - flask-rc
+          - flask-dev
+          - flask-test
+      platform:
+        required: true
+        type: choice
+        options: [android, ios, both]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # Load config and determine if approval is needed
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      requires_approval: ${{ steps.config.outputs.requires_approval }}
+      github_environment: ${{ steps.config.outputs.github_environment }}
+      secrets_json: ${{ steps.config.outputs.secrets_json }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: yarn install --immutable
+      - run: node scripts/validate-build-config.js
+
+      - name: Load config
+        id: config
+        run: |
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const config = yaml.load(fs.readFileSync('.github/builds.yml', 'utf8'));
+          const build = config.builds['${{ inputs.build_name }}'];
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'requires_approval=' + (build.requires_approval || false) + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          "
+
+  # Approval gate (only for prod builds)
+  approval:
+    needs: prepare
+    if: needs.prepare.outputs.requires_approval == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    steps:
+      - run: echo "Approval granted for ${{ inputs.build_name }}"
+
+  # Build
+  build:
+    needs: [prepare, approval]
+    if: always() && (needs.approval.result == 'success' || needs.approval.result == 'skipped')
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - run: yarn install --immutable
+
+      - name: Apply build config
+        run: |
+          # Load env vars from builds.yml
+          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+
+      - name: Set secrets
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+        run: node scripts/set-secrets-from-config.js
+
+      - name: Build ${{ matrix.platform }}
+        run: |
+          ./scripts/build.sh ${{ matrix.platform }} ${{ inputs.build_name }}
