@@ -4,19 +4,20 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
 import { Nft } from '@metamask/assets-controllers';
+import { ToastContext } from '../../../component-library/components/Toast';
+import { ToastRef } from '../../../component-library/components/Toast/Toast.types';
 
 const mockStore = configureMockStore();
-
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Alert: {
-    alert: jest.fn(),
-  },
-}));
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
     themeAppearance: 'light',
+    colors: {
+      accent03: {
+        dark: '#0f172a',
+        normal: '#22c55e',
+      },
+    },
   }),
 }));
 
@@ -107,40 +108,53 @@ describe('NftGridItemActionSheet', () => {
 
   const mockActionSheetRef = { current: null };
   const createInitialState = () => ({});
+  const createToastRef = () =>
+    ({
+      current: {
+        showToast: jest.fn(),
+        closeToast: jest.fn(),
+      },
+    }) as React.RefObject<ToastRef>;
+
+  const renderComponent = ({
+    collectible = mockNft,
+    toastRef = createToastRef(),
+  }: {
+    collectible?: Nft | null;
+    toastRef?: React.RefObject<ToastRef>;
+  }) => {
+    const store = mockStore(createInitialState());
+
+    return {
+      toastRef,
+      ...render(
+        <Provider store={store}>
+          <ToastContext.Provider value={{ toastRef }}>
+            <NftGridItemActionSheet
+              actionSheetRef={mockActionSheetRef}
+              longPressedCollectible={collectible}
+            />
+          </ToastContext.Provider>
+        </Provider>,
+      ),
+    };
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders action sheet with correct options', () => {
-    const store = mockStore(createInitialState());
+  it('renders action sheet options', () => {
+    const { getByText } = renderComponent({});
 
-    const { getByText } = render(
-      <Provider store={store}>
-        <NftGridItemActionSheet
-          actionSheetRef={mockActionSheetRef}
-          longPressedCollectible={mockNft}
-        />
-      </Provider>,
-    );
-
-    expect(getByText('wallet.collectible_action_title')).toBeDefined();
-    expect(getByText('wallet.refresh_metadata')).toBeDefined();
-    expect(getByText('wallet.remove')).toBeDefined();
-    expect(getByText('wallet.cancel')).toBeDefined();
+    expect(getByText('wallet.collectible_action_title')).toBeOnTheScreen();
+    expect(getByText('wallet.refresh_metadata')).toBeOnTheScreen();
+    expect(getByText('wallet.remove')).toBeOnTheScreen();
+    expect(getByText('wallet.cancel')).toBeOnTheScreen();
   });
 
   it('refreshes metadata when refresh option is selected', () => {
-    const store = mockStore(createInitialState());
-
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <NftGridItemActionSheet
-          actionSheetRef={mockActionSheetRef}
-          longPressedCollectible={mockNft}
-        />
-      </Provider>,
-    );
+    const { getByTestId } = renderComponent({});
 
     fireEvent.press(getByTestId('action-sheet-option-0'));
 
@@ -152,21 +166,34 @@ describe('NftGridItemActionSheet', () => {
   });
 
   it('removes NFT when remove option is selected', () => {
-    const store = mockStore(createInitialState());
-
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <NftGridItemActionSheet
-          actionSheetRef={mockActionSheetRef}
-          longPressedCollectible={mockNft}
-        />
-      </Provider>,
-    );
+    const { getByTestId } = renderComponent({});
 
     fireEvent.press(getByTestId('action-sheet-option-1'));
 
     expect(
       Engine.context.NftController.removeAndIgnoreNft,
     ).toHaveBeenCalledWith('0x123', '456', 'mainnet');
+  });
+
+  it('shows removal toast when remove option is selected', () => {
+    const toastRef = createToastRef();
+
+    const { getByTestId } = renderComponent({ toastRef });
+
+    fireEvent.press(getByTestId('action-sheet-option-1'));
+
+    expect(toastRef.current?.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          {
+            label: 'wallet.collectible_removed_title',
+            isBold: true,
+          },
+        ],
+        descriptionOptions: {
+          description: 'wallet.collectible_removed_desc',
+        },
+      }),
+    );
   });
 });

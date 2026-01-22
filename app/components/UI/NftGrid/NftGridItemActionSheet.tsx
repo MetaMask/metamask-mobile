@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { Alert } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { useTheme } from '../../../util/theme';
 import { toHex } from '@metamask/controller-utils';
+import {
+  ButtonIconVariant,
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const NftGridItemActionSheet = ({
   actionSheetRef,
@@ -14,12 +19,37 @@ const NftGridItemActionSheet = ({
   actionSheetRef: React.RefObject<typeof ActionSheet>;
   longPressedCollectible: Nft | null;
 }) => {
-  const { themeAppearance } = useTheme();
+  const { themeAppearance, colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
   const getNetworkClientIdForNft = (nft: Nft) => {
     if (!nft.chainId) return undefined;
     const { NetworkController } = Engine.context;
     return NetworkController.findNetworkClientIdByChainId(toHex(nft.chainId));
+  };
+
+  const showRemoveToast = () => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        {
+          label: strings('wallet.collectible_removed_title'),
+          isBold: true,
+        },
+      ],
+      descriptionOptions: {
+        description: strings('wallet.collectible_removed_desc'),
+      },
+      closeButtonOptions: {
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+        onPress: () => toastRef?.current?.closeToast(),
+      },
+      hasNoTimeout: false,
+    });
   };
 
   const removeNft = () => {
@@ -35,11 +65,7 @@ const NftGridItemActionSheet = ({
       longPressedCollectible.tokenId,
       networkClientId,
     );
-
-    Alert.alert(
-      strings('wallet.collectible_removed_title'),
-      strings('wallet.collectible_removed_desc'),
-    );
+    showRemoveToast();
   };
 
   const refreshMetadata = () => {
