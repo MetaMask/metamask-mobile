@@ -196,22 +196,37 @@ const createMockMarket = (
   ...overrides,
 });
 
+interface MockPositionsConfig {
+  activePositions?: PredictPosition[];
+  claimablePositions?: PredictPosition[];
+  isLoading?: boolean;
+}
+
+const setupPositionsMock = (config: MockPositionsConfig = {}) => {
+  const {
+    activePositions = [],
+    claimablePositions = [],
+    isLoading = false,
+  } = config;
+
+  mockUsePredictPositions.mockImplementation((options) => ({
+    positions: options?.claimable ? claimablePositions : activePositions,
+    isLoading,
+    isRefreshing: false,
+    error: null,
+    loadPositions: jest.fn(),
+  }));
+};
+
 describe('PredictSportCardFooter', () => {
   const mockExecuteGuardedAction = jest.fn();
   const mockClaim = jest.fn();
-  const mockLoadPositions = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFromTrending.mockReturnValue(false);
 
-    mockUsePredictPositions.mockReturnValue({
-      positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: mockLoadPositions,
-    });
+    setupPositionsMock();
 
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
@@ -229,13 +244,7 @@ describe('PredictSportCardFooter', () => {
   describe('loading state', () => {
     it('renders skeleton when positions are loading', () => {
       const market = createMockMarket();
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: true,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ isLoading: true });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -246,13 +255,7 @@ describe('PredictSportCardFooter', () => {
 
     it('does not render bet buttons when loading', () => {
       const market = createMockMarket({ status: PredictMarketStatus.OPEN });
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: true,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ isLoading: true });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -263,13 +266,7 @@ describe('PredictSportCardFooter', () => {
     it('does not render picks when loading', () => {
       const market = createMockMarket();
       const positions = [createMockPosition()];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: true,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ activePositions: positions, isLoading: true });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -278,13 +275,7 @@ describe('PredictSportCardFooter', () => {
 
     it('renders with default testID when no testID provided', () => {
       const market = createMockMarket();
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: true,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ isLoading: true });
 
       render(<PredictSportCardFooter market={market} />);
 
@@ -293,7 +284,7 @@ describe('PredictSportCardFooter', () => {
   });
 
   describe('hook configuration', () => {
-    it('calls usePredictPositions with correct marketId', () => {
+    it('calls usePredictPositions with correct marketId for active positions', () => {
       const market = createMockMarket({ id: 'specific-market-123' });
 
       render(<PredictSportCardFooter market={market} />);
@@ -301,6 +292,17 @@ describe('PredictSportCardFooter', () => {
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
         autoRefreshTimeout: 10000,
+      });
+    });
+
+    it('calls usePredictPositions with claimable flag for claimable positions', () => {
+      const market = createMockMarket({ id: 'specific-market-123' });
+
+      render(<PredictSportCardFooter market={market} />);
+
+      expect(mockUsePredictPositions).toHaveBeenCalledWith({
+        marketId: 'specific-market-123',
+        claimable: true,
       });
     });
 
@@ -330,13 +332,7 @@ describe('PredictSportCardFooter', () => {
   describe('no positions - open market', () => {
     it('renders bet buttons when market is open and no positions', () => {
       const market = createMockMarket({ status: PredictMarketStatus.OPEN });
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -347,13 +343,7 @@ describe('PredictSportCardFooter', () => {
 
     it('does not render picks when no positions', () => {
       const market = createMockMarket({ status: PredictMarketStatus.OPEN });
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -365,13 +355,7 @@ describe('PredictSportCardFooter', () => {
     it('renders positions when user has open positions', () => {
       const market = createMockMarket({ status: PredictMarketStatus.OPEN });
       const positions = [createMockPosition({ claimable: false })];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ activePositions: positions });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -381,13 +365,7 @@ describe('PredictSportCardFooter', () => {
     it('does not render bet buttons when user has open positions', () => {
       const market = createMockMarket({ status: PredictMarketStatus.OPEN });
       const positions = [createMockPosition({ claimable: false })];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ activePositions: positions });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -401,13 +379,7 @@ describe('PredictSportCardFooter', () => {
         createMockPosition({ id: 'pos-1' }),
         createMockPosition({ id: 'pos-2' }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ activePositions: positions });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -419,13 +391,7 @@ describe('PredictSportCardFooter', () => {
     it('passes showSeparator=true to PredictPicksForCard', () => {
       const market = createMockMarket();
       const positions = [createMockPosition()];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock({ activePositions: positions });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -438,15 +404,12 @@ describe('PredictSportCardFooter', () => {
   describe('claimable positions - resolved market', () => {
     it('renders claim button when positions are claimable', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
-      const positions = [
+      const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
       });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
@@ -456,15 +419,12 @@ describe('PredictSportCardFooter', () => {
 
     it('renders positions with claim button when claimable', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
-      const positions = [
+      const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
       });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
@@ -473,9 +433,9 @@ describe('PredictSportCardFooter', () => {
       expect(screen.getByTestId('footer-action-buttons')).toBeOnTheScreen();
     });
 
-    it('calculates total claimable amount from multiple positions', () => {
+    it('calculates total claimable amount from claimable positions only', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
-      const positions = [
+      const allPositions = [
         createMockPosition({ id: 'pos-1', claimable: true, currentValue: 30 }),
         createMockPosition({ id: 'pos-2', claimable: true, currentValue: 20 }),
         createMockPosition({
@@ -484,12 +444,10 @@ describe('PredictSportCardFooter', () => {
           currentValue: 100,
         }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      const claimablePositions = allPositions.filter((p) => p.claimable);
+      setupPositionsMock({
+        activePositions: allPositions,
+        claimablePositions,
       });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
@@ -499,15 +457,12 @@ describe('PredictSportCardFooter', () => {
 
     it('does not render bet buttons when market is resolved', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
-      const positions = [
+      const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
       });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
@@ -520,13 +475,7 @@ describe('PredictSportCardFooter', () => {
   describe('closed market', () => {
     it('renders nothing when market is closed and no positions', () => {
       const market = createMockMarket({ status: PredictMarketStatus.CLOSED });
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -537,12 +486,9 @@ describe('PredictSportCardFooter', () => {
     it('renders positions when market is closed but has non-claimable positions', () => {
       const market = createMockMarket({ status: PredictMarketStatus.CLOSED });
       const positions = [createMockPosition({ claimable: false })];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      setupPositionsMock({
+        activePositions: positions,
+        claimablePositions: [],
       });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
@@ -555,13 +501,7 @@ describe('PredictSportCardFooter', () => {
   describe('handleBetPress', () => {
     it('navigates to buy preview when bet button is pressed', async () => {
       const market = createMockMarket();
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
       fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
@@ -579,13 +519,7 @@ describe('PredictSportCardFooter', () => {
 
     it('calls navigate with correct params when guarded action succeeds', async () => {
       const market = createMockMarket();
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
       mockExecuteGuardedAction.mockImplementation((callback) => callback());
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
@@ -607,13 +541,7 @@ describe('PredictSportCardFooter', () => {
     it('uses trending entry point when from trending feed', async () => {
       mockIsFromTrending.mockReturnValue(true);
       const market = createMockMarket();
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(
         <PredictSportCardFooter
@@ -637,13 +565,7 @@ describe('PredictSportCardFooter', () => {
     it('uses custom entry point when not from trending', async () => {
       mockIsFromTrending.mockReturnValue(false);
       const market = createMockMarket();
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(
         <PredictSportCardFooter
@@ -668,15 +590,12 @@ describe('PredictSportCardFooter', () => {
   describe('handleClaimPress', () => {
     it('calls claim function when claim button is pressed', async () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
-      const positions = [
+      const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
       });
       mockExecuteGuardedAction.mockImplementation(async (callback) => {
         await callback();
@@ -695,15 +614,12 @@ describe('PredictSportCardFooter', () => {
 
     it('executes claim through guarded action', async () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
-      const positions = [
+      const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
       });
       mockExecuteGuardedAction.mockImplementation(async (callback) => {
         await callback();
@@ -721,13 +637,7 @@ describe('PredictSportCardFooter', () => {
   describe('edge cases', () => {
     it('renders nothing when market has no outcomes', () => {
       const market = createMockMarket({ outcomes: [] });
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
 
@@ -736,19 +646,16 @@ describe('PredictSportCardFooter', () => {
 
     it('handles positions with null currentValue', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
-      const positions = [
+      const claimablePositions = [
         createMockPosition({
           claimable: true,
           currentValue: undefined as unknown as number,
         }),
         createMockPosition({ id: 'pos-2', claimable: true, currentValue: 30 }),
       ];
-      mockUsePredictPositions.mockReturnValue({
-        positions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
+      setupPositionsMock({
+        activePositions: claimablePositions,
+        claimablePositions,
       });
 
       render(<PredictSportCardFooter market={market} testID="footer" />);
@@ -758,13 +665,7 @@ describe('PredictSportCardFooter', () => {
 
     it('renders with default testID when not provided', () => {
       const market = createMockMarket();
-      mockUsePredictPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadPositions: mockLoadPositions,
-      });
+      setupPositionsMock();
 
       render(<PredictSportCardFooter market={market} />);
 
