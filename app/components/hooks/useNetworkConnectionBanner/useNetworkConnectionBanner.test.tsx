@@ -17,7 +17,11 @@ import { selectNetworkConnectionBannerState } from '../../../selectors/networkCo
 import { selectIsDeviceOffline } from '../../../selectors/connectivityController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import Routes from '../../../constants/navigation/Routes';
-import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
+import {
+  isPublicEndpointUrl,
+  getIsMetaMaskInfuraEndpointUrl,
+} from '../../../core/Engine/controllers/network-controller/utils';
+import { ToastContext } from '../../../component-library/components/Toast';
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
@@ -42,6 +46,7 @@ jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
     '../../../core/Engine/controllers/network-controller/utils',
   ),
   isPublicEndpointUrl: jest.fn(),
+  getIsMetaMaskInfuraEndpointUrl: jest.fn(),
 }));
 jest.mock('../../../constants/network', () => ({
   ...jest.requireActual('../../../constants/network'),
@@ -51,6 +56,13 @@ jest.mock('../../../constants/network', () => ({
 const mockStore = configureMockStore();
 const mockNavigation = {
   navigate: jest.fn(),
+};
+
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: {
+    showToast: mockShowToast,
+  },
 };
 
 const mockNetworkConfiguration: NetworkConfiguration = {
@@ -71,6 +83,27 @@ const mockNetworkConfiguration: NetworkConfiguration = {
   defaultRpcEndpointIndex: 0,
   blockExplorerUrls: ['https://etherscan.io'],
   nativeCurrency: 'ETH',
+};
+
+// Network configuration with both custom and Infura endpoints
+const mockNetworkConfigurationWithInfura: NetworkConfiguration = {
+  chainId: '0x89',
+  name: 'Polygon Mainnet',
+  rpcEndpoints: [
+    {
+      url: 'https://polygon-rpc.com',
+      networkClientId: '0x89-custom',
+      type: RpcEndpointType.Custom,
+    },
+    {
+      url: 'https://polygon-mainnet.infura.io/v3/test-infura-project-id',
+      networkClientId: '0x89-infura',
+      type: RpcEndpointType.Custom,
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+  blockExplorerUrls: ['https://polygonscan.com'],
+  nativeCurrency: 'MATIC',
 };
 
 const mockNetworkConfigurationByChainId: Record<Hex, NetworkConfiguration> = {
@@ -117,6 +150,8 @@ const mockNetworkController = {
       return configMap[networkClientId];
     },
   ),
+  getNetworkConfigurationByChainId: jest.fn((chainId: Hex) => mockNetworkConfigurationByChainId[chainId]),
+  updateNetwork: jest.fn().mockResolvedValue(undefined),
 };
 
 const mockEngine = {
@@ -172,6 +207,12 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     jest.mocked(isPublicEndpointUrl).mockReturnValue(true);
+    // By default, only Infura endpoints return true
+    jest
+      .mocked(getIsMetaMaskInfuraEndpointUrl)
+      .mockImplementation((url: string) => url.includes('infura.io'));
+
+    mockShowToast.mockClear();
 
     store = mockStore({
       networkConnectionBanner: {
@@ -195,7 +236,11 @@ describe('useNetworkConnectionBanner', () => {
 
   const renderHookWithProvider = () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <Provider store={store}>{children}</Provider>
+      <Provider store={store}>
+        <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+          {children}
+        </ToastContext.Provider>
+      </Provider>
     );
 
     return renderHook(() => useNetworkConnectionBanner(), {
@@ -222,6 +267,7 @@ describe('useNetworkConnectionBanner', () => {
         result.current.networkConnectionBannerState.chainId,
       ).toBeUndefined();
       expect(typeof result.current.updateRpc).toBe('function');
+      expect(typeof result.current.switchToInfura).toBe('function');
     });
 
     it('should call Engine.lookupEnabledNetworks on mount', () => {
@@ -407,6 +453,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
 
@@ -455,6 +502,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
 
@@ -568,6 +616,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
 
@@ -592,6 +641,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
 
       expect(actions[1]).toStrictEqual({
@@ -601,6 +651,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
 
@@ -700,6 +751,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
 
@@ -730,6 +782,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
 
@@ -774,6 +827,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
       expect(actions[1]).toStrictEqual({
         type: 'SHOW_NETWORK_CONNECTION_BANNER',
@@ -782,6 +836,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
       expect(actions[1].status).toBe('unavailable');
       expect(actions[1].networkName).toBe('Polygon Mainnet');
@@ -1243,6 +1298,257 @@ describe('useNetworkConnectionBanner', () => {
         expect(actions).toContainEqual({
           type: 'HIDE_NETWORK_CONNECTION_BANNER',
         });
+      });
+    });
+  });
+
+  describe('switchToInfura function', () => {
+    it('should do nothing when banner is not visible', async () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      await act(async () => {
+        await result.current.switchToInfura();
+      });
+
+      expect(mockNetworkController.updateNetwork).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing when infuraEndpointIndex is undefined', async () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      await act(async () => {
+        await result.current.switchToInfura();
+      });
+
+      expect(mockNetworkController.updateNetwork).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('should update network and show toast when infuraEndpointIndex is available', async () => {
+      const mockConfigWithInfura = mockNetworkConfigurationWithInfura;
+      mockNetworkController.getNetworkConfigurationByChainId.mockReturnValue(
+        mockConfigWithInfura,
+      );
+
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+        infuraEndpointIndex: 1,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      await act(async () => {
+        await result.current.switchToInfura();
+      });
+
+      expect(mockNetworkController.updateNetwork).toHaveBeenCalledWith(
+        '0x89',
+        {
+          ...mockConfigWithInfura,
+          defaultRpcEndpointIndex: 1,
+        },
+        {
+          replacementSelectedRpcEndpointIndex: 1,
+        },
+      );
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: expect.any(String),
+            },
+          ],
+        }),
+      );
+    });
+
+    it('should track switch to Infura event', async () => {
+      const mockConfigWithInfura = mockNetworkConfigurationWithInfura;
+      mockNetworkController.getNetworkConfigurationByChainId.mockReturnValue(
+        mockConfigWithInfura,
+      );
+
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+        infuraEndpointIndex: 1,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      await act(async () => {
+        await result.current.switchToInfura();
+      });
+
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_INFURA_CLICKED,
+      );
+      expect(stableTrackEvent).toHaveBeenCalled();
+    });
+
+    it('should not show toast when updateNetwork fails', async () => {
+      const mockConfigWithInfura = mockNetworkConfigurationWithInfura;
+      mockNetworkController.getNetworkConfigurationByChainId.mockReturnValue(
+        mockConfigWithInfura,
+      );
+      mockNetworkController.updateNetwork.mockRejectedValueOnce(
+        new Error('Update failed'),
+      );
+
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+        infuraEndpointIndex: 1,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      await act(async () => {
+        await result.current.switchToInfura();
+      });
+
+      expect(mockNetworkController.updateNetwork).toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing when network configuration is not found', async () => {
+      mockNetworkController.getNetworkConfigurationByChainId.mockReturnValue(
+        undefined,
+      );
+
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+        infuraEndpointIndex: 1,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      await act(async () => {
+        await result.current.switchToInfura();
+      });
+
+      expect(mockNetworkController.updateNetwork).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('infuraEndpointIndex detection', () => {
+    it('should include infuraEndpointIndex in banner action when Infura endpoint is available', () => {
+      // Setup network with custom endpoint as default but Infura endpoint available
+      const networkConfigWithInfuraEndpoint: NetworkConfiguration = {
+        chainId: '0x89',
+        name: 'Polygon Mainnet',
+        rpcEndpoints: [
+          {
+            url: 'https://polygon-rpc.com',
+            networkClientId: '0x89-custom',
+            type: RpcEndpointType.Custom,
+          },
+          {
+            url: 'https://polygon-mainnet.infura.io/v3/test-infura-project-id',
+            networkClientId: '0x89-infura',
+            type: RpcEndpointType.Custom,
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+        blockExplorerUrls: ['https://polygonscan.com'],
+        nativeCurrency: 'MATIC',
+      };
+
+      const mockNetworkControllerWithInfura = {
+        ...mockNetworkController,
+        getNetworkConfigurationByNetworkClientId: jest.fn(
+          (networkClientId: string) => {
+            if (networkClientId === NETWORK_CLIENT_ID_89) {
+              return networkConfigWithInfuraEndpoint;
+            }
+            return mockNetworkConfigurationByChainId['0x1'];
+          },
+        ),
+      };
+
+      // @ts-expect-error - Mocking Engine for testing
+      Engine.context = {
+        NetworkController: mockNetworkControllerWithInfura,
+      };
+
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+        infuraEndpointIndex: 1,
+      });
+    });
+
+    it('should not include infuraEndpointIndex when no Infura endpoint is available', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'degraded',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
   });

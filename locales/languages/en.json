@@ -7393,8 +7393,10 @@
     "still_connecting_network": "Still connecting to {{networkName}}...",
     "unable_to_connect_network": "Unable to connect to {{networkName}}.",
     "update_rpc": "Update RPC",
+    "switch_to_infura": "Switch to Infura",
     "check_network_connectivity": "Check your network connectivity.",
-    "check_network_connectivity_or": "Check your network connectivity or"
+    "check_network_connectivity_or": "Check your network connectivity or",
+    "default_switched_to_infura": "Default switched to Infura"
   },
   "trending": {
     "title": "Explore",

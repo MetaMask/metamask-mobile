@@ -51,6 +51,7 @@ describe('networkConnectionBanner actions', () => {
           networkName,
           rpcUrl,
           isInfuraEndpoint,
+          infuraEndpointIndex: undefined,
         });
       },
     );
@@ -81,7 +82,37 @@ describe('networkConnectionBanner actions', () => {
         'networkName',
         'rpcUrl',
         'isInfuraEndpoint',
+        'infuraEndpointIndex',
       ]);
+    });
+
+    it('should include infuraEndpointIndex when provided', () => {
+      const chainId = '0x89';
+      const status: NetworkConnectionBannerStatus = 'degraded';
+      const networkName = 'Polygon Mainnet';
+      const rpcUrl = 'https://polygon-rpc.com';
+      const isInfuraEndpoint = false;
+      const infuraEndpointIndex = 1;
+
+      const action = showNetworkConnectionBanner({
+        chainId,
+        status,
+        networkName,
+        rpcUrl,
+        isInfuraEndpoint,
+        infuraEndpointIndex,
+      });
+
+      expect(action.infuraEndpointIndex).toBe(infuraEndpointIndex);
+      expect(action).toStrictEqual({
+        type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
+        chainId,
+        status,
+        networkName,
+        rpcUrl,
+        isInfuraEndpoint,
+        infuraEndpointIndex,
+      });
     });
   });
 

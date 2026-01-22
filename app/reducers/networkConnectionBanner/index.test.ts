@@ -69,6 +69,7 @@ describe('networkConnectionBanner reducer', () => {
         networkName,
         rpcUrl,
         isInfuraEndpoint: true,
+        infuraEndpointIndex: undefined,
       });
     });
 
@@ -102,6 +103,7 @@ describe('networkConnectionBanner reducer', () => {
         networkName: newNetworkName,
         rpcUrl: newNetworkRpcUrl,
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
   });
@@ -157,6 +159,7 @@ describe('networkConnectionBanner reducer', () => {
         networkName,
         rpcUrl,
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
 
       const afterHide = reducer(afterShow, hideAction);
@@ -211,6 +214,7 @@ describe('networkConnectionBanner reducer', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        infuraEndpointIndex: undefined,
       });
     });
   });

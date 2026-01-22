@@ -512,6 +512,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_INFURA_CLICKED = 'Network Connection Banner Switch To Infura Clicked',
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
@@ -1367,6 +1368,9 @@ const events = {
   ),
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
+  ),
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_INFURA_CLICKED: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_SWITCH_TO_INFURA_CLICKED,
   ),
   NetworkConnectionBannerRpcUpdated: generateOpt(
     EVENT_NAME.NetworkConnectionBannerRpcUpdated,
