@@ -51,9 +51,9 @@ describe('ProviderRouter', () => {
       expect(result).toBe('hyperliquid');
     });
 
-    it('should support custom provider types', () => {
-      const result = router.selectProvider({ providerId: 'custom-provider' });
-      expect(result).toBe('custom-provider');
+    it('should use specified provider when provided', () => {
+      const result = router.selectProvider({ providerId: 'myx' });
+      expect(result).toBe('myx');
     });
   });
 
@@ -147,6 +147,7 @@ describe('ProviderRouter', () => {
     });
 
     it('should return false for unknown provider', () => {
+      // @ts-expect-error Testing error handling with invalid provider type
       expect(router.providerSupportsMarket('unknown', 'BTC')).toBe(false);
     });
   });

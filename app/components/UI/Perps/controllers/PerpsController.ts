@@ -103,6 +103,8 @@ import {
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
   type IPerpsPlatformDependencies,
   type IPerpsLogger,
+  type PerpsActiveProviderMode,
+  type PerpsProviderType,
 } from './types';
 
 /** Derived type for logger options from IPerpsLogger interface */
@@ -133,7 +135,7 @@ export enum InitializationState {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsControllerState = {
   // Active provider
-  activeProvider: string;
+  activeProvider: PerpsActiveProviderMode;
   isTestnet: boolean; // Dev toggle for testnet
 
   // Initialization state machine
@@ -677,7 +679,7 @@ export class PerpsController extends BaseController<
   PerpsControllerState,
   PerpsControllerMessenger
 > {
-  protected providers: Map<string, IPerpsProvider>;
+  protected providers: Map<PerpsProviderType, IPerpsProvider>;
   protected isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
@@ -1870,7 +1872,12 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if market exists) without full perps setup
     if (params?.readOnly) {
       // Try to get existing provider, or create a temporary one for readOnly queries
-      let provider = this.providers.get(this.state.activeProvider);
+      // Note: 'aggregated' mode uses activeProviderInstance directly, not the providers map
+      const { activeProvider } = this.state;
+      let provider =
+        activeProvider !== 'aggregated'
+          ? this.providers.get(activeProvider)
+          : undefined;
       // Create a temporary provider instance for readOnly queries
       // The readOnly path in provider creates a standalone InfoClient without full init
       provider ??= new HyperLiquidProvider({
@@ -2086,8 +2093,14 @@ export class PerpsController extends BaseController<
   /**
    * Switch to a different provider
    */
-  async switchProvider(providerId: string): Promise<SwitchProviderResult> {
-    if (!this.providers.has(providerId)) {
+  async switchProvider(
+    providerId: PerpsActiveProviderMode,
+  ): Promise<SwitchProviderResult> {
+    // 'aggregated' is always valid, individual providers must exist in the map
+    const isValidProvider =
+      providerId === 'aggregated' || this.providers.has(providerId);
+
+    if (!isValidProvider) {
       return {
         success: false,
         providerId: this.state.activeProvider,

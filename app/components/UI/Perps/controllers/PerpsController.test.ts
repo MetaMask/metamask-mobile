@@ -17,7 +17,11 @@ import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
-import type { IPerpsProvider, IPerpsPlatformDependencies } from './types';
+import type {
+  IPerpsProvider,
+  IPerpsPlatformDependencies,
+  PerpsProviderType,
+} from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
 import { createMockInfrastructure } from '../__mocks__/serviceMocks';
@@ -282,7 +286,7 @@ class TestablePerpsController extends PerpsController {
    * Used in most tests to inject mock providers.
    * Also sets activeProviderInstance to the first provider (default provider).
    */
-  public testSetProviders(providers: Map<string, IPerpsProvider>) {
+  public testSetProviders(providers: Map<PerpsProviderType, IPerpsProvider>) {
     this.providers = providers;
     // Set activeProviderInstance to the first provider (typically 'hyperliquid')
     const firstProvider = providers.values().next().value;
@@ -297,16 +301,16 @@ class TestablePerpsController extends PerpsController {
    * Type cast is intentional and necessary for testing graceful degradation.
    */
   public testSetPartialProviders(
-    providers: Map<string, Partial<IPerpsProvider>>,
+    providers: Map<PerpsProviderType, Partial<IPerpsProvider>>,
   ) {
-    this.providers = providers as Map<string, IPerpsProvider>;
+    this.providers = providers as Map<PerpsProviderType, IPerpsProvider>;
   }
 
   /**
    * Test-only method to get the providers map.
    * Used to verify provider state in tests.
    */
-  public testGetProviders(): Map<string, IPerpsProvider> {
+  public testGetProviders(): Map<PerpsProviderType, IPerpsProvider> {
     return this.providers;
   }
 
@@ -478,7 +482,7 @@ describe('PerpsController', () => {
   describe('constructor', () => {
     it('initializes with default state', () => {
       // Constructor no longer auto-starts initialization (moved to Engine.ts)
-      expect(controller.state.activeProvider).toBe('hyperliquid');
+      expect(controller.state.activeProvider).toBe('aggregated');
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
       expect(controller.state.initializationError).toBeNull();

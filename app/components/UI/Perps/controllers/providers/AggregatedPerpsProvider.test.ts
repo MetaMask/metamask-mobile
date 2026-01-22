@@ -336,6 +336,7 @@ describe('AggregatedPerpsProvider', () => {
         isBuy: true,
         size: '0.1',
         orderType: 'market',
+        // @ts-expect-error Testing fallback behavior with invalid provider
         providerId: 'unknown-provider',
       });
 
@@ -457,11 +458,13 @@ describe('AggregatedPerpsProvider', () => {
 
   describe('Provider Management', () => {
     it('should add new provider', () => {
-      const newProvider = createMockProvider('new-provider');
-      aggregatedProvider.addProvider('new-provider', newProvider);
+      // Using 'myx' as an existing valid provider type for this test
+      // (simulating adding a duplicate or re-adding after removal)
+      const newProvider = createMockProvider('myx');
+      aggregatedProvider.addProvider('myx', newProvider);
 
-      expect(aggregatedProvider.hasProvider('new-provider')).toBe(true);
-      expect(aggregatedProvider.getProviderIds()).toContain('new-provider');
+      expect(aggregatedProvider.hasProvider('myx')).toBe(true);
+      expect(aggregatedProvider.getProviderIds()).toContain('myx');
     });
 
     it('should remove provider', () => {
@@ -472,6 +475,7 @@ describe('AggregatedPerpsProvider', () => {
     });
 
     it('should return false when removing non-existent provider', () => {
+      // @ts-expect-error Testing error handling with invalid provider type
       const removed = aggregatedProvider.removeProvider('non-existent');
 
       expect(removed).toBe(false);

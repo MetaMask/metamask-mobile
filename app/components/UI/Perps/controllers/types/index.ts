@@ -142,7 +142,7 @@ export type OrderParams = {
   trackingData?: TrackingData;
 
   // Multi-provider routing (optional: defaults to active/default provider)
-  providerId?: string; // Optional: override active provider for routing
+  providerId?: PerpsProviderType; // Optional: override active provider for routing
 };
 
 export type OrderResult = {
@@ -151,7 +151,7 @@ export type OrderResult = {
   error?: string;
   filledSize?: string; // Amount filled
   averagePrice?: string; // Average execution price
-  providerId?: string; // Multi-provider: which provider executed this order (injected by aggregator)
+  providerId?: PerpsProviderType; // Multi-provider: which provider executed this order (injected by aggregator)
 };
 
 export type Position = {
@@ -179,7 +179,7 @@ export type Position = {
   stopLossPrice?: string; // Stop loss price (if set)
   takeProfitCount: number; // Take profit count, how many tps can affect the position
   stopLossCount: number; // Stop loss count, how many sls can affect the position
-  providerId?: string; // Multi-provider: which provider holds this position (injected by aggregator)
+  providerId?: PerpsProviderType; // Multi-provider: which provider holds this position (injected by aggregator)
 };
 
 // Using 'type' instead of 'interface' for BaseController Json compatibility
@@ -208,7 +208,7 @@ export type AccountState = {
       totalBalance: string;
     }
   >;
-  providerId?: string; // Multi-provider: which provider this account state is from (injected by aggregator)
+  providerId?: PerpsProviderType; // Multi-provider: which provider this account state is from (injected by aggregator)
 };
 
 export type ClosePositionParams = {
@@ -227,7 +227,7 @@ export type ClosePositionParams = {
   trackingData?: TrackingData;
 
   // Multi-provider routing (optional: defaults to active/default provider)
-  providerId?: string; // Optional: override active provider for routing
+  providerId?: PerpsProviderType; // Optional: override active provider for routing
 };
 
 export type ClosePositionsParams = {
@@ -249,7 +249,7 @@ export type ClosePositionsResult = {
 export type UpdateMarginParams = {
   symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   amount: string; // Amount to adjust as string (positive = add, negative = remove)
-  providerId?: string; // Multi-provider: optional provider override for routing
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
 };
 
 export type MarginResult = {
@@ -288,7 +288,7 @@ export interface MarketInfo {
   onlyIsolated?: true; // HyperLiquid: isolated margin only (optional, only when true)
   isDelisted?: true; // HyperLiquid: delisted status (optional, only when true)
   minimumOrderSize?: number; // Minimum order size in USD (protocol-specific)
-  providerId?: string; // Multi-provider: which provider this market comes from (injected by aggregator)
+  providerId?: PerpsProviderType; // Multi-provider: which provider this market comes from (injected by aggregator)
 }
 
 /**
@@ -381,21 +381,21 @@ export interface AssetRoute {
 
 export interface SwitchProviderResult {
   success: boolean;
-  providerId: string;
+  providerId: PerpsActiveProviderMode;
   error?: string;
 }
 
 export interface CancelOrderParams {
   orderId: string; // Order ID to cancel
   symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
-  providerId?: string; // Multi-provider: optional provider override for routing
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
 }
 
 export interface CancelOrderResult {
   success: boolean;
   orderId?: string; // Cancelled order ID
   error?: string;
-  providerId?: string; // Multi-provider: source provider identifier
+  providerId?: PerpsProviderType; // Multi-provider: source provider identifier
 }
 
 export type BatchCancelOrdersParams = {
@@ -468,7 +468,7 @@ export interface WithdrawParams {
   amount: string; // Amount to withdraw
   destination?: Hex; // Destination address (optional, defaults to current account)
   assetId?: CaipAssetId; // Asset to withdraw (defaults to USDC)
-  providerId?: string; // Multi-provider: optional provider override for routing
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
 }
 
 export interface WithdrawResult {
@@ -550,7 +550,7 @@ export interface PriceUpdate {
   funding?: number; // Current funding rate
   openInterest?: number; // Open interest in USD
   volume24h?: number; // 24h trading volume in USD
-  providerId?: string; // Multi-provider: price source (injected by aggregator)
+  providerId?: PerpsProviderType; // Multi-provider: price source (injected by aggregator)
 }
 
 export interface OrderFill {
@@ -573,7 +573,7 @@ export interface OrderFill {
   };
   orderType?: 'take_profit' | 'stop_loss' | 'liquidation' | 'regular';
   detailedOrderType?: string; // Original order type from exchange
-  providerId?: string; // Multi-provider: which provider this fill occurred on (injected by aggregator)
+  providerId?: PerpsProviderType; // Multi-provider: which provider this fill occurred on (injected by aggregator)
 }
 
 // Parameter interfaces - all fully optional for better UX
@@ -776,7 +776,7 @@ export interface UpdatePositionTPSLParams {
   stopLossPrice?: string; // Optional: undefined to remove
   // Optional tracking data for MetaMetrics events
   trackingData?: TPSLTrackingData;
-  providerId?: string; // Multi-provider: optional provider override for routing
+  providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
 }
 
 export interface Order {
@@ -801,7 +801,7 @@ export interface Order {
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
   triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
-  providerId?: string; // Multi-provider: which provider this order is on (injected by aggregator)
+  providerId?: PerpsProviderType; // Multi-provider: which provider this order is on (injected by aggregator)
 }
 
 export interface Funding {
@@ -952,9 +952,16 @@ export interface IPerpsProvider {
 
 /**
  * Provider identifier type for multi-provider support.
- * Extensible to support future providers beyond HyperLiquid and MYX.
+ * Add new providers here as they are implemented.
  */
-export type PerpsProviderType = 'hyperliquid' | 'myx' | string;
+export type PerpsProviderType = 'hyperliquid' | 'myx';
+
+/**
+ * Active provider mode for PerpsController state.
+ * - Direct providers: 'hyperliquid', 'myx'
+ * - 'aggregated': Multi-provider aggregation mode
+ */
+export type PerpsActiveProviderMode = PerpsProviderType | 'aggregated';
 
 /**
  * Aggregation mode for read operations.
