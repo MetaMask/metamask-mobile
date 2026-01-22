@@ -832,7 +832,7 @@ describe('PhysicalAddress Component', () => {
             index: 0,
             routes: [
               {
-                name: Routes.CARD.SPENDING_LIMIT,
+                name: Routes.CARD.CHOOSE_YOUR_CARD,
                 params: { flow: 'onboarding' },
               },
             ],
@@ -1125,7 +1125,7 @@ describe('PhysicalAddress Component', () => {
             index: 0,
             routes: [
               {
-                name: Routes.CARD.SPENDING_LIMIT,
+                name: Routes.CARD.CHOOSE_YOUR_CARD,
                 params: { flow: 'onboarding' },
               },
             ],

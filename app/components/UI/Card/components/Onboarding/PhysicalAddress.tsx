@@ -544,6 +544,7 @@ const PhysicalAddress = () => {
               if (location === 'us') {
                 stopPollingAndNavigate({
                   name: Routes.CARD.CHOOSE_YOUR_CARD,
+                  params: { flow: 'onboarding' },
                 });
               } else {
                 stopPollingAndNavigate({
