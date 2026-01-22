@@ -1,6 +1,9 @@
 import { type FullConfig } from '@playwright/test';
 import { WebDriverConfig } from '../types';
 import { createServiceProvider } from '../services';
+import { createLogger } from '../logger';
+
+const logger = createLogger({ name: 'GlobalSetup' });
 
 /**
  * Parse project names from command line arguments
@@ -27,14 +30,14 @@ function parseProjectNames(): string[] {
  * Helper to display available projects in a readable format
  */
 function displayAvailableProjects(config: FullConfig<WebDriverConfig>): void {
-  console.log('\n📋 Available projects:');
+  logger.info('\n📋 Available projects:');
   config.projects.forEach((project) => {
     const provider = project.use?.device?.provider || 'unknown';
     const platform = project.use?.platform || 'unknown';
     const device = project.use?.device?.name || 'unknown';
-    console.log(`  • ${project.name} (${provider}/${platform} - ${device})`);
+    logger.info(`  • ${project.name} (${provider}/${platform} - ${device})`);
   });
-  console.log('');
+  logger.info('');
 }
 
 /**
@@ -50,7 +53,7 @@ function validateProjects(
   );
 
   if (missingProjects.length > 0) {
-    console.error(`\n❌ Project(s) not found: ${missingProjects.join(', ')}\n`);
+    logger.error(`\n❌ Project(s) not found: ${missingProjects.join(', ')}\n`);
     displayAvailableProjects(config);
     throw new Error(
       `Invalid project name(s). Use one of the projects listed above.`,
@@ -66,7 +69,7 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
   const requestedProjects = parseProjectNames();
 
   if (requestedProjects.length === 0) {
-    console.error('\n❌ Error: --project flag is required\n');
+    logger.error('\n❌ Error: --project flag is required\n');
     displayAvailableProjects(config);
     throw new Error(
       'Please specify a project name with --project flag. Example: yarn playwright test --project dummy-test-local',
@@ -81,7 +84,7 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
     requestedProjects.includes(project.name),
   );
 
-  console.log(`\n🚀 Setting up project(s): ${requestedProjects.join(', ')}\n`);
+  logger.info(`\n🚀 Setting up project(s): ${requestedProjects.join(', ')}\n`);
 
   // Setup all requested projects in parallel (with proper error handling)
   await Promise.all(
@@ -89,9 +92,9 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
       try {
         const provider = createServiceProvider(project);
         await provider.globalSetup?.();
-        console.log(`✅ Setup complete for: ${project.name}`);
+        logger.info(`✅ Setup complete for: ${project.name}`);
       } catch (error) {
-        console.error(`❌ Setup failed for: ${project.name}`);
+        logger.error(`❌ Setup failed for: ${project.name}`);
         throw new Error(
           `Failed to setup project "${project.name}": ${error instanceof Error ? error.message : String(error)}`,
         );
@@ -99,7 +102,7 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
     }),
   );
 
-  console.log('\n✨ All projects ready!\n');
+  logger.info('✨ All projects ready!\n');
 }
 
 export default globalSetup;
