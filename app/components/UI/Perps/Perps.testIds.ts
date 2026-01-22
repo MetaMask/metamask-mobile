@@ -384,6 +384,16 @@ export const PerpsTestnetToggleSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PROVIDER TOGGLE SELECTORS
+// ========================================
+
+export const PerpsProviderToggleSelectorsIDs = {
+  ROOT: 'perps-provider-toggle-root',
+  SWITCH: 'perps-provider-toggle-switch',
+  LOADING_INDICATOR: 'perps-provider-toggle-loading-indicator',
+};
+
+// ========================================
 // PERPS TRANSACTION SELECTORS
 // ========================================
 
