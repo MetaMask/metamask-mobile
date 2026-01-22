@@ -64,6 +64,7 @@ describe('bridge slice', () => {
         slippage: '0.5',
         isSubmittingTx: false,
         isSelectingRecipient: false,
+        isSelectingToken: false,
         isMaxSourceAmount: false,
         isDestTokenManuallySet: false,
       });

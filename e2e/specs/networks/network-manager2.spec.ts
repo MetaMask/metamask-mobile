@@ -1,11 +1,11 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import NetworkManager from '../../pages/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import Assertions from '../../framework/Assertions';
-import { DappVariants } from '../../framework/Constants';
+import Assertions from '../../../tests/framework/Assertions';
+import { DappVariants } from '../../../tests/framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';

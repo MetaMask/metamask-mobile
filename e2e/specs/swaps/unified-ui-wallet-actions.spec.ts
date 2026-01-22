@@ -3,11 +3,11 @@ import { Mockttp } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import TestHelpers from '../../helpers.js';
 
 describe(SmokeTrade('Trade: Unified UI Wallet Actions'), () => {

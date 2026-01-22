@@ -11,6 +11,10 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
+import {
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+} from '../../../../selectors/networkEnablementController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -57,6 +61,7 @@ export interface BridgeState {
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
+  isSelectingToken: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
   /**
@@ -80,6 +85,7 @@ export const initialState: BridgeState = {
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
   isSelectingRecipient: false,
+  isSelectingToken: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
@@ -158,6 +164,9 @@ const slice = createSlice({
     },
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
+    },
+    setIsSelectingToken: (state, action: PayloadAction<boolean>) => {
+      state.isSelectingToken = action.payload;
     },
     setIsGasIncludedSTXSendBundleSupported: (
       state,
@@ -268,6 +277,43 @@ export const selectBridgeFeatureFlags = createSelector(
       remoteFeatureFlags: {
         bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
       },
+    });
+  },
+);
+
+/**
+ * Selector that returns the chainRanking from feature flags filtered by user-enabled networks.
+ * Used by NetworkPills to only show networks the user has enabled.
+ */
+export const selectEnabledChainRanking = createSelector(
+  selectBridgeFeatureFlags,
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+  (bridgeFeatureFlags, evmEnabledNetworks, nonEvmEnabledNetworks) => {
+    const { chainRanking } = bridgeFeatureFlags;
+
+    const enabledChainIds = new Set([
+      ...evmEnabledNetworks,
+      ...nonEvmEnabledNetworks,
+    ]);
+
+    if (!chainRanking) {
+      return [];
+    }
+
+    return chainRanking.filter((chain) => {
+      const { chainId } = chain;
+
+      // For EVM chains (eip155:*), extract the hex chain ID and check if enabled
+      if (chainId.startsWith('eip155:')) {
+        const decimalChainId = chainId.split(':')[1];
+        const hexChainId =
+          `0x${parseInt(decimalChainId, 10).toString(16)}` as Hex;
+        return enabledChainIds.has(hexChainId);
+      }
+
+      // For non-EVM chains, check directly against the CAIP chain ID
+      return enabledChainIds.has(chainId);
     });
   },
 );
@@ -550,6 +596,11 @@ export const selectIsSelectingRecipient = createSelector(
   (bridgeState) => bridgeState.isSelectingRecipient,
 );
 
+export const selectIsSelectingToken = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSelectingToken,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -652,6 +703,7 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
+  setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
 } = actions;

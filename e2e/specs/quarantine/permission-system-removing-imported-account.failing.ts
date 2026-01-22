@@ -18,7 +18,7 @@ import {
   navigateToBrowserView,
 } from '../../viewHelper';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
 const SEPOLIA = 'Sepolia';
