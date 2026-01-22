@@ -312,6 +312,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     isPerpsEnabled ? asset.symbol : null,
   );
 
+  // Check if token is trustworthy based on aggregators (listed on multiple exchanges)
+  // Native tokens (ETH, BNB, etc.) are always trusted
+  // For other tokens, require at least 2 aggregators as a legitimacy signal
+  const MIN_AGGREGATORS_FOR_TRUST = 2;
+  const isNativeToken = asset.isNative || asset.isETH;
+  const hasEnoughAggregators =
+    (asset.aggregators?.length ?? 0) >= MIN_AGGREGATORS_FOR_TRUST;
+  const isTokenTrustworthy = isNativeToken || hasEnoughAggregators;
+
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
@@ -857,21 +866,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               <MerklRewards asset={asset} />
             </View>
           )}
-          {isPerpsEnabled && hasPerpsMarket && marketData && (
-            <>
-              <View style={styles.perpsPositionHeader}>
-                <DSText variant={TextVariant.HeadingMD}>
-                  {strings('asset_overview.perps_position')}
-                </DSText>
-              </View>
-              <PerpsDiscoveryBanner
-                symbol={marketData.symbol}
-                maxLeverage={marketData.maxLeverage}
-                onPress={handlePerpsDiscoveryPress}
-                testID="perps-discovery-banner"
-              />
-            </>
-          )}
+          {isPerpsEnabled &&
+            hasPerpsMarket &&
+            marketData &&
+            isTokenTrustworthy && (
+              <>
+                <View style={styles.perpsPositionHeader}>
+                  <DSText variant={TextVariant.HeadingMD}>
+                    {strings('asset_overview.perps_position')}
+                  </DSText>
+                </View>
+                <PerpsDiscoveryBanner
+                  symbol={marketData.symbol}
+                  maxLeverage={marketData.maxLeverage}
+                  onPress={handlePerpsDiscoveryPress}
+                  testID="perps-discovery-banner"
+                />
+              </>
+            )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>

@@ -207,6 +207,13 @@ const AssetDetails = (props: InnerProps) => {
     isPerpsEnabled ? symbol : null,
   );
 
+  // Check if token is trustworthy based on aggregators (listed on multiple exchanges)
+  // Native tokens are always trusted, for others require at least 2 aggregators
+  const MIN_AGGREGATORS_FOR_TRUST = 2;
+  const isNativeToken = asset?.isNative || asset?.isETH;
+  const hasEnoughAggregators = aggregators.length >= MIN_AGGREGATORS_FOR_TRUST;
+  const isTokenTrustworthy = isNativeToken || hasEnoughAggregators;
+
   // Handler for perps discovery banner press
   // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -461,18 +468,21 @@ const AssetDetails = (props: InnerProps) => {
         {renderTokenSymbol()}
         {renderSectionTitle(strings('asset_details.amount'))}
         {renderTokenBalance()}
-        {/* Perps Discovery Banner - show when perps market exists for this asset */}
-        {isPerpsEnabled && hasPerpsMarket && marketData && (
-          <>
-            {renderSectionTitle(strings('asset_details.perps_trading'))}
-            <PerpsDiscoveryBanner
-              symbol={marketData.symbol}
-              maxLeverage={marketData.maxLeverage}
-              onPress={handlePerpsDiscoveryPress}
-              testID="perps-discovery-banner"
-            />
-          </>
-        )}
+        {/* Perps Discovery Banner - show when perps market exists and token is trustworthy */}
+        {isPerpsEnabled &&
+          hasPerpsMarket &&
+          marketData &&
+          isTokenTrustworthy && (
+            <>
+              {renderSectionTitle(strings('asset_details.perps_trading'))}
+              <PerpsDiscoveryBanner
+                symbol={marketData.symbol}
+                maxLeverage={marketData.maxLeverage}
+                onPress={handlePerpsDiscoveryPress}
+                testID="perps-discovery-banner"
+              />
+            </>
+          )}
         {renderSectionTitle(strings('asset_details.address'))}
         {renderTokenAddressLink()}
         {renderSectionTitle(strings('asset_details.decimal'))}
