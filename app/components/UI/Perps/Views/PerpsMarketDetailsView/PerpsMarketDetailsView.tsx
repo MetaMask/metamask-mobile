@@ -353,7 +353,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     hasHistoricalData,
     fetchMoreHistory,
   } = usePerpsLiveCandles({
-    coin: market?.symbol || '',
+    symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
     duration: TimeDuration.YEAR_TO_DATE,
     throttleMs: 1000,
@@ -407,7 +407,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Find the most recent "Open" fill for this asset
     const openFill = orderFills
       .filter((fill) => {
-        const isMatchingAsset = fill.symbol === existingPosition.coin;
+        const isMatchingAsset = fill.symbol === existingPosition.symbol;
         const isOpenDirection = fill.direction?.startsWith('Open');
         return isMatchingAsset && isOpenDirection;
       })
@@ -455,7 +455,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Reset stop loss success state when market or position changes
   useEffect(() => {
     setIsStopLossSuccess(false);
-  }, [market?.symbol, existingPosition?.coin]);
+  }, [market?.symbol, existingPosition?.symbol]);
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
@@ -719,7 +719,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!existingPosition) return;
 
     navigation.navigate(Routes.PERPS.TPSL, {
-      asset: existingPosition.coin,
+      asset: existingPosition.symbol,
       currentPrice,
       position: existingPosition,
       initialTakeProfitPrice: existingPosition.takeProfitPrice,
@@ -807,7 +807,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PerpsEventProperties.INTERACTION_TYPE]:
         PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN,
-      [PerpsEventProperties.ASSET]: existingPosition.coin,
+      [PerpsEventProperties.ASSET]: existingPosition.symbol,
       [PerpsEventProperties.SOURCE]:
         PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
     });
@@ -842,7 +842,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
           PerpsEventValues.INTERACTION_TYPE.STOP_LOSS_ONE_CLICK_PROMPT,
-        [PerpsEventProperties.ASSET]: existingPosition.coin,
+        [PerpsEventProperties.ASSET]: existingPosition.symbol,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
         [PerpsEventProperties.STOP_LOSS_PRICE]: suggestedStopLossPrice,

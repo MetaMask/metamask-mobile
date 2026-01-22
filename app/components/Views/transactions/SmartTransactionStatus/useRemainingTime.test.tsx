@@ -2,15 +2,18 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
+import { Hex } from '@metamask/utils';
 import useRemainingTime, {
   FALLBACK_STX_ESTIMATED_DEADLINE_SEC,
   FALLBACK_STX_MAX_DEADLINE_SEC,
 } from './useRemainingTime';
 
 // Mock the selector to return undefined (use fallbacks)
-jest.mock('../../../../reducers/swaps', () => ({
-  selectSwapsChainFeatureFlags: jest.fn(() => undefined),
+jest.mock('../../../../selectors/smartTransactionsController', () => ({
+  getSmartTransactionsFeatureFlagsForChain: jest.fn(() => undefined),
 }));
+
+const MOCK_CHAIN_ID = '0x1' as Hex;
 
 const createWrapper = () => {
   const mockStore = configureStore([]);
@@ -37,6 +40,7 @@ describe('useRemainingTime', () => {
         useRemainingTime({
           creationTime: Date.now(),
           isStxPending: false,
+          chainId: MOCK_CHAIN_ID,
         }),
       { wrapper: createWrapper() },
     );
@@ -59,6 +63,7 @@ describe('useRemainingTime', () => {
         useRemainingTime({
           creationTime,
           isStxPending: true,
+          chainId: MOCK_CHAIN_ID,
         }),
       { wrapper: createWrapper() },
     );
@@ -75,6 +80,7 @@ describe('useRemainingTime', () => {
         useRemainingTime({
           creationTime: Date.now() - 5000,
           isStxPending: props.isStxPending,
+          chainId: MOCK_CHAIN_ID,
         }),
       {
         // @ts-expect-error - TypeScript limitation with renderHook wrapper types
@@ -102,6 +108,7 @@ describe('useRemainingTime', () => {
         useRemainingTime({
           creationTime,
           isStxPending: true,
+          chainId: MOCK_CHAIN_ID,
         }),
       { wrapper: createWrapper() },
     );
@@ -126,6 +133,7 @@ describe('useRemainingTime', () => {
         useRemainingTime({
           creationTime,
           isStxPending: true,
+          chainId: MOCK_CHAIN_ID,
         }),
       { wrapper: createWrapper() },
     );
@@ -149,6 +157,7 @@ describe('useRemainingTime', () => {
         useRemainingTime({
           creationTime,
           isStxPending: true,
+          chainId: MOCK_CHAIN_ID,
         }),
       { wrapper: createWrapper() },
     );
@@ -178,6 +187,7 @@ describe('useRemainingTime', () => {
         useRemainingTime({
           creationTime,
           isStxPending: true,
+          chainId: MOCK_CHAIN_ID,
         }),
       { wrapper: createWrapper() },
     );

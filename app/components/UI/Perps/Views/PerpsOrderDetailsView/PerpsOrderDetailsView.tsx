@@ -127,7 +127,7 @@ const PerpsOrderDetailsView: React.FC = () => {
     try {
       const result = await cancelOrder({
         orderId: order.orderId,
-        coin: order.symbol,
+        symbol: order.symbol,
       });
 
       // Show success/failure toast

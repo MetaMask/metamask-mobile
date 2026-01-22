@@ -46,10 +46,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
       'perps.sort.volume': 'Volume',
-      'perps.sort.price_change_high_to_low': 'Price Change (High to Low)',
-      'perps.sort.price_change_low_to_high': 'Price Change (Low to High)',
-      'perps.sort.funding_rate': 'Funding Rate',
-      'perps.sort.open_interest': 'Open Interest',
+      'perps.sort.price_change': 'Price change',
+      'perps.sort.funding_rate': 'Funding rate',
+      'perps.sort.open_interest': 'Open interest',
     };
     return translations[key] || key;
   },
@@ -121,15 +120,15 @@ describe('PerpsMarketSortDropdowns', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays price change label when selectedOptionId is priceChange-desc', () => {
+    it('displays price change label when selectedOptionId is priceChange', () => {
       render(
         <PerpsMarketSortDropdowns
-          selectedOptionId="priceChange-desc"
+          selectedOptionId="priceChange"
           onSortPress={mockOnSortPress}
         />,
       );
 
-      expect(screen.getByText('Price Change (High to Low)')).toBeOnTheScreen();
+      expect(screen.getByText('Price change')).toBeOnTheScreen();
     });
 
     it('displays funding rate label when selectedOptionId is fundingRate', () => {
@@ -140,7 +139,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Funding Rate')).toBeOnTheScreen();
+      expect(screen.getByText('Funding rate')).toBeOnTheScreen();
     });
   });
 
@@ -195,12 +194,12 @@ describe('PerpsMarketSortDropdowns', () => {
 
       rerender(
         <PerpsMarketSortDropdowns
-          selectedOptionId="priceChange-desc"
+          selectedOptionId="priceChange"
           onSortPress={newOnSortPress}
         />,
       );
 
-      expect(screen.getByText('Price Change (High to Low)')).toBeOnTheScreen();
+      expect(screen.getByText('Price change')).toBeOnTheScreen();
 
       const sortButton = screen.getByTestId(
         'perps-market-sort-dropdowns-sort-field',
@@ -216,7 +215,7 @@ describe('PerpsMarketSortDropdowns', () => {
     it('handles all sort option values', () => {
       const sortOptions: SortOptionId[] = [
         'volume',
-        'priceChange-desc',
+        'priceChange',
         'fundingRate',
       ];
 
@@ -261,7 +260,7 @@ describe('PerpsMarketSortDropdowns', () => {
 
       rerender(
         <PerpsMarketSortDropdowns
-          selectedOptionId="priceChange-desc"
+          selectedOptionId="priceChange"
           onSortPress={mockOnSortPress}
         />,
       );

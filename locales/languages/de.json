@@ -2521,6 +2521,7 @@
     "billion_abbreviation": "Mrd.",
     "trillion_abbreviation": "Trill.",
     "million_abbreviation": "Mio.",
+    "thousand_abbreviation": "Tsd.",
     "token_details": "Token-Details",
     "contract_address": "Contract-Adresse",
     "token_list": "Token-Liste",

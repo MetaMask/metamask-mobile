@@ -1,34 +1,35 @@
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Text,
-  TextVariant,
-  TextColor,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
-import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
-import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
-import PredictSportTeamGradient from '../PredictSportTeamGradient';
-import PredictSportScoreboard from '../PredictSportScoreboard';
-import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
+import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import PredictSportScoreboard from '../PredictSportScoreboard';
+import PredictSportTeamGradient from '../PredictSportTeamGradient';
+import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
+import { useTheme } from '../../../../../util/theme';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -67,7 +68,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       style={tw.style('flex-1 bg-default')}
       testID="game-details-gradient"
     >
-      <SafeAreaView style={tw.style('flex-1')} edges={['left', 'right']}>
+      <SafeAreaView
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+        style={tw.style('flex-1')}
+        edges={['left', 'right']}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}

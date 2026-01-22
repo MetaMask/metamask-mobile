@@ -134,7 +134,7 @@ const ChartTooltip: React.FC<ChartTooltipProps> = ({
               fontSize={FONT_SIZE_LABEL}
               fontWeight="500"
             >
-              {pos.label}
+              {pos.label.toUpperCase()}
             </SvgText>
             <SvgText
               x={labelStartX}

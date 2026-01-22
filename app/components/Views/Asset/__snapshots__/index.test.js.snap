@@ -88,7 +88,7 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -333,7 +333,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -578,7 +578,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -823,7 +823,7 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -1068,7 +1068,7 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -1313,7 +1313,7 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -1869,7 +1869,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -2193,6 +2193,7 @@ exports[`Asset Multichain Functionality renders empty state when no multichain t
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -3325,7 +3326,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -3649,6 +3650,7 @@ exports[`Asset Multichain Functionality returns empty list for unknown SPL token
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -4850,7 +4852,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -5174,6 +5176,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -6306,7 +6309,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -6630,6 +6633,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -7762,7 +7766,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -8086,6 +8090,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -9287,7 +9292,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -9611,6 +9616,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -10743,7 +10749,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -11309,7 +11315,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -11633,6 +11639,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -12765,7 +12772,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -13089,6 +13096,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             "flex": 1,
                                           }
                                         }
+                                        testID="price-chart-area"
                                       >
                                         <View
                                           style={
@@ -14221,7 +14229,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                                 },
                               ]
                             }
-                            testID="button-icon"
+                            testID="back-arrow-button"
                           >
                             <SvgMock
                               fill="currentColor"
@@ -14476,7 +14484,7 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -14721,7 +14729,7 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
@@ -14966,7 +14974,7 @@ exports[`Asset should render correctly 1`] = `
             },
           ]
         }
-        testID="button-icon"
+        testID="back-arrow-button"
       >
         <SvgMock
           fill="currentColor"
