@@ -17,10 +17,16 @@ import {
 import { executeTool } from '../../ai-tools/tool-executor';
 import { LLM_CONFIG } from '../../config';
 
-export class SkillExecutor<TInput = void, TOutput = unknown> {
-  private skill: Skill<TInput, TOutput>;
+/**
+ * Executes skills using an agentic loop pattern with LLM-driven tool usage.
+ *
+ * @template SkillInput - The input type expected by the skill (defaults to void)
+ * @template SkillOutput - The output type returned by the skill (defaults to unknown)
+ */
+export class SkillExecutor<SkillInput = void, SkillOutput = unknown> {
+  private skill: Skill<SkillInput, SkillOutput>;
 
-  constructor(skill: Skill<TInput, TOutput>) {
+  constructor(skill: Skill<SkillInput, SkillOutput>) {
     this.skill = skill;
   }
 
@@ -30,8 +36,8 @@ export class SkillExecutor<TInput = void, TOutput = unknown> {
   async execute(
     provider: ILLMProvider,
     context: SkillContext,
-    input?: TInput,
-  ): Promise<TOutput> {
+    input?: SkillInput,
+  ): Promise<SkillOutput> {
     // Validate dependencies before execution
     this.skill.validateDependencies();
 
