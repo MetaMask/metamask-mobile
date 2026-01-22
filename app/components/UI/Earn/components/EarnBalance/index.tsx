@@ -40,6 +40,8 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
   const isTron = asset?.chainId?.startsWith('tron:');
+  const isNativeTrx =
+    isTron && (asset?.ticker === 'TRX' || asset?.symbol === 'TRX');
   const isStakedTrxAsset =
     isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
 
@@ -59,7 +61,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
       );
     }
 
-    if (!hasStakedTrxPositions && !isStakedTrxAsset) {
+    if (!hasStakedTrxPositions && isNativeTrx) {
       // TRX native row: show CTA + single Stake button
       return (
         <TronStakingButtons
