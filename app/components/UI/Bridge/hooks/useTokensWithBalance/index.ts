@@ -238,6 +238,9 @@ export const useTokensWithBalance: ({
           metadata: ('metadata' in token
             ? token.metadata
             : undefined) as BridgeToken['metadata'],
+          rwaData: ('rwaData' in token
+            ? token.rwaData
+            : undefined) as BridgeToken['rwaData'],
         };
       });
     return sortAssets(properTokens, tokenSortConfig);
