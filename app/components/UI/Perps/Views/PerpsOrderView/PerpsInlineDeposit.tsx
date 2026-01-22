@@ -11,7 +11,6 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { Alert } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -58,7 +57,6 @@ import {
   useTransactionPaySourceAmounts,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
-import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useAccountTokens } from '../../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
@@ -78,7 +76,6 @@ export interface CustomAmountInfoProps {
   overrideContent?: (amountHuman: string) => ReactNode;
   defaultValue?: string;
   skipNavigation?: boolean;
-  tokenName?: string;
   onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
 }
 
@@ -90,7 +87,6 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
     preferredToken,
     defaultValue,
     skipNavigation = false,
-    tokenName,
     onConfirmCallback,
   }) => {
     useClearConfirmationOnBackSwipe();
@@ -170,7 +166,6 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
             <ConfirmButton
               alertTitle={alertTitle}
               skipNavigation={skipNavigation}
-              tokenName={tokenName}
               onConfirmCallback={onConfirmCallback}
             />
           )}
@@ -255,12 +250,10 @@ function BuySection() {
 function ConfirmButton({
   alertTitle,
   skipNavigation,
-  tokenName: _tokenName,
   onConfirmCallback,
 }: Readonly<{
   alertTitle: string | undefined;
   skipNavigation?: boolean;
-  tokenName?: string;
   onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
 }>) {
   const { styles } = useStyles(styleSheet, {});
@@ -271,16 +264,8 @@ function ConfirmButton({
     onConfirmCallback,
   });
   const disabled = hasBlockingAlerts || isLoading;
-  const buttonLabel = useButtonLabel();
-  const { payToken } = useTransactionPayToken();
 
-  let label = alertTitle ?? buttonLabel;
-
-  label =
-    label === 'Add funds' && payToken
-      ? 'Execute trade ' + payToken.symbol
-      : label;
-
+  const label = alertTitle ?? strings('confirm.confirm');
 
 
   return (
@@ -292,7 +277,6 @@ function ConfirmButton({
       width={ButtonWidthTypes.Full}
       disabled={disabled}
       onPress={() => {
-        Alert.alert('Confirm');
         onConfirm();
       }}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
@@ -324,16 +308,3 @@ function useIsResultReady({
   );
 }
 
-function useButtonLabel() {
-  const transaction = useTransactionMetadataRequest();
-
-  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
-    return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.convert');
-  }
-
-  return strings('confirm.deposit_edit_amount_done');
-}

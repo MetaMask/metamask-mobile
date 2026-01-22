@@ -25,6 +25,7 @@ import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -120,7 +121,8 @@ import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
-  selectPerpsButtonColorTestVariant
+  selectPerpsButtonColorTestVariant,
+  selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
 import type { PerpsToken } from '../../types/perps-types';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
@@ -222,6 +224,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { track } = usePerpsEventTracking();
   const { openTooltipModal } = useTooltipModal();
+
+  // Feature flag for trade with any token
+  const isTradeWithAnyTokenEnabled = useSelector(
+    selectPerpsTradeWithAnyTokenEnabledFlag,
+  );
 
   // Check if there's an active transaction (required for CustomAmountInfo)
   const activeTransactionMeta = useTransactionMetadataRequest();
