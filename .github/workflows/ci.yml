@@ -261,6 +261,8 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      ai_performance_should_run: ${{ steps.e2e-selection.outputs.ai_performance_should_run }}
+      ai_performance_test_tags: ${{ steps.e2e-selection.outputs.ai_performance_test_tags }}
     steps:
       - name: Checkout for action definition
         uses: actions/checkout@v4
@@ -361,6 +363,48 @@ jobs:
           (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+    secrets: inherit
+
+  # Performance Tests (Smart Selection)
+
+  performance-tests-android:
+    name: 'Android Performance Tests'
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.android_changed == 'true' &&
+        needs.smart-e2e-selection.outputs.ai_confidence >= 80 &&
+        needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+      }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    uses: ./.github/workflows/run-performance-tests.yml
+    with:
+      platform: android
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
+    secrets: inherit
+
+  performance-tests-ios:
+    name: 'iOS Performance Tests'
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
+        needs.smart-e2e-selection.outputs.ai_confidence >= 80 &&
+        needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+      }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
+    uses: ./.github/workflows/run-performance-tests.yml
+    with:
+      platform: ios
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
     secrets: inherit
 
   # Flask E2E tests

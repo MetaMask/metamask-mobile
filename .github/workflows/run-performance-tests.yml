@@ -1,0 +1,89 @@
+name: Performance Tests (Smart Selection)
+
+on:
+  workflow_call:
+    inputs:
+      selected_tags:
+        description: 'JSON array of selected performance tags from Smart E2E selection (e.g., ["PerformanceAccountList", "PerformanceNetworkList"])'
+        required: false
+        type: string
+        default: '[]'
+      platform:
+        description: 'Platform to run tests on (android/ios)'
+        required: true
+        type: string
+      changed_files:
+        description: 'Changed files'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # Detox Performance Tests (Account List + Network List)
+  # Runs when PerformanceAccountList or PerformanceNetworkList tags are selected
+  detox-performance-tests:
+    name: Detox Performance Tests (${{ inputs.platform }})
+    if: >-
+      ${{
+        contains(fromJson(inputs.selected_tags), 'PerformanceAccountList') ||
+        contains(fromJson(inputs.selected_tags), 'PerformanceNetworkList') ||
+        contains(fromJson(inputs.selected_tags), 'ALL')
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: detox-performance-${{ inputs.platform }}-${{ matrix.split }}
+      platform: ${{ inputs.platform }}
+      test_suite_tag: 'Performance'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 60
+      changed_files: ${{ inputs.changed_files }}
+    secrets: inherit
+
+  # Report performance test results
+  report-performance-tests:
+    name: Report Performance Tests (${{ inputs.platform }})
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && inputs.selected_tags != '[]' }}
+    needs:
+      - detox-performance-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download performance test artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: 'test-e2e-detox-performance-*-${{ inputs.platform }}-*'
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: '${{ inputs.platform }} Performance Test Results'
+          path: 'all-test-artifacts/**/junit.xml'
+          reporter: 'jest-junit'
+          fail-on-error: false
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload all test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-${{ inputs.platform }}-all-test-artifacts
+          path: all-test-artifacts/
+
