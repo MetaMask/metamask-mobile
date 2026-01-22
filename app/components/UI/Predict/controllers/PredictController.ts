@@ -41,6 +41,7 @@ import {
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
+import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
   AccountState,
@@ -1872,6 +1873,20 @@ export class PredictController extends BaseController<
       if (!chainId) {
         throw new Error('Chain ID not provided by deposit preparation');
       }
+
+      DevLogger.log('PredictController: depositWithConfirmation transactions', {
+        count: transactions.length,
+        transactions: transactions.map((tx, index) => ({
+          index,
+          type: tx?.type,
+          to: tx?.params?.to,
+          dataLength: tx?.params?.data?.length ?? 0,
+        })),
+      });
+
+      validateDepositTransactions(transactions, {
+        providerId: params.providerId,
+      });
 
       const { NetworkController } = Engine.context;
       const networkClientId =
