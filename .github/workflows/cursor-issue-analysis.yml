@@ -86,44 +86,53 @@ jobs:
         if: steps.check-comment.outputs.exists != 'true'
         uses: actions/github-script@v6
         env:
-          AGENT_ID: ${{ steps.analysis.outputs.agent-id }}
           AGENT_URL: ${{ steps.analysis.outputs.agent-url }}
           AGENT_STATUS: ${{ steps.analysis.outputs.status }}
           SUMMARY_B64: ${{ steps.analysis.outputs.summary }}
         with:
           script: |
-            const agentId = process.env.AGENT_ID;
             const agentUrl = process.env.AGENT_URL;
             const status = process.env.AGENT_STATUS;
             const summaryB64 = process.env.SUMMARY_B64;
             const summary = summaryB64 ? Buffer.from(summaryB64, 'base64').toString('utf-8') : '';
 
-            const statusEmoji = status === 'COMPLETED' ? '✅' : status === 'FAILED' ? '❌' : '⏳';
+            // If we have a meaningful summary, treat it as success regardless of timeout
+            const hasAnalysis = summary && summary !== 'Complete' && summary.length > 50;
+            const effectiveStatus = hasAnalysis ? 'COMPLETED' : status;
+            const statusEmoji = effectiveStatus === 'COMPLETED' ? '✅' : effectiveStatus === 'FAILED' ? '❌' : '⏳';
 
-            const body = [
-              '## Cursor Analysis',
-              '',
-              '> ⚠️ **Note**: This is an AI-generated analysis based on user-submitted issue content. Please verify suggestions before implementing.',
-              '',
-              `**Status**: ${statusEmoji} ${status}`,
-              '',
-              summary && summary !== 'Complete' ? `**Summary**: ${summary}` : null,
-              '',
-              '---',
-              '',
-              `🌐 **[View Full Analysis in Cursor](${agentUrl})**`,
-              '',
-              `🖥️ [Open in Cursor App](https://cursor.com/bg/${agentId})`,
-              '',
-              '---',
-              '📊 **Rate this analysis** (react to this comment)',
-              '',
-              '👎 Not helpful · 👍 Somewhat helpful · 🚀 Very helpful',
-              '',
-              '*Leave a comment for detailed feedback*',
-              '',
-              '*Automated analysis by Cursor Background Agent*'
-            ].filter(line => line !== null).join('\n');
+            let body;
+            if (hasAnalysis) {
+              body = [
+                '## Cursor Analysis',
+                '',
+                '> ⚠️ **Note**: This is an AI-generated analysis. Please verify suggestions before implementing.',
+                '',
+                summary,
+                '',
+                '---',
+                '',
+                `🌐 **[View Full Agent Session](${agentUrl})**`,
+                '',
+                '📊 **Rate this analysis**: 👎 Not helpful · 👍 Somewhat helpful · 🚀 Very helpful',
+                '',
+                '*Automated analysis by Cursor*'
+              ].join('\n');
+            } else {
+              body = [
+                '## Cursor Analysis',
+                '',
+                `**Status**: ${statusEmoji} ${effectiveStatus}`,
+                '',
+                '> Analysis could not be completed. Please check the agent session for details.',
+                '',
+                '---',
+                '',
+                `🌐 **[View Agent Session](${agentUrl})**`,
+                '',
+                '*Automated analysis by Cursor*'
+              ].join('\n');
+            }
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
