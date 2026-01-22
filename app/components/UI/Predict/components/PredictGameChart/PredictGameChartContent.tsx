@@ -22,7 +22,7 @@ import ChartTooltip from './ChartTooltip';
 import EndpointDots from './EndpointDots';
 import { CHART_HEIGHT } from './PredictGameChart.constants';
 
-const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 10, right: 80 };
+const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 0, right: 80 };
 const LINE_CURVE = curveStepAfter;
 
 const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
@@ -32,6 +32,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   onRetry,
   timeframe = 'live',
   onTimeframeChange,
+  disabledTimeframeSelector = false,
   testID,
 }) => {
   const tw = useTailwind();
@@ -147,7 +148,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
-            disabled
+            disabled={disabledTimeframeSelector || isLoading}
           />
         )}
       </Box>
@@ -185,6 +186,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -203,6 +205,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
           <TimeframeSelector
             selected={timeframe}
             onSelect={onTimeframeChange}
+            disabled={disabledTimeframeSelector}
           />
         )}
       </Box>
@@ -332,7 +335,11 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
       </View>
 
       {onTimeframeChange && (
-        <TimeframeSelector selected={timeframe} onSelect={onTimeframeChange} />
+        <TimeframeSelector
+          selected={timeframe}
+          onSelect={onTimeframeChange}
+          disabled={disabledTimeframeSelector}
+        />
       )}
     </Box>
   );

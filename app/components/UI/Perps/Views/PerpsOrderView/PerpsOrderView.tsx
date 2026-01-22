@@ -400,7 +400,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: orderForm.amount,
-    coin: orderForm.asset,
+    symbol: orderForm.asset,
     isClosing: false,
     limitPrice: orderForm.limitPrice,
     direction: orderForm.direction,
@@ -876,7 +876,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // 2. Recalculate size with fresh price from usdAmount
       // 3. Use the recalculated size for order execution
       const orderParams: OrderParams = {
-        coin: orderForm.asset,
+        symbol: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
         orderType: orderForm.type,
@@ -929,7 +929,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         await executeOrder(orderWithoutTPSL);
         await updatePositionTPSL({
-          coin: orderForm.asset,
+          symbol: orderForm.asset,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
         });

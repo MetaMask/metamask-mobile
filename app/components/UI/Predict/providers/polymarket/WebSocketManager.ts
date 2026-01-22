@@ -102,10 +102,10 @@ export class WebSocketManager {
     this.ensureSportsConnection();
 
     return () => {
-      const callbacks = this.gameSubscriptions.get(gameId);
-      if (callbacks) {
-        callbacks.delete(callback);
-        if (callbacks.size === 0) {
+      const _callbacks = this.gameSubscriptions.get(gameId);
+      if (_callbacks) {
+        _callbacks.delete(callback);
+        if (_callbacks.size === 0) {
           this.gameSubscriptions.delete(gameId);
         }
       }

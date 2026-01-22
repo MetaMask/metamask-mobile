@@ -43,6 +43,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
     >
       <Text variant={TextVariant.HeadingSm}>{sectionConfig.title}</Text>
       <TouchableOpacity
+        testID={`section-header-view-all-${sectionId}`}
         onPress={() => sectionConfig.viewAllAction(navigation)}
         style={tw.style('flex-row items-center justify-center gap-1')}
       >

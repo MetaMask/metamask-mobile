@@ -181,6 +181,7 @@ export interface PolymarketApiEvent {
   sortBy?: 'price' | 'ascending' | 'descending';
   gameId?: string;
   startTime?: string;
+  finishedTimestamp?: string;
   score?: string;
   elapsed?: string;
   period?: PredictGamePeriod;
@@ -362,6 +363,7 @@ export interface PolymarketApiTeam {
 export interface PolymarketApiGameEvent {
   gameId?: string;
   startTime?: string;
+  finishedTimestamp?: string;
   score?: string;
   elapsed?: string;
   period?: PredictGamePeriod;

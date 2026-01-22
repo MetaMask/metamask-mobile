@@ -66,7 +66,7 @@ const createWrapper = () => {
 
 describe('usePerpsTPSLForm', () => {
   const mockPosition: Position = {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '1.5',
     entryPrice: '50000',
     positionValue: '75000',

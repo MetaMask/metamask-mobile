@@ -34,7 +34,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Test data helpers
 const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
-  coin: 'BTC',
+  symbol: 'BTC',
   size: '0.5',
   entryPrice: '50000',
   positionValue: '25000',
@@ -168,12 +168,12 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange
       const positions = [
         createMockPosition({
-          coin: 'BTC',
+          symbol: 'BTC',
           marginUsed: '1000',
           unrealizedPnl: '100',
         }),
         createMockPosition({
-          coin: 'ETH',
+          symbol: 'ETH',
           marginUsed: '500',
           unrealizedPnl: '-50',
         }),
@@ -274,9 +274,9 @@ describe('usePerpsCloseAllCalculations', () => {
     it('calculates total P&L for multiple positions', () => {
       // Arrange
       const positions = [
-        createMockPosition({ coin: 'BTC', unrealizedPnl: '100' }),
-        createMockPosition({ coin: 'ETH', unrealizedPnl: '50' }),
-        createMockPosition({ coin: 'SOL', unrealizedPnl: '-25' }),
+        createMockPosition({ symbol: 'BTC', unrealizedPnl: '100' }),
+        createMockPosition({ symbol: 'ETH', unrealizedPnl: '50' }),
+        createMockPosition({ symbol: 'SOL', unrealizedPnl: '-25' }),
       ];
       const priceData = {
         BTC: { price: '51000' },
@@ -299,7 +299,7 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange
       const positions = [
         createMockPosition({
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
         }),
@@ -326,7 +326,7 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: (0.5 * 52000).toString(), // Uses current price, not entry price
-        coin: 'BTC',
+        symbol: 'BTC',
       });
       // Total recalculated from components (no discount): 261 + 25 = 286
       expect(result.current.totalFees).toBe(286);
@@ -336,7 +336,7 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange
       const positions = [
         createMockPosition({
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0.5',
           entryPrice: '50000',
         }),
@@ -356,15 +356,15 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: (0.5 * 50000).toString(), // Uses entry price as fallback
-        coin: 'BTC',
+        symbol: 'BTC',
       });
     });
 
     it('aggregates fees across multiple positions', async () => {
       // Arrange
       const positions = [
-        createMockPosition({ coin: 'BTC', size: '0.5' }),
-        createMockPosition({ coin: 'ETH', size: '10' }),
+        createMockPosition({ symbol: 'BTC', size: '0.5' }),
+        createMockPosition({ symbol: 'ETH', size: '10' }),
       ];
       const priceData = {
         BTC: { price: '52000' },
@@ -424,7 +424,7 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange: 10% discount (1000 basis points)
       mockGetPerpsDiscount.mockResolvedValue(1000);
 
-      const positions = [createMockPosition({ coin: 'BTC' })];
+      const positions = [createMockPosition({ symbol: 'BTC' })];
       const priceData = { BTC: { price: '51000' } };
 
       mockCalculateFees.mockResolvedValue(
@@ -457,8 +457,8 @@ describe('usePerpsCloseAllCalculations', () => {
       mockGetPerpsDiscount.mockResolvedValue(6500);
 
       const positions = [
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
       ];
       const priceData = { BTC: { price: '51000' }, ETH: { price: '3000' } };
 
@@ -489,7 +489,7 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange: Discount API fails
       mockGetPerpsDiscount.mockRejectedValue(new Error('API error'));
 
-      const positions = [createMockPosition({ coin: 'BTC' })];
+      const positions = [createMockPosition({ symbol: 'BTC' })];
       const priceData = { BTC: { price: '51000' } };
 
       mockCalculateFees.mockResolvedValue(
@@ -514,7 +514,7 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange: 50% discount (5000 basis points)
       mockGetPerpsDiscount.mockResolvedValue(5000);
 
-      const positions = [createMockPosition({ coin: 'BTC' })];
+      const positions = [createMockPosition({ symbol: 'BTC' })];
       const priceData = { BTC: { price: '51000' } };
 
       mockCalculateFees.mockResolvedValue(
@@ -546,7 +546,7 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange: 100% discount (10000 basis points) - theoretical edge case
       mockGetPerpsDiscount.mockResolvedValue(10000);
 
-      const positions = [createMockPosition({ coin: 'BTC' })];
+      const positions = [createMockPosition({ symbol: 'BTC' })];
       const priceData = { BTC: { price: '51000' } };
 
       mockCalculateFees.mockResolvedValue(
@@ -576,7 +576,7 @@ describe('usePerpsCloseAllCalculations', () => {
   describe('Points Estimation', () => {
     it('estimates points for single position with correct coin parameter', async () => {
       // Arrange
-      const positions = [createMockPosition({ coin: 'BTC' })];
+      const positions = [createMockPosition({ symbol: 'BTC' })];
       const priceData = { BTC: { price: '51000' } };
       mockCalculateFees.mockResolvedValue(
         createMockFeeResult({ feeAmount: 275 }),
@@ -595,6 +595,7 @@ describe('usePerpsCloseAllCalculations', () => {
         expect(result.current.isLoading).toBe(false);
       });
       // Now uses batch API format (array of positions)
+      // Note: EstimatePerpsContextDto uses 'coin' field (external API terminology)
       expect(mockEstimatePoints).toHaveBeenCalledWith(
         expect.objectContaining({
           activityType: 'PERPS',
@@ -602,7 +603,7 @@ describe('usePerpsCloseAllCalculations', () => {
             perpsContext: [
               {
                 type: 'CLOSE_POSITION',
-                coin: 'BTC',
+                coin: 'BTC', // External API uses 'coin'
                 usdFeeValue: '275',
               },
             ],
@@ -617,8 +618,8 @@ describe('usePerpsCloseAllCalculations', () => {
     it('aggregates points across multiple positions with different coins', async () => {
       // Arrange
       const positions = [
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
       ];
       const priceData = {
         BTC: { price: '51000' },
@@ -677,8 +678,8 @@ describe('usePerpsCloseAllCalculations', () => {
     it('sets shouldShowRewards to true when at least one position has valid points', async () => {
       // Arrange
       const positions = [
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
       ];
       const priceData = {
         BTC: { price: '51000' },
@@ -727,8 +728,8 @@ describe('usePerpsCloseAllCalculations', () => {
     it('calculates weighted average fee rates for multiple positions', async () => {
       // Arrange
       const positions = [
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
       ];
       const priceData = {
         BTC: { price: '51000' },
@@ -858,12 +859,12 @@ describe('usePerpsCloseAllCalculations', () => {
       // Arrange
       const positions = [
         createMockPosition({
-          coin: 'BTC',
+          symbol: 'BTC',
           marginUsed: '2000',
           unrealizedPnl: '300',
         }),
         createMockPosition({
-          coin: 'ETH',
+          symbol: 'ETH',
           marginUsed: '1500',
           unrealizedPnl: '-100',
         }),
@@ -953,8 +954,8 @@ describe('usePerpsCloseAllCalculations', () => {
     it('sets hasError to true when some position calculations fail', async () => {
       // Arrange
       const positions = [
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
       ];
       const priceData = {
         BTC: { price: '51000' },
@@ -1001,7 +1002,7 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: '0',
-        coin: 'BTC',
+        symbol: 'BTC',
       });
     });
 
@@ -1028,7 +1029,7 @@ describe('usePerpsCloseAllCalculations', () => {
         orderType: 'market',
         isMaker: false,
         amount: (0.5 * 51000).toString(), // Uses absolute value
-        coin: 'BTC',
+        symbol: 'BTC',
       });
     });
 
@@ -1055,10 +1056,10 @@ describe('usePerpsCloseAllCalculations', () => {
     it('DOES recalculate when positions array changes (reset freeze)', async () => {
       // Arrange - The freeze mechanism resets when positions change
       // This ensures accurate calculations for new positions
-      const initialPositions = [createMockPosition({ coin: 'BTC' })];
+      const initialPositions = [createMockPosition({ symbol: 'BTC' })];
       const updatedPositions = [
-        createMockPosition({ coin: 'BTC' }),
-        createMockPosition({ coin: 'ETH' }),
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
       ];
       const priceData = {
         BTC: { price: '51000' },

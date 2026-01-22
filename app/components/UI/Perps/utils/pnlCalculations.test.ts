@@ -250,7 +250,7 @@ describe('pnlCalculations', () => {
     it('should calculate total P&L for multiple positions', () => {
       const positions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '1',
           entryPrice: '50000',
           positionValue: '51000',
@@ -265,7 +265,7 @@ describe('pnlCalculations', () => {
           stopLossCount: 0,
         },
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2',
           entryPrice: '3000',
           positionValue: '6200',
@@ -289,7 +289,7 @@ describe('pnlCalculations', () => {
     it('should handle positions with negative unrealized P&L', () => {
       const positions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '1',
           entryPrice: '50000',
           positionValue: '49000',
@@ -304,7 +304,7 @@ describe('pnlCalculations', () => {
           stopLossCount: 0,
         },
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '2',
           entryPrice: '3000',
           positionValue: '5800',
@@ -334,7 +334,7 @@ describe('pnlCalculations', () => {
     it('should handle positions with missing unrealized P&L', () => {
       const positions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '1',
           entryPrice: '50000',
           positionValue: '51000',
@@ -360,7 +360,7 @@ describe('pnlCalculations', () => {
     it('should calculate total P&L percentage for multiple positions', () => {
       const positions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '2',
           entryPrice: '50000',
           positionValue: '102000',
@@ -375,7 +375,7 @@ describe('pnlCalculations', () => {
           stopLossCount: 0,
         },
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '4',
           entryPrice: '3000',
           positionValue: '12400',
@@ -403,7 +403,7 @@ describe('pnlCalculations', () => {
     it('should handle negative total P&L percentage', () => {
       const positions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '1',
           entryPrice: '50000',
           positionValue: '49000',
@@ -437,7 +437,7 @@ describe('pnlCalculations', () => {
     it('should handle zero total entry value', () => {
       const positions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '0',
           entryPrice: '50000',
           positionValue: '0',
@@ -461,7 +461,7 @@ describe('pnlCalculations', () => {
     it('should handle positions with missing values', () => {
       const positions: Position[] = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '',
           entryPrice: '',
           positionValue: '0',
