@@ -49,6 +49,7 @@ import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import parseAmount from '../../../../../util/parseAmount';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -224,7 +225,7 @@ export const TokenInputArea = forwardRef<
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
-
+    const stxEnabled = useSelector(selectShouldUseSmartTransaction);
     const isGaslessSwapEnabled = useSelector((state: RootState) =>
       token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
     );
@@ -307,11 +308,14 @@ export const TokenInputArea = forwardRef<
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    // Show max button for native tokens if gasless swap is enabled OR quote is sponsored
     const shouldShowMaxButton = useMemo(() => {
-      if (!isNativeAsset) return true; // Always show for non-native tokens
-      return isGaslessSwapEnabled || isQuoteSponsored;
-    }, [isNativeAsset, isGaslessSwapEnabled, isQuoteSponsored]);
+      // Always show for non-native tokens
+      if (!isNativeAsset) return true;
+
+      // Show for native tokens if gasless swap is enabled OR quote is sponsored
+      // while smart transactions is enabled.
+      return (isGaslessSwapEnabled || isQuoteSponsored) && stxEnabled;
+    }, [isNativeAsset, isGaslessSwapEnabled, isQuoteSponsored, stxEnabled]);
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 

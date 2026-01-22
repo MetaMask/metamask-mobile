@@ -52,7 +52,12 @@ describe('SwapsKeypad', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(false);
+    // By default, stxEnabled (first call) returns true, isGaslessSwapEnabled (second call) returns false
+    let callCount = 0;
+    mockUseSelector.mockImplementation(() => {
+      callCount++;
+      return callCount === 1;
+    });
     mockUseTokenAddress.mockReturnValue(mockToken.address);
     mockIsNativeAddress.mockReturnValue(false);
   });
@@ -466,7 +471,14 @@ describe('SwapsKeypad', () => {
   describe('quick pick button selection logic', () => {
     it('selects gasless quick pick options when not native asset', () => {
       mockIsNativeAddress.mockReturnValue(false);
-      mockUseSelector.mockImplementation(() => false);
+      // For non-native assets, stxEnabled needs to be true to show Max button
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: stxEnabled - true
+        // Second call: isGaslessSwapEnabled - false (doesn't matter for non-native)
+        return callCount === 1;
+      });
 
       const { getByText } = render(
         <SwapsKeypad
@@ -577,6 +589,141 @@ describe('SwapsKeypad', () => {
       );
 
       expect(mockUseTokenAddress).toHaveBeenCalledWith(newToken);
+    });
+  });
+
+  describe('Smart transactions disabled scenarios', () => {
+    beforeEach(() => {
+      mockUseTokenAddress.mockReturnValue(mockToken.address);
+    });
+
+    it('shows 90% button for native token when smart transactions disabled even if gasless is enabled', () => {
+      mockIsNativeAddress.mockReturnValue(true);
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: stxEnabled - false
+        // Second call: isGaslessSwapEnabled - true
+        return callCount !== 1;
+      });
+
+      const { getByText, queryByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Should show 90% button when STX is disabled, even if gasless is enabled
+      expect(getByText('90%')).toBeTruthy();
+      expect(queryByText('Max')).toBeNull();
+    });
+
+    it('shows 90% button for non-native token when smart transactions disabled even if gasless is enabled', () => {
+      mockIsNativeAddress.mockReturnValue(false);
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: stxEnabled - false
+        // Second call: isGaslessSwapEnabled - true
+        return callCount !== 1;
+      });
+
+      const { getByText, queryByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Should show 90% button when STX is disabled, even for non-native tokens
+      expect(getByText('90%')).toBeTruthy();
+      expect(queryByText('Max')).toBeNull();
+    });
+
+    it('shows Max button when smart transactions enabled, for non-native token regardless of gasless', () => {
+      mockIsNativeAddress.mockReturnValue(false);
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: stxEnabled - true
+        // Second call: isGaslessSwapEnabled - false
+        return callCount === 1;
+      });
+
+      const { getByText, queryByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Should show Max button for non-native when STX is enabled
+      expect(getByText('Max')).toBeTruthy();
+      expect(queryByText('90%')).toBeNull();
+    });
+
+    it('shows 90% button for native token when smart transactions enabled but gasless disabled', () => {
+      mockIsNativeAddress.mockReturnValue(true);
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        // First call: stxEnabled - true
+        // Second call: isGaslessSwapEnabled - false
+        return callCount === 1;
+      });
+
+      const { getByText, queryByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Should show 90% button for native token when gasless is disabled
+      expect(getByText('90%')).toBeTruthy();
+      expect(queryByText('Max')).toBeNull();
+    });
+
+    it('shows Max button for native token when both smart transactions and gasless are enabled', () => {
+      mockIsNativeAddress.mockReturnValue(true);
+      mockUseSelector.mockReturnValue(true); // Both true
+
+      const { getByText, queryByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Should show Max button when both conditions are met
+      expect(getByText('Max')).toBeTruthy();
+      expect(queryByText('90%')).toBeNull();
     });
   });
 });

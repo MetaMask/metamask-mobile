@@ -12,6 +12,7 @@ import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BigNumber } from 'bignumber.js';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 interface SwapsKeypadProps {
   value: string;
@@ -33,6 +34,7 @@ export const SwapsKeypad = ({
   onMaxPress,
 }: SwapsKeypadProps) => {
   const tokenAddress = useTokenAddress(token);
+  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const isNativeAsset = useMemo(
     () => isNativeAddress(tokenAddress),
     [tokenAddress],
@@ -110,7 +112,7 @@ export const SwapsKeypad = ({
   );
 
   const quickPickOptions =
-    !isNativeAsset || isGaslessSwapEnabled
+    (!isNativeAsset || isGaslessSwapEnabled) && stxEnabled
       ? gasslessQuickPickOptions
       : standardQuickPickOptions;
 

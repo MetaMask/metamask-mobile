@@ -16,6 +16,12 @@ jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+const mockSelectShouldUseSmartTransaction = jest.fn((_state) => true);
+jest.mock('../../../../../selectors/smartTransactionsController', () => ({
+  ...jest.requireActual('../../../../../selectors/smartTransactionsController'),
+  selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction,
+}));
+
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();
 const mockOnBlur = jest.fn();
@@ -376,6 +382,142 @@ describe('TokenInputArea', () => {
     // After conversion to zero address, Polygon native token is treated as native
     // Native tokens show Max button when gasless swaps are enabled
     expect(getByText('Max')).toBeTruthy();
+  });
+
+  describe('Smart transactions disabled scenarios', () => {
+    const nativeToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '1.5';
+
+    // Create state with smart transactions disabled
+    const stateWithSTXDisabled = {
+      ...initialState,
+      swaps: {
+        isLive: true,
+        hasOnboarded: true,
+        featureFlags: {
+          smartTransactions: {
+            mobileActive: false,
+            mobileActiveIOS: false,
+            mobileActiveAndroid: false,
+          },
+        },
+        '0x1': {
+          isLive: true,
+          featureFlags: {
+            smartTransactions: {
+              mobileActive: false,
+              mobileActiveIOS: false,
+              mobileActiveAndroid: false,
+            },
+          },
+        },
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            ...initialState.engine.backgroundState.PreferencesController,
+            smartTransactionsOptInStatus: false,
+          },
+          SmartTransactionsController: {
+            ...initialState.engine.backgroundState.SmartTransactionsController,
+            smartTransactionsState: {
+              liveness: false,
+              livenessByChainId: {
+                '0x1': false,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      // Override mock to return false for this test suite
+      mockSelectShouldUseSmartTransaction.mockImplementation((_state) => false);
+    });
+
+    afterEach(() => {
+      // Reset mock to default (true)
+      mockSelectShouldUseSmartTransaction.mockImplementation((_state) => true);
+    });
+
+    it('does not display max button for native token when smart transactions disabled even if gasless is enabled', () => {
+      const { queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: stateWithSTXDisabled },
+      );
+
+      // Even with gasless enabled (in initialState), Max button should not show when STX is disabled
+      expect(queryByText('Max')).toBeNull();
+    });
+
+    it('does not display max button for native token when smart transactions disabled and quote is sponsored', () => {
+      const { queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+            isQuoteSponsored
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: stateWithSTXDisabled },
+      );
+
+      // Even with sponsored quote, Max button should not show when STX is disabled
+      expect(queryByText('Max')).toBeNull();
+    });
+
+    it('always displays max button for non-native tokens even when smart transactions disabled', () => {
+      const nonNativeToken: BridgeToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        symbol: 'TEST',
+        decimals: 18,
+        chainId: '0x1' as `0x${string}`,
+      };
+
+      const { getByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nonNativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: stateWithSTXDisabled },
+      );
+
+      // Non-native tokens always show max button regardless of STX status
+      expect(getByText('Max')).toBeTruthy();
+    });
   });
 });
 
