@@ -78,9 +78,11 @@ else if (document.selection) {document.selection.empty();}`;
 
 export const SCROLL_TRACKER_SCRIPT = `
   (function() {
-    let lastScrollY = 0;
+    let lastScrollY = -1; // Start at -1 to ensure first position is always sent
+    let rafPending = false;
+    
     const sendScrollPosition = () => {
-      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+      const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop || 0);
       if (currentScrollY !== lastScrollY) {
         lastScrollY = currentScrollY;
         window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -90,8 +92,34 @@ export const SCROLL_TRACKER_SCRIPT = `
       }
     };
     
-    window.addEventListener('scroll', sendScrollPosition, { passive: true });
-    sendScrollPosition(); // Send initial position
+    // Debounced scroll handler using requestAnimationFrame for better Android performance
+    const onScroll = () => {
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(() => {
+          sendScrollPosition();
+          rafPending = false;
+        });
+      }
+    };
+    
+    // Listen to multiple events for better reliability on Android
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('touchend', sendScrollPosition, { passive: true });
+    
+    // Send initial position after DOM is ready
+    if (document.readyState === 'complete') {
+      sendScrollPosition();
+    } else {
+      window.addEventListener('load', sendScrollPosition);
+    }
+    
+    // Also send on page visibility change (tab switch back)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        sendScrollPosition();
+      }
+    });
   })();
 `;
 

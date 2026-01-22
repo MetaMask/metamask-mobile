@@ -219,6 +219,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const SWIPE_THRESHOLD = 0.3; // 30% of screen width to complete swipe
     const PULL_THRESHOLD = 80; // pixels to trigger refresh
     const PULL_OVERLAY_HEIGHT = 100; // Height of pull zone at top
+    const SCROLL_TOP_THRESHOLD = 5; // Threshold for "at top" detection (Android WebView quirk)
     const screenWidth = Dimensions.get('window').width;
 
     // Gesture state
@@ -459,78 +460,183 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const webViewNativeGesture = useMemo(() => Gesture.Native(), []);
 
     /**
-     * Unified Pan gesture for pull-to-refresh only
-     * Uses simultaneousWithExternalGesture to work alongside WebView scrolling
+     * FULLY UNIFIED GESTURE using manualActivation
      *
-     * Note: Edge swipe gestures still use the overlay approach because
-     * WebView consumes horizontal touches internally. The overlay approach
-     * intercepts touches BEFORE WebView, which is required for edge swipes.
+     * This approach uses manualActivation(true) to manually control when the
+     * gesture activates based on touch position. This allows us to:
+     * 1. Check touch position in onTouchesDown
+     * 2. Activate the gesture ONLY for edge swipes or pull-to-refresh zones
+     * 3. Fail the gesture for other touches, letting WebView handle them
+     *
+     * This is the most promising approach for a true unified gesture solution.
+     *
+     * IMPORTANT: We use scrollY.value (shared value) instead of isAtTop (React state)
+     * to check scroll position. Shared values are accessible in worklets in real-time,
+     * while React state may be stale when the gesture fires.
      */
-    const unifiedPullGesture = useMemo(
+    const fullyUnifiedGesture = useMemo(
       () =>
         Gesture.Pan()
-          .simultaneousWithExternalGesture(webViewNativeGesture)
-          .activeOffsetY([10, 1000]) // Only activate on downward pulls
-          .failOffsetX([-20, 20]) // Fail if too much horizontal movement
-          .onStart((event) => {
+          .manualActivation(true)
+          .onTouchesDown((event, stateManager) => {
             'worklet';
-            // Only handle pull-to-refresh (top zone + at top of page)
-            if (event.y < PULL_OVERLAY_HEIGHT && isAtTop && !isRefreshing) {
+            if (!areGesturesEnabled) {
+              stateManager.fail();
+              return;
+            }
+
+            const touch = event.allTouches[0];
+            if (!touch) {
+              stateManager.fail();
+              return;
+            }
+
+            const { x, y } = touch;
+
+            // Check if touch is in a gesture zone
+            // Use scrollY.value (shared value) for real-time scroll position check
+            // This is more reliable than React state which may be stale in worklets
+            const isLeftEdge = x < EDGE_THRESHOLD && backEnabled;
+            const isRightEdge =
+              x > screenWidth - EDGE_THRESHOLD && forwardEnabled;
+            const currentlyAtTop = scrollY.value <= SCROLL_TOP_THRESHOLD;
+            const isTopZone =
+              y < PULL_OVERLAY_HEIGHT && currentlyAtTop && !isRefreshing;
+
+            if (isLeftEdge) {
+              // Left edge - prepare for back gesture
+              gestureType.value = 'back';
+              swipeDirection.value = 'back';
+              swipeProgress.value = 0;
+              swipeStartTime.current = Date.now();
+              stateManager.activate();
+              runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+            } else if (isRightEdge) {
+              // Right edge - prepare for forward gesture
+              gestureType.value = 'forward';
+              swipeDirection.value = 'forward';
+              swipeProgress.value = 0;
+              swipeStartTime.current = Date.now();
+              stateManager.activate();
+              runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+            } else if (isTopZone) {
+              // Top zone - prepare for pull-to-refresh
               gestureType.value = 'refresh';
               isPulling.value = true;
               pullProgress.value = 0;
+              stateManager.activate();
               runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+            } else {
+              // Not in a gesture zone - let WebView handle it
+              stateManager.fail();
             }
           })
           .onUpdate((event) => {
             'worklet';
-            if (gestureType.value !== 'refresh' || !isPulling.value) return;
-            if (event.translationY < 0) return; // Only downward movement
+            const currentGestureType = gestureType.value;
+            if (!currentGestureType) return;
 
-            pullProgress.value = Math.min(
-              event.translationY / PULL_THRESHOLD,
-              1.5,
-            );
+            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
+
+            if (currentGestureType === 'back' && event.translationX > 0) {
+              // Rightward swipe for back navigation
+              swipeProgress.value = Math.min(
+                event.translationX / swipeDistance,
+                1,
+              );
+            } else if (
+              currentGestureType === 'forward' &&
+              event.translationX < 0
+            ) {
+              // Leftward swipe for forward navigation
+              swipeProgress.value = Math.min(
+                Math.abs(event.translationX) / swipeDistance,
+                1,
+              );
+            } else if (
+              currentGestureType === 'refresh' &&
+              event.translationY > 0
+            ) {
+              // Downward pull for refresh
+              pullProgress.value = Math.min(
+                event.translationY / PULL_THRESHOLD,
+                1.5,
+              );
+            }
           })
           .onEnd((event) => {
             'worklet';
-            if (gestureType.value !== 'refresh') {
+            const currentGestureType = gestureType.value;
+            if (!currentGestureType) {
+              runOnJS(resetSwipeAnimation)();
               runOnJS(resetPullAnimation)();
               return;
             }
 
-            if (event.translationY >= PULL_THRESHOLD) {
-              pullDistanceRef.current = event.translationY;
-              runOnJS(setShouldRefresh)(true);
+            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
+            const duration = Date.now() - swipeStartTime.current;
+
+            if (currentGestureType === 'back') {
+              // Trigger back if threshold met
+              if (event.translationX >= swipeDistance) {
+                runOnJS(handleSwipeNavigation)(
+                  'back',
+                  event.translationX,
+                  duration,
+                );
+              }
+              runOnJS(resetSwipeAnimation)();
+            } else if (currentGestureType === 'forward') {
+              // Trigger forward if threshold met
+              if (event.translationX <= -swipeDistance) {
+                runOnJS(handleSwipeNavigation)(
+                  'forward',
+                  Math.abs(event.translationX),
+                  duration,
+                );
+              }
+              runOnJS(resetSwipeAnimation)();
+            } else if (currentGestureType === 'refresh') {
+              // Trigger refresh if threshold met
+              if (event.translationY >= PULL_THRESHOLD) {
+                pullDistanceRef.current = event.translationY;
+                runOnJS(setShouldRefresh)(true);
+              }
+              runOnJS(resetPullAnimation)();
             }
-            runOnJS(resetPullAnimation)();
+
             gestureType.value = null;
           })
           .onFinalize(() => {
             'worklet';
-            if (gestureType.value === 'refresh') {
-              gestureType.value = null;
-            }
+            gestureType.value = null;
             isPulling.value = false;
+            runOnJS(resetSwipeAnimation)();
             runOnJS(resetPullAnimation)();
           }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
-        webViewNativeGesture,
-        isAtTop,
+        areGesturesEnabled,
+        backEnabled,
+        forwardEnabled,
+        // Note: We use scrollY.value (shared value) instead of isAtTop for real-time
+        // scroll position checking in the worklet. Shared values don't need to be deps.
         isRefreshing,
+        screenWidth,
         triggerHapticFeedback,
+        handleSwipeNavigation,
+        resetSwipeAnimation,
         resetPullAnimation,
       ],
     );
 
     /**
-     * Combined gesture for WebView - pull-to-refresh works with Native,
-     * but edge swipes need overlays (kept in fallback render path)
+     * Combined gesture for WebView - uses the fully unified gesture
+     * with manualActivation that handles all three gesture types
      */
     const combinedWebViewGesture = useMemo(
-      () => Gesture.Simultaneous(webViewNativeGesture, unifiedPullGesture),
-      [webViewNativeGesture, unifiedPullGesture],
+      () => Gesture.Simultaneous(webViewNativeGesture, fullyUnifiedGesture),
+      [webViewNativeGesture, fullyUnifiedGesture],
     );
 
     /**
@@ -1286,7 +1392,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         if (dataParsed.type === 'SCROLL_POSITION') {
           const scrollPosition = dataParsed.payload?.scrollY || 0;
           scrollY.value = scrollPosition;
-          setIsAtTop(scrollPosition === 0);
+          // Use threshold instead of exact 0 - Android WebView may report small non-zero values
+          // when at top due to content padding, headers, or floating-point precision
+          setIsAtTop(scrollPosition <= SCROLL_TOP_THRESHOLD);
           return;
         }
         if (
@@ -1887,10 +1995,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 {renderRefreshIndicator()}
 
                 {/*
-                  HYBRID GESTURE APPROACH (USE_UNIFIED_GESTURE = true)
+                  FULLY UNIFIED GESTURE APPROACH (USE_UNIFIED_GESTURE = true)
 
-                  Pull-to-refresh uses simultaneousWithExternalGesture to work with WebView.
-                  Edge swipes still need overlays because WebView consumes horizontal touches.
+                  Uses manualActivation(true) to control gesture activation based on
+                  touch position. All three gestures (back, forward, refresh) are
+                  handled by a single gesture handler - NO OVERLAYS NEEDED!
 
                   OVERLAY GESTURE APPROACH (USE_UNIFIED_GESTURE = false - fallback)
 
@@ -1900,97 +2009,55 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   3. Refresh indicator (z-index: 9997) - Animated spinner
                 */}
 
-                {/* HYBRID APPROACH: Unified pull-to-refresh + overlay edge swipes */}
+                {/* FULLY UNIFIED APPROACH: Single gesture handles all interactions */}
                 {USE_UNIFIED_GESTURE && !!entryScriptWeb3 && firstUrlLoaded && (
-                  <>
-                    <GestureDetector
-                      gesture={
-                        areGesturesEnabled
-                          ? combinedWebViewGesture
-                          : webViewNativeGesture
-                      }
-                    >
-                      <View style={styles.webview}>
-                        <WebView
-                          originWhitelist={webViewOriginWhitelist}
-                          decelerationRate={0.998}
-                          ref={webviewRef}
-                          renderError={() => (
-                            <WebviewErrorComponent
-                              error={error}
-                              returnHome={returnHome}
-                            />
-                          )}
-                          source={{
-                            uri: prefixUrlWithProtocol(initialUrl),
-                            ...(isExternalLink
-                              ? { headers: { Cookie: '' } }
-                              : null),
-                          }}
-                          injectedJavaScriptBeforeContentLoaded={
-                            entryScriptWeb3
-                          }
-                          style={styles.webview}
-                          onLoadStart={handleWebviewNavigationChange(
-                            OnLoadStart,
-                          )}
-                          onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
-                          onLoadProgress={handleWebviewNavigationChange(
-                            OnLoadProgress,
-                          )}
-                          onNavigationStateChange={
-                            handleOnNavigationStateChange
-                          }
-                          onMessage={onMessage}
-                          onShouldStartLoadWithRequest={
-                            onShouldStartLoadWithRequest
-                          }
-                          allowsInlineMediaPlayback
-                          {...(process.env.IS_TEST === 'true'
-                            ? { javaScriptEnabled: true }
-                            : {})}
-                          testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
-                          applicationNameForUserAgent={'WebView MetaMaskMobile'}
-                          onFileDownload={handleOnFileDownload}
-                          webviewDebuggingEnabled={isTest}
-                          paymentRequestEnabled
-                        />
-                        {ipfsBannerVisible && (
-                          <IpfsBanner
-                            setIpfsBannerVisible={setIpfsBannerVisible}
+                  <GestureDetector gesture={combinedWebViewGesture}>
+                    <View style={styles.webview}>
+                      <WebView
+                        originWhitelist={webViewOriginWhitelist}
+                        decelerationRate={0.998}
+                        ref={webviewRef}
+                        renderError={() => (
+                          <WebviewErrorComponent
+                            error={error}
+                            returnHome={returnHome}
                           />
                         )}
-                      </View>
-                    </GestureDetector>
-
-                    {/* Edge gesture overlay zones still needed for horizontal swipes */}
-                    {areGesturesEnabled && (
-                      <>
-                        {/* Left edge for back gesture */}
-                        {backEnabled && (
-                          <GestureDetector gesture={leftEdgeGesture}>
-                            <View
-                              style={[
-                                styles.gestureOverlayLeft,
-                                { width: EDGE_THRESHOLD },
-                              ]}
-                            />
-                          </GestureDetector>
+                        source={{
+                          uri: prefixUrlWithProtocol(initialUrl),
+                          ...(isExternalLink
+                            ? { headers: { Cookie: '' } }
+                            : null),
+                        }}
+                        injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                        style={styles.webview}
+                        onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
+                        onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
+                        onLoadProgress={handleWebviewNavigationChange(
+                          OnLoadProgress,
                         )}
-                        {/* Right edge for forward gesture */}
-                        {forwardEnabled && (
-                          <GestureDetector gesture={rightEdgeGesture}>
-                            <View
-                              style={[
-                                styles.gestureOverlayRight,
-                                { width: EDGE_THRESHOLD },
-                              ]}
-                            />
-                          </GestureDetector>
-                        )}
-                      </>
-                    )}
-                  </>
+                        onNavigationStateChange={handleOnNavigationStateChange}
+                        onMessage={onMessage}
+                        onShouldStartLoadWithRequest={
+                          onShouldStartLoadWithRequest
+                        }
+                        allowsInlineMediaPlayback
+                        {...(process.env.IS_TEST === 'true'
+                          ? { javaScriptEnabled: true }
+                          : {})}
+                        testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
+                        applicationNameForUserAgent={'WebView MetaMaskMobile'}
+                        onFileDownload={handleOnFileDownload}
+                        webviewDebuggingEnabled={isTest}
+                        paymentRequestEnabled
+                      />
+                      {ipfsBannerVisible && (
+                        <IpfsBanner
+                          setIpfsBannerVisible={setIpfsBannerVisible}
+                        />
+                      )}
+                    </View>
+                  </GestureDetector>
                 )}
 
                 {/* OVERLAY APPROACH (fallback): Separate gesture overlays */}
