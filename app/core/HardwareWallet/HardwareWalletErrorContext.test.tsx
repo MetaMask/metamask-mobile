@@ -258,7 +258,7 @@ describe('HardwareWalletErrorContext', () => {
       jest.clearAllMocks();
     });
 
-    it('shows bottom sheet when non-user-cancellation error occurs', async () => {
+    it('sets error state and makes bottom sheet visible when non-user-cancellation error occurs', async () => {
       const { getByTestId } = render(
         <HardwareWalletErrorProvider>
           <TestConsumer />
@@ -270,7 +270,7 @@ describe('HardwareWalletErrorContext', () => {
         jest.advanceTimersByTime(100);
       });
 
-      // The bottom sheet should be shown for non-user-cancellation errors
+      // The error code should be set
       expect(getByTestId('error-code').props.children).toBe(
         ErrorCode.DeviceDisconnected,
       );
