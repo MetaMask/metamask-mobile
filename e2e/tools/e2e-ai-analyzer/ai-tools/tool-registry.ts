@@ -152,23 +152,20 @@ export function getToolDefinitions(): LLMTool[] {
           performance_tests: {
             type: 'object',
             description:
-              'Performance test selection based on performance impact',
+              'Performance test selection based on performance impact (empty selected_tags means no performance tests)',
             properties: {
-              should_run: {
-                type: 'boolean',
-                description: 'Whether performance tests should run',
-              },
               selected_tags: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Performance test tags to run',
+                description:
+                  'Performance test tags to run (empty array if no performance tests needed)',
               },
               reasoning: {
                 type: 'string',
                 description: 'Reasoning for performance test selection',
               },
             },
-            required: ['should_run', 'selected_tags', 'reasoning'],
+            required: ['selected_tags', 'reasoning'],
           },
         },
         required: [

@@ -3,7 +3,6 @@
  */
 
 export interface PerformanceTestSelection {
-  shouldRun: boolean;
   selectedTags: string[];
   reasoning: string;
 }
@@ -54,7 +53,6 @@ export interface ToolInput {
   confidence?: number;
   reasoning?: string;
   performance_tests?: {
-    should_run: boolean;
     selected_tags: string[];
     reasoning: string;
   };

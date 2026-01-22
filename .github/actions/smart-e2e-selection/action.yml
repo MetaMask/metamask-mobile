@@ -41,11 +41,8 @@ outputs:
   ai_confidence:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
-  ai_performance_should_run:
-    description: 'Whether performance tests should run (true/false)'
-    value: ${{ steps.final-outputs.outputs.ai_performance_should_run }}
   ai_performance_test_tags:
-    description: 'Performance test tags to run (JSON array format)'
+    description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
 
 runs:
@@ -125,7 +122,6 @@ runs:
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
-        echo "ai_performance_should_run=false" >> "$GITHUB_OUTPUT"
         echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
@@ -165,13 +161,7 @@ runs:
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
         echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
-        # Performance test outputs
-        PERF_SHOULD_RUN='${{ steps.ai-analysis.outputs.ai_performance_should_run }}'
-        if [[ -n "$PERF_SHOULD_RUN" ]]; then
-          echo "ai_performance_should_run=$PERF_SHOULD_RUN" >> "$GITHUB_OUTPUT"
-        else
-          echo "ai_performance_should_run=false" >> "$GITHUB_OUTPUT"
-        fi
+        # Performance test tags (empty array means no performance tests)
         PERF_TAGS='${{ steps.ai-analysis.outputs.ai_performance_test_tags }}'
         if [[ -n "$PERF_TAGS" ]]; then
           printf 'ai_performance_test_tags=%s\n' "$PERF_TAGS" >> "$GITHUB_OUTPUT"
@@ -187,9 +177,6 @@ runs:
         echo "================================"
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
-        echo "--------------------------------"
-        echo "⚡ Performance Tests:"
-        echo "ai_performance_should_run: ${{ steps.final-outputs.outputs.ai_performance_should_run }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
         echo "================================"
 

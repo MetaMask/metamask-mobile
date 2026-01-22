@@ -261,7 +261,6 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
-      ai_performance_should_run: ${{ steps.e2e-selection.outputs.ai_performance_should_run }}
       ai_performance_test_tags: ${{ steps.e2e-selection.outputs.ai_performance_test_tags }}
     steps:
       - name: Checkout for action definition
@@ -296,7 +295,7 @@ jobs:
         needs.needs_e2e_build.outputs.android_changed == 'true' &&
         (
           !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') ||
-          needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]')
         )
       }}
     permissions:
@@ -335,7 +334,7 @@ jobs:
         needs.needs_e2e_build.outputs.ios_changed == 'true' &&
         (
           !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') ||
-          needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]')
         )
       }}
     permissions:
@@ -380,7 +379,7 @@ jobs:
         github.event_name != 'merge_group' &&
         needs.needs_e2e_build.outputs.android_changed == 'true' &&
         needs.smart-e2e-selection.outputs.ai_confidence >= 80 &&
-        needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
       }}
     permissions:
       contents: read
@@ -400,7 +399,7 @@ jobs:
         github.event_name != 'merge_group' &&
         needs.needs_e2e_build.outputs.ios_changed == 'true' &&
         needs.smart-e2e-selection.outputs.ai_confidence >= 80 &&
-        needs.smart-e2e-selection.outputs.ai_performance_should_run == 'true'
+        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
       }}
     permissions:
       contents: read

@@ -36,15 +36,9 @@ function generateAnalysisSummary(analysis) {
 
   let summary = '';
   summary += `- **Selected E2E tags**: ${tagDisplay}\n`;
+  summary += `- **Selected Performance tags**: ${performanceTests.tagDisplay}\n`;
   summary += `- **Risk Level**: ${riskLevel}\n`;
   summary += `- **AI Confidence**: ${confidence}%\n`;
-
-  // Add performance test info
-  summary += '\n### ⚡ Performance Tests\n';
-  summary += `- **Should run**: ${performanceTests.shouldRun ? 'Yes' : 'No'}\n`;
-  if (performanceTests.shouldRun && performanceTests.selectedTags.length > 0) {
-    summary += `- **Selected tags**: ${performanceTests.selectedTags.join(', ')}\n`;
-  }
 
   // Add AI reasoning in expandable section
   summary += '\n<details>\n';
@@ -71,8 +65,7 @@ function setGitHubOutputs(analysis) {
   const { tags, confidence, performanceTests } = analysis;
   setGithubOutputs('ai_e2e_test_tags', tags);
   setGithubOutputs('ai_confidence', confidence);
-  // Performance test outputs
-  setGithubOutputs('ai_performance_should_run', performanceTests.shouldRun ? 'true' : 'false');
+  // Performance test tags (empty array means no performance tests needed)
   setGithubOutputs('ai_performance_test_tags', JSON.stringify(performanceTests.selectedTags));
 }
 
@@ -111,9 +104,10 @@ async function main() {
     // Parse results for GitHub outputs
     const selectedTags = parsedResult.selectedTags || [];
     const performanceTestsRaw = parsedResult.performanceTests || {};
+    const perfSelectedTags = Array.isArray(performanceTestsRaw.selectedTags) ? performanceTestsRaw.selectedTags : [];
     const performanceTests = {
-      shouldRun: Boolean(performanceTestsRaw.shouldRun),
-      selectedTags: Array.isArray(performanceTestsRaw.selectedTags) ? performanceTestsRaw.selectedTags : [],
+      selectedTags: perfSelectedTags,
+      tagDisplay: perfSelectedTags.length > 0 ? perfSelectedTags.join(', ') : 'None (no tests recommended)',
       reasoning: performanceTestsRaw.reasoning || 'No performance impact detected',
     };
     const analysis = {

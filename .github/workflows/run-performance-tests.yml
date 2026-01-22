@@ -23,14 +23,19 @@ permissions:
   id-token: write
 
 jobs:
-  # Detox Performance Tests (Account List + Network List)
-  # Runs when PerformanceAccountList or PerformanceNetworkList tags are selected
-  detox-performance-tests:
-    name: Detox Performance Tests (${{ inputs.platform }})
+  # Performance Tests - runs when any performance area tag is selected
+  # Tags are area-specific and tool-agnostic
+  performance-tests:
+    name: Performance Tests (${{ inputs.platform }})
     if: >-
       ${{
         contains(fromJson(inputs.selected_tags), 'PerformanceAccountList') ||
         contains(fromJson(inputs.selected_tags), 'PerformanceNetworkList') ||
+        contains(fromJson(inputs.selected_tags), 'PerformanceOnboarding') ||
+        contains(fromJson(inputs.selected_tags), 'PerformanceLogin') ||
+        contains(fromJson(inputs.selected_tags), 'PerformanceSwaps') ||
+        contains(fromJson(inputs.selected_tags), 'PerformanceLaunch') ||
+        contains(fromJson(inputs.selected_tags), 'PerformanceAssetLoading') ||
         contains(fromJson(inputs.selected_tags), 'ALL')
       }}
     strategy:
@@ -39,7 +44,7 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: detox-performance-${{ inputs.platform }}-${{ matrix.split }}
+      test-suite-name: performance-${{ inputs.platform }}-${{ matrix.split }}
       platform: ${{ inputs.platform }}
       test_suite_tag: 'Performance'
       split_number: ${{ matrix.split }}
@@ -54,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && inputs.selected_tags != '[]' }}
     needs:
-      - detox-performance-tests
+      - performance-tests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,7 +74,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: 'test-e2e-detox-performance-*-${{ inputs.platform }}-*'
+          pattern: 'test-e2e-performance-*-${{ inputs.platform }}-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3

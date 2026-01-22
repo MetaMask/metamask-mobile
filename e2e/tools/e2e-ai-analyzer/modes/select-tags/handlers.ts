@@ -50,7 +50,6 @@ export const PERFORMANCE_TAGS_CONFIG = Object.values(performanceTags).map(
  */
 function createEmptyPerformanceResult(): PerformanceTestSelection {
   return {
-    shouldRun: false,
     selectedTags: [],
     reasoning: 'No files changed - no performance tests needed',
   };
@@ -95,17 +94,15 @@ export async function processAnalysis(
       return null;
     }
 
-    // Parse performance tests (optional, defaults to not running)
+    // Parse performance tests (optional, empty array means no performance tests)
     const performanceTests: PerformanceTestSelection = parsed.performance_tests
       ? {
-          shouldRun: Boolean(parsed.performance_tests.should_run),
           selectedTags: Array.isArray(parsed.performance_tests.selected_tags)
             ? parsed.performance_tests.selected_tags
             : [],
           reasoning: parsed.performance_tests.reasoning || '',
         }
       : {
-          shouldRun: false,
           selectedTags: [],
           reasoning: 'No performance impact detected',
         };
@@ -137,7 +134,6 @@ export function createConservativeResult(): SelectTagsAnalysis {
     reasoning:
       'Fallback: AI analysis did not complete successfully. Running all tests.',
     performanceTests: {
-      shouldRun: true,
       selectedTags: availablePerformanceTags,
       reasoning:
         'Fallback: AI analysis did not complete successfully. Running all performance tests.',
@@ -164,13 +160,8 @@ export function outputAnalysis(analysis: SelectTagsAnalysis): void {
   console.log('\n⚡ Performance Tests');
   console.log('-----------------------------------');
   console.log(
-    `🏃 Should run: ${analysis.performanceTests.shouldRun ? 'Yes' : 'No'}`,
+    `📋 Selected tags: ${analysis.performanceTests.selectedTags.join(', ') || 'None'}`,
   );
-  if (analysis.performanceTests.shouldRun) {
-    console.log(
-      `📋 Selected tags: ${analysis.performanceTests.selectedTags.join(', ')}`,
-    );
-  }
   console.log(`💭 Reasoning: ${analysis.performanceTests.reasoning}`);
 
   // If running in CI, write the results to a JSON file
@@ -181,7 +172,6 @@ export function outputAnalysis(analysis: SelectTagsAnalysis): void {
       confidence: analysis.confidence,
       reasoning: analysis.reasoning,
       performanceTests: {
-        shouldRun: analysis.performanceTests.shouldRun,
         selectedTags: analysis.performanceTests.selectedTags,
         reasoning: analysis.performanceTests.reasoning,
       },
