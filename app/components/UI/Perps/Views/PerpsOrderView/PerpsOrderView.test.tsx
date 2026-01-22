@@ -283,6 +283,12 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+// Mock tokensController selectors
+jest.mock('../../../../../selectors/tokensController', () => ({
+  ...jest.requireActual('../../../../../selectors/tokensController'),
+  selectTokensByChainIdAndAddress: jest.fn(() => ({})),
+}));
+
 // Mock Redux selectors
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -292,6 +298,9 @@ jest.mock('react-redux', () => ({
     }
     if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
       return false;
+    }
+    if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
+      return {};
     }
     return null;
   }),
