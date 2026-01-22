@@ -1280,7 +1280,7 @@ const Wallet = ({
         ) : null}
         <BannerAlert
           severity={BannerAlertSeverity.Info}
-          title="this is ota update banner prod v1"
+          title="this is ota update banner prod v2"
         />
         <NetworkConnectionBanner />
       </View>
