@@ -23,6 +23,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { SolScope } from '@metamask/keyring-api';
 import { setContentPreviewToken } from '../../../actions/notification/helpers';
+import { PREDICT_SUPERBOWL_VARIABLE_NAME } from '../Predict/constants/carousel';
 
 const makeMockState = () =>
   ({
@@ -91,6 +92,25 @@ jest.mock('./fetchCarouselSlidesFromContentful', () => ({
   ...jest.requireActual('./fetchCarouselSlidesFromContentful'),
   fetchCarouselSlidesFromContentful: jest.fn(),
 }));
+
+jest.mock('../Predict/components/PredictMarketSportCard', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    PredictMarketSportCardWrapper: function MockPredictMarketSportCardWrapper({
+      marketId,
+      testID,
+    }: {
+      marketId: string;
+      testID?: string;
+    }) {
+      return (
+        <View testID={testID ?? 'predict-sport-card-wrapper'}>
+          <Text testID="predict-sport-card-market-id">{marketId}</Text>
+        </View>
+      );
+    },
+  };
+});
 
 const mockDispatch = jest.fn();
 const mockFetchCarouselSlides = jest.mocked(fetchCarouselSlidesFromContentful);
@@ -481,5 +501,77 @@ describe('useFetchCarouselSlides()', () => {
 
     // Should not fetch when feature is disabled
     expect(mockFetchCarouselSlides).not.toHaveBeenCalled();
+  });
+});
+
+describe('Carousel Predict Superbowl Integration', () => {
+  it('renders PredictMarketSportCardWrapper for predict-superbowl slides', async () => {
+    const predictSlide = createMockSlide({
+      id: 'predict-superbowl-slide',
+      variableName: PREDICT_SUPERBOWL_VARIABLE_NAME,
+      metadata: { marketId: 'test-market-123' },
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [predictSlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    const marketIdElement = await findByTestId('predict-sport-card-market-id');
+    expect(marketIdElement).toHaveTextContent('test-market-123');
+  });
+
+  it('does not render predict-superbowl slide when metadata is missing marketId', async () => {
+    const predictSlide = createMockSlide({
+      id: 'predict-superbowl-slide',
+      variableName: PREDICT_SUPERBOWL_VARIABLE_NAME,
+      metadata: undefined,
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [predictSlide],
+    });
+
+    const { toJSON } = render(<Carousel />);
+
+    await waitFor(() => expect(toJSON()).toBeNull());
+  });
+
+  it('does not render predict-superbowl slide when marketId is empty', async () => {
+    const predictSlide = createMockSlide({
+      id: 'predict-superbowl-slide',
+      variableName: PREDICT_SUPERBOWL_VARIABLE_NAME,
+      metadata: { marketId: '' },
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [predictSlide],
+    });
+
+    const { toJSON } = render(<Carousel />);
+
+    await waitFor(() => expect(toJSON()).toBeNull());
+  });
+
+  it('passes correct props to PredictMarketSportCardWrapper', async () => {
+    const predictSlide = createMockSlide({
+      id: 'predict-superbowl-slide',
+      variableName: PREDICT_SUPERBOWL_VARIABLE_NAME,
+      metadata: { marketId: 'market-abc-123' },
+      testID: 'custom-test-id',
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [predictSlide],
+      regularSlides: [],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    const wrapper = await findByTestId('custom-test-id');
+    expect(wrapper).toBeOnTheScreen();
+
+    const marketId = await findByTestId('predict-sport-card-market-id');
+    expect(marketId).toHaveTextContent('market-abc-123');
   });
 });

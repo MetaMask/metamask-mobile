@@ -45,6 +45,10 @@ import { subscribeToContentPreviewToken } from '../../../actions/notification/he
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
+import { PredictMarketSportCardWrapper } from '../Predict/components/PredictMarketSportCard';
+import { PredictEventValues } from '../Predict/constants/eventNames';
+import { PREDICT_SUPERBOWL_VARIABLE_NAME } from '../Predict/constants/carousel';
+import { PredictCarouselMetadata } from '../Predict/types';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -559,6 +563,31 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         );
       }
 
+      if (slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME) {
+        const metadata = slide.metadata as PredictCarouselMetadata | undefined;
+        const marketId = metadata?.marketId;
+
+        if (!marketId) {
+          return null;
+        }
+
+        return (
+          <PredictMarketSportCardWrapper
+            marketId={marketId}
+            testID={slide.testID}
+            entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+            isCurrentCard={isCurrentCard}
+            currentCardOpacity={currentCardOpacity}
+            currentCardScale={currentCardScale}
+            currentCardTranslateY={currentCardTranslateY}
+            nextCardOpacity={nextCardOpacity}
+            nextCardScale={nextCardScale}
+            nextCardTranslateY={nextCardTranslateY}
+            width={BANNER_WIDTH}
+          />
+        );
+      }
+
       return (
         <StackCard
           slide={slide}
@@ -584,8 +613,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       nextCardTranslateY,
       nextCardBgOpacity,
       handleSlideClick,
-      handleTransitionToNextCard,
       handleTransitionToEmpty,
+      handleTransitionToNextCard,
     ],
   );
 
