@@ -392,14 +392,20 @@ describe('PredictShareButton', () => {
         await fireEvent.press(button);
       });
 
-      expect(mockTrackShareAction).toHaveBeenCalledWith({
+      expect(mockTrackShareAction).toHaveBeenCalledTimes(2);
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(1, {
         status: PredictShareStatus.INITIATED,
+        marketId: 'market-123',
+        marketSlug: undefined,
+      });
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(2, {
+        status: PredictShareStatus.SUCCESS,
         marketId: 'market-123',
         marketSlug: undefined,
       });
     });
 
-    it('does not track success when share is dismissed', async () => {
+    it('tracks failed event when share is dismissed', async () => {
       jest.spyOn(Share, 'share').mockResolvedValue({
         action: Share.dismissedAction,
       });
@@ -413,9 +419,14 @@ describe('PredictShareButton', () => {
         await fireEvent.press(button);
       });
 
-      expect(mockTrackShareAction).toHaveBeenCalledTimes(1);
-      expect(mockTrackShareAction).toHaveBeenCalledWith({
+      expect(mockTrackShareAction).toHaveBeenCalledTimes(2);
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(1, {
         status: PredictShareStatus.INITIATED,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(2, {
+        status: PredictShareStatus.FAILED,
         marketId: 'market-123',
         marketSlug: 'market-slug-123',
       });
