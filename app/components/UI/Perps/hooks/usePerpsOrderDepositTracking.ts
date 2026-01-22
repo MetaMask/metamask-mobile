@@ -152,6 +152,10 @@ export const usePerpsOrderDepositTracking = ({
         const transactionId = failedTransactionMeta.id;
         if (hasShownDepositToastRef.current === transactionId) {
           expectingDepositRef.current = false;
+          // Unmark transaction ID so usePerpsDepositStatus can handle it if needed
+          if (depositTransactionIdRef.current) {
+            unmarkTransactionSkipDefaultToast(depositTransactionIdRef.current);
+          }
           depositTransactionIdRef.current = null;
           hasShownDepositToastRef.current = null;
           // Close the depositing toast
@@ -198,6 +202,11 @@ export const usePerpsOrderDepositTracking = ({
         'TransactionController:transactionFailed',
         handleTransactionFailed,
       );
+      // Clean up: unmark transaction ID so usePerpsDepositStatus can show toast
+      // if user navigates away and deposit completes later
+      if (depositTransactionIdRef.current) {
+        unmarkTransactionSkipDefaultToast(depositTransactionIdRef.current);
+      }
     };
   }, [
     activeTransactionMeta,
