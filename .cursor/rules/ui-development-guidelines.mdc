@@ -1,6 +1,7 @@
 ---
 description: UI Development Guidelines
-globs: 'app/*.{tsx,ts,jsx,js}'
+globs:
+  - 'app/**/*.{tsx,jsx}'
 alwaysApply: true
 ---
 
@@ -12,9 +13,117 @@ Always prioritize @metamask/design-system-react-native components and Tailwind C
 
 ## Component Hierarchy (STRICT ORDER)
 
+### The Rule: Check Design System First
+**Before writing any new component or choosing what to use, ask: "Does @metamask/design-system-react-native have this?"**
+
 1. **FIRST**: Use `@metamask/design-system-react-native` components
-2. **SECOND**: Use `app/component-library` components only if design system lacks the component
-3. **LAST RESORT**: Custom components with StyleSheet (avoid unless absolutely necessary)
+   - **Always use for**: Box (layout), Text (typography), Button/ButtonBase/ButtonIcon, Icon, Checkbox
+   - **Always use for**: Avatar variants (Account, Base, Favicon, Group, Icon, Network, Token)
+   - **Always use for**: Badge variants (Count, Icon, Network, Status, Wrapper)
+   - **Rule**: If it exists in the design system, you MUST use it
+
+2. **SECOND**: Use `app/component-library` ONLY if design system lacks it
+   - **Use for**: BottomSheet, Tabs, Headers, ListItems, Skeleton, Tags, Modal, Overlay, Toast, RadioButton, etc.
+   - **Rule**: These are MetaMask-specific implementations not (yet) in the design system
+   - **Important**: component-library components should themselves use design system primitives internally
+
+3. **THIRD**: Feature-specific components
+   - **Use for**: Complex, domain-specific UI that combines multiple design system/component-library components
+   - **Examples**: `BridgeInputSelector`, `StakeInputView`, `NFTDetailsModal`, `PerpsTradingCard`, `PredictionMarketOrderPanel`
+   - **Location**: Can live in feature directories (`app/components/Views/*/components/`, `app/features/*/`)
+   - **Rule**: Must be built using Box, Text, and other design system primitives - NO raw View/Text or StyleSheet
+   - **Reuse**: Check if a feature-specific component already exists in the feature's directory before building a new one. These components should be reused within their feature domain.
+
+4. **LAST RESORT**: Custom components with StyleSheet
+   - **Only when**: Highly specialized one-off needs with no design system equivalent AND no component-library equivalent
+   - **Requires**: Strong justification why design system primitives can't be composed
+
+### Decision Tree
+```
+Need a component?
+  ├─ Is it Box, Text, Button, Icon, Avatar, Badge, or Checkbox?
+  │  └─ YES → Use @metamask/design-system-react-native [STOP]
+  │
+  ├─ Is it BottomSheet, Tabs, Header, ListItem, Skeleton, Tag, Modal, etc?
+  │  └─ YES → Use app/component-library [STOP]
+  │
+  ├─ Is it feature-specific UI (e.g., PerpsTradingCard, PredictionMarketOrderPanel)?
+  │  ├─ Does it already exist in the feature's directory?
+  │  │  ├─ YES → Reuse existing component [STOP]
+  │  │  └─ NO → Build new feature component using design system primitives [STOP]
+  │  └─
+  │
+  └─ Can I compose it from Box + Text + other primitives?
+     ├─ YES → Compose from design system [STOP]
+     └─ NO → Consider if custom implementation is truly necessary
+```
+
+### Why This Hierarchy Matters
+- **Consistency**: Design system ensures consistent look, feel, and behavior
+- **Maintenance**: Centralized updates benefit all consumers
+- **Accessibility**: Design system components include a11y best practices
+- **Performance**: Optimized implementations tested at scale
+- **Type Safety**: Full TypeScript support with JSDoc documentation
+
+## Feature-Specific Component Organization
+
+### Working with Feature Components
+
+When implementing UI that is specific to a feature (e.g., Perps, Predictions, Bridge, Stake):
+
+1. **Check for existing components FIRST**
+   - Look in the feature's component directory: `app/features/[feature-name]/components/` or `app/components/Views/[FeatureName]/components/`
+   - Search for similar component names or functionality
+   - Use Glob/Grep to find existing implementations
+
+2. **Reuse existing feature components**
+   - If a `PerpsTradingCard` already exists, use it
+   - If a `PredictionMarketOrderPanel` already exists, use it
+   - These components are already built with design system primitives and are optimized for their feature
+
+3. **Build new feature components only when needed**
+   - If the component doesn't exist, build it using design system primitives
+   - Place it in the appropriate feature directory
+   - Name it clearly to indicate its purpose and feature domain
+
+4. **Feature component guidelines**
+   - **DO**: Build feature components from Box, Text, Button, Icon, etc.
+   - **DO**: Reuse these components within the feature
+   - **DO**: Keep them in feature-specific directories
+   - **DON'T**: Use StyleSheet or raw View/Text components
+   - **DON'T**: Duplicate functionality - check for existing components first
+   - **DON'T**: Make feature components overly generic - they serve specific feature needs
+
+### Example Directory Structure
+```
+app/
+├── features/
+│   ├── perps/
+│   │   └── components/
+│   │       ├── PerpsTradingCard/
+│   │       ├── PerpsPositionPanel/
+│   │       └── PerpsOrderForm/
+│   ├── predictions/
+│   │   └── components/
+│   │       ├── PredictionMarketCard/
+│   │       └── PredictionOutcomeSelector/
+│   └── bridge/
+│       └── components/
+│           └── BridgeInputSelector/
+└── components/
+    └── Views/
+        └── Stake/
+            └── components/
+                └── StakeInputView/
+```
+
+### Workflow: Implementing a Feature Component
+
+1. **Identify the feature** - Determine which feature this component belongs to (Perps, Predictions, Bridge, etc.)
+2. **Search the codebase** - Use Glob/Grep to find if a similar component already exists in the feature's directory
+3. **Reuse or build** - If found, reuse it. If not, build it with design system primitives
+4. **Place correctly** - Put it in the appropriate feature directory
+5. **Document** - Add clear props and purpose if it's a new component
 
 ## Required Imports for React Native
 
@@ -34,6 +143,26 @@ import {
   // ... other design system components
 } from '@metamask/design-system-react-native';
 ```
+
+## Component Documentation Access
+
+### Type Definitions & JSDoc Comments
+All @metamask/design-system-react-native components have comprehensive TypeScript definitions with JSDoc comments:
+
+- **Box**: `/node_modules/@metamask/design-system-react-native/dist/components/Box/Box.types.d.cts`
+- **Text**: `/node_modules/@metamask/design-system-react-native/dist/components/Text/Text.types.d.cts`
+- **Button**: `/node_modules/@metamask/design-system-react-native/dist/components/Button/Button.types.d.cts`
+
+When unsure about component APIs:
+1. Read the `.types.d.cts` files for complete prop documentation
+2. Reference `app/component-library/components/design-system.stories.tsx` for usage examples
+3. Check GitHub source: https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components
+
+### Box Component Quick Reference
+- **Spacing**: Use `gap`, `padding*`, `margin*` props with values 0-12 (maps to 0px-48px)
+- **Flexbox**: Use `flexDirection`, `alignItems`, `justifyContent` enum props
+- **Colors**: Use `backgroundColor` and `borderColor` with semantic tokens
+- **Tailwind**: Use `twClassName` for utilities not covered by props
 
 ## Styling Rules (ENFORCE STRICTLY)
 
@@ -112,6 +241,52 @@ const MyComponent = () => {
 >
 ```
 
+## Box Component Best Practices
+
+### Prefer Props Over twClassName for Layout
+✅ **DO** - Use typed props for type safety and consistency:
+```tsx
+<Box
+  flexDirection={BoxFlexDirection.Row}
+  alignItems={BoxAlignItems.Center}
+  justifyContent={BoxJustifyContent.Between}
+  gap={3}
+  padding={4}
+  margin={2}
+>
+```
+
+❌ **DON'T** - Use twClassName for properties that have dedicated props:
+```tsx
+<Box twClassName="flex-row items-center justify-between gap-3 p-4 m-2">
+```
+
+### When to Use twClassName
+Use `twClassName` for:
+- Width and height: `w-full`, `h-20`, `w-[337px]`
+- Complex positioning: `absolute`, `relative`, `top-0`, `left-0`
+- Borders (partial): `rounded-lg`, `border-t`
+- Shadows and opacity: `shadow-lg`, `opacity-50`
+- Utilities not covered by props: `overflow-hidden`, `z-10`
+
+### Spacing System
+- Use numeric props (0-12) for spacing: `padding={4}` = 16px
+- Each unit = 4px (so 12 = 48px max)
+- For custom spacing beyond 48px, use twClassName: `twClassName="p-20"`
+
+### Color Tokens
+Always use semantic color tokens:
+```tsx
+// ✅ Semantic tokens
+<Box backgroundColor={BoxBackgroundColor.BackgroundDefault}>
+<Box backgroundColor={BoxBackgroundColor.PrimaryDefault}>
+<Box backgroundColor={BoxBackgroundColor.ErrorMuted}>
+
+// ❌ Arbitrary colors
+<Box twClassName="bg-[#3B82F6]">
+<Box style={{ backgroundColor: '#FF0000' }}>
+```
+
 ## Component Conversion Guide
 
 | DON'T Use                            | USE Instead                            |
@@ -123,15 +298,99 @@ const MyComponent = () => {
 | `flexDirection: 'row'`               | `flexDirection={BoxFlexDirection.Row}` |
 | Manual padding/margin                | `twClassName="p-4 m-2"`                |
 
-## Error Prevention
+## Legacy Code Migration Guidelines
 
-When you see these patterns, IMMEDIATELY suggest alternatives:
+### Identifying Legacy Patterns
+🚫 **Anti-patterns to refactor when encountered:**
+- Files using `StyleSheet.create()`
+- Separate `.styles.ts` or `.styles.tsx` files
+- Raw `View` components instead of `Box`
+- Raw `Text` components with custom styles instead of design system `Text` with variants
+- Inline style objects for static styles
 
+### Migration Priority
+1. **High Priority**: Components being actively modified
+2. **Medium Priority**: Frequently used shared components in `app/component-library`
+3. **Low Priority**: Stable legacy components with no active development
+
+### Migration Steps
+1. Replace `View` → `Box` from design system
+2. Replace `Text` → `Text` with appropriate `TextVariant`
+3. Convert `StyleSheet.create()` styles → `twClassName` props or `tw.style()`
+4. Convert arbitrary colors → design system color tokens
+5. Delete `.styles.ts` files after migration
+6. Test thoroughly - layout can shift during migration
+
+### Example Migration
+
+**Before:**
+```tsx
+import { View, Text, StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#ffffff',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000000',
+  },
+});
+
+<View style={styles.container}>
+  <Text style={styles.title}>Title</Text>
+</View>
+```
+
+**After:**
+```tsx
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box, Text, TextVariant, BoxFlexDirection, BoxAlignItems, FontWeight } from '@metamask/design-system-react-native';
+
+const tw = useTailwind();
+
+<Box
+  flexDirection={BoxFlexDirection.Row}
+  alignItems={BoxAlignItems.Center}
+  twClassName="p-4 bg-default"
+>
+  <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+    Title
+  </Text>
+</Box>
+```
+
+## Error Prevention & Code Review Checklist
+
+### Before Committing Code, Verify:
+- [ ] No `import tw from 'twrnc'` (must use `useTailwind()` hook)
+- [ ] No raw `View` components (use `Box`)
+- [ ] No raw `Text` without variants (use `Text` with `TextVariant`)
+- [ ] No `StyleSheet.create()` (use `twClassName` or `tw.style()`)
+- [ ] No arbitrary color values (use design system tokens)
+- [ ] No separate `.styles.ts` files for new components
+- [ ] Component props used before `twClassName` for layout
+- [ ] Interactive styles use `tw.style()` with state functions
+
+### When You See These Patterns, IMMEDIATELY Suggest Alternatives:
 - Any `import tw from 'twrnc'` → `import { useTailwind } from '@metamask/design-system-twrnc-preset'`
 - Any `View` component → `Box` from design system
 - Any `StyleSheet` usage → Tailwind classes
 - Any arbitrary color values → Design system tokens
 - Any manual flex properties → Box component props + twClassName
+
+### AI Agent Guidelines
+When suggesting code changes:
+1. ALWAYS read component type definitions first for accurate API usage
+2. ALWAYS check `design-system.stories.tsx` for real-world patterns
+3. ALWAYS search for existing feature-specific components before building new ones (use Glob/Grep to find similar components in feature directories)
+4. REJECT any suggestions that violate the hierarchy
+5. SUGGEST migrations when encountering legacy patterns
+6. EXPLAIN why design system approach is preferred
 
 ## Design System Priority
 
