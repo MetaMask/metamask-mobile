@@ -140,26 +140,30 @@ export class SubscriptionMultiplexer {
    * Cache of latest prices per symbol per provider
    * Map<symbol, Map<providerId, PriceUpdate>>
    */
-  private priceCache: Map<string, Map<PerpsProviderType, PriceUpdate>> =
-    new Map();
+  private readonly priceCache: Map<
+    string,
+    Map<PerpsProviderType, PriceUpdate>
+  > = new Map();
 
   /**
    * Cache of latest positions per provider
    * Map<providerId, Position[]>
    */
-  private positionCache: Map<PerpsProviderType, Position[]> = new Map();
+  private readonly positionCache: Map<PerpsProviderType, Position[]> =
+    new Map();
 
   /**
    * Cache of latest orders per provider
    * Map<providerId, Order[]>
    */
-  private orderCache: Map<PerpsProviderType, Order[]> = new Map();
+  private readonly orderCache: Map<PerpsProviderType, Order[]> = new Map();
 
   /**
    * Cache of latest account state per provider
    * Map<providerId, AccountState>
    */
-  private accountCache: Map<PerpsProviderType, AccountState> = new Map();
+  private readonly accountCache: Map<PerpsProviderType, AccountState> =
+    new Map();
 
   /**
    * Create a new SubscriptionMultiplexer.
