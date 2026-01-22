@@ -101,6 +101,10 @@ function getAccountsControllerWithSolana() {
   };
 }
 
+/**
+ * @deprecated Use `withFixtures` directly with the appropriate FixtureBuilder configuration instead.
+ * This helper will be removed in a future version.
+ */
 export async function withSolanaAccountEnabled(
   {
     solanaAccountPermitted,
