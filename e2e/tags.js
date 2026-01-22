@@ -161,6 +161,16 @@ const performanceTags = {
     description:
       'Asset and balance loading performance - covers token list rendering, balance fetching, NFT gallery loading, and portfolio value calculation',
   },
+  performancePredict: {
+    tag: 'PerformancePredict:',
+    description:
+      'Predict market performance - covers prediction market list loading, market details, deposit flows, and balance display',
+  },
+  performancePreps: {
+    tag: 'PerformancePreps:',
+    description:
+      'Perpetuals trading performance - covers perps market loading, position management, add funds flow, and order execution',
+  },
 };
 
 // Other tags to run on demand or for specific purposes.

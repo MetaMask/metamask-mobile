@@ -36,6 +36,8 @@ jobs:
         contains(fromJson(inputs.selected_tags), 'PerformanceSwaps') ||
         contains(fromJson(inputs.selected_tags), 'PerformanceLaunch') ||
         contains(fromJson(inputs.selected_tags), 'PerformanceAssetLoading') ||
+        contains(fromJson(inputs.selected_tags), 'PerformancePredict') ||
+        contains(fromJson(inputs.selected_tags), 'PerformancePreps') ||
         contains(fromJson(inputs.selected_tags), 'ALL')
       }}
     strategy:
