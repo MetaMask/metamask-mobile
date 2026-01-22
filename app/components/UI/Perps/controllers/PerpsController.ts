@@ -1104,11 +1104,16 @@ export class PerpsController extends BaseController<
             'PerpsController: Using aggregated provider (multi-provider)',
             { registeredProviders: Array.from(this.providers.keys()) },
           );
-        } else {
-          // Direct provider mode: use specific provider directly (default: hyperliquid)
+        } else if (activeProvider === 'hyperliquid') {
+          // Direct provider mode: use HyperLiquid provider directly
           this.activeProviderInstance = hyperLiquidProvider;
           this.debugLog(
             `PerpsController: Using direct provider (${activeProvider})`,
+          );
+        } else {
+          // Unsupported provider - throw error to prevent silent misconfiguration
+          throw new Error(
+            `Unsupported provider: ${activeProvider}. Currently only 'hyperliquid' and 'aggregated' are supported.`,
           );
         }
 

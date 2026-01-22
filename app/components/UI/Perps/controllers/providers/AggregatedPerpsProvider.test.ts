@@ -171,18 +171,18 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('constructor', () => {
-    it('should initialize with provided providers', () => {
+    it('initializes with provided providers', () => {
       expect(aggregatedProvider.getProviderIds()).toContain('hyperliquid');
       expect(aggregatedProvider.getProviderIds()).toContain('myx');
     });
 
-    it('should have protocolId set to "aggregated"', () => {
+    it('has protocolId set to "aggregated"', () => {
       expect(aggregatedProvider.protocolId).toBe('aggregated');
     });
   });
 
   describe('Read Operations - getPositions', () => {
-    it('should aggregate positions from all providers', async () => {
+    it('aggregates positions from all providers', async () => {
       mockHLProvider.getPositions.mockResolvedValue([
         createMockPosition('BTC', '0.1'),
       ]);
@@ -201,7 +201,7 @@ describe('AggregatedPerpsProvider', () => {
       );
     });
 
-    it('should inject providerId into each position', async () => {
+    it('injects providerId into each position', async () => {
       mockHLProvider.getPositions.mockResolvedValue([
         createMockPosition('BTC', '0.1'),
       ]);
@@ -211,7 +211,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(positions[0].providerId).toBe('hyperliquid');
     });
 
-    it('should handle partial failures gracefully', async () => {
+    it('handles partial failures gracefully', async () => {
       mockHLProvider.getPositions.mockResolvedValue([
         createMockPosition('BTC', '0.1'),
       ]);
@@ -226,7 +226,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(positions[0].providerId).toBe('hyperliquid');
     });
 
-    it('should return empty array when all providers fail', async () => {
+    it('returns empty array when all providers fail', async () => {
       mockHLProvider.getPositions.mockRejectedValue(new Error('Error 1'));
       mockMYXProvider.getPositions.mockRejectedValue(new Error('Error 2'));
 
@@ -237,7 +237,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Read Operations - getMarkets', () => {
-    it('should aggregate markets from all providers', async () => {
+    it('aggregates markets from all providers', async () => {
       mockHLProvider.getMarkets.mockResolvedValue([createMockMarket('BTC')]);
       mockMYXProvider.getMarkets.mockResolvedValue([createMockMarket('ETH')]);
 
@@ -252,7 +252,7 @@ describe('AggregatedPerpsProvider', () => {
       );
     });
 
-    it('should keep same market from different providers', async () => {
+    it('keeps same market from different providers', async () => {
       mockHLProvider.getMarkets.mockResolvedValue([createMockMarket('BTC')]);
       mockMYXProvider.getMarkets.mockResolvedValue([createMockMarket('BTC')]);
 
@@ -264,7 +264,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Read Operations - getOrders', () => {
-    it('should aggregate orders from all providers', async () => {
+    it('aggregates orders from all providers', async () => {
       mockHLProvider.getOrders.mockResolvedValue([
         createMockOrder('hl-order', 'BTC'),
       ]);
@@ -415,7 +415,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Write Operations - placeOrder', () => {
-    it('should route to default provider when no providerId specified', async () => {
+    it('routes to default provider when no providerId specified', async () => {
       await aggregatedProvider.placeOrder({
         symbol: 'BTC',
         isBuy: true,
@@ -427,7 +427,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(mockMYXProvider.placeOrder).not.toHaveBeenCalled();
     });
 
-    it('should route to specified provider when providerId is provided', async () => {
+    it('routes to specified provider when providerId is provided', async () => {
       await aggregatedProvider.placeOrder({
         symbol: 'BTC',
         isBuy: true,
@@ -440,7 +440,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(mockHLProvider.placeOrder).not.toHaveBeenCalled();
     });
 
-    it('should inject providerId into result', async () => {
+    it('injects providerId into result', async () => {
       mockMYXProvider.placeOrder.mockResolvedValue({
         success: true,
         orderId: 'myx-order-123',
@@ -458,7 +458,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(result.orderId).toBe('myx-order-123');
     });
 
-    it('should fall back to default when specified provider not found', async () => {
+    it('falls back to default when specified provider not found', async () => {
       await aggregatedProvider.placeOrder({
         symbol: 'BTC',
         isBuy: true,
@@ -474,7 +474,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Write Operations - cancelOrder', () => {
-    it('should route to specified provider', async () => {
+    it('routes to specified provider', async () => {
       await aggregatedProvider.cancelOrder({
         orderId: 'order-123',
         symbol: 'BTC',
@@ -486,7 +486,7 @@ describe('AggregatedPerpsProvider', () => {
       );
     });
 
-    it('should inject providerId into result', async () => {
+    it('injects providerId into result', async () => {
       mockMYXProvider.cancelOrder.mockResolvedValue({
         success: true,
         orderId: 'order-123',
@@ -503,7 +503,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Write Operations - closePosition', () => {
-    it('should route to specified provider', async () => {
+    it('routes to specified provider', async () => {
       await aggregatedProvider.closePosition({
         symbol: 'BTC',
         providerId: 'myx',
@@ -514,7 +514,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Validation', () => {
-    it('should validate order with specified provider', async () => {
+    it('validates order with specified provider', async () => {
       await aggregatedProvider.validateOrder({
         symbol: 'BTC',
         isBuy: true,
@@ -526,7 +526,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(mockMYXProvider.validateOrder).toHaveBeenCalled();
     });
 
-    it('should use default provider for validateDeposit', async () => {
+    it('uses default provider for validateDeposit', async () => {
       await aggregatedProvider.validateDeposit({
         amount: '100',
         assetId: 'eip155:42161/erc20:0x1234/default',
@@ -555,14 +555,14 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Lifecycle', () => {
-    it('should initialize default provider', async () => {
+    it('initializes default provider', async () => {
       const result = await aggregatedProvider.initialize();
 
       expect(mockHLProvider.initialize).toHaveBeenCalled();
       expect(result).toEqual({ success: true });
     });
 
-    it('should disconnect all providers', async () => {
+    it('disconnects all providers', async () => {
       const result = await aggregatedProvider.disconnect();
 
       expect(mockHLProvider.disconnect).toHaveBeenCalled();
@@ -570,7 +570,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should delegate isReadyToTrade to default provider', async () => {
+    it('delegates isReadyToTrade to default provider', async () => {
       mockHLProvider.isReadyToTrade.mockResolvedValue({
         ready: true,
         walletConnected: true,
@@ -597,7 +597,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Configuration', () => {
-    it('should apply setLiveDataConfig to all providers', () => {
+    it('applies setLiveDataConfig to all providers', () => {
       aggregatedProvider.setLiveDataConfig({ priceThrottleMs: 1000 });
 
       expect(mockHLProvider.setLiveDataConfig).toHaveBeenCalledWith({
@@ -608,7 +608,7 @@ describe('AggregatedPerpsProvider', () => {
       });
     });
 
-    it('should apply setUserFeeDiscount to all providers', () => {
+    it('applies setUserFeeDiscount to all providers', () => {
       aggregatedProvider.setUserFeeDiscount(1000);
 
       expect(mockHLProvider.setUserFeeDiscount).toHaveBeenCalledWith(1000);
@@ -617,7 +617,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Provider Management', () => {
-    it('should add new provider', () => {
+    it('adds new provider', () => {
       // Using 'myx' as an existing valid provider type for this test
       // (simulating adding a duplicate or re-adding after removal)
       const newProvider = createMockProvider('myx');
@@ -627,14 +627,14 @@ describe('AggregatedPerpsProvider', () => {
       expect(aggregatedProvider.getProviderIds()).toContain('myx');
     });
 
-    it('should remove provider', () => {
+    it('removes provider', () => {
       const removed = aggregatedProvider.removeProvider('myx');
 
       expect(removed).toBe(true);
       expect(aggregatedProvider.hasProvider('myx')).toBe(false);
     });
 
-    it('should return false when removing non-existent provider', () => {
+    it('returns false when removing non-existent provider', () => {
       // @ts-expect-error Testing error handling with invalid provider type
       const removed = aggregatedProvider.removeProvider('non-existent');
 
@@ -643,13 +643,13 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Asset Routes', () => {
-    it('should delegate getDepositRoutes to default provider', () => {
+    it('delegates getDepositRoutes to default provider', () => {
       aggregatedProvider.getDepositRoutes();
 
       expect(mockHLProvider.getDepositRoutes).toHaveBeenCalled();
     });
 
-    it('should delegate getWithdrawalRoutes to default provider', () => {
+    it('delegates getWithdrawalRoutes to default provider', () => {
       aggregatedProvider.getWithdrawalRoutes();
 
       expect(mockHLProvider.getWithdrawalRoutes).toHaveBeenCalled();
@@ -657,7 +657,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Calculations', () => {
-    it('should delegate calculateLiquidationPrice to default provider', async () => {
+    it('delegates calculateLiquidationPrice to default provider', async () => {
       await aggregatedProvider.calculateLiquidationPrice({
         entryPrice: 50000,
         leverage: 10,
@@ -667,7 +667,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(mockHLProvider.calculateLiquidationPrice).toHaveBeenCalled();
     });
 
-    it('should delegate getMaxLeverage to default provider', async () => {
+    it('delegates getMaxLeverage to default provider', async () => {
       await aggregatedProvider.getMaxLeverage('BTC');
 
       expect(mockHLProvider.getMaxLeverage).toHaveBeenCalledWith('BTC');
@@ -699,7 +699,7 @@ describe('AggregatedPerpsProvider', () => {
   });
 
   describe('Subscriptions', () => {
-    it('should subscribe to prices via multiplexer', () => {
+    it('subscribes to prices via multiplexer', () => {
       const callback = jest.fn();
       aggregatedProvider.subscribeToPrices({
         symbols: ['BTC'],
@@ -710,7 +710,7 @@ describe('AggregatedPerpsProvider', () => {
       expect(mockMYXProvider.subscribeToPrices).toHaveBeenCalled();
     });
 
-    it('should delegate account subscription to default provider', () => {
+    it('delegates account subscription to default provider', () => {
       const callback = jest.fn();
       aggregatedProvider.subscribeToAccount({ callback });
 

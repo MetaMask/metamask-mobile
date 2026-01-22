@@ -127,8 +127,10 @@ export class AggregatedPerpsProvider implements IPerpsProvider {
       defaultProvider: this.defaultProvider,
     });
 
-    // Initialize subscription multiplexer
-    this.subscriptionMux = new SubscriptionMultiplexer();
+    // Initialize subscription multiplexer with logger for error reporting
+    this.subscriptionMux = new SubscriptionMultiplexer({
+      logger: this.deps.logger,
+    });
 
     this.deps.debugLogger.log('[AggregatedPerpsProvider] Initialized', {
       providers: Array.from(this.providers.keys()),

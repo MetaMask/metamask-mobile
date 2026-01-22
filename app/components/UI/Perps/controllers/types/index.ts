@@ -354,6 +354,10 @@ export interface PerpsMarketData {
    * - forex: Foreign exchange pairs (HIP-3)
    */
   marketType?: MarketType;
+  /**
+   * Multi-provider: which provider this market data comes from (injected by aggregator)
+   */
+  providerId?: PerpsProviderType;
 }
 
 export interface ToggleTestnetResult {

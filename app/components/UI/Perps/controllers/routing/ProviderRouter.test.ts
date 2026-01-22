@@ -8,16 +8,16 @@ describe('ProviderRouter', () => {
   });
 
   describe('constructor', () => {
-    it('should set default provider from options', () => {
+    it('sets default provider from options', () => {
       const customRouter = new ProviderRouter({ defaultProvider: 'myx' });
       expect(customRouter.getDefaultProvider()).toBe('myx');
     });
 
-    it('should set default strategy to default_provider', () => {
+    it('sets default strategy to default_provider', () => {
       expect(router.getStrategy()).toBe('default_provider');
     });
 
-    it('should accept custom strategy', () => {
+    it('accepts custom strategy', () => {
       const customRouter = new ProviderRouter({
         defaultProvider: 'hyperliquid',
         strategy: 'default_provider',
@@ -27,12 +27,12 @@ describe('ProviderRouter', () => {
   });
 
   describe('selectProvider', () => {
-    it('should return explicit providerId when provided', () => {
+    it('returns explicit providerId when provided', () => {
       const result = router.selectProvider({ providerId: 'myx' });
       expect(result).toBe('myx');
     });
 
-    it('should return explicit providerId even when symbol is provided', () => {
+    it('returns explicit providerId even when symbol is provided', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC', 'ETH']);
       const result = router.selectProvider({
         symbol: 'BTC',
@@ -41,17 +41,17 @@ describe('ProviderRouter', () => {
       expect(result).toBe('myx');
     });
 
-    it('should return default provider when no providerId is specified', () => {
+    it('returns default provider when no providerId is specified', () => {
       const result = router.selectProvider({ symbol: 'BTC' });
       expect(result).toBe('hyperliquid');
     });
 
-    it('should return default provider when params are empty', () => {
+    it('returns default provider when params are empty', () => {
       const result = router.selectProvider({});
       expect(result).toBe('hyperliquid');
     });
 
-    it('should use specified provider when provided', () => {
+    it('uses specified provider when provided', () => {
       const result = router.selectProvider({ providerId: 'myx' });
       expect(result).toBe('myx');
     });
@@ -63,26 +63,26 @@ describe('ProviderRouter', () => {
       router.updateProviderMarkets('myx', ['BTC', 'ETH', 'ARB']);
     });
 
-    it('should return all providers that support a market', () => {
+    it('returns all providers that support a market', () => {
       const providers = router.getProvidersForMarket('BTC');
       expect(providers).toContain('hyperliquid');
       expect(providers).toContain('myx');
       expect(providers).toHaveLength(2);
     });
 
-    it('should return single provider for exclusive market', () => {
+    it('returns single provider for exclusive market', () => {
       const providers = router.getProvidersForMarket('SOL');
       expect(providers).toEqual(['hyperliquid']);
     });
 
-    it('should return empty array for unknown market', () => {
+    it('returns empty array for unknown market', () => {
       const providers = router.getProvidersForMarket('UNKNOWN');
       expect(providers).toEqual([]);
     });
   });
 
   describe('updateProviderMarkets', () => {
-    it('should add markets for a provider', () => {
+    it('adds markets for a provider', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC', 'ETH']);
 
       expect(router.providerSupportsMarket('hyperliquid', 'BTC')).toBe(true);
@@ -90,7 +90,7 @@ describe('ProviderRouter', () => {
       expect(router.providerSupportsMarket('hyperliquid', 'SOL')).toBe(false);
     });
 
-    it('should replace existing markets when called again', () => {
+    it('replaces existing markets when called again', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC', 'ETH']);
       router.updateProviderMarkets('hyperliquid', ['SOL', 'ARB']);
 
@@ -98,14 +98,14 @@ describe('ProviderRouter', () => {
       expect(router.providerSupportsMarket('hyperliquid', 'SOL')).toBe(true);
     });
 
-    it('should handle empty markets array', () => {
+    it('handles empty markets array', () => {
       router.updateProviderMarkets('hyperliquid', []);
       expect(router.providerSupportsMarket('hyperliquid', 'BTC')).toBe(false);
     });
   });
 
   describe('clearProviderMarkets', () => {
-    it('should remove all markets for a provider', () => {
+    it('removes all markets for a provider', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC', 'ETH']);
       router.clearProviderMarkets('hyperliquid');
 
@@ -113,7 +113,7 @@ describe('ProviderRouter', () => {
       expect(router.getProvidersForMarket('BTC')).toEqual([]);
     });
 
-    it('should not affect other providers', () => {
+    it('does not affect other providers', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC']);
       router.updateProviderMarkets('myx', ['BTC']);
       router.clearProviderMarkets('hyperliquid');
@@ -123,12 +123,12 @@ describe('ProviderRouter', () => {
   });
 
   describe('setDefaultProvider', () => {
-    it('should update the default provider', () => {
+    it('updates the default provider', () => {
       router.setDefaultProvider('myx');
       expect(router.getDefaultProvider()).toBe('myx');
     });
 
-    it('should affect subsequent selectProvider calls', () => {
+    it('affects subsequent selectProvider calls', () => {
       router.setDefaultProvider('myx');
       const result = router.selectProvider({ symbol: 'BTC' });
       expect(result).toBe('myx');
@@ -136,28 +136,28 @@ describe('ProviderRouter', () => {
   });
 
   describe('providerSupportsMarket', () => {
-    it('should return true when provider supports market', () => {
+    it('returns true when provider supports market', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC', 'ETH']);
       expect(router.providerSupportsMarket('hyperliquid', 'BTC')).toBe(true);
     });
 
-    it('should return false when provider does not support market', () => {
+    it('returns false when provider does not support market', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC', 'ETH']);
       expect(router.providerSupportsMarket('hyperliquid', 'SOL')).toBe(false);
     });
 
-    it('should return false for unknown provider', () => {
+    it('returns false for unknown provider', () => {
       // @ts-expect-error Testing error handling with invalid provider type
       expect(router.providerSupportsMarket('unknown', 'BTC')).toBe(false);
     });
   });
 
   describe('getRegisteredProviders', () => {
-    it('should return empty array when no providers registered', () => {
+    it('returns empty array when no providers registered', () => {
       expect(router.getRegisteredProviders()).toEqual([]);
     });
 
-    it('should return all providers with registered markets', () => {
+    it('returns all providers with registered markets', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC']);
       router.updateProviderMarkets('myx', ['ETH']);
 
@@ -167,7 +167,7 @@ describe('ProviderRouter', () => {
       expect(providers).toHaveLength(2);
     });
 
-    it('should not include cleared providers', () => {
+    it('does not include cleared providers', () => {
       router.updateProviderMarkets('hyperliquid', ['BTC']);
       router.updateProviderMarkets('myx', ['ETH']);
       router.clearProviderMarkets('hyperliquid');

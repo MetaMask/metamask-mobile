@@ -11,6 +11,7 @@
 import type {
   PerpsProviderType,
   IPerpsProvider,
+  IPerpsLogger,
   PriceUpdate,
   Position,
   OrderFill,
@@ -22,6 +23,16 @@ import type {
   SubscribeOrdersParams,
   SubscribeAccountParams,
 } from '../types';
+import { ensureError } from '../../../../../util/errorUtils';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+
+/**
+ * Options for constructing SubscriptionMultiplexer
+ */
+export interface SubscriptionMultiplexerOptions {
+  /** Optional logger for error reporting (e.g., Sentry) */
+  logger?: IPerpsLogger;
+}
 
 /**
  * Aggregation mode for price subscriptions
@@ -121,6 +132,11 @@ export interface MultiplexedAccountParams {
  */
 export class SubscriptionMultiplexer {
   /**
+   * Optional logger for error reporting
+   */
+  private readonly logger?: IPerpsLogger;
+
+  /**
    * Cache of latest prices per symbol per provider
    * Map<symbol, Map<providerId, PriceUpdate>>
    */
@@ -146,6 +162,15 @@ export class SubscriptionMultiplexer {
   private accountCache: Map<PerpsProviderType, AccountState> = new Map();
 
   /**
+   * Create a new SubscriptionMultiplexer.
+   *
+   * @param options - Optional configuration including logger for error reporting
+   */
+  constructor(options?: SubscriptionMultiplexerOptions) {
+    this.logger = options?.logger;
+  }
+
+  /**
    * Subscribe to price updates from multiple providers.
    *
    * @param params - Subscription parameters
@@ -164,37 +189,56 @@ export class SubscriptionMultiplexer {
 
     const unsubscribers: (() => void)[] = [];
 
-    // Subscribe to each provider
-    providers.forEach(([providerId, provider]) => {
-      const subscribeParams: SubscribePricesParams = {
-        symbols,
-        callback: (updates) => {
-          // Tag and cache each update
-          updates.forEach((update) => {
-            const taggedUpdate: PriceUpdate = { ...update, providerId };
+    // Subscribe to each provider with defensive error handling
+    for (const [providerId, provider] of providers) {
+      try {
+        const subscribeParams: SubscribePricesParams = {
+          symbols,
+          callback: (updates) => {
+            // Tag and cache each update
+            updates.forEach((update) => {
+              const taggedUpdate: PriceUpdate = { ...update, providerId };
 
-            // Initialize symbol cache if needed
-            if (!this.priceCache.has(update.symbol)) {
-              this.priceCache.set(update.symbol, new Map());
-            }
-            const symbolCache = this.priceCache.get(update.symbol);
-            if (symbolCache) {
-              symbolCache.set(providerId, taggedUpdate);
-            }
-          });
+              // Initialize symbol cache if needed
+              if (!this.priceCache.has(update.symbol)) {
+                this.priceCache.set(update.symbol, new Map());
+              }
+              const symbolCache = this.priceCache.get(update.symbol);
+              if (symbolCache) {
+                symbolCache.set(providerId, taggedUpdate);
+              }
+            });
 
-          // Aggregate and emit based on mode
-          const aggregated = this.aggregatePrices(symbols, aggregationMode);
-          callback(aggregated);
-        },
-        throttleMs,
-        includeOrderBook,
-        includeMarketData,
-      };
+            // Aggregate and emit based on mode
+            const aggregated = this.aggregatePrices(symbols, aggregationMode);
+            callback(aggregated);
+          },
+          throttleMs,
+          includeOrderBook,
+          includeMarketData,
+        };
 
-      const unsub = provider.subscribeToPrices(subscribeParams);
-      unsubscribers.push(unsub);
-    });
+        const unsub = provider.subscribeToPrices(subscribeParams);
+        unsubscribers.push(unsub);
+      } catch (error) {
+        // Log to Sentry before cleanup
+        this.logger?.error(ensureError(error), {
+          tags: {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            provider: providerId,
+            method: 'subscribeToPrices',
+          },
+          context: {
+            name: 'SubscriptionMultiplexer',
+            data: { subscribedCount: unsubscribers.length },
+          },
+        });
+
+        // Clean up any subscriptions created before the failure
+        unsubscribers.forEach((unsub) => unsub());
+        throw error;
+      }
+    }
 
     // Return combined unsubscribe function
     return () => {
@@ -216,25 +260,41 @@ export class SubscriptionMultiplexer {
     const { providers, callback } = params;
     const unsubscribers: (() => void)[] = [];
 
-    providers.forEach(([providerId, provider]) => {
-      const subscribeParams: SubscribePositionsParams = {
-        callback: (positions) => {
-          // Tag positions with providerId and cache
-          const taggedPositions = positions.map((p) => ({
-            ...p,
-            providerId,
-          }));
-          this.positionCache.set(providerId, taggedPositions);
+    for (const [providerId, provider] of providers) {
+      try {
+        const subscribeParams: SubscribePositionsParams = {
+          callback: (positions) => {
+            // Tag positions with providerId and cache
+            const taggedPositions = positions.map((p) => ({
+              ...p,
+              providerId,
+            }));
+            this.positionCache.set(providerId, taggedPositions);
 
-          // Emit aggregated positions from all providers
-          const allPositions = this.aggregatePositions();
-          callback(allPositions);
-        },
-      };
+            // Emit aggregated positions from all providers
+            const allPositions = this.aggregatePositions();
+            callback(allPositions);
+          },
+        };
 
-      const unsub = provider.subscribeToPositions(subscribeParams);
-      unsubscribers.push(unsub);
-    });
+        const unsub = provider.subscribeToPositions(subscribeParams);
+        unsubscribers.push(unsub);
+      } catch (error) {
+        this.logger?.error(ensureError(error), {
+          tags: {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            provider: providerId,
+            method: 'subscribeToPositions',
+          },
+          context: {
+            name: 'SubscriptionMultiplexer',
+            data: { subscribedCount: unsubscribers.length },
+          },
+        });
+        unsubscribers.forEach((unsub) => unsub());
+        throw error;
+      }
+    }
 
     return () => {
       unsubscribers.forEach((unsub) => unsub());
@@ -255,23 +315,39 @@ export class SubscriptionMultiplexer {
     const { providers, callback } = params;
     const unsubscribers: (() => void)[] = [];
 
-    providers.forEach(([providerId, provider]) => {
-      const subscribeParams: SubscribeOrderFillsParams = {
-        callback: (fills, isSnapshot) => {
-          // Tag fills with providerId
-          const taggedFills = fills.map((f) => ({
-            ...f,
-            providerId,
-          }));
+    for (const [providerId, provider] of providers) {
+      try {
+        const subscribeParams: SubscribeOrderFillsParams = {
+          callback: (fills, isSnapshot) => {
+            // Tag fills with providerId
+            const taggedFills = fills.map((f) => ({
+              ...f,
+              providerId,
+            }));
 
-          // For fills, we don't aggregate - emit immediately with tags
-          callback(taggedFills, isSnapshot);
-        },
-      };
+            // For fills, we don't aggregate - emit immediately with tags
+            callback(taggedFills, isSnapshot);
+          },
+        };
 
-      const unsub = provider.subscribeToOrderFills(subscribeParams);
-      unsubscribers.push(unsub);
-    });
+        const unsub = provider.subscribeToOrderFills(subscribeParams);
+        unsubscribers.push(unsub);
+      } catch (error) {
+        this.logger?.error(ensureError(error), {
+          tags: {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            provider: providerId,
+            method: 'subscribeToOrderFills',
+          },
+          context: {
+            name: 'SubscriptionMultiplexer',
+            data: { subscribedCount: unsubscribers.length },
+          },
+        });
+        unsubscribers.forEach((unsub) => unsub());
+        throw error;
+      }
+    }
 
     return () => {
       unsubscribers.forEach((unsub) => unsub());
@@ -288,25 +364,41 @@ export class SubscriptionMultiplexer {
     const { providers, callback } = params;
     const unsubscribers: (() => void)[] = [];
 
-    providers.forEach(([providerId, provider]) => {
-      const subscribeParams: SubscribeOrdersParams = {
-        callback: (orders) => {
-          // Tag orders with providerId and cache
-          const taggedOrders = orders.map((o) => ({
-            ...o,
-            providerId,
-          }));
-          this.orderCache.set(providerId, taggedOrders);
+    for (const [providerId, provider] of providers) {
+      try {
+        const subscribeParams: SubscribeOrdersParams = {
+          callback: (orders) => {
+            // Tag orders with providerId and cache
+            const taggedOrders = orders.map((o) => ({
+              ...o,
+              providerId,
+            }));
+            this.orderCache.set(providerId, taggedOrders);
 
-          // Emit aggregated orders from all providers
-          const allOrders = this.aggregateOrders();
-          callback(allOrders);
-        },
-      };
+            // Emit aggregated orders from all providers
+            const allOrders = this.aggregateOrders();
+            callback(allOrders);
+          },
+        };
 
-      const unsub = provider.subscribeToOrders(subscribeParams);
-      unsubscribers.push(unsub);
-    });
+        const unsub = provider.subscribeToOrders(subscribeParams);
+        unsubscribers.push(unsub);
+      } catch (error) {
+        this.logger?.error(ensureError(error), {
+          tags: {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            provider: providerId,
+            method: 'subscribeToOrders',
+          },
+          context: {
+            name: 'SubscriptionMultiplexer',
+            data: { subscribedCount: unsubscribers.length },
+          },
+        });
+        unsubscribers.forEach((unsub) => unsub());
+        throw error;
+      }
+    }
 
     return () => {
       unsubscribers.forEach((unsub) => unsub());
@@ -326,22 +418,38 @@ export class SubscriptionMultiplexer {
     const { providers, callback } = params;
     const unsubscribers: (() => void)[] = [];
 
-    providers.forEach(([providerId, provider]) => {
-      const subscribeParams: SubscribeAccountParams = {
-        callback: (account) => {
-          // Tag account with providerId and cache
-          const taggedAccount: AccountState = { ...account, providerId };
-          this.accountCache.set(providerId, taggedAccount);
+    for (const [providerId, provider] of providers) {
+      try {
+        const subscribeParams: SubscribeAccountParams = {
+          callback: (account) => {
+            // Tag account with providerId and cache
+            const taggedAccount: AccountState = { ...account, providerId };
+            this.accountCache.set(providerId, taggedAccount);
 
-          // Emit all cached account states
-          const allAccounts = Array.from(this.accountCache.values());
-          callback(allAccounts);
-        },
-      };
+            // Emit all cached account states
+            const allAccounts = Array.from(this.accountCache.values());
+            callback(allAccounts);
+          },
+        };
 
-      const unsub = provider.subscribeToAccount(subscribeParams);
-      unsubscribers.push(unsub);
-    });
+        const unsub = provider.subscribeToAccount(subscribeParams);
+        unsubscribers.push(unsub);
+      } catch (error) {
+        this.logger?.error(ensureError(error), {
+          tags: {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            provider: providerId,
+            method: 'subscribeToAccount',
+          },
+          context: {
+            name: 'SubscriptionMultiplexer',
+            data: { subscribedCount: unsubscribers.length },
+          },
+        });
+        unsubscribers.forEach((unsub) => unsub());
+        throw error;
+      }
+    }
 
     return () => {
       unsubscribers.forEach((unsub) => unsub());
