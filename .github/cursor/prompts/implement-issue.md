@@ -18,44 +18,54 @@ You are implementing a GitHub issue for the MetaMask Mobile repository.
 
 ## Pull Request
 
-When creating the PR, follow the repository's PR template (`.github/pull-request-template.md`). Your PR description MUST include these sections:
+When creating the PR, format the description following this EXACT template:
 
-### Required PR Sections:
+```markdown
+## **Description**
 
-1. **Description**: Short description of what changed and why
-2. **Changelog**: Use the format `CHANGELOG entry: type: description`
-   - `fix:` for bug fixes (e.g., `CHANGELOG entry: fix: resolved issue where token name showed as "Unknown"`)
-   - `feat:` for new features (e.g., `CHANGELOG entry: feat: added dark mode toggle`)
-   - `chore:` or `null` for internal/non-user-facing changes
-3. **Related issues**: `Fixes: #<issue_number>`
-4. **Manual testing steps**: Use Gherkin format:
+[Describe what you changed and why - be specific about the fix/feature]
 
-   ```gherkin
-   Feature: <feature name>
+## **Changelog**
 
-     Scenario: user <action>
-       Given <initial state>
-       When user <action>
-       Then <expected outcome>
-   ```
+CHANGELOG entry: [fix/feat/chore]: [User-facing description in past tense]
 
-5. **Screenshots/Recordings**: Add if applicable (Before/After sections)
-6. **Pre-merge author checklist**: Include these checkboxes (checked, since you're following these guidelines):
-   ```
-   - [x] I've followed MetaMask Contributor Docs and MetaMask Mobile Coding Standards.
-   - [x] I've completed the PR template to the best of my ability
-   - [x] I've included tests if applicable
-   - [x] I've documented my code using JSDoc format if applicable
-   - [x] I've applied the right labels on the PR (see labeling guidelines). Not required for external contributors.
-   ```
-7. **Pre-merge reviewer checklist**: Copy all checkbox items from the template:
-   ```
-   - [ ] I've manually tested the PR (e.g. pull and build branch, run the app, test code being changed).
-   - [ ] I confirm that this PR addresses all acceptance criteria described in the ticket it closes and includes the necessary testing evidence such as recordings and or screenshots.
-   ```
+## **Related issues**
 
-### Changelog Guidelines:
+Fixes: #[ISSUE_NUMBER]
 
-- User-friendly description from the user's perspective
-- Use past tense (e.g., "Fixed", "Added", "Resolved")
-- Keep it concise but informative
+## **Manual testing steps**
+
+\`\`\`gherkin
+Feature: [Feature name based on what you implemented]
+
+Scenario: [Specific scenario for the fix/feature]
+Given [specific initial state]
+When user [specific action]
+Then [specific expected outcome]
+\`\`\`
+
+## **Screenshots/Recordings**
+
+### **Before**
+
+<!-- Reference issue for before state -->
+
+### **After**
+
+<!-- Manual verification needed -->
+
+## **Pre-merge author checklist**
+
+- [x] I've followed MetaMask Contributor Docs and MetaMask Mobile Coding Standards.
+- [x] I've completed the PR template to the best of my ability
+- [x] I've included tests if applicable
+- [x] I've documented my code using JSDoc format if applicable
+- [ ] I've applied the right labels on the PR (see labeling guidelines). Not required for external contributors.
+
+## **Pre-merge reviewer checklist**
+
+- [ ] I've manually tested the PR (e.g. pull and build branch, run the app, test code being changed).
+- [ ] I confirm that this PR addresses all acceptance criteria described in the ticket it closes and includes the necessary testing evidence such as recordings and or screenshots.
+```
+
+**Important**: Replace `[ISSUE_NUMBER]` with the actual issue number. Write specific, contextual Gherkin steps based on what you actually implemented - not generic placeholders.
