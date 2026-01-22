@@ -1,5 +1,5 @@
-import FixtureBuilder from './framework/fixtures/FixtureBuilder';
-import { withFixtures } from './framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
 import WalletView from './pages/wallet/WalletView';

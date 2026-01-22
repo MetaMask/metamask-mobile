@@ -20,6 +20,7 @@ export const MULTI_CHAIN_BASELINE_THRESHOLDS = {
 /**
  * Per-network minimum thresholds for trending tokens
  * Based on analysis of real Phantom trending data (Jan 2026) to filter out low-liquidity tokens and shitcoins
+ * These values MUST be lower or equal to the MULTI_CHAIN_BASELINE_THRESHOLDS, else results will missmatch
  */
 export const TRENDING_NETWORK_THRESHOLDS: Record<
   string,
@@ -34,29 +35,29 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minVolume24h: 500000, // $500k - Matches Phantom: includes Pepe, UNI, Render, Ondo
   },
   [NetworkToCaipChainId.SOLANA]: {
-    minLiquidity: 500000, // $500k - Active memecoin ecosystem
-    minVolume24h: 2000000, // $2M - Includes Bonk ($2.9M), filters pump-and-dumps
+    minLiquidity: 200000, // $200k - Active memecoin ecosystem
+    minVolume24h: 500000, // $500k - Includes Bonk ($2.9M), filters pump-and-dumps
   },
 
   // Tier 2: Established L2s and major chains
   [NetworkToCaipChainId.BASE]: {
-    minLiquidity: 250000, // $250k - Growing L2 ecosystem
-    minVolume24h: 700000, // $700k - Captures Brett ($695K), KAITO ($738K), Ribbita ($700K)
+    minLiquidity: 200000, // $200k - Growing L2 ecosystem
+    minVolume24h: 500000, // $500k - Captures Brett ($695K), KAITO ($738K), Ribbita ($700K)
   },
   [NetworkToCaipChainId.ARBITRUM]: {
-    minLiquidity: 0, // No filter - Show all trending tokens
-    minVolume24h: 0, // No filter - Maximize visibility for this network
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
   },
   [NetworkToCaipChainId.OPTIMISM]: {
-    minLiquidity: 0, // No filter - Show all trending tokens
-    minVolume24h: 0, // No filter - Maximize visibility for this network
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
   },
   [NetworkToCaipChainId.AVALANCHE]: {
-    minLiquidity: 0, // No filter - Show all trending tokens
-    minVolume24h: 0, // No filter - Maximize visibility for this network
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
   },
   [NetworkToCaipChainId.BNB]: {
-    minLiquidity: 300000, // $300k - High activity network
+    minLiquidity: 200000, // $200k - High activity network
     minVolume24h: 1000000, // $1M - Large trading volumes
   },
   [NetworkToCaipChainId.POLYGON]: {
@@ -66,23 +67,23 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
 
   // Tier 3: Growing networks
   [NetworkToCaipChainId.SEI]: {
-    minLiquidity: 0, // No filter - Show all trending tokens
-    minVolume24h: 0, // No filter - Maximize visibility for this network
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
   },
 
   // Tier 4: Emerging networks and L2s
   [NetworkToCaipChainId.LINEA]: {
-    minLiquidity: 0, // No filter - Show all trending tokens
-    minVolume24h: 0, // No filter - Maximize visibility for emerging network
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
   },
   [NetworkToCaipChainId.ZKSYNC_ERA]: {
-    minLiquidity: 0, // No filter - Show all trending tokens
-    minVolume24h: 0, // No filter - Maximize visibility for this network
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
   },
 
   'tron:728126428': {
-    minLiquidity: 0,
-    minVolume24h: 0,
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
   },
 };
 

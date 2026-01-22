@@ -13,7 +13,7 @@ import {
 } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
 import axios, { AxiosResponse } from 'axios';
-import { PerpsModifiersCommandTypes } from '../../../../../e2e/framework/types';
+import { PerpsModifiersCommandTypes } from '../../../../../tests/framework/types';
 
 // Global bridge for E2E mock injection
 export interface E2EBridgePerpsStreaming {

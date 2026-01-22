@@ -1,4 +1,4 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Assertions, Gestures, Matchers } from '../../../tests/framework';
 
 import { GasFeeTokenModalSelectorsText } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
