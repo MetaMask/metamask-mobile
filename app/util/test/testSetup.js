@@ -228,10 +228,10 @@ const mockUseAnalytics = {
     .fn()
     .mockResolvedValue({ regulationId: 'mock-id' }),
   checkDataDeleteStatus: jest.fn().mockResolvedValue({ status: 'pending' }),
-  getDeleteRegulationCreationDate: jest.fn().mockReturnValue(new Date()),
+  getDeleteRegulationCreationDate: jest.fn().mockReturnValue('20/04/2024'),
   getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
   isDataRecorded: jest.fn().mockReturnValue(true),
-  getMetaMetricsId: jest.fn().mockResolvedValue('mock-analytics-id'),
+  getAnalyticsId: jest.fn().mockResolvedValue('mock-analytics-id'),
 };
 
 jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
