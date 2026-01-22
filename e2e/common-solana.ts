@@ -25,7 +25,7 @@ const FEATURE_FLAG_OVERRIDE_PRIORITY = 1000;
  */
 const testSpecificMock = async (mockServer: Mockttp): Promise<void> => {
   const { urlEndpoint, response, responseCode } = createRemoteFeatureFlagsMock({
-    ...remoteFeatureMultichainAccountsAccountDetailsV2(false),
+    ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
   });
 
   await setupMockRequest(
