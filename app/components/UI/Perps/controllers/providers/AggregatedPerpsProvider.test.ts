@@ -1,6 +1,7 @@
 import type { IPerpsProvider, Position, MarketInfo, Order } from '../types';
 import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
 import { AggregatedPerpsProvider } from './AggregatedPerpsProvider';
+import { CandlePeriod } from '../../constants/chartConfig';
 
 // Create a comprehensive mock provider
 const createMockProvider = (
@@ -286,6 +287,133 @@ describe('AggregatedPerpsProvider', () => {
     });
   });
 
+  describe('Read Operations - getAccountState', () => {
+    it('returns account state from default provider with providerId injected', async () => {
+      const mockState = {
+        availableBalance: '1000',
+        totalBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      };
+      mockHLProvider.getAccountState.mockResolvedValue(mockState);
+
+      const result = await aggregatedProvider.getAccountState();
+
+      expect(result).toEqual({ ...mockState, providerId: 'hyperliquid' });
+    });
+  });
+
+  describe('Read Operations - getMarketDataWithPrices', () => {
+    it('aggregates market data from all providers', async () => {
+      mockHLProvider.getMarketDataWithPrices.mockResolvedValue([
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          maxLeverage: '50x',
+          price: '50000',
+          change24h: '100',
+          change24hPercent: '0.2',
+          volume: '1000000',
+        },
+      ]);
+      mockMYXProvider.getMarketDataWithPrices.mockResolvedValue([
+        {
+          symbol: 'ETH',
+          name: 'Ethereum',
+          maxLeverage: '25x',
+          price: '3000',
+          change24h: '50',
+          change24hPercent: '1.5',
+          volume: '500000',
+        },
+      ]);
+
+      const result = await aggregatedProvider.getMarketDataWithPrices();
+
+      expect(result).toHaveLength(2);
+      expect(result).toContainEqual(
+        expect.objectContaining({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+      expect(result).toContainEqual(
+        expect.objectContaining({ symbol: 'ETH', providerId: 'myx' }),
+      );
+    });
+  });
+
+  describe('Read Operations - getOrderFills', () => {
+    it('aggregates order fills from all providers', async () => {
+      mockHLProvider.getOrderFills.mockResolvedValue([
+        {
+          orderId: '1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '0.1',
+          price: '50000',
+          pnl: '0',
+          direction: 'long',
+          fee: '5',
+          feeToken: 'USDC',
+          timestamp: Date.now(),
+        },
+      ]);
+      mockMYXProvider.getOrderFills.mockResolvedValue([
+        {
+          orderId: '2',
+          symbol: 'ETH',
+          side: 'sell',
+          size: '1',
+          price: '3000',
+          pnl: '0',
+          direction: 'short',
+          fee: '3',
+          feeToken: 'USDC',
+          timestamp: Date.now(),
+        },
+      ]);
+
+      const result = await aggregatedProvider.getOrderFills();
+
+      expect(result).toHaveLength(2);
+      expect(result).toContainEqual(
+        expect.objectContaining({ orderId: '1', providerId: 'hyperliquid' }),
+      );
+    });
+  });
+
+  describe('Read Operations - getOpenOrders', () => {
+    it('aggregates open orders from all providers', async () => {
+      mockHLProvider.getOpenOrders.mockResolvedValue([
+        createMockOrder('1', 'BTC'),
+      ]);
+      mockMYXProvider.getOpenOrders.mockResolvedValue([
+        createMockOrder('2', 'ETH'),
+      ]);
+
+      const result = await aggregatedProvider.getOpenOrders();
+
+      expect(result).toHaveLength(2);
+      expect(result).toContainEqual(
+        expect.objectContaining({ orderId: '1', providerId: 'hyperliquid' }),
+      );
+    });
+  });
+
+  describe('Read Operations - getFunding', () => {
+    it('aggregates funding data from all providers', async () => {
+      mockHLProvider.getFunding.mockResolvedValue([
+        { symbol: 'BTC', amountUsd: '10', rate: '0.01', timestamp: Date.now() },
+      ]);
+      mockMYXProvider.getFunding.mockResolvedValue([
+        { symbol: 'ETH', amountUsd: '5', rate: '0.02', timestamp: Date.now() },
+      ]);
+
+      const result = await aggregatedProvider.getFunding();
+
+      expect(result).toHaveLength(2);
+    });
+  });
+
   describe('Write Operations - placeOrder', () => {
     it('should route to default provider when no providerId specified', async () => {
       await aggregatedProvider.placeOrder({
@@ -406,20 +534,40 @@ describe('AggregatedPerpsProvider', () => {
 
       expect(mockHLProvider.validateDeposit).toHaveBeenCalled();
     });
+
+    it('routes validateClosePosition to specified provider', async () => {
+      const params = { symbol: 'BTC', providerId: 'myx' as const };
+
+      await aggregatedProvider.validateClosePosition(params);
+
+      expect(mockMYXProvider.validateClosePosition).toHaveBeenCalledWith(
+        params,
+      );
+    });
+
+    it('routes validateWithdrawal to specified provider', async () => {
+      const params = { amount: '100', providerId: 'myx' as const };
+
+      await aggregatedProvider.validateWithdrawal(params);
+
+      expect(mockMYXProvider.validateWithdrawal).toHaveBeenCalledWith(params);
+    });
   });
 
   describe('Lifecycle', () => {
     it('should initialize default provider', async () => {
-      await aggregatedProvider.initialize();
+      const result = await aggregatedProvider.initialize();
 
       expect(mockHLProvider.initialize).toHaveBeenCalled();
+      expect(result).toEqual({ success: true });
     });
 
     it('should disconnect all providers', async () => {
-      await aggregatedProvider.disconnect();
+      const result = await aggregatedProvider.disconnect();
 
       expect(mockHLProvider.disconnect).toHaveBeenCalled();
       expect(mockMYXProvider.disconnect).toHaveBeenCalled();
+      expect(result.success).toBe(true);
     });
 
     it('should delegate isReadyToTrade to default provider', async () => {
@@ -433,6 +581,18 @@ describe('AggregatedPerpsProvider', () => {
 
       expect(result.ready).toBe(true);
       expect(mockHLProvider.isReadyToTrade).toHaveBeenCalled();
+    });
+
+    it('delegates toggleTestnet to default provider', async () => {
+      mockHLProvider.toggleTestnet.mockResolvedValue({
+        success: true,
+        isTestnet: true,
+      });
+
+      const result = await aggregatedProvider.toggleTestnet();
+
+      expect(mockHLProvider.toggleTestnet).toHaveBeenCalled();
+      expect(result).toEqual({ success: true, isTestnet: true });
     });
   });
 
@@ -512,6 +672,30 @@ describe('AggregatedPerpsProvider', () => {
 
       expect(mockHLProvider.getMaxLeverage).toHaveBeenCalledWith('BTC');
     });
+
+    it('delegates calculateMaintenanceMargin to default provider', async () => {
+      mockHLProvider.calculateMaintenanceMargin.mockResolvedValue(0.05);
+
+      const result = await aggregatedProvider.calculateMaintenanceMargin({
+        asset: 'BTC',
+        positionSize: 1,
+      });
+
+      expect(result).toBe(0.05);
+      expect(mockHLProvider.calculateMaintenanceMargin).toHaveBeenCalled();
+    });
+
+    it('delegates calculateFees to default provider', async () => {
+      mockHLProvider.calculateFees.mockResolvedValue({ feeRate: 0.001 });
+
+      const result = await aggregatedProvider.calculateFees({
+        orderType: 'market',
+        symbol: 'BTC',
+      });
+
+      expect(result).toEqual({ feeRate: 0.001 });
+      expect(mockHLProvider.calculateFees).toHaveBeenCalled();
+    });
   });
 
   describe('Subscriptions', () => {
@@ -531,6 +715,34 @@ describe('AggregatedPerpsProvider', () => {
       aggregatedProvider.subscribeToAccount({ callback });
 
       expect(mockHLProvider.subscribeToAccount).toHaveBeenCalled();
+    });
+
+    it('delegates subscribeToOICaps to default provider', () => {
+      const callback = jest.fn();
+
+      aggregatedProvider.subscribeToOICaps({ callback });
+
+      expect(mockHLProvider.subscribeToOICaps).toHaveBeenCalled();
+    });
+
+    it('delegates subscribeToCandles to default provider', () => {
+      const callback = jest.fn();
+
+      aggregatedProvider.subscribeToCandles({
+        symbol: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        callback,
+      });
+
+      expect(mockHLProvider.subscribeToCandles).toHaveBeenCalled();
+    });
+
+    it('delegates subscribeToOrderBook to default provider', () => {
+      const callback = jest.fn();
+
+      aggregatedProvider.subscribeToOrderBook({ symbol: 'BTC', callback });
+
+      expect(mockHLProvider.subscribeToOrderBook).toHaveBeenCalled();
     });
   });
 });
