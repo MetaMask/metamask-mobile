@@ -139,8 +139,7 @@ const SIMULATION_GAS_STATION_MOCK = {
   },
 };
 
-// Skipping this spec as it is currently causing app crashes on CI
-describe.skip(
+describe(
   SmokeConfirmationsRedesigned('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {
@@ -277,6 +276,11 @@ describe.skip(
 
           await TransactionConfirmView.tapGasFeeTokenPill();
 
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText('Select a token'),
+            { description: 'Modal is visible' },
+          );
+
           await GasFeeTokenModal.checkAmountFiat('DAI', daiValues.fiatAmount);
           await GasFeeTokenModal.checkAmountToken('DAI', daiValues.tokenAmount);
           await GasFeeTokenModal.checkBalance('DAI', daiValues.balance);
@@ -294,16 +298,8 @@ describe.skip(
             { description: 'Selected Gas Fee Token is USDC' },
           );
 
-          const symbolElement =
-            (await RowComponents.NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
-
-          const symbolElementAttributes = await symbolElement.getAttributes();
           const symbolElementLabel =
-            (symbolElementAttributes as { text?: string; label?: string })
-              ?.text ??
-            (symbolElementAttributes as { text?: string; label?: string })
-              ?.label ??
-            '';
+            await RowComponents.getNetworkFeeGasFeeTokenSymbolText();
 
           await Assertions.checkIfTextMatches(symbolElementLabel, 'USDC');
           await Assertions.expectTextDisplayed(usdcValues.fiatAmount);

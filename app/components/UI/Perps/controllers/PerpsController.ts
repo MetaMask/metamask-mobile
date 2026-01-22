@@ -13,31 +13,32 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionType,
 } from '@metamask/transaction-controller';
-import Engine from '../../../../core/Engine';
-import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import { Hex } from '@metamask/utils';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
 import {
   LastTransactionResult,
   TransactionStatus,
 } from '../types/transactionTypes';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../constants/eventNames';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
   type SortOptionId,
 } from '../constants/perpsConfig';
+import type { SortDirection } from '../utils/sortMarkets';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
 import { MarketDataService } from './services/MarketDataService';
 import { TradingService } from './services/TradingService';
 import { AccountService } from './services/AccountService';
@@ -45,62 +46,70 @@ import { EligibilityService } from './services/EligibilityService';
 import { DataLakeService } from './services/DataLakeService';
 import { DepositService } from './services/DepositService';
 import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
+import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
+import { type PerpsStreamChannelKey } from '../providers/PerpsStreamManager';
 import {
-  getStreamManagerInstance,
-  type PerpsStreamChannelKey,
-} from '../providers/PerpsStreamManager';
-import type {
-  AccountState,
-  AssetRoute,
-  CancelOrderParams,
-  CancelOrderResult,
-  CancelOrdersParams,
-  CancelOrdersResult,
-  ClosePositionParams,
-  ClosePositionsParams,
-  ClosePositionsResult,
-  EditOrderParams,
-  FeeCalculationParams,
-  FeeCalculationResult,
-  FlipPositionParams,
-  Funding,
-  GetAccountStateParams,
-  GetAvailableDexsParams,
-  GetFundingParams,
-  GetOrderFillsParams,
-  GetOrdersParams,
-  GetPositionsParams,
-  IPerpsProvider,
-  LiquidationPriceParams,
-  LiveDataConfig,
-  MaintenanceMarginParams,
-  MarginResult,
-  MarketInfo,
-  Order,
-  OrderFill,
-  OrderParams,
-  OrderResult,
-  PerpsControllerConfig,
-  Position,
-  SubscribeAccountParams,
-  SubscribeCandlesParams,
-  SubscribeOICapsParams,
-  SubscribeOrderBookParams,
-  SubscribeOrderFillsParams,
-  SubscribeOrdersParams,
-  SubscribePositionsParams,
-  SubscribePricesParams,
-  SwitchProviderResult,
-  ToggleTestnetResult,
-  UpdateMarginParams,
-  UpdatePositionTPSLParams,
-  WithdrawParams,
-  WithdrawResult,
-  GetHistoricalPortfolioParams,
-  HistoricalPortfolioResult,
-  OrderType,
+  PerpsAnalyticsEvent,
+  type AccountState,
+  type AssetRoute,
+  type CancelOrderParams,
+  type CancelOrderResult,
+  type CancelOrdersParams,
+  type CancelOrdersResult,
+  type ClosePositionParams,
+  type ClosePositionsParams,
+  type ClosePositionsResult,
+  type EditOrderParams,
+  type FeeCalculationParams,
+  type FeeCalculationResult,
+  type FlipPositionParams,
+  type Funding,
+  type GetAccountStateParams,
+  type GetAvailableDexsParams,
+  type GetFundingParams,
+  type GetMarketsParams,
+  type GetOrderFillsParams,
+  type GetOrdersParams,
+  type GetPositionsParams,
+  type IPerpsProvider,
+  type LiquidationPriceParams,
+  type LiveDataConfig,
+  type MaintenanceMarginParams,
+  type MarginResult,
+  type MarketInfo,
+  type Order,
+  type OrderFill,
+  type OrderParams,
+  type OrderResult,
+  type PerpsControllerConfig,
+  type Position,
+  type SubscribeAccountParams,
+  type SubscribeCandlesParams,
+  type SubscribeOICapsParams,
+  type SubscribeOrderBookParams,
+  type SubscribeOrderFillsParams,
+  type SubscribeOrdersParams,
+  type SubscribePositionsParams,
+  type SubscribePricesParams,
+  type SwitchProviderResult,
+  type ToggleTestnetResult,
+  type UpdateMarginParams,
+  type UpdatePositionTPSLParams,
+  type WithdrawParams,
+  type WithdrawResult,
+  type GetHistoricalPortfolioParams,
+  type HistoricalPortfolioResult,
+  type OrderType,
+  // Platform dependencies interface for core migration (bundles all platform-specific deps)
+  type IPerpsPlatformDependencies,
+  type IPerpsLogger,
+  type PerpsActiveProviderMode,
+  type PerpsProviderType,
 } from './types';
+
+/** Derived type for logger options from IPerpsLogger interface */
+type PerpsLoggerOptions = Parameters<IPerpsLogger['error']>[1];
 import type {
   RemoteFeatureFlagControllerState,
   RemoteFeatureFlagControllerStateChangeEvent,
@@ -127,9 +136,8 @@ export enum InitializationState {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsControllerState = {
   // Active provider
-  activeProvider: string;
+  activeProvider: PerpsActiveProviderMode;
   isTestnet: boolean; // Dev toggle for testnet
-  connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Initialization state machine
   initializationState: InitializationState;
@@ -138,9 +146,6 @@ export type PerpsControllerState = {
 
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
-
-  // Current positions
-  positions: Position[];
 
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
@@ -262,7 +267,10 @@ export type PerpsControllerState = {
   };
 
   // Market filter preferences (network-independent) - includes both sorting and filtering options
-  marketFilterPreferences: SortOptionId;
+  marketFilterPreferences: {
+    optionId: SortOptionId;
+    direction: SortDirection;
+  };
 
   // Error handling
   lastError: string | null;
@@ -275,16 +283,19 @@ export type PerpsControllerState = {
 
 /**
  * Get default PerpsController state
+ *
+ * To change the active provider, modify the `activeProvider` value below:
+ * - 'hyperliquid': HyperLiquid provider (default, production)
+ * - 'aggregated': Multi-provider aggregation mode
+ * - 'myx': MYX provider (future implementation)
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
-  connectionStatus: 'disconnected',
   initializationState: InitializationState.UNINITIALIZED,
   initializationError: null,
   initializationAttempts: 0,
   accountState: null,
-  positions: [],
   perpsBalances: {},
   depositInProgress: false,
   lastDepositResult: null,
@@ -317,7 +328,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: {},
     mainnet: {},
   },
-  marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  marketFilterPreferences: {
+    optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+    direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+  },
   hip3ConfigVersion: 0,
 });
 
@@ -328,12 +342,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
   accountState: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  positions: {
-    includeInStateLogs: true,
-    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -352,12 +360,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
   activeProvider: {
     includeInStateLogs: true,
     persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  connectionStatus: {
-    includeInStateLogs: true,
-    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -585,6 +587,10 @@ export type PerpsControllerActions =
       handler: PerpsController['resetFirstTimeUserState'];
     }
   | {
+      type: 'PerpsController:clearPendingTransactionRequests';
+      handler: PerpsController['clearPendingTransactionRequests'];
+    }
+  | {
       type: 'PerpsController:saveTradeConfiguration';
       handler: PerpsController['saveTradeConfiguration'];
     }
@@ -654,6 +660,12 @@ export interface PerpsControllerOptions {
   messenger: PerpsControllerMessenger;
   state?: Partial<PerpsControllerState>;
   clientConfig?: PerpsControllerConfig;
+  /**
+   * Platform-specific dependencies (required)
+   * Provides logging, metrics, tracing, stream management, and account utilities.
+   * Must be provided by the platform (mobile/extension) at instantiation time.
+   */
+  infrastructure: IPerpsPlatformDependencies;
 }
 
 interface BlockedRegionList {
@@ -674,7 +686,7 @@ export class PerpsController extends BaseController<
   PerpsControllerState,
   PerpsControllerMessenger
 > {
-  protected providers: Map<string, IPerpsProvider>;
+  protected providers: Map<PerpsProviderType, IPerpsProvider>;
   protected isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
@@ -698,10 +710,31 @@ export class PerpsController extends BaseController<
   private hip3BlocklistMarkets: string[];
   private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
 
+  /**
+   * Active provider instance for routing operations.
+   * When activeProvider is 'hyperliquid' or 'myx': points to specific provider directly
+   * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
+   */
+  protected activeProviderInstance: IPerpsProvider | null = null;
+
+  // Store options for dependency injection (allows core package to inject platform-specific services)
+  private readonly options: PerpsControllerOptions;
+
+  // Service instances (instantiated with platform dependencies)
+  private readonly tradingService: TradingService;
+  private readonly marketDataService: MarketDataService;
+  private readonly accountService: AccountService;
+  private readonly eligibilityService: EligibilityService;
+  private readonly dataLakeService: DataLakeService;
+  private readonly depositService: DepositService;
+  private readonly featureFlagConfigurationService: FeatureFlagConfigurationService;
+  private readonly rewardsIntegrationService: RewardsIntegrationService;
+
   constructor({
     messenger,
     state = {},
     clientConfig = {},
+    infrastructure,
   }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
@@ -709,6 +742,28 @@ export class PerpsController extends BaseController<
       messenger,
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
+
+    // Store options for dependency injection
+    this.options = {
+      messenger,
+      state,
+      clientConfig,
+      infrastructure,
+    };
+
+    // Instantiate services with platform dependencies
+    this.tradingService = new TradingService(infrastructure);
+    this.marketDataService = new MarketDataService(infrastructure);
+    this.accountService = new AccountService(infrastructure);
+    this.eligibilityService = new EligibilityService(infrastructure);
+    this.dataLakeService = new DataLakeService(infrastructure);
+    this.depositService = new DepositService(infrastructure);
+    this.featureFlagConfigurationService = new FeatureFlagConfigurationService(
+      infrastructure,
+    );
+    this.rewardsIntegrationService = new RewardsIntegrationService(
+      infrastructure,
+    );
 
     // Set HIP-3 fallback configuration from client (will be updated if remote flags available)
     this.hip3Enabled = clientConfig.fallbackHip3Enabled ?? false;
@@ -742,7 +797,7 @@ export class PerpsController extends BaseController<
       // If we can't read the remote feature flags at construction time, we'll rely on:
       // 1. The fallback blocked regions already set above
       // 2. The subscription to catch updates when RemoteFeatureFlagController is ready
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('constructor', {
           operation: 'readRemoteFeatureFlags',
@@ -759,6 +814,35 @@ export class PerpsController extends BaseController<
 
     // Migrate old persisted data without accountAddress
     this.migrateRequestsIfNeeded();
+  }
+
+  // ============================================================================
+  // Infrastructure Access Methods
+  // These methods provide access to platform-specific infrastructure via dependency injection.
+  // Infrastructure is required and must be provided at instantiation time.
+  // ============================================================================
+
+  /**
+   * Log an error using injected infrastructure logger
+   */
+  private logError(error: Error, options?: PerpsLoggerOptions): void {
+    this.options.infrastructure.logger.error(error, options);
+  }
+
+  /**
+   * Log debug message using injected infrastructure debugLogger
+   */
+  private debugLog(
+    ...args: (string | number | boolean | object | null | undefined)[]
+  ): void {
+    this.options.infrastructure.debugLogger.log(...args);
+  }
+
+  /**
+   * Get metrics instance from platform dependencies
+   */
+  private getMetrics(): IPerpsPlatformDependencies['metrics'] {
+    return this.options.infrastructure.metrics;
   }
 
   /**
@@ -784,7 +868,7 @@ export class PerpsController extends BaseController<
     list: string[],
     source: 'remote' | 'fallback',
   ) {
-    FeatureFlagConfigurationService.setBlockedRegions({
+    this.featureFlagConfigurationService.setBlockedRegions({
       list,
       source,
       context: this.createServiceContext('setBlockedRegionList', {
@@ -810,7 +894,7 @@ export class PerpsController extends BaseController<
   protected refreshEligibilityOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
-    FeatureFlagConfigurationService.refreshEligibility({
+    this.featureFlagConfigurationService.refreshEligibility({
       remoteFeatureFlagControllerState,
       context: this.createServiceContext(
         'refreshEligibilityOnFeatureFlagChange',
@@ -886,18 +970,18 @@ export class PerpsController extends BaseController<
     operation: () => Promise<T>,
     channels: PerpsStreamChannelKey[],
   ): Promise<T> {
-    const streamManager = getStreamManagerInstance();
     const pausedChannels: PerpsStreamChannelKey[] = [];
+    const { streamManager } = this.options.infrastructure;
 
     // Pause emission on specified channels (WebSocket stays connected)
     // Track which channels successfully paused to ensure proper cleanup
     for (const channel of channels) {
       try {
-        streamManager[channel].pause();
+        streamManager.pauseChannel(channel);
         pausedChannels.push(channel);
       } catch (err) {
         // Log error to Sentry but continue pausing remaining channels
-        Logger.error(
+        this.logError(
           ensureError(err),
           this.getErrorContext('withStreamPause', {
             operation: 'pause',
@@ -915,10 +999,10 @@ export class PerpsController extends BaseController<
       // Resume only channels that were successfully paused
       for (const channel of pausedChannels) {
         try {
-          streamManager[channel].resume();
+          streamManager.resumeChannel(channel);
         } catch (err) {
           // Log error to Sentry but continue resuming remaining channels
-          Logger.error(
+          this.logError(
             ensureError(err),
             this.getErrorContext('withStreamPause', {
               operation: 'resume',
@@ -962,7 +1046,7 @@ export class PerpsController extends BaseController<
       state.initializationAttempts = 0;
     });
 
-    DevLogger.log('PerpsController: Initializing providers', {
+    this.debugLog('PerpsController: Initializing providers', {
       currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
       existingProviders: Array.from(this.providers.keys()),
       timestamp: new Date().toISOString(),
@@ -979,7 +1063,7 @@ export class PerpsController extends BaseController<
         // Disconnect existing providers to close WebSocket connections
         const existingProviders = Array.from(this.providers.values());
         if (existingProviders.length > 0) {
-          DevLogger.log('PerpsController: Disconnecting existing providers', {
+          this.debugLog('PerpsController: Disconnecting existing providers', {
             count: existingProviders.length,
             timestamp: new Date().toISOString(),
           });
@@ -989,7 +1073,9 @@ export class PerpsController extends BaseController<
         }
         this.providers.clear();
 
-        DevLogger.log(
+        const { activeProvider } = this.state;
+
+        this.debugLog(
           'PerpsController: Creating provider with HIP-3 configuration',
           {
             hip3Enabled: this.hip3Enabled,
@@ -997,18 +1083,46 @@ export class PerpsController extends BaseController<
             hip3BlocklistMarkets: this.hip3BlocklistMarkets,
             hip3ConfigSource: this.hip3ConfigSource,
             isTestnet: this.state.isTestnet,
+            activeProvider,
           },
         );
 
-        this.providers.set(
-          'hyperliquid',
-          new HyperLiquidProvider({
-            isTestnet: this.state.isTestnet,
-            hip3Enabled: this.hip3Enabled,
-            allowlistMarkets: this.hip3AllowlistMarkets,
-            blocklistMarkets: this.hip3BlocklistMarkets,
-          }),
-        );
+        // Always create HyperLiquid provider as the base provider
+        const hyperLiquidProvider = new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+        });
+        this.providers.set('hyperliquid', hyperLiquidProvider);
+
+        // Set up active provider based on activeProvider value in state
+        // 'aggregated' is treated as just another provider that wraps others
+        if (activeProvider === 'aggregated') {
+          // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
+          // Future: register additional providers here (MYX, etc.)
+          this.activeProviderInstance = new AggregatedPerpsProvider({
+            providers: this.providers,
+            defaultProvider: 'hyperliquid',
+            infrastructure: this.options.infrastructure,
+          });
+          this.debugLog(
+            'PerpsController: Using aggregated provider (multi-provider)',
+            { registeredProviders: Array.from(this.providers.keys()) },
+          );
+        } else if (activeProvider === 'hyperliquid') {
+          // Direct provider mode: use HyperLiquid provider directly
+          this.activeProviderInstance = hyperLiquidProvider;
+          this.debugLog(
+            `PerpsController: Using direct provider (${activeProvider})`,
+          );
+        } else {
+          // Unsupported provider - throw error to prevent silent misconfiguration
+          throw new Error(
+            `Unsupported provider: ${activeProvider}. Currently only 'hyperliquid' and 'aggregated' are supported.`,
+          );
+        }
 
         // Future providers can be added here with their own authentication patterns:
         // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
@@ -1024,9 +1138,9 @@ export class PerpsController extends BaseController<
           state.initializationError = null;
         });
 
-        DevLogger.log('PerpsController: Providers initialized successfully', {
+        this.debugLog('PerpsController: Providers initialized successfully', {
           providerCount: this.providers.size,
-          activeProvider: this.state.activeProvider,
+          activeProvider,
           timestamp: new Date().toISOString(),
           attempts: attempt,
         });
@@ -1035,7 +1149,7 @@ export class PerpsController extends BaseController<
       } catch (error) {
         lastError = ensureError(error);
 
-        Logger.error(
+        this.logError(
           lastError,
           this.getErrorContext('performInitialization', {
             attempt,
@@ -1046,7 +1160,7 @@ export class PerpsController extends BaseController<
         // If not the last attempt, wait before retrying (exponential backoff)
         if (attempt < maxAttempts) {
           const delay = baseDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
-          DevLogger.log(
+          this.debugLog(
             `PerpsController: Retrying initialization in ${delay}ms`,
             {
               attempt,
@@ -1066,7 +1180,7 @@ export class PerpsController extends BaseController<
     });
     this.initializationPromise = null; // Clear promise to allow retry
 
-    DevLogger.log('PerpsController: Initialization failed', {
+    this.debugLog('PerpsController: Initialization failed', {
       error: lastError?.message,
       attempts: maxAttempts,
       timestamp: new Date().toISOString(),
@@ -1079,18 +1193,18 @@ export class PerpsController extends BaseController<
    *
    * @param method - The method name where the error occurred
    * @param extra - Optional additional context fields (becomes searchable context data)
-   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @returns PerpsLoggerOptions with tags (searchable) and context (searchable)
    * @private
    *
    * @example
-   * Logger.error(error, this.getErrorContext('placeOrder', { coin: 'BTC', operation: 'validate' }));
+   * this.logError(error, this.getErrorContext('placeOrder', { symbol: 'BTC', operation: 'validate' }));
    * // Creates searchable tags: feature:perps, provider:hyperliquid, network:mainnet
-   * // Creates searchable context: perps_controller.method:placeOrder, perps_controller.coin:BTC, perps_controller.operation:validate
+   * // Creates searchable context: perps_controller.method:placeOrder, perps_controller.symbol:BTC, perps_controller.operation:validate
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): LoggerErrorOptions {
+  ): PerpsLoggerOptions {
     return {
       tags: {
         feature: PERPS_CONSTANTS.FEATURE_NAME,
@@ -1124,7 +1238,6 @@ export class PerpsController extends BaseController<
         provider: this.state.activeProvider,
         isTestnet: this.state.isTestnet,
       },
-      analytics: MetaMetrics.getInstance(),
       errorContext: {
         controller: 'PerpsController',
         method,
@@ -1138,8 +1251,24 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get the currently active provider
-   * @returns The active provider
+   * Ensure TradingService has controller dependencies set.
+   * Uses injectable dependencies from infrastructure for core migration compatibility.
+   */
+  private ensureTradingServiceDeps(): void {
+    const { controllers } = this.options.infrastructure;
+    this.tradingService.setControllerDependencies({
+      controllers,
+      messenger: this.messenger,
+      rewardsIntegrationService: this.rewardsIntegrationService,
+    });
+  }
+
+  /**
+   * Get the currently active provider.
+   * In aggregated mode, returns AggregatedPerpsProvider which routes to underlying providers.
+   * In single provider mode, returns HyperLiquidProvider directly.
+   *
+   * @returns The active provider (aggregated wrapper or direct provider based on mode)
    * @throws Error if provider is not initialized or reinitializing
    */
   getActiveProvider(): IPerpsProvider {
@@ -1169,8 +1298,8 @@ export class PerpsController extends BaseController<
       throw new Error(errorMessage);
     }
 
-    const provider = this.providers.get(this.state.activeProvider);
-    if (!provider) {
+    // Return the active provider instance (set during initialization based on providerMode)
+    if (!this.activeProviderInstance) {
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
         state.lastUpdateTimestamp = Date.now();
@@ -1178,7 +1307,7 @@ export class PerpsController extends BaseController<
       throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
-    return provider;
+    return this.activeProviderInstance;
   }
 
   /**
@@ -1187,17 +1316,14 @@ export class PerpsController extends BaseController<
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
-    const { RewardsController, NetworkController } = Engine.context;
+    this.ensureTradingServiceDeps();
 
-    return TradingService.placeOrder({
+    return this.tradingService.placeOrder({
       provider,
       params,
       context: this.createServiceContext('placeOrder', {
-        rewardsController: RewardsController,
-        networkController: NetworkController,
-        messenger: this.messenger,
-        saveTradeConfiguration: (coin: string, leverage: number) =>
-          this.saveTradeConfiguration(coin, leverage),
+        saveTradeConfiguration: (symbol: string, leverage: number) =>
+          this.saveTradeConfiguration(symbol, leverage),
       }),
       reportOrderToDataLake: (dataLakeParams) =>
         this.reportOrderToDataLake(dataLakeParams),
@@ -1210,16 +1336,12 @@ export class PerpsController extends BaseController<
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
-    const { RewardsController, NetworkController } = Engine.context;
+    this.ensureTradingServiceDeps();
 
-    return TradingService.editOrder({
+    return this.tradingService.editOrder({
       provider,
       params,
-      context: this.createServiceContext('editOrder', {
-        rewardsController: RewardsController,
-        networkController: NetworkController,
-        messenger: this.messenger,
-      }),
+      context: this.createServiceContext('editOrder'),
     });
   }
 
@@ -1229,7 +1351,7 @@ export class PerpsController extends BaseController<
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
     const provider = this.getActiveProvider();
 
-    return TradingService.cancelOrder({
+    return this.tradingService.cancelOrder({
       provider,
       params,
       context: this.createServiceContext('cancelOrder'),
@@ -1243,7 +1365,7 @@ export class PerpsController extends BaseController<
   async cancelOrders(params: CancelOrdersParams): Promise<CancelOrdersResult> {
     const provider = this.getActiveProvider();
 
-    return TradingService.cancelOrders({
+    return this.tradingService.cancelOrders({
       provider,
       params,
       context: this.createServiceContext('cancelOrders', {
@@ -1260,15 +1382,12 @@ export class PerpsController extends BaseController<
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
-    const { RewardsController, NetworkController } = Engine.context;
+    this.ensureTradingServiceDeps();
 
-    return TradingService.closePosition({
+    return this.tradingService.closePosition({
       provider,
       params,
       context: this.createServiceContext('closePosition', {
-        rewardsController: RewardsController,
-        networkController: NetworkController,
-        messenger: this.messenger,
         getPositions: () => this.getPositions(),
       }),
       reportOrderToDataLake: (dataLakeParams) =>
@@ -1284,15 +1403,12 @@ export class PerpsController extends BaseController<
     params: ClosePositionsParams,
   ): Promise<ClosePositionsResult> {
     const provider = this.getActiveProvider();
-    const { RewardsController, NetworkController } = Engine.context;
+    this.ensureTradingServiceDeps();
 
-    return TradingService.closePositions({
+    return this.tradingService.closePositions({
       provider,
       params,
       context: this.createServiceContext('closePositions', {
-        rewardsController: RewardsController,
-        networkController: NetworkController,
-        messenger: this.messenger,
         getPositions: () => this.getPositions(),
       }),
     });
@@ -1305,16 +1421,12 @@ export class PerpsController extends BaseController<
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
     const provider = this.getActiveProvider();
-    const { RewardsController, NetworkController } = Engine.context;
+    this.ensureTradingServiceDeps();
 
-    return TradingService.updatePositionTPSL({
+    return this.tradingService.updatePositionTPSL({
       provider,
       params,
-      context: this.createServiceContext('updatePositionTPSL', {
-        rewardsController: RewardsController,
-        networkController: NetworkController,
-        messenger: this.messenger,
-      }),
+      context: this.createServiceContext('updatePositionTPSL'),
     });
   }
 
@@ -1323,17 +1435,13 @@ export class PerpsController extends BaseController<
    */
   async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
     const provider = this.getActiveProvider();
-    const { RewardsController, NetworkController } = Engine.context;
+    this.ensureTradingServiceDeps();
 
-    return TradingService.updateMargin({
+    return this.tradingService.updateMargin({
       provider,
-      coin: params.coin,
+      symbol: params.symbol,
       amount: params.amount,
-      context: this.createServiceContext('updateMargin', {
-        rewardsController: RewardsController,
-        networkController: NetworkController,
-        messenger: this.messenger,
-      }),
+      context: this.createServiceContext('updateMargin'),
     });
   }
 
@@ -1342,16 +1450,12 @@ export class PerpsController extends BaseController<
    */
   async flipPosition(params: FlipPositionParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
-    const { RewardsController, NetworkController } = Engine.context;
+    this.ensureTradingServiceDeps();
 
-    return TradingService.flipPosition({
+    return this.tradingService.flipPosition({
       provider,
       position: params.position,
-      context: this.createServiceContext('flipPosition', {
-        rewardsController: RewardsController,
-        networkController: NetworkController,
-        messenger: this.messenger,
-      }),
+      context: this.createServiceContext('flipPosition'),
     });
   }
 
@@ -1360,7 +1464,7 @@ export class PerpsController extends BaseController<
    * No complex state tracking - just sets a loading flag
    */
   async depositWithConfirmation(amount?: string) {
-    const { NetworkController, TransactionController } = Engine.context;
+    const { controllers } = this.options.infrastructure;
 
     try {
       // Clear any stale results when starting a new deposit flow
@@ -1369,13 +1473,14 @@ export class PerpsController extends BaseController<
       // Prepare deposit transaction using DepositService
       const provider = this.getActiveProvider();
       const { transaction, assetChainId, currentDepositId } =
-        await DepositService.prepareTransaction({ provider });
+        await this.depositService.prepareTransaction({ provider });
 
       this.update((state) => {
         state.lastDepositResult = null;
 
-        // Get current account address
-        const evmAccount = getEvmAccountFromSelectedAccountGroup();
+        // Get current account address via infrastructure
+        const evmAccount =
+          this.options.infrastructure.controllers.accounts.getSelectedEvmAccount();
         const accountAddress = evmAccount?.address || 'unknown';
 
         // Add deposit request to tracking
@@ -1396,17 +1501,34 @@ export class PerpsController extends BaseController<
       });
 
       const networkClientId =
-        NetworkController.findNetworkClientIdByChainId(assetChainId);
+        controllers.network.findNetworkClientIdForChain(assetChainId);
 
-      // addTransaction shows the confirmation screen and returns a promise
+      if (!networkClientId) {
+        throw new Error(
+          `No network client found for chain ${assetChainId}. Please add the network first.`,
+        );
+      }
+
+      const gasFeeToken =
+        transaction.to &&
+        assetChainId.toLowerCase() === ARBITRUM_MAINNET_CHAIN_ID_HEX &&
+        transaction.to.toLowerCase() ===
+          USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()
+          ? (transaction.to as Hex)
+          : undefined;
+
+      // submit shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
-      const { result, transactionMeta } =
-        await TransactionController.addTransaction(transaction, {
+      const { result, transactionMeta } = await controllers.transaction.submit(
+        transaction,
+        {
           networkClientId,
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
           skipInitialGasEstimate: true,
-        });
+          gasFeeToken,
+        },
+      );
 
       // Store the transaction ID and try to get amount from transaction
       this.update((state) => {
@@ -1582,20 +1704,20 @@ export class PerpsController extends BaseController<
 
         // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
         if (withdrawalAmount !== undefined && originalStatus !== status) {
-          const eventBuilder = MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
-          ).addProperties({
-            [PerpsEventProperties.STATUS]:
-              status === 'completed'
-                ? PerpsEventValues.STATUS.COMPLETED
-                : PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
-              Number.parseFloat(withdrawalAmount),
-          });
-          MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+          this.getMetrics().trackPerpsEvent(
+            PerpsAnalyticsEvent.WithdrawalTransaction,
+            {
+              [PerpsEventProperties.STATUS]:
+                status === 'completed'
+                  ? PerpsEventValues.STATUS.COMPLETED
+                  : PerpsEventValues.STATUS.FAILED,
+              [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+                Number.parseFloat(withdrawalAmount),
+            },
+          );
         }
 
-        DevLogger.log('PerpsController: Updated withdrawal status', {
+        this.debugLog('PerpsController: Updated withdrawal status', {
           withdrawalId,
           status,
           txHash,
@@ -1647,7 +1769,7 @@ export class PerpsController extends BaseController<
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
     const provider = this.getActiveProvider();
 
-    return AccountService.withdraw({
+    return this.accountService.withdraw({
       provider,
       params,
       context: this.createServiceContext('withdraw'),
@@ -1663,7 +1785,7 @@ export class PerpsController extends BaseController<
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getPositions({
+    return this.marketDataService.getPositions({
       provider,
       params,
       context: this.createServiceContext('getPositions'),
@@ -1676,7 +1798,7 @@ export class PerpsController extends BaseController<
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getOrderFills({
+    return this.marketDataService.getOrderFills({
       provider,
       params,
       context: this.createServiceContext('getOrderFills'),
@@ -1689,7 +1811,7 @@ export class PerpsController extends BaseController<
    */
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getOrders({
+    return this.marketDataService.getOrders({
       provider,
       params,
       context: this.createServiceContext('getOrders'),
@@ -1702,7 +1824,7 @@ export class PerpsController extends BaseController<
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getOpenOrders({
+    return this.marketDataService.getOpenOrders({
       provider,
       params,
       context: this.createServiceContext('getOpenOrders'),
@@ -1715,7 +1837,7 @@ export class PerpsController extends BaseController<
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getFunding({
+    return this.marketDataService.getFunding({
       provider,
       params,
       context: this.createServiceContext('getFunding'),
@@ -1728,7 +1850,7 @@ export class PerpsController extends BaseController<
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getAccountState({
+    return this.marketDataService.getAccountState({
       provider,
       params,
       context: this.createServiceContext('getAccountState'),
@@ -1743,7 +1865,7 @@ export class PerpsController extends BaseController<
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getHistoricalPortfolio({
+    return this.marketDataService.getHistoricalPortfolio({
       provider,
       params,
       context: this.createServiceContext('getHistoricalPortfolio'),
@@ -1753,13 +1875,35 @@ export class PerpsController extends BaseController<
   /**
    * Get available markets with optional filtering
    * Thin delegation to MarketDataService
+   *
+   * For readOnly mode, bypasses getActiveProvider() to allow market discovery
+   * without full perps initialization (e.g., for discovery banners on spot screens)
    */
-  async getMarkets(params?: {
-    symbols?: string[];
-    dex?: string;
-  }): Promise<MarketInfo[]> {
+  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
+    // For readOnly mode, access provider directly without initialization check
+    // This allows discovery use cases (checking if market exists) without full perps setup
+    if (params?.readOnly) {
+      // Try to get existing provider, or create a temporary one for readOnly queries
+      // Note: 'aggregated' mode uses activeProviderInstance directly, not the providers map
+      const { activeProvider } = this.state;
+      let provider =
+        activeProvider === 'aggregated'
+          ? undefined
+          : this.providers.get(activeProvider);
+      // Create a temporary provider instance for readOnly queries
+      // The readOnly path in provider creates a standalone InfoClient without full init
+      provider ??= new HyperLiquidProvider({
+        isTestnet: this.state.isTestnet,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.hip3AllowlistMarkets,
+        blocklistMarkets: this.hip3BlocklistMarkets,
+        platformDependencies: this.options.infrastructure,
+      });
+      return provider.getMarkets(params);
+    }
+
     const provider = this.getActiveProvider();
-    return MarketDataService.getMarkets({
+    return this.marketDataService.getMarkets({
       provider,
       params,
       context: this.createServiceContext('getMarkets'),
@@ -1773,7 +1917,12 @@ export class PerpsController extends BaseController<
    */
   async getAvailableDexs(params?: GetAvailableDexsParams): Promise<string[]> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getAvailableDexs({ provider, params });
+    const context = this.createServiceContext('getAvailableDexs');
+    return this.marketDataService.getAvailableDexs({
+      provider,
+      params,
+      context,
+    });
   }
 
   /**
@@ -1781,15 +1930,15 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    */
   async fetchHistoricalCandles(
-    coin: string,
+    symbol: string,
     interval: CandlePeriod,
     limit: number = 100,
     endTime?: number,
   ): Promise<CandleData> {
     const provider = this.getActiveProvider();
-    return MarketDataService.fetchHistoricalCandles({
+    return this.marketDataService.fetchHistoricalCandles({
       provider,
-      coin,
+      symbol,
       interval,
       limit,
       endTime,
@@ -1805,7 +1954,12 @@ export class PerpsController extends BaseController<
     params: LiquidationPriceParams,
   ): Promise<string> {
     const provider = this.getActiveProvider();
-    return MarketDataService.calculateLiquidationPrice({ provider, params });
+    const context = this.createServiceContext('calculateLiquidationPrice');
+    return this.marketDataService.calculateLiquidationPrice({
+      provider,
+      params,
+      context,
+    });
   }
 
   /**
@@ -1816,7 +1970,12 @@ export class PerpsController extends BaseController<
     params: MaintenanceMarginParams,
   ): Promise<number> {
     const provider = this.getActiveProvider();
-    return MarketDataService.calculateMaintenanceMargin({ provider, params });
+    const context = this.createServiceContext('calculateMaintenanceMargin');
+    return this.marketDataService.calculateMaintenanceMargin({
+      provider,
+      params,
+      context,
+    });
   }
 
   /**
@@ -1824,7 +1983,8 @@ export class PerpsController extends BaseController<
    */
   async getMaxLeverage(asset: string): Promise<number> {
     const provider = this.getActiveProvider();
-    return MarketDataService.getMaxLeverage({ provider, asset });
+    const context = this.createServiceContext('getMaxLeverage');
+    return this.marketDataService.getMaxLeverage({ provider, asset, context });
   }
 
   /**
@@ -1834,7 +1994,8 @@ export class PerpsController extends BaseController<
     params: OrderParams,
   ): Promise<{ isValid: boolean; error?: string }> {
     const provider = this.getActiveProvider();
-    return MarketDataService.validateOrder({ provider, params });
+    const context = this.createServiceContext('validateOrder');
+    return this.marketDataService.validateOrder({ provider, params, context });
   }
 
   /**
@@ -1844,7 +2005,12 @@ export class PerpsController extends BaseController<
     params: ClosePositionParams,
   ): Promise<{ isValid: boolean; error?: string }> {
     const provider = this.getActiveProvider();
-    return MarketDataService.validateClosePosition({ provider, params });
+    const context = this.createServiceContext('validateClosePosition');
+    return this.marketDataService.validateClosePosition({
+      provider,
+      params,
+      context,
+    });
   }
 
   /**
@@ -1854,7 +2020,7 @@ export class PerpsController extends BaseController<
     params: WithdrawParams,
   ): Promise<{ isValid: boolean; error?: string }> {
     const provider = this.getActiveProvider();
-    return AccountService.validateWithdrawal({ provider, params });
+    return this.accountService.validateWithdrawal({ provider, params });
   }
 
   /**
@@ -1863,9 +2029,9 @@ export class PerpsController extends BaseController<
   getWithdrawalRoutes(): AssetRoute[] {
     try {
       const provider = this.getActiveProvider();
-      return MarketDataService.getWithdrawalRoutes({ provider });
+      return this.marketDataService.getWithdrawalRoutes({ provider });
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('getWithdrawalRoutes'),
       );
@@ -1880,7 +2046,7 @@ export class PerpsController extends BaseController<
   async toggleTestnet(): Promise<ToggleTestnetResult> {
     // Prevent concurrent reinitializations
     if (this.isReinitializing) {
-      DevLogger.log(
+      this.debugLog(
         'PerpsController: Already reinitializing, skipping toggle',
         {
           timestamp: new Date().toISOString(),
@@ -1900,12 +2066,11 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.isTestnet = !state.isTestnet;
-        state.connectionStatus = 'disconnected';
       });
 
       const newNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-      DevLogger.log('PerpsController: Network toggle initiated', {
+      this.debugLog('PerpsController: Network toggle initiated', {
         from: previousNetwork,
         to: newNetwork,
         timestamp: new Date().toISOString(),
@@ -1916,7 +2081,7 @@ export class PerpsController extends BaseController<
       this.initializationPromise = null;
       await this.init();
 
-      DevLogger.log('PerpsController: Network toggle completed', {
+      this.debugLog('PerpsController: Network toggle completed', {
         newNetwork,
         isTestnet: this.state.isTestnet,
         timestamp: new Date().toISOString(),
@@ -1940,8 +2105,14 @@ export class PerpsController extends BaseController<
   /**
    * Switch to a different provider
    */
-  async switchProvider(providerId: string): Promise<SwitchProviderResult> {
-    if (!this.providers.has(providerId)) {
+  async switchProvider(
+    providerId: PerpsActiveProviderMode,
+  ): Promise<SwitchProviderResult> {
+    // 'aggregated' is always valid, individual providers must exist in the map
+    const isValidProvider =
+      providerId === 'aggregated' || this.providers.has(providerId);
+
+    if (!isValidProvider) {
       return {
         success: false,
         providerId: this.state.activeProvider,
@@ -1951,7 +2122,6 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.activeProvider = providerId;
-      state.connectionStatus = 'disconnected';
     });
 
     return { success: true, providerId };
@@ -1974,7 +2144,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToPrices', {
           symbols: params.symbols?.join(','),
@@ -1995,7 +2165,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToPositions', {
           accountId: params.accountId,
@@ -2016,7 +2186,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToOrderFills', {
           accountId: params.accountId,
@@ -2037,7 +2207,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToOrders', {
           accountId: params.accountId,
@@ -2058,7 +2228,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToAccount(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToAccount', {
           accountId: params.accountId,
@@ -2080,7 +2250,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrderBook(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToOrderBook', {
           symbol: params.symbol,
@@ -2102,10 +2272,10 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToCandles(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToCandles', {
-          coin: params.coin,
+          symbol: params.symbol,
           interval: params.interval,
           duration: params.duration,
         }),
@@ -2126,7 +2296,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOICaps(params);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('subscribeToOICaps', {
           accountId: params.accountId,
@@ -2147,7 +2317,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       provider.setLiveDataConfig(config);
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('setLiveDataConfig'),
       );
@@ -2162,7 +2332,8 @@ export class PerpsController extends BaseController<
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
     const provider = this.getActiveProvider();
-    return MarketDataService.calculateFees({ provider, params });
+    const context = this.createServiceContext('calculateFees');
+    return this.marketDataService.calculateFees({ provider, params, context });
   }
 
   /**
@@ -2170,7 +2341,7 @@ export class PerpsController extends BaseController<
    * Call this when navigating away from Perps screens to prevent battery drain
    */
   async disconnect(): Promise<void> {
-    DevLogger.log(
+    this.debugLog(
       'PerpsController: Disconnecting provider to cleanup subscriptions',
       {
         timestamp: new Date().toISOString(),
@@ -2183,7 +2354,7 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        Logger.error(ensureError(error), this.getErrorContext('disconnect'));
+        this.logError(ensureError(error), this.getErrorContext('disconnect'));
       }
     }
 
@@ -2214,7 +2385,7 @@ export class PerpsController extends BaseController<
 
     try {
       // TODO: It would be good to have this location before we call this async function to avoid the race condition
-      const isEligible = await EligibilityService.checkEligibility(
+      const isEligible = await this.eligibilityService.checkEligibility(
         this.blockedRegionList.list,
       );
 
@@ -2229,7 +2400,7 @@ export class PerpsController extends BaseController<
         state.isEligible = isEligible;
       });
     } catch (error) {
-      Logger.error(
+      this.logError(
         ensureError(error),
         this.getErrorContext('refreshEligibility'),
       );
@@ -2251,7 +2422,7 @@ export class PerpsController extends BaseController<
    */
   getBlockExplorerUrl(address?: string): string {
     const provider = this.getActiveProvider();
-    return MarketDataService.getBlockExplorerUrl({ provider, address });
+    return this.marketDataService.getBlockExplorerUrl({ provider, address });
   }
 
   /**
@@ -2269,7 +2440,7 @@ export class PerpsController extends BaseController<
   markTutorialCompleted(): void {
     const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-    DevLogger.log('PerpsController: Marking tutorial as completed', {
+    this.debugLog('PerpsController: Marking tutorial as completed', {
       timestamp: new Date().toISOString(),
       network: currentNetwork,
     });
@@ -2286,7 +2457,7 @@ export class PerpsController extends BaseController<
   markFirstOrderCompleted(): void {
     const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-    DevLogger.log('PerpsController: Marking first order completed', {
+    this.debugLog('PerpsController: Marking first order completed', {
       timestamp: new Date().toISOString(),
       network: currentNetwork,
     });
@@ -2302,7 +2473,7 @@ export class PerpsController extends BaseController<
    * Called by Reset Account feature in settings
    */
   resetFirstTimeUserState(): void {
-    DevLogger.log('PerpsController: Resetting first-time user state', {
+    this.debugLog('PerpsController: Resetting first-time user state', {
       timestamp: new Date().toISOString(),
       previousState: this.state.isFirstTimeUser,
     });
@@ -2320,16 +2491,46 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Clear pending/bridging withdrawal and deposit requests
+   * This is useful when users want to clear stuck pending indicators
+   * Called by Reset Account feature in settings
+   */
+  clearPendingTransactionRequests(): void {
+    this.debugLog('PerpsController: Clearing pending transaction requests', {
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      // Filter out pending/bridging withdrawals, keep completed/failed for history
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Filter out pending deposits, keep completed/failed for history
+      state.depositRequests = state.depositRequests.filter(
+        (req) => req.status !== 'pending' && req.status !== 'bridging',
+      );
+
+      // Reset withdrawal progress
+      state.withdrawalProgress = {
+        progress: 0,
+        lastUpdated: Date.now(),
+        activeWithdrawalId: null,
+      };
+    });
+  }
+
+  /**
    * Get saved trade configuration for a market
    */
-  getTradeConfiguration(coin: string): { leverage?: number } | undefined {
+  getTradeConfiguration(symbol: string): { leverage?: number } | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
-    const config = this.state.tradeConfigurations[network]?.[coin];
+    const config = this.state.tradeConfigurations[network]?.[symbol];
 
     if (!config?.leverage) return undefined;
 
-    DevLogger.log('PerpsController: Retrieved trade config', {
-      coin,
+    this.debugLog('PerpsController: Retrieved trade config', {
+      symbol,
       network,
       leverage: config.leverage,
     });
@@ -2339,14 +2540,14 @@ export class PerpsController extends BaseController<
 
   /**
    * Save trade configuration for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @param leverage - Leverage value
    */
-  saveTradeConfiguration(coin: string, leverage: number): void {
+  saveTradeConfiguration(symbol: string, leverage: number): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-    DevLogger.log('PerpsController: Saving trade configuration', {
-      coin,
+    this.debugLog('PerpsController: Saving trade configuration', {
+      symbol,
       network,
       leverage,
       timestamp: new Date().toISOString(),
@@ -2357,8 +2558,8 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
-      const existingConfig = state.tradeConfigurations[network][coin] || {};
-      state.tradeConfigurations[network][coin] = {
+      const existingConfig = state.tradeConfigurations[network][symbol] || {};
+      state.tradeConfigurations[network][symbol] = {
         ...existingConfig,
         leverage,
       };
@@ -2368,11 +2569,11 @@ export class PerpsController extends BaseController<
   /**
    * Save pending trade configuration for a market
    * This is a temporary configuration that expires after 5 minutes
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @param config - Pending trade configuration
    */
   savePendingTradeConfiguration(
-    coin: string,
+    symbol: string,
     config: {
       amount?: string;
       leverage?: number;
@@ -2384,8 +2585,8 @@ export class PerpsController extends BaseController<
   ): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-    DevLogger.log('PerpsController: Saving pending trade configuration', {
-      coin,
+    this.debugLog('PerpsController: Saving pending trade configuration', {
+      symbol,
       network,
       config,
       timestamp: new Date().toISOString(),
@@ -2396,8 +2597,8 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
-      const existingConfig = state.tradeConfigurations[network][coin] || {};
-      state.tradeConfigurations[network][coin] = {
+      const existingConfig = state.tradeConfigurations[network][symbol] || {};
+      state.tradeConfigurations[network][symbol] = {
         ...existingConfig,
         pendingConfig: {
           ...config,
@@ -2410,10 +2611,10 @@ export class PerpsController extends BaseController<
   /**
    * Get pending trade configuration for a market
    * Returns undefined if config doesn't exist or has expired (more than 5 minutes old)
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @returns Pending trade configuration or undefined
    */
-  getPendingTradeConfiguration(coin: string):
+  getPendingTradeConfiguration(symbol: string):
     | {
         amount?: string;
         leverage?: number;
@@ -2425,7 +2626,7 @@ export class PerpsController extends BaseController<
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
     const config =
-      this.state.tradeConfigurations[network]?.[coin]?.pendingConfig;
+      this.state.tradeConfigurations[network]?.[symbol]?.pendingConfig;
 
     if (!config) {
       return undefined;
@@ -2437,23 +2638,23 @@ export class PerpsController extends BaseController<
     const age = now - config.timestamp;
 
     if (age > FIVE_MINUTES_MS) {
-      DevLogger.log('PerpsController: Pending trade config expired', {
-        coin,
+      this.debugLog('PerpsController: Pending trade config expired', {
+        symbol,
         network,
         age,
         timestamp: config.timestamp,
       });
       // Clear expired config
       this.update((state) => {
-        if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
-          delete state.tradeConfigurations[network][coin].pendingConfig;
+        if (state.tradeConfigurations[network]?.[symbol]?.pendingConfig) {
+          delete state.tradeConfigurations[network][symbol].pendingConfig;
         }
       });
       return undefined;
     }
 
-    DevLogger.log('PerpsController: Retrieved pending trade config', {
-      coin,
+    this.debugLog('PerpsController: Retrieved pending trade config', {
+      symbol,
       network,
       config,
       age,
@@ -2466,62 +2667,101 @@ export class PerpsController extends BaseController<
 
   /**
    * Clear pending trade configuration for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    */
-  clearPendingTradeConfiguration(coin: string): void {
+  clearPendingTradeConfiguration(symbol: string): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-    DevLogger.log('PerpsController: Clearing pending trade configuration', {
-      coin,
+    this.debugLog('PerpsController: Clearing pending trade configuration', {
+      symbol,
       network,
       timestamp: new Date().toISOString(),
     });
 
     this.update((state) => {
-      if (state.tradeConfigurations[network]?.[coin]?.pendingConfig) {
-        delete state.tradeConfigurations[network][coin].pendingConfig;
+      if (state.tradeConfigurations[network]?.[symbol]?.pendingConfig) {
+        delete state.tradeConfigurations[network][symbol].pendingConfig;
       }
     });
   }
 
   /**
    * Get saved market filter preferences
+   * Handles backward compatibility with legacy string format
    */
-  getMarketFilterPreferences(): SortOptionId {
+  getMarketFilterPreferences(): {
+    optionId: SortOptionId;
+    direction: SortDirection;
+  } {
+    const pref = this.state.marketFilterPreferences;
+
+    // Handle legacy string format (backward compatibility)
+    if (typeof pref === 'string') {
+      // Map legacy compound IDs to new format
+      // Old format: 'priceChange-desc' or 'priceChange-asc'
+      // New format: { optionId: 'priceChange', direction: 'desc'/'asc' }
+      if (pref === 'priceChange-desc') {
+        return {
+          optionId: 'priceChange',
+          direction: 'desc',
+        };
+      }
+      if (pref === 'priceChange-asc') {
+        return {
+          optionId: 'priceChange',
+          direction: 'asc',
+        };
+      }
+
+      // Handle other simple legacy strings (e.g., 'volume', 'openInterest', etc.)
+      return {
+        optionId: pref as SortOptionId,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      };
+    }
+
+    // Return new object format or default
     return (
-      this.state.marketFilterPreferences ??
-      MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID
+      pref ?? {
+        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      }
     );
   }
 
   /**
    * Save market filter preferences
    * @param optionId - Sort/filter option ID
+   * @param direction - Sort direction ('asc' or 'desc')
    */
-  saveMarketFilterPreferences(optionId: SortOptionId): void {
-    DevLogger.log('PerpsController: Saving market filter preferences', {
+  saveMarketFilterPreferences(
+    optionId: SortOptionId,
+    direction: SortDirection,
+  ): void {
+    this.debugLog('PerpsController: Saving market filter preferences', {
       optionId,
+      direction,
       timestamp: new Date().toISOString(),
     });
 
     this.update((state) => {
-      state.marketFilterPreferences = optionId;
+      state.marketFilterPreferences = { optionId, direction };
     });
   }
 
   /**
    * Get saved order book grouping for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @returns The saved grouping value or undefined if not set
    */
-  getOrderBookGrouping(coin: string): number | undefined {
+  getOrderBookGrouping(symbol: string): number | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
     const grouping =
-      this.state.tradeConfigurations[network]?.[coin]?.orderBookGrouping;
+      this.state.tradeConfigurations[network]?.[symbol]?.orderBookGrouping;
 
     if (grouping !== undefined) {
-      DevLogger.log('PerpsController: Retrieved order book grouping', {
-        coin,
+      this.debugLog('PerpsController: Retrieved order book grouping', {
+        symbol,
         network,
         grouping,
       });
@@ -2532,14 +2772,14 @@ export class PerpsController extends BaseController<
 
   /**
    * Save order book grouping for a market
-   * @param coin - Market symbol
+   * @param symbol - Market symbol
    * @param grouping - Price grouping value
    */
-  saveOrderBookGrouping(coin: string, grouping: number): void {
+  saveOrderBookGrouping(symbol: string, grouping: number): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-    DevLogger.log('PerpsController: Saving order book grouping', {
-      coin,
+    this.debugLog('PerpsController: Saving order book grouping', {
+      symbol,
       network,
       grouping,
       timestamp: new Date().toISOString(),
@@ -2550,8 +2790,8 @@ export class PerpsController extends BaseController<
         state.tradeConfigurations[network] = {};
       }
 
-      const existingConfig = state.tradeConfigurations[network][coin] || {};
-      state.tradeConfigurations[network][coin] = {
+      const existingConfig = state.tradeConfigurations[network][symbol] || {};
+      state.tradeConfigurations[network][symbol] = {
         ...existingConfig,
         orderBookGrouping: grouping,
       };
@@ -2567,7 +2807,7 @@ export class PerpsController extends BaseController<
     const currentWatchlist = this.state.watchlistMarkets[currentNetwork];
     const isWatchlisted = currentWatchlist.includes(symbol);
 
-    DevLogger.log('PerpsController: Toggling watchlist market', {
+    this.debugLog('PerpsController: Toggling watchlist market', {
       timestamp: new Date().toISOString(),
       network: currentNetwork,
       symbol,
@@ -2609,15 +2849,15 @@ export class PerpsController extends BaseController<
    */
   protected async reportOrderToDataLake(params: {
     action: 'open' | 'close';
-    coin: string;
+    symbol: string;
     sl_price?: number;
     tp_price?: number;
     retryCount?: number;
     _traceId?: string;
   }): Promise<{ success: boolean; error?: string }> {
-    return DataLakeService.reportOrder({
+    return this.dataLakeService.reportOrder({
       action: params.action,
-      coin: params.coin,
+      symbol: params.symbol,
       sl_price: params.sl_price,
       tp_price: params.tp_price,
       isTestnet: this.state.isTestnet,

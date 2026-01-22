@@ -14,16 +14,11 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
-import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
   TextColor,
@@ -33,9 +28,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
+import HeaderWithTitleLeft from '../../../component-library/components-temp/HeaderWithTitleLeft';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
@@ -50,8 +43,8 @@ const ImportPrivateKey = () => {
   );
   const navigation = useNavigation();
   const mounted = useRef<boolean>(false);
-  const { colors, themeAppearance } = useAppTheme();
-  const styles = createStyles(colors);
+  const { colors, themeAppearance, typography } = useAppTheme();
+  const styles = createStyles(colors, typography);
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -164,62 +157,59 @@ const ImportPrivateKey = () => {
         extraScrollHeight={100}
         showsVerticalScrollIndicator={false}
       >
-        <View
-          style={styles.content}
-          testID={ImportAccountFromPrivateKeyIDs.CONTAINER}
-        >
-          <ButtonIcon
-            onPress={dismiss}
-            iconName={IconName.Close}
-            size={ButtonIconSizes.Lg}
-            iconColor={IconColor.Default}
-            style={styles.navbarRightButton}
-            testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
+        <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
+          <HeaderWithTitleLeft
+            includesTopInset
+            backButtonProps={{
+              onPress: dismiss,
+              testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
+            }}
+            titleLeftProps={{
+              title: strings('import_private_key.title'),
+              bottomAccessory: (
+                <View style={styles.descriptionContainer}>
+                  {isSRP ? (
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('import_private_key.description_srp')}{' '}
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Primary}
+                        onPress={learnMore}
+                      >
+                        {strings('import_private_key.learn_more')}
+                      </Text>
+                    </Text>
+                  ) : (
+                    <>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('import_private_key.description_one')}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                        onPress={learnMore}
+                      >
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                        >
+                          {strings('import_private_key.learn_more')}{' '}
+                        </Text>
+                        {strings('import_private_key.learn_more_here')}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              ),
+            }}
           />
-          <View style={styles.top}>
-            <Icon
-              name={IconName.Download}
-              size={IconSize.XXL}
-              color={IconColor.Default}
-            />
-            <View style={styles.textContainer}>
-              <Text style={styles.title}>
-                {strings('import_private_key.title')}
-              </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                {isSRP
-                  ? strings('import_private_key.description_srp')
-                  : strings('import_private_key.description_one')}
-              </Text>
-              {isSRP ? (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Default}
-                  onPress={learnMore}
-                >
-                  {strings('import_private_key.learn_more_srp')}{' '}
-                  <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
-                    {strings('import_private_key.here')}
-                  </Text>
-                </Text>
-              ) : (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Default}
-                  onPress={learnMore}
-                >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
-                    {strings('import_private_key.learn_more')}{' '}
-                  </Text>
-                  {strings('import_private_key.learn_more_here')}
-                </Text>
-              )}
-            </View>
-          </View>
           <View style={styles.bottom}>
-            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-              {strings('import_private_key.subtitle')}
-            </Text>
             <TextInput
               value={privateKey}
               numberOfLines={3}
@@ -230,7 +220,7 @@ const ImportPrivateKey = () => {
               blurOnSubmit
               onSubmitEditing={() => goNext()}
               returnKeyType={'next'}
-              placeholder={strings('import_private_key.example')}
+              placeholder={strings('import_private_key.subtitle')}
               placeholderTextColor={colors.text.muted}
               autoCapitalize={'none'}
               keyboardAppearance={themeAppearance}
@@ -253,6 +243,7 @@ const ImportPrivateKey = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             loading={loading}
+            isDisabled={loading}
             testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
           />
         </View>

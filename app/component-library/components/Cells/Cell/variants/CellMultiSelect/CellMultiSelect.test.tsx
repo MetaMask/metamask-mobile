@@ -5,7 +5,7 @@ import { render } from '@testing-library/react-native';
 // Internal dependencies.
 import CellMultiSelect from './CellMultiSelect';
 import { SAMPLE_CELLMULTISELECT_PROPS } from './CellMultiSelect.constants';
-import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../CellComponent.testIds';
 
 describe('CellMultiSelect', () => {
   it('should render default settings correctly', () => {

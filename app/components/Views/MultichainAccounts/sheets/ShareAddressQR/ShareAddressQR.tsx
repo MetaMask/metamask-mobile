@@ -4,7 +4,7 @@ import { AccountGroupId } from '@metamask/account-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ParamListBase,
@@ -29,7 +29,7 @@ import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { ShareAddressQRIds } from '../../../../../../e2e/selectors/MultichainAccounts/ShareAddressQR.selectors';
+import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
 
@@ -71,15 +71,17 @@ export const ShareAddressQR = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onBack={handleOnBack}>
-        {`${accountGroupName} / ${networkName}`}
-      </BottomSheetHeader>
+      <HeaderCenter
+        title={`${accountGroupName} / ${networkName}`}
+        onClose={handleOnBack}
+        closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
+      />
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         twClassName="px-4 py-6"
       >
-        <Box twClassName="p-6 border border-muted rounded-2xl">
+        <Box twClassName="p-6 border border-muted rounded-2xl bg-white">
           <QRCode
             value={address}
             size={200}

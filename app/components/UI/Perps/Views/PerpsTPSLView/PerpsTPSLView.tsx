@@ -39,7 +39,7 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   getPerpsTPSLViewSelector,
   PerpsTPSLViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import { createStyles } from './PerpsTPSLView.styles';
@@ -209,15 +209,24 @@ const PerpsTPSLView: React.FC = () => {
     expectedStopLossPnL,
   } = tpslForm.display;
 
+  // Determine if this is create (new order) or edit (existing position) TP/SL
+  const isEditingExistingPosition = !!position;
+  const tpslScreenType = isEditingExistingPosition
+    ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
+    : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TP_SL,
+      [PerpsEventProperties.SCREEN_TYPE]: tpslScreenType,
       [PerpsEventProperties.ASSET]: asset,
       [PerpsEventProperties.DIRECTION]:
         actualDirection === 'long'
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
+      // Add initial TP/SL state to understand what user already has set
+      [PerpsEventProperties.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
+      [PerpsEventProperties.HAS_STOP_LOSS]: !!initialStopLossPrice,
     },
   });
 
@@ -355,10 +364,23 @@ const PerpsTPSLView: React.FC = () => {
     setIsUpdating(true);
     try {
       // Pass tracking data to avoid duplicate position fetch in controller
+      // Use appropriate source based on context:
+      // - POSITION_SCREEN when editing TP/SL on an existing position
+      // - TRADE_SCREEN when setting TP/SL for a new order
       const trackingData = {
         direction: actualDirection,
-        source: 'tp_sl_view',
+        source: isEditingExistingPosition
+          ? PerpsEventValues.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+          : PerpsEventValues.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
+        takeProfitPercentage: formattedTakeProfitPercentage
+          ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+          : undefined,
+        stopLossPercentage: formattedStopLossPercentage
+          ? parseFloat(formattedStopLossPercentage.replace('%', ''))
+          : undefined,
+        isEditingExistingPosition,
+        entryPrice: effectiveEntryPrice,
       };
       await onConfirm(parseTakeProfitPrice, parseStopLossPrice, trackingData);
       navigation.goBack();
@@ -374,6 +396,10 @@ const PerpsTPSLView: React.FC = () => {
     navigation,
     actualDirection,
     position,
+    formattedTakeProfitPercentage,
+    formattedStopLossPercentage,
+    isEditingExistingPosition,
+    effectiveEntryPrice,
   ]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;

@@ -28,11 +28,12 @@ import {
   usePerpsMeasurement,
   usePerpsNavigation,
 } from '../../hooks';
+import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type { PerpsMarketData } from '../../controllers/types';
-import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -113,7 +114,7 @@ const PerpsMarketListView = ({
   } = searchState;
 
   // Destructure sort state for easier access
-  const { selectedOptionId, sortBy, handleOptionChange } = sortState;
+  const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
   const { showFavoritesOnly } = favoritesState;
@@ -208,15 +209,34 @@ const PerpsMarketListView = ({
     return index >= 0 ? index : 0;
   }, [marketTypeFilter, tabsData]);
 
+  const { track } = usePerpsEventTracking();
+
   // Handle tab press
   const handleTabPress = useCallback(
     (index: number) => {
       const tab = tabsData[index];
       if (tab) {
+        // Map filter to button_clicked value (only track crypto and stocks tabs)
+        const targetTab =
+          tab.filter === 'crypto'
+            ? PerpsEventValues.BUTTON_CLICKED.CRYPTO
+            : tab.filter === 'stocks_and_commodities'
+              ? PerpsEventValues.BUTTON_CLICKED.STOCKS
+              : null;
+
+        if (targetTab) {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+            [PerpsEventProperties.BUTTON_CLICKED]: targetTab,
+            [PerpsEventProperties.BUTTON_LOCATION]:
+              PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
+          });
+        }
         setMarketTypeFilter(tab.filter);
       }
     },
-    [tabsData, setMarketTypeFilter],
+    [tabsData, setMarketTypeFilter, track],
   );
 
   // Handle scroll to sync active tab (for swipe gestures)
@@ -275,8 +295,6 @@ const PerpsMarketListView = ({
     setStocksCommoditiesFilter('all');
   }, [marketTypeFilter]);
 
-  const { track } = usePerpsEventTracking();
-
   // Use navigation hook for back button
   const handleBackPressed = perpsNavigation.navigateBack;
 
@@ -305,12 +323,32 @@ const PerpsMarketListView = ({
   // Track markets screen viewed event
   const source =
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
+
+  // Get perp balance status and provider info for tracking
+  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 5000 });
+  const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
+  const hasPerpBalance =
+    livePositions.positions.length > 0 ||
+    (!!perpsAccount?.totalBalance && parseFloat(perpsAccount.totalBalance) > 0);
+
+  // Extract button_clicked and button_location from route params
+  const buttonClicked = route.params?.button_clicked;
+  const buttonLocation = route.params?.button_location;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [displayMarkets.length > 0],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.MARKETS,
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.MARKET_LIST,
       [PerpsEventProperties.SOURCE]: source,
+      [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
+      ...(buttonClicked && {
+        [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
+      }),
+      ...(buttonLocation && {
+        [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+      }),
     },
   });
 
@@ -537,6 +575,7 @@ const PerpsMarketListView = ({
         isVisible={isSortFieldSheetVisible}
         onClose={() => setIsSortFieldSheetVisible(false)}
         selectedOptionId={selectedOptionId}
+        sortDirection={direction}
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />

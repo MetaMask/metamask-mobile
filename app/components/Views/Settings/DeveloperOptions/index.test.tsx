@@ -3,13 +3,22 @@ import DeveloperOptions from './';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 
 const mockSelectPerpsEnabledFlag = jest.fn();
+const mockSelectIsMusdConversionFlowEnabledFlag = jest.fn();
 
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
 }));
 
+jest.mock('../../../UI/Earn/selectors/featureFlags', () => {
+  const actual = jest.requireActual('../../../UI/Earn/selectors/featureFlags');
+  return {
+    ...actual,
+    selectIsMusdConversionFlowEnabledFlag: () =>
+      mockSelectIsMusdConversionFlowEnabledFlag(),
+  };
+});
+
 const initialState = {
-  DeveloperOptions: {},
   engine: {
     backgroundState,
   },
@@ -19,6 +28,7 @@ describe('DeveloperOptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectPerpsEnabledFlag.mockReturnValue(true);
+    mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
   });
 
   it('renders correctly', () => {

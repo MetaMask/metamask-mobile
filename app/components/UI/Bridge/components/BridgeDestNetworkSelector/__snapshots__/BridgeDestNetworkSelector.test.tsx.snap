@@ -437,7 +437,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 48,
+                                  "height": 56,
                                 },
                                 false,
                                 {

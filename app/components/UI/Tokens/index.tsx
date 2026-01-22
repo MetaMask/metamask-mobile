@@ -1,14 +1,5 @@
-import React, {
-  useRef,
-  useState,
-  LegacyRef,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-} from 'react';
+import React, { useState, memo, useCallback, useEffect, useMemo } from 'react';
 import { InteractionManager, View } from 'react-native';
-import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -19,7 +10,7 @@ import {
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
 import { TokenI } from './types';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../locales/i18n';
 import {
   refreshTokens,
@@ -27,7 +18,7 @@ import {
   removeNonEvmToken,
   goToAddEvmToken,
 } from './util';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
@@ -43,6 +34,8 @@ import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagC
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
+import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
+import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -71,9 +64,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const currentChainId = useSelector(selectChainId);
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
-  const actionSheet = useRef<typeof ActionSheet>();
-  const tokenToRemoveRef = useRef<TokenI | undefined>();
   const [refreshing, setRefreshing] = useState(false);
+  const [removeTokenState, setRemoveTokenState] = useState<
+    { isVisible: true; token: TokenI } | { isVisible: false }
+  >({ isVisible: false });
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const selectInternalAccountByScope = useSelector(
@@ -91,12 +85,24 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
   // Memoize selector computation for better performance
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
+
+  const [, forceUpdate] = useState(0);
+
+  // Force re-render when coming back into focus to ensure the component
+  // picks up any network changes that happened while navigated away
+  // (e.g., when returning from trending flow after network switch)
+  useFocusEffect(
+    useCallback(() => {
+      forceUpdate((n) => n + 1);
+    }, []),
+  );
 
   // Mark as loaded once we have data (even if empty)
   useEffect(() => {
@@ -108,10 +114,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   }, [sortedTokenKeys, hasInitialLoad]);
 
   const showRemoveMenu = useCallback((token: TokenI) => {
-    if (actionSheet.current) {
-      tokenToRemoveRef.current = token;
-      actionSheet.current.show();
-    }
+    setRemoveTokenState({ isVisible: true, token });
   }, []);
 
   const onRefresh = useCallback(async () => {
@@ -135,7 +138,13 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   ]);
 
   const removeToken = useCallback(async () => {
-    const tokenToRemove = tokenToRemoveRef.current;
+    if (!removeTokenState.isVisible) return;
+
+    const tokenToRemove = removeTokenState.token;
+
+    // Reset state immediately to prevent issues if onClose fires first
+    setRemoveTokenState({ isVisible: false });
+
     if (tokenToRemove?.chainId !== undefined) {
       if (isNonEvmChainId(tokenToRemove.chainId)) {
         await removeNonEvmToken({
@@ -155,6 +164,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
       }
     }
   }, [
+    removeTokenState,
     currentChainId,
     trackEvent,
     createEventBuilder,
@@ -171,14 +181,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     });
   }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
-  const onActionSheetPress = useCallback(
-    (index: number) => {
-      if (index === 0) {
-        removeToken();
-      }
-    },
-    [removeToken],
-  );
+  const handleCloseRemoveTokenBottomSheet = useCallback(() => {
+    setRemoveTokenState({ isVisible: false });
+  }, []);
 
   const handleScamWarningModal = useCallback(() => {
     setShowScamWarningModal((prev) => !prev);
@@ -191,26 +196,20 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     return isHomepageRedesignV1Enabled ? 10 : undefined;
   }, [isFullView, isHomepageRedesignV1Enabled]);
 
-  return (
-    <Box
-      twClassName={
-        isHomepageRedesignV1Enabled && !isFullView
-          ? 'bg-default'
-          : 'flex-1 bg-default'
-      }
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-    >
-      <TokenListControlBar
-        goToAddToken={goToAddToken}
-        style={isFullView ? tw`px-4 pb-4` : undefined}
-      />
-      {!hasInitialLoad ? (
+  // Determine which content to render based on loading and token state
+  const tokenContent = useMemo(() => {
+    if (!hasInitialLoad) {
+      return (
         <Box twClassName={isFullView ? 'px-4' : undefined}>
           <TokenListSkeleton />
         </Box>
-      ) : sortedTokenKeys.length > 0 ? (
+      );
+    }
+
+    if (sortedTokenKeys.length > 0) {
+      return (
         <>
-          {isMusdConversionFlowEnabled && (
+          {isMusdConversionFlowEnabled && isGeoEligible && (
             <View style={isFullView ? tw`px-4` : undefined}>
               <MusdConversionAssetListCta />
             </View>
@@ -225,22 +224,50 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
             isFullView={isFullView}
           />
         </>
-      ) : (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          <TokensEmptyState />
-        </Box>
-      )}
+      );
+    }
+
+    return (
+      <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+        <TokensEmptyState />
+      </Box>
+    );
+  }, [
+    hasInitialLoad,
+    isFullView,
+    sortedTokenKeys,
+    isMusdConversionFlowEnabled,
+    tw,
+    refreshing,
+    onRefresh,
+    showRemoveMenu,
+    handleScamWarningModal,
+    maxItems,
+    isGeoEligible,
+  ]);
+
+  return (
+    <Box
+      twClassName={
+        isHomepageRedesignV1Enabled && !isFullView
+          ? 'bg-default'
+          : 'flex-1 bg-default'
+      }
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+    >
+      <TokenListControlBar
+        goToAddToken={goToAddToken}
+        style={isFullView ? tw`px-4 pb-4` : undefined}
+      />
+      {tokenContent}
       <ScamWarningModal
         showScamWarningModal={showScamWarningModal}
         setShowScamWarningModal={setShowScamWarningModal}
       />
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
+      <RemoveTokenBottomSheet
+        isVisible={removeTokenState.isVisible}
+        onClose={handleCloseRemoveTokenBottomSheet}
+        onRemove={removeToken}
       />
     </Box>
   );

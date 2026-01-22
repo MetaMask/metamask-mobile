@@ -39,7 +39,8 @@ export function useHasExistingPosition(
 
   // Check if user has an existing position for this asset
   const existingPosition = useMemo(
-    () => (positions || []).find((position) => position.coin === asset) || null,
+    () =>
+      (positions || []).find((position) => position.symbol === asset) || null,
     [positions, asset],
   );
 

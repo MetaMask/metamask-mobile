@@ -13,7 +13,7 @@ import type { TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+} from '../../Perps.testIds';
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../../../../util/Logger');
@@ -168,7 +168,7 @@ describe('PerpsChartFullscreenModal', () => {
   };
 
   const mockCandleData: CandleData = {
-    coin: 'BTC',
+    symbol: 'BTC',
     interval: CandlePeriod.ONE_HOUR,
     candles: [
       {

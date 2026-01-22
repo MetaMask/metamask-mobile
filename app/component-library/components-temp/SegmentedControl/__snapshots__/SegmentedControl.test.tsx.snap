@@ -32,14 +32,14 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#4459ff1a",
-          "borderColor": "#4459ff",
-          "borderRadius": 20,
-          "borderWidth": 1,
+          "backgroundColor": "#121314",
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
@@ -52,7 +52,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#ffffff",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -78,13 +78,15 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#b7bbc8",
-          "borderRadius": 20,
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
@@ -124,14 +126,14 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#4459ff1a",
-          "borderColor": "#4459ff",
-          "borderRadius": 20,
-          "borderWidth": 1,
+          "backgroundColor": "#121314",
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
@@ -144,7 +146,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#ffffff",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -170,13 +172,15 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#b7bbc8",
-          "borderRadius": 20,
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
@@ -232,14 +236,14 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#4459ff1a",
-          "borderColor": "#4459ff",
-          "borderRadius": 20,
-          "borderWidth": 1,
+          "backgroundColor": "#121314",
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
@@ -252,7 +256,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#ffffff",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -278,13 +282,15 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#b7bbc8",
-          "borderRadius": 20,
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
@@ -324,13 +330,15 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#b7bbc8",
-          "borderRadius": 20,
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
@@ -370,13 +378,15 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#b7bbc8",
-          "borderRadius": 20,
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,

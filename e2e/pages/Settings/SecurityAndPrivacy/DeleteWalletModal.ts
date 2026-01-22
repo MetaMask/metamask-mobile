@@ -1,7 +1,7 @@
 import {
   DeleteWalletModalSelectorsIDs,
   DeleteWalletModalSelectorsText,
-} from '../../../selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
+} from '../../../../app/components/UI/DeleteWalletModal/DeleteWalletModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 

@@ -50,7 +50,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -79,6 +79,7 @@ import {
   AuthConnection,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
+import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -656,9 +657,23 @@ class ResetPassword extends PureComponent {
         view: RESET_PASSWORD,
       });
     } catch (e) {
+      // Don't show warning if password is not set with biometrics
+      if (
+        e.message.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        return;
+      }
+
+      // Show warning if password is incorrect
       const msg = strings('reveal_credential.warning_incorrect_password');
       this.setState({
         warningIncorrectPassword: msg,
+      });
+    } finally {
+      // Resolve UI loading state
+      this.setState({
         ready: true,
       });
     }

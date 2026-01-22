@@ -21,6 +21,10 @@ function render(props: Partial<DepositKeyboardProps> = {}) {
 }
 
 describe('DepositKeyboard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('calls onChange when digit pressed', () => {
     const onChangeMock = jest.fn();
 

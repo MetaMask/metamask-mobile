@@ -52,6 +52,7 @@ import {
   EIP7702_CODE_FORMAT,
 } from './polymarket-constants';
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response';
+import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -146,13 +147,14 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 /**
  * Mock for Polymarket geoblock endpoint
  * This simulates the user being in a geo-restricted region
+ * Uses a country from GEO_BLOCKED_COUNTRIES for consistency with app logic
  */
 export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: 'https://polymarket.com/api/geoblock',
     responseCode: 200,
-    response: { blocked: true },
+    response: { blocked: true, country: GEO_BLOCKED_COUNTRIES[0].country },
   });
 };
 
@@ -747,6 +749,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
             // This indicates full allowance is granted
             result =
               '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else if (callData?.toLowerCase()?.startsWith('0x6352211e')) {
+            // ownerOf(uint256) selector - return owner of the token
+            result = '0x';
           } else {
             // Other USDC contract calls - return current global balance as fallback
             result = currentUSDCBalance;
@@ -811,6 +816,12 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         // This is critical for TransactionController to mark transactions as confirmed
         // TransactionController polls for receipts to determine transaction status
         result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT;
+      } else if (body?.method === 'eth_getBlockByNumber') {
+        // Return block details to enable EIP-1559 transactions
+        result = {
+          baseFeePerGas: '0x123',
+          number: currentBlockNumber,
+        };
       }
       // Note: We don't mock eth_gasPrice for Polygon - the app should use the gas API
       // (already mocked in DEFAULT_GAS_API_MOCKS) which provides EIP-1559 fields.

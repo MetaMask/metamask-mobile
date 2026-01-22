@@ -55,9 +55,9 @@ describe('SwitchAccountTypeInfoRow', () => {
       state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
     expect(getByText('Switching to')).toBeDefined();
-    expect(getByText('Smart Account')).toBeDefined();
+    expect(getByText('Smart account')).toBeDefined();
   });
 
   it('renders correctly for upgrade+batched confirmation', () => {
@@ -65,9 +65,9 @@ describe('SwitchAccountTypeInfoRow', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
     expect(getByText('Switching to')).toBeDefined();
-    expect(getByText('Smart Account')).toBeDefined();
+    expect(getByText('Smart account')).toBeDefined();
   });
 
   it('renders correctly for downgrade confirmation', () => {
@@ -75,8 +75,8 @@ describe('SwitchAccountTypeInfoRow', () => {
       state: getAppStateForConfirmation(downgradeAccountConfirmation),
     });
     expect(getByText('Now')).toBeDefined();
-    expect(getByText('Smart Account')).toBeDefined();
+    expect(getByText('Smart account')).toBeDefined();
     expect(getByText('Switching to')).toBeDefined();
-    expect(getByText('Standard Account')).toBeDefined();
+    expect(getByText('Standard account')).toBeDefined();
   });
 });

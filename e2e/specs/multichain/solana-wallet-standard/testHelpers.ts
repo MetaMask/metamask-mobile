@@ -2,8 +2,8 @@ import BrowserView from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../framework/Assertions';
+import { navigateToBrowserView } from '../../../viewHelper';
 
 export const account1Short = 'CEQ8...Yrrd';
 export const account2Short = '9Wa2...Dj2U';
@@ -39,7 +39,7 @@ export const connectSolanaTestDapp = async (
 };
 
 export const navigateToSolanaTestDApp = async (): Promise<void> => {
-  await TabBarComponent.tapBrowser();
+  await navigateToBrowserView();
   await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
   await SolanaTestDApp.navigateToSolanaTestDApp();
 };

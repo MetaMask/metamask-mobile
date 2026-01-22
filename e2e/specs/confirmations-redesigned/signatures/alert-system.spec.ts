@@ -3,9 +3,8 @@ import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
@@ -60,7 +59,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await TestDApp.tapTypedSignButton();
         await Assertions.expectElementToBeVisible(
@@ -233,7 +232,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         },
         async () => {
           await loginToApp();
-          await TabBarComponent.tapBrowser();
+          await navigateToBrowserView();
           await Browser.navigateToTestDApp();
           await TestDApp.tapSIWEBadDomainButton();
           await Assertions.expectElementToBeVisible(

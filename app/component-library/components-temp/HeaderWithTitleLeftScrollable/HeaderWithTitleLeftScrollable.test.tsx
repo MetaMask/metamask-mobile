@@ -4,6 +4,9 @@ import { render, renderHook } from '@testing-library/react-native';
 import { useSharedValue, SharedValue } from 'react-native-reanimated';
 import { Text } from 'react-native';
 
+// External dependencies.
+import { IconName } from '@metamask/design-system-react-native';
+
 // Internal dependencies.
 import HeaderWithTitleLeftScrollable from './HeaderWithTitleLeftScrollable';
 import useHeaderWithTitleLeftScrollable from './useHeaderWithTitleLeftScrollable';
@@ -21,6 +24,11 @@ jest.mock('react-native-reanimated', () => {
   Reanimated.Extrapolation = { CLAMP: 'clamp' };
   return Reanimated;
 });
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
 
 // Test wrapper component that provides scrollY
 const TestWrapper: React.FC<{
@@ -106,6 +114,114 @@ describe('HeaderWithTitleLeftScrollable', () => {
     });
   });
 
+  describe('close button', () => {
+    it('renders close button when onClose provided', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              onClose={jest.fn()}
+              closeButtonProps={{ testID: 'test-close-button' }}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-close-button')).toBeOnTheScreen();
+    });
+
+    it('renders close button when closeButtonProps provided', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              closeButtonProps={{
+                onPress: jest.fn(),
+                testID: 'test-close-button',
+              }}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('test-close-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('endButtonIconProps', () => {
+    it('renders endButtonIconProps', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              endButtonIconProps={[
+                {
+                  iconName: IconName.Close,
+                  onPress: jest.fn(),
+                  testID: 'end-button',
+                },
+              ]}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('end-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('isInsideSafeAreaView', () => {
+    it('positions header at top 0 when isInsideSafeAreaView is false', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              isInsideSafeAreaView={false}
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      const container = getByTestId('test-container');
+      const flattenedStyle = Array.isArray(container.props.style)
+        ? Object.assign({}, ...container.props.style)
+        : container.props.style;
+
+      expect(flattenedStyle.top).toBe(0);
+    });
+
+    it('positions header at insets.top when isInsideSafeAreaView is true', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test"
+              scrollY={scrollYValue}
+              isInsideSafeAreaView
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      const container = getByTestId('test-container');
+      const flattenedStyle = Array.isArray(container.props.style)
+        ? Object.assign({}, ...container.props.style)
+        : container.props.style;
+
+      expect(flattenedStyle.top).toBe(44);
+    });
+  });
+
   describe('titleLeft and titleLeftProps', () => {
     it('renders custom titleLeft node', () => {
       const { getByText } = render(
@@ -139,6 +255,94 @@ describe('HeaderWithTitleLeftScrollable', () => {
 
       expect(getByText('Custom Node')).toBeOnTheScreen();
       expect(queryByText('Props Title')).toBeNull();
+    });
+  });
+
+  describe('subtitle', () => {
+    it('renders subtitle in compact header when provided', () => {
+      const { getByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              subtitle="Test Subtitle"
+              scrollY={scrollYValue}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Test Subtitle')).toBeOnTheScreen();
+    });
+
+    it('does not render subtitle when not provided', () => {
+      const { queryByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              scrollY={scrollYValue}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(queryByText('Test Subtitle')).toBeNull();
+    });
+
+    it('renders subtitle with testID when provided via subtitleProps', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              subtitle="Test Subtitle"
+              subtitleProps={{ testID: 'subtitle-test-id' }}
+              scrollY={scrollYValue}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('subtitle-test-id')).toBeOnTheScreen();
+    });
+  });
+
+  describe('children', () => {
+    it('renders custom children in compact header section', () => {
+      const { getByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              scrollY={scrollYValue}
+            >
+              <Text>Custom Compact Content</Text>
+            </HeaderWithTitleLeftScrollable>
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Custom Compact Content')).toBeOnTheScreen();
+    });
+
+    it('does not render subtitle when children provided', () => {
+      const { getByText, queryByText } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderWithTitleLeftScrollable
+              title="Test Title"
+              subtitle="Test Subtitle"
+              scrollY={scrollYValue}
+            >
+              <Text>Custom Content</Text>
+            </HeaderWithTitleLeftScrollable>
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByText('Custom Content')).toBeOnTheScreen();
+      expect(queryByText('Test Subtitle')).toBeNull();
     });
   });
 });

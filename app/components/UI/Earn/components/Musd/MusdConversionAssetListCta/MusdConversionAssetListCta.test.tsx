@@ -4,32 +4,33 @@ import { Hex } from '@metamask/utils';
 
 jest.mock('../../../hooks/useMusdConversionTokens');
 jest.mock('../../../hooks/useMusdConversion');
+jest.mock('../../../hooks/useMusdCtaVisibility');
 jest.mock('../../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../../../../../util/Logger');
-
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const map: Record<string, string> = {
-      'earn.musd_conversion.buy_musd': 'Buy mUSD',
-      'earn.musd_conversion.get_musd': 'Get mUSD',
-      'earn.musd_conversion.earn_points_daily': 'Earn points daily',
-    };
-    return map[key] ?? key;
-  },
-}));
+jest.mock('../../../../../hooks/useMetrics');
+jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import MusdConversionAssetListCta from '.';
 import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
+import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import {
+  MUSD_CONVERSION_APY,
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../util/Logger';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import { strings } from '../../../../../../../locales/i18n';
+import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { toChecksumAddress } from '../../../../../../util/address';
 
 const mockToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -45,12 +46,35 @@ const mockToken = {
 };
 
 describe('MusdConversionAssetListCta', () => {
+  const FIXED_NOW_MS = 1730000000000;
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
+  const mockAddProperties = jest.fn();
+  const mockBuild = jest.fn();
+
   const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
   const mockLoggerError = jest.spyOn(Logger, 'error');
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
+
+    (useMetrics as jest.MockedFunction<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
+
+    (
+      useNetworkName as jest.MockedFunction<typeof useNetworkName>
+    ).mockReturnValue('Ethereum Mainnet');
 
     (
       useRampNavigation as jest.MockedFunction<typeof useRampNavigation>
@@ -68,21 +92,36 @@ describe('MusdConversionAssetListCta', () => {
       error: null,
       hasSeenConversionEducationScreen: true,
     });
+
+    // Default mock for visibility - show CTA with non-empty wallet
+    (
+      useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+    ).mockReturnValue({
+      shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+        shouldShowCta: true,
+        showNetworkIcon: false,
+        selectedChainId: null,
+        isEmptyWallet: false,
+      }),
+      shouldShowTokenListItemCta: jest.fn(),
+      shouldShowAssetOverviewCta: jest.fn(),
+    });
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
   describe('rendering', () => {
-    it('renders component with container testID', () => {
+    it('renders component with container testID when hook returns shouldShowCta true', () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
         >
       ).mockReturnValue({
-        tokens: [],
-        tokenFilter: jest.fn(),
+        tokens: [mockToken],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -106,8 +145,8 @@ describe('MusdConversionAssetListCta', () => {
           typeof useMusdConversionTokens
         >
       ).mockReturnValue({
-        tokens: [],
-        tokenFilter: jest.fn(),
+        tokens: [mockToken],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -120,14 +159,14 @@ describe('MusdConversionAssetListCta', () => {
       expect(getByText('MetaMask USD')).toBeOnTheScreen();
     });
 
-    it('displays earn points daily text', () => {
+    it('displays earn percentage text', () => {
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
         >
       ).mockReturnValue({
-        tokens: [],
-        tokenFilter: jest.fn(),
+        tokens: [mockToken],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -137,19 +176,38 @@ describe('MusdConversionAssetListCta', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Earn points daily')).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('earn.earn_a_percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
   describe('CTA button text', () => {
-    it('displays "Buy mUSD" when no tokens available', () => {
+    it('displays "Buy mUSD" when hook returns isEmptyWallet true', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -162,14 +220,27 @@ describe('MusdConversionAssetListCta', () => {
       expect(getByText('Buy mUSD')).toBeOnTheScreen();
     });
 
-    it('displays "Get mUSD" when tokens available', () => {
+    it('displays "Get mUSD" when hook returns isEmptyWallet false', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: false,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -181,17 +252,69 @@ describe('MusdConversionAssetListCta', () => {
 
       expect(getByText('Get mUSD')).toBeOnTheScreen();
     });
-  });
 
-  describe('button press - no tokens', () => {
-    beforeEach(() => {
+    it('hides CTA when hook returns shouldShowCta false', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: false,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: false,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
       (
         useMusdConversionTokens as jest.MockedFunction<
           typeof useMusdConversionTokens
         >
       ).mockReturnValue({
         tokens: [],
-        tokenFilter: jest.fn(),
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      expect(
+        queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeNull();
+    });
+  });
+
+  describe('button press - empty wallet', () => {
+    beforeEach(() => {
+      // Set hook to return empty wallet state
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [],
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -210,7 +333,7 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('does not call initiateConversion when no tokens', () => {
+    it('does not call initiateConversion when wallet is empty', () => {
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
@@ -229,7 +352,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -254,6 +377,109 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
+    it('uses payment token from selected chain when available', async () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: CHAIN_IDS.LINEA_MAINNET,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const mainnetToken = mockToken;
+      const lineaToken = {
+        ...mockToken,
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        chainId: CHAIN_IDS.LINEA_MAINNET,
+      };
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [mainnetToken, lineaToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        // Make outputChainId deterministic: mirror payment token chain
+        getMusdOutputChainId: jest.fn((chainId) => chainId as Hex),
+      });
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          outputChainId: lineaToken.chainId,
+          preferredPaymentToken: {
+            address: toChecksumAddress(lineaToken.address),
+            chainId: lineaToken.chainId,
+          },
+        });
+      });
+    });
+
+    it('Get mUSD falls back to first token when selected chain has no token', async () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: CHAIN_IDS.LINEA_MAINNET,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const firstToken = mockToken;
+      const secondToken = {
+        ...mockToken,
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        chainId: CHAIN_IDS.MAINNET,
+      };
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [firstToken, secondToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => chainId as Hex),
+      });
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          outputChainId: firstToken.chainId,
+          preferredPaymentToken: {
+            address: toChecksumAddress(firstToken.address),
+            chainId: firstToken.chainId,
+          },
+        });
+      });
+    });
+
     it('uses first token from array when multiple tokens available', async () => {
       const firstToken = mockToken;
       const secondToken = {
@@ -266,7 +492,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [firstToken, secondToken],
-        tokenFilter: jest.fn(),
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -298,7 +524,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -326,7 +552,7 @@ describe('MusdConversionAssetListCta', () => {
         >
       ).mockReturnValue({
         tokens: [mockToken],
-        tokenFilter: jest.fn(),
+        filterAllowedTokens: jest.fn(),
         isConversionToken: jest.fn(),
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
         getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
@@ -371,6 +597,345 @@ describe('MusdConversionAssetListCta', () => {
           '[mUSD Conversion] Failed to initiate conversion from CTA',
         );
       });
+    });
+  });
+
+  describe('visibility behavior', () => {
+    beforeEach(() => {
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
+      });
+    });
+
+    it('renders null when shouldShowCta is false', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: false,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: false,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        { state: initialRootState },
+      );
+
+      expect(
+        queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeNull();
+    });
+
+    it('renders component when shouldShowCta is true', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('network badge', () => {
+    beforeEach(() => {
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
+      });
+    });
+
+    it('renders without network badge when showNetworkIcon is false', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
+      // Badge wrapper is not rendered when showNetworkIcon is false
+      expect(queryByTestId(BADGE_WRAPPER_BADGE_TEST_ID)).toBeNull();
+    });
+
+    it('renders with network badge when showNetworkIcon is true and mainnet selected', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: true,
+          selectedChainId: CHAIN_IDS.MAINNET,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders with network badge when showNetworkIcon is true and Linea selected', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: true,
+          selectedChainId: CHAIN_IDS.LINEA_MAINNET,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders with network badge when showNetworkIcon is true and BSC selected', () => {
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: true,
+          selectedChainId: CHAIN_IDS.BSC,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetListCta />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('MetaMetrics', () => {
+    const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
+
+    it('tracks mUSD conversion CTA clicked event when Buy mUSD is pressed', () => {
+      // Arrange
+      (
+        useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
+      ).mockReturnValue({
+        shouldShowBuyGetMusdCta: jest.fn().mockReturnValue({
+          shouldShowCta: true,
+          showNetworkIcon: false,
+          selectedChainId: null,
+          isEmptyWallet: true,
+        }),
+        shouldShowTokenListItemCta: jest.fn(),
+        shouldShowAssetOverviewCta: jest.fn(),
+      });
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
+      });
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      // Act
+      fireEvent.press(getByText(strings('earn.musd_conversion.buy_musd')));
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: EVENT_LOCATIONS.HOME_SCREEN,
+        redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
+        cta_type: MUSD_CTA_TYPES.PRIMARY,
+        cta_text: strings('earn.musd_conversion.buy_musd'),
+        network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        network_name: 'Ethereum Mainnet',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    // TODO: Missing test case: tracks mUSD conversion CTA clicked event when Get mUSD is pressed and education screen already seen
+    it('tracks mUSD conversion CTA clicked event when Get mUSD is pressed and education screen has not been seen', async () => {
+      // Arrange
+      (
+        useMusdConversion as jest.MockedFunction<typeof useMusdConversion>
+      ).mockReturnValue({
+        initiateConversion: mockInitiateConversion,
+        error: null,
+        hasSeenConversionEducationScreen: false,
+      });
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [mockToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
+      });
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByText(strings('earn.musd_conversion.get_musd')));
+      });
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: EVENT_LOCATIONS.HOME_SCREEN,
+        redirects_to: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+        cta_type: MUSD_CTA_TYPES.PRIMARY,
+        cta_text: strings('earn.musd_conversion.get_musd'),
+        network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        network_name: 'Ethereum Mainnet',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks mUSD conversion CTA clicked event when Get mUSD is pressed and education screen has been seen', async () => {
+      // Arrange
+      (
+        useMusdConversion as jest.MockedFunction<typeof useMusdConversion>
+      ).mockReturnValue({
+        initiateConversion: mockInitiateConversion,
+        error: null,
+        hasSeenConversionEducationScreen: true,
+      });
+
+      (
+        useMusdConversionTokens as jest.MockedFunction<
+          typeof useMusdConversionTokens
+        >
+      ).mockReturnValue({
+        tokens: [mockToken],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
+        getMusdOutputChainId: jest.fn((chainId) => (chainId ?? '0x1') as Hex),
+      });
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByText(strings('earn.musd_conversion.get_musd')));
+      });
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: EVENT_LOCATIONS.HOME_SCREEN,
+        redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+        cta_type: MUSD_CTA_TYPES.PRIMARY,
+        cta_text: strings('earn.musd_conversion.get_musd'),
+        network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        network_name: 'Ethereum Mainnet',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
   });
 });

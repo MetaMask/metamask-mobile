@@ -15,6 +15,7 @@ import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-c
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import Info from './info-root';
 import { contractDeploymentTransactionStateMock } from '../../__mocks__/contract-deployment-transaction-mock';
+import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -50,6 +51,10 @@ jest.mock('../info/custom-amount-info', () => ({
 
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
+
+jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
+  useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
 
 jest.mock('../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
@@ -168,7 +173,7 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE),
     ).toBeDefined();
-    expect(getByText('Standard Account')).toBeTruthy();
+    expect(getByText('Standard account')).toBeTruthy();
   });
 
   it('renders SwitchAccountType for smart account type - upgrade confirmations', () => {
@@ -178,7 +183,7 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE),
     ).toBeDefined();
-    expect(getByText('Smart Account')).toBeTruthy();
+    expect(getByText('Smart account')).toBeTruthy();
   });
 
   it('renders correctly for smart account type - upgrade + batched confirmations', () => {
@@ -204,5 +209,23 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.CONTRACT_DEPLOYMENT),
     ).toBeDefined();
+  });
+
+  describe('useRefreshSmartTransactionsLiveness', () => {
+    beforeEach(() => {
+      jest.mocked(useRefreshSmartTransactionsLiveness).mockClear();
+    });
+
+    it('calls useRefreshSmartTransactionsLiveness with transaction chainId', () => {
+      const { chainId } =
+        approveERC20TransactionStateMock.engine.backgroundState
+          .TransactionController.transactions[0];
+
+      renderWithProvider(<Info />, {
+        state: approveERC20TransactionStateMock,
+      });
+
+      expect(useRefreshSmartTransactionsLiveness).toHaveBeenCalledWith(chainId);
+    });
   });
 });

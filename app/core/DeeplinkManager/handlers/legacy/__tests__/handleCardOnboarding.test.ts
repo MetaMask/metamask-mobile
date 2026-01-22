@@ -34,32 +34,28 @@ jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/featureFlagController/card');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
-jest.mock('../../../../Analytics', () => {
-  const actualMockTrackEvent = jest.fn();
-  return {
-    MetaMetrics: {
-      getInstance: jest.fn(() => ({
-        trackEvent: actualMockTrackEvent,
-      })),
-      __mockTrackEvent: actualMockTrackEvent,
-    },
-    MetaMetricsEvents: {
-      CARD_DEEPLINK_HANDLED: 'Card Deeplink Handled',
-    },
-  };
-});
-jest.mock('../../../../Analytics/MetricsEventBuilder', () => {
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
+jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => {
   const mockBuilder = {
     addProperties: jest.fn(),
     build: jest.fn().mockReturnValue({ event: 'mocked_event' }),
   };
   mockBuilder.addProperties.mockReturnValue(mockBuilder);
   return {
-    MetricsEventBuilder: {
+    AnalyticsEventBuilder: {
       createEventBuilder: jest.fn(() => mockBuilder),
     },
   };
 });
+jest.mock('../../../../Analytics', () => ({
+  MetaMetricsEvents: {
+    CARD_DEEPLINK_HANDLED: 'Card Deeplink Handled',
+  },
+}));
 
 describe('handleCardOnboarding', () => {
   const mockGetState = jest.fn();

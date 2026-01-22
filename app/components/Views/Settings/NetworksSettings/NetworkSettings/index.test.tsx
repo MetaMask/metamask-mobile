@@ -12,6 +12,7 @@ jest.mock('../../../../../core/Analytics', () => ({
     getInstance: jest.fn(() => ({
       addTraitsToUser: jest.fn(),
       trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
     })),
   },
   MetaMetricsEvents: {

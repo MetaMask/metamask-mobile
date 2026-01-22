@@ -99,7 +99,12 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import LoginOptionsSettings from './LoginOptionsSettings';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
+import {
+  PASSCODE_DISABLED,
+  BIOMETRY_CHOICE_DISABLED,
+  TRUE,
+} from '../../../../../constants/storage';
 
 // Mock Device
 jest.mock('../../../../../util/device', () => ({
@@ -197,9 +202,9 @@ describe('LoginOptionsSettings', () => {
     fireEvent(toggle, 'onValueChange', true);
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+      });
     });
   });
 
@@ -208,7 +213,16 @@ describe('LoginOptionsSettings', () => {
       currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
       availableBiometryType: 'FaceID',
     });
-    mockGetItem.mockResolvedValue(null);
+    // When biometrics is enabled, passcode is disabled (mutually exclusive)
+    mockGetItem.mockImplementation((key: string) => {
+      if (key === BIOMETRY_CHOICE_DISABLED) {
+        return Promise.resolve(null); // Biometrics not disabled (enabled)
+      }
+      if (key === PASSCODE_DISABLED) {
+        return Promise.resolve(TRUE); // Passcode is disabled
+      }
+      return Promise.resolve(null);
+    });
 
     const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
       state: initialState,
@@ -220,9 +234,9 @@ describe('LoginOptionsSettings', () => {
     fireEvent(toggle, 'onValueChange', false);
 
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.PASSWORD,
-      );
+      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+      });
     });
   });
 
@@ -290,10 +304,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -496,10 +510,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.BIOMETRIC,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -593,10 +607,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.PASSCODE,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.PASSCODE,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -645,10 +659,10 @@ describe('LoginOptionsSettings', () => {
       await passwordCallback('test-password');
 
       await waitFor(() => {
-        expect(mockUpdateAuthPreference).toHaveBeenCalledWith(
-          AUTHENTICATION_TYPE.PASSCODE,
-          'test-password',
-        );
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.PASSCODE,
+          password: 'test-password',
+        });
       });
     }
   });
@@ -814,6 +828,190 @@ describe('LoginOptionsSettings', () => {
 
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
+    });
+  });
+
+  describe('mutual exclusivity and toggle visibility', () => {
+    it('shows biometrics toggle when biometrics are enabled regardless of storage state', async () => {
+      // Arrange: Simulate inconsistent storage state (bug scenario)
+      // Storage says passcode is not disabled, but currentAuthType says biometrics are enabled
+      mockGetType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+      mockGetItem.mockImplementation((key: string) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) {
+          return Promise.resolve(null); // Biometrics not disabled
+        }
+        if (key === PASSCODE_DISABLED) {
+          // This is the bug scenario: storage says passcode is NOT disabled
+          // but currentAuthType says biometrics are enabled
+          return Promise.resolve(null);
+        }
+        return Promise.resolve(null);
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <LoginOptionsSettings />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Act & Assert: Biometrics toggle should be visible (currentAuthType is source of truth)
+      const biometricsToggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+      );
+
+      expect(biometricsToggle).toBeTruthy();
+      expect(biometricsToggle.props.value).toBe(true);
+
+      // Assert: Passcode toggle should NOT be visible (mutually exclusive)
+      await waitFor(() => {
+        expect(
+          queryByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+        ).toBeNull();
+      });
+    });
+
+    it('shows passcode toggle when passcode is enabled regardless of storage state', async () => {
+      // Arrange: Simulate inconsistent storage state (bug scenario)
+      // Storage says biometrics is not disabled, but currentAuthType says passcode is enabled
+      mockGetType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: 'FaceID',
+      });
+      mockGetItem.mockImplementation((key: string) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) {
+          // This is the bug scenario: storage says biometrics is NOT disabled
+          // but currentAuthType says passcode is enabled
+          return Promise.resolve(null);
+        }
+        if (key === PASSCODE_DISABLED) {
+          return Promise.resolve(null); // Passcode not disabled
+        }
+        return Promise.resolve(null);
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <LoginOptionsSettings />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Act & Assert: Passcode toggle should be visible (currentAuthType is source of truth)
+      const passcodeToggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+      );
+
+      expect(passcodeToggle).toBeTruthy();
+      expect(passcodeToggle.props.value).toBe(true);
+
+      // Assert: Biometrics toggle should NOT be visible (mutually exclusive)
+      await waitFor(() => {
+        expect(
+          queryByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+        ).toBeNull();
+      });
+    });
+
+    it('enforces mutual exclusivity when biometrics are enabled', async () => {
+      // Arrange
+      mockGetType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+      mockGetItem.mockImplementation((key: string) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) {
+          return Promise.resolve(null);
+        }
+        if (key === PASSCODE_DISABLED) {
+          return Promise.resolve(TRUE);
+        }
+        return Promise.resolve(null);
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <LoginOptionsSettings />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Act
+      const biometricsToggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+      );
+
+      // Assert
+      expect(biometricsToggle.props.value).toBe(true);
+      expect(
+        queryByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+      ).toBeNull();
+    });
+
+    it('enforces mutual exclusivity when passcode is enabled', async () => {
+      // Arrange
+      mockGetType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: 'FaceID',
+      });
+      mockGetItem.mockImplementation((key: string) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) {
+          return Promise.resolve(TRUE);
+        }
+        if (key === PASSCODE_DISABLED) {
+          return Promise.resolve(null);
+        }
+        return Promise.resolve(null);
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <LoginOptionsSettings />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Act
+      const passcodeToggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+      );
+
+      // Assert
+      expect(passcodeToggle.props.value).toBe(true);
+      expect(
+        queryByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+      ).toBeNull();
+    });
+
+    it('uses currentAuthType as source of truth over storage state', async () => {
+      // Arrange: Storage is completely inconsistent, but currentAuthType is correct
+      mockGetType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+      // Storage incorrectly says both are not disabled (inconsistent state)
+      mockGetItem.mockResolvedValue(null);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <LoginOptionsSettings />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Act
+      const biometricsToggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+      );
+
+      // Assert: Should show biometrics toggle because currentAuthType says BIOMETRIC
+      expect(biometricsToggle.props.value).toBe(true);
+      expect(
+        queryByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE),
+      ).toBeNull();
     });
   });
 });

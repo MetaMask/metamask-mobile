@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import {
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -11,19 +16,57 @@ import {
   IconName,
   Icon,
   IconSize,
+  IconColor,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
+import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY, SectionId } from './config/sections.config';
+import { HOME_SECTIONS_ARRAY, SectionId } from './sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
+import Section, { RefreshConfig } from './components/Sections/Section';
+import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
+
+/**
+ * Custom hook to track boolean state for each section
+ * Returns the Set of sections with that state and callbacks to update them
+ */
+const useSectionStateTracker = () => {
+  const [activeSections, setActiveSections] = useState<Set<SectionId>>(
+    new Set(),
+  );
+
+  const callbacks = useMemo(() => {
+    const result = {} as Record<SectionId, (isActive: boolean) => void>;
+
+    HOME_SECTIONS_ARRAY.forEach((section) => {
+      result[section.id] = (isActive: boolean) => {
+        setActiveSections((currentSections) => {
+          const updatedSections = new Set(currentSections);
+
+          if (isActive) {
+            updatedSections.add(section.id);
+          } else {
+            updatedSections.delete(section.id);
+          }
+
+          return updatedSections;
+        });
+      };
+    });
+
+    return result;
+  }, []);
+
+  return { sectionsWithState: activeSections, callbacks };
+};
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -32,11 +75,41 @@ export const ExploreFeed: React.FC = () => {
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [refreshConfig, setRefreshConfig] = useState<RefreshConfig>({
+    trigger: 0,
+    silentRefresh: true,
+  });
 
-  // Track which sections have empty data
-  const [emptySections, setEmptySections] = useState<Set<SectionId>>(new Set());
+  // Track which sections have empty data and which are loading
+  const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
+    useSectionStateTracker();
+
+  const {
+    sectionsWithState: loadingSections,
+    callbacks: loadingStateCallbacks,
+  } = useSectionStateTracker();
+
   const sessionManager = TrendingFeedSessionManager.getInstance();
+
+  // REMOVED FOR NOW (https://consensys.slack.com/archives/C07NF2K42LE/p1766152712027759?thread_ts=1766135783.241539&cid=C07NF2K42LE)
+  // Trigger refresh only when navigating to an already-mounted screen
+  // useEffect(() => {
+  //   const params = route.params as { refresh?: boolean } | undefined;
+
+  //   // Skip refresh on first mount
+  //   if (isFirstMount.current) {
+  //     isFirstMount.current = false;
+  //     return;
+  //   }
+
+  //   if (params?.refresh === true) {
+  //     // Silent refresh - don't show skeletons
+  //     setRefreshConfig((prev) => ({
+  //       trigger: prev.trigger + 1,
+  //       silentRefresh: false,
+  //     }));
+  //   }
+  // }, [route.params]);
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
@@ -62,33 +135,29 @@ export const ExploreFeed: React.FC = () => {
     selectBasicFunctionalityEnabled,
   );
 
-  const sectionCallbacks = useMemo(() => {
-    const callbacks = {} as Record<SectionId, (isEmpty: boolean) => void>;
-    HOME_SECTIONS_ARRAY.forEach((section) => {
-      callbacks[section.id] = (isEmpty: boolean) => {
-        setEmptySections((prev) => {
-          const next = new Set(prev);
-          if (isEmpty) {
-            next.add(section.id);
-          } else {
-            next.delete(section.id);
-          }
-          return next;
-        });
-      };
-    });
-    return callbacks;
-  }, []);
   const handleBrowserPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: portfolioUrl.href,
-        timestamp: Date.now(),
-        fromTrending: true,
-      },
-    });
-  }, [navigation, portfolioUrl.href]);
+    if (browserTabsCount > 0) {
+      // If tabs exist, show the tabs view directly
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          showTabsView: true,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    } else {
+      // If no tabs exist, open a new tab with portfolio URL
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: portfolioUrl.href,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    }
+  }, [navigation, portfolioUrl.href, browserTabsCount]);
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -107,49 +176,61 @@ export const ExploreFeed: React.FC = () => {
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    setRefreshTrigger((prev) => prev + 1);
+    // Pull-to-refresh - show skeletons
+    setRefreshConfig((prev) => ({
+      trigger: prev.trigger + 1,
+      silentRefresh: true,
+    }));
   }, []);
 
+  // Show loading indicator when any section is loading during silent refresh
+  const isAnySectionLoading = loadingSections.size > 0;
+
   return (
-    <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="px-4 py-3">
+    <Box
+      style={{ marginTop: insets.top }}
+      twClassName="flex-1 bg-default gap-4"
+    >
+      <Box twClassName="px-4 flex-row items-center justify-between">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
+        {!refreshConfig.silentRefresh && isAnySectionLoading && (
+          <ActivityIndicator size="small" color={colors.icon.default} />
+        )}
       </Box>
 
-      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+      <Box twClassName="flex-row items-center gap-2 px-4">
         <Box twClassName="flex-1">
           <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
 
-        <TouchableOpacity onPress={handleBrowserPress}>
-          {browserTabsCount > 0 ? (
-            <Box
-              twClassName="rounded-md items-center justify-center h-8 w-8 border-2"
-              style={{
-                borderColor: colors.text.default,
-              }}
-            >
+        <TouchableOpacity
+          onPress={handleBrowserPress}
+          testID="trending-view-browser-button"
+        >
+          <Box twClassName="rounded-lg items-center justify-center bg-muted min-h-[44px] min-w-[44px]">
+            {browserTabsCount > 0 ? (
               <Text
-                variant={TextVariant.BodyMd}
-                testID="trending-view-browser-button"
+                variant={TextVariant.BodyLg}
+                color={TextColor.TextAlternative}
               >
                 {browserTabsCount}
               </Text>
-            </Box>
-          ) : (
-            <Icon
-              name={IconName.Explore}
-              size={IconSize.Xl}
-              testID="trending-view-browser-button"
-            />
-          )}
+            ) : (
+              <Icon
+                name={IconName.Explore}
+                size={IconSize.Lg}
+                color={IconColor.IconAlternative}
+              />
+            )}
+          </Box>
         </TouchableOpacity>
       </Box>
 
       {isBasicFunctionalityEnabled ? (
         <ScrollView
+          testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
           style={tw.style('flex-1 px-4')}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -167,16 +248,28 @@ export const ExploreFeed: React.FC = () => {
             // Hide section visually but keep mounted so it can report when data arrives
             const isHidden = emptySections.has(section.id);
 
+            const sectionComponent = (
+              <Section
+                sectionId={section.id}
+                refreshConfig={refreshConfig}
+                toggleSectionEmptyState={emptyStateCallbacks[section.id]}
+                toggleSectionLoadingState={loadingStateCallbacks[section.id]}
+              />
+            );
+
             return (
               <Box
                 key={section.id}
                 twClassName={isHidden ? 'hidden' : undefined}
               >
                 <SectionHeader sectionId={section.id} />
-                <section.Section
-                  refreshTrigger={refreshTrigger}
-                  toggleSectionEmptyState={sectionCallbacks[section.id]}
-                />
+                {section.SectionWrapper ? (
+                  <section.SectionWrapper>
+                    {sectionComponent}
+                  </section.SectionWrapper>
+                ) : (
+                  sectionComponent
+                )}
               </Box>
             );
           })}

@@ -30,9 +30,9 @@ const RememberMeOptionSection = () => {
       // If enabling remember me, update the password storage type first
       if (value) {
         try {
-          await Authentication.updateAuthPreference(
-            AUTHENTICATION_TYPE.REMEMBER_ME,
-          );
+          await Authentication.updateAuthPreference({
+            authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          });
           // Only set Redux state after operation completes successfully
           dispatch(setAllowLoginWithRememberMe(value));
         } catch (error) {
@@ -47,10 +47,10 @@ const RememberMeOptionSection = () => {
             navigate('EnterPasswordSimple', {
               onPasswordSet: async (enteredPassword: string) => {
                 try {
-                  await Authentication.updateAuthPreference(
-                    AUTHENTICATION_TYPE.REMEMBER_ME,
-                    enteredPassword,
-                  );
+                  await Authentication.updateAuthPreference({
+                    authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+                    password: enteredPassword,
+                  });
                   // Only set Redux state after operation completes successfully
                   dispatch(setAllowLoginWithRememberMe(value));
                 } catch (updateError) {
@@ -86,7 +86,9 @@ const RememberMeOptionSection = () => {
             ? (previousAuthType as AUTHENTICATION_TYPE)
             : AUTHENTICATION_TYPE.PASSWORD;
 
-          await Authentication.updateAuthPreference(authTypeToRestore);
+          await Authentication.updateAuthPreference({
+            authType: authTypeToRestore,
+          });
           // Clear the stored previous auth type after successful restoration
           await StorageWrapper.removeItem(
             PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
@@ -114,10 +116,10 @@ const RememberMeOptionSection = () => {
             navigate('EnterPasswordSimple', {
               onPasswordSet: async (enteredPassword: string) => {
                 try {
-                  await Authentication.updateAuthPreference(
-                    authTypeToRestore,
-                    enteredPassword,
-                  );
+                  await Authentication.updateAuthPreference({
+                    authType: authTypeToRestore,
+                    password: enteredPassword,
+                  });
                   // Clear the stored previous auth type after successful restoration
                   await StorageWrapper.removeItem(
                     PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,

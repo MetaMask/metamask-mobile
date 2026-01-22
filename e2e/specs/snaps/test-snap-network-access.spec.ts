@@ -1,8 +1,7 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import { getAnvilPortForTest } from '../../framework/fixtures/FixtureUtils';
 import { LocalNodeType } from '../../framework';
@@ -29,7 +28,7 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectNetworkAccessButton');

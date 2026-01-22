@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { RequestPaymentViewSelectors } from '../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '../../app/components/UI/ReceiveRequest/RequestPaymentView.testIds';
 
 class RequestTokenScreen {
   get requestAmount() {

@@ -1,4 +1,4 @@
-import { SigningBottomSheetSelectorsIDs } from '../../selectors/Browser/SigningBottomSheet.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/SigningBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

@@ -1,7 +1,7 @@
 import {
   ConfirmationRowComponentIDs,
   GasFeeTokenSelectorIDs,
-} from '../../../selectors/Confirmation/ConfirmationView.selectors';
+} from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
 
 class RowComponents {
@@ -78,6 +78,17 @@ class RowComponents {
   get NetworkFeeGasFeeTokenArrow(): DetoxElement {
     return Matchers.getElementByID(
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
+    );
+  }
+
+  async getNetworkFeeGasFeeTokenSymbolText(): Promise<string> {
+    const symbolElement = (await this
+      .NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
+    const symbolElementAttributes = await symbolElement.getAttributes();
+    return (
+      (symbolElementAttributes as { text?: string; label?: string })?.text ??
+      (symbolElementAttributes as { text?: string; label?: string })?.label ??
+      ''
     );
   }
 }

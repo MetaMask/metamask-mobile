@@ -15,7 +15,7 @@ import {
 import { ActivityIndicator } from 'react-native';
 import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
 import createStyles from '../SecuritySettings.styles';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
 import {
   Box,
   BoxFlexDirection,
@@ -59,10 +59,22 @@ const LoginOptionsSettings = () => {
           ? AUTHENTICATION_TYPE.BIOMETRIC
           : authType.availableBiometryType;
         setBiometryType(stateValue);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        setPasscodeChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
+
+        if (authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC) {
+          // Biometrics are enabled - passcode must be disabled (mutually exclusive)
+          setBiometryChoice(
+            !(previouslyDisabled && previouslyDisabled === TRUE),
+          );
+          setPasscodeChoice(false);
+        } else {
+          // Passcode is enabled - biometrics must be disabled (mutually exclusive)
+          setBiometryChoice(false);
+          setPasscodeChoice(
+            !(
+              passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+            ),
+          );
+        }
       } else {
         const stateValue =
           Device.isAndroid() && authType.availableBiometryType
@@ -88,10 +100,13 @@ const LoginOptionsSettings = () => {
           : AUTHENTICATION_TYPE.PASSWORD;
 
         // Enabling biometrics is handled by the catch condition  "isPasswordRequiredError"
-        await Authentication.updateAuthPreference(authType);
+        await Authentication.updateAuthPreference({ authType });
 
         // Only update UI if operation completed successfully
         setBiometryChoice(enabled);
+        // Biometrics and passcode are mutually exclusive - enabling one disables the other
+        // Disabling biometrics switches to PASSWORD which disables both
+        setPasscodeChoice(false);
       } catch (error) {
         // Check if error is "password required" - navigate to password entry
         const isPasswordRequiredError =
@@ -110,13 +125,16 @@ const LoginOptionsSettings = () => {
               // Set loading back to true when callback is invoked
               setIsBiometricLoading(true);
               try {
-                await Authentication.updateAuthPreference(
+                await Authentication.updateAuthPreference({
                   authType,
-                  enteredPassword,
-                );
+                  password: enteredPassword,
+                });
 
                 // Update UI state after successful password entry and update
                 setBiometryChoice(enabled);
+                // Biometrics and passcode are mutually exclusive - enabling one disables the other
+                // Disabling biometrics switches to PASSWORD which disables both
+                setPasscodeChoice(false);
 
                 // Re-fetch to ensure UI matches actual state
                 const currentAuthType = await Authentication.getType();
@@ -170,10 +188,13 @@ const LoginOptionsSettings = () => {
           : AUTHENTICATION_TYPE.PASSWORD;
 
         // Enabling passcode is handled by the catch condition  "isPasswordRequiredError"
-        await Authentication.updateAuthPreference(authType);
+        await Authentication.updateAuthPreference({ authType });
 
         // Only update UI if operation completed successfully
         setPasscodeChoice(enabled);
+        // Biometrics and passcode are mutually exclusive - enabling one disables the other
+        // Disabling passcode switches to PASSWORD which disables both
+        setBiometryChoice(false);
       } catch (error) {
         // Check if error is "password required" - navigate to password entry
         const isPasswordRequiredError =
@@ -192,13 +213,16 @@ const LoginOptionsSettings = () => {
               // Set loading back to true when callback is invoked
               setIsPasscodeLoading(true);
               try {
-                await Authentication.updateAuthPreference(
+                await Authentication.updateAuthPreference({
                   authType,
-                  enteredPassword,
-                );
+                  password: enteredPassword,
+                });
 
                 // Update UI state after successful password entry and update
                 setPasscodeChoice(enabled);
+                // Biometrics and passcode are mutually exclusive - enabling one disables the other
+                // Disabling passcode switches to PASSWORD which disables both
+                setBiometryChoice(false);
 
                 // Re-fetch to ensure UI matches actual state
                 const currentAuthType = await Authentication.getType();
@@ -243,7 +267,7 @@ const LoginOptionsSettings = () => {
 
   return (
     <Box testID={LOGIN_OPTIONS}>
-      {biometryType ? (
+      {biometryType && !passcodeChoice ? (
         <Box style={styles.setting}>
           {isBiometricLoading ? (
             <Box

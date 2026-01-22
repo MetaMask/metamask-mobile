@@ -21,6 +21,12 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  PerpsEventValues,
+  PerpsEventProperties,
+} from '../../constants/eventNames';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 /**
  * PerpsCard Component
@@ -38,9 +44,10 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { track } = usePerpsEventTracking();
 
   // Determine which type of data we have
-  const symbol = position?.coin || order?.symbol || '';
+  const symbol = position?.symbol || order?.symbol || '';
 
   // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
@@ -55,7 +62,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   if (position) {
     const leverage = position.leverage.value;
     const isLong = parseFloat(position.size) > 0;
-    const displaySymbol = getPerpsDisplaySymbol(position.coin);
+    const displaySymbol = getPerpsDisplaySymbol(position.symbol);
     primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
     secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
 
@@ -88,6 +95,23 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     if (onPress) {
       onPress();
     } else if (market) {
+      // Track open position button click if this is a position
+      if (position) {
+        // Map source to button_location
+        const buttonLocation =
+          source === PerpsEventValues.SOURCE.POSITION_TAB
+            ? PerpsEventValues.BUTTON_LOCATION.PERPS_TAB
+            : PerpsEventValues.BUTTON_LOCATION.PERPS_HOME;
+
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.OPEN_POSITION,
+          [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+        });
+      }
+
       let initialTab: 'position' | 'orders' | undefined;
       if (order) {
         initialTab = 'orders';
@@ -105,7 +129,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         },
       });
     }
-  }, [onPress, market, navigation, order, position, source]);
+  }, [onPress, market, navigation, order, position, source, track]);
 
   if (!position && !order) {
     return null;

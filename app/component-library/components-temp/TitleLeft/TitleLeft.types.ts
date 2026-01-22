@@ -5,9 +5,22 @@ import { ReactNode } from 'react';
 import { TextProps } from '@metamask/design-system-react-native';
 
 /**
+ * TitleLeft size variants.
+ */
+export enum TitleLeftSize {
+  Md = 'Md',
+  Sm = 'Sm',
+}
+
+/**
  * TitleLeft component props.
  */
 export interface TitleLeftProps {
+  /**
+   * Size of the title. Md uses DisplayMd, Sm uses HeadingLg.
+   * @default TitleLeftSize.Md
+   */
+  size?: TitleLeftSize;
   /**
    * Main title text, rendered with TextVariant.DisplayMD.
    */
@@ -57,4 +70,8 @@ export interface TitleLeftProps {
    * Optional test ID for the component.
    */
   testID?: string;
+  /**
+   * Optional Tailwind class name to apply to the container.
+   */
+  twClassName?: string;
 }

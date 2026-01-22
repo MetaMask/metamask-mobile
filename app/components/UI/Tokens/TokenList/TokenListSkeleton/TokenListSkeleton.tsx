@@ -28,7 +28,7 @@ const TokenListSkeleton = () => {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.wrapperSkeleton}>
+    <View style={styles.wrapperSkeleton} testID="token-list-skeleton">
       <SkeletonPlaceholder
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}

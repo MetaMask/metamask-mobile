@@ -1,17 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { useWindowDimensions, TouchableOpacity } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../../component-library/components/Icons/Icon';
+import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
 import {
   createNavigationDetails,
   useParams,
@@ -65,19 +58,7 @@ function WebviewModal() {
       isInteractable={!Device.isAndroid()}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
-        endAccessory={
-          <TouchableOpacity>
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
-              iconColor={IconColor.Alternative}
-              onPress={() => sheetRef.current?.onCloseBottomSheet()}
-            />
-          </TouchableOpacity>
-        }
-        style={styles.headerWithoutPadding}
-      />
+      <HeaderCenter onClose={() => sheetRef.current?.onCloseBottomSheet()} />
 
       <ScreenLayout>
         <ScreenLayout.Body>

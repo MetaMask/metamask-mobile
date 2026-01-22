@@ -208,12 +208,12 @@ describe('BankDetails Component', () => {
     expect(screen.getByText('456 Recipient Street')).toBeTruthy();
   });
 
-  it('calls setOptions with correct title when component mounts', () => {
+  it('calls setOptions with header function when component mounts', () => {
     render(BankDetails);
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: expect.stringContaining('SEPA bank transfer'),
+        header: expect.any(Function),
       }),
     );
   });

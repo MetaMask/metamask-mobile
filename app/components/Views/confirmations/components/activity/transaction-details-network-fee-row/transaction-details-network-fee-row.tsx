@@ -8,6 +8,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 
 const FALLBACK_TYPES = [
   TransactionType.predictClaim,
@@ -40,7 +41,9 @@ export function TransactionDetailsNetworkFeeRow() {
     <TransactionDetailsRow
       label={strings('transaction_details.label.network_fee')}
     >
-      <Text>{networkFeeFormatted}</Text>
+      <Text testID={TransactionDetailsSelectorIDs.NETWORK_FEE}>
+        {networkFeeFormatted}
+      </Text>
     </TransactionDetailsRow>
   );
 }

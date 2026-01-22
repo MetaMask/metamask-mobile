@@ -8,10 +8,12 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   useIsTransactionPayLoading,
+  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
   useTransactionPayTotals,
+  useTransactionPayIsMaxAmount,
 } from './useTransactionPayData';
 import { cloneDeep, merge } from 'lodash';
 import {
@@ -52,6 +54,7 @@ const state = merge(
           transactionData: {
             [transactionIdMock]: {
               isLoading: true,
+              isMaxAmount: true,
               quotes: [QUOTE_MOCK],
               sourceAmounts: [SOURCE_AMOUNT_MOCK],
               tokens: [REQUIRED_TOKEN_MOCK],
@@ -102,6 +105,30 @@ describe('useTransactionPayData', () => {
     ).toBe(true);
   });
 
+  it('returns quote loading state from controller only', () => {
+    expect(
+      renderHookWithProvider(useIsTransactionPayQuoteLoading, { state }).result
+        .current,
+    ).toBe(true);
+  });
+
+  it('returns false for quote loading when controller is not loading', () => {
+    useConfirmationContextMock.mockReturnValue({
+      isTransactionDataUpdating: true,
+    } as ConfirmationContextParams);
+
+    const updatedState = cloneDeep(state);
+    updatedState.engine.backgroundState.TransactionPayController.transactionData[
+      transactionIdMock
+    ].isLoading = false;
+
+    expect(
+      renderHookWithProvider(useIsTransactionPayQuoteLoading, {
+        state: updatedState,
+      }).result.current,
+    ).toBe(false);
+  });
+
   it('returns loading if data updating', () => {
     useConfirmationContextMock.mockReturnValue({
       isTransactionDataUpdating: true,
@@ -123,5 +150,12 @@ describe('useTransactionPayData', () => {
     expect(
       renderHookWithProvider(useTransactionPayTotals, { state }).result.current,
     ).toStrictEqual(TOTALS_MOCK);
+  });
+
+  it('returns isMaxAmount', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayIsMaxAmount, { state }).result
+        .current,
+    ).toBe(true);
   });
 });

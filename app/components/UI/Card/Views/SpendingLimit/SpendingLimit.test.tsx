@@ -7,6 +7,8 @@ const mockSubmitDelegation = jest.fn();
 const mockShowToast = jest.fn();
 const mockDispatch = jest.fn();
 const mockUseFocusEffect = jest.fn();
+const mockNavigationDispatch = jest.fn();
+const mockFetchSpendingLimitData = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -15,9 +17,31 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     addListener: mockAddListener,
     setParams: mockSetParams,
+    dispatch: mockNavigationDispatch,
   }),
   useFocusEffect: (callback: () => void) => mockUseFocusEffect(callback),
+  StackActions: {
+    replace: jest.fn((routeName, params) => ({
+      type: 'REPLACE',
+      payload: { name: routeName, params },
+    })),
+  },
 }));
+
+// Mock useSpendingLimitData hook
+jest.mock('../../hooks/useSpendingLimitData', () => jest.fn());
+
+// Mock useSpendingLimit hook
+const mockSubmit = jest.fn();
+const mockCancel = jest.fn();
+const mockSkip = jest.fn();
+const mockSetSelectedToken = jest.fn();
+const mockHandleQuickSelectToken = jest.fn();
+const mockHandleOtherSelect = jest.fn();
+const mockSetLimitType = jest.fn();
+const mockSetCustomLimit = jest.fn();
+
+jest.mock('../../hooks/useSpendingLimit', () => jest.fn());
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -137,9 +161,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Set a spending limit',
       'card.card_spending_limit.confirm_new_limit': 'Confirm',
       'card.card_spending_limit.cancel': 'Cancel',
+      'card.card_spending_limit.skip': 'Skip for now',
       'card.card_spending_limit.update_success': 'Spending limit updated',
       'card.card_spending_limit.update_error': 'Failed to update limit',
       'card.card_spending_limit.select_token': 'Select token',
+      'card.card_spending_limit.loading': 'Loading available tokens...',
+      'card.card_spending_limit.load_error':
+        'Unable to load tokens. Please try again.',
+      'card.card_spending_limit.retry': 'Try again',
     };
     return strings[key] || key;
   },
@@ -165,16 +194,16 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import SpendingLimit from './SpendingLimit';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { useCardDelegation } from '../../hooks/useCardDelegation';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Logger from '../../../../../util/Logger';
 import { ToastContext } from '../../../../../component-library/components/Toast';
-import Routes from '../../../../../constants/navigation/Routes';
+import useSpendingLimitData from '../../hooks/useSpendingLimitData';
+import useSpendingLimit from '../../hooks/useSpendingLimit';
 
 jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
 interface MockRoute {
   params?: {
-    flow?: 'manage' | 'enable';
+    flow?: 'manage' | 'enable' | 'onboarding';
     selectedToken?: CardTokenAllowance;
     priorityToken?: CardTokenAllowance | null;
     allTokens?: CardTokenAllowance[];
@@ -194,6 +223,14 @@ interface MockRoute {
     returnedSelectedToken?: CardTokenAllowance;
   };
 }
+
+const mockUseSpendingLimitData = useSpendingLimitData as jest.MockedFunction<
+  typeof useSpendingLimitData
+>;
+
+const mockUseSpendingLimit = useSpendingLimit as jest.MockedFunction<
+  typeof useSpendingLimit
+>;
 
 const mockRoute: MockRoute = {
   params: {
@@ -254,6 +291,40 @@ describe('SpendingLimit Component', () => {
       submitDelegation: mockSubmitDelegation,
       isLoading: false,
     });
+
+    // Reset useSpendingLimitData mock to default state
+    mockUseSpendingLimitData.mockReturnValue({
+      availableTokens: [mockPriorityToken, mockMUSDToken],
+      delegationSettings: null,
+      isLoading: false,
+      error: null,
+      fetchData: mockFetchSpendingLimitData,
+    });
+
+    // Reset useSpendingLimit mock to default state
+    mockUseSpendingLimit.mockReturnValue({
+      selectedToken: mockPriorityToken,
+      limitType: 'full',
+      customLimit: '',
+      quickSelectTokens: [
+        { symbol: 'mUSD', token: mockMUSDToken },
+        { symbol: 'USDC', token: mockPriorityToken },
+      ],
+      isOtherSelected: false,
+      isLoading: false,
+      setSelectedToken: mockSetSelectedToken,
+      handleQuickSelectToken: mockHandleQuickSelectToken,
+      handleOtherSelect: mockHandleOtherSelect,
+      setLimitType: mockSetLimitType,
+      setCustomLimit: mockSetCustomLimit,
+      submit: mockSubmit,
+      cancel: mockCancel,
+      skip: mockSkip,
+      isValid: true,
+      isSolanaSelected: false,
+      needsFaucet: false,
+      isFaucetCheckLoading: false,
+    });
   });
 
   describe('Initial Rendering', () => {
@@ -262,14 +333,15 @@ describe('SpendingLimit Component', () => {
 
       expect(screen.getByText('Full access')).toBeOnTheScreen();
       expect(screen.getByText('Card can spend any amount')).toBeOnTheScreen();
-      expect(screen.getByText('Set a limit')).toBeOnTheScreen();
+      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
     });
 
     it('displays selected token information', () => {
       render();
 
+      // Token symbols are displayed in asset cards
       expect(screen.getByText('USDC')).toBeOnTheScreen();
-      expect(screen.getByText('Linea')).toBeOnTheScreen();
+      expect(screen.getByText('mUSD')).toBeOnTheScreen();
     });
 
     it('renders confirm and cancel buttons', () => {
@@ -303,11 +375,12 @@ describe('SpendingLimit Component', () => {
     it('pre-selects priority token when it is not Solana', () => {
       render();
 
+      // Token symbols are displayed in asset cards
       expect(screen.getByText('USDC')).toBeOnTheScreen();
-      expect(screen.getByText('Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('asset-card-usdc')).toBeOnTheScreen();
     });
 
-    it('does not pre-select token when priority token is Solana', () => {
+    it('renders asset cards for Solana route', () => {
       const solanaRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
@@ -321,10 +394,11 @@ describe('SpendingLimit Component', () => {
 
       render(solanaRoute);
 
-      expect(screen.getByText('Select token')).toBeOnTheScreen();
+      // Asset cards are always rendered
+      expect(screen.getByTestId('asset-card-musd')).toBeOnTheScreen();
     });
 
-    it('displays placeholder when no priority token exists', () => {
+    it('renders asset cards when no priority token exists', () => {
       const emptyRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
@@ -338,10 +412,11 @@ describe('SpendingLimit Component', () => {
 
       render(emptyRoute);
 
-      expect(screen.getByText('Select token')).toBeOnTheScreen();
+      // Asset cards are always rendered from quickSelectTokens
+      expect(screen.getByTestId('asset-card-musd')).toBeOnTheScreen();
     });
 
-    it('does not pre-select token when priority is Solana and mUSD does not exist', () => {
+    it('renders asset cards when priority is Solana', () => {
       const solanaOnlyRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
@@ -355,131 +430,56 @@ describe('SpendingLimit Component', () => {
 
       render(solanaOnlyRoute);
 
-      expect(screen.queryByText('USDC')).not.toBeOnTheScreen();
+      // USDC is always shown in quick select tokens
+      expect(screen.getByText('USDC')).toBeOnTheScreen();
     });
   });
 
   describe('Option Selection', () => {
-    it('shows both options when set a limit is pressed', () => {
+    it('shows both limit options on initial render', () => {
       render();
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      expect(screen.getAllByText('Full access')).toHaveLength(1);
-      expect(screen.getByText('Restricted')).toBeOnTheScreen();
+      // Both options are always visible
+      expect(screen.getByTestId('limit-option-full')).toBeOnTheScreen();
+      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
     });
 
-    it('displays radio buttons in options view', () => {
+    it('displays radio buttons for limit options', () => {
       render();
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      // Should show restricted option selected by default
-      expect(screen.getByText('Restricted')).toBeOnTheScreen();
+      // Both options are always visible
+      expect(screen.getByTestId('limit-option-full')).toBeOnTheScreen();
+      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
     });
 
-    it('shows limit input when restricted option is selected', () => {
+    it('calls setLimitType when restricted option is pressed', () => {
       render();
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      // Press the Restricted option to select it
-      const restrictedOption = screen.getByText('Restricted');
+      // Press the Restricted option using testID
+      const restrictedOption = screen.getByTestId('limit-option-restricted');
       fireEvent.press(restrictedOption);
 
-      // Input should be visible with placeholder "0"
-      const input = screen.getByPlaceholderText('0');
-      expect(input).toBeOnTheScreen();
+      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
     });
 
-    it('hides options view when full access is selected after showing options', () => {
+    it('calls setLimitType when full access option is pressed', () => {
       render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
 
       const fullAccessOption = screen.getByText('Full access');
       fireEvent.press(fullAccessOption);
 
-      expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
+      expect(mockSetLimitType).toHaveBeenCalledWith('full');
     });
   });
 
   describe('Limit Amount Input', () => {
-    it('displays limit input field when restricted option is selected', () => {
+    it('calls setLimitType when restricted option is pressed', () => {
       render();
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
+      const restrictedOption = screen.getByTestId('limit-option-restricted');
       fireEvent.press(restrictedOption);
 
-      const input = screen.getByPlaceholderText('0');
-      expect(input).toBeOnTheScreen();
-    });
-
-    it('allows typing numeric values in limit input', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '1000');
-
-      expect(input.props.value).toBe('1000');
-    });
-
-    it('allows typing decimal values in limit input', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '100.50');
-
-      expect(input.props.value).toBe('100.50');
-    });
-
-    it('filters out non-numeric characters from input', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, 'abc123def');
-
-      expect(input.props.value).toBe('123');
-    });
-
-    it('prevents multiple decimal points in input', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '100.50.25');
-
-      expect(input.props.value).toBe('100.5025');
+      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
     });
 
     it('shows restricted option for token with limited allowance', () => {
@@ -502,10 +502,7 @@ describe('SpendingLimit Component', () => {
 
       render(limitedRoute);
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
+      const restrictedOption = screen.getByTestId('limit-option-restricted');
       expect(restrictedOption).toBeOnTheScreen();
     });
   });
@@ -520,58 +517,19 @@ describe('SpendingLimit Component', () => {
       expect(confirmButton).toBeOnTheScreen();
     });
 
-    it('disables confirm button when restricted mode has empty input', () => {
+    it('renders confirm button when restricted mode is selected', () => {
       render();
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
+      const restrictedOption = screen.getByTestId('limit-option-restricted');
       fireEvent.press(restrictedOption);
 
       const confirmButton = screen.getByText('Confirm');
 
-      // Check that button is present (disabled state is internal to Button component)
+      // Check that button is present
       expect(confirmButton).toBeOnTheScreen();
     });
 
-    it('enables confirm button when restricted mode has valid input', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '1000');
-
-      const confirmButton = screen.getByText('Confirm');
-
-      // Button should be enabled after entering valid input
-      expect(confirmButton).toBeOnTheScreen();
-    });
-
-    it('enables confirm button when restricted mode input is 0', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '0');
-
-      const confirmButton = screen.getByText('Confirm');
-
-      // Button should be enabled when input is 0 (valid case to remove token)
-      expect(confirmButton).toBeOnTheScreen();
-    });
-
-    it('disables confirm button when Solana token is selected', () => {
+    it('renders confirm button for Solana token route', () => {
       const solanaRoute: MockRoute = {
         params: {
           flow: 'enable' as const,
@@ -587,101 +545,75 @@ describe('SpendingLimit Component', () => {
 
       const confirmButton = screen.getByText('Confirm');
 
-      // Button should be disabled for Solana tokens
+      // Button should be present for Solana tokens
       expect(confirmButton).toBeOnTheScreen();
     });
 
-    it('submits delegation when full access is selected', async () => {
+    it('calls submit when confirm button is pressed', async () => {
       render();
 
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
       await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalled();
+        expect(mockSubmit).toHaveBeenCalled();
       });
     });
 
-    it('shows loading indicator when delegation is loading', () => {
-      (useCardDelegation as jest.Mock).mockReturnValue({
-        submitDelegation: mockSubmitDelegation,
+    it('renders loading state when isLoading is true', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        selectedToken: mockPriorityToken,
+        limitType: 'full',
+        customLimit: '',
+        quickSelectTokens: [
+          { symbol: 'mUSD', token: mockMUSDToken },
+          { symbol: 'USDC', token: mockPriorityToken },
+        ],
+        isOtherSelected: false,
         isLoading: true,
+        setSelectedToken: mockSetSelectedToken,
+        handleQuickSelectToken: mockHandleQuickSelectToken,
+        handleOtherSelect: mockHandleOtherSelect,
+        setLimitType: mockSetLimitType,
+        setCustomLimit: mockSetCustomLimit,
+        submit: mockSubmit,
+        cancel: mockCancel,
+        skip: mockSkip,
+        isValid: true,
+        isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
 
-      const activityIndicator = screen.UNSAFE_queryByType(ActivityIndicator);
-      expect(activityIndicator).toBeTruthy();
+      // Loading state shows ActivityIndicator instead of text
+      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
     });
   });
 
   describe('Delegation Submission', () => {
-    it('calls submitDelegation with full access parameters', async () => {
+    it('calls submit when confirm button is pressed', async () => {
       render();
 
       const confirmButton = screen.getByText('Confirm');
       fireEvent.press(confirmButton);
 
       await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalledWith({
-          amount: expect.any(String),
-          currency: 'USDC',
-          network: 'linea',
-        });
+        expect(mockSubmit).toHaveBeenCalled();
       });
     });
 
-    it('submits delegation with custom limit in restricted mode', async () => {
+    it('calls setLimitType when restricted option is pressed', async () => {
       render();
 
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
+      const restrictedOption = screen.getByTestId('limit-option-restricted');
       fireEvent.press(restrictedOption);
 
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '5000');
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalledWith(
-          expect.objectContaining({
-            amount: '5000',
-            currency: 'USDC',
-            network: 'linea',
-          }),
-        );
-      });
+      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
     });
 
-    it('submits delegation with amount 0 when input is 0', async () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      const restrictedOption = screen.getByText('Restricted');
-      fireEvent.press(restrictedOption);
-
-      const input = screen.getByPlaceholderText('0');
-      fireEvent.changeText(input, '0');
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalledWith(
-          expect.objectContaining({
-            amount: '0',
-          }),
-        );
-      });
-    });
-
-    it('uses selected token for delegation when available', async () => {
+    it('renders mUSD token in enable flow', () => {
       const enableRoute: MockRoute = {
         params: {
           flow: 'enable' as const,
@@ -695,19 +627,10 @@ describe('SpendingLimit Component', () => {
 
       render(enableRoute);
 
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalledWith(
-          expect.objectContaining({
-            currency: 'mUSD',
-          }),
-        );
-      });
+      expect(screen.getByText('mUSD')).toBeOnTheScreen();
     });
 
-    it('derives network as solana for Solana tokens', async () => {
+    it('renders Solana token route', () => {
       const solanaRoute: MockRoute = {
         params: {
           flow: 'enable' as const,
@@ -721,177 +644,69 @@ describe('SpendingLimit Component', () => {
 
       render(solanaRoute);
 
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockSubmitDelegation).toHaveBeenCalledWith(
-          expect.objectContaining({
-            network: 'solana',
-          }),
-        );
-      });
+      // Component should render
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
     });
 
-    it('clears cache after successful delegation with delay', async () => {
+    it('renders both limit options', () => {
       render();
 
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      // Wait for the full async flow including the 3-second delay and cache clear
-      await waitFor(
-        () => {
-          expect(mockDispatch).toHaveBeenCalledWith(
-            expect.objectContaining({
-              type: expect.stringContaining('clearCacheData'),
-              payload: 'card-external-wallet-details',
-            }),
-          );
-        },
-        { timeout: 5000 },
-      );
+      // Options view should be visible (using testIDs to avoid duplicate text issues)
+      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
+      expect(screen.getByTestId('limit-option-full')).toBeOnTheScreen();
     });
 
-    it('shows success toast when delegation succeeds', async () => {
+    it('renders limit options after pressing restricted', () => {
       render();
 
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
+      const restrictedOption = screen.getByTestId('limit-option-restricted');
+      fireEvent.press(restrictedOption);
 
-      // Wait for the toast to be shown after the async flow completes
-      await waitFor(
-        () => {
-          expect(mockShowToast).toHaveBeenCalledWith(
-            expect.objectContaining({
-              labelOptions: [{ label: 'Spending limit updated' }],
-              iconName: IconName.Confirmation,
-            }),
-          );
-        },
-        { timeout: 5000 },
-      );
-    });
-
-    it('navigates back after successful delegation', async () => {
-      render();
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      // Wait for navigation to be called after the async flow completes
-      await waitFor(
-        () => {
-          expect(mockGoBack).toHaveBeenCalled();
-        },
-        { timeout: 5000 },
-      );
-    });
-
-    it('keeps options view visible after pressing set limit button', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      // Options view should be visible
-      expect(screen.getByText('Restricted')).toBeOnTheScreen();
-      expect(screen.getByText('Full access')).toBeOnTheScreen();
-    });
-
-    it('hides options view after successful delegation', async () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      expect(screen.getByText('Restricted')).toBeOnTheScreen();
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      // Wait for the component to navigate away (options view disappears)
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
-        },
-        { timeout: 5000 },
-      );
-    });
-  });
-
-  describe('Cache Management', () => {
-    it('clears cache after successful delegation with 3-second delay', async () => {
-      render();
-
-      const confirmButton = screen.getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      // Wait for the cache to be cleared after the 3-second delay
-      await waitFor(
-        () => {
-          expect(mockDispatch).toHaveBeenCalledWith(
-            expect.objectContaining({
-              type: expect.stringContaining('clearCacheData'),
-              payload: 'card-external-wallet-details',
-            }),
-          );
-        },
-        { timeout: 5000 },
-      );
+      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
     });
   });
 
   describe('Cancel Behavior', () => {
-    it('calls navigation goBack when cancel is pressed in initial view', () => {
+    it('calls cancel when cancel button is pressed', () => {
       render();
 
       const cancelButton = screen.getByText('Cancel');
       fireEvent.press(cancelButton);
 
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockCancel).toHaveBeenCalled();
     });
 
-    it('hides options view when cancel is pressed in options view', () => {
-      render();
-
-      const setLimitButton = screen.getByText('Set a limit');
-      fireEvent.press(setLimitButton);
-
-      expect(screen.getByText('Restricted')).toBeOnTheScreen();
-
-      const cancelButton = screen.getByText('Cancel');
-      fireEvent.press(cancelButton);
-
-      expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
-    });
-
-    it('disables cancel button when delegation is loading', () => {
-      (useCardDelegation as jest.Mock).mockReturnValue({
-        submitDelegation: mockSubmitDelegation,
+    it('renders cancel button when loading', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        selectedToken: mockPriorityToken,
+        limitType: 'full',
+        customLimit: '',
+        quickSelectTokens: [
+          { symbol: 'mUSD', token: mockMUSDToken },
+          { symbol: 'USDC', token: mockPriorityToken },
+        ],
+        isOtherSelected: false,
         isLoading: true,
+        setSelectedToken: mockSetSelectedToken,
+        handleQuickSelectToken: mockHandleQuickSelectToken,
+        handleOtherSelect: mockHandleOtherSelect,
+        setLimitType: mockSetLimitType,
+        setCustomLimit: mockSetCustomLimit,
+        submit: mockSubmit,
+        cancel: mockCancel,
+        skip: mockSkip,
+        isValid: true,
+        isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
 
       const cancelButton = screen.getByText('Cancel');
 
-      // Cancel button should be visible but disabled during loading
+      // Cancel button should be visible
       expect(cancelButton).toBeOnTheScreen();
-    });
-
-    it('does not navigate back when cancel is pressed during delegation', () => {
-      (useCardDelegation as jest.Mock).mockReturnValue({
-        submitDelegation: mockSubmitDelegation,
-        isLoading: true,
-      });
-
-      render();
-
-      const cancelButton = screen.getByText('Cancel');
-      fireEvent.press(cancelButton);
-
-      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 
@@ -905,10 +720,29 @@ describe('SpendingLimit Component', () => {
       );
     });
 
-    it('blocks navigation when delegation is loading', () => {
-      (useCardDelegation as jest.Mock).mockReturnValue({
-        submitDelegation: mockSubmitDelegation,
+    it('blocks navigation when isLoading is true', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        selectedToken: mockPriorityToken,
+        limitType: 'full',
+        customLimit: '',
+        quickSelectTokens: [
+          { symbol: 'mUSD', token: mockMUSDToken },
+          { symbol: 'USDC', token: mockPriorityToken },
+        ],
+        isOtherSelected: false,
         isLoading: true,
+        setSelectedToken: mockSetSelectedToken,
+        handleQuickSelectToken: mockHandleQuickSelectToken,
+        handleOtherSelect: mockHandleOtherSelect,
+        setLimitType: mockSetLimitType,
+        setCustomLimit: mockSetCustomLimit,
+        submit: mockSubmit,
+        cancel: mockCancel,
+        skip: mockSkip,
+        isValid: true,
+        isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
@@ -921,7 +755,7 @@ describe('SpendingLimit Component', () => {
       expect(mockEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('allows navigation when delegation is not loading', () => {
+    it('allows navigation when isLoading is false', () => {
       render();
 
       const mockEvent = { preventDefault: jest.fn() };
@@ -944,53 +778,32 @@ describe('SpendingLimit Component', () => {
     });
   });
 
-  describe('Asset Selection Navigation', () => {
-    it('navigates to asset selection modal when token selector is pressed', () => {
+  describe('Asset Selection', () => {
+    it('calls handleOtherSelect when other asset card is pressed', () => {
       render();
 
-      const tokenSelector = screen.getByText('USDC');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fireEvent.press(tokenSelector.parent?.parent as any);
+      const otherCard = screen.getByTestId('asset-card-other');
+      fireEvent.press(otherCard);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'CardModals',
-        expect.objectContaining({
-          screen: 'CardAssetSelectionModal',
-          params: expect.objectContaining({
-            tokensWithAllowances: expect.any(Array),
-            selectionOnly: true,
-            hideSolanaAssets: true,
-            callerRoute: Routes.CARD.SPENDING_LIMIT,
-          }),
-        }),
-      );
+      expect(mockHandleOtherSelect).toHaveBeenCalled();
     });
 
-    it('passes caller route and params to asset selection modal', () => {
-      const routeWithCustomParams: MockRoute = {
-        params: {
-          ...mockRoute.params,
-          customField: 'customValue',
-        } as MockRoute['params'] & { customField: string },
-      };
+    it('calls handleQuickSelectToken when mUSD asset card is pressed', () => {
+      render();
 
-      render(routeWithCustomParams);
+      const musdCard = screen.getByTestId('asset-card-musd');
+      fireEvent.press(musdCard);
 
-      const tokenSelector = screen.getByText('USDC');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fireEvent.press(tokenSelector.parent?.parent as any);
+      expect(mockHandleQuickSelectToken).toHaveBeenCalledWith('mUSD');
+    });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'CardModals',
-        expect.objectContaining({
-          params: expect.objectContaining({
-            callerRoute: Routes.CARD.SPENDING_LIMIT,
-            callerParams: expect.objectContaining({
-              customField: 'customValue',
-            }),
-          }),
-        }),
-      );
+    it('calls handleQuickSelectToken when USDC asset card is pressed', () => {
+      render();
+
+      const usdcCard = screen.getByTestId('asset-card-usdc');
+      fireEvent.press(usdcCard);
+
+      expect(mockHandleQuickSelectToken).toHaveBeenCalledWith('USDC');
     });
   });
 
@@ -998,12 +811,12 @@ describe('SpendingLimit Component', () => {
     it('displays token with EIP155 chain ID', () => {
       render();
 
-      // Token with Linea (EIP155) chain ID should be displayed
+      // Token with Linea (EIP155) chain ID should be displayed in asset cards
       expect(screen.getByText('USDC')).toBeOnTheScreen();
-      expect(screen.getByText('Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('asset-card-usdc')).toBeOnTheScreen();
     });
 
-    it('displays Solana token with proper CAIP chain ID format', () => {
+    it('renders component with Solana token route', () => {
       const solanaTokenWithFullChainId = {
         ...mockSolanaToken,
         caipChainId:
@@ -1023,22 +836,265 @@ describe('SpendingLimit Component', () => {
 
       render(solanaRoute);
 
-      // Verify component renders with Solana token
-      expect(screen.getByText('SOL')).toBeOnTheScreen();
+      // Verify component renders
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
     });
   });
 
   describe('Loading States', () => {
-    it('shows loading indicator on confirm button when delegation is loading', () => {
-      (useCardDelegation as jest.Mock).mockReturnValue({
-        submitDelegation: mockSubmitDelegation,
+    it('renders loading indicator when isLoading is true', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        selectedToken: mockPriorityToken,
+        limitType: 'full',
+        customLimit: '',
+        quickSelectTokens: [
+          { symbol: 'mUSD', token: mockMUSDToken },
+          { symbol: 'USDC', token: mockPriorityToken },
+        ],
+        isOtherSelected: false,
         isLoading: true,
+        setSelectedToken: mockSetSelectedToken,
+        handleQuickSelectToken: mockHandleQuickSelectToken,
+        handleOtherSelect: mockHandleOtherSelect,
+        setLimitType: mockSetLimitType,
+        setCustomLimit: mockSetCustomLimit,
+        submit: mockSubmit,
+        cancel: mockCancel,
+        skip: mockSkip,
+        isValid: true,
+        isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
       });
 
       render();
 
-      const activityIndicator = screen.UNSAFE_queryByType(ActivityIndicator);
-      expect(activityIndicator).toBeTruthy();
+      // Loading state shows ActivityIndicator instead of text
+      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+    });
+  });
+
+  describe('Onboarding Flow', () => {
+    const onboardingRoute: MockRoute = {
+      params: {
+        flow: 'onboarding' as const,
+        selectedToken: undefined,
+        priorityToken: null,
+        allTokens: undefined,
+        delegationSettings: undefined,
+        externalWalletDetailsData: null,
+      },
+    };
+
+    it('fetches data on mount when flow is onboarding', () => {
+      render(onboardingRoute);
+
+      expect(mockFetchSpendingLimitData).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch data on mount when flow is manage', () => {
+      render();
+
+      expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
+    });
+
+    it('displays loading state while fetching data in onboarding flow', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: true,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      expect(screen.getByText('Loading available tokens...')).toBeOnTheScreen();
+      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+    });
+
+    it('displays error state with retry and skip buttons when fetch fails', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: false,
+        error: new Error('Network error'),
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      expect(
+        screen.getByText('Unable to load tokens. Please try again.'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Try again')).toBeOnTheScreen();
+      expect(screen.getByText('Skip for now')).toBeOnTheScreen();
+    });
+
+    it('calls fetchData when retry button is pressed on error state', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: false,
+        error: new Error('Network error'),
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      const retryButton = screen.getByText('Try again');
+      fireEvent.press(retryButton);
+
+      // fetchData is called once on mount, and once when retry is pressed
+      expect(mockFetchSpendingLimitData).toHaveBeenCalledTimes(2);
+    });
+
+    it('calls skip when skip button is pressed on error state', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: null,
+        isLoading: false,
+        error: new Error('Network error'),
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      const skipButton = screen.getByText('Skip for now');
+      fireEvent.press(skipButton);
+
+      // The skip button in error state calls the skip function from the hook
+      expect(mockSkip).toHaveBeenCalled();
+    });
+
+    it('renders Cancel button in onboarding flow (skip is handled internally)', () => {
+      render(onboardingRoute);
+
+      // In the new UI, the cancel button is always shown as "Cancel"
+      // The skip behavior is handled internally by the hook
+      expect(screen.getByText('Cancel')).toBeOnTheScreen();
+    });
+
+    it('calls skip when cancel is pressed in onboarding flow', () => {
+      render(onboardingRoute);
+
+      const cancelButton = screen.getByText('Cancel');
+      fireEvent.press(cancelButton);
+
+      // In onboarding flow, cancel calls skip
+      expect(mockSkip).toHaveBeenCalled();
+    });
+
+    it('renders confirm button in onboarding flow', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [mockPriorityToken, mockMUSDToken],
+        delegationSettings: null,
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      // Confirm button should be present
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
+    });
+
+    it('renders asset cards in onboarding flow', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [mockMUSDToken],
+        delegationSettings: null,
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      render(onboardingRoute);
+
+      // Asset cards should be rendered
+      expect(screen.getByTestId('asset-card-musd')).toBeOnTheScreen();
+    });
+
+    it('calls submit when confirm is pressed in onboarding flow', async () => {
+      const onboardingWithToken: MockRoute = {
+        params: {
+          flow: 'onboarding' as const,
+          selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(onboardingWithToken);
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmit).toHaveBeenCalled();
+      });
+    });
+
+    it('renders onboarding route with token', () => {
+      const onboardingWithToken: MockRoute = {
+        params: {
+          flow: 'onboarding' as const,
+          selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(onboardingWithToken);
+
+      // Component should render
+      expect(screen.getByText('Confirm')).toBeOnTheScreen();
+    });
+
+    it('renders cancel button during loading state in onboarding', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        selectedToken: mockPriorityToken,
+        limitType: 'full',
+        customLimit: '',
+        quickSelectTokens: [
+          { symbol: 'mUSD', token: mockMUSDToken },
+          { symbol: 'USDC', token: mockPriorityToken },
+        ],
+        isOtherSelected: false,
+        isLoading: true,
+        setSelectedToken: mockSetSelectedToken,
+        handleQuickSelectToken: mockHandleQuickSelectToken,
+        handleOtherSelect: mockHandleOtherSelect,
+        setLimitType: mockSetLimitType,
+        setCustomLimit: mockSetCustomLimit,
+        submit: mockSubmit,
+        cancel: mockCancel,
+        skip: mockSkip,
+        isValid: true,
+        isSolanaSelected: false,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
+      });
+
+      const onboardingWithToken: MockRoute = {
+        params: {
+          flow: 'onboarding' as const,
+          selectedToken: mockPriorityToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken],
+          delegationSettings: null,
+          externalWalletDetailsData: null,
+        },
+      };
+
+      render(onboardingWithToken);
+
+      // Cancel button should be present
+      expect(screen.getByText('Cancel')).toBeOnTheScreen();
     });
   });
 });
