@@ -295,7 +295,9 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token) && <StockBadge token={token} />}
+        {isStockToken(token) && (
+          <StockBadge style={styles.stockBadgeWrapper} token={token} />
+        )}
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
