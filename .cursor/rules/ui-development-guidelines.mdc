@@ -29,10 +29,10 @@ Always prioritize @metamask/design-system-react-native components and Tailwind C
 
 3. **THIRD**: Feature-specific components
    - **Use for**: Complex, domain-specific UI that combines multiple design system/component-library components
-   - **Examples**: `BridgeInputSelector`, `StakeInputView`, `NFTDetailsModal`, `PerpsTradingCard`, `PredictionMarketOrderPanel`
-   - **Location**: Can live in feature directories (`app/components/Views/*/components/`, `app/features/*/`)
+   - **Examples**: `BridgeInputSelector`, `StakeInputView`, `NFTDetailsModal`
+   - **Location**: Typically in `app/components/Views/[FeatureName]/components/`
    - **Rule**: Must be built using Box, Text, and other design system primitives - NO raw View/Text or StyleSheet
-   - **Reuse**: Check if a feature-specific component already exists in the feature's directory before building a new one. These components should be reused within their feature domain.
+   - **Reuse**: Search for existing feature components before building new ones to avoid duplication
 
 4. **LAST RESORT**: Custom components with StyleSheet
    - **Only when**: Highly specialized one-off needs with no design system equivalent AND no component-library equivalent
@@ -47,10 +47,10 @@ Need a component?
   ├─ Is it BottomSheet, Tabs, Header, ListItem, Skeleton, Tag, Modal, etc?
   │  └─ YES → Use app/component-library [STOP]
   │
-  ├─ Is it feature-specific UI (e.g., PerpsTradingCard, PredictionMarketOrderPanel)?
-  │  ├─ Does it already exist in the feature's directory?
+  ├─ Is it feature-specific UI (e.g., BridgeInputSelector, StakeInputView)?
+  │  ├─ Does it already exist? (search app/components/Views/*/components/)
   │  │  ├─ YES → Reuse existing component [STOP]
-  │  │  └─ NO → Build new feature component using design system primitives [STOP]
+  │  │  └─ NO → Build new component using design system primitives [STOP]
   │  └─
   │
   └─ Can I compose it from Box + Text + other primitives?
@@ -64,35 +64,6 @@ Need a component?
 - **Accessibility**: Design system components include a11y best practices
 - **Performance**: Optimized implementations tested at scale
 - **Type Safety**: Full TypeScript support with JSDoc documentation
-
-## Feature-Specific Component Organization
-
-### Working with Feature Components
-
-When implementing UI that is specific to a feature (e.g., Perps, Predictions, Bridge, Stake):
-
-1. **Check for existing components FIRST**
-   - Look in the feature's component directory: `app/features/[feature-name]/components/` or `app/components/Views/[FeatureName]/components/`
-   - Search for similar component names or functionality
-   - Use Glob/Grep to find existing implementations
-
-2. **Reuse existing feature components**
-   - If a `PerpsTradingCard` already exists, use it
-   - If a `PredictionMarketOrderPanel` already exists, use it
-   - These components are already built with design system primitives and are optimized for their feature
-
-3. **Build new feature components only when needed**
-   - If the component doesn't exist, build it using design system primitives
-   - Place it in the appropriate feature directory
-   - Name it clearly to indicate its purpose and feature domain
-
-4. **Feature component guidelines**
-   - **DO**: Build feature components from Box, Text, Button, Icon, etc.
-   - **DO**: Reuse these components within the feature
-   - **DO**: Keep them in feature-specific directories
-   - **DON'T**: Use StyleSheet or raw View/Text components
-   - **DON'T**: Duplicate functionality - check for existing components first
-   - **DON'T**: Make feature components overly generic - they serve specific feature needs
 
 ## Required Imports for React Native
 
