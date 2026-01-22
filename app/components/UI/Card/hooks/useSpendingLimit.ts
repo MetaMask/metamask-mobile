@@ -85,6 +85,10 @@ export interface UseSpendingLimitReturn {
   // Validation
   isValid: boolean;
   isSolanaSelected: boolean;
+
+  // Faucet state
+  needsFaucet: boolean;
+  isFaucetCheckLoading: boolean;
 }
 
 /**
@@ -122,9 +126,13 @@ const useSpendingLimit = ({
 
   const isOnboardingFlow = flow === 'onboarding';
 
-  // Delegation hook
-  const { submitDelegation, isLoading: isDelegationLoading } =
-    useCardDelegation(selectedToken);
+  // Delegation hook (includes faucet check)
+  const {
+    submitDelegation,
+    isLoading: isDelegationLoading,
+    needsFaucet,
+    isFaucetCheckLoading,
+  } = useCardDelegation(selectedToken);
 
   const isLoading = isDelegationLoading || isProcessing;
 
@@ -482,6 +490,10 @@ const useSpendingLimit = ({
     // Validation
     isValid,
     isSolanaSelected,
+
+    // Faucet state
+    needsFaucet,
+    isFaucetCheckLoading,
   };
 };
 
