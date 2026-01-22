@@ -39,6 +39,15 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { ChooseYourCardSelectors } from '../../../../../../e2e/selectors/Card/ChooseYourCard.selectors';
 import { CardType, CardStatus } from '../../types';
 import CardImage from '../../components/CardImage/CardImage';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import type { ShippingAddress } from '../ReviewOrder';
+
+export type ChooseYourCardFlow = 'onboarding' | 'upgrade';
+
+export interface ChooseYourCardParams {
+  flow?: ChooseYourCardFlow;
+  shippingAddress?: ShippingAddress;
+}
 
 interface CardOption {
   id: CardType;
@@ -59,10 +68,14 @@ const ChooseYourCard = () => {
   const flatListRef = useRef<FlatList>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const { flow = 'onboarding', shippingAddress } =
+    useParams<ChooseYourCardParams>();
+  const isUpgradeFlow = flow === 'upgrade';
+
   const CARD_WIDTH = screenWidth - 64;
   const CARD_SPACING = 16;
 
-  const cardOptions: CardOption[] = useMemo(
+  const allCardOptions: CardOption[] = useMemo(
     () => [
       {
         id: CardType.VIRTUAL,
@@ -88,15 +101,24 @@ const ChooseYourCard = () => {
     [],
   );
 
+  const cardOptions = useMemo(
+    () =>
+      isUpgradeFlow
+        ? allCardOptions.filter((card) => card.id === CardType.METAL)
+        : allCardOptions,
+    [isUpgradeFlow, allCardOptions],
+  );
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
           screen: CardScreens.CHOOSE_YOUR_CARD,
+          flow,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, flow]);
 
   const handleContinue = useCallback(() => {
     const selectedCard = cardOptions[activeIndex];
@@ -106,6 +128,7 @@ const ChooseYourCard = () => {
         .addProperties({
           action: CardActions.CHOOSE_CARD_CONTINUE,
           card_type: selectedCard.id,
+          flow,
         })
         .build(),
     );
@@ -113,9 +136,21 @@ const ChooseYourCard = () => {
     if (selectedCard.id === CardType.VIRTUAL) {
       navigate(Routes.CARD.SPENDING_LIMIT, { flow: 'onboarding' });
     } else {
-      navigate(Routes.CARD.REVIEW_ORDER);
+      navigate(Routes.CARD.REVIEW_ORDER, {
+        shippingAddress,
+        fromUpgrade: isUpgradeFlow,
+      });
     }
-  }, [activeIndex, cardOptions, navigate, trackEvent, createEventBuilder]);
+  }, [
+    activeIndex,
+    cardOptions,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    flow,
+    shippingAddress,
+    isUpgradeFlow,
+  ]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -200,6 +235,8 @@ const ChooseYourCard = () => {
 
   const selectedCard = cardOptions[activeIndex];
 
+  const showPagination = cardOptions.length > 1;
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
@@ -207,13 +244,15 @@ const ChooseYourCard = () => {
       testID={ChooseYourCardSelectors.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <Box twClassName="px-4 py-2">
+        <Box twClassName="px-4 py-4">
           <Text
             variant={TextVariant.HeadingLg}
             twClassName="text-default"
             testID={ChooseYourCardSelectors.TITLE}
           >
-            {strings('card.choose_your_card.title')}
+            {isUpgradeFlow
+              ? strings('card.choose_your_card.upgrade_title')
+              : strings('card.choose_your_card.title')}
           </Text>
         </Box>
 
@@ -222,6 +261,7 @@ const ChooseYourCard = () => {
             ref={flatListRef}
             data={cardOptions}
             renderItem={renderCardItem}
+            alwaysBounceHorizontal={false}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -237,9 +277,11 @@ const ChooseYourCard = () => {
           />
         </Box>
 
-        <Box twClassName="flex-row justify-center items-center gap-1 mt-4">
-          {cardOptions.map((_, index) => renderPaginationDot(index))}
-        </Box>
+        {showPagination && (
+          <Box twClassName="flex-row justify-center items-center gap-1 mt-4">
+            {cardOptions.map((_, index) => renderPaginationDot(index))}
+          </Box>
+        )}
 
         <Box twClassName="items-center mt-4 px-4">
           <Text

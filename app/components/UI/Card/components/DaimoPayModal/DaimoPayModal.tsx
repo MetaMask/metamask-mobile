@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  ImageSourcePropType,
-  Linking,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ImageSourcePropType, Linking, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -27,20 +21,20 @@ import DaimoPayService, {
   DaimoPayEventType,
 } from '../../services/DaimoPayService';
 import { DaimoPayModalSelectors } from '../../../../../../e2e/selectors/Card/DaimoPayModal.selectors';
-// EIP-1193 Provider injection
 import BackgroundBridge from '../../../../../core/BackgroundBridge/BackgroundBridge';
 import EntryScriptWeb3 from '../../../../../core/EntryScriptWeb3';
 import { getRpcMethodMiddleware } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { SPA_urlChangeListener } from '../../../../../util/browserScripts';
 import { MAX_MESSAGE_LENGTH } from '../../../../../constants/dapp';
 import Logger from '../../../../../util/Logger';
+import { useCardSDK } from '../../sdk';
 
-// Polling configuration for production mode
 const POLLING_INTERVAL_MS = 5000;
-const POLLING_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+const POLLING_TIMEOUT_MS = 10 * 60 * 1000;
 
 export interface DaimoPayModalParams {
   payId: string;
+  fromUpgrade?: boolean;
 }
 
 const baseStyles = StyleSheet.create({
@@ -49,7 +43,6 @@ const baseStyles = StyleSheet.create({
   },
 });
 
-// Type for BackgroundBridge reference
 interface BackgroundBridgeRef {
   url: string;
   sendNotificationEip1193: (payload: unknown) => void;
@@ -64,7 +57,6 @@ const DaimoPayModal: React.FC = () => {
   );
   const pollingStartTimeRef = useRef<number | null>(null);
 
-  // EIP-1193 Provider refs
   const backgroundBridgeRef = useRef<BackgroundBridgeRef | null>(null);
   const urlRef = useRef<string>('');
   const titleRef = useRef<string>('Daimo Pay');
@@ -72,15 +64,16 @@ const DaimoPayModal: React.FC = () => {
 
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { payId } = useParams<DaimoPayModalParams>();
+  const { payId, fromUpgrade } = useParams<DaimoPayModalParams>();
   const tw = useTailwind();
   const [error, setError] = useState<string | null>(null);
-  const [entryScriptWeb3, setEntryScriptWeb3] = useState<string | null>(null);
+  const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>('');
+
+  const { sdk: cardSDK } = useCardSDK();
 
   const webViewUrl = DaimoPayService.buildWebViewUrl(payId);
   const isProduction = DaimoPayService.isProduction();
 
-  // Load the EIP-1193 provider injection script
   useEffect(() => {
     const loadEntryScript = async () => {
       try {
@@ -91,21 +84,17 @@ const DaimoPayModal: React.FC = () => {
           err as Error,
           'DaimoPayModal: Failed to load entry script',
         );
-        // Continue without provider injection - Daimo will fall back to other payment methods
-        // Set empty string to allow WebView to render
         setEntryScriptWeb3('');
       }
     };
     loadEntryScript();
   }, []);
 
-  // Clean up polling and BackgroundBridge on unmount
   useEffect(
     () => () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
-      // Disconnect BackgroundBridge to prevent memory leaks
       backgroundBridgeRef.current?.onDisconnect();
       backgroundBridgeRef.current = null;
     },
@@ -137,22 +126,21 @@ const DaimoPayModal: React.FC = () => {
           .build(),
       );
 
-      // Stop polling if active
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
 
-      // Navigate to success screen
       navigation.navigate(
         Routes.CARD.ORDER_COMPLETED as never,
         {
           paymentMethod: 'crypto',
           transactionHash: txHash,
+          fromUpgrade,
         } as never,
       );
     },
-    [navigation, trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder, navigation, fromUpgrade],
   );
 
   const handlePaymentBounced = useCallback(
@@ -174,13 +162,8 @@ const DaimoPayModal: React.FC = () => {
     [trackEvent, createEventBuilder],
   );
 
-  /**
-   * Initialize the BackgroundBridge for EIP-1193 provider communication
-   * This enables the Daimo WebView to detect window.ethereum and use MetaMask
-   */
   const initializeBackgroundBridge = useCallback(
     (url: string) => {
-      // Disconnect any existing bridge first
       backgroundBridgeRef.current?.onDisconnect();
       backgroundBridgeRef.current = null;
 
@@ -228,7 +211,6 @@ const DaimoPayModal: React.FC = () => {
     [navigation],
   );
 
-  // Start polling for payment status (production mode only)
   const startPolling = useCallback(() => {
     if (!isProduction || pollingIntervalRef.current) {
       return;
@@ -237,7 +219,6 @@ const DaimoPayModal: React.FC = () => {
     pollingStartTimeRef.current = Date.now();
 
     pollingIntervalRef.current = setInterval(async () => {
-      // Check for timeout
       if (
         pollingStartTimeRef.current &&
         Date.now() - pollingStartTimeRef.current > POLLING_TIMEOUT_MS
@@ -251,7 +232,9 @@ const DaimoPayModal: React.FC = () => {
       }
 
       try {
-        const status = await DaimoPayService.pollPaymentStatus(payId);
+        const status = await DaimoPayService.pollPaymentStatus(payId, {
+          cardSDK: cardSDK ?? undefined,
+        });
 
         if (status.status === 'completed') {
           handlePaymentSuccess(status.transactionHash, status.chainId);
@@ -259,15 +242,22 @@ const DaimoPayModal: React.FC = () => {
           handlePaymentBounced(status.errorMessage);
         }
       } catch {
-        // Continue polling on error, don't stop
+        // Continue polling on error
       }
     }, POLLING_INTERVAL_MS);
-  }, [isProduction, payId, handlePaymentSuccess, handlePaymentBounced]);
+  }, [
+    isProduction,
+    payId,
+    handlePaymentSuccess,
+    handlePaymentBounced,
+    cardSDK,
+  ]);
 
-  // Handle Daimo Pay events from WebView
   const handleDaimoEvent = useCallback(
     (event: DaimoPayEvent) => {
       const eventType: DaimoPayEventType = event.type;
+
+      Logger.log(`[DaimoPay Event] ${eventType}:`, JSON.stringify(event));
 
       switch (eventType) {
         case 'modalOpened':
@@ -293,21 +283,31 @@ const DaimoPayModal: React.FC = () => {
               })
               .build(),
           );
-          // Start polling in production mode
           startPolling();
           break;
 
         case 'paymentCompleted':
-          // In demo mode, rely on WebView event
-          // In production mode, polling will confirm the payment
+          Logger.log(
+            '[DaimoPay] Payment completed with payload:',
+            JSON.stringify(event.payload),
+          );
           if (!isProduction) {
             handlePaymentSuccess(event.payload.txHash, event.payload.chainId);
           }
           break;
 
-        case 'paymentBounced':
-          handlePaymentBounced();
+        case 'paymentBounced': {
+          Logger.log(
+            '[DaimoPay] Payment bounced with payload:',
+            JSON.stringify(event.payload),
+          );
+          const errorMsg =
+            event.payload?.errorMessage ||
+            event.payload?.error ||
+            event.payload?.reason;
+          handlePaymentBounced(errorMsg);
           break;
+        }
       }
     },
     [
@@ -321,17 +321,11 @@ const DaimoPayModal: React.FC = () => {
     ],
   );
 
-  /**
-   * Handle WebView messages - routes to appropriate handler based on message type
-   * - Daimo events (source: 'daimo-pay') → handleDaimoEvent
-   * - Provider messages (has 'name' property) → BackgroundBridge
-   */
   const handleMessage = useCallback(
     (messageEvent: WebViewMessageEvent) => {
       const { data } = messageEvent.nativeEvent;
 
       try {
-        // Security: Enforce message size limit to prevent DoS
         if (data.length > MAX_MESSAGE_LENGTH) {
           Logger.log(
             `DaimoPayModal: Message exceeded size limit (${data.length} bytes), dropping`,
@@ -345,15 +339,27 @@ const DaimoPayModal: React.FC = () => {
           return;
         }
 
-        // Check if it's a Daimo-specific event
+        if (dataParsed.source === 'daimo-pay-console') {
+          const prefix = '[DaimoPay WebView]';
+          switch (dataParsed.level) {
+            case 'error':
+            case 'warn':
+            case 'info':
+            case 'debug':
+            case 'log':
+            default:
+              Logger.log(`${prefix} ${dataParsed.message}`);
+              break;
+          }
+          return;
+        }
+
         if (dataParsed.source === 'daimo-pay') {
           handleDaimoEvent(dataParsed as DaimoPayEvent);
           return;
         }
 
-        // Check if it's a provider message (has 'name' property from MobilePortStream)
         if (dataParsed.name) {
-          // Security: Validate message origin before forwarding to BackgroundBridge
           if (
             dataParsed.origin &&
             !DaimoPayService.isValidMessageOrigin(dataParsed.origin)
@@ -364,7 +370,6 @@ const DaimoPayModal: React.FC = () => {
             return;
           }
 
-          // Forward to BackgroundBridge for RPC processing
           backgroundBridgeRef.current?.onMessage(dataParsed);
         }
       } catch (err) {
@@ -377,51 +382,120 @@ const DaimoPayModal: React.FC = () => {
     [handleDaimoEvent],
   );
 
-  // Handle navigation requests - open external links in browser
   const handleShouldStartLoadWithRequest = useCallback(
     (request: { url: string }) => {
       if (DaimoPayService.shouldLoadInWebView(request.url)) {
         return true;
       }
 
-      // Open external wallet deep links
       Linking.openURL(request.url);
       return false;
     },
     [],
   );
 
-  /**
-   * Initialize BackgroundBridge when WebView finishes loading
-   */
   const handleLoadEnd = useCallback(() => {
-    initializeBackgroundBridge(webViewUrl);
+    const origin = new URL(webViewUrl).origin;
+    initializeBackgroundBridge(origin);
   }, [webViewUrl, initializeBackgroundBridge]);
 
-  const handleError = useCallback(() => {
-    setError(strings('card.daimo_pay_modal.load_error'));
-  }, []);
+  const injectedJavaScriptForTransparency = `
+    (function() {
+      if (window.ethereum) {
+        window.ethereum.isMetaMaskMobile = true;
+        window.ethereum.isMetaMaskWallet = true;
+        window.ethereum._metamask = window.ethereum._metamask || {};
+        window.ethereum._metamask.isUnlocked = function() { return Promise.resolve(true); };
+        
+        if (!window.ethereum.connect) {
+          window.ethereum.connect = function() {
+            return window.ethereum.request({ method: 'eth_requestAccounts' });
+          };
+        }
+      }
+      
+      setTimeout(function() {
+        document.addEventListener('click', function(e) {
+          if (window.ethereum && window.ethereum.selectedAddress) {
+            return;
+          }
+          
+          var target = e.target;
+          var el = target;
+          
+          while (el && el !== document.body) {
+            var text = (el.innerText || el.textContent || '').toLowerCase();
+            if (text.includes('metamask') && !text.includes('another wallet') && !text.includes('other')) {
+              if (window.ethereum && window.ethereum.request) {
+                window.ethereum.request({ method: 'eth_requestAccounts' }).catch(function() {});
+              }
+              return;
+            }
+            el = el.parentElement;
+          }
+        }, true);
+      }, 500);
+
+      document.documentElement.style.backgroundColor = 'transparent';
+      document.body.style.backgroundColor = 'transparent';
+      
+      var style = document.createElement('style');
+      style.textContent = \`
+        html, body {
+          background: transparent !important;
+          background-color: transparent !important;
+        }
+        [data-radix-portal] > div:first-child,
+        [class*="backdrop"],
+        [class*="Backdrop"],
+        [class*="overlay"],
+        [class*="Overlay"],
+        .fixed.inset-0,
+        div[style*="position: fixed"][style*="inset: 0"] {
+          background: transparent !important;
+          background-color: transparent !important;
+        }
+      \`;
+      document.head.appendChild(style);
+      
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1) {
+              var el = node;
+              if (el.matches && (
+                el.matches('[class*="backdrop"]') ||
+                el.matches('[class*="Backdrop"]') ||
+                el.matches('[class*="overlay"]') ||
+                el.matches('[class*="Overlay"]')
+              )) {
+                el.style.backgroundColor = 'transparent';
+              }
+            }
+          });
+        });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    })();
+    true;
+  `;
+
+  const handleError = useCallback(
+    (syntheticEvent?: {
+      nativeEvent?: { description?: string; code?: number };
+    }) => {
+      Logger.log(
+        '[DaimoPay] WebView error:',
+        JSON.stringify(syntheticEvent?.nativeEvent),
+      );
+      setError(strings('card.daimo_pay_modal.load_error'));
+    },
+    [],
+  );
 
   const handleRetry = useCallback(() => {
     setError(null);
   }, []);
-
-  // Show loading indicator while entry script loads
-  if (entryScriptWeb3 === null) {
-    return (
-      <View
-        style={[baseStyles.absoluteFill, tw.style('bg-default')]}
-        testID={DaimoPayModalSelectors.CONTAINER}
-      >
-        <View style={tw.style('flex-1 justify-center items-center')}>
-          <ActivityIndicator
-            size="large"
-            testID={DaimoPayModalSelectors.LOADING_INDICATOR}
-          />
-        </View>
-      </View>
-    );
-  }
 
   if (error) {
     return (
@@ -475,6 +549,7 @@ const DaimoPayModal: React.FC = () => {
         onError={handleError}
         onHttpError={handleError}
         injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+        injectedJavaScript={injectedJavaScriptForTransparency}
         javaScriptEnabled
         domStorageEnabled
         allowsInlineMediaPlayback

@@ -65,31 +65,6 @@ export const cardDefaultNavigationOptions = ({
   headerRight: () => <View />,
 });
 
-export const cardCloseOnlyNavigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => {
-  const innerStyles = StyleSheet.create({
-    accessories: {
-      marginHorizontal: 8,
-    },
-  });
-
-  return {
-    headerLeft: () => <View />,
-    headerTitle: () => <View />,
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={() => navigation?.goBack()}
-        style={innerStyles.accessories}
-      />
-    ),
-  };
-};
-
 export const cardSpendingLimitNavigationOptions = ({
   navigation,
   route,
@@ -128,11 +103,32 @@ export const cardSpendingLimitNavigationOptions = ({
   };
 };
 
-const emptyNavigationOptions = () => ({
-  headerLeft: () => <View />,
-  headerTitle: () => <View />,
-  headerRight: () => <View />,
-});
+export const cardChooseYourCardNavigationOptions = ({
+  navigation,
+  route,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+  route: { params?: { flow?: 'onboarding' | 'upgrade' } };
+}): StackNavigationOptions => {
+  const flow = route.params?.flow || 'onboarding';
+  const isUpgradeFlow = flow === 'upgrade';
+
+  return {
+    headerLeft: () =>
+      isUpgradeFlow ? (
+        <ButtonIcon
+          style={headerStyle.icon}
+          size={ButtonIconSize.Md}
+          iconName={IconName.ArrowLeft}
+          onPress={() => navigation.goBack()}
+        />
+      ) : (
+        <View />
+      ),
+    headerTitle: () => <View />,
+    headerRight: () => <View />,
+  };
+};
 
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
@@ -149,7 +145,7 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
-        options={cardCloseOnlyNavigationOptions}
+        options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.WELCOME}
@@ -159,7 +155,7 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
         component={ChooseYourCard}
-        options={emptyNavigationOptions}
+        options={cardChooseYourCardNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.REVIEW_ORDER}

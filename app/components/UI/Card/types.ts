@@ -200,6 +200,7 @@ export enum CardErrorType {
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
   CONFLICT_ERROR = 'CONFLICT_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
 }
 
 export class CardError extends Error {
@@ -467,4 +468,86 @@ export interface CardDetailsTokenResponse {
   token: string;
   /** URL that renders card details as a secure image */
   imageUrl: string;
+}
+
+/**
+ * Payment methods supported for orders
+ */
+export type OrderPaymentMethod = 'CRYPTO_EXTERNAL_DAIMO';
+
+/**
+ * Request body for creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderRequest {
+  /** The unique identifier of the product to order */
+  productId: string;
+  /** Required payment method */
+  paymentMethod: OrderPaymentMethod;
+}
+
+/**
+ * Payment configuration returned when creating an order
+ */
+export interface OrderPaymentConfig {
+  /** Payment amount (e.g., 199) */
+  paymentAmount: number;
+  /** Payment currency (e.g., "USD") */
+  paymentCurrency: string;
+  /** Destination wallet address for the payment */
+  destinationAddress: string;
+  /** Chain ID for the destination (e.g., "59144" for Linea) */
+  destinationChainId: string;
+  /** Token symbol for destination (e.g., "USDC") */
+  destinationTokenSymbol: string;
+  /** Token contract address for destination */
+  destinationTokenAddress: string;
+}
+
+/**
+ * Response from creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderResponse {
+  /** Unique order identifier */
+  orderId: string;
+  /** Payment configuration for the order */
+  paymentConfig: OrderPaymentConfig;
+}
+
+/**
+ * Status of an order
+ */
+export type OrderStatus =
+  | 'PENDING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'EXPIRED'
+  | 'REFUNDED';
+
+/**
+ * Metadata returned with order status
+ */
+export interface OrderStatusMetadata {
+  /** Daimo payment ID */
+  paymentId?: string;
+  /** Transaction hash on-chain */
+  txHash?: string;
+  /** Additional note (e.g., "payment_refunded") */
+  note?: string;
+}
+
+/**
+ * Response from fetching order status
+ * GET /v1/order/:orderId
+ */
+export interface GetOrderStatusResponse {
+  /** Unique order identifier */
+  orderId: string;
+  /** ISO timestamp when the order was paid */
+  paidAt?: string;
+  /** Current status of the order */
+  status: OrderStatus;
+  /** Additional metadata about the order */
+  metadata?: OrderStatusMetadata;
 }

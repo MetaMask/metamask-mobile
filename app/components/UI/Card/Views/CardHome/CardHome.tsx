@@ -71,6 +71,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   clearAllCache,
   resetAuthenticatedData,
+  selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -88,6 +89,7 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import type { ShippingAddress } from '../ReviewOrder';
 
 /**
  * Route params for CardHome screen
@@ -114,6 +116,7 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const userLocation = useSelector(selectUserCardLocation);
   const {
     fetchCardDetailsToken,
     isLoading: isCardDetailsLoading,
@@ -413,6 +416,70 @@ const CardHome = () => {
       ],
     );
   }, [logoutFromProvider, navigation]);
+
+  // Build shipping address from user data for metal card order
+  const userShippingAddress: ShippingAddress | undefined = useMemo(() => {
+    if (!kycStatus?.userDetails) {
+      return undefined;
+    }
+
+    // Use mailing address if available, otherwise fall back to physical address
+    const line1 =
+      kycStatus.userDetails.mailingAddressLine1 ??
+      kycStatus.userDetails.addressLine1;
+    const line2 =
+      kycStatus.userDetails.mailingAddressLine2 ??
+      kycStatus.userDetails.addressLine2;
+    const city =
+      kycStatus.userDetails.mailingCity ?? kycStatus.userDetails.city;
+    const state =
+      kycStatus.userDetails.mailingUsState ?? kycStatus.userDetails.usState;
+    const zip = kycStatus.userDetails.mailingZip ?? kycStatus.userDetails.zip;
+
+    if (!line1 || !city || !zip) {
+      return undefined;
+    }
+
+    return {
+      line1,
+      line2: line2 ?? undefined,
+      city,
+      state: state ?? '',
+      zip,
+    };
+  }, [kycStatus?.userDetails]);
+
+  const orderMetalCardAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ORDER_METAL_CARD_BUTTON,
+        })
+        .build(),
+    );
+
+    navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
+      flow: 'upgrade',
+      shippingAddress: userShippingAddress,
+    });
+  }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);
+
+  const isUserEligibleForMetalCard = useMemo(
+    () =>
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      userLocation === 'us' &&
+      userShippingAddress &&
+      cardDetails &&
+      cardDetails.type === CardType.VIRTUAL,
+    [
+      isBaanxLoginEnabled,
+      isAuthenticated,
+      userLocation,
+      userShippingAddress,
+      cardDetails,
+    ],
+  );
 
   const onCardDetailsImageError = useCallback(() => {
     clearCardDetailsImageUrl();
@@ -778,7 +845,7 @@ const CardHome = () => {
         />
       }
     >
-      <Text style={tw.style('px-4')} variant={TextVariant.HeadingLg}>
+      <Text style={tw.style('px-4 py-4')} variant={TextVariant.HeadingLg}>
         {strings('card.card_home.title')}
       </Text>
       {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
@@ -804,7 +871,7 @@ const CardHome = () => {
       {isCardProvisioning && (
         <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
       )}
-      <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
+      <Box twClassName=" bg-background-muted rounded-lg mx-4 py-4 px-4">
         <Box twClassName="w-full relative">
           {isLoading || isCardDetailsLoading ? (
             <Box
@@ -981,24 +1048,41 @@ const CardHome = () => {
             />
           )}
       </Box>
-      <ManageCardListItem
-        title={strings('card.card_home.manage_card_options.manage_card')}
-        description={strings(
-          'card.card_home.manage_card_options.advanced_card_management_description',
-        )}
-        rightIcon={IconName.Export}
-        onPress={navigateToCardPage}
-        testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
-      />
-      <ManageCardListItem
-        title={strings('card.card_home.manage_card_options.travel_title')}
-        description={strings(
-          'card.card_home.manage_card_options.travel_description',
-        )}
-        rightIcon={IconName.Export}
-        onPress={navigateToTravelPage}
-        testID={CardHomeSelectors.TRAVEL_ITEM}
-      />
+      {!isLoading && !cardSetupState.isKYCPending && (
+        <>
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.manage_card')}
+            description={strings(
+              'card.card_home.manage_card_options.advanced_card_management_description',
+            )}
+            rightIcon={IconName.Export}
+            onPress={navigateToCardPage}
+            testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
+          />
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.travel_title')}
+            description={strings(
+              'card.card_home.manage_card_options.travel_description',
+            )}
+            rightIcon={IconName.Export}
+            onPress={navigateToTravelPage}
+            testID={CardHomeSelectors.TRAVEL_ITEM}
+          />
+          {isUserEligibleForMetalCard && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.order_metal_card',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.order_metal_card_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={orderMetalCardAction}
+              testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
+            />
+          )}
+        </>
+      )}
       {isAuthenticated && (
         <>
           <Box twClassName="h-px mx-4 bg-border-muted" />

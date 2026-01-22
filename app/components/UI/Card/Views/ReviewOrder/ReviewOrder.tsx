@@ -21,13 +21,20 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { ReviewOrderSelectors } from '../../../../../../e2e/selectors/Card/ReviewOrder.selectors';
 import DaimoPayService from '../../services/DaimoPayService';
 import Logger from '../../../../../util/Logger';
+import { useCardSDK } from '../../sdk';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
-interface ShippingAddress {
+export interface ShippingAddress {
   line1: string;
   line2?: string;
   city: string;
   state: string;
   zip: string;
+}
+
+export interface ReviewOrderParams {
+  shippingAddress?: ShippingAddress;
+  fromUpgrade?: boolean;
 }
 
 interface OrderItem {
@@ -40,6 +47,10 @@ const ReviewOrder = () => {
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const tw = useTailwind();
+  const { shippingAddress: routeShippingAddress, fromUpgrade } =
+    useParams<ReviewOrderParams>();
+
+  const { sdk: cardSDK } = useCardSDK();
 
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -65,15 +76,15 @@ const ReviewOrder = () => {
     });
   }, [navigate, trackEvent, createEventBuilder]);
 
-  // TODO: Get shipping address from SDK/API
   const shippingAddress: ShippingAddress = useMemo(
-    () => ({
-      line1: '456 Elmwood Avenue, Apt 3B',
-      city: 'Chicago',
-      state: 'IL',
-      zip: '60614',
-    }),
-    [],
+    () =>
+      routeShippingAddress ?? {
+        line1: '',
+        city: '',
+        state: '',
+        zip: '',
+      },
+    [routeShippingAddress],
   );
 
   const orderItems: OrderItem[] = useMemo(
@@ -122,11 +133,13 @@ const ReviewOrder = () => {
     setPaymentError(null);
 
     try {
-      const response = await DaimoPayService.createPayment();
+      const response = await DaimoPayService.createPayment({
+        cardSDK: cardSDK ?? undefined,
+      });
 
       navigate(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.DAIMO_PAY,
-        params: { payId: response.payId },
+        params: { payId: response.payId, fromUpgrade },
       });
     } catch (error) {
       Logger.error(
@@ -136,7 +149,7 @@ const ReviewOrder = () => {
       setPaymentError(strings('card.review_order.payment_creation_error'));
       setIsCreatingPayment(false);
     }
-  }, [navigate, trackEvent, createEventBuilder]);
+  }, [navigate, trackEvent, createEventBuilder, cardSDK, fromUpgrade]);
 
   const renderOrderItem = useCallback((item: OrderItem, index: number) => {
     const isTotal = item.label === strings('card.review_order.total');
@@ -197,7 +210,7 @@ const ReviewOrder = () => {
       testID={ReviewOrderSelectors.CONTAINER}
     >
       <Box twClassName="flex-1 px-4">
-        <Box twClassName="py-2">
+        <Box twClassName="py-4">
           <Text
             variant={TextVariant.HeadingLg}
             twClassName="text-default"

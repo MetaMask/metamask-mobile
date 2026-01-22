@@ -6551,6 +6551,7 @@
     },
     "choose_your_card": {
       "title": "Choose your card",
+      "upgrade_title": "Upgrade to Metal",
       "continue_button": "Continue",
       "virtual_card": {
         "name": "Orange Virtual Card",
@@ -6586,7 +6587,8 @@
       "title": "YOUR CARD\nIS ORDERED",
       "subtitle": "It should arrive in 4 to 6 weeks.",
       "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
-      "set_up_card_button": "Set up card"
+      "set_up_card_button": "Set up card",
+      "back_to_card_button": "Back to Card"
     },
     "recurring_fee_modal": {
       "title": "Recurring fee",
@@ -6846,7 +6848,9 @@
         "advanced_card_management_description": "See activity, cashback, freeze card, and more",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
-        "card_tos_title": "Terms and conditions"
+        "card_tos_title": "Terms and conditions",
+        "order_metal_card": "Metal Card",
+        "order_metal_card_description": "Order your physical Metal Card now"
       }
     },
     "card_spending_limit": {

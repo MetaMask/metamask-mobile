@@ -4,27 +4,19 @@ import { CardError, CardErrorType } from '../types';
 import {
   getDaimoEnvironment,
   isDaimoProduction,
+  isDaimoDemo,
 } from '../util/getDaimoEnvironment';
+import { CardSDK } from '../sdk/CardSDK';
 
-// Constants
 const DEFAULT_REQUEST_TIMEOUT_MS = 30000;
-const DAIMO_DEMO_API_URL = 'https://pay.daimo.com/api/payment';
-const DAIMO_DEMO_API_KEY = 'pay-demo';
 
-// Daimo WebView base URL
 export const DAIMO_WEBVIEW_BASE_URL =
   'https://miniapp.daimo.com/metamask/embed';
 
-// Allowed origin for provider messages (security validation)
 export const DAIMO_ALLOWED_ORIGIN = 'https://miniapp.daimo.com';
 
-// Payment configuration per environment
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const PRODUCTION_PAYMENT_CONFIG = {
-  amount: '199.00',
-  currency: 'USD',
-  intent: 'MetaMask Metal Card Purchase',
-};
+const DAIMO_DEMO_API_URL = 'https://pay.daimo.com/api/payment';
+const DAIMO_DEMO_API_KEY = 'pay-demo';
 
 const DEMO_PAYMENT_CONFIG = {
   amount: '0.25',
@@ -32,31 +24,17 @@ const DEMO_PAYMENT_CONFIG = {
   intent: 'MetaMask Metal Card Purchase (Test)',
 };
 
-/**
- * Response from creating a Daimo payment
- */
 export interface DaimoPaymentResponse {
-  /** The payment ID to use in the WebView */
   payId: string;
 }
 
-/**
- * Payment status response from polling
- */
 export interface DaimoPaymentStatusResponse {
-  /** Current status of the payment */
   status: 'pending' | 'completed' | 'failed' | 'expired';
-  /** Transaction hash if completed */
   transactionHash?: string;
-  /** Chain ID where the transaction occurred */
   chainId?: number;
-  /** Error message if failed */
   errorMessage?: string;
 }
 
-/**
- * Daimo Pay event types from WebView postMessage
- */
 export type DaimoPayEventType =
   | 'modalOpened'
   | 'modalClosed'
@@ -64,20 +42,17 @@ export type DaimoPayEventType =
   | 'paymentCompleted'
   | 'paymentBounced';
 
-/**
- * Daimo Pay event payload from WebView
- */
 export interface DaimoPayEventPayload {
   paymentId?: string;
   chainId?: number;
   txHash?: string;
   transactionUrl?: string;
   payment?: unknown;
+  errorMessage?: string;
+  error?: string;
+  reason?: string;
 }
 
-/**
- * Daimo Pay event from WebView postMessage
- */
 export interface DaimoPayEvent {
   source: 'daimo-pay';
   version: number;
@@ -85,9 +60,6 @@ export interface DaimoPayEvent {
   payload: DaimoPayEventPayload;
 }
 
-/**
- * Creates a fetch request with timeout handling
- */
 const fetchWithTimeout = async (
   url: string,
   options: RequestInit,
@@ -116,10 +88,6 @@ const fetchWithTimeout = async (
   }
 };
 
-/**
- * Creates a Daimo payment using the demo API
- * Used in non-production environments (dev, test, e2e, exp)
- */
 const createDemoPayment = async (): Promise<DaimoPaymentResponse> => {
   const config = DEMO_PAYMENT_CONFIG;
 
@@ -128,7 +96,6 @@ const createDemoPayment = async (): Promise<DaimoPaymentResponse> => {
     'Api-Key': DAIMO_DEMO_API_KEY,
   };
 
-  // Demo API request body following Daimo's format
   const requestBody = {
     display: {
       intent: config.intent,
@@ -137,11 +104,9 @@ const createDemoPayment = async (): Promise<DaimoPaymentResponse> => {
       paymentOptions: ['MetaMask'],
     },
     destination: {
-      // Demo destination - these values are for testing only
-      // In production, Baanx will provide the actual destination
-      destinationAddress: '0x0000000000000000000000000000000000000000',
-      chainId: 59144, // Linea
-      tokenAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da', // mUSD on Linea
+      destinationAddress: '0x9E16319A3895f88e74f3b4deA012516df8a75CdC',
+      chainId: 59144,
+      tokenAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
       amountUnits: config.amount,
     },
   };
@@ -198,123 +163,144 @@ const createDemoPayment = async (): Promise<DaimoPaymentResponse> => {
   }
 };
 
-/**
- * Creates a Daimo payment using the Baanx production API
- * Used in production and rc environments
- *
- * TODO: Implement once Baanx API endpoints are available
- */
-const createProductionPayment = async (): Promise<DaimoPaymentResponse> => {
-  // Production uses fixed $199 USD for Metal Card purchase (PRODUCTION_PAYMENT_CONFIG)
+const createProductionPayment = async (
+  cardSDK: CardSDK,
+): Promise<DaimoPaymentResponse> => {
+  try {
+    const orderResponse = await cardSDK.createOrder();
 
-  // TODO: Implement Baanx API integration
-  // The endpoint will be something like:
-  // POST ${baseUrl}/v1/card/daimo/payment
-  //
-  // const apiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
-  // const baseUrl = getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT);
+    Logger.log('DaimoPayService: Production order created', {
+      orderId: orderResponse.orderId,
+      paymentConfig: orderResponse.paymentConfig,
+    });
 
-  Logger.log(
-    'DaimoPayService: Production payment creation not yet implemented',
-  );
+    return {
+      payId: orderResponse.orderId,
+    };
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'DaimoPayService: Failed to create production payment',
+    );
 
-  throw new CardError(
-    CardErrorType.SERVER_ERROR,
-    'Production payment integration is pending development. Please try again later.',
-  );
+    if (error instanceof CardError) {
+      throw error;
+    }
+
+    throw new CardError(
+      CardErrorType.SERVER_ERROR,
+      'Failed to create payment order. Please try again.',
+      error instanceof Error ? error : undefined,
+    );
+  }
 };
 
-/**
- * Polls the payment status using the Baanx production API
- * Used in production and rc environments
- *
- * TODO: Implement once Baanx API endpoints are available
- */
+const mapOrderStatusToPaymentStatus = (
+  status: string,
+): DaimoPaymentStatusResponse['status'] => {
+  switch (status.toUpperCase()) {
+    case 'COMPLETED':
+      return 'completed';
+    case 'FAILED':
+    case 'REFUNDED':
+      return 'failed';
+    case 'EXPIRED':
+      return 'expired';
+    case 'PENDING':
+    default:
+      return 'pending';
+  }
+};
+
 const pollProductionPaymentStatus = async (
-  _payId: string,
+  cardSDK: CardSDK,
+  orderId: string,
 ): Promise<DaimoPaymentStatusResponse> => {
-  // TODO: Implement Baanx API integration
-  // The endpoint will be something like:
-  // GET ${baseUrl}/v1/card/daimo/payment/${payId}/status
-  //
-  // const apiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
-  // const baseUrl = getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT);
+  try {
+    const statusResponse = await cardSDK.getOrderStatus(orderId);
 
-  Logger.log(
-    'DaimoPayService: Production payment status polling not yet implemented',
-  );
+    Logger.log('DaimoPayService: Production order status fetched', {
+      orderId: statusResponse.orderId,
+      status: statusResponse.status,
+    });
 
-  throw new CardError(
-    CardErrorType.SERVER_ERROR,
-    'Production payment status polling is pending development.',
-  );
+    return {
+      status: mapOrderStatusToPaymentStatus(statusResponse.status),
+      transactionHash: statusResponse.metadata?.txHash,
+      errorMessage:
+        statusResponse.status === 'FAILED' ||
+        statusResponse.status === 'REFUNDED'
+          ? statusResponse.metadata?.note
+          : undefined,
+    };
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'DaimoPayService: Failed to poll production payment status',
+    );
+
+    if (error instanceof CardError) {
+      throw error;
+    }
+
+    throw new CardError(
+      CardErrorType.SERVER_ERROR,
+      'Failed to check payment status. Please try again.',
+      error instanceof Error ? error : undefined,
+    );
+  }
 };
 
-/**
- * DaimoPayService - Handles Daimo Pay integration for card purchases
- *
- * Environment-based behavior:
- * - Demo (dev/test/e2e/exp): Uses Daimo's demo API directly
- * - Production (production/rc): Uses Baanx API for payment creation and status polling
- */
+export interface DaimoPayServiceOptions {
+  cardSDK?: CardSDK;
+}
+
 export const DaimoPayService = {
-  /**
-   * Creates a new Daimo payment for Metal Card purchase
-   * - Production: $199 USD
-   * - Demo: $0.10 USD (test value)
-   *
-   * @returns Promise resolving to payment response with payId
-   */
-  createPayment: async (): Promise<DaimoPaymentResponse> => {
+  createPayment: async (
+    options?: DaimoPayServiceOptions,
+  ): Promise<DaimoPaymentResponse> => {
     const environment = getDaimoEnvironment();
     Logger.log(`DaimoPayService: Creating payment in ${environment} mode`);
 
-    if (isDaimoProduction()) {
-      return createProductionPayment();
+    if (isDaimoDemo()) {
+      return createDemoPayment();
     }
 
-    return createDemoPayment();
+    if (!options?.cardSDK) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'CardSDK is required for payments',
+      );
+    }
+    return createProductionPayment(options.cardSDK);
   },
 
-  /**
-   * Polls the payment status (production only)
-   * In demo mode, status is determined via WebView events
-   *
-   * @param payId - The payment ID to check
-   * @returns Promise resolving to payment status
-   */
   pollPaymentStatus: async (
     payId: string,
+    options?: DaimoPayServiceOptions,
   ): Promise<DaimoPaymentStatusResponse> => {
-    if (!isDaimoProduction()) {
-      // In demo mode, we rely on WebView events for status
+    if (isDaimoDemo()) {
       return {
         status: 'pending',
       };
     }
 
-    return pollProductionPaymentStatus(payId);
+    if (!options?.cardSDK) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'CardSDK is required for status polling',
+      );
+    }
+
+    return pollProductionPaymentStatus(options.cardSDK, payId);
   },
 
-  /**
-   * Builds the Daimo WebView URL with the payment ID
-   *
-   * @param payId - The payment ID
-   * @param paymentOptions - Optional payment options (default: 'Metamask')
-   * @returns The full WebView URL
-   */
   buildWebViewUrl: (
     payId: string,
     paymentOptions: string = 'Metamask',
   ): string =>
     `${DAIMO_WEBVIEW_BASE_URL}?payId=${encodeURIComponent(payId)}&paymentOptions=${encodeURIComponent(paymentOptions)}`,
 
-  /**
-   * Parses a Daimo Pay event from WebView postMessage data
-   *
-   * @param data - The raw data from WebView onMessage
-   * @returns The parsed event or null if not a valid Daimo event
-   */
   parseWebViewEvent: (data: string): DaimoPayEvent | null => {
     try {
       const parsed = JSON.parse(data);
@@ -329,33 +315,15 @@ export const DaimoPayService = {
     }
   },
 
-  /**
-   * Checks if a URL should be handled by the WebView or opened externally
-   * External wallet deep links should be opened via Linking.openURL
-   *
-   * @param url - The URL to check
-   * @returns true if the URL should be loaded in WebView, false if it should be opened externally
-   */
   shouldLoadInWebView: (url: string): boolean =>
     url.includes('miniapp.daimo.com'),
 
-  /**
-   * Gets the current Daimo environment
-   */
   getEnvironment: getDaimoEnvironment,
 
-  /**
-   * Checks if currently in production mode
-   */
   isProduction: isDaimoProduction,
 
-  /**
-   * Validates that a message origin is from the trusted Daimo domain
-   * Used for security validation of WebView provider messages
-   *
-   * @param origin - The origin URL from the message
-   * @returns true if the origin matches the trusted Daimo domain
-   */
+  isDemo: isDaimoDemo,
+
   isValidMessageOrigin: (origin: string): boolean =>
     isSameOrigin(origin, DAIMO_ALLOWED_ORIGIN),
 };

@@ -20,33 +20,47 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { OrderCompletedSelectors } from '../../../../../../e2e/selectors/Card/OrderCompleted.selectors';
 import MM_METAL_CARD from '../../../../../images/metal-card.png';
+import { useParams } from '../../../../../util/navigation/navUtils';
+
+export interface OrderCompletedParams {
+  paymentMethod?: string;
+  transactionHash?: string;
+  fromUpgrade?: boolean;
+}
 
 const OrderCompleted: React.FC = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const tw = useTailwind();
+  const { fromUpgrade } = useParams<OrderCompletedParams>();
 
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
           screen: CardScreens.ORDER_COMPLETED,
+          from_upgrade: fromUpgrade,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, fromUpgrade]);
 
   const handleSetUpCard = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
           action: CardActions.ORDER_COMPLETED_SET_UP_CARD,
+          from_upgrade: fromUpgrade,
         })
         .build(),
     );
 
     navigate(Routes.CARD.HOME);
-  }, [navigate, trackEvent, createEventBuilder]);
+  }, [navigate, trackEvent, createEventBuilder, fromUpgrade]);
+
+  const buttonLabel = fromUpgrade
+    ? strings('card.order_completed.back_to_card_button')
+    : strings('card.order_completed.set_up_card_button');
 
   return (
     <SafeAreaView
@@ -98,7 +112,7 @@ const OrderCompleted: React.FC = () => {
         <Box twClassName="pb-4">
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('card.order_completed.set_up_card_button')}
+            label={buttonLabel}
             size={ButtonSize.Lg}
             onPress={handleSetUpCard}
             width={ButtonWidthTypes.Full}
