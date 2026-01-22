@@ -345,9 +345,10 @@ export class AggregatedPerpsProvider implements IPerpsProvider {
     endTime?: number;
   }): Promise<UserHistoryItem[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([, provider]) =>
-        provider.getUserHistory(params),
-      ),
+      this.getActiveProviders().map(async ([id, provider]) => {
+        const history = await provider.getUserHistory(params);
+        return history.map((item) => ({ ...item, providerId: id }));
+      }),
     );
 
     return this.extractSuccessfulResults(results, 'getUserHistory').flat();

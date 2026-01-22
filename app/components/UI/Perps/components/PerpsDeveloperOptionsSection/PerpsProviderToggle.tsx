@@ -48,27 +48,28 @@ const PerpsProviderToggleContent = () => {
 
     setIsLoading(true);
 
-    const nextProvider = isAggregated ? 'hyperliquid' : 'aggregated';
+    try {
+      const nextProvider = isAggregated ? 'hyperliquid' : 'aggregated';
+      const result = await switchProvider(nextProvider);
 
-    const result = await switchProvider(nextProvider);
+      if (result.success) {
+        return;
+      }
 
-    setIsLoading(false);
-
-    if (result.success) {
-      return;
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        iconColor: IconColor.Error,
+        labelOptions: [
+          {
+            label: strings('perps.errors.failed_to_switch_provider'),
+          },
+        ],
+        hasNoTimeout: false,
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Warning,
-      iconColor: IconColor.Error,
-      labelOptions: [
-        {
-          label: strings('perps.errors.failed_to_switch_provider'),
-        },
-      ],
-      hasNoTimeout: false,
-    });
   }, [currentProvider, isAggregated, switchProvider, toastRef]);
 
   if (!currentProvider) {
