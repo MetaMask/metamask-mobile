@@ -1,9 +1,9 @@
 import AccountDetails from '../../../../pages/MultichainAccounts/AccountDetails';
 import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../../framework/Assertions';
+import Assertions from '../../../../../tests/framework/Assertions';
 import BrowserView from '../../../../pages/Browser/BrowserView';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
@@ -11,24 +11,24 @@ import SwitchAccountModal from '../../../../pages/wallet/SwitchAccountModal';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import WalletView from '../../../../pages/wallet/WalletView';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../../tests/api-mocking/mock-responses/simulations';
 import {
   AnvilPort,
   buildPermissions,
-} from '../../../../framework/fixtures/FixtureUtils';
+} from '../../../../../tests/framework/fixtures/FixtureUtils';
 import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { DappVariants } from '../../../../framework/Constants';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
+import { DappVariants } from '../../../../../tests/framework/Constants';
 import {
   AnvilNodeOptions,
   LocalNode,
   LocalNodeType,
-} from '../../../../framework';
+} from '../../../../../tests/framework';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
-import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupMockRequest } from '../../../../../tests/api-mocking/helpers/mockHelpers';
+import { confirmationsRedesignedFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilManager } from '../../../../seeder/anvil-manager';
 
 const LOCAL_CHAIN_NAME = 'Local RPC';
