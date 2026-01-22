@@ -366,8 +366,9 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
 
     it('returns localized message for Unknown', () => {
       const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.Unknown];
-      const message = ext?.getLocalizedMessage();
-      expect(message).toBe('hardware_wallet.errors.unknown_error');
+      const message = ext?.getLocalizedMessage(HardwareWalletType.Ledger);
+      expect(message).toContain('hardware_wallet.errors.unknown_error');
+      expect(message).toContain('device:');
     });
   });
 

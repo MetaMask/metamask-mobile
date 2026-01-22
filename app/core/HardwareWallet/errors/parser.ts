@@ -113,12 +113,6 @@ function parseLedgerCommunicationError(
         walletType,
       );
 
-    case LedgerCommunicationErrors.NonceTooLow:
-      return createHardwareWalletError(
-        ErrorCode.TxInsufficientFunds,
-        walletType,
-      );
-
     case LedgerCommunicationErrors.BlindSignError:
       return createHardwareWalletError(
         ErrorCode.DeviceStateBlindSignNotSupported,

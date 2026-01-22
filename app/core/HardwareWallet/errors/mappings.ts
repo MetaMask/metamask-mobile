@@ -232,7 +232,10 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>
       strings('hardware_wallet.error.something_went_wrong'),
-    getLocalizedMessage: () => strings('hardware_wallet.errors.unknown_error'),
+    getLocalizedMessage: (walletType) =>
+      strings('hardware_wallet.errors.unknown_error', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
   },
 };
 

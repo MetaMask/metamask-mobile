@@ -164,7 +164,7 @@ describe('HardwareWalletErrorContext', () => {
       );
     });
 
-    it('handles user cancellation errors silently', async () => {
+    it('sets error state without showing bottom sheet for user cancellations', async () => {
       const { getByTestId } = render(
         <HardwareWalletErrorProvider>
           <TestConsumer />
