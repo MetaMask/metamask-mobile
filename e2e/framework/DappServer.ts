@@ -94,18 +94,6 @@ export default class DappServer implements Resource {
             return;
           }
 
-          if (request.url.startsWith('/node_modules/')) {
-            request.url = request.url.substr(14);
-            const nodeModulesDir = path.resolve(
-              __dirname,
-              '../../node_modules',
-            );
-            return serveHandler(request, response, {
-              directoryListing: false,
-              public: nodeModulesDir,
-            });
-          }
-
           // Handle test-dapp-multichain URLs by removing the prefix
           // The multichain test dapp resources are referenced with /test-dapp-multichain/ prefix in its HTML
           if (request.url.startsWith('/test-dapp-multichain/')) {

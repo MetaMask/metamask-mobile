@@ -92,6 +92,10 @@ async function retrieveOpenBugReportIssue(
     }
   | undefined
 > {
+  // Validate releaseVersionNumber before using in the query
+  if (!/^\d+\.\d+\.\d+$/.test(releaseVersionNumber)) {
+    throw new Error(`Invalid release version number: "${releaseVersionNumber}"`);
+  }
   const retrieveOpenBugReportIssueQuery = `
   query RetrieveOpenBugReportIssue {
     search(query: "repo:${repoOwner}/${repoName} type:issue is:open in:title v${releaseVersionNumber} Bug Report", type: ISSUE, first: 1) {
