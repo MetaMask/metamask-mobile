@@ -227,7 +227,7 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <HeaderCenter
-          in
+          includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
         />
@@ -244,7 +244,7 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <HeaderCenter
-          in
+          includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
         />
@@ -262,7 +262,7 @@ const OrderDetails = () => {
   return (
     <ScreenLayout>
       <HeaderCenter
-        in
+        includesTopInset
         title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
         onBack={() => navigation.goBack()}
       />
