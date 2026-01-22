@@ -49,7 +49,6 @@ describe('SmartTransactionsControllerInit', () => {
       state: undefined,
       supportedChainIds: expect.any(Array),
       clientId: 'mobile',
-      getFeatureFlags: expect.any(Function),
       getMetaMetricsProps: expect.any(Function),
       trackMetaMetricsEvent: expect.any(Function),
       trace: expect.any(Function),
