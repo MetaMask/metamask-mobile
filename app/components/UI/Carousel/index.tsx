@@ -310,6 +310,22 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     ///: END:ONLY_INCLUDE_IF
   ]);
 
+  const predictSuperbowlSlide = useMemo(
+    () =>
+      visibleSlides.find(
+        (slide) => slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME,
+      ),
+    [visibleSlides],
+  );
+
+  const predictSuperbowlMarketId = useMemo(() => {
+    if (!predictSuperbowlSlide) return null;
+    const metadata = predictSuperbowlSlide.metadata as
+      | PredictCarouselMetadata
+      | undefined;
+    return metadata?.marketId ?? null;
+  }, [predictSuperbowlSlide]);
+
   // Ensure activeSlideIndex is within bounds after filtering
   const safeActiveSlideIndex = Math.min(
     activeSlideIndex,
@@ -563,31 +579,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         );
       }
 
-      if (slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME) {
-        const metadata = slide.metadata as PredictCarouselMetadata | undefined;
-        const marketId = metadata?.marketId;
-
-        if (!marketId) {
-          return null;
-        }
-
-        return (
-          <PredictMarketSportCardWrapper
-            marketId={marketId}
-            testID={slide.testID}
-            entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
-            isCurrentCard={isCurrentCard}
-            currentCardOpacity={currentCardOpacity}
-            currentCardScale={currentCardScale}
-            currentCardTranslateY={currentCardTranslateY}
-            nextCardOpacity={nextCardOpacity}
-            nextCardScale={nextCardScale}
-            nextCardTranslateY={nextCardTranslateY}
-            width={BANNER_WIDTH}
-          />
-        );
-      }
-
       return (
         <StackCard
           slide={slide}
@@ -651,6 +642,21 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     (visibleSlides.length === 0 && !isAnimating.current)
   ) {
     return null;
+  }
+
+  if (predictSuperbowlMarketId) {
+    return (
+      <Box
+        style={tw.style('mx-4')}
+        testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
+      >
+        <PredictMarketSportCardWrapper
+          marketId={predictSuperbowlMarketId}
+          testID={predictSuperbowlSlide?.testID}
+          entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+        />
+      </Box>
+    );
   }
 
   return (
