@@ -216,10 +216,6 @@ function BuySection() {
     message = strings('confirm.custom_amount.buy_perps');
   }
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    message = strings('confirm.custom_amount.buy_predict');
-  }
-
   return (
     <Box alignItems={AlignItems.center} gap={20}>
       {message && (
