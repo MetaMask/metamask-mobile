@@ -89,6 +89,7 @@ describe('PayWithRow', () => {
 
     expect(navigateMock).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
+      { hideNetworkFilter: undefined },
     );
   });
 
