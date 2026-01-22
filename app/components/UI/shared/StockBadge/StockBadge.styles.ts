@@ -1,14 +1,24 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+interface StockBadgeStyleSheetVars {
+  style?: ViewStyle;
+}
+
+const styleSheet = (params: {
+  theme: Theme;
+  vars: StockBadgeStyleSheetVars;
+}) => {
+  const {
+    theme,
+    vars: { style },
+  } = params;
   return StyleSheet.create({
+    stockBadgeWrapper: { flexDirection: 'row', ...style },
     stockBadge: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: theme.colors.background.muted,
-      width: 60,
       borderRadius: 10,
       paddingHorizontal: 6,
       paddingVertical: 2,

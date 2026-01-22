@@ -88,6 +88,9 @@ const createStyles = (colors: Colors) =>
     centered: {
       textAlign: 'center',
     },
+    stockBadgeWrapper: {
+      marginLeft: 4,
+    },
   });
 
 interface TokenListItemProps {
@@ -405,7 +408,9 @@ export const TokenListItem = React.memo(
                 {asset.balance} {asset.symbol}
               </SensitiveText>
             }
-            {isStockToken(asset as BridgeToken) && <StockBadge token={asset} />}
+            {isStockToken(asset as BridgeToken) && (
+              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+            )}
             {renderEarnCta()}
           </View>
         </View>

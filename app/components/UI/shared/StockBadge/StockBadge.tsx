@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -14,6 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import styleSheet from './StockBadge.styles';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
+import { Box } from '../../Box/Box';
 
 interface StockBadgeProps {
   /**
@@ -22,6 +23,7 @@ interface StockBadgeProps {
    * Accepts any token object that may have rwaData.
    */
   token?: unknown;
+  style?: ViewStyle;
 }
 
 /**
@@ -37,8 +39,8 @@ const hasRwaData = (token: unknown): token is { rwaData: unknown } =>
  * StockBadge component displays a badge indicating that a token is a stock/RWA token.
  * Shows a clock icon when the market is closed to indicate trading is not available.
  */
-const StockBadge: React.FC<StockBadgeProps> = ({ token }) => {
-  const { styles } = useStyles(styleSheet, {});
+const StockBadge: React.FC<StockBadgeProps> = ({ token, style }) => {
+  const { styles } = useStyles(styleSheet, { style });
   const { isTokenTradingOpen } = useRWAToken();
   const [isTradingOpen, setIsTradingOpen] = useState<boolean | null>(null);
 
@@ -60,18 +62,20 @@ const StockBadge: React.FC<StockBadgeProps> = ({ token }) => {
   const showClockIcon = isTradingOpen === false;
 
   return (
-    <View style={styles.stockBadge}>
-      {showClockIcon && (
-        <Icon
-          name={IconName.Clock}
-          size={IconSize.Xs}
-          color={IconColor.Alternative}
-        />
-      )}
-      <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-        {strings('token.stock')}
-      </Text>
-    </View>
+    <Box style={styles.stockBadgeWrapper}>
+      <View style={styles.stockBadge}>
+        {showClockIcon && (
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Xs}
+            color={IconColor.Alternative}
+          />
+        )}
+        <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+          {strings('token.stock')}
+        </Text>
+      </View>
+    </Box>
   );
 };
 
