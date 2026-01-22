@@ -20,26 +20,26 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
-import { getRampsAmountInputNavbarOptions } from '../../../Navbar';
+import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './AmountInput.styles';
+import styleSheet from './BuildQuote.styles';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 
-interface AmountInputParams {
+interface BuildQuoteParams {
   assetId?: string;
 }
 
-export const createAmountInputNavDetails =
-  createNavigationDetails<AmountInputParams>(Routes.RAMP.AMOUNT_INPUT);
+export const createBuildQuoteNavDetails =
+  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
 
-function AmountInput() {
+function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { assetId } = useParams<AmountInputParams>();
+  const { assetId } = useParams<BuildQuoteParams>();
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
@@ -70,7 +70,7 @@ function AmountInput() {
   // Update navigation options - shows skeleton when data is loading
   useEffect(() => {
     navigation.setOptions(
-      getRampsAmountInputNavbarOptions(navigation, {
+      getRampsBuildQuoteNavbarOptions(navigation, {
         tokenName: selectedToken?.name,
         tokenSymbol: selectedToken?.symbol,
         tokenIconUrl: selectedToken?.iconUrl,
@@ -142,7 +142,7 @@ function AmountInput() {
                 size={ButtonSize.Lg}
                 onPress={handleContinuePress}
                 isFullWidth
-                testID="amount-input-continue-button"
+                testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}
               </Button>
@@ -167,4 +167,4 @@ function AmountInput() {
   );
 }
 
-export default AmountInput;
+export default BuildQuote;

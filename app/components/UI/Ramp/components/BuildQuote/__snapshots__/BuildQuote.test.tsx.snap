@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AmountInput matches snapshot 1`] = `
+exports[`BuildQuote matches snapshot 1`] = `
 <RNCSafeAreaView
   edges={
     {

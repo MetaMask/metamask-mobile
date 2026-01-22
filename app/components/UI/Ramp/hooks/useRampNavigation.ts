@@ -8,7 +8,7 @@ import {
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createAmountInputNavDetails } from '../components/AmountInput';
+import { createBuildQuoteNavDetails } from '../components/BuildQuote';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
@@ -68,14 +68,14 @@ export const useRampNavigation = () => {
         }
       }
 
-      // V2: If assetId is provided and V2 is enabled, route to AmountInput
+      // V2: If assetId is provided and V2 is enabled, route to BuildQuote
       if (
         isRampsUnifiedV2Enabled &&
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
         navigation.navigate(
-          ...createAmountInputNavDetails({ assetId: intent.assetId }),
+          ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
         );
         return;
       }

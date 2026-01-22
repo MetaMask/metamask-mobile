@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import AmountInput from './AmountInput';
+import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
 import type { CaipChainId } from '@metamask/utils';
@@ -36,7 +36,7 @@ const mockUseRampTokens = jest.fn(() => ({
   isLoading: false,
   error: null,
 }));
-const mockGetRampsAmountInputNavbarOptions = jest.fn(
+const mockGetRampsBuildQuoteNavbarOptions = jest.fn(
   (_navigation: unknown, _options: unknown) => ({}),
 );
 
@@ -59,8 +59,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../Navbar', () => ({
-  getRampsAmountInputNavbarOptions: (navigation: unknown, options: unknown) =>
-    mockGetRampsAmountInputNavbarOptions(navigation, options),
+  getRampsBuildQuoteNavbarOptions: (navigation: unknown, options: unknown) =>
+    mockGetRampsBuildQuoteNavbarOptions(navigation, options),
 }));
 
 jest.mock('../../utils/formatCurrency', () => ({
@@ -110,7 +110,7 @@ const renderWithTheme = (component: React.ReactElement) =>
     </ThemeContext.Provider>,
   );
 
-describe('AmountInput', () => {
+describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUserRegion = defaultUserRegion;
@@ -129,13 +129,13 @@ describe('AmountInput', () => {
   });
 
   it('displays initial amount as $0', () => {
-    const { getByText } = renderWithTheme(<AmountInput />);
+    const { getByText } = renderWithTheme(<BuildQuote />);
 
     expect(getByText('$0')).toBeOnTheScreen();
   });
 
   it('renders the keypad', () => {
-    const { getByText, getByTestId } = renderWithTheme(<AmountInput />);
+    const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
     // Check keypad digits are rendered
     expect(getByText('1')).toBeOnTheScreen();
@@ -152,7 +152,7 @@ describe('AmountInput', () => {
   });
 
   it('updates amount when keypad digit is pressed', () => {
-    const { getByText } = renderWithTheme(<AmountInput />);
+    const { getByText } = renderWithTheme(<BuildQuote />);
 
     fireEvent.press(getByText('5'));
 
@@ -160,7 +160,7 @@ describe('AmountInput', () => {
   });
 
   it('updates amount with multiple digit presses', () => {
-    const { getByText } = renderWithTheme(<AmountInput />);
+    const { getByText } = renderWithTheme(<BuildQuote />);
 
     fireEvent.press(getByText('1'));
     fireEvent.press(getByText('2'));
@@ -170,7 +170,7 @@ describe('AmountInput', () => {
   });
 
   it('deletes last digit when delete button is pressed', () => {
-    const { getByText, getByTestId } = renderWithTheme(<AmountInput />);
+    const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
     fireEvent.press(getByText('1'));
     fireEvent.press(getByText('2'));
@@ -180,9 +180,9 @@ describe('AmountInput', () => {
   });
 
   it('sets navigation options with token and network data', () => {
-    renderWithTheme(<AmountInput />);
+    renderWithTheme(<BuildQuote />);
 
-    expect(mockGetRampsAmountInputNavbarOptions).toHaveBeenCalledWith(
+    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
       expect.objectContaining({
         navigate: mockNavigate,
         setOptions: mockSetOptions,
@@ -200,7 +200,7 @@ describe('AmountInput', () => {
   });
 
   it('renders the payment method pill', () => {
-    const { getByTestId, getByText } = renderWithTheme(<AmountInput />);
+    const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
 
     expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
     expect(getByText('fiat_on_ramp.debit_card')).toBeOnTheScreen();
@@ -214,9 +214,9 @@ describe('AmountInput', () => {
       error: null,
     });
 
-    renderWithTheme(<AmountInput />);
+    renderWithTheme(<BuildQuote />);
 
-    expect(mockGetRampsAmountInputNavbarOptions).toHaveBeenCalledWith(
+    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
       expect.objectContaining({
         navigate: mockNavigate,
         setOptions: mockSetOptions,
@@ -234,7 +234,7 @@ describe('AmountInput', () => {
   });
 
   it('renders quick amount buttons', () => {
-    const { getByText } = renderWithTheme(<AmountInput />);
+    const { getByText } = renderWithTheme(<BuildQuote />);
 
     expect(getByText('$50')).toBeOnTheScreen();
     expect(getByText('$100')).toBeOnTheScreen();
@@ -252,13 +252,13 @@ describe('AmountInput', () => {
       regionCode: 'us',
     };
 
-    const { queryByTestId } = renderWithTheme(<AmountInput />);
+    const { queryByTestId } = renderWithTheme(<BuildQuote />);
 
     expect(queryByTestId('quick-amounts')).toBeNull();
   });
 
   it('updates amount when quick amount button is pressed', () => {
-    const { getByTestId, getByText } = renderWithTheme(<AmountInput />);
+    const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
 
     fireEvent.press(getByTestId('quick-amounts-button-100'));
 
@@ -268,19 +268,19 @@ describe('AmountInput', () => {
 
   it('hides quick amounts and shows continue button when amount is entered', () => {
     const { getByTestId, getByText, queryByTestId } = renderWithTheme(
-      <AmountInput />,
+      <BuildQuote />,
     );
 
     // Initially, quick amounts are visible
     expect(getByTestId('quick-amounts')).toBeOnTheScreen();
-    expect(queryByTestId('amount-input-continue-button')).toBeNull();
+    expect(queryByTestId('build-quote-continue-button')).toBeNull();
 
     // Enter an amount
     fireEvent.press(getByText('5'));
 
     // Quick amounts should be hidden, continue button should appear
     expect(queryByTestId('quick-amounts')).toBeNull();
-    expect(getByTestId('amount-input-continue-button')).toBeOnTheScreen();
+    expect(getByTestId('build-quote-continue-button')).toBeOnTheScreen();
   });
 
   it('displays powered by provider text when preferred provider is set', () => {
@@ -294,7 +294,7 @@ describe('AmountInput', () => {
       logos: { light: '', dark: '', height: 24, width: 79 },
     };
 
-    const { getByText } = renderWithTheme(<AmountInput />);
+    const { getByText } = renderWithTheme(<BuildQuote />);
 
     expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
   });
@@ -302,13 +302,13 @@ describe('AmountInput', () => {
   it('does not display powered by text when no preferred provider is set', () => {
     mockPreferredProvider = null;
 
-    const { queryByText } = renderWithTheme(<AmountInput />);
+    const { queryByText } = renderWithTheme(<BuildQuote />);
 
     expect(queryByText('fiat_on_ramp.powered_by_provider')).toBeNull();
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<AmountInput />);
+    const { toJSON } = renderWithTheme(<BuildQuote />);
 
     expect(toJSON()).toMatchSnapshot();
   });

@@ -5,7 +5,7 @@ import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createAmountInputNavDetails } from '../components/AmountInput';
+import { createBuildQuoteNavDetails } from '../components/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
@@ -33,10 +33,10 @@ jest.mock('../components/TokenSelection/TokenSelection', () => {
     createTokenSelectionNavigationDetails: mockFn, // Alias for hook compatibility
   };
 });
-jest.mock('../components/AmountInput', () => {
+jest.mock('../components/BuildQuote', () => {
   const mockFn = jest.fn();
   return {
-    createAmountInputNavDetails: mockFn,
+    createBuildQuoteNavDetails: mockFn,
   };
 });
 jest.mock('./useRampsUnifiedV1Enabled');
@@ -70,9 +70,9 @@ const mockCreateTokenSelectionNavigationDetails =
   createTokenSelectionNavDetails as jest.MockedFunction<
     typeof createTokenSelectionNavDetails
   >;
-const mockCreateAmountInputNavDetails =
-  createAmountInputNavDetails as jest.MockedFunction<
-    typeof createAmountInputNavDetails
+const mockCreateBuildQuoteNavDetails =
+  createBuildQuoteNavDetails as jest.MockedFunction<
+    typeof createBuildQuoteNavDetails
   >;
 const mockGetRampRoutingDecision =
   getRampRoutingDecision as jest.MockedFunction<typeof getRampRoutingDecision>;
@@ -102,10 +102,10 @@ describe('useRampNavigation', () => {
       Routes.RAMP.TOKEN_SELECTION,
     ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
 
-    mockCreateAmountInputNavDetails.mockReturnValue([
+    mockCreateBuildQuoteNavDetails.mockReturnValue([
       Routes.RAMP.AMOUNT_INPUT,
       { assetId: 'eip155:1/erc20:0x123' },
-    ] as unknown as ReturnType<typeof createAmountInputNavDetails>);
+    ] as unknown as ReturnType<typeof createBuildQuoteNavDetails>);
   });
 
   describe('goToBuy', () => {
@@ -114,19 +114,19 @@ describe('useRampNavigation', () => {
         mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       });
 
-      it('navigates to AmountInput when assetId is provided', () => {
+      it('navigates to BuildQuote when assetId is provided', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
           Routes.RAMP.AMOUNT_INPUT,
           { assetId: intent.assetId },
         ] as const;
-        mockCreateAmountInputNavDetails.mockReturnValue(mockNavDetails);
+        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
         const { result } = renderHookWithProvider(() => useRampNavigation());
 
         result.current.goToBuy(intent);
 
-        expect(mockCreateAmountInputNavDetails).toHaveBeenCalledWith({
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
@@ -134,7 +134,7 @@ describe('useRampNavigation', () => {
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
-      it('does not navigate to AmountInput when assetId is not provided', () => {
+      it('does not navigate to BuildQuote when assetId is not provided', () => {
         mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
@@ -148,12 +148,12 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy();
 
-        expect(mockCreateAmountInputNavDetails).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       });
 
-      it('does not navigate to AmountInput when overrideUnifiedRouting is true', () => {
+      it('does not navigate to BuildQuote when overrideUnifiedRouting is true', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [Routes.RAMP.BUY] as const;
         mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
@@ -162,7 +162,7 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(intent, { overrideUnifiedRouting: true });
 
-        expect(mockCreateAmountInputNavDetails).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
           AggregatorRampType.BUY,
           intent,
@@ -180,13 +180,13 @@ describe('useRampNavigation', () => {
           Routes.RAMP.AMOUNT_INPUT,
           { assetId: intent.assetId },
         ] as const;
-        mockCreateAmountInputNavDetails.mockReturnValue(mockNavDetails);
+        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
         const { result } = renderHookWithProvider(() => useRampNavigation());
 
         result.current.goToBuy(intent);
 
-        expect(mockCreateAmountInputNavDetails).toHaveBeenCalledWith({
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
@@ -206,7 +206,7 @@ describe('useRampNavigation', () => {
           result.current.goToBuy(intent);
 
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockCreateAmountInputNavDetails).not.toHaveBeenCalled();
+          expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });
 
         it('navigates to unsupported modal when routing decision is UNSUPPORTED', () => {
@@ -221,7 +221,7 @@ describe('useRampNavigation', () => {
           result.current.goToBuy(intent);
 
           expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockCreateAmountInputNavDetails).not.toHaveBeenCalled();
+          expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
         });
       });
     });

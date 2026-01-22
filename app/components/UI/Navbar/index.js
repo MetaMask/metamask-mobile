@@ -1982,7 +1982,7 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
 }
 
 /**
- * Function that returns the navigation options for the Ramps Amount Input screen
+ * Function that returns the navigation options for the Ramps Build Quote screen
  *
  * @param {Object} navigation - Navigation object required to navigate between screens
  * @param {Object} options - Options for the navbar
@@ -1994,7 +1994,7 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
  * @param {Function} [options.onSettingsPress] - Callback for settings button press
  * @returns {Object} - Navigation options object
  */
-export function getRampsAmountInputNavbarOptions(
+export function getRampsBuildQuoteNavbarOptions(
   navigation,
   {
     tokenName,
@@ -2045,7 +2045,7 @@ export function getRampsAmountInputNavbarOptions(
             size={ButtonIconSize.Lg}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
-            testID="amount-input-back-button"
+            testID="build-quote-back-button"
           />
         }
         endAccessory={
@@ -2055,7 +2055,7 @@ export function getRampsAmountInputNavbarOptions(
             size={ButtonIconSize.Lg}
             iconName={IconName.Setting}
             iconColor={IconColor.Default}
-            testID="amount-input-settings-button"
+            testID="build-quote-settings-button"
           />
         }
       >
