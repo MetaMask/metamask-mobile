@@ -133,7 +133,7 @@ describe('useScrollToMerklRewards', () => {
     expect(mockEmitScrollToMerklRewards).not.toHaveBeenCalled();
   });
 
-  it('calculates scroll offset correctly with padding', async () => {
+  it('subtracts padding from Y position when calculating scroll offset', async () => {
     mockRoute.params = { scrollToMerklRewards: true };
     const merklRewardsYInHeaderRef = { current: 1000 };
 
@@ -202,6 +202,66 @@ describe('useScrollToMerklRewards', () => {
     });
 
     // Should not emit again
+    expect(mockEmitScrollToMerklRewards).not.toHaveBeenCalled();
+  });
+
+  it('cancels pending scroll timeout on unmount', async () => {
+    mockRoute.params = { scrollToMerklRewards: true };
+    const merklRewardsYInHeaderRef = { current: 500 };
+
+    const { unmount } = renderHook(() =>
+      useScrollToMerklRewards(merklRewardsYInHeaderRef),
+    );
+
+    // Wait for effect to run
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalled();
+    });
+
+    // Unmount before scroll timeout fires (before 150ms)
+    unmount();
+
+    // Advance timers past the scroll delay
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    // Should NOT have emitted because timeout was cancelled on unmount
+    expect(mockEmitScrollToMerklRewards).not.toHaveBeenCalled();
+  });
+
+  it('cancels pending retry timeouts on unmount', async () => {
+    mockRoute.params = { scrollToMerklRewards: true };
+    const merklRewardsYInHeaderRef: React.MutableRefObject<number | null> = {
+      current: null,
+    };
+
+    const { unmount } = renderHook(() =>
+      useScrollToMerklRewards(merklRewardsYInHeaderRef),
+    );
+
+    // Wait for effect to run
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalled();
+    });
+
+    // Advance to first retry
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+
+    // Unmount during retry phase
+    unmount();
+
+    // Set Y position that would normally trigger scroll
+    merklRewardsYInHeaderRef.current = 600;
+
+    // Advance timers through all remaining retry attempts
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    // Should NOT have emitted because retry timeouts were cancelled
     expect(mockEmitScrollToMerklRewards).not.toHaveBeenCalled();
   });
 });

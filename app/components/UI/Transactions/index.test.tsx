@@ -2524,7 +2524,7 @@ describe('UnconnectedTransactions Scroll to MerklRewards', () => {
     expect(mockScrollToOffset).not.toHaveBeenCalled();
   });
 
-  it('handles scroll errors gracefully', () => {
+  it('logs error and does not crash when scrollToOffset throws', () => {
     const mockError = new Error('Scroll failed');
     mockScrollToOffset.mockImplementation(() => {
       throw mockError;
@@ -2587,7 +2587,7 @@ describe('UnconnectedTransactions Scroll to MerklRewards', () => {
     });
   });
 
-  it('handles undefined y value', () => {
+  it('does not scroll when y value is undefined', () => {
     instance.componentDidMount();
     const scrollCallback = addListenerSpy.mock.calls.find(
       (call) => call[0] === 'scrollToMerklRewards',
@@ -2618,7 +2618,7 @@ describe('UnconnectedTransactions Scroll to MerklRewards', () => {
     expect(mockScrollToOffset).not.toHaveBeenCalled();
   });
 
-  it('handles componentWillUnmount when no listener exists', () => {
+  it('does not throw on unmount when no listener exists', () => {
     // Don't call componentDidMount, so no listener is created
     instance.scrollToMerklRewardsListener = null;
     instance.scrollTimeout = null;
@@ -2627,7 +2627,7 @@ describe('UnconnectedTransactions Scroll to MerklRewards', () => {
     expect(() => instance.componentWillUnmount()).not.toThrow();
   });
 
-  it('handles componentWillUnmount when no pending timeout exists', () => {
+  it('removes listener on unmount when no pending timeout exists', () => {
     instance.componentDidMount();
 
     // Don't trigger any scroll event, so no timeout is pending

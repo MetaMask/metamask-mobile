@@ -19,7 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { selectIsMusdConversionFlowEnabledFlag , selectMerklCampaignClaimingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
@@ -154,7 +154,9 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
+  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
+
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
   selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
@@ -284,6 +286,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isMusdConversionEnabled?: boolean;
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
+    isMerklCampaignClaimingEnabled?: boolean;
   }
 
   function prepareMocks({
@@ -292,6 +295,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isMusdConversionEnabled = false,
     isTokenWithCta = false,
     isGeoEligible = true,
+    isMerklCampaignClaimingEnabled = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
@@ -333,6 +337,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectIsMusdConversionFlowEnabledFlag) {
           return isMusdConversionEnabled;
+        }
+
+        if (selector === selectMerklCampaignClaimingEnabledFlag) {
+          return isMerklCampaignClaimingEnabled;
         }
 
         const selectorString = selector.toString();
@@ -819,6 +827,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       mockIsEligibleForMerklRewards.mockReturnValue(true);
       prepareMocks({
         asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
       });
 
       const assetKey: FlashListAssetKey = {
@@ -897,12 +906,42 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
     });
 
+    it('does not show "Claim bonus" CTA when feature flag is disabled', () => {
+      // Arrange
+      mockClaimableReward = '100.50';
+      mockIsEligibleForMerklRewards.mockReturnValue(true);
+      prepareMocks({
+        asset: musdAsset,
+        isMerklCampaignClaimingEnabled: false,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: musdAsset.address,
+        chainId: musdAsset.chainId,
+        isStaked: false,
+      };
+
+      // Act
+      const { queryByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      // Assert
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+    });
+
     it('navigates with scrollToMerklRewards when "Claim bonus" CTA is pressed', async () => {
       // Arrange
       mockClaimableReward = '100.50';
       mockIsEligibleForMerklRewards.mockReturnValue(true);
       prepareMocks({
         asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
       });
 
       const assetKey: FlashListAssetKey = {
@@ -939,6 +978,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: musdAsset,
         pricePercentChange1d: 5.67,
+        isMerklCampaignClaimingEnabled: true,
       });
 
       const assetKey: FlashListAssetKey = {

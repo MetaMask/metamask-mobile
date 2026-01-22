@@ -24,7 +24,10 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectStablecoinLendingEnabledFlag,
+  selectMerklCampaignClaimingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -134,8 +137,11 @@ export const TokenListItem = React.memo(
     );
 
     // Check for claimable Merkl rewards
+    const isMerklCampaignClaimingEnabled = useSelector(
+      selectMerklCampaignClaimingEnabledFlag,
+    );
     const { claimableReward } = useMerklRewards({
-      asset: asset as TokenI,
+      asset,
     });
 
     const isEligibleForMerkl = useMemo(
@@ -149,7 +155,9 @@ export const TokenListItem = React.memo(
       [asset?.chainId, asset?.address],
     );
 
-    const hasClaimableBonus = Boolean(claimableReward && isEligibleForMerkl);
+    const hasClaimableBonus = Boolean(
+      isMerklCampaignClaimingEnabled && claimableReward && isEligibleForMerkl,
+    );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 

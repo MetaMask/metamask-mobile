@@ -24,6 +24,18 @@ export const useScrollToMerklRewards = (
   const route = useRoute();
   const navigation = useNavigation();
   const hasScrolledRef = useRef(false);
+  // Track all pending timeouts so they can be cancelled on cleanup
+  const pendingTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(
+    new Set(),
+  );
+
+  /**
+   * Clears all pending timeouts to prevent stale scroll events
+   */
+  const clearAllTimeouts = useCallback(() => {
+    pendingTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+    pendingTimeoutsRef.current.clear();
+  }, []);
 
   /**
    * Emits scroll event with calculated scroll position
@@ -33,9 +45,11 @@ export const useScrollToMerklRewards = (
   const emitScrollEvent = useCallback((scrollY: number) => {
     // Schedule scroll after a delay to ensure FlatList is ready
     // The delay accounts for requestAnimationFrame and InteractionManager timing
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      pendingTimeoutsRef.current.delete(timeoutId);
       emitScrollToMerklRewards(scrollY);
     }, SCROLL_DELAY_MS);
+    pendingTimeoutsRef.current.add(timeoutId);
   }, []);
 
   /**
@@ -57,7 +71,11 @@ export const useScrollToMerklRewards = (
         emitScrollEvent(scrollY);
       } else if (retryCount < MAX_RETRIES) {
         // Retry if layout hasn't been measured yet
-        setTimeout(() => attemptScroll(retryCount + 1), RETRY_DELAY_MS);
+        const timeoutId = setTimeout(() => {
+          pendingTimeoutsRef.current.delete(timeoutId);
+          attemptScroll(retryCount + 1);
+        }, RETRY_DELAY_MS);
+        pendingTimeoutsRef.current.add(timeoutId);
       }
     },
     [merklRewardsYInHeaderRef, emitScrollEvent],
@@ -84,11 +102,12 @@ export const useScrollToMerklRewards = (
         attemptScroll();
       }
 
-      // Reset the scroll flag when component loses focus (user navigates away)
+      // Cleanup: cancel pending timeouts and reset scroll flag when losing focus
       return () => {
+        clearAllTimeouts();
         hasScrolledRef.current = false;
       };
-    }, [route.params, navigation, attemptScroll]),
+    }, [route.params, navigation, attemptScroll, clearAllTimeouts]),
   );
 
   return {
