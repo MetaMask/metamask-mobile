@@ -3,16 +3,11 @@ import Keypad, { KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import { Box } from '../../../Box/Box';
 import { swapsKeypadStyles as styles } from './styles';
 import { QuickPickButtons } from './QuickPickButtons';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
-import { selectIsGaslessSwapEnabled } from '../../../../../core/redux/slices/bridge';
 import { QuickPickButtonOption } from './types';
-import { useTokenAddress } from '../../hooks/useTokenAddress';
-import { isNativeAddress } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BigNumber } from 'bignumber.js';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 
 interface SwapsKeypadProps {
   value: string;
@@ -22,6 +17,7 @@ interface SwapsKeypadProps {
   token?: BridgeToken;
   tokenBalance: ReturnType<typeof useLatestBalance>;
   onMaxPress: () => void;
+  isQuoteSponsored?: boolean;
 }
 
 export const SwapsKeypad = ({
@@ -32,18 +28,8 @@ export const SwapsKeypad = ({
   token,
   tokenBalance,
   onMaxPress,
+  isQuoteSponsored,
 }: SwapsKeypadProps) => {
-  const tokenAddress = useTokenAddress(token);
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
-  const isNativeAsset = useMemo(
-    () => isNativeAddress(tokenAddress),
-    [tokenAddress],
-  );
-
-  const isGaslessSwapEnabled = useSelector((state: RootState) =>
-    token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
-  );
-
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
       if (!tokenBalance?.displayBalance) return '0';
@@ -107,14 +93,18 @@ export const SwapsKeypad = ({
   );
 
   const shouldHideQuickPickOptions = useMemo(
-    () => new BigNumber(tokenBalance?.displayBalance ?? 0).eq(0),
+    () => new BigNumber(tokenBalance?.displayBalance || 0).eq(0),
     [tokenBalance],
   );
 
-  const quickPickOptions =
-    (!isNativeAsset || isGaslessSwapEnabled) && stxEnabled
-      ? gasslessQuickPickOptions
-      : standardQuickPickOptions;
+  const shouldRenderMaxOption = useShouldRenderMaxOption(
+    token,
+    tokenBalance?.displayBalance,
+    isQuoteSponsored,
+  );
+  const quickPickOptions = shouldRenderMaxOption
+    ? gasslessQuickPickOptions
+    : standardQuickPickOptions;
 
   return (
     <Box style={styles.keypadContainer}>

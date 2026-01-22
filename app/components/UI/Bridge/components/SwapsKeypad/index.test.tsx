@@ -5,34 +5,17 @@ import { Keys } from '../../../../Base/Keypad';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'ethers';
-import { useSelector } from 'react-redux';
-import { useTokenAddress } from '../../hooks/useTokenAddress';
-import { isNativeAddress } from '@metamask/bridge-controller';
 
 // Mock dependencies
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
+  useShouldRenderMaxOption: jest.fn(() => true),
 }));
 
-jest.mock('../../hooks/useTokenAddress', () => ({
-  useTokenAddress: jest.fn(),
-}));
-
-jest.mock('@metamask/bridge-controller', () => ({
-  isNativeAddress: jest.fn(),
-}));
-
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectIsGaslessSwapEnabled: jest.fn(),
-}));
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseTokenAddress = useTokenAddress as jest.MockedFunction<
-  typeof useTokenAddress
->;
-const mockIsNativeAddress = isNativeAddress as jest.MockedFunction<
-  typeof isNativeAddress
->;
+import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
+const mockUseShouldRenderMaxOption =
+  useShouldRenderMaxOption as jest.MockedFunction<
+    typeof useShouldRenderMaxOption
+  >;
 
 describe('SwapsKeypad', () => {
   const mockOnChange = jest.fn();
@@ -51,15 +34,8 @@ describe('SwapsKeypad', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    // By default, stxEnabled (first call) returns true, isGaslessSwapEnabled (second call) returns false
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      return callCount === 1;
-    });
-    mockUseTokenAddress.mockReturnValue(mockToken.address);
-    mockIsNativeAddress.mockReturnValue(false);
+    mockUseShouldRenderMaxOption.mockReset();
+    mockUseShouldRenderMaxOption.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -124,8 +100,8 @@ describe('SwapsKeypad', () => {
       expect(queryByText('Max')).toBeNull();
     });
 
-    it('renders Max button for gasless swap enabled', () => {
-      mockUseSelector.mockReturnValue(true);
+    it('renders Max button when useShouldRenderMaxOption returns true', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText, queryByText } = render(
         <SwapsKeypad
@@ -141,30 +117,15 @@ describe('SwapsKeypad', () => {
 
       expect(getByText('Max')).toBeTruthy();
       expect(queryByText('90%')).toBeNull();
-    });
-
-    it('renders Max button for non-native token', () => {
-      mockIsNativeAddress.mockReturnValue(false);
-
-      const { getByText, queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        mockToken,
+        mockTokenBalance.displayBalance,
+        undefined,
       );
-
-      expect(getByText('Max')).toBeTruthy();
-      expect(queryByText('90%')).toBeNull();
     });
 
-    it('renders 90% button for native token without gasless swap', () => {
-      mockIsNativeAddress.mockReturnValue(true);
-      mockUseSelector.mockImplementation(() => false);
+    it('renders 90% button when useShouldRenderMaxOption returns false', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(false);
 
       const { getByText, queryByText } = render(
         <SwapsKeypad
@@ -180,6 +141,35 @@ describe('SwapsKeypad', () => {
 
       expect(getByText('90%')).toBeTruthy();
       expect(queryByText('Max')).toBeNull();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        mockToken,
+        mockTokenBalance.displayBalance,
+        undefined,
+      );
+    });
+
+    it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+
+      const { getByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+          isQuoteSponsored
+        />,
+      );
+
+      expect(getByText('Max')).toBeTruthy();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        mockToken,
+        mockTokenBalance.displayBalance,
+        true,
+      );
     });
   });
 
@@ -285,7 +275,7 @@ describe('SwapsKeypad', () => {
 
   describe('Max button functionality', () => {
     it('calls onMaxPress when Max button is clicked', () => {
-      mockIsNativeAddress.mockReturnValue(false);
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText } = render(
         <SwapsKeypad
@@ -306,30 +296,6 @@ describe('SwapsKeypad', () => {
       });
 
       expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders Max button when gasless swap is enabled for native token', () => {
-      mockIsNativeAddress.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector) => {
-        if (typeof selector === 'function') {
-          return true;
-        }
-        return undefined;
-      });
-
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      expect(getByText('Max')).toBeTruthy();
     });
   });
 
@@ -468,144 +434,9 @@ describe('SwapsKeypad', () => {
     });
   });
 
-  describe('quick pick button selection logic', () => {
-    it('selects gasless quick pick options when not native asset', () => {
-      mockIsNativeAddress.mockReturnValue(false);
-      // For non-native assets, stxEnabled needs to be true to show Max button
-      let callCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        callCount++;
-        // First call: stxEnabled - true
-        // Second call: isGaslessSwapEnabled - false (doesn't matter for non-native)
-        return callCount === 1;
-      });
-
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      expect(getByText('Max')).toBeTruthy();
-    });
-
-    it('selects standard quick pick options when native asset and gasless disabled', () => {
-      mockIsNativeAddress.mockReturnValue(true);
-      mockUseSelector.mockImplementation(() => false);
-
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      expect(getByText('90%')).toBeTruthy();
-    });
-
-    it('selects gasless quick pick options when native asset but gasless enabled', () => {
-      mockIsNativeAddress.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector) => {
-        if (typeof selector === 'function') {
-          return true;
-        }
-        return undefined;
-      });
-
-      const { getByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      expect(getByText('Max')).toBeTruthy();
-    });
-  });
-
-  describe('token address handling', () => {
-    it('uses correct token address from useTokenAddress hook', () => {
-      const customAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
-      mockUseTokenAddress.mockReturnValue(customAddress);
-
-      render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      expect(mockUseTokenAddress).toHaveBeenCalledWith(mockToken);
-      expect(mockIsNativeAddress).toHaveBeenCalledWith(customAddress);
-    });
-
-    it('handles token address changes correctly', () => {
-      const { rerender } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      const newToken = { ...mockToken, address: '0xnewaddress' };
-      mockUseTokenAddress.mockReturnValue(newToken.address);
-
-      rerender(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={newToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      expect(mockUseTokenAddress).toHaveBeenCalledWith(newToken);
-    });
-  });
-
-  describe('Smart transactions disabled scenarios', () => {
-    beforeEach(() => {
-      mockUseTokenAddress.mockReturnValue(mockToken.address);
-    });
-
-    it('shows 90% button for native token when smart transactions disabled even if gasless is enabled', () => {
-      mockIsNativeAddress.mockReturnValue(true);
-      let callCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        callCount++;
-        // First call: stxEnabled - false
-        // Second call: isGaslessSwapEnabled - true
-        return callCount !== 1;
-      });
+  describe('Quick pick options with useShouldRenderMaxOption hook', () => {
+    it('shows Max button when useShouldRenderMaxOption returns true', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText, queryByText } = render(
         <SwapsKeypad
@@ -619,74 +450,17 @@ describe('SwapsKeypad', () => {
         />,
       );
 
-      // Should show 90% button when STX is disabled, even if gasless is enabled
-      expect(getByText('90%')).toBeTruthy();
-      expect(queryByText('Max')).toBeNull();
-    });
-
-    it('shows 90% button for non-native token when smart transactions disabled even if gasless is enabled', () => {
-      mockIsNativeAddress.mockReturnValue(false);
-      let callCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        callCount++;
-        // First call: stxEnabled - false
-        // Second call: isGaslessSwapEnabled - true
-        return callCount !== 1;
-      });
-
-      const { getByText, queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      // Should show 90% button when STX is disabled, even for non-native tokens
-      expect(getByText('90%')).toBeTruthy();
-      expect(queryByText('Max')).toBeNull();
-    });
-
-    it('shows Max button when smart transactions enabled, for non-native token regardless of gasless', () => {
-      mockIsNativeAddress.mockReturnValue(false);
-      let callCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        callCount++;
-        // First call: stxEnabled - true
-        // Second call: isGaslessSwapEnabled - false
-        return callCount === 1;
-      });
-
-      const { getByText, queryByText } = render(
-        <SwapsKeypad
-          value="0"
-          currency="native"
-          decimals={18}
-          onChange={mockOnChange}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
-      );
-
-      // Should show Max button for non-native when STX is enabled
       expect(getByText('Max')).toBeTruthy();
       expect(queryByText('90%')).toBeNull();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        mockToken,
+        mockTokenBalance.displayBalance,
+        undefined,
+      );
     });
 
-    it('shows 90% button for native token when smart transactions enabled but gasless disabled', () => {
-      mockIsNativeAddress.mockReturnValue(true);
-      let callCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        callCount++;
-        // First call: stxEnabled - true
-        // Second call: isGaslessSwapEnabled - false
-        return callCount === 1;
-      });
+    it('shows 90% button when useShouldRenderMaxOption returns false', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(false);
 
       const { getByText, queryByText } = render(
         <SwapsKeypad
@@ -700,16 +474,74 @@ describe('SwapsKeypad', () => {
         />,
       );
 
-      // Should show 90% button for native token when gasless is disabled
       expect(getByText('90%')).toBeTruthy();
       expect(queryByText('Max')).toBeNull();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        mockToken,
+        mockTokenBalance.displayBalance,
+        undefined,
+      );
     });
 
-    it('shows Max button for native token when both smart transactions and gasless are enabled', () => {
-      mockIsNativeAddress.mockReturnValue(true);
-      mockUseSelector.mockReturnValue(true); // Both true
+    it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
 
-      const { getByText, queryByText } = render(
+      const { getByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+          isQuoteSponsored
+        />,
+      );
+
+      expect(getByText('Max')).toBeTruthy();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        mockToken,
+        mockTokenBalance.displayBalance,
+        true,
+      );
+    });
+
+    it('hides quick pick buttons when displayBalance is zero', () => {
+      const zeroBalance = {
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      };
+      mockUseShouldRenderMaxOption.mockReturnValue(false);
+
+      const { queryByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={zeroBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      expect(queryByText('25%')).toBeNull();
+      expect(queryByText('50%')).toBeNull();
+      expect(queryByText('75%')).toBeNull();
+      expect(queryByText('Max')).toBeNull();
+      expect(queryByText('90%')).toBeNull();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        mockToken,
+        zeroBalance.displayBalance,
+        undefined,
+      );
+    });
+
+    it('quick pick buttons calculate correct percentages with Max button', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+
+      const { getByText } = render(
         <SwapsKeypad
           value="0"
           currency="native"
@@ -721,9 +553,80 @@ describe('SwapsKeypad', () => {
         />,
       );
 
-      // Should show Max button when both conditions are met
-      expect(getByText('Max')).toBeTruthy();
-      expect(queryByText('90%')).toBeNull();
+      // Test 25% button
+      act(() => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: '25.125', // 25% of 100.5
+          valueAsNumber: 25.125,
+          pressedKey: Keys.Initial,
+        }),
+      );
+
+      // Test 50% button
+      act(() => {
+        fireEvent.press(getByText('50%'));
+      });
+
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: '50.25', // 50% of 100.5
+          valueAsNumber: 50.25,
+          pressedKey: Keys.Initial,
+        }),
+      );
+
+      // Test 75% button
+      act(() => {
+        fireEvent.press(getByText('75%'));
+      });
+
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: '75.375', // 75% of 100.5
+          valueAsNumber: 75.375,
+          pressedKey: Keys.Initial,
+        }),
+      );
+
+      // Test Max button calls onMaxPress
+      act(() => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('quick pick buttons calculate correct percentages with 90% button', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(false);
+
+      const { getByText } = render(
+        <SwapsKeypad
+          value="0"
+          currency="native"
+          decimals={18}
+          onChange={mockOnChange}
+          token={mockToken}
+          tokenBalance={mockTokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />,
+      );
+
+      // Test 90% button
+      act(() => {
+        fireEvent.press(getByText('90%'));
+      });
+
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: '90.45', // 90% of 100.5
+          valueAsNumber: 90.45,
+          pressedKey: Keys.Initial,
+        }),
+      );
     });
   });
 });

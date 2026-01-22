@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -33,9 +33,7 @@ import { useNavigation } from '@react-navigation/native';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
-  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -49,7 +47,7 @@ import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import parseAmount from '../../../../../util/parseAmount';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -225,10 +223,6 @@ export const TokenInputArea = forwardRef<
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
-    const stxEnabled = useSelector(selectShouldUseSmartTransaction);
-    const isGaslessSwapEnabled = useSelector((state: RootState) =>
-      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
-    );
 
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -308,14 +302,12 @@ export const TokenInputArea = forwardRef<
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    const shouldShowMaxButton = useMemo(() => {
-      // Always show for non-native tokens
-      if (!isNativeAsset) return true;
+    const shouldShowMaxButton = useShouldRenderMaxOption(
+      token,
+      tokenBalance,
+      isQuoteSponsored,
+    );
 
-      // Show for native tokens if gasless swap is enabled OR quote is sponsored
-      // while smart transactions is enabled.
-      return (isGaslessSwapEnabled || isQuoteSponsored) && stxEnabled;
-    }, [isNativeAsset, isGaslessSwapEnabled, isQuoteSponsored, stxEnabled]);
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
@@ -404,7 +396,6 @@ export const TokenInputArea = forwardRef<
                 <Box
                   flexDirection={
                     tokenType === TokenInputAreaType.Source &&
-                    tokenBalance &&
                     onMaxPress &&
                     shouldShowMaxButton
                       ? FlexDirection.Row

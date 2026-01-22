@@ -16,11 +16,15 @@ jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
-const mockSelectShouldUseSmartTransaction = jest.fn((_state) => true);
-jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  ...jest.requireActual('../../../../../selectors/smartTransactionsController'),
-  selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction,
+jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
+  useShouldRenderMaxOption: jest.fn(() => true),
 }));
+
+import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
+const mockUseShouldRenderMaxOption =
+  useShouldRenderMaxOption as jest.MockedFunction<
+    typeof useShouldRenderMaxOption
+  >;
 
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();
@@ -31,6 +35,7 @@ const mockOnMaxPress = jest.fn();
 describe('TokenInputArea', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseShouldRenderMaxOption.mockReturnValue(true);
   });
 
   it('renders with initial state', () => {
@@ -185,6 +190,9 @@ describe('TokenInputArea', () => {
       },
     };
 
+    // Mock hook to return false since gasless is disabled for native token
+    mockUseShouldRenderMaxOption.mockReturnValue(false);
+
     const { queryByText } = renderScreen(
       () => (
         <TokenInputArea
@@ -291,6 +299,9 @@ describe('TokenInputArea', () => {
       },
     };
 
+    // Mock hook to return false since gasless is disabled for native Polygon token
+    mockUseShouldRenderMaxOption.mockReturnValue(false);
+
     const { queryByText } = renderScreen(
       () => (
         <TokenInputArea
@@ -384,7 +395,7 @@ describe('TokenInputArea', () => {
     expect(getByText('Max')).toBeTruthy();
   });
 
-  describe('Smart transactions disabled scenarios', () => {
+  describe('Max button visibility with useShouldRenderMaxOption hook', () => {
     const nativeToken: BridgeToken = {
       address: '0x0000000000000000000000000000000000000000',
       symbol: 'ETH',
@@ -393,62 +404,17 @@ describe('TokenInputArea', () => {
     };
     const tokenBalance = '1.5';
 
-    // Create state with smart transactions disabled
-    const stateWithSTXDisabled = {
-      ...initialState,
-      swaps: {
-        isLive: true,
-        hasOnboarded: true,
-        featureFlags: {
-          smartTransactions: {
-            mobileActive: false,
-            mobileActiveIOS: false,
-            mobileActiveAndroid: false,
-          },
-        },
-        '0x1': {
-          isLive: true,
-          featureFlags: {
-            smartTransactions: {
-              mobileActive: false,
-              mobileActiveIOS: false,
-              mobileActiveAndroid: false,
-            },
-          },
-        },
-      },
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          PreferencesController: {
-            ...initialState.engine.backgroundState.PreferencesController,
-            smartTransactionsOptInStatus: false,
-          },
-          SmartTransactionsController: {
-            ...initialState.engine.backgroundState.SmartTransactionsController,
-            smartTransactionsState: {
-              liveness: false,
-              livenessByChainId: {
-                '0x1': false,
-              },
-            },
-          },
-        },
-      },
-    };
-
     beforeEach(() => {
-      // Override mock to return false for this test suite
-      mockSelectShouldUseSmartTransaction.mockImplementation((_state) => false);
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
     });
 
     afterEach(() => {
-      // Reset mock to default (true)
-      mockSelectShouldUseSmartTransaction.mockImplementation((_state) => true);
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
     });
 
-    it('does not display max button for native token when smart transactions disabled even if gasless is enabled', () => {
+    it('does not display max button when useShouldRenderMaxOption returns false', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(false);
+
       const { queryByText } = renderScreen(
         () => (
           <TokenInputArea
@@ -462,15 +428,48 @@ describe('TokenInputArea', () => {
         {
           name: 'TokenInputArea',
         },
-        { state: stateWithSTXDisabled },
+        { state: initialState },
       );
 
-      // Even with gasless enabled (in initialState), Max button should not show when STX is disabled
       expect(queryByText('Max')).toBeNull();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        nativeToken,
+        tokenBalance,
+        false,
+      );
     });
 
-    it('does not display max button for native token when smart transactions disabled and quote is sponsored', () => {
-      const { queryByText } = renderScreen(
+    it('displays max button when useShouldRenderMaxOption returns true', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+
+      const { getByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      expect(getByText('Max')).toBeTruthy();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        nativeToken,
+        tokenBalance,
+        false,
+      );
+    });
+
+    it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+
+      renderScreen(
         () => (
           <TokenInputArea
             testID="token-input"
@@ -484,27 +483,23 @@ describe('TokenInputArea', () => {
         {
           name: 'TokenInputArea',
         },
-        { state: stateWithSTXDisabled },
+        { state: initialState },
       );
 
-      // Even with sponsored quote, Max button should not show when STX is disabled
-      expect(queryByText('Max')).toBeNull();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        nativeToken,
+        tokenBalance,
+        true,
+      );
     });
 
-    it('always displays max button for non-native tokens even when smart transactions disabled', () => {
-      const nonNativeToken: BridgeToken = {
-        address: '0x1234567890123456789012345678901234567890',
-        symbol: 'TEST',
-        decimals: 18,
-        chainId: '0x1' as `0x${string}`,
-      };
-
-      const { getByText } = renderScreen(
+    it('does not display max button for destination token', () => {
+      const { queryByText } = renderScreen(
         () => (
           <TokenInputArea
             testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={nonNativeToken}
+            tokenType={TokenInputAreaType.Destination}
+            token={nativeToken}
             tokenBalance={tokenBalance}
             onMaxPress={mockOnMaxPress}
           />
@@ -512,11 +507,11 @@ describe('TokenInputArea', () => {
         {
           name: 'TokenInputArea',
         },
-        { state: stateWithSTXDisabled },
+        { state: initialState },
       );
 
-      // Non-native tokens always show max button regardless of STX status
-      expect(getByText('Max')).toBeTruthy();
+      // Destination tokens never show max button
+      expect(queryByText('Max')).toBeNull();
     });
   });
 });
