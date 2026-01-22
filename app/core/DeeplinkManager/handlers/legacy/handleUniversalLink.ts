@@ -10,7 +10,10 @@ import {
   MISSING,
   VALID,
 } from '../../utils/verifySignature';
-import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
+import {
+  DeepLinkModalLinkType,
+  type DeepLinkModalParams,
+} from '../../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../../util/general';
@@ -29,6 +32,23 @@ import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleTrendingUrl } from './handleTrendingUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
+import {
+  createDeepLinkUsedEventBuilder,
+  mapSupportedActionToRoute,
+} from '../../util/deeplinks/deepLinkAnalytics';
+import {
+  DeepLinkAnalyticsContext,
+  SignatureStatus,
+  InterstitialState,
+  BranchParams,
+  DeepLinkRoute,
+} from '../../types/deepLinkAnalytics.types';
+import { isSupportedAction } from '../../types/deepLink.types';
+import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
+import ReduxService from '../../../redux';
+import { analytics } from '../../../../util/analytics/analytics';
+import branch from 'react-native-branch';
+import Logger from '../../../../util/Logger';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -36,33 +56,36 @@ const {
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
-enum SUPPORTED_ACTIONS {
-  DAPP = ACTIONS.DAPP,
-  BUY = ACTIONS.BUY,
-  BUY_CRYPTO = ACTIONS.BUY_CRYPTO,
-  SELL = ACTIONS.SELL,
-  SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
-  DEPOSIT = ACTIONS.DEPOSIT,
-  HOME = ACTIONS.HOME,
-  SWAP = ACTIONS.SWAP,
-  SEND = ACTIONS.SEND,
-  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
-  PERPS = ACTIONS.PERPS,
-  PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
-  PERPS_ASSET = ACTIONS.PERPS_ASSET,
-  REWARDS = ACTIONS.REWARDS,
-  PREDICT = ACTIONS.PREDICT,
-  WC = ACTIONS.WC,
-  ONBOARDING = ACTIONS.ONBOARDING,
-  ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
-  CARD_ONBOARDING = ACTIONS.CARD_ONBOARDING,
-  CARD_HOME = ACTIONS.CARD_HOME,
-  TRENDING = ACTIONS.TRENDING,
+const SUPPORTED_ACTIONS = {
+  DAPP: ACTIONS.DAPP,
+  BUY: ACTIONS.BUY,
+  BUY_CRYPTO: ACTIONS.BUY_CRYPTO,
+  SELL: ACTIONS.SELL,
+  SELL_CRYPTO: ACTIONS.SELL_CRYPTO,
+  DEPOSIT: ACTIONS.DEPOSIT,
+  HOME: ACTIONS.HOME,
+  SWAP: ACTIONS.SWAP,
+  SEND: ACTIONS.SEND,
+  CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
+  PERPS: ACTIONS.PERPS,
+  PERPS_MARKETS: ACTIONS.PERPS_MARKETS,
+  PERPS_ASSET: ACTIONS.PERPS_ASSET,
+  REWARDS: ACTIONS.REWARDS,
+  PREDICT: ACTIONS.PREDICT,
+  WC: ACTIONS.WC,
+  ONBOARDING: ACTIONS.ONBOARDING,
+  ENABLE_CARD_BUTTON: ACTIONS.ENABLE_CARD_BUTTON,
+  CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
+  CARD_HOME: ACTIONS.CARD_HOME,
+  TRENDING: ACTIONS.TRENDING,
   // MetaMask SDK specific actions
-  ANDROID_SDK = ACTIONS.ANDROID_SDK,
-  CONNECT = ACTIONS.CONNECT,
-  MMSDK = ACTIONS.MMSDK,
-}
+  ANDROID_SDK: ACTIONS.ANDROID_SDK,
+  CONNECT: ACTIONS.CONNECT,
+  MMSDK: ACTIONS.MMSDK,
+} as const;
+
+type SUPPORTED_ACTIONS =
+  (typeof SUPPORTED_ACTIONS)[keyof typeof SUPPORTED_ACTIONS];
 
 /**
  * Actions that should not show the deep link INTERSTITIAL modal
@@ -96,6 +119,27 @@ const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
 ] as string[];
+
+/**
+ * Helper function to track deep link analytics asynchronously without blocking
+ * @param analyticsContext - The deep link analytics context
+ */
+const trackDeepLinkAnalytics = (
+  analyticsContext: DeepLinkAnalyticsContext,
+): void => {
+  createDeepLinkUsedEventBuilder(analyticsContext)
+    .then((eventBuilder) => {
+      const event = eventBuilder.build();
+      analytics.trackEvent(event);
+      DevLogger.log(
+        'DeepLinkAnalytics: Tracked consolidated deep link event:',
+        event,
+      );
+    })
+    .catch((error) => {
+      DevLogger.log('DeepLinkAnalytics: Failed to track analytics:', error);
+    });
+};
 
 async function handleUniversalLink({
   instance,
@@ -216,6 +260,93 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
+  // Extract URL params once (will be used for analytics)
+  const { params } = extractURLParams(url);
+
+  /**
+   * Branch.io parameters for analytics context.
+   * Fetched once and reused across all analytics contexts to avoid duplicate API calls.
+   * May be undefined if fetch fails, times out, or returns empty/null data.
+   * Used by detectAppInstallation to determine app installation status.
+   */
+  let branchParams: BranchParams | undefined;
+  try {
+    // Add timeout to prevent blocking deep link processing
+    const rawParams = await Promise.race([
+      branch.getLatestReferringParams(),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Branch.io params fetch timeout')),
+          500,
+        ),
+      ),
+    ]);
+
+    // Validate before casting - handle null/empty edge cases
+    if (
+      rawParams &&
+      typeof rawParams === 'object' &&
+      Object.keys(rawParams).length > 0
+    ) {
+      branchParams = rawParams as BranchParams;
+    }
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'DeepLinkManager: Error getting Branch.io params',
+    );
+    // branchParams remains undefined
+  }
+
+  // Build analytics context - determine signature status
+  // Check if signature parameter exists and has a value
+  const sigParam = validatedUrl.searchParams.get('sig');
+  const hasValidSignature = sigParam && sigParam.trim() !== '';
+  let signatureStatus: SignatureStatus;
+  if (isPrivateLink && hasValidSignature) {
+    signatureStatus = SignatureStatus.VALID;
+  } else if (hasValidSignature) {
+    signatureStatus = SignatureStatus.INVALID;
+  } else {
+    signatureStatus = SignatureStatus.MISSING;
+  }
+
+  // Type guard to ensure action is a SupportedAction before mapping
+  const route = isSupportedAction(action)
+    ? mapSupportedActionToRoute(action)
+    : DeepLinkRoute.INVALID;
+
+  // Get interstitial disabled state safely
+  let interstitialDisabled = false;
+  try {
+    interstitialDisabled = selectDeepLinkModalDisabled(
+      ReduxService.store.getState(),
+    );
+  } catch (error) {
+    // Fallback if Redux store is not available (e.g., in tests)
+    DevLogger.log(
+      'DeepLinkManager: Error getting interstitial disabled state:',
+      error,
+    );
+  }
+
+  // Track analytics for whitelisted actions (they skip the modal)
+  if (WHITELISTED_ACTIONS.includes(action)) {
+    const analyticsContext: DeepLinkAnalyticsContext = {
+      url,
+      route,
+      urlParams: params || {},
+      branchParams,
+      signatureStatus,
+      interstitialShown: false,
+      interstitialDisabled,
+      interstitialAction: InterstitialState.ACCEPTED,
+    };
+
+    // Track analytics asynchronously without blocking
+    trackDeepLinkAnalytics(analyticsContext);
+  }
+
   const shouldProceed =
     WHITELISTED_ACTIONS.includes(action) ||
     (await new Promise<boolean>((resolve) => {
@@ -226,29 +357,108 @@ async function handleUniversalLink({
         capitalize(sanitizedAction?.toLowerCase()) || '';
 
       const validatedUrlString = validatedUrl.toString();
-      if (
-        interstitialWhitelistUrls.some((u) => validatedUrlString.startsWith(u))
-      ) {
-        resolve(true);
-        return;
-      }
-
-      // bypass redirect modalif link originated from within this app AND is signed
+      const isWhitelistedUrl = interstitialWhitelistUrls.some((u) =>
+        validatedUrlString.startsWith(u),
+      );
       const linkInstanceType = linkType();
-      if (
+      const isInAppSourceWithPrivateLink =
         inAppLinkSources.includes(source) &&
-        linkInstanceType === DeepLinkModalLinkType.PRIVATE
-      ) {
+        linkInstanceType === DeepLinkModalLinkType.PRIVATE;
+
+      // Build analytics context - interstitialShown starts as false, set to true when modal is actually shown
+      // interstitialAction will be set when user takes action
+      const analyticsContext: DeepLinkAnalyticsContext = {
+        url,
+        route,
+        urlParams: params || {},
+        branchParams,
+        signatureStatus,
+        interstitialShown: false, // Initially false, will be set to true when modal is shown
+        interstitialDisabled,
+        // interstitialAction is undefined initially, set when user takes action
+      };
+
+      // Track analytics for skipped cases (whitelisted URLs or in-app sources with private links)
+      if (isWhitelistedUrl || isInAppSourceWithPrivateLink) {
+        analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+        // Track analytics asynchronously without blocking
+        trackDeepLinkAnalytics(analyticsContext);
         resolve(true);
         return;
       }
 
-      handleDeepLinkModalDisplay({
+      // Show modal and track analytics based on user action
+      // For invalid/unsupported links, pass onBack and onContinue callbacks
+      if (
+        linkInstanceType === DeepLinkModalLinkType.INVALID ||
+        linkInstanceType === DeepLinkModalLinkType.UNSUPPORTED
+      ) {
+        const modalParams: DeepLinkModalParams = {
+          linkType: linkInstanceType,
+          onContinue: () => {
+            // Modal was shown and user accepted (invalid/unsupported links always show modal)
+            analyticsContext.interstitialShown = true;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+            // Track analytics before early return
+            trackDeepLinkAnalytics(analyticsContext);
+            resolve(false); // Still resolve false since we're not proceeding with the link
+          },
+          onBack: () => {
+            // Modal was shown and user rejected
+            analyticsContext.interstitialShown = true;
+            analyticsContext.interstitialAction = InterstitialState.REJECTED;
+            // Track analytics before early return
+            trackDeepLinkAnalytics(analyticsContext);
+            resolve(false);
+          },
+        } as DeepLinkModalParams;
+
+        // Pass modal params for display
+        handleDeepLinkModalDisplay(modalParams);
+        return;
+      }
+
+      // For public/private links, pass pageTitle and onContinue
+      const modalParams: DeepLinkModalParams = {
         linkType: linkInstanceType,
         pageTitle,
-        onContinue: () => resolve(true),
-        onBack: () => resolve(false),
-      });
+        onContinue: () => {
+          // Determine if modal was actually shown or auto-accepted due to disabled setting
+          // PUBLIC links always show modal (security requirement), so if we reach onContinue,
+          // the modal was shown regardless of interstitialDisabled setting
+          // PRIVATE links can be auto-accepted (skipped) if interstitialDisabled is true
+          if (linkInstanceType === DeepLinkModalLinkType.PUBLIC) {
+            // PUBLIC links always show modal - modal was shown and user accepted
+            analyticsContext.interstitialShown = true;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+          } else if (
+            linkInstanceType === DeepLinkModalLinkType.PRIVATE &&
+            interstitialDisabled
+          ) {
+            // PRIVATE link with disabled setting - modal was skipped (auto-accepted)
+            analyticsContext.interstitialShown = false;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+          } else {
+            // PRIVATE link without disabled setting - modal was shown and user accepted
+            analyticsContext.interstitialShown = true;
+            analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
+          }
+          // Track analytics asynchronously without blocking
+          trackDeepLinkAnalytics(analyticsContext);
+          resolve(true);
+        },
+        onBack: () => {
+          // Modal was shown and user rejected (onBack only called when modal is shown)
+          analyticsContext.interstitialShown = true;
+          analyticsContext.interstitialAction = InterstitialState.REJECTED;
+          // Track analytics before early return
+          trackDeepLinkAnalytics(analyticsContext);
+          resolve(false);
+        },
+      } as DeepLinkModalParams;
+
+      // Pass modal params for display
+      handleDeepLinkModalDisplay(modalParams);
     }));
 
   // Universal links
@@ -266,10 +476,11 @@ async function handleUniversalLink({
     case SUPPORTED_ACTIONS.BUY:
     case SUPPORTED_ACTIONS.SELL_CRYPTO:
     case SUPPORTED_ACTIONS.SELL: {
-      const buyActions = [SUPPORTED_ACTIONS.BUY_CRYPTO, SUPPORTED_ACTIONS.BUY];
-      const rampType = buyActions.includes(action)
-        ? RampType.BUY
-        : RampType.SELL;
+      const rampType =
+        action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
+        action === SUPPORTED_ACTIONS.BUY
+          ? RampType.BUY
+          : RampType.SELL;
       handleRampUrl({
         rampPath: actionBasedRampPath,
         rampType,
@@ -342,8 +553,8 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.WC: {
-      const { params } = extractURLParams(urlObj.href);
-      const wcURL = params?.uri;
+      const { params: wcParams } = extractURLParams(urlObj.href);
+      const wcURL = wcParams?.uri;
 
       if (wcURL) {
         instance.parse(wcURL, { origin: source });

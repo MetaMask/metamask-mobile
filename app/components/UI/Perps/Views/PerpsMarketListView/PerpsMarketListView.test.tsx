@@ -238,10 +238,9 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     const getSortLabel = (optionId: string) => {
       const translations: Record<string, string> = {
         volume: 'Volume',
-        'priceChange-desc': 'Price Change (High to Low)',
-        'priceChange-asc': 'Price Change (Low to High)',
-        fundingRate: 'Funding Rate',
-        openInterest: 'Open Interest',
+        priceChange: 'Price change',
+        fundingRate: 'Funding rate',
+        openInterest: 'Open interest',
       };
       return translations[optionId] || optionId;
     };
@@ -421,7 +420,10 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
   selectPerpsWatchlistMarkets: jest.fn(() => []),
-  selectPerpsMarketFilterPreferences: jest.fn(() => 'volume'),
+  selectPerpsMarketFilterPreferences: jest.fn(() => ({
+    optionId: 'volume',
+    direction: 'desc',
+  })),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
