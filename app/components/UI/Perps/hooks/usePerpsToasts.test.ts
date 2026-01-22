@@ -666,7 +666,7 @@ describe('usePerpsToasts', () => {
       it('returns close full position success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const mockPosition = {
-          coin: 'ETH',
+          symbol: 'ETH',
           size: '1.5',
           unrealizedPnl: '100',
           returnOnEquity: '0.15',
@@ -740,7 +740,7 @@ describe('usePerpsToasts', () => {
       it('returns partial position close success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const mockPosition = {
-          coin: 'BTC',
+          symbol: 'BTC',
           size: '-0.5',
           unrealizedPnl: '50',
           returnOnEquity: '0.08',

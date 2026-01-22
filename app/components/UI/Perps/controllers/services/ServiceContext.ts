@@ -73,7 +73,7 @@ export interface ServiceContext {
   /**
    * Callback functions for controller-specific operations
    */
-  saveTradeConfiguration?: (coin: string, leverage: number) => void;
+  saveTradeConfiguration?: (symbol: string, leverage: number) => void;
 
   /**
    * Feature flag configuration callbacks
