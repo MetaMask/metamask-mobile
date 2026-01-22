@@ -159,7 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated limit price presets to include Mid and Bid/Ask buttons for quicker price selection (#24069)
 - Re-enabled order book access from perps market details view (#24010)
 - Changed address copy confirmation from modal to Toast notification (#23980)
-- Add Tron Account Change detection support for multichain Api (#23639) (#23639)
+- Add Tron Account Change detection support for multichain Api (#23639)
 - Removed hardcoded mainnet output chainId for mUSD conversion flow (#23704)
 - Add animation for importSRP and create password layout and vice-versa (#24011)
 - Updated mUSD conversion education screen theming (#23949)
