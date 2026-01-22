@@ -9,7 +9,6 @@ import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
-  TRADING_DEFAULTS,
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_DECIMALS,
   USDC_SYMBOL,
@@ -60,8 +59,6 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   }, [networkConfigurations, currentNetwork]);
 
   // Get all tokens with balances across networks
-  // Note: This may throw errors for chains not supported by XChain Swaps (e.g., Linea Sepolia)
-  // The error is handled by React Error Boundary or will be caught at a higher level
   const tokensWithBalance = useTokensWithBalance({ chainIds: allChainIds });
 
   // Filter and enhance tokens
