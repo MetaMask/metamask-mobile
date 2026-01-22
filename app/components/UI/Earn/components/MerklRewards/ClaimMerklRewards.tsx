@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Button,
   ButtonSize,
@@ -7,11 +8,16 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useMerklClaim } from './hooks/useMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import styleSheet from './MerklRewards.styles';
 import { useStyles } from '../../../../../component-library/hooks';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 interface ClaimMerklRewardsProps {
   asset: TokenI;
@@ -26,6 +32,11 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
   onRefetch,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+  );
+
   const {
     claimRewards,
     isClaiming,
@@ -36,6 +47,19 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
   });
 
   const handleClaim = async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED)
+        .addProperties({
+          action_type: 'claim_rewards',
+          token: asset.symbol,
+          chain_id: asset.chainId,
+          network: network?.name,
+          location: 'asset_details',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        })
+        .build(),
+    );
+
     try {
       await claimRewards();
     } catch (error) {

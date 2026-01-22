@@ -52,6 +52,10 @@ export const useMerklClaim = ({
     setIsClaiming(true);
     setError(null);
 
+    // Cleanup function for subscription - using object wrapper to avoid TypeScript narrowing issues
+    // TypeScript doesn't understand Promise executor runs synchronously, so we use an object
+    const subscriptionCleanup = { fn: null as (() => void) | null };
+
     try {
       // Fetch claim data from Merkl API
       const rewardData = await fetchMerklRewardsForAsset(
@@ -107,18 +111,19 @@ export const useMerklClaim = ({
       // We use transactionStatusUpdated to handle all status changes in one place
       // IMPORTANT: Subscribe BEFORE awaiting result.result to avoid race condition
       // on fast L2 chains where tx can confirm before subscription is set up
+
+      // Define handler type for use in unsubscribe before handler is assigned
+      type StatusHandler = ({
+        transactionMeta,
+      }: {
+        transactionMeta: TransactionMeta;
+      }) => void;
+
+      // Declare outside Promise so we can clean up in catch/finally if needed
+      let handleTransactionStatusUpdate: StatusHandler;
+
       const confirmationPromise = new Promise<void>((resolve, reject) => {
         let isResolved = false;
-
-        // Define handler type for use in unsubscribe before handler is assigned
-        type StatusHandler = ({
-          transactionMeta,
-        }: {
-          transactionMeta: TransactionMeta;
-        }) => void;
-
-        // eslint-disable-next-line prefer-const
-        let handleTransactionStatusUpdate: StatusHandler;
 
         const unsubscribe = () => {
           Engine.controllerMessenger.unsubscribe(
@@ -126,6 +131,9 @@ export const useMerklClaim = ({
             handleTransactionStatusUpdate,
           );
         };
+
+        // Expose cleanup for catch/finally blocks
+        subscriptionCleanup.fn = unsubscribe;
 
         handleTransactionStatusUpdate = ({ transactionMeta }) => {
           // Only handle if this is our transaction
@@ -241,6 +249,9 @@ export const useMerklClaim = ({
       setError(errorMessage);
       throw e;
     } finally {
+      // Clean up subscription if it exists and wasn't already cleaned up
+      // This handles the case where result.result throws before a status update
+      subscriptionCleanup.fn?.();
       // Always set isClaiming to false in finally block
       // The listener may have already set it, but this ensures it's cleared
       setIsClaiming(false);

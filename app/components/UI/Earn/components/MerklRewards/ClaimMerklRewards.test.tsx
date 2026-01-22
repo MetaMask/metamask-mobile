@@ -4,6 +4,26 @@ import ClaimMerklRewards from './ClaimMerklRewards';
 import { useMerklClaim } from './hooks/useMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+  MetaMetricsEvents: {
+    EARN_LENDING_WITHDRAW_BUTTON_CLICKED:
+      'Earn Lending Withdraw Button Clicked',
+  },
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => ({ name: 'Ethereum Mainnet' })),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -105,10 +125,15 @@ const mockAsset: TokenI = {
 
 describe('ClaimMerklRewards', () => {
   const mockClaimRewards = jest.fn();
+  const mockEventBuilder = {
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({ event: 'mock-event' }),
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMerklClaimCalls = [];
+    mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
     mockUseMerklClaim.mockImplementation((options) => {
       mockUseMerklClaimCalls.push({
         asset: options.asset,
@@ -216,6 +241,31 @@ describe('ClaimMerklRewards', () => {
     expect(mockUseMerklClaimCalls[0]).toEqual({
       asset: mockAsset,
       onClaimSuccess: undefined,
+    });
+  });
+
+  it('tracks analytics event when claim button is clicked', async () => {
+    mockClaimRewards.mockResolvedValue(undefined);
+
+    const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
+    const claimButton = getByText('Claim');
+
+    fireEvent.press(claimButton);
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        action_type: 'claim_rewards',
+        token: mockAsset.symbol,
+        chain_id: mockAsset.chainId,
+        network: 'Ethereum Mainnet',
+        location: 'asset_details',
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      });
+      expect(mockEventBuilder.build).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
     });
   });
 });
