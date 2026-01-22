@@ -1,0 +1,441 @@
+# Single source of truth for all build configurations
+# Protected by CODEOWNERS: mobile-platform team
+#
+# Usage:
+#   - CI reads this file to configure builds
+#   - Local dev can override via .js.env (takes precedence)
+#   - LaunchDarkly overrides remote_feature_flags at runtime
+#
+# Structure:
+#   - env: sets environment variables directly (servers, feature flags, etc.)
+#   - secrets: maps env var names to GitHub Secret names
+#   - build: platform-specific build settings
+#   - code_fencing: features to include via code fencing
+
+# =============================================================================
+# YAML Anchors (reusable config blocks)
+# =============================================================================
+
+# Common server URLs (prod)
+_servers_prod: &servers_prod
+  PORTFOLIO_API_URL: "https://portfolio.api.cx.metamask.io"
+  SECURITY_ALERTS_API_URL: "https://security-alerts.api.cx.metamask.io"
+  DECODING_API_URL: "https://signature-insights.api.cx.metamask.io/v1"
+  AUTH_SERVICE_URL: "https://auth-service.api.cx.metamask.io"
+  REWARDS_API_URL: "https://rewards.api.cx.metamask.io"
+
+# Common secrets (shared across most builds)
+_secrets_common: &secrets_common
+  MM_SENTRY_AUTH_TOKEN: "MM_SENTRY_AUTH_TOKEN"
+  GOOGLE_SERVICES_B64_IOS: "GOOGLE_SERVICES_B64_IOS"
+  GOOGLE_SERVICES_B64_ANDROID: "GOOGLE_SERVICES_B64_ANDROID"
+  MM_INFURA_PROJECT_ID: "MM_INFURA_PROJECT_ID"
+  WALLET_CONNECT_PROJECT_ID: "WALLET_CONNECT_PROJECT_ID"
+  MM_FOX_CODE: "MM_FOX_CODE"
+  FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+  FEATURES_ANNOUNCEMENTS_SPACE_ID: "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+  FCM_CONFIG_API_KEY: "FCM_CONFIG_API_KEY"
+  FCM_CONFIG_AUTH_DOMAIN: "FCM_CONFIG_AUTH_DOMAIN"
+  FCM_CONFIG_STORAGE_BUCKET: "FCM_CONFIG_STORAGE_BUCKET"
+  FCM_CONFIG_PROJECT_ID: "FCM_CONFIG_PROJECT_ID"
+  FCM_CONFIG_MESSAGING_SENDER_ID: "FCM_CONFIG_MESSAGING_SENDER_ID"
+  FCM_CONFIG_APP_ID: "FCM_CONFIG_APP_ID"
+  FCM_CONFIG_MEASUREMENT_ID: "FCM_CONFIG_MEASUREMENT_ID"
+  QUICKNODE_MAINNET_URL: "QUICKNODE_MAINNET_URL"
+  QUICKNODE_ARBITRUM_URL: "QUICKNODE_ARBITRUM_URL"
+  QUICKNODE_AVALANCHE_URL: "QUICKNODE_AVALANCHE_URL"
+  QUICKNODE_BASE_URL: "QUICKNODE_BASE_URL"
+  QUICKNODE_LINEA_MAINNET_URL: "QUICKNODE_LINEA_MAINNET_URL"
+  QUICKNODE_MONAD_URL: "QUICKNODE_MONAD_URL"
+  QUICKNODE_OPTIMISM_URL: "QUICKNODE_OPTIMISM_URL"
+  QUICKNODE_POLYGON_URL: "QUICKNODE_POLYGON_URL"
+
+# Main code fencing features
+_code_fencing_main: &code_fencing_main
+  - preinstalled-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+
+# Flask code fencing features (includes experimental)
+_code_fencing_flask: &code_fencing_flask
+  - flask
+  - preinstalled-snaps
+  - external-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+
+# =============================================================================
+# Build Configurations
+# =============================================================================
+
+builds:
+  # ---------------------------------------------------------------------------
+  # MAIN BUILDS
+  # ---------------------------------------------------------------------------
+  main-prod:
+    requires_approval: true
+    github_environment: build-production
+
+    env:
+      METAMASK_ENVIRONMENT: "production"
+      METAMASK_BUILD_TYPE: "main"
+      # Servers
+      <<: *servers_prod
+      # Remote feature flags (defaults, overridable by LaunchDarkly or .js.env)
+      MM_PERPS_ENABLED: "false"
+      MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED: "false"
+      MM_PERPS_GTM_MODAL_ENABLED: "false"
+      MM_PERPS_ORDER_BOOK_ENABLED: "false"
+      MM_PERPS_FEEDBACK_ENABLED: "false"
+      MM_PERPS_HIP3_ENABLED: "false"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "false"
+      RAMP_INTERNAL_BUILD: "false"
+      IS_TEST: "false"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN"
+      MM_BRANCH_KEY_LIVE: "MM_BRANCH_KEY_LIVE"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY"
+      IOS_GOOGLE_CLIENT_ID: "IOS_GOOGLE_CLIENT_ID"
+      IOS_GOOGLE_REDIRECT_URI: "IOS_GOOGLE_REDIRECT_URI"
+      ANDROID_APPLE_CLIENT_ID: "ANDROID_APPLE_CLIENT_ID"
+      ANDROID_GOOGLE_CLIENT_ID: "ANDROID_GOOGLE_CLIENT_ID"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+
+    build:
+      android:
+        keystore: "mainProd"
+        package_name: "io.metamask"
+      ios:
+        scheme: "MetaMask"
+        bundle_id: "io.metamask"
+
+    code_fencing: *code_fencing_main
+
+  main-rc:
+    requires_approval: false
+    github_environment: build-rc
+
+    env:
+      METAMASK_ENVIRONMENT: "rc"
+      METAMASK_BUILD_TYPE: "main"
+      <<: *servers_prod
+      MM_PERPS_ENABLED: "false"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "false"
+      RAMP_INTERNAL_BUILD: "false"
+      IS_TEST: "false"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_QA"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_QA"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_PROD"
+      IOS_GOOGLE_CLIENT_ID: "MAIN_IOS_GOOGLE_CLIENT_ID_PROD"
+      IOS_GOOGLE_REDIRECT_URI: "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD"
+      ANDROID_APPLE_CLIENT_ID: "MAIN_ANDROID_APPLE_CLIENT_ID_PROD"
+      ANDROID_GOOGLE_CLIENT_ID: "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD"
+
+    build:
+      android:
+        keystore: "mainRc"
+        package_name: "io.metamask"
+      ios:
+        scheme: "MetaMask"
+        bundle_id: "io.metamask"
+
+    code_fencing: *code_fencing_main
+
+  main-dev:
+    requires_approval: false
+    github_environment: build-dev
+
+    env:
+      METAMASK_ENVIRONMENT: "dev"
+      METAMASK_BUILD_TYPE: "main"
+      <<: *servers_prod
+      # Dev builds enable more features for testing
+      MM_PERPS_ENABLED: "true"
+      MM_PERPS_GTM_MODAL_ENABLED: "true"
+      MM_PERPS_ORDER_BOOK_ENABLED: "true"
+      MM_PERPS_FEEDBACK_ENABLED: "true"
+      MM_PERPS_HIP3_ENABLED: "true"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "true"
+      RAMP_INTERNAL_BUILD: "true"
+      IS_TEST: "false"
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_DEV"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_DEV"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN_DEV"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_DEV"
+      IOS_GOOGLE_CLIENT_ID: "MAIN_IOS_GOOGLE_CLIENT_ID_UAT"
+      IOS_GOOGLE_REDIRECT_URI: "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT"
+      ANDROID_APPLE_CLIENT_ID: "MAIN_ANDROID_APPLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_CLIENT_ID: "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
+
+    build:
+      android:
+        keystore: "mainDev"
+        package_name: "io.metamask"
+      ios:
+        scheme: "MetaMask"
+        bundle_id: "io.metamask"
+
+    code_fencing: *code_fencing_main
+
+  main-test:
+    requires_approval: false
+    github_environment: build-test
+
+    env:
+      METAMASK_ENVIRONMENT: "test"
+      METAMASK_BUILD_TYPE: "main"
+      <<: *servers_prod
+      MM_PERPS_ENABLED: "false"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "true"
+      RAMP_INTERNAL_BUILD: "true"
+      IS_TEST: "true"
+      IGNORE_BOXLOGS_DEVELOPMENT: "true"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_QA"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_QA"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_UAT"
+      IOS_GOOGLE_CLIENT_ID: "MAIN_IOS_GOOGLE_CLIENT_ID_UAT"
+      IOS_GOOGLE_REDIRECT_URI: "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT"
+      ANDROID_APPLE_CLIENT_ID: "MAIN_ANDROID_APPLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_CLIENT_ID: "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
+
+    build:
+      android:
+        keystore: "mainTest"
+        package_name: "io.metamask"
+      ios:
+        scheme: "MetaMask"
+        bundle_id: "io.metamask"
+        is_sim_build: true
+
+    code_fencing: *code_fencing_main
+
+  # ---------------------------------------------------------------------------
+  # FLASK BUILDS
+  # ---------------------------------------------------------------------------
+  flask-prod:
+    requires_approval: true
+    github_environment: build-production
+
+    env:
+      METAMASK_ENVIRONMENT: "production"
+      METAMASK_BUILD_TYPE: "flask"
+      <<: *servers_prod
+      MM_PERPS_ENABLED: "false"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "false"
+      RAMP_INTERNAL_BUILD: "false"
+      IS_TEST: "false"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_FLASK"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_FLASK"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_FLASK"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_FLASK"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_PROD"
+      IOS_GOOGLE_CLIENT_ID: "FLASK_IOS_GOOGLE_CLIENT_ID_PROD"
+      IOS_GOOGLE_REDIRECT_URI: "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD"
+      ANDROID_APPLE_CLIENT_ID: "FLASK_ANDROID_APPLE_CLIENT_ID_PROD"
+      ANDROID_GOOGLE_CLIENT_ID: "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD"
+
+    build:
+      android:
+        keystore: "flaskProd"
+        package_name: "io.metamask.flask"
+      ios:
+        scheme: "MetaMask-Flask"
+        bundle_id: "io.metamask.flask"
+
+    code_fencing: *code_fencing_flask
+
+  flask-rc:
+    requires_approval: false
+    github_environment: build-rc
+
+    env:
+      METAMASK_ENVIRONMENT: "rc"
+      METAMASK_BUILD_TYPE: "flask"
+      <<: *servers_prod
+      MM_PERPS_ENABLED: "false"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "false"
+      RAMP_INTERNAL_BUILD: "false"
+      IS_TEST: "false"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_QA"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_QA"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_UAT"
+      IOS_GOOGLE_CLIENT_ID: "FLASK_IOS_GOOGLE_CLIENT_ID_PROD"
+      IOS_GOOGLE_REDIRECT_URI: "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD"
+      ANDROID_APPLE_CLIENT_ID: "FLASK_ANDROID_APPLE_CLIENT_ID_PROD"
+      ANDROID_GOOGLE_CLIENT_ID: "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD"
+
+    build:
+      android:
+        keystore: "flaskRc"
+        package_name: "io.metamask.flask"
+      ios:
+        scheme: "MetaMask-Flask"
+        bundle_id: "io.metamask.flask"
+
+    code_fencing: *code_fencing_flask
+
+  flask-dev:
+    requires_approval: false
+    github_environment: build-dev
+
+    env:
+      METAMASK_ENVIRONMENT: "dev"
+      METAMASK_BUILD_TYPE: "flask"
+      <<: *servers_prod
+      MM_PERPS_ENABLED: "true"
+      MM_PERPS_GTM_MODAL_ENABLED: "true"
+      MM_PERPS_ORDER_BOOK_ENABLED: "true"
+      MM_PERPS_FEEDBACK_ENABLED: "true"
+      MM_PERPS_HIP3_ENABLED: "true"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "true"
+      RAMP_INTERNAL_BUILD: "true"
+      IS_TEST: "false"
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: "true"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_DEV"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_DEV"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN_DEV"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_DEV"
+      IOS_GOOGLE_CLIENT_ID: "FLASK_IOS_GOOGLE_CLIENT_ID_UAT"
+      IOS_GOOGLE_REDIRECT_URI: "FLASK_IOS_GOOGLE_REDIRECT_URI_UAT"
+      ANDROID_APPLE_CLIENT_ID: "FLASK_ANDROID_APPLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_CLIENT_ID: "FLASK_ANDROID_GOOGLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
+
+    build:
+      android:
+        keystore: "flaskDev"
+        package_name: "io.metamask.flask"
+      ios:
+        scheme: "MetaMask-Flask"
+        bundle_id: "io.metamask.flask"
+
+    code_fencing: *code_fencing_flask
+
+  flask-test:
+    requires_approval: false
+    github_environment: build-test
+
+    env:
+      METAMASK_ENVIRONMENT: "test"
+      METAMASK_BUILD_TYPE: "flask"
+      <<: *servers_prod
+      MM_PERPS_ENABLED: "false"
+      MM_POOLED_STAKING_ENABLED: "true"
+      MM_STABLECOIN_LENDING_UI_ENABLED: "true"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "true"
+      RAMP_INTERNAL_BUILD: "true"
+      IS_TEST: "true"
+      IGNORE_BOXLOGS_DEVELOPMENT: "true"
+
+    secrets:
+      <<: *secrets_common
+      SEGMENT_WRITE_KEY: "SEGMENT_WRITE_KEY_QA"
+      SEGMENT_PROXY_URL: "SEGMENT_PROXY_URL_QA"
+      SEGMENT_DELETE_API_SOURCE_ID: "SEGMENT_DELETE_API_SOURCE_ID_QA"
+      SEGMENT_REGULATIONS_ENDPOINT: "SEGMENT_REGULATIONS_ENDPOINT_QA"
+      MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"
+      MM_CARD_BAANX_API_CLIENT_KEY: "MM_CARD_BAANX_API_CLIENT_KEY_UAT"
+      IOS_GOOGLE_CLIENT_ID: "FLASK_IOS_GOOGLE_CLIENT_ID_UAT"
+      IOS_GOOGLE_REDIRECT_URI: "FLASK_IOS_GOOGLE_REDIRECT_URI_UAT"
+      ANDROID_APPLE_CLIENT_ID: "FLASK_ANDROID_APPLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_CLIENT_ID: "FLASK_ANDROID_GOOGLE_CLIENT_ID_UAT"
+      ANDROID_GOOGLE_SERVER_CLIENT_ID: "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
+
+    build:
+      android:
+        keystore: "flaskTest"
+        package_name: "io.metamask.flask"
+      ios:
+        scheme: "MetaMask-Flask"
+        bundle_id: "io.metamask.flask"
+        is_sim_build: true
+
+    code_fencing: *code_fencing_flask

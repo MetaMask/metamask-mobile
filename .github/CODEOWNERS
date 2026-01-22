@@ -9,6 +9,7 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
+.github/builds.yml                                          @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.constants.ts                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.test.ts                      @MetaMask/mobile-platform
@@ -44,7 +45,6 @@ app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-pla
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
-.github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
@@ -250,6 +250,8 @@ e2e/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa
+# Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
+# but the file itself is protected by mobile-platform for consistency
 
 # Co-owned by Swaps and Ramps teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/ramp
