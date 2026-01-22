@@ -355,7 +355,9 @@ class WalletConnect {
         Logger.log('WC: Rejecting new session with invalid dApp URL:', rawUrl);
         throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
       }
-      normalizedUrl = rawUrl;
+      // Trim whitespace to ensure consistency with normalizeDappUrl behavior
+      // and prevent malformed origin strings in concatenations
+      normalizedUrl = rawUrl.trim();
     }
 
     // Get hostname from the normalized/validated URL
@@ -430,9 +432,12 @@ class WalletConnect {
         throw new Error(`Invalid dApp URL: ${rawUrl}`);
       }
 
+      // Trim whitespace to ensure consistency with validation and prevent URL parsing errors
+      const trimmedUrl = rawUrl.trim();
+
       return await ApprovalController.add({
         id: random(),
-        origin: new URL(rawUrl).host,
+        origin: new URL(trimmedUrl).host,
         requestData: peerInfo,
         type: ApprovalTypes.WALLET_CONNECT,
       });
