@@ -14,11 +14,6 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
-jest.mock('../utils/accountUtils', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
-    address: '0x123456789',
-  }),
-}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 
@@ -50,6 +45,24 @@ describe('usePerpsOICap', () => {
       subscribeToOICaps: mockSubscribeToOICaps,
       isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
     } as unknown as typeof mockEngine.context.PerpsController;
+
+    mockEngine.context.AccountTreeController = {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x123456789',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Test Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ]),
+    } as unknown as typeof mockEngine.context.AccountTreeController;
   });
 
   it('returns isAtCap true when symbol in caps list', async () => {

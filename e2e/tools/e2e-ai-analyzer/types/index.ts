@@ -25,6 +25,7 @@ export interface ParsedArgs {
   changedFiles?: string;
   prNumber?: number;
   mode?: string;
+  provider?: string;
 }
 
 export interface ToolInput {
