@@ -430,6 +430,7 @@ describe('useMusdConversion', () => {
       const callOrder: string[] = [];
       mockTrace.mockImplementation(() => {
         callOrder.push('trace');
+        return undefined as ReturnType<typeof mockTrace>;
       });
       mockNavigation.navigate.mockImplementation(() => {
         callOrder.push('navigate');

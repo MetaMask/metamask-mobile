@@ -45,6 +45,25 @@ const mockUseTransactionMetadataRequest = jest.mocked(
 );
 const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
 
+// Helper to create mock source amounts
+const createMockSourceAmount = (
+  amount = '100',
+  targetTokenAddress = '0xtoken',
+) =>
+  ({
+    sourceAmountHuman: amount,
+    sourceAmountRaw: `${amount}000000`,
+    targetTokenAddress,
+  }) as NonNullable<
+    ReturnType<typeof mockUseTransactionPaySourceAmounts>
+  >[number];
+
+// Helper to create mock quotes
+const createMockQuote = (strategy: TransactionPayStrategy) =>
+  ({ strategy }) as NonNullable<
+    ReturnType<typeof mockUseTransactionPayQuotes>
+  >[number];
+
 describe('useMusdConversionQuoteTrace', () => {
   const setupMuSDConversionContext = () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
@@ -56,7 +75,7 @@ describe('useMusdConversionQuoteTrace', () => {
         address: '0xtoken',
         chainId: '0x1',
       },
-    } as ReturnType<typeof useTransactionPayToken>);
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
   };
 
   beforeEach(() => {
@@ -78,7 +97,9 @@ describe('useMusdConversionQuoteTrace', () => {
 
       expect(mockTrace).not.toHaveBeenCalled();
 
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
       rerender();
 
       expect(mockTrace).toHaveBeenCalledWith({
@@ -101,14 +122,18 @@ describe('useMusdConversionQuoteTrace', () => {
 
       const { rerender } = renderHook(() => useMusdConversionQuoteTrace());
 
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
       rerender();
 
       expect(mockTrace).not.toHaveBeenCalled();
     });
 
     it('does not start trace when sourceAmounts already exist on mount', () => {
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
 
       renderHook(() => useMusdConversionQuoteTrace());
 
@@ -117,12 +142,14 @@ describe('useMusdConversionQuoteTrace', () => {
 
     it('does not start trace when quotes already exist', () => {
       mockUseTransactionPayQuotes.mockReturnValue([
-        { strategy: TransactionPayStrategy.Relay },
+        createMockQuote(TransactionPayStrategy.Relay),
       ]);
 
       const { rerender } = renderHook(() => useMusdConversionQuoteTrace());
 
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
       rerender();
 
       expect(mockTrace).not.toHaveBeenCalled();
@@ -134,7 +161,7 @@ describe('useMusdConversionQuoteTrace', () => {
           address: '0xUSDC',
           chainId: '0x89',
         },
-      } as ReturnType<typeof useTransactionPayToken>);
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
       mockUseTransactionMetadataRequest.mockReturnValue({
         id: 'custom-tx-id',
         type: TransactionType.musdConversion,
@@ -142,7 +169,9 @@ describe('useMusdConversionQuoteTrace', () => {
 
       const { rerender } = renderHook(() => useMusdConversionQuoteTrace());
 
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '500' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
       rerender();
 
       expect(mockTrace).toHaveBeenCalledWith(
@@ -163,7 +192,9 @@ describe('useMusdConversionQuoteTrace', () => {
 
       const { rerender } = renderHook(() => useMusdConversionQuoteTrace());
 
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
       rerender();
 
       expect(mockTrace).toHaveBeenCalledWith(
@@ -178,11 +209,13 @@ describe('useMusdConversionQuoteTrace', () => {
     it('uses unknown for missing pay token address', () => {
       mockUseTransactionPayToken.mockReturnValue({
         payToken: undefined,
-      } as ReturnType<typeof useTransactionPayToken>);
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
 
       const { rerender } = renderHook(() => useMusdConversionQuoteTrace());
 
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
       rerender();
 
       expect(mockTrace).toHaveBeenCalledWith(
@@ -202,7 +235,9 @@ describe('useMusdConversionQuoteTrace', () => {
 
       const { rerender } = renderHook(() => useMusdConversionQuoteTrace());
 
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount(),
+      ]);
       rerender();
       rerender();
       rerender();
@@ -213,16 +248,18 @@ describe('useMusdConversionQuoteTrace', () => {
     it('does not restart trace after sourceAmounts changes again', () => {
       const { rerender } = renderHook(() => useMusdConversionQuoteTrace());
 
-      // sourceAmounts appears - trace starts
-      mockUseTransactionPaySourceAmounts.mockReturnValue([{ amount: '100' }]);
+      // First source amount appears - trace starts
+      mockUseTransactionPaySourceAmounts.mockReturnValue([
+        createMockSourceAmount('100', '0xETH'),
+      ]);
       rerender();
 
       expect(mockTrace).toHaveBeenCalledTimes(1);
 
-      // sourceAmounts changes - should not start new trace
+      // Additional source amount added (e.g., for a second required token)
       mockUseTransactionPaySourceAmounts.mockReturnValue([
-        { amount: '100' },
-        { amount: '200' },
+        createMockSourceAmount('100', '0xETH'),
+        createMockSourceAmount('50', '0xUSDC'),
       ]);
       rerender();
 

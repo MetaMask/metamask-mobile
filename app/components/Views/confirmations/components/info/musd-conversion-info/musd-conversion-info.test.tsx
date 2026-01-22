@@ -14,6 +14,15 @@ jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../hooks/earn/useCustomAmount');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
+jest.mock('../../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    MusdConversionNavigation: 'mUSD Conversion Navigation',
+  },
+}));
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionQuoteTrace', () => ({
+  useMusdConversionQuoteTrace: jest.fn(),
+}));
 
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
