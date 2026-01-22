@@ -2,6 +2,7 @@ import React from 'react';
 import PredictMarketSportCard from './PredictMarketSportCard';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { PredictEntryPoint } from '../../types/navigation';
+import { Box } from '@metamask/design-system-react-native';
 
 interface PredictMarketSportCardWrapperProps {
   marketId: string;
@@ -23,12 +24,14 @@ const PredictMarketSportCardWrapper: React.FC<
   }
 
   return (
-    <PredictMarketSportCard
-      market={market}
-      testID={testID}
-      entryPoint={entryPoint}
-      onDismiss={onDismiss}
-    />
+    <Box twClassName="mx-4">
+      <PredictMarketSportCard
+        market={market}
+        testID={testID}
+        entryPoint={entryPoint}
+        onDismiss={onDismiss}
+      />
+    </Box>
   );
 };
 

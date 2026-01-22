@@ -671,17 +671,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   if (predictSuperbowlMarketId) {
     return (
-      <Box
-        style={tw.style('mx-4')}
-        testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
-      >
-        <PredictMarketSportCardWrapper
-          marketId={predictSuperbowlMarketId}
-          testID={predictSuperbowlSlide?.testID}
-          entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
-          onDismiss={handleSportCardDismiss}
-        />
-      </Box>
+      <PredictMarketSportCardWrapper
+        marketId={predictSuperbowlMarketId}
+        testID={predictSuperbowlSlide?.testID}
+        entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+        onDismiss={handleSportCardDismiss}
+      />
     );
   }
 
