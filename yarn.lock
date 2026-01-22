@@ -8510,12 +8510,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@metamask/multichain-account-service@npm:5.0.0"
+"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@5.1.0-preview-903db2da":
+  version: 5.1.0-preview-903db2da
+  resolution: "@metamask-previews/multichain-account-service@npm:5.1.0-preview-903db2da"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
-    "@metamask/accounts-controller": "npm:^35.0.0"
+    "@metamask/accounts-controller": "npm:^35.0.2"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/eth-snap-keyring": "npm:^18.0.0"
     "@metamask/key-tree": "npm:^10.1.1"
@@ -8536,7 +8536,7 @@ __metadata:
     "@metamask/account-api": ^0.12.0
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/2a65158752f5b92cfbaa00a7488382e489af8178a585a4a327fa025f885e2c08fbdbf48f141d8efbea3405e4104d5d976081c9fe7bfec2a7ae9b6a7a67d074ec
+  checksum: 10/19e1447086e95175dece60bfec72ba6fb2cb33ca328bf86803d5364199c5cf011f57c6f95342ad5fa6d226736d6b33360e9800b8cd458584f4181a640f9e5a92
   languageName: node
   linkType: hard
 
