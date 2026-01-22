@@ -78,6 +78,8 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
             ),
           });
         }
+      } else {
+        throw new Error('Failed to share');
       }
     } catch (_error) {
       Engine.context.PredictController.trackShareAction({
