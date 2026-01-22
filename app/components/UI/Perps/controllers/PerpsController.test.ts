@@ -17,7 +17,11 @@ import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
-import type { IPerpsProvider, IPerpsPlatformDependencies } from './types';
+import type {
+  IPerpsProvider,
+  IPerpsPlatformDependencies,
+  PerpsProviderType,
+} from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
 import { createMockInfrastructure } from '../__mocks__/serviceMocks';
@@ -280,9 +284,15 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test-only method to set the providers map with complete providers.
    * Used in most tests to inject mock providers.
+   * Also sets activeProviderInstance to the first provider (default provider).
    */
-  public testSetProviders(providers: Map<string, IPerpsProvider>) {
+  public testSetProviders(providers: Map<PerpsProviderType, IPerpsProvider>) {
     this.providers = providers;
+    // Set activeProviderInstance to the first provider (typically 'hyperliquid')
+    const firstProvider = providers.values().next().value;
+    if (firstProvider) {
+      this.activeProviderInstance = firstProvider;
+    }
   }
 
   /**
@@ -291,16 +301,16 @@ class TestablePerpsController extends PerpsController {
    * Type cast is intentional and necessary for testing graceful degradation.
    */
   public testSetPartialProviders(
-    providers: Map<string, Partial<IPerpsProvider>>,
+    providers: Map<PerpsProviderType, Partial<IPerpsProvider>>,
   ) {
-    this.providers = providers as Map<string, IPerpsProvider>;
+    this.providers = providers as Map<PerpsProviderType, IPerpsProvider>;
   }
 
   /**
    * Test-only method to get the providers map.
    * Used to verify provider state in tests.
    */
-  public testGetProviders(): Map<string, IPerpsProvider> {
+  public testGetProviders(): Map<PerpsProviderType, IPerpsProvider> {
     return this.providers;
   }
 
