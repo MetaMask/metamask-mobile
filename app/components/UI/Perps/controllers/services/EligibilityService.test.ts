@@ -1,17 +1,20 @@
 import { EligibilityService } from './EligibilityService';
 import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
-import Logger from '../../../../../util/Logger';
+import { createMockInfrastructure } from '../../__mocks__/serviceMocks';
+import type { IPerpsPlatformDependencies } from '../types';
 
 jest.mock('@metamask/controller-utils');
 jest.mock('../utils');
-jest.mock('../../../../../util/Logger');
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
 
 describe('EligibilityService', () => {
+  let mockDeps: jest.Mocked<IPerpsPlatformDependencies>;
+  let service: EligibilityService;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    EligibilityService.clearCache();
+    mockDeps = createMockInfrastructure();
+    service = new EligibilityService(mockDeps);
     jest.useFakeTimers();
   });
 
@@ -28,7 +31,7 @@ describe('EligibilityService', () => {
         text: async () => mockLocation,
       });
 
-      const result = await EligibilityService.fetchGeoLocation();
+      const result = await service.fetchGeoLocation();
 
       expect(result).toBe('US');
       expect(successfulFetch).toHaveBeenCalledWith(
@@ -43,11 +46,11 @@ describe('EligibilityService', () => {
         text: async () => mockLocation,
       });
 
-      const firstResult = await EligibilityService.fetchGeoLocation();
+      const firstResult = await service.fetchGeoLocation();
 
       jest.advanceTimersByTime(4 * 60 * 1000); // 4 minutes
 
-      const secondResult = await EligibilityService.fetchGeoLocation();
+      const secondResult = await service.fetchGeoLocation();
 
       expect(firstResult).toBe('UK');
       expect(secondResult).toBe('UK');
@@ -60,11 +63,11 @@ describe('EligibilityService', () => {
         .mockResolvedValueOnce({ text: async () => 'US' })
         .mockResolvedValueOnce({ text: async () => 'CA' });
 
-      const firstResult = await EligibilityService.fetchGeoLocation();
+      const firstResult = await service.fetchGeoLocation();
 
       jest.advanceTimersByTime(6 * 60 * 1000); // 6 minutes - cache expired
 
-      const secondResult = await EligibilityService.fetchGeoLocation();
+      const secondResult = await service.fetchGeoLocation();
 
       expect(firstResult).toBe('US');
       expect(secondResult).toBe('CA');
@@ -81,9 +84,9 @@ describe('EligibilityService', () => {
       });
       (successfulFetch as jest.Mock).mockReturnValue(fetchPromise);
 
-      const promise1 = EligibilityService.fetchGeoLocation();
-      const promise2 = EligibilityService.fetchGeoLocation();
-      const promise3 = EligibilityService.fetchGeoLocation();
+      const promise1 = service.fetchGeoLocation();
+      const promise2 = service.fetchGeoLocation();
+      const promise3 = service.fetchGeoLocation();
 
       resolvePromise({ text: async () => mockLocation });
 
@@ -105,7 +108,7 @@ describe('EligibilityService', () => {
         text: async () => 'US',
       });
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
       expect(successfulFetch).toHaveBeenCalledWith(
         'https://on-ramp.uat-api.cx.metamask.io/geolocation',
@@ -118,7 +121,7 @@ describe('EligibilityService', () => {
         text: async () => 'US',
       });
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
       expect(successfulFetch).toHaveBeenCalledWith(
         'https://on-ramp.api.cx.metamask.io/geolocation',
@@ -131,17 +134,17 @@ describe('EligibilityService', () => {
         new Error('Network error'),
       );
 
-      const result = await EligibilityService.fetchGeoLocation();
+      const result = await service.fetchGeoLocation();
 
       expect(result).toBe('UNKNOWN');
-      expect(Logger.error).toHaveBeenCalled();
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
 
     it('returns UNKNOWN when API returns empty response', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock).mockResolvedValue({});
 
-      const result = await EligibilityService.fetchGeoLocation();
+      const result = await service.fetchGeoLocation();
 
       expect(result).toBe('UNKNOWN');
     });
@@ -150,7 +153,7 @@ describe('EligibilityService', () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock).mockResolvedValue(null);
 
-      const result = await EligibilityService.fetchGeoLocation();
+      const result = await service.fetchGeoLocation();
 
       expect(result).toBe('UNKNOWN');
     });
@@ -160,13 +163,14 @@ describe('EligibilityService', () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock).mockRejectedValue(mockError);
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
         mockError,
         expect.objectContaining({
-          controller: 'EligibilityService',
-          method: 'performGeoLocationFetch',
+          context: expect.objectContaining({
+            name: 'EligibilityService.performGeoLocationFetch',
+          }),
         }),
       );
     });
@@ -182,7 +186,7 @@ describe('EligibilityService', () => {
         text: async () => 'FR',
       });
 
-      const result = await EligibilityService.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility(['US', 'CN']);
 
       expect(result).toBe(true);
     });
@@ -192,7 +196,7 @@ describe('EligibilityService', () => {
         text: async () => 'US',
       });
 
-      const result = await EligibilityService.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility(['US', 'CN']);
 
       expect(result).toBe(false);
     });
@@ -202,12 +206,7 @@ describe('EligibilityService', () => {
         text: async () => 'CN',
       });
 
-      const result = await EligibilityService.checkEligibility([
-        'US',
-        'CN',
-        'KP',
-        'IR',
-      ]);
+      const result = await service.checkEligibility(['US', 'CN', 'KP', 'IR']);
 
       expect(result).toBe(false);
     });
@@ -217,7 +216,7 @@ describe('EligibilityService', () => {
         text: async () => 'US',
       });
 
-      const result = await EligibilityService.checkEligibility([]);
+      const result = await service.checkEligibility([]);
 
       expect(result).toBe(true);
     });
@@ -225,7 +224,7 @@ describe('EligibilityService', () => {
     it('returns true when location is UNKNOWN (defaults to eligible)', async () => {
       (successfulFetch as jest.Mock).mockRejectedValue(new Error('API error'));
 
-      const result = await EligibilityService.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility(['US', 'CN']);
 
       expect(result).toBe(true);
     });
@@ -235,7 +234,7 @@ describe('EligibilityService', () => {
         text: async () => 'US-NY',
       });
 
-      const resultWithUS = await EligibilityService.checkEligibility(['US']);
+      const resultWithUS = await service.checkEligibility(['US']);
 
       expect(resultWithUS).toBe(false);
     });
@@ -245,7 +244,7 @@ describe('EligibilityService', () => {
         text: async () => 'us',
       });
 
-      const result = await EligibilityService.checkEligibility(['US']);
+      const result = await service.checkEligibility(['US']);
 
       expect(result).toBe(false);
     });
@@ -255,8 +254,8 @@ describe('EligibilityService', () => {
         text: async () => 'FR',
       });
 
-      const result1 = await EligibilityService.checkEligibility(['US']);
-      const result2 = await EligibilityService.checkEligibility(['US']);
+      const result1 = await service.checkEligibility(['US']);
+      const result2 = await service.checkEligibility(['US']);
 
       expect(result1).toBe(true);
       expect(result2).toBe(true);
@@ -268,7 +267,7 @@ describe('EligibilityService', () => {
         new Error('Network failure'),
       );
 
-      const result = await EligibilityService.checkEligibility(['US', 'CN']);
+      const result = await service.checkEligibility(['US', 'CN']);
 
       expect(result).toBe(true);
     });
@@ -279,9 +278,9 @@ describe('EligibilityService', () => {
       });
 
       const [result1, result2, result3] = await Promise.all([
-        EligibilityService.checkEligibility(['US']),
-        EligibilityService.checkEligibility(['CN']),
-        EligibilityService.checkEligibility(['UK']),
+        service.checkEligibility(['US']),
+        service.checkEligibility(['CN']),
+        service.checkEligibility(['UK']),
       ]);
 
       expect(result1).toBe(true);
@@ -298,11 +297,11 @@ describe('EligibilityService', () => {
         .mockResolvedValueOnce({ text: async () => 'US' })
         .mockResolvedValueOnce({ text: async () => 'CA' });
 
-      const firstResult = await EligibilityService.fetchGeoLocation();
+      const firstResult = await service.fetchGeoLocation();
 
-      EligibilityService.clearCache();
+      service.clearCache();
 
-      const secondResult = await EligibilityService.fetchGeoLocation();
+      const secondResult = await service.fetchGeoLocation();
 
       expect(firstResult).toBe('US');
       expect(secondResult).toBe('CA');
@@ -320,11 +319,11 @@ describe('EligibilityService', () => {
         .mockReturnValueOnce(firstPromise)
         .mockResolvedValueOnce({ text: async () => 'CA' });
 
-      const fetchPromise = EligibilityService.fetchGeoLocation();
+      const fetchPromise = service.fetchGeoLocation();
 
-      EligibilityService.clearCache();
+      service.clearCache();
 
-      const newFetchResult = await EligibilityService.fetchGeoLocation();
+      const newFetchResult = await service.fetchGeoLocation();
 
       resolveFirst({ text: async () => 'US' });
       await fetchPromise;
@@ -339,15 +338,15 @@ describe('EligibilityService', () => {
         text: async () => 'UK',
       });
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
-      EligibilityService.clearCache();
+      service.clearCache();
 
-      const result = await EligibilityService.fetchGeoLocation();
+      const result = await service.fetchGeoLocation();
 
       jest.advanceTimersByTime(4 * 60 * 1000);
 
-      const cachedResult = await EligibilityService.fetchGeoLocation();
+      const cachedResult = await service.fetchGeoLocation();
 
       expect(result).toBe('UK');
       expect(cachedResult).toBe('UK');
@@ -362,17 +361,17 @@ describe('EligibilityService', () => {
         .mockResolvedValueOnce({ text: async () => 'US' })
         .mockResolvedValueOnce({ text: async () => 'CA' });
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
       jest.advanceTimersByTime(5 * 60 * 1000 - 1); // 1ms before expiry
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
       expect(successfulFetch).toHaveBeenCalledTimes(1);
 
       jest.advanceTimersByTime(2); // 1ms after expiry
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
       expect(successfulFetch).toHaveBeenCalledTimes(2);
     });
@@ -383,16 +382,38 @@ describe('EligibilityService', () => {
         .mockResolvedValueOnce({ text: async () => 'US' })
         .mockResolvedValueOnce({ text: async () => 'CA' });
 
-      await EligibilityService.fetchGeoLocation();
+      await service.fetchGeoLocation();
 
       jest.advanceTimersByTime(3 * 60 * 1000); // 3 minutes
 
-      await EligibilityService.fetchGeoLocation(); // Still within cache TTL
+      await service.fetchGeoLocation(); // Still within cache TTL
 
       jest.advanceTimersByTime(3 * 60 * 1000); // Another 3 minutes (6 total from first fetch)
 
-      await EligibilityService.fetchGeoLocation(); // Cache expired, new fetch
+      await service.fetchGeoLocation(); // Cache expired, new fetch
 
+      expect(successfulFetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('instance isolation', () => {
+    it('each instance has its own cache', async () => {
+      const mockDeps2 = createMockInfrastructure();
+      const service2 = new EligibilityService(mockDeps2);
+
+      (getEnvironment as jest.Mock).mockReturnValue('PROD');
+      (successfulFetch as jest.Mock)
+        .mockResolvedValueOnce({ text: async () => 'US' })
+        .mockResolvedValueOnce({ text: async () => 'CA' });
+
+      // Fetch from first service
+      const result1 = await service.fetchGeoLocation();
+
+      // Fetch from second service - should make a new API call
+      const result2 = await service2.fetchGeoLocation();
+
+      expect(result1).toBe('US');
+      expect(result2).toBe('CA');
       expect(successfulFetch).toHaveBeenCalledTimes(2);
     });
   });

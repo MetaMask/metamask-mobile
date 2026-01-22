@@ -387,7 +387,7 @@ const HIP3DebugView: React.FC = () => {
       // Place order with calculated size
       // USD-as-source-of-truth: provide currentPrice and usdAmount for validation
       const result = await provider.placeOrder({
-        coin: selectedMarket,
+        symbol: selectedMarket,
         isBuy: true,
         size: roundedPositionSize.toFixed(szDecimals),
         orderType: 'market',
@@ -435,7 +435,7 @@ const HIP3DebugView: React.FC = () => {
       // HIP-3 positions have format: dex:coin (e.g., "xyz:XYZ100")
       const allPositions = await provider.getPositions();
       const dexPositions = allPositions.filter((p) =>
-        p.coin.startsWith(`${selectedDex}:`),
+        p.symbol.startsWith(`${selectedDex}:`),
       );
 
       if (dexPositions.length === 0) {
@@ -452,12 +452,12 @@ const HIP3DebugView: React.FC = () => {
       DevLogger.log('Closing position:\n' + JSON.stringify(position, null, 2));
 
       const result = await provider.closePosition({
-        coin: position.coin,
+        symbol: position.symbol,
         orderType: 'market',
       });
 
       if (result.success) {
-        const message = `✅ Closed position ${position.coin}\nAuto-transfer back should have occurred`;
+        const message = `✅ Closed position ${position.symbol}\nAuto-transfer back should have occurred`;
         DevLogger.log(message);
         setCloseResult({
           status: 'success',
