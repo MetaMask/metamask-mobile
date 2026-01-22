@@ -61,10 +61,14 @@ jest.mock('../../../core/Engine', () => ({
   context: { PreferencesController: { state: {} } },
 }));
 
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  build: () => ({ category: 'Banner Display', properties: {} }),
+}));
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: () => ({ build: () => ({}) }),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -522,7 +526,8 @@ describe('Carousel Predict Superbowl Integration', () => {
     expect(marketIdElement).toHaveTextContent('test-market-123');
   });
 
-  it('does not render predict-superbowl slide when metadata is missing marketId', async () => {
+  it('does not render PredictMarketSportCardWrapper when metadata is missing marketId', async () => {
+    const regularSlide = createMockSlide({ id: 'regular-slide' });
     const predictSlide = createMockSlide({
       id: 'predict-superbowl-slide',
       variableName: PREDICT_SUPERBOWL_VARIABLE_NAME,
@@ -530,15 +535,18 @@ describe('Carousel Predict Superbowl Integration', () => {
     });
     mockFetchCarouselSlides.mockResolvedValue({
       prioritySlides: [],
-      regularSlides: [predictSlide],
+      regularSlides: [predictSlide, regularSlide],
     });
 
-    const { toJSON } = render(<Carousel />);
+    const { findByTestId, queryByTestId } = render(<Carousel />);
 
-    await waitFor(() => expect(toJSON()).toBeNull());
+    await findByTestId('carousel-slide-regular-slide');
+
+    expect(queryByTestId('predict-sport-card-wrapper')).toBeNull();
   });
 
-  it('does not render predict-superbowl slide when marketId is empty', async () => {
+  it('does not render PredictMarketSportCardWrapper when marketId is empty', async () => {
+    const regularSlide = createMockSlide({ id: 'regular-slide' });
     const predictSlide = createMockSlide({
       id: 'predict-superbowl-slide',
       variableName: PREDICT_SUPERBOWL_VARIABLE_NAME,
@@ -546,12 +554,14 @@ describe('Carousel Predict Superbowl Integration', () => {
     });
     mockFetchCarouselSlides.mockResolvedValue({
       prioritySlides: [],
-      regularSlides: [predictSlide],
+      regularSlides: [predictSlide, regularSlide],
     });
 
-    const { toJSON } = render(<Carousel />);
+    const { findByTestId, queryByTestId } = render(<Carousel />);
 
-    await waitFor(() => expect(toJSON()).toBeNull());
+    await findByTestId('carousel-slide-regular-slide');
+
+    expect(queryByTestId('predict-sport-card-wrapper')).toBeNull();
   });
 
   it('passes correct props to PredictMarketSportCardWrapper', async () => {
@@ -573,5 +583,34 @@ describe('Carousel Predict Superbowl Integration', () => {
 
     const marketId = await findByTestId('predict-sport-card-market-id');
     expect(marketId).toHaveTextContent('market-abc-123');
+  });
+
+  it('fires Banner Display tracking event for predict-superbowl slide', async () => {
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const predictSlide = createMockSlide({
+      id: 'predict-superbowl-slide',
+      variableName: PREDICT_SUPERBOWL_VARIABLE_NAME,
+      metadata: { marketId: 'test-market-123' },
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [predictSlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    await findByTestId('predict-sport-card-market-id');
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith({
+        category: 'Banner Display',
+        properties: {
+          name: PREDICT_SUPERBOWL_VARIABLE_NAME,
+        },
+      });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 });

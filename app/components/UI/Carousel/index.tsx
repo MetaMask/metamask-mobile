@@ -649,6 +649,26 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
   }, [currentSlide, trackEvent, createEventBuilder]);
 
+  // Track predict-superbowl slide display (filtered out of visibleSlides but rendered separately)
+  useEffect(() => {
+    if (predictSuperbowlSlide && predictSuperbowlMarketId) {
+      trackEvent(
+        createEventBuilder({
+          category: 'Banner Display',
+          properties: {
+            name:
+              predictSuperbowlSlide.variableName ?? predictSuperbowlSlide.id,
+          },
+        }).build(),
+      );
+    }
+  }, [
+    predictSuperbowlSlide,
+    predictSuperbowlMarketId,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   if (predictSuperbowlMarketId) {
     return (
       <Box
