@@ -26,6 +26,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
   TransactionType.tokenMethodSafeTransferFrom,
+  TransactionType.lendingDeposit,
 ];
 
 export const REDESIGNED_APPROVE_TYPES = [
@@ -50,7 +51,6 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  TransactionType.lendingDeposit,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,

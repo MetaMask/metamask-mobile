@@ -64,6 +64,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.perpsDeposit:
         return PerpsDepositInfo;
       // Default to contract interaction as generic transaction confirmation
+      case TransactionType.lendingDeposit:
       default:
         return ContractInteraction;
     }
