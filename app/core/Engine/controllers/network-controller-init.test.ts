@@ -15,17 +15,20 @@ import {
   getDefaultNetworkControllerState,
   NetworkController,
   NetworkControllerMessenger,
+  NetworkControllerRpcEndpointDegradedEvent,
+  NetworkControllerRpcEndpointUnavailableEvent,
 } from '@metamask/network-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { trackEvent } from '../utils/analytics-utils';
+import { trackEvent } from '../utils/analytics';
 import {
   onRpcEndpointUnavailable,
   onRpcEndpointDegraded,
 } from './network-controller/messenger-action-handlers';
+import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
 jest.mock('@metamask/network-controller');
-jest.mock('../utils/analytics-utils');
+jest.mock('../utils/analytics');
 jest.mock('./network-controller/messenger-action-handlers');
 
 function getInitRequestMock(
@@ -206,13 +209,13 @@ describe('networkControllerInit', () => {
       const baseMessenger = new ExtendedMessenger<
         MockAnyNamespace,
         never,
-        'NetworkController:rpcEndpointUnavailable'
+        NetworkControllerRpcEndpointUnavailableEvent
       >({
         namespace: MOCK_ANY_NAMESPACE,
       });
       const initRequest = getInitRequestMock(baseMessenger);
       let capturedTrackEvent:
-        | ((options: { event: unknown; properties: unknown }) => void)
+        | ((event: AnalyticsTrackingEvent) => void)
         | undefined;
 
       jest.mocked(onRpcEndpointUnavailable).mockImplementation((args) => {
@@ -232,15 +235,18 @@ describe('networkControllerInit', () => {
       expect(capturedTrackEvent).toBeDefined();
 
       // Call the captured trackEvent function to verify it calls the utility
-      capturedTrackEvent?.({
-        event: 'test-event',
+      // Create a mock AnalyticsTrackingEvent (using type assertion since getters aren't easily mockable)
+      const testEvent = {
+        name: 'test-event',
         properties: { testProperty: 'test-value' },
-      });
+        sensitiveProperties: {},
+        saveDataRecording: false,
+      } as unknown as AnalyticsTrackingEvent;
+      capturedTrackEvent?.(testEvent);
 
       expect(trackEvent).toHaveBeenCalledWith(
         initRequest.initMessenger,
-        'test-event',
-        { testProperty: 'test-value' },
+        testEvent,
       );
     });
 
@@ -248,13 +254,13 @@ describe('networkControllerInit', () => {
       const baseMessenger = new ExtendedMessenger<
         MockAnyNamespace,
         never,
-        'NetworkController:rpcEndpointDegraded'
+        NetworkControllerRpcEndpointDegradedEvent
       >({
         namespace: MOCK_ANY_NAMESPACE,
       });
       const initRequest = getInitRequestMock(baseMessenger);
       let capturedTrackEvent:
-        | ((options: { event: unknown; properties: unknown }) => void)
+        | ((event: AnalyticsTrackingEvent) => void)
         | undefined;
 
       jest.mocked(onRpcEndpointDegraded).mockImplementation((args) => {
@@ -274,15 +280,18 @@ describe('networkControllerInit', () => {
       expect(capturedTrackEvent).toBeDefined();
 
       // Call the captured trackEvent function to verify it calls the utility
-      capturedTrackEvent?.({
-        event: 'test-event',
+      // Create a mock AnalyticsTrackingEvent (using type assertion since getters aren't easily mockable)
+      const testEvent = {
+        name: 'test-event',
         properties: { testProperty: 'test-value' },
-      });
+        sensitiveProperties: {},
+        saveDataRecording: false,
+      } as unknown as AnalyticsTrackingEvent;
+      capturedTrackEvent?.(testEvent);
 
       expect(trackEvent).toHaveBeenCalledWith(
         initRequest.initMessenger,
-        'test-event',
-        { testProperty: 'test-value' },
+        testEvent,
       );
     });
 
@@ -290,13 +299,13 @@ describe('networkControllerInit', () => {
       const baseMessenger = new ExtendedMessenger<
         MockAnyNamespace,
         never,
-        'NetworkController:rpcEndpointUnavailable'
+        NetworkControllerRpcEndpointUnavailableEvent
       >({
         namespace: MOCK_ANY_NAMESPACE,
       });
       const initRequest = getInitRequestMock(baseMessenger);
       let capturedTrackEvent:
-        | ((options: { event: unknown; properties?: unknown }) => void)
+        | ((event: AnalyticsTrackingEvent) => void)
         | undefined;
 
       jest.mocked(onRpcEndpointUnavailable).mockImplementation((args) => {
@@ -313,15 +322,17 @@ describe('networkControllerInit', () => {
       });
 
       // Call the captured trackEvent function with no properties
-      capturedTrackEvent?.({
-        event: 'test-event',
-        properties: undefined,
-      });
+      const testEventEmpty = {
+        name: 'test-event',
+        properties: {},
+        sensitiveProperties: {},
+        saveDataRecording: false,
+      } as unknown as AnalyticsTrackingEvent;
+      capturedTrackEvent?.(testEventEmpty);
 
       expect(trackEvent).toHaveBeenCalledWith(
         initRequest.initMessenger,
-        'test-event',
-        {},
+        testEventEmpty,
       );
     });
   });

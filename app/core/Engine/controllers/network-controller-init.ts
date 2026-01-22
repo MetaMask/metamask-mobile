@@ -17,8 +17,8 @@ import {
 } from './network-controller/messenger-action-handlers';
 import { Hex, Json } from '@metamask/utils';
 import Logger from '../../../util/Logger';
-import { AnalyticsEventProperties } from '@metamask/analytics-controller';
-import { trackEvent } from '../utils/analytics-utils';
+import { trackEvent as analyticsTrackEvent } from '../utils/analytics';
+import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { CONNECTIVITY_STATUSES } from '@metamask/connectivity-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -208,12 +208,8 @@ export const networkControllerInit: ControllerInitFunction<
         endpointUrl,
         infuraProjectId,
         error,
-        trackEvent: ({ event, properties }) => {
-          trackEvent(
-            initMessenger,
-            event,
-            (properties as AnalyticsEventProperties) || {},
-          );
+        trackEvent: (analyticsEvent: AnalyticsTrackingEvent) => {
+          analyticsTrackEvent(initMessenger, analyticsEvent);
         },
         metaMetricsId: analyticsId ?? '',
       });
@@ -236,12 +232,8 @@ export const networkControllerInit: ControllerInitFunction<
         endpointUrl,
         error,
         infuraProjectId,
-        trackEvent: ({ event, properties }) => {
-          trackEvent(
-            initMessenger,
-            event,
-            (properties as AnalyticsEventProperties) || {},
-          );
+        trackEvent: (analyticsEvent: AnalyticsTrackingEvent) => {
+          analyticsTrackEvent(initMessenger, analyticsEvent);
         },
         metaMetricsId: analyticsId ?? '',
       });

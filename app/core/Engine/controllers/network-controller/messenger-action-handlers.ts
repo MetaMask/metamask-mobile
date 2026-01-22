@@ -2,12 +2,9 @@ import { type Hex, hexToNumber, isObject, isValidJson } from '@metamask/utils';
 import { isPublicEndpointUrl, shouldCreateRpcServiceEvents } from './utils';
 import Logger from '../../../../util/Logger';
 import onlyKeepHost from '../../../../util/onlyKeepHost';
-import {
-  IMetaMetricsEvent,
-  ITrackingEvent,
-  JsonMap,
-} from '../../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
 /**
  * Called when an endpoint is determined to be "unavailable". Creates a Segment
@@ -41,10 +38,7 @@ export function onRpcEndpointUnavailable({
   error: unknown;
   infuraProjectId: string;
   metaMetricsId: string | null | undefined;
-  trackEvent: (options: {
-    event: IMetaMetricsEvent | ITrackingEvent;
-    properties: JsonMap;
-  }) => void;
+  trackEvent: (event: AnalyticsTrackingEvent) => void;
 }): void {
   trackRpcEndpointEvent(MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE, {
     chainId,
@@ -87,10 +81,7 @@ export function onRpcEndpointDegraded({
   error: unknown;
   infuraProjectId: string;
   metaMetricsId: string | null | undefined;
-  trackEvent: (options: {
-    event: IMetaMetricsEvent | ITrackingEvent;
-    properties: JsonMap;
-  }) => void;
+  trackEvent: (event: AnalyticsTrackingEvent) => void;
 }): void {
   trackRpcEndpointEvent(MetaMetricsEvents.RPC_SERVICE_DEGRADED, {
     chainId,
@@ -130,10 +121,7 @@ export function trackRpcEndpointEvent(
     endpointUrl: string;
     error: unknown;
     infuraProjectId: string;
-    trackEvent: (options: {
-      event: IMetaMetricsEvent | ITrackingEvent;
-      properties: JsonMap;
-    }) => void;
+    trackEvent: (event: AnalyticsTrackingEvent) => void;
     metaMetricsId: string | null | undefined;
   },
 ): void {
@@ -168,8 +156,11 @@ export function trackRpcEndpointEvent(
       properties,
     )}`,
   );
-  trackEvent({
-    event,
-    properties,
-  });
+
+  // Build the analytics event from IMetaMetricsEvent
+  const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
+    .addProperties(properties)
+    .build();
+
+  trackEvent(analyticsEvent);
 }
