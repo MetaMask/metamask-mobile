@@ -4,15 +4,10 @@
  * This module replaces app/core/OAuthService/OAuthLoginHandlers/index.ts
  * during E2E builds via metro.config.js aliasing.
  *
- * Key difference from real implementation:
- * - login() bypasses native OAuth UI and returns mock result with E2E email
- * - getAuthTokens() is REAL - calls Auth Server (intercepted by Mockttp)
- * - Backend QA mock returns valid tokens
- * - SeedlessOnboardingController.authenticate() works with valid tokens
  */
 
 import { Platform } from 'react-native';
-import { E2EOAuthHelpers } from '../OAuthService';
+import { E2EOAuthHelpers } from '../E2EOAuthHelpers';
 
 // Re-export types from real module
 export { AuthConnection } from '../../../../app/core/OAuthService/OAuthInterface';
@@ -236,9 +231,6 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
 
 /**
  * Factory function to create mock login handlers
- *
- * Replaces the real createLoginHandler during E2E builds.
- * Returns mock handlers that bypass native OAuth UI.
  */
 export function createLoginHandler(
   _platformOS: Platform['OS'],

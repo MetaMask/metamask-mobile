@@ -6,31 +6,38 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
-import { completeAppleNewUserOnboarding } from './utils';
+import { completeGoogleNewUserOnboarding, lockApp, resetWallet } from './utils';
 
-describe(SmokeWalletPlatform('Apple Login - New User'), () => {
+describe(SmokeWalletPlatform('Google Login - Reset Wallet'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });
 
   beforeEach(async () => {
     E2EOAuthHelpers.reset();
-    E2EOAuthHelpers.configureAppleNewUser();
+    E2EOAuthHelpers.configureGoogleNewUser();
   });
 
-  it('creates a new wallet with Apple login', async () => {
+  it('onboards with Google login, locks, and resets the wallet', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureAppleNewUser();
+          oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
       async () => {
-        await completeAppleNewUserOnboarding();
+        // Complete user onboarding
+        await completeGoogleNewUserOnboarding();
+
+        // Lock the app
+        await lockApp();
+
+        // Reset the wallet
+        await resetWallet();
       },
     );
   });

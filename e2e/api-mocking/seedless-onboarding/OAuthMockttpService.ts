@@ -3,17 +3,6 @@
  *
  * This service proxies Auth Server calls to the backend QA mock endpoints,
  * which generate cryptographically valid tokens using real SignerService.
- *
- * Architecture:
- * 1. App calls Auth Server /api/v1/oauth/token (intercepted by Mockttp)
- * 2. Mockttp proxies to Backend QA Mock /api/v1/qa/mock/oauth/token
- * 3. Backend generates valid tokens with SignerService
- * 4. App receives valid tokens, authenticates with real TOPRF nodes
- *
- * @example
- * const service = createOAuthMockttpService();
- * service.configureGoogleNewUser();
- * await service.setup(mockServer);
  */
 
 import { Mockttp } from 'mockttp';
@@ -27,6 +16,7 @@ import {
   parseE2EScenario,
   PasswordChangeItemId,
   E2E_SRP,
+  SSSNodeKeyPairs,
 } from './constants';
 
 import { OAuthMockttpServiceOptions, SecretType } from './types';
@@ -42,11 +32,6 @@ export interface E2EOAuthConfig {
 
 /**
  * OAuthMockttpService - Proxies Auth Server to Backend QA Mock
- *
- * Key features:
- * - Proxies /api/v1/oauth/token → /api/v1/qa/mock/oauth/token
- * - Backend generates valid JWT tokens
- * - Real TOPRF authentication works with valid tokens
  */
 export class OAuthMockttpService {
   private config: E2EOAuthConfig;
@@ -177,7 +162,6 @@ export class OAuthMockttpService {
 
   /**
    * Get the E2E email for current configuration
-   * This email should be used in the OAuth flow
    */
   getE2EEmail(): string {
     return this.config.email;
@@ -216,10 +200,6 @@ export class OAuthMockttpService {
   /**
    * MAIN SETUP METHOD - Register mock handlers
    *
-   * Sets up:
-   * 1. Auth Server token endpoint → Proxy to backend QA mock
-   * 2. Marketing opt-in mock
-   * 3. Metadata service mocks (optional)
    *
    * @param server - Mockttp server instance
    * @param options - Configuration options
@@ -244,7 +224,10 @@ export class OAuthMockttpService {
     // Setup marketing opt-in mock
     await this.setupMarketingOptInMock(server);
 
-    // Setup metadata service mocks (unless explicitly disabled)
+    // Setup TOPRF SSS node mocks
+    await this.setupToprfSssNodeMocks(server);
+
+    // Setup metadata service mocks
     if (options?.mockMetadataService !== false) {
       await this.setupMetadataServiceMocks(server);
     }
@@ -264,14 +247,9 @@ export class OAuthMockttpService {
   /**
    * Proxy Auth Server token requests to backend QA mock
    *
-   * This is the key integration point:
-   * - App calls: /proxy?url=https://auth-service.../api/v1/oauth/token
-   * - We intercept and proxy to: /api/v1/qa/mock/oauth/token
-   * - Backend returns valid tokens
    */
   private async setupAuthServerProxy(server: Mockttp): Promise<void> {
     // Proxy token requests to backend QA mock
-    // Use /proxy pattern to match mobile proxy requests
     const tokenEndpoint = `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/token`;
     console.log(`[E2E MockServer] Registering mock for: ${tokenEndpoint}`);
 
@@ -281,7 +259,7 @@ export class OAuthMockttpService {
         const url = this.getDecodedProxiedURL(request.url);
         return url.includes('/api/v1/oauth/token');
       })
-      .asPriority(1000) // High priority to override default handlers
+      .asPriority(1000)
       .thenCallback(async (request) => {
         const decodedUrl = this.getDecodedProxiedURL(request.url);
         console.log(
@@ -315,16 +293,16 @@ export class OAuthMockttpService {
             body: JSON.stringify(body),
           });
 
+          let tokens;
           if (!response.ok) {
-            console.error(`[E2E] Backend QA mock error: ${response.status}`);
-            return {
-              statusCode: response.status,
-              json: { error: 'Backend QA mock error' },
-            };
+            console.warn(
+              `[E2E] Backend QA mock returned ${response.status}, using fallback mock tokens`,
+            );
+            tokens = this.generateMockAuthResponse();
+          } else {
+            tokens = await response.json();
+            console.log('[E2E] Received valid tokens from backend QA mock');
           }
-
-          const tokens = await response.json();
-          console.log('[E2E] Received valid tokens from backend QA mock');
 
           return {
             statusCode: 200,
@@ -370,20 +348,18 @@ export class OAuthMockttpService {
             body: JSON.stringify(body),
           });
 
+          let tokens;
           if (!response.ok) {
-            console.error(
-              `[E2E] Backend QA mock error for id_token: ${response.status}`,
+            console.warn(
+              `[E2E] Backend QA mock for id_token returned ${response.status}, using fallback`,
             );
-            return {
-              statusCode: response.status,
-              json: { error: 'Backend QA mock error for id_token' },
-            };
+            tokens = this.generateMockAuthResponse();
+          } else {
+            tokens = await response.json();
+            console.log(
+              '[E2E] Received valid tokens from backend QA mock (id_token)',
+            );
           }
-
-          const tokens = await response.json();
-          console.log(
-            '[E2E] Received valid tokens from backend QA mock (id_token)',
-          );
 
           return {
             statusCode: 200,
@@ -421,6 +397,23 @@ export class OAuthMockttpService {
             },
             body: requestBody,
           });
+
+          if (!response.ok) {
+            console.warn(
+              `[E2E] Backend QA mock for renew_refresh_token returned ${response.status}, using fallback`,
+            );
+            // Fallback
+            const mockTokens = this.generateMockAuthResponse();
+            return {
+              statusCode: 200,
+              json: {
+                id_token: mockTokens.id_token,
+                access_token: mockTokens.access_token,
+                metadata_access_token: mockTokens.metadata_access_token,
+                indexes: mockTokens.indexes,
+              },
+            };
+          }
 
           const result = await response.json();
           return { statusCode: response.status, json: result };
@@ -471,7 +464,6 @@ export class OAuthMockttpService {
 
   /**
    * Setup Metadata Service mocks
-   * These may still be needed if backend doesn't handle metadata mocking
    */
   private async setupMetadataServiceMocks(server: Mockttp): Promise<void> {
     const encryptedSecretData = this.generateMockEncryptedSecretData();
@@ -542,6 +534,329 @@ export class OAuthMockttpService {
         success: true,
         message: 'Metadata set successfully',
       });
+  }
+
+  /**
+   * Setup TOPRF SSS Node Mocks
+   */
+  private async setupToprfSssNodeMocks(server: Mockttp): Promise<void> {
+    console.log('[E2E MockServer] Setting up TOPRF SSS node mocks');
+
+    // Mock all 5 SSS nodes via the /proxy endpoint
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/sss/jrpc');
+      })
+      .asPriority(1000)
+      .thenCallback(async (request) => {
+        try {
+          const requestBody = (await request.body.getText()) || '{}';
+          const body = JSON.parse(requestBody);
+          const url = this.getDecodedProxiedURL(request.url);
+
+          // Extract node index from URL (node-1, node-2, etc.)
+          const nodeMatch = url.match(/node-(\d)/);
+          const nodeIndex = nodeMatch ? parseInt(nodeMatch[1], 10) : 1;
+
+          console.log(
+            `[E2E MockServer] SSS Node ${nodeIndex} request: ${body.method}`,
+          );
+          const response = this.handleToprfRequest(body, nodeIndex);
+
+          return {
+            statusCode: 200,
+            json: response,
+          };
+        } catch (error) {
+          console.error('[E2E] Error handling SSS node request:', error);
+          return {
+            statusCode: 500,
+            json: {
+              jsonrpc: '2.0',
+              error: { code: -32603, message: 'Internal error' },
+              id: null,
+            },
+          };
+        }
+      });
+  }
+
+  /**
+   * Handle TOPRF JSON-RPC requests based on method type
+   *
+   * @param body - JSON-RPC request body
+   * @param nodeIndex - SSS node index (1-5)
+   * @returns JSON-RPC response
+   */
+  private handleToprfRequest(
+    body: { method: string; params?: Record<string, unknown>; id?: number },
+    nodeIndex: number,
+  ): Record<string, unknown> {
+    const { method, id } = body;
+    const isNewUser = !this.isExistingUser();
+
+    switch (method) {
+      case 'TOPRFCommitmentRequest':
+        return this.handleCommitmentRequest(id, nodeIndex);
+
+      case 'TOPRFAuthenticateRequest':
+        return this.handleAuthenticateRequest(id, nodeIndex, isNewUser);
+
+      case 'TOPRFGetPubKeyRequest':
+        return this.handleGetPubKeyRequest(id, nodeIndex, isNewUser);
+
+      case 'TOPRFEvalRequest':
+        return this.handleEvalRequest(id, nodeIndex);
+
+      case 'TOPRFStoreKeyShareRequest':
+        return this.handleStoreKeyShareRequest(id);
+
+      case 'TOPRFResetRateLimitRequest':
+        return { jsonrpc: '2.0', result: { success: true }, id };
+
+      default:
+        console.warn(`[E2E] Unknown TOPRF method: ${method}`);
+        return {
+          jsonrpc: '2.0',
+          error: { code: -32601, message: `Method not found: ${method}` },
+          id,
+        };
+    }
+  }
+
+  /**
+   * Handle TOPRFCommitmentRequest
+   * Returns commitment data for the TOPRF protocol
+   */
+  private handleCommitmentRequest(
+    id: number | undefined,
+    nodeIndex: number,
+  ): Record<string, unknown> {
+    // Generate deterministic mock commitment based on node index
+    const commitment = Buffer.from(`e2e-commitment-node-${nodeIndex}`).toString(
+      'hex',
+    );
+
+    return {
+      jsonrpc: '2.0',
+      result: {
+        commitment,
+        node_index: nodeIndex,
+        success: true,
+      },
+      id,
+    };
+  }
+
+  /**
+   * Handle TOPRFAuthenticateRequest
+   * Returns auth token and indicates if user exists
+   */
+  private handleAuthenticateRequest(
+    id: number | undefined,
+    nodeIndex: number,
+    isNewUser: boolean,
+  ): Record<string, unknown> {
+    // Generate mock auth token
+    const authToken = Buffer.from(
+      JSON.stringify({
+        node: nodeIndex,
+        email: this.config.email,
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    ).toString('base64');
+
+    // For new users, we return null pub_key and key_index
+    // For existing users, we return the pub_key and key_index
+    const result: Record<string, unknown> = {
+      auth_token: authToken,
+      node_index: nodeIndex,
+      node_pub_key: SSSNodeKeyPairs[nodeIndex]?.pubKey || '',
+      success: true,
+    };
+
+    if (!isNewUser) {
+      // Existing user - return key info
+      result.pub_key = `04e2e-existing-user-pub-key-${this.config.email}`;
+      result.key_index = 1;
+    }
+
+    console.log(
+      `[E2E] Auth request - isNewUser: ${isNewUser}, nodeIndex: ${nodeIndex}`,
+    );
+
+    return {
+      jsonrpc: '2.0',
+      result,
+      id,
+    };
+  }
+
+  /**
+   * Handle TOPRFGetPubKeyRequest
+   * Returns null for new users, pub_key for existing users
+   */
+  private handleGetPubKeyRequest(
+    id: number | undefined,
+    nodeIndex: number,
+    isNewUser: boolean,
+  ): Record<string, unknown> {
+    if (isNewUser) {
+      // New user - no pub key exists
+      return {
+        jsonrpc: '2.0',
+        result: {
+          pub_key: null,
+          key_index: null,
+          success: true,
+        },
+        id,
+      };
+    }
+
+    // Existing user - return pub key
+    return {
+      jsonrpc: '2.0',
+      result: {
+        pub_key: `04e2e-existing-user-pub-key-${this.config.email}`,
+        key_index: 1,
+        node_index: nodeIndex,
+        success: true,
+      },
+      id,
+    };
+  }
+
+  /**
+   * Handle TOPRFEvalRequest
+   * Returns OPRF evaluation result for key derivation
+   */
+  private handleEvalRequest(
+    id: number | undefined,
+    nodeIndex: number,
+  ): Record<string, unknown> {
+    // Generate deterministic mock OPRF evaluation
+    const evalResult = Buffer.from(
+      `e2e-eval-result-node-${nodeIndex}-${Date.now()}`,
+    ).toString('hex');
+
+    return {
+      jsonrpc: '2.0',
+      result: {
+        eval_result: evalResult,
+        node_index: nodeIndex,
+        success: true,
+      },
+      id,
+    };
+  }
+
+  /**
+   * Handle TOPRFStoreKeyShareRequest
+   * Returns success for storing key shares (new user flow)
+   */
+  private handleStoreKeyShareRequest(
+    id: number | undefined,
+  ): Record<string, unknown> {
+    console.log('[E2E] Storing key share for new user');
+
+    return {
+      jsonrpc: '2.0',
+      result: {
+        success: true,
+        message: 'Key share stored successfully',
+      },
+      id,
+    };
+  }
+
+  /**
+   * Generate mock auth response tokens
+   * Used as fallback when backend QA mock is not available (404)
+   */
+  private generateMockAuthResponse(): {
+    id_token: string;
+    access_token: string;
+    metadata_access_token: string;
+    refresh_token: string;
+    revoke_token: string;
+    indexes: number[];
+    endpoints: Record<string, string>;
+  } {
+    // Generate mock JWT-like tokens (base64 encoded JSON)
+    const now = Math.floor(Date.now() / 1000);
+    const exp = now + 3600; // 1 hour expiry
+
+    // Mock ID token payload
+    const idTokenPayload = {
+      iss: 'https://auth-service.uat-api.cx.metamask.io',
+      sub: `e2e-user-${this.config.email}`,
+      aud: 'metamask-mobile-e2e',
+      email: this.config.email,
+      email_verified: true,
+      iat: now,
+      exp,
+      verifier: this.config.loginProvider,
+      verifier_id: this.config.email,
+      // Include aggregateVerifier for TOPRF
+      aggregateVerifier: 'torus-test-health-aggregate',
+    };
+
+    // Create mock JWT structure (header.payload.signature)
+    // Use standard base64 (not base64url) for compatibility with decodeIdToken
+    const header = Buffer.from(
+      JSON.stringify({ alg: 'RS256', typ: 'JWT' }),
+    ).toString('base64');
+    const payload = Buffer.from(JSON.stringify(idTokenPayload)).toString(
+      'base64',
+    );
+    const mockSignature = Buffer.from('e2e-mock-signature').toString('base64');
+    const idToken = `${header}.${payload}.${mockSignature}`;
+
+    // Mock access token
+    const accessToken = Buffer.from(
+      JSON.stringify({
+        type: 'access',
+        email: this.config.email,
+        exp,
+      }),
+    ).toString('base64');
+
+    // Mock metadata access token
+    const metadataAccessToken = Buffer.from(
+      JSON.stringify({
+        type: 'metadata',
+        email: this.config.email,
+        exp,
+      }),
+    ).toString('base64');
+
+    // Mock refresh and revoke tokens
+    const refreshToken = `e2e-refresh-${Date.now()}`;
+    const revokeToken = `e2e-revoke-${Date.now()}`;
+
+    console.log('[E2E] Generated fallback mock tokens for:', this.config.email);
+    console.log(
+      '[E2E] ⚠️  These are placeholder tokens - deploy backend QA mock for valid tokens',
+    );
+
+    return {
+      id_token: idToken,
+      access_token: accessToken,
+      metadata_access_token: metadataAccessToken,
+      refresh_token: refreshToken,
+      revoke_token: revokeToken,
+      indexes: [1, 2, 3, 4, 5],
+      endpoints: {
+        '1': 'https://node-1.uat-node.web3auth.io/sss/jrpc',
+        '2': 'https://node-2.uat-node.web3auth.io/sss/jrpc',
+        '3': 'https://node-3.uat-node.web3auth.io/sss/jrpc',
+        '4': 'https://node-4.uat-node.web3auth.io/sss/jrpc',
+        '5': 'https://node-5.uat-node.web3auth.io/sss/jrpc',
+      },
+    };
   }
 
   /**

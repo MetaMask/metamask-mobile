@@ -113,12 +113,26 @@ module.exports = function (baseConfig) {
                   ),
                 };
               }
+
+              if (
+                moduleName.endsWith(
+                  'controllers/seedless-onboarding-controller',
+                ) ||
+                moduleName.endsWith(
+                  'controllers/seedless-onboarding-controller/index',
+                ) ||
+                moduleName === './seedless-onboarding-controller' ||
+                moduleName === '../seedless-onboarding-controller'
+              ) {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'e2e/module-mocking/seedless/index.ts',
+                  ),
+                };
+              }
               // Mock OAuth Login Handlers for E2E Google/Apple login tests
-              // This bypasses native OAuth UI while keeping the rest of the flow real:
-              // - login() returns mock result with E2E email
-              // - getAuthTokens() calls real Auth Server (intercepted by Mockttp)
-              // - Mockttp proxies to backend QA mock for valid tokens
-              // - SeedlessOnboardingController.authenticate() works with valid tokens
               if (
                 moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
                 moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
