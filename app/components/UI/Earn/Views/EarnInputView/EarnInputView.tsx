@@ -10,7 +10,13 @@ import {
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import { debounce } from 'lodash';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -38,7 +44,7 @@ import { addTransactionBatch } from '../../../../../util/transaction-controller'
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
-import getHeaderCenterNavbarOptions from '../../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import { IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
@@ -878,34 +884,25 @@ const EarnInputView = () => {
   ]);
 
   useEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
+
+  const headerTitle = useMemo(() => {
     const isLending =
       earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
     const tokenLabel =
       earnToken?.ticker ?? earnToken?.symbol ?? earnToken?.name ?? '';
 
-    const title = isLending
+    return isLending
       ? `${strings('earn.supply')} ${tokenLabel}`
       : `${strings('stake.stake')} ${tokenLabel}`;
-
-    navigation.setOptions(
-      getHeaderCenterNavbarOptions({
-        title,
-        onBack: handleBackPress,
-        endButtonIconProps: isStablecoinLendingEnabled
-          ? [{ iconName: IconName.Info, onPress: handleInfoPress }]
-          : undefined,
-        includesTopInset: true,
-      }),
-    );
   }, [
-    navigation,
     earnToken?.experience?.type,
     earnToken?.ticker,
     earnToken?.symbol,
     earnToken?.name,
-    handleBackPress,
-    handleInfoPress,
-    isStablecoinLendingEnabled,
   ]);
 
   useEffect(() => {
@@ -990,6 +987,16 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
+      <HeaderCenter
+        title={'headerTitle'}
+        onBack={handleBackPress}
+        endButtonIconProps={
+          isStablecoinLendingEnabled
+            ? [{ iconName: IconName.Info, onPress: handleInfoPress }]
+            : undefined
+        }
+        includesTopInset
+      />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         isTronEnabled && (
