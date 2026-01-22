@@ -34,7 +34,7 @@ import {
   getNetworkClientIdForCaipChainId,
   getChainIdForCaipChainId,
   getHostname,
-  isValidUrl,
+  normalizeDappUrl,
 } from './wc-utils';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
@@ -104,12 +104,14 @@ class WalletConnect2Session {
       navigation,
     );
 
-    const url = session.peer.metadata.url;
+    const rawUrl = session.peer.metadata.url;
     const name = session.peer.metadata.name;
     const icons = session.peer.metadata.icons;
 
-    if (!isValidUrl(url)) {
-      throw new Error(`Invalid dApp URL in session metadata: ${url}`);
+    // Normalize URL to handle legacy sessions that may have URLs without protocol.
+    const url = normalizeDappUrl(rawUrl);
+    if (!url) {
+      throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
     }
 
     DevLogger.log(
