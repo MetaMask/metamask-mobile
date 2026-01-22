@@ -35,6 +35,7 @@ import {
   MARKET_SORTING_CONFIG,
   type SortOptionId,
 } from '../constants/perpsConfig';
+import type { SortDirection } from '../utils/sortMarkets';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
@@ -266,7 +267,10 @@ export type PerpsControllerState = {
   };
 
   // Market filter preferences (network-independent) - includes both sorting and filtering options
-  marketFilterPreferences: SortOptionId;
+  marketFilterPreferences: {
+    optionId: SortOptionId;
+    direction: SortDirection;
+  };
 
   // Error handling
   lastError: string | null;
@@ -324,7 +328,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: {},
     mainnet: {},
   },
-  marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  marketFilterPreferences: {
+    optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+    direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+  },
   hip3ConfigVersion: 0,
 });
 
@@ -2680,26 +2687,65 @@ export class PerpsController extends BaseController<
 
   /**
    * Get saved market filter preferences
+   * Handles backward compatibility with legacy string format
    */
-  getMarketFilterPreferences(): SortOptionId {
+  getMarketFilterPreferences(): {
+    optionId: SortOptionId;
+    direction: SortDirection;
+  } {
+    const pref = this.state.marketFilterPreferences;
+
+    // Handle legacy string format (backward compatibility)
+    if (typeof pref === 'string') {
+      // Map legacy compound IDs to new format
+      // Old format: 'priceChange-desc' or 'priceChange-asc'
+      // New format: { optionId: 'priceChange', direction: 'desc'/'asc' }
+      if (pref === 'priceChange-desc') {
+        return {
+          optionId: 'priceChange',
+          direction: 'desc',
+        };
+      }
+      if (pref === 'priceChange-asc') {
+        return {
+          optionId: 'priceChange',
+          direction: 'asc',
+        };
+      }
+
+      // Handle other simple legacy strings (e.g., 'volume', 'openInterest', etc.)
+      return {
+        optionId: pref as SortOptionId,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      };
+    }
+
+    // Return new object format or default
     return (
-      this.state.marketFilterPreferences ??
-      MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID
+      pref ?? {
+        optionId: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      }
     );
   }
 
   /**
    * Save market filter preferences
    * @param optionId - Sort/filter option ID
+   * @param direction - Sort direction ('asc' or 'desc')
    */
-  saveMarketFilterPreferences(optionId: SortOptionId): void {
+  saveMarketFilterPreferences(
+    optionId: SortOptionId,
+    direction: SortDirection,
+  ): void {
     this.debugLog('PerpsController: Saving market filter preferences', {
       optionId,
+      direction,
       timestamp: new Date().toISOString(),
     });
 
     this.update((state) => {
-      state.marketFilterPreferences = optionId;
+      state.marketFilterPreferences = { optionId, direction };
     });
   }
 

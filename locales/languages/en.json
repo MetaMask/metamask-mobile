@@ -1815,7 +1815,8 @@
       "price_change_low_to_high": "Price change: low to high",
       "past_hour": "Past hour",
       "past_24_hours": "Past 24 hours",
-      "time": "Time"
+      "time": "Time",
+      "apply": "Apply"
     },
     "perps_markets": "Perps markets",
     "volume": "Volume",
