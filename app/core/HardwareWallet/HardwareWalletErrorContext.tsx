@@ -61,12 +61,6 @@ export function HardwareWalletErrorProvider({
     // Only show bottom sheet if not a user cancellation
     if (!isUserCancellation(hwError)) {
       setIsBottomSheetVisible(true);
-      // Delay opening to ensure the BottomSheet component has mounted.
-      // React Native's layout pass needs a frame to complete before the
-      // ref becomes available and the sheet can animate open.
-      setTimeout(() => {
-        errorBottomSheetRef.current?.onOpenBottomSheet();
-      }, 100);
     }
   }, []);
 

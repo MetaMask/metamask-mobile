@@ -243,6 +243,40 @@ function parseErrorByName(
 }
 
 /**
+ * Type guard to check if error is an object with a LedgerCommunicationErrors code property
+ */
+function isLedgerCommunicationErrorObject(
+  error: unknown,
+): error is { code: LedgerCommunicationErrors } {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof error.code === 'string' &&
+    Object.values(LedgerCommunicationErrors).includes(
+      error.code as LedgerCommunicationErrors,
+    )
+  );
+}
+
+/**
+ * Type guard to check if error is an object with a BluetoothPermissionErrors code property
+ */
+function isBluetoothPermissionErrorObject(
+  error: unknown,
+): error is { code: BluetoothPermissionErrors } {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof error.code === 'string' &&
+    Object.values(BluetoothPermissionErrors).includes(
+      error.code as BluetoothPermissionErrors,
+    )
+  );
+}
+
+/**
  * Parse error by checking common patterns in error messages
  */
 function parseErrorByMessage(
@@ -372,19 +406,13 @@ export function parseErrorByType(
   }
 
   // Handle error objects with a code property (LedgerCommunicationErrors from hook)
-  if (
-    error &&
-    typeof error === 'object' &&
-    'code' in error &&
-    typeof error.code === 'string' &&
-    Object.values(LedgerCommunicationErrors).includes(
-      error.code as LedgerCommunicationErrors,
-    )
-  ) {
-    return parseLedgerCommunicationError(
-      error.code as LedgerCommunicationErrors,
-      walletType,
-    );
+  if (isLedgerCommunicationErrorObject(error)) {
+    return parseLedgerCommunicationError(error.code, walletType);
+  }
+
+  // Handle error objects with a code property (BluetoothPermissionErrors)
+  if (isBluetoothPermissionErrorObject(error)) {
+    return parseBluetoothPermissionError(error.code, walletType);
   }
 
   // Handle Error objects (use duck typing for cross-realm errors)
