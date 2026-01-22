@@ -89,7 +89,7 @@ export class PerpsE2EMockService {
       // Requested scenario for tests: one BTC long position, open ETH and SOL limit orders
       this.mockPositions = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           entryPrice: '45000.00',
           size: '0.10', // long BTC
           positionValue: '4500.00',
@@ -107,7 +107,7 @@ export class PerpsE2EMockService {
     } else {
       this.mockPositions = [
         {
-          coin: 'BTC',
+          symbol: 'BTC',
           entryPrice: '45000.00',
           size: '0.1',
           positionValue: '4500.00',
@@ -225,7 +225,7 @@ export class PerpsE2EMockService {
     if (params.orderType === 'limit' && params.price) {
       const openOrder: Order = {
         orderId,
-        symbol: params.coin,
+        symbol: params.symbol,
         side: params.isBuy ? 'buy' : 'sell',
         orderType: 'limit',
         size: params.size,
@@ -267,7 +267,7 @@ export class PerpsE2EMockService {
 
     // Create mock position
     const mockPosition: Position = {
-      coin: params.coin,
+      symbol: params.symbol,
       entryPrice: (params.currentPrice || 50000).toString(),
       size: signedSize,
       positionValue: notionalValue.toString(),
@@ -299,7 +299,7 @@ export class PerpsE2EMockService {
     // Create mock order fill (market execution)
     const mockFill: OrderFill = {
       orderId,
-      symbol: params.coin,
+      symbol: params.symbol,
       size: params.size,
       price: (params.currentPrice || 50000).toString(),
       timestamp: Date.now(),
@@ -381,8 +381,10 @@ export class PerpsE2EMockService {
   }
 
   // Mock close position
-  public mockClosePosition(coin: string, _size?: string): OrderResult {
-    const existingPosition = this.mockPositions.find((p) => p.coin === coin);
+  public mockClosePosition(symbol: string, _size?: string): OrderResult {
+    const existingPosition = this.mockPositions.find(
+      (p) => p.symbol === symbol,
+    );
     if (!existingPosition) {
       return {
         success: false,
@@ -411,15 +413,15 @@ export class PerpsE2EMockService {
     };
 
     // Remove position
-    this.mockPositions = this.mockPositions.filter((p) => p.coin !== coin);
+    this.mockPositions = this.mockPositions.filter((p) => p.symbol !== symbol);
 
     // Record a trade fill for the close so it appears under Trades
     const closeFill: OrderFill = {
       orderId: `mock_close_${this.orderIdCounter}`,
-      symbol: existingPosition.coin,
+      symbol: existingPosition.symbol,
       size: Math.abs(parseFloat(existingPosition.size)).toString(),
       price:
-        this.mockPricesMap[existingPosition.coin]?.price ||
+        this.mockPricesMap[existingPosition.symbol]?.price ||
         existingPosition.entryPrice,
       timestamp: Date.now(),
       side: parseFloat(existingPosition.size) > 0 ? 'sell' : 'buy',
@@ -643,7 +645,7 @@ export class PerpsE2EMockService {
    * so that Activity > Perps → Orders shows TP/SL entries as open orders.
    */
   public mockUpdatePositionTPSL(params: UpdatePositionTPSLParams): OrderResult {
-    const position = this.mockPositions.find((p) => p.coin === params.coin);
+    const position = this.mockPositions.find((p) => p.symbol === params.symbol);
     if (!position) {
       return { success: false, error: 'Position not found' };
     }
@@ -659,7 +661,7 @@ export class PerpsE2EMockService {
     if (params.takeProfitPrice) {
       const tpOrder: Order = {
         orderId: `tp_${this.orderIdCounter++}`,
-        symbol: params.coin,
+        symbol: params.symbol,
         side: parseFloat(position.size) > 0 ? 'sell' : 'buy',
         orderType: 'limit',
         size: Math.abs(parseFloat(position.size)).toString(),
@@ -679,7 +681,7 @@ export class PerpsE2EMockService {
     if (params.stopLossPrice) {
       const slOrder: Order = {
         orderId: `sl_${this.orderIdCounter++}`,
-        symbol: params.coin,
+        symbol: params.symbol,
         side: parseFloat(position.size) > 0 ? 'sell' : 'buy',
         orderType: 'limit',
         size: Math.abs(parseFloat(position.size)).toString(),
@@ -737,7 +739,7 @@ export class PerpsE2EMockService {
     const existing = this.mockPricesMap[symbol];
     const updated: PriceUpdate = {
       ...(existing || {
-        coin: symbol,
+        symbol,
         percentChange24h: '0',
         bestBid: price,
         bestAsk: price,
@@ -758,7 +760,7 @@ export class PerpsE2EMockService {
 
     // Adjust unrealized PnL roughly based on movement towards/away from entry
     this.mockPositions = this.mockPositions.map((pos) => {
-      if (pos.coin !== symbol) return pos;
+      if (pos.symbol !== symbol) return pos;
       const entry = parseFloat(pos.entryPrice);
       const size = parseFloat(pos.size);
       const direction = size >= 0 ? 1 : -1;
@@ -817,7 +819,7 @@ export class PerpsE2EMockService {
 
           // Add position
           const newPosition: Position = {
-            coin: order.symbol,
+            symbol: order.symbol,
             entryPrice: entry.toFixed(2),
             size: signedSize.toString(),
             positionValue: notional.toFixed(2),
@@ -870,7 +872,7 @@ export class PerpsE2EMockService {
     const current =
       this.mockPricesMap[symbol] ||
       ({
-        coin: symbol,
+        symbol,
         price: '0',
         markPrice: '0',
         timestamp: Date.now(),
@@ -909,7 +911,7 @@ export class PerpsE2EMockService {
     // Evaluate each position independently
     const remaining: Position[] = [];
     for (const pos of this.mockPositions) {
-      if (pos.coin !== symbol) {
+      if (pos.symbol !== symbol) {
         remaining.push(pos);
         continue;
       }
@@ -959,7 +961,7 @@ export class PerpsE2EMockService {
   private buildDefaultPrices(): Record<string, PriceUpdate> {
     return {
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '45000.00',
         timestamp: Date.now(),
         percentChange24h: '2.5',
@@ -972,7 +974,7 @@ export class PerpsE2EMockService {
         volume24h: 1000000,
       },
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '2500.00',
         timestamp: Date.now(),
         percentChange24h: '1.8',
@@ -985,7 +987,7 @@ export class PerpsE2EMockService {
         volume24h: 500000,
       },
       SOL: {
-        coin: 'SOL',
+        symbol: 'SOL',
         price: '100.00',
         timestamp: Date.now(),
         percentChange24h: '-2.3',
@@ -1008,8 +1010,11 @@ export class PerpsE2EMockService {
   }
 
   // Update an existing position and notify subscribers (reserved for upcoming tests)
-  public mockUpdatePosition(coin: string, updates: Partial<Position>): boolean {
-    const index = this.mockPositions.findIndex((p) => p.coin === coin);
+  public mockUpdatePosition(
+    symbol: string,
+    updates: Partial<Position>,
+  ): boolean {
+    const index = this.mockPositions.findIndex((p) => p.symbol === symbol);
     if (index === -1) return false;
     this.mockPositions[index] = { ...this.mockPositions[index], ...updates };
     this.notifyPositionCallbacks();

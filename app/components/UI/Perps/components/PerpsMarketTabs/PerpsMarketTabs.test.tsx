@@ -210,7 +210,7 @@ describe('PerpsMarketTabs', () => {
     it('displays position tab when position exists', () => {
       const onActiveTabChange = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
 
       const { getAllByText } = render(
@@ -248,7 +248,7 @@ describe('PerpsMarketTabs', () => {
     it('switches tabs when clicked', async () => {
       const onActiveTabChange = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
       mockUsePerpsLiveOrders.mockReturnValue({
         orders: [{ ...mockOrder, symbol: 'BTC' }],
@@ -276,7 +276,7 @@ describe('PerpsMarketTabs', () => {
     it('displays correct content for active tab', async () => {
       const onActiveTabChange = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
 
       const { getByTestId } = render(
@@ -320,7 +320,7 @@ describe('PerpsMarketTabs', () => {
     it('prioritizes position tab when both position and orders exist', () => {
       const onActiveTabChange = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
       mockUsePerpsLiveOrders.mockReturnValue({
         orders: [{ ...mockOrder, symbol: 'BTC' }],
@@ -344,7 +344,7 @@ describe('PerpsMarketTabs', () => {
   describe('Initial Tab Selection', () => {
     it('sets initial tab to position when initialTab is position', async () => {
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
       const onActiveTabChange = jest.fn();
 
@@ -455,7 +455,7 @@ describe('PerpsMarketTabs', () => {
 
     it('respects initialTab over auto-selection when both position and orders exist', async () => {
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
       mockUsePerpsLiveOrders.mockReturnValue({
         orders: [{ ...mockOrder, symbol: 'BTC' }],
@@ -482,7 +482,7 @@ describe('PerpsMarketTabs', () => {
 
     it('does not override user interaction with initialTab', async () => {
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
       mockUsePerpsLiveOrders.mockReturnValue({
         orders: [{ ...mockOrder, symbol: 'BTC' }],
@@ -512,7 +512,7 @@ describe('PerpsMarketTabs', () => {
     it('handles initialTab when data loads after component mount', () => {
       const onActiveTabChange = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
 
       const { getByTestId } = render(
@@ -545,7 +545,7 @@ describe('PerpsMarketTabs', () => {
         positions: [
           {
             ...mockPosition,
-            coin: 'BTC',
+            symbol: 'BTC',
             activeTPOrderId: '12345',
             activeSLOrderId: '12345',
           },
@@ -582,7 +582,7 @@ describe('PerpsMarketTabs', () => {
         positions: [
           {
             ...mockPosition,
-            coin: 'BTC',
+            symbol: 'BTC',
             activeTPOrderId: '12345',
             activeSLOrderId: null,
           },
@@ -619,7 +619,7 @@ describe('PerpsMarketTabs', () => {
         positions: [
           {
             ...mockPosition,
-            coin: 'BTC',
+            symbol: 'BTC',
             activeTPOrderId: null,
             activeSLOrderId: '12345',
           },
@@ -714,7 +714,7 @@ describe('PerpsMarketTabs', () => {
   describe('External Tab Control', () => {
     it('switches to external tab when activeTabId prop changes', async () => {
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
       mockUsePerpsLiveOrders.mockReturnValue({
         orders: [{ ...mockOrder, symbol: 'BTC' }],
@@ -771,7 +771,7 @@ describe('PerpsMarketTabs', () => {
       });
 
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
 
       rerender(
@@ -811,7 +811,7 @@ describe('PerpsMarketTabs', () => {
   describe('Tooltip Interaction', () => {
     it('closes tooltip when close button is pressed', async () => {
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [{ ...mockPosition, coin: 'BTC' }],
+        positions: [{ ...mockPosition, symbol: 'BTC' }],
       });
 
       const { getByTestId, queryByTestId } = render(
@@ -916,7 +916,7 @@ describe('PerpsMarketTabs', () => {
       await waitFor(() => {
         expect(mockCancelOrder).toHaveBeenCalledWith({
           orderId: btcOrder.orderId,
-          coin: btcOrder.symbol,
+          symbol: btcOrder.symbol,
         });
       });
 
@@ -969,7 +969,7 @@ describe('PerpsMarketTabs', () => {
       await waitFor(() => {
         expect(mockCancelOrder).toHaveBeenCalledWith({
           orderId: btcOrder.orderId,
-          coin: btcOrder.symbol,
+          symbol: btcOrder.symbol,
         });
       });
 
@@ -1016,7 +1016,7 @@ describe('PerpsMarketTabs', () => {
       await waitFor(() => {
         expect(mockCancelOrder).toHaveBeenCalledWith({
           orderId: btcOrder.orderId,
-          coin: btcOrder.symbol,
+          symbol: btcOrder.symbol,
         });
       });
 

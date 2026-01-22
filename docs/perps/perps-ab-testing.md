@@ -683,11 +683,13 @@ For A/B test properties in Segment schema:
 
 This section guides you through creating a Mixpanel dashboard to analyze A/B test results.
 
+**Reference Dashboard:** [Perps A/B Test - Button Color (TAT-1937)](https://mixpanel.com/project/2697051/view/3233695/app/boards#id=10912360)
+
 ### Creating the Dashboard
 
 #### 1. Create New Dashboard
 
-- Navigate to Mixpanel → Dashboards → Create Dashboard
+- Navigate to Mixpanel → Boards → + New Board
 - **Name:** `Perps A/B Test - Button Color (TAT-1937)`
 - **Description:** `Measures impact of button colors on trading engagement`
 
@@ -695,9 +697,11 @@ This section guides you through creating a Mixpanel dashboard to analyze A/B tes
 
 Create an Insights report showing how many users were exposed to each variant:
 
-- **Type:** Insights
-- **Event:** `Perps Screen Viewed`
-- **Filter:** `screen_type = 'asset_details'`
+- **Type:** Insights (+ Add → Report → Insights)
+- **Event:** `Perp Screen Viewed`
+- **Filters:**
+  - `screen_type` equals `asset_details`
+  - `ab_test_button_color` is set (ensures only test participants are counted)
 - **Breakdown:** `ab_test_button_color`
 - **Time Range:** Select test duration
 
@@ -708,8 +712,10 @@ This establishes your baseline: how many users saw control vs monochrome buttons
 Create an Insights report showing button taps per variant:
 
 - **Type:** Insights
-- **Event:** `Perps UI Interaction`
-- **Filter:** `interaction_type = 'tap'`
+- **Event:** `Perp UI Interaction`
+- **Filters:**
+  - `interaction_type` equals `tap`
+  - `ab_test_button_color` is set
 - **Breakdown:** `ab_test_button_color`
 - **Time Range:** Match exposure report
 
@@ -717,13 +723,19 @@ Create an Insights report showing button taps per variant:
 
 Create a funnel to calculate engagement rate per variant:
 
-- **Type:** Funnels
-- **Step 1:** `Perps Screen Viewed` where `screen_type = 'asset_details'`
-- **Step 2:** `Perps UI Interaction` where `interaction_type = 'tap'`
+- **Type:** Funnels (+ Add → Report → Funnels)
+- **Step 1:** `Perp Screen Viewed`
+  - Filter: `screen_type` equals `asset_details`
+  - Filter: `ab_test_button_color` is set
+- **Step 2:** `Perp UI Interaction`
+  - Filter: `interaction_type` equals `tap`
+  - Filter: `direction` is set (ensures only Long/Short button taps, excludes other UI interactions)
 - **Breakdown:** `ab_test_button_color`
-- **Conversion Window:** Same session (or adjust based on test design)
+- **Conversion Window:** 1 session
 
-This shows: "Of users who saw the screen, what percentage tapped a button?"
+This shows: "Of users who saw the screen, what percentage tapped a Long/Short button?"
+
+> **Note:** The `direction is set` filter on Step 2 ensures only Long/Short button taps are counted, excluding taps from other screens like Order Book that also track the A/B test property.
 
 #### 5. Enable Statistical Significance
 
