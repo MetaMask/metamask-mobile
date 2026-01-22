@@ -50,20 +50,10 @@ import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import parseAmount from '../../../../../util/parseAmount';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
+import { calculateInputFontSize } from '../../utils/calculateInputFontSize';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
-
-/**
- * Calculates font size based on input length
- */
-export const calculateFontSize = (length: number): number => {
-  if (length <= 10) return 40;
-  if (length <= 15) return 35;
-  if (length <= 20) return 30;
-  if (length <= 25) return 25;
-  return 20;
-};
 
 const createStyles = ({
   vars,
@@ -325,7 +315,7 @@ export const TokenInputArea = forwardRef<
         : formattedAddress;
 
     const displayedAmount = getDisplayAmount(amount, tokenType, isMaxAmount);
-    const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
+    const fontSize = calculateInputFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize, hidden: !subtitle });
 
     let tokenButtonText = 'bridge.swap_to';
