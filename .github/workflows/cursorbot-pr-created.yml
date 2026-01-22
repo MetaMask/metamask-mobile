@@ -58,7 +58,7 @@ jobs:
           ISSUE_TITLE: ${{ steps.issue.outputs.title }}
         with:
           script: |
-            const issueNumber = process.env.ISSUE_NUMBER;
+            const issueNumber = parseInt(process.env.ISSUE_NUMBER, 10);
             const issueTitle = process.env.ISSUE_TITLE;
             const pr = context.payload.pull_request;
             const existingBody = pr.body || '';
