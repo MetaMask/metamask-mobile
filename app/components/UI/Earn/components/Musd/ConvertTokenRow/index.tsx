@@ -20,12 +20,12 @@ import {
   ButtonIconSize,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { EarnNetworkAvatar } from '../../EarnNetworkAvatar';
-import { useMusdQuickConvertPercentage } from '../../../hooks/useMusdQuickConvertPercentage';
 import styleSheet from './ConvertTokenRow.styles';
 import {
   ConvertTokenRowProps,
@@ -49,7 +49,6 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const networkName = useSelector(selectNetworkName);
-  const { buttonLabel } = useMusdQuickConvertPercentage();
 
   const formatFiat = useFiatFormatter();
 
@@ -115,7 +114,9 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
           onPress={handleMaxPress}
           testID={ConvertTokenRowTestIds.MAX_BUTTON}
         >
-          <Text variant={TextVariant.BodyMDMedium}>{buttonLabel}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('earn.musd_conversion.max')}
+          </Text>
         </Button>
         <ButtonIcon
           style={styles.editButton}
