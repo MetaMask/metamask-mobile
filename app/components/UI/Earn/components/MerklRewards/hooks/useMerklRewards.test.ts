@@ -140,6 +140,16 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
+  it('returns null and does not fetch when asset is undefined', async () => {
+    const { result } = renderHook(() => useMerklRewards({ asset: undefined }));
+
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe(null);
+    });
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   it('returns null when asset is not eligible', async () => {
     const nonEligibleAsset: TokenI = {
       ...mockAsset,

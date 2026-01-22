@@ -482,7 +482,10 @@ const EarnInputView = () => {
       });
     };
 
-    if (isStakingDepositRedesignedEnabled) {
+    // Temp: Will be brought back in subsequent PR.
+    const isBatchDepositEnabled = false;
+
+    if (isBatchDepositEnabled) {
       createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
       createLegacyLendingDepositConfirmation(
@@ -494,13 +497,13 @@ const EarnInputView = () => {
     selectedAccount,
     earnToken,
     shouldLogStablecoinEvent,
+    amountTokenMinimalUnit,
     trackEvent,
     createEventBuilder,
     network?.name,
     balanceValue,
     amountToken,
     isFiat,
-    amountTokenMinimalUnit,
     networkClientId,
     navigation,
     token,
@@ -508,7 +511,6 @@ const EarnInputView = () => {
     annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
-    isStakingDepositRedesignedEnabled,
   ]);
 
   const handlePooledStakingFlow = useCallback(async () => {
