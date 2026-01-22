@@ -2,6 +2,12 @@ import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  useNavigation,
+  useRoute,
+  ParamListBase,
+} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import {
   Button,
   ButtonSize,
   ButtonVariant,
@@ -21,18 +27,16 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 interface ClaimMerklRewardsProps {
   asset: TokenI;
-  onRefetch?: () => Promise<void>;
 }
 
 /**
  * Component to display the claim button for Merkl rewards
  */
-const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
-  asset,
-  onRefetch,
-}) => {
+const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const route = useRoute();
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -41,10 +45,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
     claimRewards,
     isClaiming,
     error: claimError,
-  } = useMerklClaim({
-    asset,
-    onClaimSuccess: onRefetch,
-  });
+  } = useMerklClaim({ asset });
 
   const handleClaim = async () => {
     trackEvent(
@@ -62,6 +63,9 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
 
     try {
       await claimRewards();
+      // Replace the current screen to force re-mount with updated balance
+      // This ensures AssetOverview fetches fresh data from the updated controller state
+      navigation.replace(route.name, route.params);
     } catch (error) {
       // Error is handled by useMerklClaim hook and displayed via claimError
     }

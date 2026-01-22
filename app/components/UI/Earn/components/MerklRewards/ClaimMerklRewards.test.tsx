@@ -25,6 +25,17 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({ name: 'Ethereum Mainnet' })),
 }));
 
+const mockReplace = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    replace: mockReplace,
+  }),
+  useRoute: () => ({
+    name: 'Asset',
+    params: { address: '0x123' },
+  }),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const mockStrings: Record<string, string> = {
@@ -102,12 +113,6 @@ const mockUseMerklClaim = useMerklClaim as jest.MockedFunction<
   typeof useMerklClaim
 >;
 
-// Add this to track calls
-let mockUseMerklClaimCalls: {
-  asset: TokenI;
-  onClaimSuccess?: () => Promise<void>;
-}[] = [];
-
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
   symbol: 'aglaMerkl',
@@ -132,18 +137,11 @@ describe('ClaimMerklRewards', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMerklClaimCalls = [];
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
-    mockUseMerklClaim.mockImplementation((options) => {
-      mockUseMerklClaimCalls.push({
-        asset: options.asset,
-        onClaimSuccess: options.onClaimSuccess,
-      });
-      return {
-        claimRewards: mockClaimRewards,
-        isClaiming: false,
-        error: null,
-      };
+    mockUseMerklClaim.mockReturnValue({
+      claimRewards: mockClaimRewards,
+      isClaiming: false,
+      error: null,
     });
   });
 
@@ -153,7 +151,7 @@ describe('ClaimMerklRewards', () => {
     expect(getByText('Claim')).toBeTruthy();
   });
 
-  it('calls claimRewards when button is pressed', async () => {
+  it('calls claimRewards when button is pressed and refreshes screen on success', async () => {
     mockClaimRewards.mockResolvedValue(undefined);
 
     const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
@@ -163,6 +161,7 @@ describe('ClaimMerklRewards', () => {
 
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith('Asset', { address: '0x123' });
     });
   });
 
@@ -219,28 +218,6 @@ describe('ClaimMerklRewards', () => {
     // Error is handled by useMerklClaim hook and displayed via error state
     await waitFor(() => {
       expect(mockClaimRewards).toHaveBeenCalled();
-    });
-  });
-
-  it('passes onRefetch to useMerklClaim as onClaimSuccess', () => {
-    const mockOnRefetch = jest.fn();
-
-    render(<ClaimMerklRewards asset={mockAsset} onRefetch={mockOnRefetch} />);
-
-    expect(mockUseMerklClaimCalls.length).toBe(1);
-    expect(mockUseMerklClaimCalls[0]).toEqual({
-      asset: mockAsset,
-      onClaimSuccess: mockOnRefetch,
-    });
-  });
-
-  it('works without onRefetch prop', () => {
-    render(<ClaimMerklRewards asset={mockAsset} />);
-
-    expect(mockUseMerklClaimCalls.length).toBe(1);
-    expect(mockUseMerklClaimCalls[0]).toEqual({
-      asset: mockAsset,
-      onClaimSuccess: undefined,
     });
   });
 

@@ -46,12 +46,10 @@ export const isEligibleForMerklRewards = (
 
 interface UseMerklRewardsOptions {
   asset: TokenI;
-  exchangeRate?: number;
 }
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
-  refetch: () => Promise<void>;
 }
 
 /**
@@ -171,12 +169,7 @@ export const useMerklRewards = ({
     };
   }, [fetchClaimableRewards]);
 
-  const refetch = useCallback(async () => {
-    await fetchClaimableRewards();
-  }, [fetchClaimableRewards]);
-
   return {
     claimableReward,
-    refetch,
   };
 };

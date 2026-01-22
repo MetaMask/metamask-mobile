@@ -34,17 +34,10 @@ jest.mock('./ClaimMerklRewards', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      asset,
-      onRefetch,
-    }: {
-      asset: TokenI;
-      onRefetch?: () => Promise<void>;
-    }) =>
+    default: ({ asset }: { asset: TokenI }) =>
       ReactActual.createElement(View, {
         testID: 'claim-merkl-rewards',
         'data-asset': asset.symbol,
-        'data-has-refetch': !!onRefetch,
       }),
   };
 });
@@ -81,12 +74,9 @@ describe('MerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(false);
     mockUseMerklRewards.mockReturnValue({
       claimableReward: null,
-      refetch: jest.fn(),
     });
 
-    const { queryByTestId } = render(
-      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
-    );
+    const { queryByTestId } = render(<MerklRewards asset={mockAsset} />);
 
     expect(queryByTestId('pending-merkl-rewards')).toBeNull();
   });
@@ -95,27 +85,20 @@ describe('MerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
     mockUseMerklRewards.mockReturnValue({
       claimableReward: null,
-      refetch: jest.fn(),
     });
 
-    const { getByTestId } = render(
-      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
-    );
+    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
     expect(getByTestId('pending-merkl-rewards')).toBeTruthy();
   });
 
   it('renders ClaimMerklRewards when claimableReward is present', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    const mockRefetch = jest.fn();
     mockUseMerklRewards.mockReturnValue({
       claimableReward: '1.5',
-      refetch: mockRefetch,
     });
 
-    const { getByTestId } = render(
-      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
-    );
+    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
     expect(getByTestId('pending-merkl-rewards')).toBeTruthy();
     expect(getByTestId('claim-merkl-rewards')).toBeTruthy();
@@ -125,12 +108,9 @@ describe('MerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
     mockUseMerklRewards.mockReturnValue({
       claimableReward: null,
-      refetch: jest.fn(),
     });
 
-    const { queryByTestId } = render(
-      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
-    );
+    const { queryByTestId } = render(<MerklRewards asset={mockAsset} />);
 
     expect(queryByTestId('claim-merkl-rewards')).toBeNull();
   });
@@ -139,10 +119,9 @@ describe('MerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
     mockUseMerklRewards.mockReturnValue({
       claimableReward: null,
-      refetch: jest.fn(),
     });
 
-    render(<MerklRewards asset={mockAsset} exchangeRate={2.5} />);
+    render(<MerklRewards asset={mockAsset} />);
 
     expect(mockUseMerklRewards).toHaveBeenCalledWith({
       asset: mockAsset,
@@ -153,12 +132,9 @@ describe('MerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
     mockUseMerklRewards.mockReturnValue({
       claimableReward: '2.5',
-      refetch: jest.fn(),
     });
 
-    const { getByTestId } = render(
-      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
-    );
+    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
     const pendingRewards = getByTestId('pending-merkl-rewards');
     expect(pendingRewards.props['data-claimable']).toBe('2.5');
@@ -166,34 +142,13 @@ describe('MerklRewards', () => {
 
   it('passes asset to ClaimMerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    const mockRefetch = jest.fn();
     mockUseMerklRewards.mockReturnValue({
       claimableReward: '1.5',
-      refetch: mockRefetch,
     });
 
-    const { getByTestId } = render(
-      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
-    );
+    const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
     const claimRewards = getByTestId('claim-merkl-rewards');
     expect(claimRewards.props['data-asset']).toBe(mockAsset.symbol);
-  });
-
-  it('passes refetch to ClaimMerklRewards as onRefetch', () => {
-    mockIsEligibleForMerklRewards.mockReturnValue(true);
-    const mockRefetch = jest.fn();
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: '1.5',
-      refetch: mockRefetch,
-    });
-
-    const { getByTestId } = render(
-      <MerklRewards asset={mockAsset} exchangeRate={1.5} />,
-    );
-
-    // Verify ClaimMerklRewards receives onRefetch prop
-    const claimRewards = getByTestId('claim-merkl-rewards');
-    expect(claimRewards.props['data-has-refetch']).toBe(true);
   });
 });

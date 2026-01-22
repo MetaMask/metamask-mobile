@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
@@ -19,17 +19,11 @@ import { DISTRIBUTOR_CLAIM_ABI, MERKL_DISTRIBUTOR_ADDRESS } from '../constants';
 
 interface UseMerklClaimOptions {
   asset: TokenI;
-  onClaimSuccess?: () => Promise<void>;
 }
 
-export const useMerklClaim = ({
-  asset,
-  onClaimSuccess,
-}: UseMerklClaimOptions) => {
+export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const pendingTransactionIdRef = useRef<string | null>(null);
-  const onClaimSuccessRef = useRef(onClaimSuccess);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -37,11 +31,6 @@ export const useMerklClaim = ({
     selectDefaultEndpointByChainId(state, asset.chainId as Hex),
   );
   const networkClientId = endpoint?.networkClientId;
-
-  // Keep ref updated
-  useEffect(() => {
-    onClaimSuccessRef.current = onClaimSuccess;
-  }, [onClaimSuccess]);
 
   const claimRewards = useCallback(async () => {
     if (!selectedAddress || !networkClientId) {
@@ -104,7 +93,6 @@ export const useMerklClaim = ({
       });
 
       const { id: transactionId } = result.transactionMeta;
-      pendingTransactionIdRef.current = transactionId;
 
       // Wait for transaction confirmation (mined in a block)
       // Contract state changes (like updating the claimed mapping) only happen after confirmation
@@ -144,9 +132,7 @@ export const useMerklClaim = ({
           if (transactionMeta.status === TransactionStatus.confirmed) {
             isResolved = true;
             unsubscribe();
-            pendingTransactionIdRef.current = null;
-            // Update UI state immediately
-            setIsClaiming(false);
+            // Note: isClaiming stays true until all async work completes (handled by finally block)
             // Update token balances and account balances to reflect the new balance after claiming
             // This ensures AssetOverview shows the updated token balance immediately
             const txNetworkClientId =
@@ -189,12 +175,6 @@ export const useMerklClaim = ({
             };
 
             updateBalancesWithRetry()
-              .then(() => {
-                // Refetch claimed amount from blockchain after balance updates complete
-                if (onClaimSuccessRef.current) {
-                  return onClaimSuccessRef.current();
-                }
-              })
               .catch(() => {
                 // Ignore balance update errors, but still resolve
               })
@@ -207,9 +187,7 @@ export const useMerklClaim = ({
           ) {
             isResolved = true;
             unsubscribe();
-            pendingTransactionIdRef.current = null;
-            // Update UI state immediately
-            setIsClaiming(false);
+            // Note: isClaiming reset is handled by finally block after reject propagates
             reject(
               new Error(
                 transactionMeta.error?.message ??
@@ -247,15 +225,15 @@ export const useMerklClaim = ({
     } catch (e) {
       const errorMessage = (e as Error).message;
       setError(errorMessage);
+      // Reset claiming state immediately on error (defensive - finally block also does this)
+      setIsClaiming(false);
       throw e;
     } finally {
       // Clean up subscription if it exists and wasn't already cleaned up
       // This handles the case where result.result throws before a status update
       subscriptionCleanup.fn?.();
       // Always set isClaiming to false in finally block
-      // The listener may have already set it, but this ensures it's cleared
       setIsClaiming(false);
-      pendingTransactionIdRef.current = null;
     }
   }, [selectedAddress, networkClientId, asset]);
 

@@ -436,36 +436,36 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(false);
   });
 
-  it('sets isClaiming to true during claim process', async () => {
+  it('sets isClaiming to true during claim process and stays true until all async work completes', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => createMockRewardData(),
     });
 
     const mockTransactionId = 'tx-123';
-    let resolveTransaction: ((value: unknown) => void) | undefined;
-    const transactionPromise = new Promise<unknown>((resolve) => {
-      resolveTransaction = resolve;
-    });
-
-    mockAddTransaction.mockReturnValueOnce({
-      result: transactionPromise,
+    mockAddTransaction.mockResolvedValueOnce({
+      result: Promise.resolve('0xabc123'),
       transactionMeta: { id: mockTransactionId },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
+    // Start claim and capture promise - isClaiming becomes true synchronously
+    let claimPromise: Promise<void> | undefined;
     act(() => {
-      result.current.claimRewards();
+      claimPromise = result.current.claimRewards() as unknown as Promise<void>;
     });
 
+    // isClaiming should be true immediately after starting
     expect(result.current.isClaiming).toBe(true);
 
-    await act(async () => {
-      resolveTransaction?.('0xabc123');
-      await transactionPromise;
-    });
+    // Wait for transaction submission
+    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
 
+    // Still claiming - waiting for confirmation
+    expect(result.current.isClaiming).toBe(true);
+
+    // Trigger confirmation
     await act(async () => {
       transactionStatusUpdateCallbacks.forEach((callback) => {
         callback({
@@ -477,7 +477,13 @@ describe('useMerklClaim', () => {
       });
     });
 
-    await waitFor(() => expect(result.current.isClaiming).toBe(false));
+    // isClaiming stays true until all async work completes (balance updates, refetch)
+    // Must await full claim promise for isClaiming to become false via finally block
+    await act(async () => {
+      await claimPromise;
+    });
+
+    expect(result.current.isClaiming).toBe(false);
   });
 
   it('uses asset chainId for API fetch and transaction', async () => {
@@ -531,46 +537,6 @@ describe('useMerklClaim', () => {
     expect(mockAddTransaction.mock.calls[0][0].chainId).toBe(
       `0x${Number(CHAIN_IDS.LINEA_MAINNET).toString(16)}`,
     );
-  });
-
-  it('calls onClaimSuccess callback after transaction confirmation', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => createMockRewardData(),
-    });
-
-    const mockTransactionId = 'tx-123';
-    const mockOnClaimSuccess = jest.fn().mockResolvedValue(undefined);
-
-    mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve('0xabc123'),
-      transactionMeta: { id: mockTransactionId },
-    } as never);
-
-    const { result } = renderHook(() =>
-      useMerklClaim({ asset: mockAsset, onClaimSuccess: mockOnClaimSuccess }),
-    );
-
-    const claimPromise = act(async () => {
-      await result.current.claimRewards();
-    });
-
-    await waitFor(() => expect(mockAddTransaction).toHaveBeenCalled());
-    expect(mockOnClaimSuccess).not.toHaveBeenCalled();
-
-    await act(async () => {
-      transactionStatusUpdateCallbacks.forEach((callback) => {
-        callback({
-          transactionMeta: createMockTransactionMeta(
-            mockTransactionId,
-            TransactionStatus.confirmed,
-          ),
-        });
-      });
-    });
-
-    await claimPromise;
-    await waitFor(() => expect(mockOnClaimSuccess).toHaveBeenCalledTimes(1));
   });
 
   it.each([
@@ -706,10 +672,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: mockTransactionId },
     } as never);
 
-    const mockOnClaimSuccess = jest.fn().mockResolvedValue(undefined);
-    const { result } = renderHook(() =>
-      useMerklClaim({ asset: mockAsset, onClaimSuccess: mockOnClaimSuccess }),
-    );
+    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     // Execute claim - should complete immediately because tx is already confirmed
     await act(async () => {
@@ -719,8 +682,6 @@ describe('useMerklClaim', () => {
     // Should have completed successfully without hanging
     expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toBe(null);
-    // onClaimSuccess should have been called
-    await waitFor(() => expect(mockOnClaimSuccess).toHaveBeenCalledTimes(1));
   });
 
   it('handles race condition when transaction already failed before subscription check', async () => {
