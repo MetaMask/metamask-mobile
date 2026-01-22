@@ -28,7 +28,7 @@ const BackupAndSyncSettings = () => {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <ScrollView style={styles.wrapper}>
+      <ScrollView style={styles.wrapper} showsVerticalScrollIndicator={false}>
         <BackupAndSyncToggle />
         <BackupAndSyncFeaturesToggles />
       </ScrollView>

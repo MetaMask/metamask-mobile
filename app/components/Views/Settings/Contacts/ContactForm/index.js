@@ -1,17 +1,21 @@
 import React, { PureComponent } from 'react';
 import {
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
-import { getEditableOptions } from '../../../../UI/Navbar';
-import StyledButton from '../../../../UI/StyledButton';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -100,7 +104,7 @@ const createStyles = (colors) =>
     },
     informationWrapper: {
       flex: 1,
-      paddingHorizontal: 24,
+      paddingHorizontal: 12,
     },
     label: {
       fontSize: 14,
@@ -109,7 +113,9 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     buttonsWrapper: {
-      marginVertical: 12,
+      marginTop: 24,
+      marginBottom: Platform.OS === 'android' ? 0 : 16,
+      paddingHorizontal: 16,
       flexDirection: 'row',
       alignSelf: 'flex-end',
     },
@@ -202,16 +208,8 @@ class ContactForm extends PureComponent {
   validationTimeoutId = null;
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getEditableOptions(
-        strings(`address_book.${route.params?.mode ?? ADD}_contact_title`),
-        navigation,
-        route,
-        colors,
-      ),
-    );
+    const { navigation } = this.props;
+    navigation.setOptions({ headerShown: false });
   };
 
   componentDidMount = () => {
@@ -455,219 +453,232 @@ class ContactForm extends PureComponent {
     const isEditMode = editable && mode === EDIT;
 
     return (
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={AddContactViewSelectorsIDs.CONTAINER}
-      >
-        <KeyboardAwareScrollView style={styles.informationWrapper}>
-          <View style={styles.scrollWrapper}>
-            <Text style={styles.label}>{strings('address_book.name')}</Text>
-            <TextInput
-              editable={this.state.editable}
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              onChangeText={this.onChangeName}
-              placeholder={strings('address_book.nickname')}
-              placeholderTextColor={colors.text.muted}
-              spellCheck={false}
-              numberOfLines={1}
-              style={[
-                styles.input,
-                inputWidth ? { width: inputWidth } : {},
-                editable ? {} : styles.textInputDisaled,
-              ]}
-              value={name}
-              onSubmitEditing={this.jumpToAddressInput}
-              testID={AddContactViewSelectorsIDs.NAME_INPUT}
-              keyboardAppearance={themeAppearance}
-            />
-            <Text style={styles.label}>{strings('address_book.address')}</Text>
-            <View
-              style={[styles.input, editable ? {} : styles.textInputDisaled]}
-            >
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  editable={isAddMode}
-                  autoCapitalize={'none'}
-                  autoCorrect={false}
-                  onChangeText={this.onChangeAddress}
-                  placeholder={strings('address_book.add_input_placeholder')}
-                  placeholderTextColor={colors.text.muted}
-                  spellCheck={false}
-                  numberOfLines={1}
-                  style={[
-                    styles.textInput,
-                    inputWidth ? { width: inputWidth } : {},
-                    isEditMode
-                      ? {
-                          color: colors.text.alternative,
-                        }
-                      : {},
-                  ]}
-                  value={toEnsName || address}
-                  ref={this.addressInput}
-                  onSubmitEditing={this.jumpToMemoInput}
-                  testID={AddContactViewSelectorsIDs.ADDRESS_INPUT}
-                  keyboardAppearance={themeAppearance}
-                />
-                {toEnsName && toEnsAddress && (
-                  <Text style={styles.resolvedInput}>
-                    {renderShortAddress(toEnsAddress)}
-                  </Text>
-                )}
-              </View>
-
-              {isAddMode && (
-                <TouchableOpacity
-                  onPress={this.onScan}
-                  style={styles.iconWrapper}
-                >
-                  <AntIcon
-                    name="scan1"
-                    size={20}
-                    color={colors.primary.default}
-                    style={styles.scanIcon}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Text style={styles.label}>{strings('address_book.memo')}</Text>
-            <View
-              style={[styles.input, editable ? {} : styles.textInputDisaled]}
-            >
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  multiline
-                  editable={editable}
-                  autoCapitalize={'none'}
-                  autoCorrect={false}
-                  onChangeText={this.onChangeMemo}
-                  placeholder={strings('address_book.memo')}
-                  placeholderTextColor={colors.text.muted}
-                  spellCheck={false}
-                  numberOfLines={1}
-                  style={[
-                    styles.textInput,
-                    inputWidth ? { width: inputWidth } : {},
-                  ]}
-                  value={memo}
-                  ref={this.memoInput}
-                  testID={AddContactViewSelectorsIDs.MEMO_INPUT}
-                  keyboardAppearance={themeAppearance}
-                />
-              </View>
-            </View>
-
-            <>
+      <>
+        <HeaderCenter
+          title={strings(`address_book.${mode}_contact_title`)}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+        />
+        <SafeAreaView
+          style={styles.wrapper}
+          testID={AddContactViewSelectorsIDs.CONTAINER}
+          edges={{ bottom: 'additive' }}
+        >
+          <KeyboardAwareScrollView style={styles.informationWrapper} showsVerticalScrollIndicator={false}>
+            <View style={styles.scrollWrapper}>
+              <Text style={styles.label}>{strings('address_book.name')}</Text>
+              <TextInput
+                editable={this.state.editable}
+                autoCapitalize={'none'}
+                autoCorrect={false}
+                onChangeText={this.onChangeName}
+                placeholder={strings('address_book.nickname')}
+                placeholderTextColor={colors.text.muted}
+                spellCheck={false}
+                numberOfLines={1}
+                style={[
+                  styles.input,
+                  inputWidth ? { width: inputWidth } : {},
+                  editable ? {} : styles.textInputDisaled,
+                ]}
+                value={name}
+                onSubmitEditing={this.jumpToAddressInput}
+                testID={AddContactViewSelectorsIDs.NAME_INPUT}
+                keyboardAppearance={themeAppearance}
+              />
               <Text style={styles.label}>
-                {strings('address_book.network')}
+                {strings('address_book.address')}
               </Text>
-              <TouchableOpacity
-                disabled={!editable}
-                style={[styles.networkSelector]}
-                onPress={() => {
-                  if (this.state.editable) {
-                    this.setOpenNetworkSelector(true);
-                  }
-                }}
-                onLongPress={() => {
-                  if (this.state.editable) {
-                    this.setOpenNetworkSelector(true);
-                  }
-                }}
-                testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
+              <View
+                style={[styles.input, editable ? {} : styles.textInputDisaled]}
               >
-                <View style={styles.networkSelectorNetworkName}>
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Sm}
-                    name={networkName}
-                    imageSource={getNetworkImageSource({
-                      chainId: contactChainId || this.props.chainId,
-                    })}
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    editable={isAddMode}
+                    autoCapitalize={'none'}
+                    autoCorrect={false}
+                    onChangeText={this.onChangeAddress}
+                    placeholder={strings('address_book.add_input_placeholder')}
+                    placeholderTextColor={colors.text.muted}
+                    spellCheck={false}
+                    numberOfLines={1}
+                    style={[
+                      styles.textInput,
+                      inputWidth ? { width: inputWidth } : {},
+                      isEditMode
+                        ? {
+                            color: colors.text.alternative,
+                          }
+                        : {},
+                    ]}
+                    value={toEnsName || address}
+                    ref={this.addressInput}
+                    onSubmitEditing={this.jumpToMemoInput}
+                    testID={AddContactViewSelectorsIDs.ADDRESS_INPUT}
+                    keyboardAppearance={themeAppearance}
                   />
-                  <Text style={styles.networkSelectorNetworkNameLabel}>
-                    {networkName}
-                  </Text>
+                  {toEnsName && toEnsAddress && (
+                    <Text style={styles.resolvedInput}>
+                      {renderShortAddress(toEnsAddress)}
+                    </Text>
+                  )}
                 </View>
-                {!!editable && (
-                  <ButtonIcon
-                    iconName={IconName.ArrowDown}
-                    iconColor={IconColor.Default}
-                    onPress={() => {
-                      if (this.state.editable) {
-                        this.setOpenNetworkSelector(true);
-                      }
-                    }}
-                    accessibilityRole="button"
-                    style={styles.buttonIcon}
-                  />
+
+                {isAddMode && (
+                  <TouchableOpacity
+                    onPress={this.onScan}
+                    style={styles.iconWrapper}
+                  >
+                    <AntIcon
+                      name="scan1"
+                      size={20}
+                      color={colors.primary.default}
+                      style={styles.scanIcon}
+                    />
+                  </TouchableOpacity>
                 )}
-              </TouchableOpacity>
-            </>
-          </View>
+              </View>
 
-          {addressError && (
-            <ErrorMessage
-              errorMessage={this.renderErrorMessage(addressError)}
-              errorContinue={!!errorContinue}
-              onContinue={this.onErrorContinue}
+              <Text style={styles.label}>{strings('address_book.memo')}</Text>
+              <View
+                style={[styles.input, editable ? {} : styles.textInputDisaled]}
+              >
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    multiline
+                    editable={editable}
+                    autoCapitalize={'none'}
+                    autoCorrect={false}
+                    onChangeText={this.onChangeMemo}
+                    placeholder={strings('address_book.memo')}
+                    placeholderTextColor={colors.text.muted}
+                    spellCheck={false}
+                    numberOfLines={1}
+                    style={[
+                      styles.textInput,
+                      inputWidth ? { width: inputWidth } : {},
+                    ]}
+                    value={memo}
+                    ref={this.memoInput}
+                    testID={AddContactViewSelectorsIDs.MEMO_INPUT}
+                    keyboardAppearance={themeAppearance}
+                  />
+                </View>
+              </View>
+
+              <>
+                <Text style={styles.label}>
+                  {strings('address_book.network')}
+                </Text>
+                <TouchableOpacity
+                  disabled={!editable}
+                  style={[styles.networkSelector]}
+                  onPress={() => {
+                    if (this.state.editable) {
+                      this.setOpenNetworkSelector(true);
+                    }
+                  }}
+                  onLongPress={() => {
+                    if (this.state.editable) {
+                      this.setOpenNetworkSelector(true);
+                    }
+                  }}
+                  testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
+                >
+                  <View style={styles.networkSelectorNetworkName}>
+                    <Avatar
+                      variant={AvatarVariant.Network}
+                      size={AvatarSize.Sm}
+                      name={networkName}
+                      imageSource={getNetworkImageSource({
+                        chainId: contactChainId || this.props.chainId,
+                      })}
+                    />
+                    <Text style={styles.networkSelectorNetworkNameLabel}>
+                      {networkName}
+                    </Text>
+                  </View>
+                  {!!editable && (
+                    <ButtonIcon
+                      iconName={IconName.ArrowDown}
+                      iconColor={IconColor.Default}
+                      onPress={() => {
+                        if (this.state.editable) {
+                          this.setOpenNetworkSelector(true);
+                        }
+                      }}
+                      accessibilityRole="button"
+                      style={styles.buttonIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              </>
+            </View>
+
+            {addressError && (
+              <ErrorMessage
+                errorMessage={this.renderErrorMessage(addressError)}
+                errorContinue={!!errorContinue}
+                onContinue={this.onErrorContinue}
+              />
+            )}
+
+            <ActionSheet
+              ref={this.createActionSheetRef}
+              title={strings('address_book.delete_contact')}
+              options={[
+                strings('address_book.delete'),
+                strings('address_book.cancel'),
+              ]}
+              cancelButtonIndex={1}
+              destructiveButtonIndex={0}
+              // eslint-disable-next-line react/jsx-no-bind
+              onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+              theme={themeAppearance}
             />
-          )}
-
+          </KeyboardAwareScrollView>
           {!!editable && (
             <View style={styles.buttonsWrapper}>
               <View style={styles.buttonsContainer}>
                 <View style={styles.actionButton}>
-                  <StyledButton
-                    type={'confirm'}
-                    disabled={!addressReady || !name || !!addressError}
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    isFullWidth
+                    isDisabled={!addressReady || !name || !!addressError}
                     onPress={this.saveContact}
                     testID={AddContactViewSelectorsIDs.ADD_BUTTON}
                   >
                     {strings(`address_book.${mode}_contact`)}
-                  </StyledButton>
+                  </Button>
                 </View>
                 {mode === EDIT && (
                   <View style={styles.actionButton}>
-                    <StyledButton
-                      style={styles.actionButton}
-                      type={'warning-empty'}
-                      disabled={!addressReady || !name || !!addressError}
+                    <Button
+                      variant={ButtonVariant.SecondaryDanger}
+                      size={ButtonSize.Lg}
+                      isFullWidth
+                      isDisabled={!addressReady || !name || !!addressError}
                       onPress={this.onDelete}
                       testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
                     >
                       {strings(`address_book.delete`)}
-                    </StyledButton>
+                    </Button>
                   </View>
                 )}
               </View>
             </View>
           )}
-          <ActionSheet
-            ref={this.createActionSheetRef}
-            title={strings('address_book.delete_contact')}
-            options={[
-              strings('address_book.delete'),
-              strings('address_book.cancel'),
-            ]}
-            cancelButtonIndex={1}
-            destructiveButtonIndex={0}
-            // eslint-disable-next-line react/jsx-no-bind
-            onPress={(index) => (index === 0 ? this.deleteContact() : null)}
-            theme={themeAppearance}
-          />
-        </KeyboardAwareScrollView>
-        {this.state.openNetworkSelector ? (
-          <NetworkListBottomSheet
-            selectedNetwork={this.state.contactChainId}
-            setSelectedNetwork={this.setSelectedNetwork}
-            setOpenNetworkSelector={this.setOpenNetworkSelector}
-            sheetRef={this.sheetRef}
-          />
-        ) : null}
-      </SafeAreaView>
+          {this.state.openNetworkSelector ? (
+            <NetworkListBottomSheet
+              selectedNetwork={this.state.contactChainId}
+              setSelectedNetwork={this.setSelectedNetwork}
+              setOpenNetworkSelector={this.setOpenNetworkSelector}
+              sheetRef={this.sheetRef}
+            />
+          ) : null}
+        </SafeAreaView>
+      </>
     );
   };
 }

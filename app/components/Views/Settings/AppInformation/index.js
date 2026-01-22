@@ -204,8 +204,8 @@ class AppInformation extends PureComponent {
           style={styles.wrapper}
           testID={AboutMetaMaskSelectorsIDs.CONTAINER}
         >
-          <ScrollView contentContainerStyle={styles.wrapperContent}>
-          <View style={styles.logoWrapper}>
+          <ScrollView contentContainerStyle={styles.wrapperContent} showsVerticalScrollIndicator={false}>
+            <View style={styles.logoWrapper}>
             <TouchableOpacity
               delayLongPress={10 * 1000} // 10 seconds
               onLongPress={this.handleLongPressFox}

@@ -162,7 +162,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   const renderPermissions = useCallback(
     () => (
       <>
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           {inAppBrowserPermissions.map((permissionItem, index) => (
             <PermissionItem
               key={`${index}`}

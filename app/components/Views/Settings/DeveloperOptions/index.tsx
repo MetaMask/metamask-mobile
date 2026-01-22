@@ -41,7 +41,7 @@ const DeveloperOptions = () => {
   }, [navigation, isFullScreenModal, colors]);
 
   return (
-    <ScrollView style={styles.wrapper}>
+    <ScrollView style={styles.wrapper} showsVerticalScrollIndicator={false}>
       <SentryTest />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

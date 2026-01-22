@@ -154,7 +154,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <ScrollView style={styles.wrapper}>
+      <ScrollView style={styles.wrapper} showsVerticalScrollIndicator={false}>
         {renderWalletConnectSettings()}
         {cardExperimentalSwitch && renderCardSettings()}
         {isTest && renderPerformanceSettings()}

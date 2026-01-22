@@ -1,13 +1,10 @@
 // Third party dependencies
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies
 import Row from '../../components/Row';
-import ScreenLayout from '../../components/ScreenLayout';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../../component-library/components/Form/Label';
 import Button, {
@@ -15,6 +12,7 @@ import Button, {
   ButtonSize,
 } from '../../../../../../component-library/components/Buttons/Button';
 import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
+import { View } from 'react-native';
 
 import {
   createNavigationDetails,
@@ -78,11 +76,8 @@ function ActivationKeyForm() {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content>
-            <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
-
+      <View style={style.container}>
+        <View style={style.content}>
           <Row>
             <Label>{strings('app_settings.fiat_on_ramp.label')}</Label>
             <TextField
@@ -114,31 +109,33 @@ function ActivationKeyForm() {
               autoFocus
             />
           </Row>
-
-          <Row style={style.buttons}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              style={style.button}
-              onPress={handleCancel}
-              label={strings('app_settings.fiat_on_ramp.cancel')}
-            />
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              style={style.button}
-              onPress={handleSubmit}
-              label={
-                key
-                  ? strings('app_settings.fiat_on_ramp.update')
-                  : strings('app_settings.fiat_on_ramp.add')
-              }
-              isDisabled={!regex.activationKey.test(activationKey)}
-            />
-          </Row>
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
+        </View>
+        <SafeAreaView edges={['bottom']}>
+          <View style={style.footer}>
+            <Row style={style.buttons}>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                style={style.button}
+                onPress={handleCancel}
+                label={strings('app_settings.fiat_on_ramp.cancel')}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                style={style.button}
+                onPress={handleSubmit}
+                label={
+                  key
+                    ? strings('app_settings.fiat_on_ramp.update')
+                    : strings('app_settings.fiat_on_ramp.add')
+                }
+                isDisabled={!regex.activationKey.test(activationKey)}
+              />
+            </Row>
+          </View>
+        </SafeAreaView>
+      </View>
     </>
   );
 }

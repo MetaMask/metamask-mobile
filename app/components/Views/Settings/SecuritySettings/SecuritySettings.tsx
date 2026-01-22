@@ -397,6 +397,7 @@ const Settings: React.FC = () => {
         style={styles.wrapper}
         testID={SECURITY_PRIVACY_VIEW_ID}
         ref={scrollViewRef}
+        showsVerticalScrollIndicator={false}
       >
       <View style={styles.inner}>
         <Heading first>{strings('app_settings.security_heading')}</Heading>

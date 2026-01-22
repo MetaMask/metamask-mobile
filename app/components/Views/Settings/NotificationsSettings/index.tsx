@@ -66,7 +66,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   }, [colors, isFullScreenModal, navigation]);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Main Toggle */}
       <MainNotificationToggle />
 

@@ -217,9 +217,10 @@ const Settings = () => {
       />
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
         <ScrollView
-        style={styles.wrapper}
-        testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
-      >
+          style={styles.wrapper}
+          testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
+          showsVerticalScrollIndicator={false}
+        >
         <SettingsDrawer
           description={strings('app_settings.general_desc')}
           onPress={onPressGeneral}

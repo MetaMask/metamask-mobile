@@ -326,7 +326,7 @@ class Settings extends PureComponent {
           onBack={() => this.props.navigation.goBack()}
           includesTopInset
         />
-        <ScrollView style={styles.wrapper}>
+        <ScrollView style={styles.wrapper} showsVerticalScrollIndicator={false}>
           <View style={styles.inner}>
             <View style={[styles.setting, styles.firstSetting]}>
               <Text variant={TextVariant.BodyLGMedium}>

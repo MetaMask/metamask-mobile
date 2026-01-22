@@ -380,11 +380,12 @@ class AdvancedSettings extends PureComponent {
         />
         <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
           <KeyboardAwareScrollView
-          style={styles.wrapper}
-          resetScrollToCoords={{ x: 0, y: 0 }}
-          testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
-          ref={this.scrollView}
-        >
+            style={styles.wrapper}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+            testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
+            ref={this.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
           <View
             style={styles.inner}
             testID={AdvancedViewSelectorsIDs.CONTAINER}

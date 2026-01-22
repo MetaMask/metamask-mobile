@@ -2,15 +2,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
   Platform,
-  KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
   View,
-  SafeAreaView,
   StyleSheet,
   ScrollView,
   InteractionManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
   TextColor,
@@ -24,7 +23,7 @@ import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -280,6 +279,19 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       height: '100%',
     },
+    confirmPasswordContentWrapper: {
+      paddingHorizontal: 16,
+    },
+    confirmPasswordButtonWrapper: {
+      marginTop: 24,
+      paddingHorizontal: 16,
+      marginBottom: Platform.OS === 'android' ? 0 : 16,
+    },
+    resetPasswordButtonWrapper: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      marginBottom: Platform.OS === 'android' ? 0 : 16,
+    },
     buttonWrapper: {
       flex: 1,
       justifyContent: 'flex-end',
@@ -387,15 +399,7 @@ class ResetPassword extends PureComponent {
 
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.getThemeColors();
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('password_reset.change_password'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
+    navigation.setOptions({ headerShown: false });
   };
 
   async componentDidMount() {
@@ -795,56 +799,51 @@ class ResetPassword extends PureComponent {
     </View>
   );
 
-  renderConfirmPassword() {
+  renderConfirmPasswordContent() {
     const { warningIncorrectPassword } = this.state;
     const colors = this.getThemeColors();
     const themeAppearance = this.getThemeAppearance();
     const styles = this.getStyles();
 
     return (
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <KeyboardAwareScrollView
-          style={[baseStyles.flexGrow, styles.root]}
-          enableOnAndroid
+      <View style={styles.confirmPasswordContentWrapper}>
+        <Label
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          style={styles.confirm_label}
         >
-          <View style={styles.confirmPasswordWrapper}>
-            <View style={[styles.content, styles.passwordRequiredContent]}>
-              <Label
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                style={styles.confirm_label}
-              >
-                {strings('manual_backup_step_1.enter_current_password')}
-              </Label>
-              <TextField
-                size={TextFieldSize.Lg}
-                placeholder={'Password'}
-                placeholderTextColor={colors.text.muted}
-                onChangeText={this.onPasswordChange}
-                secureTextEntry
-                value={this.state.password}
-                onSubmitEditing={this.reauthenticateWithPassword}
-                testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-                keyboardAppearance={themeAppearance}
-                autoComplete="current-password"
-              />
-              {this.renderWarningText(warningIncorrectPassword, styles)}
-            </View>
-            <View style={styles.buttonWrapper}>
-              <Button
-                {...getCommonButtonProps()}
-                label={strings('manual_backup_step_1.confirm')}
-                onPress={this.reauthenticateWithPassword}
-                testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                isDisabled={!this.state.password}
-              />
-            </View>
-          </View>
-        </KeyboardAwareScrollView>
-      </KeyboardAvoidingView>
+          {strings('manual_backup_step_1.enter_current_password')}
+        </Label>
+        <TextField
+          size={TextFieldSize.Lg}
+          placeholder={'Password'}
+          placeholderTextColor={colors.text.muted}
+          onChangeText={this.onPasswordChange}
+          secureTextEntry
+          value={this.state.password}
+          onSubmitEditing={this.reauthenticateWithPassword}
+          testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+          keyboardAppearance={themeAppearance}
+          autoComplete="current-password"
+        />
+        {this.renderWarningText(warningIncorrectPassword, styles)}
+      </View>
+    );
+  }
+
+  renderConfirmPasswordButton() {
+    const styles = this.getStyles();
+
+    return (
+      <View style={styles.confirmPasswordButtonWrapper}>
+        <Button
+          {...getCommonButtonProps()}
+          label={strings('manual_backup_step_1.confirm')}
+          onPress={this.reauthenticateWithPassword}
+          testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+          isDisabled={!this.state.password}
+        />
+      </View>
     );
   }
 
@@ -924,7 +923,7 @@ class ResetPassword extends PureComponent {
       this.props.authConnection !== AuthConnection.Google;
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <>
         {loading ? (
           this.renderLoadingState(previousScreen, colors, styles)
         ) : (
@@ -932,6 +931,7 @@ class ResetPassword extends PureComponent {
             style={styles.scrollableWrapper}
             contentContainerStyle={styles.keyboardScrollableWrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
+            showsVerticalScrollIndicator={false}
           >
             <View style={styles.wrapper}>
               <View
@@ -1073,28 +1073,39 @@ class ResetPassword extends PureComponent {
                   />
                 </View>
 
-                <View style={styles.ctaWrapper}>
-                  {this.renderSwitch()}
-                  <Button
-                    {...getCommonButtonProps()}
-                    label={strings('reset_password.confirm_btn')}
-                    onPress={() => {
-                      if (this.props.isSeedlessOnboardingLoginFlow) {
-                        this.handleConfirmAction();
-                      } else {
-                        this.onPressCreate();
-                      }
-                    }}
-                    testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                    disabled={!canSubmit}
-                    isDisabled={!canSubmit}
-                  />
-                </View>
               </View>
             </View>
           </KeyboardAwareScrollView>
         )}
-      </SafeAreaView>
+      </>
+    );
+  }
+
+  renderResetPasswordButton() {
+    const { isSelected, password, confirmPassword } = this.state;
+    const styles = this.getStyles();
+    const passwordsMatch = password !== '' && password === confirmPassword;
+    const canSubmit =
+      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+
+    return (
+      <View style={styles.resetPasswordButtonWrapper}>
+        {this.renderSwitch()}
+        <Button
+          {...getCommonButtonProps()}
+          label={strings('reset_password.confirm_btn')}
+          onPress={() => {
+            if (this.props.isSeedlessOnboardingLoginFlow) {
+              this.handleConfirmAction();
+            } else {
+              this.onPressCreate();
+            }
+          }}
+          testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+          disabled={!canSubmit}
+          isDisabled={!canSubmit}
+        />
+      </View>
     );
   }
 
@@ -1103,18 +1114,50 @@ class ResetPassword extends PureComponent {
     const styles = this.getStyles();
 
     if (!ready) return this.renderLoader();
+
+    if (view === CONFIRM_PASSWORD) {
+      return (
+        <>
+          <HeaderCenter
+            title={strings('password_reset.change_password')}
+            onBack={() => this.props.navigation.goBack()}
+            includesTopInset
+          />
+          <View style={styles.mainWrapper}>
+            <KeyboardAwareScrollView
+              style={styles.mainWrapper}
+              contentContainerStyle={styles.scrollviewWrapper}
+              showsVerticalScrollIndicator={false}
+              enableOnAndroid
+            >
+              {this.renderConfirmPasswordContent()}
+            </KeyboardAwareScrollView>
+            <SafeAreaView edges={['bottom']}>
+              {this.renderConfirmPasswordButton()}
+            </SafeAreaView>
+          </View>
+        </>
+      );
+    }
+
+    const { loading } = this.state;
+
     return (
-      <SafeAreaView style={styles.mainWrapper}>
-        <ScrollView
-          contentContainerStyle={styles.scrollviewWrapper}
-          style={styles.mainWrapper}
-          testID={'account-backup-step-4-screen'}
-        >
-          {view === RESET_PASSWORD
-            ? this.renderResetPassword()
-            : this.renderConfirmPassword()}
-        </ScrollView>
-      </SafeAreaView>
+      <>
+        <HeaderCenter
+          title={strings('password_reset.change_password')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+        />
+        <View style={styles.mainWrapper} testID={'account-backup-step-4-screen'}>
+          {this.renderResetPassword()}
+          {!loading && (
+            <SafeAreaView edges={['bottom']}>
+              {this.renderResetPasswordButton()}
+            </SafeAreaView>
+          )}
+        </View>
+      </>
     );
   }
 }
