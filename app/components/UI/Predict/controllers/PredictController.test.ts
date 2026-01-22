@@ -2987,14 +2987,14 @@ describe('PredictController', () => {
       const mockTransactions = [
         {
           params: {
-            to: '0xToken' as `0x${string}`,
-            data: '0xapprove' as `0x${string}`,
+            to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+            data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
           },
         },
         {
           params: {
-            to: '0xSafe' as `0x${string}`,
-            data: '0xdeposit' as `0x${string}`,
+            to: '0x9876543210987654321098765432109876543210' as `0x${string}`,
+            data: '0xa9059cbb000000000000000000000000' as `0x${string}`,
           },
         },
       ];
@@ -3115,8 +3115,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3148,8 +3148,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3190,8 +3190,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3224,8 +3224,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3254,8 +3254,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3328,8 +3328,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3357,8 +3357,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3384,8 +3384,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3404,6 +3404,141 @@ describe('PredictController', () => {
             providerId: 'polymarket',
           }),
         ).rejects.toThrow('Value must be a hexadecimal string.');
+      });
+    });
+
+    it('throws error when transaction is missing params object', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [{ type: 'contractInteraction' } as never],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 is missing params object',
+        );
+      });
+    });
+
+    it('throws error when transaction is missing to address', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          } as never,
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          "Invalid transaction: transaction at index 0 is missing 'to' address",
+        );
+      });
+    });
+
+    it('throws error when transaction to address has invalid format', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0xshort' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          "Invalid transaction: transaction at index 0 has invalid 'to' address format",
+        );
+      });
+    });
+
+    it('throws error when transaction data is missing', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+            },
+          } as never,
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 is missing data',
+        );
+      });
+    });
+
+    it('throws error when transaction data has invalid hex format', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: 'not-hex-data' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 has invalid data format (must be hex string starting with 0x)',
+        );
+      });
+    });
+
+    it('throws error when transaction data is too short', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x1234' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.depositWithConfirmation({
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(
+          'Invalid transaction: transaction at index 0 has insufficient data (length: 6, minimum: 10)',
+        );
       });
     });
   });
@@ -3488,9 +3623,9 @@ describe('PredictController', () => {
           hash: '0xabc',
           status: 'confirmed',
           txParams: {
-            from: '0x1',
-            to: '0xToken',
-            data: '0xapprove',
+            from: '0x1234567890123456789012345678901234567890',
+            to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+            data: '0x095ea7b3000000000000000000000000',
             value: '0x0',
           },
         };
@@ -3515,8 +3650,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
@@ -3552,8 +3687,8 @@ describe('PredictController', () => {
         transactions: [
           {
             params: {
-              to: '0xToken' as `0x${string}`,
-              data: '0xapprove' as `0x${string}`,
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
             },
           },
         ],
