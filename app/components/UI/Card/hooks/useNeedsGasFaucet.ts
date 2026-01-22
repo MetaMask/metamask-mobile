@@ -138,7 +138,8 @@ export const useNeedsGasFaucet = (
    */
   const checkEvmFaucet = useCallback(async () => {
     if (!hexChainId || !balanceWeiInHex) {
-      return false;
+      // If we can't get balance, assume they might need faucet
+      return true;
     }
 
     try {
@@ -149,7 +150,8 @@ export const useNeedsGasFaucet = (
       return balanceBN.lt(estimatedGasFee);
     } catch (err) {
       console.error('Error checking EVM faucet need:', err);
-      return false;
+      // Assume needs faucet on error
+      return true;
     }
   }, [hexChainId, balanceWeiInHex, estimateEvmGasFee]);
 
@@ -212,7 +214,8 @@ export const useNeedsGasFaucet = (
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown error checking faucet';
       setError(errorMessage);
-      setNeedsFaucet(false);
+      // Assume needs faucet on error for safety
+      setNeedsFaucet(true);
     } finally {
       setIsLoading(false);
     }

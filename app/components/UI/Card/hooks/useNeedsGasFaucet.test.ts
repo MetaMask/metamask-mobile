@@ -191,6 +191,24 @@ describe('useNeedsGasFaucet', () => {
 
         expect(result.current.needsFaucet).toBe(true);
       });
+
+      it('returns needsFaucet true when balance data is unavailable', async () => {
+        const mockToken = createMockToken({ caipChainId: 'eip155:59144' }); // Linea
+
+        // Simulate balance data being unavailable (edge case where hook returns undefined)
+        mockUseAccountNativeBalance.mockReturnValue({
+          balanceWeiInHex: undefined as unknown as `0x${string}`,
+        });
+
+        const { result } = renderHook(() => useNeedsGasFaucet(mockToken));
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false);
+        });
+
+        // Should assume needs faucet when balance unavailable
+        expect(result.current.needsFaucet).toBe(true);
+      });
     });
 
     describe('gas estimation', () => {
