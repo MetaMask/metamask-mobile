@@ -23,6 +23,7 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import {
   ActionButtonType,
   ActionLocation,
@@ -222,6 +223,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
+    SwapsController: {
+      fetchTokenWithCache: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -295,6 +299,18 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
 const mockUseRampTokens = jest.fn();
 jest.mock('../Ramp/hooks/useRampTokens', () => ({
   useRampTokens: () => mockUseRampTokens(),
+}));
+
+// Only mock the new hook added in this branch: useScrollToMerklRewards
+// This hook uses useRoute/useNavigation which need proper test setup
+jest.mock('./hooks/useScrollToMerklRewards', () => ({
+  useScrollToMerklRewards: jest.fn(() => ({
+    hasScrolledRef: { current: false },
+  })),
+}));
+
+jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: jest.fn(),
 }));
 
 const asset = {
@@ -377,6 +393,13 @@ describe('AssetOverview', () => {
       topTokens: [],
       isLoading: false,
       error: null,
+    });
+
+    // Setup useSendNavigation mock to call navigate
+    (useSendNavigation as jest.Mock).mockReturnValue({
+      navigateToSendPage: jest.fn((params) => {
+        mockNavigate('Send', params);
+      }),
     });
   });
 
