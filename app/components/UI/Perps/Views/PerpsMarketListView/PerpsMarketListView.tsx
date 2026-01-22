@@ -135,7 +135,7 @@ const PerpsMarketListView = ({
   } = searchState;
 
   // Destructure sort state for easier access
-  const { selectedOptionId, sortBy, handleOptionChange } = sortState;
+  const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
   const { showFavoritesOnly } = favoritesState;
@@ -639,6 +639,7 @@ const PerpsMarketListView = ({
         isVisible={isSortFieldSheetVisible}
         onClose={() => setIsSortFieldSheetVisible(false)}
         selectedOptionId={selectedOptionId}
+        sortDirection={direction}
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
