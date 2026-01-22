@@ -121,7 +121,7 @@ describe('useRWAToken', () => {
             nextOpen: null,
             nextClose: '2024-01-01T11:00:00.000Z',
           },
-        } as BridgeToken['rwaData'],
+        } as unknown as BridgeToken['rwaData'],
       });
 
       const isOpen = await result.current.isTokenTradingOpen(token);
@@ -213,7 +213,7 @@ describe('useRWAToken', () => {
             start: null,
             end: '2024-01-01T11:00:00.000Z',
           },
-        } as BridgeToken['rwaData'],
+        } as unknown as BridgeToken['rwaData'],
       });
 
       const isOpen = await result.current.isTokenTradingOpen(token);
