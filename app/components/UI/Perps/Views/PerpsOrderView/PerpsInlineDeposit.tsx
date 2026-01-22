@@ -27,12 +27,8 @@ import { AlignItems } from '../../../../UI/Box/box.types';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { ConfirmationFooterSelectorIDs } from '../../../../Views/confirmations/ConfirmationView.testIds';
 import { AlertMessage } from '../../../../Views/confirmations/components/alerts/alert-message';
-import {
-  DepositKeyboardSkeleton
-} from '../../../../Views/confirmations/components/deposit-keyboard';
-import {
-  PayTokenAmountSkeleton
-} from '../../../../Views/confirmations/components/pay-token-amount';
+import { DepositKeyboardSkeleton } from '../../../../Views/confirmations/components/deposit-keyboard';
+import { PayTokenAmountSkeleton } from '../../../../Views/confirmations/components/pay-token-amount';
 import { BridgeFeeRow } from '../../../../Views/confirmations/components/rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../../../Views/confirmations/components/rows/bridge-time-row';
 import {
@@ -41,9 +37,7 @@ import {
 } from '../../../../Views/confirmations/components/rows/pay-with-row';
 import { PercentageRow } from '../../../../Views/confirmations/components/rows/percentage-row';
 import { TotalRow } from '../../../../Views/confirmations/components/rows/total-row';
-import {
-  CustomAmountSkeleton
-} from '../../../../Views/confirmations/components/transactions/custom-amount';
+import { CustomAmountSkeleton } from '../../../../Views/confirmations/components/transactions/custom-amount';
 import { useAlerts } from '../../../../Views/confirmations/context/alert-system-context';
 import {
   SetPayTokenRequest,
@@ -129,14 +123,11 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible(false);
     }, [updateTokenAmount]);
 
-
     return (
-      <Box >
+      <Box>
         <Box>
-
           {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
-
+          {disablePay !== true && hasTokens && <PayWithRow hideNetworkFilter />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -202,7 +193,7 @@ function BuySection() {
   const asset = tokens.find(
     (token) =>
       token.address?.toLowerCase() ===
-      primaryRequiredToken?.address.toLowerCase() &&
+        primaryRequiredToken?.address.toLowerCase() &&
       token.chainId === primaryRequiredToken?.chainId,
   );
 
@@ -267,7 +258,6 @@ function ConfirmButton({
 
   const label = alertTitle ?? strings('perps.confirm');
 
-
   return (
     <Button
       style={[disabled && styles.disabledButton]}
@@ -307,4 +297,3 @@ function useIsResultReady({
     (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
   );
 }
-

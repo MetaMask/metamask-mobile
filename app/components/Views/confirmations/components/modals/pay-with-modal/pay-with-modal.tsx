@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { useRoute } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { strings } from '../../../../../../../locales/i18n';
@@ -16,6 +17,10 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 
 export function PayWithModal() {
+  const route = useRoute();
+  const hideNetworkFilter =
+    (route.params as { hideNetworkFilter?: boolean })?.hideNetworkFilter ??
+    false;
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const transactionMeta = useTransactionMetadataRequest();
@@ -71,6 +76,7 @@ export function PayWithModal() {
         hideNfts
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
+        hideNetworkFilter={hideNetworkFilter}
       />
     </BottomSheet>
   );
