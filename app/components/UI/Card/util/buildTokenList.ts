@@ -25,7 +25,6 @@ interface SupportedToken {
 
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
-  userLocation: 'us' | 'international' | string;
   getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[];
   hideSolana?: boolean;
 }
@@ -61,7 +60,6 @@ export function getCaipChainId(
  */
 export function shouldProcessNetwork(
   network: DelegationSettingsResponse['networks'][0],
-  userLocation: string,
   hideSolana: boolean,
 ): boolean {
   const networkLower = network.network?.toLowerCase();
@@ -79,16 +77,6 @@ export function shouldProcessNetwork(
     return false;
   }
 
-  // Filter Linea by location
-  const isLineaNetwork =
-    network.network === 'linea' || network.network === 'linea-us';
-  if (isLineaNetwork) {
-    return (
-      (userLocation === 'us' && network.network === 'linea-us') ||
-      (userLocation !== 'us' && network.network === 'linea')
-    );
-  }
-
   return true;
 }
 
@@ -98,7 +86,6 @@ export function shouldProcessNetwork(
  */
 export function buildTokenListFromSettings({
   delegationSettings,
-  userLocation,
   getSupportedTokensByChainId,
   hideSolana = true,
 }: BuildTokenListParams): CardTokenAllowance[] {
@@ -109,7 +96,7 @@ export function buildTokenListFromSettings({
   const tokens: CardTokenAllowance[] = [];
 
   for (const network of delegationSettings.networks) {
-    if (!shouldProcessNetwork(network, userLocation, hideSolana)) {
+    if (!shouldProcessNetwork(network, hideSolana)) {
       continue;
     }
 
@@ -177,7 +164,7 @@ export function buildQuickSelectTokens(
 
   if (delegationSettings?.networks) {
     for (const network of delegationSettings.networks) {
-      if (network.network !== 'linea' && network.network !== 'linea-us') {
+      if (network.network !== 'linea') {
         continue;
       }
 
@@ -232,32 +219,4 @@ export function buildQuickSelectTokens(
     // Use the display symbol from QUICK_SELECT_TOKENS for consistent casing
     return { symbol, token };
   });
-}
-
-/**
- * Gets valid Linea chain IDs based on user location
- */
-export function getValidLineaChainIds(
-  delegationSettings: DelegationSettingsResponse | null,
-  userLocation: string,
-): Set<string> {
-  const validIds = new Set<string>();
-  if (!delegationSettings?.networks) return validIds;
-
-  for (const network of delegationSettings.networks) {
-    const isLineaNetwork =
-      network.network === 'linea' || network.network === 'linea-us';
-    if (!isLineaNetwork) continue;
-
-    const shouldInclude =
-      (userLocation === 'us' && network.network === 'linea-us') ||
-      (userLocation !== 'us' && network.network === 'linea');
-
-    if (shouldInclude) {
-      const caipChainId = getCaipChainId(network);
-      validIds.add(caipChainId);
-    }
-  }
-
-  return validIds;
 }

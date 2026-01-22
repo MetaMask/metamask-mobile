@@ -257,9 +257,9 @@ export const usePerpsHomeData = ({
       const lowerQuery = query.toLowerCase().trim();
 
       return {
-        // Position only has 'coin' field (no 'symbol')
+        // Position has 'symbol' field
         positions: positions.filter((pos: Position) =>
-          pos.coin?.toLowerCase().includes(lowerQuery),
+          pos.symbol?.toLowerCase().includes(lowerQuery),
         ),
         // Order only has 'symbol' field (no 'coin')
         orders: allOrders.filter((order: Order) =>

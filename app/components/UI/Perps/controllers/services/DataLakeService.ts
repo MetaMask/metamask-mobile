@@ -49,7 +49,7 @@ export class DataLakeService {
    *
    * @param options - Configuration object
    * @param options.action - Order action ('open' or 'close')
-   * @param options.coin - Market symbol
+   * @param options.symbol - Market symbol
    * @param options.sl_price - Optional stop loss price
    * @param options.tp_price - Optional take profit price
    * @param options.isTestnet - Whether this is a testnet operation (skips API call)
@@ -60,7 +60,7 @@ export class DataLakeService {
    */
   async reportOrder(options: {
     action: 'open' | 'close';
-    coin: string;
+    symbol: string;
     sl_price?: number;
     tp_price?: number;
     isTestnet: boolean;
@@ -70,7 +70,7 @@ export class DataLakeService {
   }): Promise<{ success: boolean; error?: string }> {
     const {
       action,
-      coin,
+      symbol,
       sl_price,
       tp_price,
       isTestnet,
@@ -83,7 +83,7 @@ export class DataLakeService {
     if (isTestnet) {
       this.deps.debugLogger.log('DataLake API: Skipping for testnet', {
         action,
-        coin,
+        symbol,
         network: 'testnet',
       });
       return { success: true, error: 'Skipped for testnet' };
@@ -103,7 +103,7 @@ export class DataLakeService {
         id: traceId,
         tags: {
           action,
-          coin,
+          symbol,
           provider: context.tracingContext.provider,
           isTestnet: String(context.tracingContext.isTestnet),
         },
@@ -113,7 +113,7 @@ export class DataLakeService {
     // Log the attempt
     this.deps.debugLogger.log('DataLake API: Starting order report', {
       action,
-      coin,
+      symbol,
       attempt: retryCount + 1,
       maxAttempts: MAX_RETRIES + 1,
       hasStopLoss: !!sl_price,
@@ -139,7 +139,7 @@ export class DataLakeService {
           hasAccount: !!evmAccount,
           hasToken: !!token,
           action,
-          coin,
+          symbol,
         });
         return { success: false, error: 'No account or token available' };
       }
@@ -152,7 +152,7 @@ export class DataLakeService {
         },
         body: JSON.stringify({
           user_id: evmAccount.address,
-          coin,
+          symbol,
           sl_price,
           tp_price,
         }),
@@ -177,7 +177,7 @@ export class DataLakeService {
       // Success logging
       this.deps.debugLogger.log('DataLake API: Order reported successfully', {
         action,
-        coin,
+        symbol,
         status: response.status,
         attempt: retryCount + 1,
         responseBody: responseBody || 'empty',
@@ -204,7 +204,7 @@ export class DataLakeService {
           name: 'DataLakeService.reportOrder',
           data: {
             action,
-            coin,
+            symbol,
             retryCount,
             willRetry: retryCount < MAX_RETRIES,
           },
@@ -218,13 +218,13 @@ export class DataLakeService {
           retryIn: `${retryDelay}ms`,
           nextAttempt: retryCount + 2,
           action,
-          coin,
+          symbol,
         });
 
         setTimeout(() => {
           this.reportOrder({
             action,
-            coin,
+            symbol,
             sl_price,
             tp_price,
             isTestnet,
@@ -239,7 +239,7 @@ export class DataLakeService {
                   operation: 'retry',
                   retryCount: retryCount + 1,
                   action,
-                  coin,
+                  symbol,
                 },
               },
             });
@@ -262,7 +262,7 @@ export class DataLakeService {
       this.deps.logger.error(ensureError(error), {
         context: {
           name: 'DataLakeService.reportOrder',
-          data: { operation: 'finalFailure', action, coin, retryCount },
+          data: { operation: 'finalFailure', action, symbol, retryCount },
         },
       });
 
