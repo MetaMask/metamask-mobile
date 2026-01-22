@@ -279,9 +279,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const predictSuperbowlSlide = useMemo(
     () =>
       slidesConfig.find(
-        (slide) => slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME,
+        (slide) =>
+          slide.variableName === PREDICT_SUPERBOWL_VARIABLE_NAME &&
+          !dismissedBanners.includes(slide.id),
       ),
-    [slidesConfig],
+    [slidesConfig, dismissedBanners],
   );
 
   const predictSuperbowlMarketId = useMemo(() => {
@@ -647,13 +649,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
   }, [currentSlide, trackEvent, createEventBuilder]);
 
-  if (
-    !isCarouselVisible ||
-    (visibleSlides.length === 0 && !isAnimating.current)
-  ) {
-    return null;
-  }
-
   if (predictSuperbowlMarketId) {
     return (
       <Box
@@ -668,6 +663,13 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         />
       </Box>
     );
+  }
+
+  if (
+    !isCarouselVisible ||
+    (visibleSlides.length === 0 && !isAnimating.current)
+  ) {
+    return null;
   }
 
   return (
