@@ -424,6 +424,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                     }
                   >
                     <RCTScrollView
+                      showsVerticalScrollIndicator={false}
                       style={
                         {
                           "backgroundColor": "#ffffff",

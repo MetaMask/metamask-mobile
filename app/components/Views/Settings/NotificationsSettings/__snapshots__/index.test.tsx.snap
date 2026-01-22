@@ -2,6 +2,7 @@
 
 exports[`NotificationsSettings render matches snapshot 1`] = `
 <RCTScrollView
+  showsVerticalScrollIndicator={false}
   style={
     {
       "paddingBottom": 48,

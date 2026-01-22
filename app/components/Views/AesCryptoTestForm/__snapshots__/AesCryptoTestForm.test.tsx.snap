@@ -1,650 +1,807 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AesCryptoTestForm renders correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "off",
-      "right": "off",
-      "top": "off",
+[
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 16,
+          "height": 56,
+          "paddingLeft": 8,
+          "paddingRight": 8,
+        },
+        {
+          "marginTop": 0,
+        },
+        undefined,
+      ]
     }
-  }
-  style={
-    {
-      "flex": 1,
-    }
-  }
->
-  <RCTScrollView
-    contentContainerStyle={
-      {
-        "padding": 16,
-      }
-    }
-    testID="aes-crypto-form-scroll"
+    testID="header"
   >
     <View>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "paddingVertical": 5,
-          }
-        }
+      <View
+        onLayout={[Function]}
       >
-        Current selected address
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-        testID="account-address"
-      />
-      <RCTSafeAreaView
-        style={
-          {
-            "paddingVertical": 10,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "paddingVertical": 5,
-            }
-          }
-        >
-          Generate random salt
-        </Text>
         <View
           style={
-            {
-              "paddingVertical": 5,
-            }
+            [
+              {
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+              },
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+            ]
           }
         >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Salt bytes count"
-            style={
+          <View
+            accessibilityState={
               {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
             }
-            testID="salt-bytes-count-input"
-          />
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 40,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "width": "100%",
-            }
-          }
-          testID="generate-salt-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
+            accessibilityValue={
               {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
               }
             }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 32,
+                },
+                undefined,
+              ]
+            }
+            testID="button-icon"
           >
-            Generate
-          </Text>
-        </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
-        style={
-          {
-            "paddingVertical": 10,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "paddingVertical": 5,
-            }
-          }
-        >
-          Generate encryption key from password
-        </Text>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Password"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
+            <SvgMock
+              fill="currentColor"
+              name="ArrowLeft"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
               }
-            }
-            testID="password-input"
-          />
+            />
+          </View>
         </View>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Salt"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
-              }
-            }
-            testID="salt-input-for-encryption-key"
-          />
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 40,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "width": "100%",
-            }
-          }
-          testID="generate-encryption-key-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Generate
-          </Text>
-        </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
-        style={
-          {
-            "paddingVertical": 10,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "paddingVertical": 5,
-            }
-          }
-        >
-          Encrypt with key
-        </Text>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Encryption key"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
-              }
-            }
-            testID="encryption-key-input-for-encryption-with-key"
-          />
-        </View>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Data"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
-              }
-            }
-            testID="data-input-for-encryption-with-key"
-          />
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 40,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "width": "100%",
-            }
-          }
-          testID="encrypt-with-key-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Encrypt
-          </Text>
-        </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
-        style={
-          {
-            "paddingVertical": 10,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "paddingVertical": 5,
-            }
-          }
-        >
-          Decrypt with key
-        </Text>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Encryption Key"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
-              }
-            }
-            testID="encryption-key-input-for-decryption-with-key"
-          />
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 40,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "width": "100%",
-            }
-          }
-          testID="decrypt-with-key-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Decrypt
-          </Text>
-        </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
-        style={
-          {
-            "paddingVertical": 10,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "paddingVertical": 5,
-            }
-          }
-        >
-          Encrypt
-        </Text>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Data"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
-              }
-            }
-            testID="data-input-for-encryption"
-          />
-        </View>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Password"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
-              }
-            }
-            testID="password-input-for-encryption"
-          />
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 40,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "width": "100%",
-            }
-          }
-          testID="encrypt-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Encrypt
-          </Text>
-        </TouchableOpacity>
-      </RCTSafeAreaView>
-      <RCTSafeAreaView
-        style={
-          {
-            "paddingVertical": 10,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "paddingVertical": 5,
-            }
-          }
-        >
-          Decrypt
-        </Text>
-        <View
-          style={
-            {
-              "paddingVertical": 5,
-            }
-          }
-        >
-          <TextInput
-            autoComplete="off"
-            autoCorrect={false}
-            autoFocus={false}
-            onChangeText={[Function]}
-            placeholder="Password"
-            style={
-              {
-                "borderColor": "#f3f5f9",
-                "borderRadius": 50,
-                "borderWidth": 2,
-                "paddingHorizontal": 10,
-                "paddingVertical": 10,
-              }
-            }
-            testID="password-input-for-decryption"
-          />
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 40,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "width": "100%",
-            }
-          }
-          testID="decrypt-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Decrypt
-          </Text>
-        </TouchableOpacity>
-      </RCTSafeAreaView>
+      </View>
     </View>
-  </RCTScrollView>
-</RNCSafeAreaView>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+            },
+            undefined,
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          AES crypto - test form
+        </Text>
+      </View>
+    </View>
+    <View>
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+  </View>,
+  <RNCSafeAreaView
+    edges={
+      {
+        "bottom": "additive",
+        "left": "off",
+        "right": "off",
+        "top": "off",
+      }
+    }
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "padding": 16,
+        }
+      }
+      testID="aes-crypto-form-scroll"
+    >
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingVertical": 5,
+            }
+          }
+        >
+          Current selected address
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+          testID="account-address"
+        />
+        <RCTSafeAreaView
+          style={
+            {
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 5,
+              }
+            }
+          >
+            Generate random salt
+          </Text>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Salt bytes count"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="salt-bytes-count-input"
+            />
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+                "width": "100%",
+              }
+            }
+            testID="generate-salt-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Generate
+            </Text>
+          </TouchableOpacity>
+        </RCTSafeAreaView>
+        <RCTSafeAreaView
+          style={
+            {
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 5,
+              }
+            }
+          >
+            Generate encryption key from password
+          </Text>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Password"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="password-input"
+            />
+          </View>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Salt"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="salt-input-for-encryption-key"
+            />
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+                "width": "100%",
+              }
+            }
+            testID="generate-encryption-key-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Generate
+            </Text>
+          </TouchableOpacity>
+        </RCTSafeAreaView>
+        <RCTSafeAreaView
+          style={
+            {
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 5,
+              }
+            }
+          >
+            Encrypt with key
+          </Text>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Encryption key"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="encryption-key-input-for-encryption-with-key"
+            />
+          </View>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Data"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="data-input-for-encryption-with-key"
+            />
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+                "width": "100%",
+              }
+            }
+            testID="encrypt-with-key-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Encrypt
+            </Text>
+          </TouchableOpacity>
+        </RCTSafeAreaView>
+        <RCTSafeAreaView
+          style={
+            {
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 5,
+              }
+            }
+          >
+            Decrypt with key
+          </Text>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Encryption Key"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="encryption-key-input-for-decryption-with-key"
+            />
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+                "width": "100%",
+              }
+            }
+            testID="decrypt-with-key-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Decrypt
+            </Text>
+          </TouchableOpacity>
+        </RCTSafeAreaView>
+        <RCTSafeAreaView
+          style={
+            {
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 5,
+              }
+            }
+          >
+            Encrypt
+          </Text>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Data"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="data-input-for-encryption"
+            />
+          </View>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Password"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="password-input-for-encryption"
+            />
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+                "width": "100%",
+              }
+            }
+            testID="encrypt-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Encrypt
+            </Text>
+          </TouchableOpacity>
+        </RCTSafeAreaView>
+        <RCTSafeAreaView
+          style={
+            {
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 5,
+              }
+            }
+          >
+            Decrypt
+          </Text>
+          <View
+            style={
+              {
+                "paddingVertical": 5,
+              }
+            }
+          >
+            <TextInput
+              autoComplete="off"
+              autoCorrect={false}
+              autoFocus={false}
+              onChangeText={[Function]}
+              placeholder="Password"
+              style={
+                {
+                  "borderColor": "#f3f5f9",
+                  "borderRadius": 50,
+                  "borderWidth": 2,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 10,
+                }
+              }
+              testID="password-input-for-decryption"
+            />
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+                "width": "100%",
+              }
+            }
+            testID="decrypt-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Decrypt
+            </Text>
+          </TouchableOpacity>
+        </RCTSafeAreaView>
+      </View>
+    </RCTScrollView>
+  </RNCSafeAreaView>,
+]
 `;
