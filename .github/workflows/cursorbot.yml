@@ -86,27 +86,45 @@ jobs:
           wait-for-completion: 'false'
 
       - name: Comment on issue
-        if: steps.check-pr.outputs.exists != 'true'
+        if: always() && steps.check-pr.outputs.exists != 'true'
         uses: actions/github-script@v6
         env:
           AGENT_URL: ${{ steps.implementation.outputs.agent-url }}
+          LAUNCH_SUCCESS: ${{ steps.implementation.outcome == 'success' }}
         with:
           script: |
             const agentUrl = process.env.AGENT_URL;
+            const launchSuccess = process.env.LAUNCH_SUCCESS === 'true';
 
-            const body = [
-              '## Cursorbot Implementation Started',
-              '',
-              '🤖 Working on implementing this issue. A PR will be created when complete.',
-              '',
-              '> ⚠️ Please review the PR carefully before merging - it is AI-generated.',
-              '',
-              '---',
-              '',
-              `🌐 **[View Agent Session](${agentUrl})**`,
-              '',
-              '*Automated implementation by Cursorbot*'
-            ].join('\n');
+            let body;
+            if (launchSuccess && agentUrl) {
+              body = [
+                '## Cursorbot Implementation Started',
+                '',
+                '🤖 Working on implementing this issue. A PR will be created when complete.',
+                '',
+                '> ⚠️ Please review the PR carefully before merging - it is AI-generated.',
+                '',
+                '---',
+                '',
+                `🌐 **[View Agent Session](${agentUrl})**`,
+                '',
+                '*Automated implementation by Cursorbot*'
+              ].join('\n');
+            } else {
+              body = [
+                '## Cursorbot Implementation Failed to Start',
+                '',
+                '❌ The Cursor agent could not be launched. This may be due to:',
+                '- API connectivity issues',
+                '- Service availability',
+                '- Configuration problems',
+                '',
+                'Please try again by unassigning and reassigning cursorbot, or implement manually.',
+                '',
+                '*Automated message by Cursorbot*'
+              ].join('\n');
+            }
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
