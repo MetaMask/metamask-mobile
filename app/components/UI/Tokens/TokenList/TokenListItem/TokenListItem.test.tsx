@@ -19,7 +19,10 @@ import { strings } from '../../../../../../locales/i18n';
 
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
-import { selectIsMusdConversionFlowEnabledFlag , selectMerklCampaignClaimingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectIsMusdConversionFlowEnabledFlag,
+  selectMerklCampaignClaimingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
@@ -156,7 +159,6 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
-
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
   selectIsMusdConversionFlowEnabledFlag as jest.MockedFunction<
@@ -856,6 +858,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       mockIsEligibleForMerklRewards.mockReturnValue(true);
       prepareMocks({
         asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
       });
 
       const assetKey: FlashListAssetKey = {
@@ -884,6 +887,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       mockIsEligibleForMerklRewards.mockReturnValue(false);
       prepareMocks({
         asset: musdAsset,
+        isMerklCampaignClaimingEnabled: true,
       });
 
       const assetKey: FlashListAssetKey = {

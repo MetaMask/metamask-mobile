@@ -82,6 +82,10 @@ export const useScrollToMerklRewards = (
   );
 
   // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
+  // Note: route.params is intentionally NOT in the dependency array.
+  // We read it inside the callback to get the current value, but we don't want
+  // the effect to re-run when params change (especially after we call setParams).
+  // The effect should only run when the screen gains focus.
   useFocusEffect(
     useCallback(() => {
       const scrollToMerklRewards = (
@@ -107,7 +111,8 @@ export const useScrollToMerklRewards = (
         clearAllTimeouts();
         hasScrolledRef.current = false;
       };
-    }, [route.params, navigation, attemptScroll, clearAllTimeouts]),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navigation, attemptScroll, clearAllTimeouts]),
   );
 
   return {
