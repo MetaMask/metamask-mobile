@@ -297,6 +297,10 @@ export const selectEnabledChainRanking = createSelector(
       ...nonEvmEnabledNetworks,
     ]);
 
+    if (!chainRanking) {
+      return [];
+    }
+
     return chainRanking.filter((chain) => {
       const { chainId } = chain;
 
