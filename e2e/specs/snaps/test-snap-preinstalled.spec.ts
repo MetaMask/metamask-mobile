@@ -11,12 +11,6 @@ jest.setTimeout(150_000);
 
 const eventToTrack = 'Test Event';
 
-const navigateToDappAndShowPreinstalledDialog = async () => {
-  await loginToApp();
-  await navigateToBrowserView();
-  await TestSnaps.navigateToTestSnap();
-};
-
 describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
   it.todo('displays the Snap settings page');
 
@@ -31,7 +25,9 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
-        await navigateToDappAndShowPreinstalledDialog();
+        await loginToApp();
+        await navigateToBrowserView();
+        await TestSnaps.navigateToTestSnap();
         await TestSnaps.tapButton('showPreinstalledDialogButton');
 
         await Assertions.expectTextDisplayed(
