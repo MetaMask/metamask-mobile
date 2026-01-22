@@ -22,8 +22,19 @@ import type {
 import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { findEvmAccount } from '../utils/accountUtils';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
+
+/**
+ * Gets the EVM account from the selected account group.
+ * Mobile-specific helper using Engine context.
+ * @returns EVM account or null if not found
+ */
+function getEvmAccountFromSelectedAccountGroup() {
+  const { AccountTreeController } = Engine.context;
+  const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
+  return findEvmAccount(accounts);
+}
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -253,7 +264,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         updates.forEach((update) => {
           // Map the update to PriceUpdate format
           const priceUpdate: PriceUpdate = {
-            coin: update.coin,
+            symbol: update.symbol,
             price: update.price,
             timestamp: Date.now(),
             percentChange24h: update.percentChange24h,
@@ -265,8 +276,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             openInterest: update.openInterest,
             volume24h: update.volume24h,
           };
-          this.priceCache.set(update.coin, priceUpdate);
-          priceMap[update.coin] = priceUpdate;
+          this.priceCache.set(update.symbol, priceUpdate);
+          priceMap[update.symbol] = priceUpdate;
         });
 
         this.notifySubscribers(priceMap);
@@ -358,7 +369,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           const priceMap: Record<string, PriceUpdate> = {};
           updates.forEach((update) => {
             const priceUpdate: PriceUpdate = {
-              coin: update.coin,
+              symbol: update.symbol,
               price: update.price,
               timestamp: Date.now(),
               percentChange24h: update.percentChange24h,
@@ -370,8 +381,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               openInterest: update.openInterest,
               volume24h: update.volume24h,
             };
-            this.priceCache.set(update.coin, priceUpdate);
-            priceMap[update.coin] = priceUpdate;
+            this.priceCache.set(update.symbol, priceUpdate);
+            priceMap[update.symbol] = priceUpdate;
           });
 
           // Notify any active subscribers with all updates
@@ -680,6 +691,60 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       this.prewarmUnsubscribe();
       this.prewarmUnsubscribe = undefined;
     }
+  }
+
+  /**
+   * Apply optimistic update for TP/SL prices to a position
+   * This immediately updates the UI before WebSocket confirms the change
+   * @param coin - The coin/asset symbol
+   * @param takeProfitPrice - The new take profit price (undefined to remove)
+   * @param stopLossPrice - The new stop loss price (undefined to remove)
+   */
+  public updatePositionTPSLOptimistic(
+    coin: string,
+    takeProfitPrice: string | undefined,
+    stopLossPrice: string | undefined,
+  ): void {
+    const cachedPositions = this.cache.get('positions');
+    if (!cachedPositions) {
+      DevLogger.log(
+        'PositionStreamChannel: Cannot apply optimistic update - no cached positions',
+      );
+      return;
+    }
+
+    const positionIndex = cachedPositions.findIndex((p) => p.symbol === coin);
+    if (positionIndex === -1) {
+      DevLogger.log(
+        `PositionStreamChannel: Cannot apply optimistic update - position not found for ${coin}`,
+      );
+      return;
+    }
+
+    // Create updated positions array with the optimistic TP/SL values
+    const updatedPositions = cachedPositions.map((position, index) => {
+      if (index === positionIndex) {
+        return {
+          ...position,
+          takeProfitPrice,
+          stopLossPrice,
+          // Update counts based on whether TP/SL is set
+          takeProfitCount: takeProfitPrice ? 1 : 0,
+          stopLossCount: stopLossPrice ? 1 : 0,
+        };
+      }
+      return position;
+    });
+
+    DevLogger.log('PositionStreamChannel: Applying optimistic TP/SL update', {
+      coin,
+      takeProfitPrice,
+      stopLossPrice,
+    });
+
+    // Update cache and notify subscribers immediately
+    this.cache.set('positions', updatedPositions);
+    this.notifySubscribers(updatedPositions);
   }
 }
 
@@ -1007,7 +1072,7 @@ class TopOfBookStreamChannel extends StreamChannel<
       symbols: [this.currentSymbol],
       includeOrderBook: true,
       callback: (updates: PriceUpdate[]) => {
-        const update = updates.find((u) => u.coin === this.currentSymbol);
+        const update = updates.find((u) => u.symbol === this.currentSymbol);
         if (update) {
           const topOfBook = {
             bestBid: update.bestBid,

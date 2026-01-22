@@ -64,7 +64,7 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
-import { PredictBuyPreviewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { calculateMaxBetAmount } from '../../utils/orders';
 
 export const MINIMUM_BET = 1; // $1 minimum bet

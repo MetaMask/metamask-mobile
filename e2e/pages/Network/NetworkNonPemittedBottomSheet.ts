@@ -3,7 +3,7 @@ import Gestures from '../../framework/Gestures';
 import {
   NetworkNonPemittedBottomSheetSelectorsIDs,
   NetworkNonPemittedBottomSheetSelectorsText,
-} from '../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+} from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 class NetworkNonPemittedBottomSheet {
   get addThisNetworkTitle(): DetoxElement {

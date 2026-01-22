@@ -3,7 +3,7 @@ import Gestures from '../../framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../selectors/swaps/QuoteView.selectors';
+} from '../../../app/components/UI/Swaps/QuoteView.testIds';
 
 class QuoteView {
   get selectAmountLabel(): DetoxElement {
@@ -22,6 +22,10 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
+  get amountInput(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
+  }
+
   get destinationTokenArea(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
   }
@@ -36,8 +40,8 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL);
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
   get networkFeeLabel(): DetoxElement {
@@ -139,9 +143,9 @@ class QuoteView {
     });
   }
 
-  async tapOnCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton, {
-      elemDescription: 'Cancel swap',
+  async tapOnBackButton() {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button on Quote View',
     });
   }
 

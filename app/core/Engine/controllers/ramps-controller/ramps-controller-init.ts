@@ -25,6 +25,14 @@ export const rampsControllerInit: ControllerInitFunction<
     state: rampsControllerState,
   });
 
+  // Initialize controller at app startup (non-blocking)
+  // Defer to next tick to avoid affecting initial state snapshot
+  Promise.resolve().then(() => {
+    controller.init().catch(() => {
+      // Initialization failed - error state will be available via selectors
+    });
+  });
+
   return {
     controller,
   };

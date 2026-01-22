@@ -1,15 +1,16 @@
 # MetaMask Mobile Deeplink Handling Guide
 
-> 💡 **Visual Learner?** Check out the [Deeplink Visual Flowcharts](./deeplinking-graphs.md) for interactive diagrams of the entire flow!
+> 💡 **Visual Learner?** Check out the [Deeplink Visual Flowcharts](./deeplinking-diagrams.md) for interactive diagrams of the entire flow!
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Link Types](#link-types)
-- [How Link Processing Works](#how-link-processing-works) → [See Visual Flow](./deeplinking-graphs.md#complete-deeplink-flow-with-signature-verification)
+- [How Link Processing Works](#how-link-processing-works) → [See Visual Flow](./deeplinking-diagrams.md#complete-deeplink-flow-with-signature-verification)
 - [Creating New Links](#creating-new-links)
 - [Adding New Handlers](#adding-new-handlers)
-- [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-graphs.md#signature-creation-and-verification-detail)
+- [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)
+- [Analytics](#analytics) → [See Analytics Documentation](./deeplink-analytics.md)
 - [Testing Links](#testing-links)
 - [Security Considerations](#security-considerations)
 - [Custom Schemes Explained](#custom-uri-schemes-explained)
@@ -44,7 +45,7 @@ All deeplinks are processed through a unified pipeline that handles security ver
 
 ## Link Types
 
-> 📊 **[View Scenario Examples](./deeplinking-graphs.md#common-scenarios)** - See visual flows for each link type
+> 📊 **[View Scenario Examples](./deeplinking-diagrams.md#common-scenarios)** - See visual flows for each link type
 
 ### 1. Public / Unsigned Links
 
@@ -52,7 +53,7 @@ Used for general marketing and public-facing features:
 
 ```
 https://link.metamask.io/buy
-https://link.metamask.io/swap?chainId=1
+https://link.metamask.io/swap?from=eip155:1/slip44:60
 ```
 
 - **User Experience**: Shows interstitial warning about untrusted links
@@ -71,10 +72,12 @@ https://link.metamask.io/perps?sig=ABC123...&sig_params=screen,symbol
 
 ### 3. Invalid Links
 
-Links with invalid domains or corrupted signatures:
+Links with invalid domains or unsupported actions (without valid signature):
 
 - **User Experience**: Shows modal with "This page doesn't exist" message and option to update app or go home
-- **Examples**: Wrong domain, malformed URL, tampered signature
+- **Examples**: Wrong domain, malformed URL, unsupported action without signature
+
+> ⚠️ **Note**: A tampered/invalid signature does NOT make a link "invalid". Instead, it demotes the link to a PUBLIC link (showing the security warning). Only invalid domains or unsupported actions result in the INVALID modal.
 
 ### 4. Unsupported Links
 
@@ -85,23 +88,25 @@ Links with valid signature but unsupported action in current app version:
 
 ## Link Formats
 
-| Type   | Format                                                                         | Example                                                              |
-| ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| Public | `https://link.metamask.io/{action}?{params}`                                   | `https://link.metamask.io/swap?chainId=1`                            |
-| Signed | `https://link.metamask.io/{action}?{params}&sig_params={list}&sig={signature}` | `https://link.metamask.io/swap?chainId=1&sig_params=chainId&sig=XXX` |
-| Test   | `https://link-test.metamask.io/{action}?{params}`                              | `https://link-test.metamask.io/swap`                                 |
-| Legacy | `metamask://{action}?{params}`                                                 | `metamask://wc?uri=wc:123...`                                        |
+| Type   | Format                                                                         | Example                                                          |
+| ------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Public | `https://link.metamask.io/{action}?{params}`                                   | `https://link.metamask.io/swap?from=eip155:1/slip44:60`          |
+| Signed | `https://link.metamask.io/{action}?{params}&sig_params={list}&sig={signature}` | `https://link.metamask.io/swap?from=...&sig_params=from&sig=XXX` |
+| Test   | `https://link-test.metamask.io/{action}?{params}`                              | `https://link-test.metamask.io/swap`                             |
+| Legacy | `metamask://{action}?{params}`                                                 | `metamask://wc?uri=wc:123...`                                    |
 
 ## How Link Processing Works
 
-> 📊 **[View Complete Flow Diagram](./deeplinking-graphs.md#complete-deeplink-flow-with-signature-verification)** - Interactive Mermaid flowchart showing the entire process
+> 📊 **[View Complete Flow Diagram](./deeplinking-diagrams.md#complete-deeplink-flow-with-signature-verification)** - Interactive Mermaid flowchart showing the entire process
 
 ### 1. Entry Points
 
 ```
 User Clicks Link
        ↓
-Branch.io / React Native Linking
+Branch.io / React Native Linking / FCM Notifications
+       ↓
+handleDeeplink() [Early SDKConnectV2/MWP interception]
        ↓
 DeeplinkManager.parse()
        ↓
@@ -111,23 +116,31 @@ parseDeeplink()
 ### 2. URL Classification
 
 ```typescript
-// In parseDeeplink.ts
+// In app/core/DeeplinkManager/utils/parseDeeplink.ts
 const { urlObj, params } = extractURLParams(url);
 
 // Determine protocol and route accordingly
-if (urlObj.protocol === PROTOCOLS.HTTPS) {
-  → handleUniversalLink()  // Universal links
-} else if (urlObj.protocol === PROTOCOLS.ETHEREUM) {
-  → handleEthereumUrl()    // Ethereum transactions
-} else if (urlObj.protocol === PROTOCOLS.METAMASK) {
-  → handleMetaMaskDeeplink() // MetaMask SDK
+switch (urlObj.protocol.replace(':', '')) {
+  case PROTOCOLS.METAMASK:
+  case PROTOCOLS.HTTP:
+  case PROTOCOLS.HTTPS:
+    // All converted to universal link format and handled uniformly
+    → handleUniversalLink()
+  case PROTOCOLS.WC:
+    → connectWithWC()      // WalletConnect connections
+  case PROTOCOLS.ETHEREUM:
+    → handleEthereumUrl()  // EIP-681 payment requests
+  case PROTOCOLS.DAPP:
+    → handleDappUrl()      // In-app browser navigation
 }
 ```
+
+> **Note**: `metamask://` URLs are automatically converted to `https://link.metamask.io/` format before processing.
 
 ### 3. Signature Verification (for HTTPS links)
 
 ```typescript
-// In handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
 if (hasSignature(validatedUrl)) {
   const result = await verifyDeeplinkSignature(validatedUrl);
 
@@ -145,23 +158,33 @@ if (hasSignature(validatedUrl)) {
 
 ### 4. User Consent Modal
 
-Unless the action is whitelisted, users see an interstitial:
+Unless the action is whitelisted or bypassed, users see an interstitial:
 
 - **Public Links**: Security warning about untrusted source
 - **Private Links**: Confirmation dialog (can remember choice)
 - **Invalid Links**: "Page doesn't exist" modal with update/home options
 - **Unsupported Links**: "Not supported in current version" modal
 
+**Modal Bypass Conditions:**
+
+- Action is in `WHITELISTED_ACTIONS` (WC, enable-card-button)
+- URL starts with `interstitialWhitelistUrls` (e.g., perps-asset links)
+- Link is private AND originated from in-app sources (carousel, notification, qr-code, in-app-browser)
+
 ### 5. Action Routing
 
 ```typescript
-// In handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
 switch (action) {
   case SUPPORTED_ACTIONS.SWAP:
-    instance._handleSwap(swapPath);
+    handleSwapUrl({ swapPath });
     break;
   case SUPPORTED_ACTIONS.PERPS:
-    instance._handlePerps(perpsPath);
+  case SUPPORTED_ACTIONS.PERPS_MARKETS:
+    handlePerpsUrl({ perpsPath });
+    break;
+  case SUPPORTED_ACTIONS.PREDICT:
+    handlePredictUrl({ predictPath, origin });
     break;
   // ... other actions
 }
@@ -181,6 +204,12 @@ https://link.metamask.io/{action}?{parameters}
 
 ```
 https://link.metamask.io/buy?chain=1&token=ETH
+```
+
+#### Swap Link (CAIP-19 Format)
+
+```
+https://link.metamask.io/swap?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000
 ```
 
 #### Private Link (Signed)
@@ -224,7 +253,7 @@ export enum ACTIONS {
 ### Step 2: Add to Supported Actions
 
 ```typescript
-// app/core/DeeplinkManager/ParseManager/handleUniversalLink.ts
+// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
 enum SUPPORTED_ACTIONS {
   // ... existing actions
   YOUR_NEW_ACTION = ACTIONS.YOUR_NEW_ACTION,
@@ -234,64 +263,95 @@ enum SUPPORTED_ACTIONS {
 ### Step 3: Create Handler Function
 
 ```typescript
-// app/core/DeeplinkManager/Handlers/handleYourAction.ts
-export const handleYourAction = async ({ path }: { path: string }) => {
-  // Parse parameters from path
-  const params = new URLSearchParams(path);
-  const someParam = params.get('someParam');
+// app/core/DeeplinkManager/handlers/legacy/handleYourAction.ts
+import NavigationService from '../../../NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
-  // Navigate or perform action
-  NavigationService.navigation.navigate(Routes.YOUR_SCREEN, {
-    someParam,
-  });
+interface HandleYourActionParams {
+  actionPath: string;
+}
+
+export const handleYourAction = async ({
+  actionPath,
+}: HandleYourActionParams) => {
+  DevLogger.log('[handleYourAction] Starting with path:', actionPath);
+
+  try {
+    // Parse parameters from path
+    const urlParams = new URLSearchParams(
+      actionPath.includes('?') ? actionPath.split('?')[1] : '',
+    );
+    const someParam = urlParams.get('someParam');
+
+    // Navigate or perform action
+    NavigationService.navigation.navigate(Routes.YOUR_SCREEN, {
+      someParam,
+    });
+  } catch (error) {
+    DevLogger.log('Failed to handle your action deeplink:', error);
+    // Fallback navigation on error
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+  }
 };
 ```
 
-### Step 4: Wire Up Handler in DeeplinkManager
+### Step 4: Import and Add Routing Logic
 
 ```typescript
-// app/core/DeeplinkManager/DeeplinkManager.ts
-class DeeplinkManager {
-  // ... existing code
+// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+import { handleYourAction } from './handleYourAction';
 
-  _handleYourAction(path: string) {
-    handleYourAction({ path });
-  }
-}
-```
-
-### Step 5: Add Routing Logic
-
-```typescript
-// app/core/DeeplinkManager/ParseManager/handleUniversalLink.ts
 async function handleUniversalLink(/* ... */) {
   // ... existing code
 
-  if (action === SUPPORTED_ACTIONS.YOUR_NEW_ACTION) {
-    const actionPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleYourAction(actionPath);
+  switch (action) {
+    // ... existing cases
+    case SUPPORTED_ACTIONS.YOUR_NEW_ACTION: {
+      handleYourAction({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
   }
 }
 ```
 
-### Step 6: Add Tests
+### Step 5: Add Tests
 
 ```typescript
-// app/core/DeeplinkManager/ParseManager/handleUniversalLink.test.ts
-describe('YOUR_NEW_ACTION', () => {
-  it('calls _handleYourAction with correct path', () => {
-    const url = 'https://link.metamask.io/your-new-action?param=value';
+// app/core/DeeplinkManager/handlers/legacy/__tests__/handleYourAction.test.ts
+import { handleYourAction } from '../handleYourAction';
+import NavigationService from '../../../../NavigationService';
+import Routes from '../../../../../constants/navigation/Routes';
 
-    await handleUniversalLinks(url);
+jest.mock('../../../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 
-    expect(instance._handleYourAction).toHaveBeenCalledWith('?param=value');
+describe('handleYourAction', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('navigates to YOUR_SCREEN with correct params', async () => {
+    const actionPath = '?someParam=value';
+
+    await handleYourAction({ actionPath });
+
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+      Routes.YOUR_SCREEN,
+      { someParam: 'value' },
+    );
   });
 });
 ```
 
 ## Signature Verification
 
-> 📊 **[View Signature Flow Diagrams](./deeplinking-graphs.md#signature-creation-and-verification-detail)** - See how signing and verification work visually
+> 📊 **[View Signature Flow Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)** - See how signing and verification work visually
 
 ### How It Works
 
@@ -333,11 +393,33 @@ describe('YOUR_NEW_ACTION', () => {
 
 ### Benefits of Dynamic Signing (sig_params)
 
-> 📊 **[View Dynamic Parameters Diagram](./deeplinking-graphs.md#dynamic-parameters-example)** - See how unsigned params can be added
+> 📊 **[View Dynamic Parameters Diagram](./deeplinking-diagrams.md#dynamic-parameters-example)** - See how unsigned params can be added
 
 - **Selective Signing**: Only critical params need signing
 - **Forward Compatibility**: Add new unsigned params without breaking signatures
 - **Flexible Testing**: Add debug params to signed production links
+
+## Analytics
+
+MetaMask Mobile tracks deep link usage through a consolidated `DEEP_LINK_USED` analytics event that captures:
+
+- Route information and user actions
+- App installation status (deferred vs. regular deep links via Branch.io)
+- Signature validation results
+- Interstitial modal interactions
+- UTM parameters for attribution
+- Route-specific sensitive properties
+
+For comprehensive analytics documentation, see [Deep Link Analytics](./deeplink-analytics.md).
+
+### Quick Overview
+
+The analytics system:
+
+- Fetches Branch.io parameters once per deep link to detect deferred deep links
+- Creates analytics contexts with all relevant information
+- Tracks a single `DEEP_LINK_USED` event with both standard and sensitive properties
+- Handles errors gracefully without blocking deep link processing
 
 ## Testing Links
 
@@ -424,6 +506,19 @@ const WHITELISTED_ACTIONS = [
   SUPPORTED_ACTIONS.WC, // WalletConnect needs immediate handling
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
 ];
+
+// Some URLs bypass interstitial regardless of action
+const interstitialWhitelistUrls = [
+  `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
+];
+
+// In-app sources can bypass modal when combined with valid signature
+const inAppLinkSources = [
+  'carousel',
+  'notifications',
+  'qr-code',
+  'in-app-browser',
+];
 ```
 
 ## Best Practices
@@ -471,10 +566,10 @@ const WHITELISTED_ACTIONS = [
 ## References
 
 - [MetaMask Signer (Consensys employees only)](https://api.signer.link.metamask.consensys.io)
-- [Signature Verification Implementation](./app/core/DeeplinkManager/ParseManager/utils/verifySignature.ts)
-- [Universal Link Handler](./app/core/DeeplinkManager/ParseManager/handleUniversalLink.ts)
-- [Deeplink Constants](./app/constants/deeplinks.ts)
-- [Test Suite](./app/core/DeeplinkManager/ParseManager/handleUniversalLink.test.ts)
+- [Signature Verification Implementation](../../app/core/DeeplinkManager/utils/verifySignature.ts)
+- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts)
+- [Deeplink Constants](../../app/constants/deeplinks.ts)
+- [Test Suite](../../app/core/DeeplinkManager/handlers/legacy/__tests__/handleUniversalLink.test.ts)
 - [Link Signer API](https://github.com/MetaMask/link-signer-api)
 
 ## Example: Complete Flow
@@ -482,24 +577,25 @@ const WHITELISTED_ACTIONS = [
 ```mermaid
 graph TD
     A[User clicks link] --> B{Protocol?}
-    B -->|HTTPS| C[handleUniversalLink]
-    B -->|ethereum://| D[handleEthereumUrl]
-    B -->|metamask://| E[handleMetaMaskDeeplink]
+    B -->|HTTPS/HTTP/metamask| C[handleUniversalLink]
+    B -->|wc://| D[connectWithWC]
+    B -->|ethereum://| E[handleEthereumUrl]
+    B -->|dapp://| F[handleDappUrl]
 
-    C --> F{Has signature?}
-    F -->|Yes| G[Verify signature]
-    F -->|No| H[Public link]
+    C --> G{Has signature?}
+    G -->|Yes| H[Verify signature]
+    G -->|No| I[Public link]
 
-    G -->|Valid| I[Private link]
-    G -->|Invalid| H
+    H -->|Valid| J[Private link]
+    H -->|Invalid| I
 
-    I --> J[Show confirmation]
-    H --> K[Show warning]
+    J --> K[Show confirmation]
+    I --> L[Show warning]
 
-    J -->|Continue| L[Route to handler]
-    K -->|Continue| L
+    K -->|Continue| M[Route to handler]
+    L -->|Continue| M
 
-    L --> M[Execute action]
+    M --> N[Execute action]
 ```
 
 # Deeplink Guide Appendix: Creating Signed Links
@@ -583,11 +679,11 @@ function createTestLink(action, params = {}) {
   return url.toString();
 }
 
-// Usage
+// Usage - Swap with CAIP-19 format
 const swapLink = createTestLink('swap', {
-  chainId: '1',
-  inputCurrency: 'ETH',
-  outputCurrency: 'USDC',
+  from: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  to: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+  amount: '1000000',
 });
 ```
 
@@ -770,29 +866,43 @@ describe('Dynamic signature verification', () => {
 });
 ```
 
-## Quick Reference |
+## Quick Reference
 
 ### Verification Results
 
-| Result    | Meaning               | User Experience                 |
-| --------- | --------------------- | ------------------------------- |
-| `MISSING` | No signature present  | Shows public link warning       |
-| `VALID`   | Signature verified ✅ | Shows trusted link confirmation |
-| `INVALID` | Signature failed ❌   | Shows invalid link error        |
+| Result    | Meaning               | User Experience                                  |
+| --------- | --------------------- | ------------------------------------------------ |
+| `MISSING` | No signature present  | Shows public link warning                        |
+| `VALID`   | Signature verified ✅ | Shows trusted link confirmation                  |
+| `INVALID` | Signature failed ❌   | Shows public link warning (demoted from private) |
 
-### Action Types
+> ⚠️ **Important**: An invalid/tampered signature does NOT show an "invalid link" error. Instead, the link is treated as a public (unsigned) link. Only invalid domains or unsupported actions show the "invalid" modal.
 
-| Action                 | Purpose            | Handler                 |
-| ---------------------- | ------------------ | ----------------------- |
-| `swap`                 | Token swapping     | `_handleSwap`           |
-| `buy` / `buy-crypto`   | Buy crypto         | `_handleBuyCrypto`      |
-| `sell` / `sell-crypto` | Sell crypto        | `_handleSellCrypto`     |
-| `send`                 | Send transaction   | `_handleEthereumUrl`    |
-| `dapp`                 | Open dApp browser  | `_handleBrowserUrl`     |
-| `perps`                | Perpetuals trading | `_handlePerps`          |
-| `rewards`              | Rewards program    | `_handleRewards`        |
-| `wc`                   | WalletConnect      | `parse` (recursive)     |
-| `onboarding`           | Fast onboarding    | `_handleFastOnboarding` |
+### Supported Actions
+
+| Action                 | Purpose                     | Handler Function         | Notes                                           |
+| ---------------------- | --------------------------- | ------------------------ | ----------------------------------------------- |
+| `swap`                 | Token swap/bridge (CAIP-19) | `handleSwapUrl`          | Params: `from`, `to`, `amount` (CAIP-19)        |
+| `buy` / `buy-crypto`   | Buy crypto                  | `handleRampUrl`          |                                                 |
+| `sell` / `sell-crypto` | Sell crypto                 | `handleRampUrl`          |                                                 |
+| `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                 |
+| `send`                 | Send transaction            | Recursive `parse()` call |                                                 |
+| `home`                 | Navigate home               | `navigateToHomeUrl`      |                                                 |
+| `dapp`                 | Open dApp browser           | `handleBrowserUrl`       |                                                 |
+| `create-account`       | Create new account          | `handleCreateAccountUrl` |                                                 |
+| `perps`                | Perpetuals trading          | `handlePerpsUrl`         | Params: `screen` (tabs/markets/asset), `symbol` |
+| `perps-markets`        | Perps markets list          | `handlePerpsUrl`         |                                                 |
+| `perps-asset`          | Perps specific asset        | ⚠️ NOT IMPLEMENTED       | Action defined but missing handler case         |
+| `predict`              | Prediction markets          | `handlePredictUrl`       | Params: `market` or `marketId`, `utm_source`    |
+| `rewards`              | Rewards program             | `handleRewardsUrl`       | Params: `referral` (referral code)              |
+| `wc`                   | WalletConnect               | Recursive `parse()` call |                                                 |
+| `onboarding`           | Fast onboarding             | `handleFastOnboarding`   |                                                 |
+| `enable-card-button`   | Enable card feature         | `handleEnableCardButton` |                                                 |
+| `bind`                 | Android SDK binding         | `handleMetaMaskDeeplink` |                                                 |
+| `connect`              | SDK connection              | `handleMetaMaskDeeplink` |                                                 |
+| `mmsdk`                | MetaMask SDK message        | `handleMetaMaskDeeplink` |                                                 |
+
+> ⚠️ **Bug**: The `perps-asset` action is defined in `SUPPORTED_ACTIONS` and whitelisted, but **there is no case handler** for it in the switch statement. It will pass validation but silently do nothing.
 
 ## Custom URI Schemes Explained
 
@@ -807,14 +917,17 @@ The primary custom scheme for MetaMask-specific actions and features. Used for:
 - **Feature access**: `metamask://rewards`, `metamask://perps`
 - **SDK connections**: `metamask://connect?channelId=abc&pubkey=xyz` (dapp-to-wallet pairing)
 
-**Flow**: Converts to universal link format internally → Routes to appropriate handler → Executes action
+**Flow**: Converts to universal link format internally (`https://link.metamask.io/...`) → Routes through `handleUniversalLink` → Executes action
 
 **Example**:
 
 ```
-metamask://swap?sourceToken=ETH&destinationToken=USDC&sourceAmount=1.5
-# Opens the swap screen with ETH→USDC pre-filled with 1.5 ETH### `wc://` - WalletConnect Protocol
+# Swap using CAIP-19 format
+metamask://swap?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000
+# Opens the swap/bridge screen with USDC (Ethereum) → USDC (Polygon) pre-filled
 ```
+
+### `wc://` - WalletConnect Protocol
 
 Industry-standard protocol for connecting MetaMask to dapps via WalletConnect v2. Used for:
 
@@ -826,13 +939,15 @@ Industry-standard protocol for connecting MetaMask to dapps via WalletConnect v2
 
 **Example**:
 
+```
 wc:abc123def456@2?relay-protocol=irn&symKey=xyz789
-
 # WalletConnect v2 pairing URI (typically from QR code)
 
 metamask://wc?uri=wc:abc123def456@2?relay-protocol=irn&symKey=xyz789
+# Same connection via deep link redirect
+```
 
-# Same connection via deep link redirect**Parameters**:
+**Parameters**:
 
 - `abc123def456` = Topic/Channel ID
 - `@2` = WalletConnect protocol version

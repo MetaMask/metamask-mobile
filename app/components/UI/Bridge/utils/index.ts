@@ -1,32 +1,22 @@
-import { CaipChainId, SolScope } from '@metamask/keyring-api';
+import { CaipChainId } from '@metamask/keyring-api';
 import AppConstants from '../../../../core/AppConstants';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { isNonEvmChainId } from '@metamask/bridge-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  ALLOWED_BRIDGE_CHAIN_IDS,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
+import { ImageSourcePropType } from 'react-native';
+import imageIcons from '../../../../images/image-icons';
 
-const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.OPTIMISM,
-  CHAIN_IDS.BSC,
-  CHAIN_IDS.POLYGON,
-  CHAIN_IDS.ZKSYNC_ERA,
-  CHAIN_IDS.BASE,
-  CHAIN_IDS.ARBITRUM,
-  CHAIN_IDS.AVALANCHE,
-  CHAIN_IDS.LINEA_MAINNET,
-  CHAIN_IDS.SEI,
-  CHAIN_IDS.MONAD,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  SolScope.Mainnet,
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-];
-
-export const isBridgeAllowed = (chainId: Hex | CaipChainId) => {
+export const isBridgeAllowed = (chainId: Hex | CaipChainId | string) => {
   if (!AppConstants.BRIDGE.ACTIVE) {
     return false;
   }
-  return ALLOWED_CHAIN_IDS.includes(chainId);
+
+  return (
+    ALLOWED_BRIDGE_CHAIN_IDS as readonly (Hex | CaipChainId | string)[]
+  ).includes(chainId);
 };
 
 export const wipeBridgeStatus = (
@@ -57,4 +47,33 @@ export const getTokenIconUrl = (
   return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAddress
     .split(':')
     .join('/')}.png`;
+};
+
+/**
+ * Returns the proper image source for a token, prioritizing local icons from imageIcons
+ * over remote URLs. This ensures consistent branding for tokens like TRX, ETH, SOL, etc.
+ *
+ * @param symbol - The token symbol (e.g., 'TRX', 'ETH', 'SOL')
+ * @param imageUrl - The remote image URL (fallback if no local icon exists)
+ * @returns ImageSourcePropType - Either a local require() result or { uri: string }
+ */
+export const getTokenImageSource = (
+  symbol: string | undefined,
+  imageUrl: string | undefined,
+): ImageSourcePropType | undefined => {
+  // Check if we have a local icon for this symbol
+  if (symbol && Object.keys(imageIcons).includes(symbol)) {
+    const imageIcon = imageIcons[symbol as keyof typeof imageIcons];
+    // Only return if it's a valid image source (not a function/SVG component or string)
+    if (typeof imageIcon !== 'function' && typeof imageIcon !== 'string') {
+      return imageIcon as ImageSourcePropType;
+    }
+  }
+
+  // Fall back to remote URL
+  if (imageUrl) {
+    return { uri: imageUrl };
+  }
+
+  return undefined;
 };

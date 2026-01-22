@@ -1,22 +1,9 @@
 import { useSelector } from 'react-redux';
-import { getVersion } from 'react-native-device-info';
-import compareVersions from 'compare-versions';
 import {
   selectRampsUnifiedBuyV1ActiveFlag,
   selectRampsUnifiedBuyV1MinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV1';
-
-function hasMinimumRequiredVersion(
-  minRequiredVersion: string | null | undefined,
-  isUnifiedV1Enabled: boolean,
-) {
-  if (!minRequiredVersion) return false;
-  const currentVersion = getVersion();
-  return (
-    isUnifiedV1Enabled &&
-    compareVersions.compare(currentVersion, minRequiredVersion, '>=')
-  );
-}
+import { hasMinimumRequiredVersion } from '../utils/hasMinimumRequiredVersion';
 
 export default function useRampsUnifiedV1Enabled() {
   const rampsUnifiedBuyV1MinimumVersionFlag = useSelector(

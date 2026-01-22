@@ -7,20 +7,20 @@ import { Theme } from '../../../util/theme/models';
  *
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: { theme: Theme; vars: { maxHeight: number } }) => {
+  const {
+    theme,
+    vars: { maxHeight },
+  } = params;
   const { colors } = theme;
 
   return StyleSheet.create({
     base: {
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'center',
-      flexShrink: 1,
       paddingVertical: 16,
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
       margin: 8,
+      maxHeight,
     },
     accountInputContainer: {
       width: '100%',
@@ -69,10 +69,11 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 16,
     },
     srpListContentContainer: {
-      display: 'flex',
-      maxWidth: '100%',
       paddingVertical: 4,
       rowGap: 16,
+    },
+    flatList: {
+      flexGrow: 0,
     },
   });
 };

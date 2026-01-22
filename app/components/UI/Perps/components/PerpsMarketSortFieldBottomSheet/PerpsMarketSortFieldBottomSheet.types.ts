@@ -18,6 +18,10 @@ export interface PerpsMarketSortFieldBottomSheetProps {
    */
   selectedOptionId: SortOptionId;
   /**
+   * Current sort direction (used for price change toggle and default for other options)
+   */
+  sortDirection: SortDirection;
+  /**
    * Callback when an option is selected
    * @param optionId - The ID of the selected option
    * @param field - The sort field

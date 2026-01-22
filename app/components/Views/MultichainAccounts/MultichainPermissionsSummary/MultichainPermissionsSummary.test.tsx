@@ -13,10 +13,10 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { RootState } from '../../../../reducers';
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
-import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 const mockOnEdit = jest.fn();
 const mockOnEditNetworks = jest.fn();

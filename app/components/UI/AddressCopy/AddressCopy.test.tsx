@@ -2,7 +2,7 @@ import React from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import AddressCopy from './AddressCopy';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { ToastContext } from '../../../component-library/components/Toast';

@@ -33,7 +33,7 @@ import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type { PerpsMarketData } from '../../controllers/types';
-import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -114,7 +114,7 @@ const PerpsMarketListView = ({
   } = searchState;
 
   // Destructure sort state for easier access
-  const { selectedOptionId, sortBy, handleOptionChange } = sortState;
+  const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
   const { showFavoritesOnly } = favoritesState;
@@ -575,6 +575,7 @@ const PerpsMarketListView = ({
         isVisible={isSortFieldSheetVisible}
         onClose={() => setIsSortFieldSheetVisible(false)}
         selectedOptionId={selectedOptionId}
+        sortDirection={direction}
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />

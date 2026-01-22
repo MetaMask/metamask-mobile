@@ -8,7 +8,7 @@ import {
   PUSH_NOTIFICATION_TOGGLE_TEST_ID,
 } from './PushNotificationToggle';
 import { strings } from '../../../../../locales/i18n';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 describe('PushNotificationToggle', () => {
   const arrangeMocks = () => {

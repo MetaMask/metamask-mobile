@@ -156,8 +156,14 @@ export const sanitizeParsedMessage = (
   return { value: sanitizedStruct, type: primaryType };
 };
 
+/**
+ * Regex to extract large numeric values from message.value.
+ * Uses [^{}]* instead of [^}]* to prevent matching nested "value" fields -
+ * by excluding both { and }, the regex stops at any nested object boundary,
+ * ensuring only top-level message.value is matched.
+ */
 const REGEX_MESSAGE_VALUE_LARGE =
-  /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
+  /"message"\s*:\s*\{[^{}]*"value"\s*:\s*(\d{15,})/u;
 
 /** Returns the value of the message if it is a digit greater than 15 digits */
 function extractLargeMessageValue(

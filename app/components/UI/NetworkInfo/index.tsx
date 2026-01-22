@@ -23,7 +23,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { NetworkEducationModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkEducationModal.selectors';
+import { NetworkEducationModalSelectorsIDs } from './NetworkEducationModal.testIds';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { Hex } from '@metamask/utils';
 

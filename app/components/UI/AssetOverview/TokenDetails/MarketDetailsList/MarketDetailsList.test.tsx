@@ -26,7 +26,7 @@ describe('MarketDetailsList', () => {
   it('should render correctly', () => {
     const useDispatchSpy = jest.spyOn(reactRedux, 'useDispatch');
     useDispatchSpy.mockImplementation(() => jest.fn());
-    const { toJSON, getByText } = render(
+    const { getByText } = render(
       <MarketDetailsList marketDetails={mockMarketDetails} />,
     );
 
@@ -35,7 +35,7 @@ describe('MarketDetailsList', () => {
     expect(getByText('5.24B')).toBeDefined();
     expect(getByText('Total volume (24h)')).toBeDefined();
     expect(getByText('153.14M')).toBeDefined();
-    expect(getByText('Volume / market cap')).toBeDefined();
+    expect(getByText('Volume / Market cap')).toBeDefined();
     expect(getByText('3.22%')).toBeDefined();
     expect(getByText('Circulating supply')).toBeDefined();
     expect(getByText('5.24B')).toBeDefined();
@@ -45,6 +45,5 @@ describe('MarketDetailsList', () => {
     expect(getByText('€0.80')).toBeDefined();
     expect(getByText('Fully diluted')).toBeDefined();
     expect(getByText('2.03M')).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
   });
 });

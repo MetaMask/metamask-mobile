@@ -1,11 +1,12 @@
 import React from 'react';
-import { FlatList, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import { SRPListProps } from './SRPList.types';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPList.styles';
 import SRPListItem from '../SRPListItem';
-import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
+import { SRPListSelectorsIDs } from './SRPList.testIds';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
@@ -19,7 +20,9 @@ const SRPList = ({
   // trigger sync SRP when SRP list is shown
   useSyncSRPs();
 
-  const { styles } = useStyles(styleSheet, {});
+  const { height: windowHeight } = useWindowDimensions();
+  const maxHeight = windowHeight * 0.7;
+  const { styles } = useStyles(styleSheet, { maxHeight });
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -29,6 +32,7 @@ const SRPList = ({
       testID={SRPListSelectorsIDs.SRP_LIST}
     >
       <FlatList
+        style={styles.flatList}
         data={hdKeyringsWithSnapAccounts}
         contentContainerStyle={styles.srpListContentContainer}
         renderItem={({ item, index }) => (

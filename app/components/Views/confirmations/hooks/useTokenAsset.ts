@@ -1,13 +1,15 @@
 import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
+import { useMemo } from 'react';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 import { strings } from '../../../../../locales/i18n';
-import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
+import { selectAccountTokensAcrossChainsForAddress } from '../../../../selectors/multichain';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { TokenI } from '../../../UI/Tokens/types';
-import { getNativeTokenAddress } from '../utils/asset';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { RootState } from '../../../../reducers';
 
 const TypesForNativeToken = [
   TransactionType.simpleSend,
@@ -24,30 +26,37 @@ export const useTokenAsset = () => {
   } = useTransactionMetadataRequest() ?? {};
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
-  const tokens = useSelector(selectAccountTokensAcrossChains);
+  const fromAddress = txParams?.from;
+  const tokens = useSelector((state: RootState) =>
+    selectAccountTokensAcrossChainsForAddress(state, fromAddress),
+  );
 
-  if (!chainId) {
-    return { displayName: strings('token.unknown') };
-  }
+  const result = useMemo(() => {
+    if (!chainId) {
+      return { displayName: strings('token.unknown') };
+    }
 
-  const tokenAddress =
-    transactionType && TypesForNativeToken.includes(transactionType)
-      ? nativeTokenAddress
-      : safeToChecksumAddress(txParams?.to)?.toLowerCase();
+    const tokenAddress =
+      transactionType && TypesForNativeToken.includes(transactionType)
+        ? nativeTokenAddress
+        : safeToChecksumAddress(txParams?.to)?.toLowerCase();
 
-  const asset = tokens[chainId]?.find(
-    ({ address }) => address.toLowerCase() === tokenAddress,
-  ) as TokenI;
+    const asset = tokens[chainId]?.find(
+      ({ address }) => address.toLowerCase() === tokenAddress,
+    ) as TokenI;
 
-  if (!asset) {
-    return { asset: {}, displayName: strings('token.unknown') };
-  }
+    if (!asset) {
+      return { asset: {}, displayName: strings('token.unknown') };
+    }
 
-  const { name, symbol, ticker } = asset;
-  const displayName = ticker ?? symbol ?? name ?? strings('token.unknown');
+    const { name, symbol, ticker } = asset;
+    const displayName = ticker ?? symbol ?? name ?? strings('token.unknown');
 
-  return {
-    asset,
-    displayName,
-  };
+    return {
+      asset,
+      displayName,
+    };
+  }, [chainId, transactionType, nativeTokenAddress, txParams?.to, tokens]);
+
+  return result;
 };

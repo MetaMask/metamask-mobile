@@ -148,7 +148,6 @@ exports[`SnapUIForm will render 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 20,
                           "opacity": 1,
                           "paddingVertical": 2,
                           "textAlignVertical": "center",
@@ -368,7 +367,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 20,
                           "opacity": 1,
                           "paddingVertical": 2,
                           "textAlignVertical": "center",
@@ -943,7 +941,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "gap": 16,
-                                "height": 48,
+                                "height": 56,
                               },
                               false,
                               {
@@ -1676,7 +1674,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "gap": 16,
-                                "height": 48,
+                                "height": 56,
                               },
                               false,
                               {

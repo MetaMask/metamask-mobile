@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ButtonIcon,
@@ -40,7 +40,7 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
-import WarningMessage from '../confirmations/legacy/SendFlow/WarningMessage';
+import WarningMessage from '../confirmations/legacy/components/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
@@ -64,6 +64,12 @@ import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
 import { areAddressesEqual } from '../../../util/address';
+// Perps Discovery Banner imports
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
+import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
+import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
+import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
 // Inline header styles
 const inlineHeaderStyles = StyleSheet.create({
@@ -157,10 +163,13 @@ const AssetDetails = (props: InnerProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
   const providerConfig = useSelector(selectProviderConfig);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
+
+  // Perps Discovery Banner
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const selectedAccountAddress = selectedAccountAddressEvm?.address;
   const chainId = networkId;
@@ -192,6 +201,25 @@ const AssetDetails = (props: InnerProps) => {
   const allTokenBalances = useSelector(selectTokensBalances);
 
   const { symbol, decimals, aggregators = [] } = token;
+
+  // Perps Discovery Banner - check if perps market exists for this asset
+  const { hasPerpsMarket, marketData } = usePerpsMarketForAsset(
+    isPerpsEnabled ? symbol : null,
+  );
+
+  // Handler for perps discovery banner press
+  // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount
+  const handlePerpsDiscoveryPress = useCallback(() => {
+    if (marketData) {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: marketData,
+          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+        },
+      });
+    }
+  }, [marketData, navigation]);
 
   const getNetworkName = useCallback(() => {
     let name = '';
@@ -433,6 +461,18 @@ const AssetDetails = (props: InnerProps) => {
         {renderTokenSymbol()}
         {renderSectionTitle(strings('asset_details.amount'))}
         {renderTokenBalance()}
+        {/* Perps Discovery Banner - show when perps market exists for this asset */}
+        {isPerpsEnabled && hasPerpsMarket && marketData && (
+          <>
+            {renderSectionTitle(strings('asset_details.perps_trading'))}
+            <PerpsDiscoveryBanner
+              symbol={marketData.symbol}
+              maxLeverage={marketData.maxLeverage}
+              onPress={handlePerpsDiscoveryPress}
+              testID="perps-discovery-banner"
+            />
+          </>
+        )}
         {renderSectionTitle(strings('asset_details.address'))}
         {renderTokenAddressLink()}
         {renderSectionTitle(strings('asset_details.decimal'))}

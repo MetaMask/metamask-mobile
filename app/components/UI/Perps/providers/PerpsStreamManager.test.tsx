@@ -16,11 +16,6 @@ jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 jest.mock('../services/PerpsConnectionManager');
-jest.mock('../utils/accountUtils', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn().mockReturnValue({
-    address: '0x123456789',
-  }),
-}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -91,6 +86,25 @@ describe('PerpsStreamManager', () => {
       isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
     } as unknown as typeof mockEngine.context.PerpsController;
 
+    // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
+    mockEngine.context.AccountTreeController = {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x123456789',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Test Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ]),
+    } as unknown as typeof mockEngine.context.AccountTreeController;
+
     mockDevLogger.log = jest.fn();
   });
 
@@ -135,7 +149,7 @@ describe('PerpsStreamManager', () => {
         // Simulate immediate cached data with all required fields
         const cachedData: PriceUpdate[] = [
           {
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
             percentChange24h: '5',
             timestamp: Date.now(),
@@ -162,7 +176,7 @@ describe('PerpsStreamManager', () => {
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           timestamp: expect.any(Number),
           percentChange24h: '5',
@@ -204,7 +218,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
@@ -220,7 +234,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
@@ -240,7 +254,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           timestamp: expect.any(Number),
           percentChange24h: '5.1',
@@ -282,7 +296,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
@@ -298,7 +312,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
@@ -306,7 +320,7 @@ describe('PerpsStreamManager', () => {
       ]);
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50200',
           percentChange24h: '5.2',
           timestamp: Date.now(),
@@ -314,7 +328,7 @@ describe('PerpsStreamManager', () => {
       ]);
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50300',
           percentChange24h: '5.3',
           timestamp: Date.now(),
@@ -335,7 +349,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50300',
           timestamp: expect.any(Number),
           percentChange24h: '5.3',
@@ -404,7 +418,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3000',
           timestamp: Date.now(),
           percentChange24h: '2',
@@ -419,7 +433,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3010',
           timestamp: Date.now(),
           percentChange24h: '2.1',
@@ -434,7 +448,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'ETH-PERP',
+          symbol: 'ETH-PERP',
           price: '3020',
           timestamp: Date.now(),
           percentChange24h: '2.2',
@@ -474,7 +488,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50000',
           timestamp: Date.now(),
           percentChange24h: '5',
@@ -490,7 +504,7 @@ describe('PerpsStreamManager', () => {
     act(() => {
       controllerCallback?.([
         {
-          coin: 'BTC-PERP',
+          symbol: 'BTC-PERP',
           price: '50100',
           timestamp: Date.now(),
           percentChange24h: '5.1',
@@ -572,7 +586,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const firstUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -588,7 +602,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalled();
       const call = onUpdate.mock.calls[0][0];
       expect(call['BTC-PERP']).toMatchObject({
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         price: '50000',
       });
     });
@@ -620,7 +634,7 @@ describe('PerpsStreamManager', () => {
       act(() => {
         priceCallback([
           {
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
             timestamp: Date.now(),
             percentChange24h: '5',
@@ -631,7 +645,7 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(onUpdate).toHaveBeenCalledWith({
           'BTC-PERP': expect.objectContaining({
-            coin: 'BTC-PERP',
+            symbol: 'BTC-PERP',
             price: '50000',
           }),
         });
@@ -946,7 +960,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const firstUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -962,14 +976,14 @@ describe('PerpsStreamManager', () => {
     });
 
     const secondUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50100',
       timestamp: Date.now() + 10,
     };
 
     const thirdUpdate: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50200',
       timestamp: Date.now() + 20,
@@ -994,7 +1008,7 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       const lastCall = onUpdate.mock.calls[1][0];
       expect(lastCall['BTC-PERP']).toMatchObject({
-        coin: 'BTC-PERP',
+        symbol: 'BTC-PERP',
         price: '50200',
       });
     });
@@ -1050,7 +1064,7 @@ describe('PerpsStreamManager', () => {
     });
 
     const update: PriceUpdate = {
-      coin: 'BTC-PERP',
+      symbol: 'BTC-PERP',
 
       price: '50000',
       timestamp: Date.now(),
@@ -1966,8 +1980,8 @@ describe('PerpsStreamManager', () => {
 
       const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
       priceCallback([
-        { coin: 'BTC', bestBid: '50000', bestAsk: '50001' },
-        { coin: 'ETH', bestBid: '3000', bestAsk: '3001' },
+        { symbol: 'BTC', bestBid: '50000', bestAsk: '50001' },
+        { symbol: 'ETH', bestBid: '3000', bestAsk: '3001' },
       ]);
 
       expect(callback).toHaveBeenCalledWith({
@@ -1997,11 +2011,524 @@ describe('PerpsStreamManager', () => {
       });
 
       const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
-      priceCallback([{ coin: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
+      priceCallback([{ symbol: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
 
       testStreamManager.topOfBook.clearCache();
 
       expect(callback).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('PositionStreamChannel.updatePositionTPSLOptimistic', () => {
+    let mockPositionsSubscribe: jest.Mock;
+    let mockPositionsUnsubscribe: jest.Mock;
+
+    const createMockPosition = (overrides = {}) => ({
+      symbol: 'ETH',
+      size: '1.5',
+      entryPrice: '3000',
+      positionValue: '4500',
+      unrealizedPnl: '100',
+      marginUsed: '450',
+      leverage: {
+        type: 'cross' as const,
+        value: 10,
+      },
+      liquidationPrice: '2700',
+      maxLeverage: 50,
+      returnOnEquity: '0.22',
+      cumulativeFunding: {
+        allTime: '5',
+        sinceOpen: '2',
+        sinceChange: '1',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      mockPositionsUnsubscribe = jest.fn();
+      mockPositionsSubscribe = jest
+        .fn()
+        .mockReturnValue(mockPositionsUnsubscribe);
+      mockEngine.context.PerpsController.subscribeToPositions =
+        mockPositionsSubscribe;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    it('updates take profit price in cached position', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data
+      const initialPosition = createMockPosition();
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          undefined,
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          symbol: 'ETH',
+          takeProfitPrice: '3300',
+          stopLossPrice: undefined,
+          takeProfitCount: 1,
+          stopLossCount: 0,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates stop loss price in cached position', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data
+      const initialPosition = createMockPosition();
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          undefined,
+          '2700',
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          symbol: 'ETH',
+          takeProfitPrice: undefined,
+          stopLossPrice: '2700',
+          takeProfitCount: 0,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates both take profit and stop loss prices', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data
+      const initialPosition = createMockPosition();
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2700',
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          symbol: 'ETH',
+          takeProfitPrice: '3300',
+          stopLossPrice: '2700',
+          takeProfitCount: 1,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('removes take profit and stop loss when set to undefined', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position with TP/SL set
+      const initialPosition = createMockPosition({
+        takeProfitPrice: '3500',
+        stopLossPrice: '2500',
+        takeProfitCount: 1,
+        stopLossCount: 1,
+      });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update to remove TP/SL
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          undefined,
+          undefined,
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          symbol: 'ETH',
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('does not update other positions in cache', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send multiple positions
+      const ethPosition = createMockPosition({ symbol: 'ETH' });
+      const btcPosition = createMockPosition({
+        symbol: 'BTC',
+        entryPrice: '50000',
+      });
+      act(() => {
+        positionCallback?.([ethPosition, btcPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([ethPosition, btcPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update only to ETH
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2700',
+        );
+      });
+
+      const calledPositions = callback.mock.calls[0][0];
+
+      // Verify ETH position was updated
+      expect(calledPositions[0]).toMatchObject({
+        symbol: 'ETH',
+        takeProfitPrice: '3300',
+        stopLossPrice: '2700',
+        takeProfitCount: 1,
+        stopLossCount: 1,
+      });
+
+      // Verify BTC position was NOT updated (should keep original values)
+      expect(calledPositions[1]).toMatchObject({
+        symbol: 'BTC',
+        entryPrice: '50000',
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      });
+      expect(calledPositions[1].takeProfitPrice).toBeUndefined();
+      expect(calledPositions[1].stopLossPrice).toBeUndefined();
+
+      unsubscribe();
+    });
+
+    it('does not update when position not found in cache', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position data for ETH
+      const initialPosition = createMockPosition({ symbol: 'ETH' });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Try to update BTC (not in cache)
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'BTC',
+          '55000',
+          '45000',
+        );
+      });
+
+      // Callback not called because position was not found
+      expect(callback).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('does not update when cache is empty', () => {
+      const callback = jest.fn();
+
+      // Subscribe but don't populate cache
+      mockPositionsSubscribe.mockReturnValue(mockPositionsUnsubscribe);
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      callback.mockClear();
+
+      // Try to update when cache is empty
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2700',
+        );
+      });
+
+      // Callback not called because cache is empty
+      expect(callback).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('preserves all other position properties during update', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send position with specific values
+      const initialPosition = createMockPosition({
+        symbol: 'ETH',
+        size: '2.5',
+        entryPrice: '3100',
+        unrealizedPnl: '250',
+        leverage: { type: 'isolated' as const, value: 20 },
+      });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3400',
+          '2800',
+        );
+      });
+
+      // Verify all original properties are preserved
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          symbol: 'ETH',
+          size: '2.5',
+          entryPrice: '3100',
+          unrealizedPnl: '250',
+          leverage: { type: 'isolated', value: 20 },
+          takeProfitPrice: '3400',
+          stopLossPrice: '2800',
+          takeProfitCount: 1,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
     });
   });
 

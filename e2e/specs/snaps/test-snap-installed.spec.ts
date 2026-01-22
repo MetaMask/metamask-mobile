@@ -3,8 +3,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { FlaskBuildTests } from '../../tags';
 
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 
 jest.setTimeout(150_000);
 
@@ -18,7 +17,7 @@ describe(FlaskBuildTests('Installed Snap Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
+        await navigateToBrowserView();
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectErrorSnapButton');

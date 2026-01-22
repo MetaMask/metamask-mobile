@@ -29,8 +29,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { setExistingUser } from '../../../actions/user';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -56,7 +55,7 @@ import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import { LoginViewSelectors } from './LoginView.testIds';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
@@ -104,6 +103,7 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -111,7 +111,6 @@ const EmptyRecordConstant = {};
 
 interface LoginRouteParams {
   locked: boolean;
-  isVaultRecovery?: boolean;
 }
 
 interface LoginProps {
@@ -142,15 +141,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
-  const dispatch = useDispatch();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-  // coming from vault recovery flow flag
-  const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -407,13 +403,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      // CRITICAL: Set existingUser = true after successful vault unlock from recovery
-      // This prevents the vault recovery screen from appearing again on app restart
-      // Only set after successful unlock to ensure vault is unlocked and credentials are stored
-      if (isComingFromVaultRecovery) {
-        dispatch(setExistingUser(true));
-      }
-
       await checkMetricsUISeen();
 
       setLoading(false);
@@ -428,8 +417,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     loading,
     handleLoginError,
     checkMetricsUISeen,
-    dispatch,
-    isComingFromVaultRecovery,
   ]);
 
   const handleLogin = async () => {
@@ -607,6 +594,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
           </TouchableOpacity>
         )}
+        <ScreenshotDeterrent enabled isSRP={false} />
       </SafeAreaView>
     </ErrorBoundary>
   );

@@ -116,7 +116,9 @@ describe('useTransactionPayToken', () => {
 
   it('returns undefined if no state', () => {
     const { result } = runHook();
+
     expect(result.current.payToken).toBeUndefined();
+    expect(result.current.isNative).toBeFalsy();
   });
 
   it('returns token matching state', () => {
@@ -125,6 +127,7 @@ describe('useTransactionPayToken', () => {
     });
 
     expect(result.current.payToken).toStrictEqual(PAY_TOKEN_MOCK);
+    expect(result.current.isNative).toBe(false);
   });
 
   it('sets token in state', async () => {
@@ -142,5 +145,16 @@ describe('useTransactionPayToken', () => {
       tokenAddress: PAY_TOKEN_MOCK.address,
       chainId: PAY_TOKEN_MOCK.chainId,
     });
+  });
+
+  it('returns isNative true when pay token is native address', () => {
+    const { result } = runHook({
+      payToken: {
+        ...PAY_TOKEN_MOCK,
+        address: '0x0000000000000000000000000000000000000000',
+      } as TransactionPaymentToken,
+    });
+
+    expect(result.current.isNative).toBe(true);
   });
 });

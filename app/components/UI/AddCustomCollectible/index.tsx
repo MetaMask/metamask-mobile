@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  Alert,
   Text,
   TextInput,
   View,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -18,7 +21,7 @@ import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
-import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
+import { NFTImportScreenSelectorsIDs } from './ImportNFTView.testIds';
 import {
   selectChainId,
   selectSelectedNetworkClientId,
@@ -35,7 +38,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import Avatar, {
   AvatarSize,
@@ -51,7 +54,8 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     rowWrapper: {
-      padding: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 20,
     },
     rowTitleText: {
       paddingBottom: 3,
@@ -137,6 +141,7 @@ const AddCustomCollectible = ({
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { toastRef } = useContext(ToastContext);
   const styles = createStyles(colors);
 
   const selectedAddress = useSelector(
@@ -224,17 +229,33 @@ const AddCustomCollectible = ({
       );
 
       if (!isOwner)
-        Alert.alert(
-          strings('collectible.not_owner_error_title'),
-          strings('collectible.not_owner_error'),
-        );
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('collectible.not_owner_error_title'),
+            },
+          ],
+          descriptionOptions: {
+            description: strings('collectible.not_owner_error'),
+          },
+          hasNoTimeout: false,
+        });
 
       return isOwner;
     } catch {
-      Alert.alert(
-        strings('collectible.ownership_verification_error_title'),
-        strings('collectible.ownership_verification_error'),
-      );
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: strings('collectible.ownership_verification_error_title'),
+          },
+        ],
+        descriptionOptions: {
+          description: strings('collectible.ownership_verification_error'),
+        },
+        hasNoTimeout: false,
+      });
 
       return false;
     }
@@ -377,7 +398,6 @@ const AddCustomCollectible = ({
               testID={NFTImportScreenSelectorsIDs.IDENTIFIER_INPUT_BOX}
               ref={assetTokenIdInput}
               onSubmitEditing={addNft}
-              returnKeyType={'done'}
               placeholder={strings('collectible.id_placeholder')}
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}

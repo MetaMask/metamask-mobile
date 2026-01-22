@@ -64,6 +64,33 @@ export const WithBottomLabel = {
   ),
 };
 
+export const OnClose = {
+  render: () => (
+    <HeaderWithTitleLeft
+      onClose={() => console.log('Close pressed')}
+      titleLeftProps={{
+        topLabel: 'Send',
+        title: '$4.42',
+        endAccessory: <SampleNFTImage />,
+      }}
+    />
+  ),
+};
+
+export const BackAndClose = {
+  render: () => (
+    <HeaderWithTitleLeft
+      onBack={() => console.log('Back pressed')}
+      onClose={() => console.log('Close pressed')}
+      titleLeftProps={{
+        topLabel: 'Send',
+        title: '$4.42',
+        endAccessory: <SampleNFTImage />,
+      }}
+    />
+  ),
+};
+
 export const EndButtonIconProps = {
   render: () => (
     <HeaderWithTitleLeft

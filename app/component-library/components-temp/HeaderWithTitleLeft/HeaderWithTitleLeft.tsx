@@ -32,9 +32,12 @@ import { HeaderWithTitleLeftProps } from './HeaderWithTitleLeft.types';
 const HeaderWithTitleLeft: React.FC<HeaderWithTitleLeftProps> = ({
   onBack,
   backButtonProps,
+  onClose,
+  closeButtonProps,
   titleLeft,
   titleLeftProps,
   startButtonIconProps,
+  endButtonIconProps,
   twClassName,
   testID,
   titleSectionTestID,
@@ -59,6 +62,26 @@ const HeaderWithTitleLeft: React.FC<HeaderWithTitleLeftProps> = ({
     return undefined;
   }, [startButtonIconProps, onBack, backButtonProps]);
 
+  // Build endButtonIconProps with close button if onClose or closeButtonProps is provided
+  const resolvedEndButtonIconProps = useMemo(() => {
+    const props: ButtonIconProps[] = [];
+
+    if (onClose || closeButtonProps) {
+      const closeProps: ButtonIconProps = {
+        iconName: IconName.Close,
+        ...(closeButtonProps || {}),
+        onPress: closeButtonProps?.onPress ?? onClose,
+      };
+      props.push(closeProps);
+    }
+
+    if (endButtonIconProps) {
+      props.push(...endButtonIconProps);
+    }
+
+    return props.length > 0 ? props : undefined;
+  }, [endButtonIconProps, onClose, closeButtonProps]);
+
   // Render title section content
   const renderTitleSection = () => {
     if (titleLeft) {
@@ -79,6 +102,7 @@ const HeaderWithTitleLeft: React.FC<HeaderWithTitleLeftProps> = ({
       {/* HeaderBase section */}
       <HeaderBase
         startButtonIconProps={resolvedStartButtonIconProps}
+        endButtonIconProps={resolvedEndButtonIconProps}
         twClassName={resolvedTwClassName}
         {...headerBaseProps}
       />
