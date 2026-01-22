@@ -25,6 +25,7 @@ import Engine from '../../../../core/Engine';
 import {
   SignTypedDataVersion,
   type TypedMessageParams,
+  type PersonalMessageParams,
 } from '@metamask/keyring-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import type {
@@ -261,6 +262,11 @@ function createControllerAccessAdapter(): IPerpsControllerAccess {
           versionEnum,
         );
       },
+
+      signPersonalMessage: async (msgParams) =>
+        Engine.context.KeyringController.signPersonalMessage(
+          msgParams as PersonalMessageParams,
+        ),
     },
 
     // === Network Operations (wraps NetworkController) ===

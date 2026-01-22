@@ -66,6 +66,7 @@ export const createMockInfrastructure =
         // Keyring operations (wraps KeyringController)
         keyring: {
           signTypedMessage: jest.fn().mockResolvedValue('0xSignatureResult'),
+          signPersonalMessage: jest.fn().mockResolvedValue('0xSignatureResult'),
         },
         // Network operations (wraps NetworkController)
         network: {

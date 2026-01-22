@@ -534,3 +534,13 @@ export const STOP_LOSS_PROMPT_CONFIG = {
   // When suggesting a stop loss, calculate price at this ROE from entry
   SUGGESTED_STOP_LOSS_ROE: -50,
 } as const;
+
+/**
+ * Provider feature flags
+ * Controls which perps providers are available for user selection
+ */
+export const PROVIDER_CONFIG = {
+  // Enable MYX provider for multi-provider selection
+  // MYX integration is implemented but awaiting MYX SDK npm publication
+  MYX_ENABLED: true,
+} as const;
