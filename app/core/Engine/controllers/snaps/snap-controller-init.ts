@@ -22,6 +22,7 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { buildAndTrackEvent } from '../../utils/analytics';
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { take } from 'redux-saga/effects';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import {
@@ -171,7 +172,11 @@ export const snapControllerInit: ControllerInitFunction<
       event: string;
       properties?: Record<string, unknown>;
     }) => {
-      buildAndTrackEvent(initMessenger, params.event, params.properties);
+      buildAndTrackEvent(
+        initMessenger,
+        params.event,
+        params.properties as AnalyticsEventProperties | null | undefined,
+      );
     },
   });
 
