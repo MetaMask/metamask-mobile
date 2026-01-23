@@ -51,7 +51,7 @@ export const isEligibleForMerklRewards = (
 };
 
 interface UseMerklRewardsOptions {
-  asset: TokenI;
+  asset: TokenI | undefined;
 }
 
 interface UseMerklRewardsReturn {
@@ -87,6 +87,12 @@ export const useMerklRewards = ({
 
   const fetchClaimableRewards = useCallback(
     async (abortController?: AbortController) => {
+      // Guard against undefined asset (can happen when selector returns undefined)
+      if (!asset) {
+        setClaimableReward(null);
+        return;
+      }
+
       const isEligible = isEligibleForMerklRewards(
         asset.chainId as Hex,
         asset.address as Hex | undefined,
@@ -202,6 +208,10 @@ export const useMerklRewards = ({
 
   // Trigger token balance refresh via TokenBalancesController and AccountTrackerController
   const refreshTokenBalances = useCallback(async () => {
+    if (!asset) {
+      return;
+    }
+
     try {
       const {
         TokenBalancesController,
@@ -233,7 +243,7 @@ export const useMerklRewards = ({
         'useMerklRewards: Failed to refresh token balances',
       );
     }
-  }, [asset.chainId]);
+  }, [asset]);
 
   // Refetch with retries until balance changes (claimable becomes null/0)
   const refetchWithRetry = useCallback(

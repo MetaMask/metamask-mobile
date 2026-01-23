@@ -141,7 +141,7 @@ export const TokenListItem = React.memo(
       selectMerklCampaignClaimingEnabledFlag,
     );
     const { claimableReward } = useMerklRewards({
-      asset: asset as TokenI,
+      asset,
     });
 
     const isEligibleForMerkl = useMemo(
