@@ -4,7 +4,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
@@ -16,7 +15,6 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
-import PredictSportTeamGradient from '../PredictSportTeamGradient/PredictSportTeamGradient';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
 import { PredictSportCardFooter } from '../PredictSportCardFooter';
 
@@ -38,7 +36,6 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const tw = useTailwind();
 
   const game = market.game;
 
@@ -57,35 +54,28 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         });
       }}
     >
-      <PredictSportTeamGradient
-        awayColor={game?.awayTeam.color ?? '#1a2942'}
-        homeColor={game?.homeTeam.color ?? '#3d2621'}
-        borderRadius={16}
-        style={tw.style('w-full my-[8px]')}
-      >
-        <Box twClassName="p-4">
-          <Text
-            variant={TextVariant.HeadingSm}
-            color={TextColor.TextDefault}
-            twClassName="text-center font-medium"
-          >
-            {market.title}
-          </Text>
+      <Box twClassName="p-4 bg-muted my-[8px] rounded-xl">
+        <Text
+          variant={TextVariant.HeadingSm}
+          color={TextColor.TextDefault}
+          twClassName="text-center font-medium"
+        >
+          {market.title}
+        </Text>
 
-          {game && (
-            <PredictSportScoreboard
-              game={game}
-              testID={testID ? `${testID}-scoreboard` : undefined}
-            />
-          )}
-
-          <PredictSportCardFooter
-            market={market}
-            entryPoint={resolvedEntryPoint}
-            testID={testID ? `${testID}-footer` : undefined}
+        {game && (
+          <PredictSportScoreboard
+            game={game}
+            testID={testID ? `${testID}-scoreboard` : undefined}
           />
-        </Box>
-      </PredictSportTeamGradient>
+        )}
+
+        <PredictSportCardFooter
+          market={market}
+          entryPoint={resolvedEntryPoint}
+          testID={testID ? `${testID}-footer` : undefined}
+        />
+      </Box>
     </TouchableOpacity>
   );
 };
