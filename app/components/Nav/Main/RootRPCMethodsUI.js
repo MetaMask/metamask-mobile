@@ -182,9 +182,21 @@ const RootRPCMethodsUI = (props) => {
       <PermissionApproval navigation={props.navigation} />
       <FlowLoaderModal />
       <TemplateConfirmationModal />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      }
       <InstallSnapApproval />
       <SnapDialogApproval />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      }
       <SnapAccountCustomNameApproval />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
     </React.Fragment>
   );
 };
