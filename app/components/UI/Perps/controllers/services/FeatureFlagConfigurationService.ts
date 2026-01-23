@@ -5,10 +5,7 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { ensureError } from '../../../../../util/errorUtils';
-import {
-  parseCommaSeparatedString,
-  stripQuotes,
-} from '../../utils/stringParseUtils';
+import { parseCommaSeparatedString } from '../../utils/stringParseUtils';
 import type { ServiceContext } from './ServiceContext';
 import type { IPerpsPlatformDependencies } from '../types';
 
@@ -58,9 +55,8 @@ export class FeatureFlagConfigurationService {
     );
 
     // LaunchDarkly returns comma-separated strings for list values
-    // Values may have literal quotes (e.g., '"xyz"') due to JSON encoding quirks
     if (typeof remoteValue === 'string') {
-      const parsed = parseCommaSeparatedString(remoteValue).map(stripQuotes);
+      const parsed = parseCommaSeparatedString(remoteValue);
 
       if (parsed.length > 0) {
         this.deps.debugLogger.log(
@@ -83,7 +79,7 @@ export class FeatureFlagConfigurationService {
       remoteValue.every((item) => typeof item === 'string' && item.length > 0)
     ) {
       const validatedMarkets = (remoteValue as string[])
-        .map((s) => stripQuotes(s.trim()))
+        .map((s) => s.trim())
         .filter((s) => s.length > 0);
 
       this.deps.debugLogger.log(

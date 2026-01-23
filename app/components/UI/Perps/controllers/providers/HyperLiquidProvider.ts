@@ -295,9 +295,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Track whether clients have been initialized (lazy initialization)
   private clientsInitialized = false;
 
-  // Promise-based lock to prevent race conditions in concurrent initialization
-  private initializationPromise: Promise<void> | null = null;
-
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -361,59 +358,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * This is called on first API operation to ensure Engine.context is ready.
    * Creating the wallet adapter requires accessing Engine.context.AccountTreeController,
    * which may not be available during early app initialization.
-   *
-   * IMPORTANT: This method awaits the WebSocket transport.ready() to ensure
-   * the connection is fully established before marking initialization complete.
    */
-  private async ensureClientsInitialized(): Promise<void> {
+  private ensureClientsInitialized(): void {
     if (this.clientsInitialized) {
       return; // Already initialized
     }
 
-    // Reuse existing initialization promise if one is in progress
-    // This prevents race conditions when multiple methods call concurrently
-    if (this.initializationPromise) {
-      return this.initializationPromise;
-    }
+    const wallet = this.walletService.createWalletAdapter();
+    this.clientService.initialize(wallet);
 
-    // Create and cache the initialization promise
-    this.initializationPromise = (async () => {
-      // Double-check after acquiring the "lock"
-      if (this.clientsInitialized) {
-        return;
+    // Set reconnection callback to restore subscriptions when WebSocket reconnects
+    this.clientService.setOnReconnectCallback(async () => {
+      try {
+        // Restore subscription service subscriptions
+        await this.subscriptionService.restoreSubscriptions();
+
+        const streamManager = getStreamManagerInstance();
+        streamManager.clearAllChannels();
+      } catch {
+        // Ignore errors during reconnection
       }
+    });
 
-      const wallet = this.walletService.createWalletAdapter();
-      await this.clientService.initialize(wallet);
+    // Only set flag AFTER successful initialization
+    this.clientsInitialized = true;
 
-      // Set reconnection callback to restore subscriptions when WebSocket reconnects
-      this.clientService.setOnReconnectCallback(async () => {
-        try {
-          // Restore subscription service subscriptions
-          await this.subscriptionService.restoreSubscriptions();
-
-          const streamManager = getStreamManagerInstance();
-          streamManager.clearAllChannels();
-        } catch {
-          // Ignore errors during reconnection
-        }
-      });
-
-      // Only set flag AFTER successful initialization
-      this.clientsInitialized = true;
-
-      this.deps.debugLogger.log(
-        '[HyperLiquidProvider] Clients initialized lazily',
-      );
-    })();
-
-    try {
-      await this.initializationPromise;
-    } finally {
-      // Clear promise after completion (success or failure)
-      // so future calls can retry if needed
-      this.initializationPromise = null;
-    }
+    this.deps.debugLogger.log(
+      '[HyperLiquidProvider] Clients initialized lazily',
+    );
   }
 
   /**
@@ -496,8 +468,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Create and track initialization promise
     this.ensureReadyPromise = (async () => {
       // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
-      // This awaits WebSocket transport.ready() to ensure connection is established
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
 
       // Verify clients are properly initialized
       this.clientService.ensureInitialized();
@@ -829,7 +800,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Fetch fresh data from API
     // Note: SDK types are incomplete, but API returns deployerFeeScale
-    await this.ensureClientsInitialized();
+    this.ensureClientsInitialized();
     const infoClient = this.clientService.getInfoClient();
     const perpDexs =
       (await infoClient.perpDexs()) as unknown as ExtendedPerpDex[];
@@ -3882,7 +3853,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4050,7 +4021,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4122,7 +4093,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4234,7 +4205,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4283,7 +4254,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4339,7 +4310,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }): Promise<RawHyperLiquidLedgerUpdate[]> {
     try {
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4373,7 +4344,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }): Promise<UserHistoryItem[]> {
     try {
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4408,7 +4379,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4480,7 +4451,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.deps.debugLogger.log('Getting account state via HyperLiquid SDK');
 
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
@@ -4791,7 +4762,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getAvailableHip3Dexs(): Promise<string[]> {
     try {
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       if (!this.hip3Enabled) {
@@ -5740,19 +5711,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       const newIsTestnet = !this.clientService.isTestnetMode();
 
-      // Await pending initialization to prevent race condition where
-      // the IIFE sets clientsInitialized = true after we reset it
-      const pendingInit = this.initializationPromise;
-      this.initializationPromise = null;
-
-      if (pendingInit) {
-        try {
-          await pendingInit;
-        } catch {
-          // Ignore - we're switching networks anyway
-        }
-      }
-
       // Update all services
       this.clientService.setTestnetMode(newIsTestnet);
       this.walletService.setTestnetMode(newIsTestnet);
@@ -5778,7 +5736,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async initialize(): Promise<InitializeResult> {
     try {
       // Ensure clients are initialized (lazy initialization)
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       return {
         success: true,
         chainId: getChainId(this.clientService.isTestnetMode()),
@@ -5949,7 +5907,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Read-only operation: only need client initialization, not full ensureReady()
       // (no DEX abstraction, referral, or builder fee needed for metadata)
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       // Extract DEX name for API calls (main DEX = null)
@@ -6103,7 +6061,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Fetch fresh rates from SDK
         // Read-only operation: only need client initialization
-        await this.ensureClientsInitialized();
+        this.ensureClientsInitialized();
         this.clientService.ensureInitialized();
         const infoClient = this.clientService.getInfoClient();
         const userFees = await infoClient.userFees({
@@ -6352,31 +6310,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.cachedMetaByDex.clear();
       this.perpDexsCache = { data: null, timestamp: 0 };
 
-      // Await pending initialization before clearing to prevent the IIFE from
-      // setting clientsInitialized = true after disconnect completes
-      const pendingInit = this.initializationPromise;
-      const pendingReady = this.ensureReadyPromise;
-
-      // Clear references first to prevent new callers from reusing
-      this.initializationPromise = null;
+      // Clear pending promise trackers to prevent memory leaks and ensure clean state
       this.ensureReadyPromise = null;
       this.pendingBuilderFeeApprovals.clear();
-
-      // Wait for pending operations to complete (ignore errors)
-      if (pendingInit) {
-        try {
-          await pendingInit;
-        } catch {
-          // Ignore - we're disconnecting anyway
-        }
-      }
-      if (pendingReady) {
-        try {
-          await pendingReady;
-        } catch {
-          // Ignore - we're disconnecting anyway
-        }
-      }
 
       // Reset client initialization flag so wallet adapter will be recreated with new account
       // This fixes account synchronization issue where old account's address persists in wallet adapter
@@ -6404,7 +6340,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async ping(timeoutMs?: number): Promise<void> {
     // Read-only operation: only need client initialization
-    await this.ensureClientsInitialized();
+    this.ensureClientsInitialized();
     this.clientService.ensureInitialized();
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
@@ -6462,7 +6398,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getAvailableDexs(_params?: GetAvailableDexsParams): Promise<string[]> {
     try {
       // Read-only operation: only need client initialization
-      await this.ensureClientsInitialized();
+      this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();

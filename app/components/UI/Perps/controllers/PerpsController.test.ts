@@ -714,37 +714,6 @@ describe('PerpsController', () => {
     });
   });
 
-  describe('getActiveProviderOrNull', () => {
-    it('returns null during reinitialization', () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      (
-        controller as unknown as { isReinitializing: boolean }
-      ).isReinitializing = true;
-
-      const result = controller.getActiveProviderOrNull();
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null when not initialized', () => {
-      controller.testSetInitialized(false);
-
-      const result = controller.getActiveProviderOrNull();
-
-      expect(result).toBeNull();
-    });
-
-    it('returns provider when initialized and not reinitializing', () => {
-      markControllerAsInitialized();
-      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-
-      const result = controller.getActiveProviderOrNull();
-
-      expect(result).toBe(mockProvider);
-    });
-  });
-
   describe('init', () => {
     it('initializes providers successfully', async () => {
       await controller.init();
