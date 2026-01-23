@@ -1,4 +1,4 @@
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';

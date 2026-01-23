@@ -1,8 +1,8 @@
 import { Mockttp } from 'mockttp';
 
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../framework/Assertions';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../tests/framework/Assertions';
 
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
@@ -13,8 +13,8 @@ import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-o
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { completeGoogleNewUserOnboarding } from './utils';
 
 const IMPORTED_ACCOUNT_NAME = 'Account 1';
