@@ -83,8 +83,10 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
     onConfirmCallback,
   }) => {
     useClearConfirmationOnBackSwipe();
+    // Disable automatic token selection - we want to show "Perps balance" by default
+    // User can explicitly select a token from the modal
     useAutomaticTransactionPayToken({
-      disable: disablePay,
+      disable: true, // Always disable auto-selection to show "Perps balance" by default
       preferredToken,
     });
     useTransactionPayMetrics();
