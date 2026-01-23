@@ -657,6 +657,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.ONBOARDING;
       case 'predict':
         return DeepLinkRoute.PREDICT;
+      case 'shield':
+        return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
       case 'enable-card-button':
