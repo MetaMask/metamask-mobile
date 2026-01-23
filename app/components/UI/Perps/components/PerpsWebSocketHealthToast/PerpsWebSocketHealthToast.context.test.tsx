@@ -15,7 +15,7 @@ import { WebSocketConnectionState } from '../../controllers/types';
 
 describe('PerpsWebSocketHealthToast.context', () => {
   describe('WebSocketHealthToastProvider', () => {
-    it('should render children correctly', () => {
+    it('renders children correctly', () => {
       const { getByText } = render(
         <WebSocketHealthToastProvider>
           <Text>Test Child</Text>
@@ -31,7 +31,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
       <WebSocketHealthToastProvider>{children}</WebSocketHealthToastProvider>
     );
 
-    it('should have correct initial state', () => {
+    it('has correct initial state', () => {
       const { result } = renderHook(() => useWebSocketHealthToastContext(), {
         wrapper,
       });
@@ -44,7 +44,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
     });
 
     describe('show()', () => {
-      it('should update visibility and connection state', () => {
+      it('updates visibility and connection state', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -60,7 +60,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         });
       });
 
-      it('should update reconnection attempt number', () => {
+      it('updates reconnection attempt number', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -72,7 +72,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         expect(result.current.state.reconnectionAttempt).toBe(5);
       });
 
-      it('should default reconnectionAttempt to 0 if not provided', () => {
+      it('defaults reconnectionAttempt to 0 when not provided', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -84,7 +84,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         expect(result.current.state.reconnectionAttempt).toBe(0);
       });
 
-      it('should handle DISCONNECTED state', () => {
+      it('handles DISCONNECTED state', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -100,7 +100,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         });
       });
 
-      it('should handle CONNECTED state', () => {
+      it('handles CONNECTED state', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -118,7 +118,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
     });
 
     describe('hide()', () => {
-      it('should set visibility to false', () => {
+      it('sets visibility to false', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -138,7 +138,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         expect(result.current.state.isVisible).toBe(false);
       });
 
-      it('should preserve other state when hiding', () => {
+      it('preserves other state when hiding', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -163,7 +163,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
     });
 
     describe('setOnRetry()', () => {
-      it('should register retry callback', () => {
+      it('registers retry callback', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -177,7 +177,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         expect(result.current.onRetry).toBe(mockCallback);
       });
 
-      it('should allow onRetry callback to be called', () => {
+      it('allows onRetry callback to be called', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -196,7 +196,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         expect(mockCallback).toHaveBeenCalled();
       });
 
-      it('should allow updating the retry callback', () => {
+      it('allows updating the retry callback', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -217,7 +217,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
     });
 
     describe('onRetry', () => {
-      it('should be undefined initially', () => {
+      it('is undefined initially', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -225,7 +225,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
         expect(result.current.onRetry).toBeUndefined();
       });
 
-      it('should be accessible from context after setOnRetry', () => {
+      it('is accessible from context after setOnRetry', () => {
         const { result } = renderHook(() => useWebSocketHealthToastContext(), {
           wrapper,
         });
@@ -243,7 +243,7 @@ describe('PerpsWebSocketHealthToast.context', () => {
   });
 
   describe('Default context values', () => {
-    it('should have default noop functions in context', () => {
+    it('has default noop functions in context', () => {
       // Test using context directly without provider
       const { result } = renderHook(() =>
         React.useContext(WebSocketHealthToastContext),

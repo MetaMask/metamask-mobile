@@ -101,7 +101,7 @@ describe('PerpsWebSocketHealthToast', () => {
   });
 
   describe('Visibility', () => {
-    it('should not render when isVisible is false', () => {
+    it('does not render when isVisible is false', () => {
       mockState.isVisible = false;
 
       const { queryByTestId } = render(<PerpsWebSocketHealthToast />);
@@ -109,7 +109,7 @@ describe('PerpsWebSocketHealthToast', () => {
       expect(queryByTestId('perps-websocket-health-toast')).toBeNull();
     });
 
-    it('should render when isVisible is true and state becomes visible', async () => {
+    it('renders when isVisible is true and state becomes visible', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
@@ -127,7 +127,7 @@ describe('PerpsWebSocketHealthToast', () => {
   });
 
   describe('DISCONNECTED state', () => {
-    it('should display disconnected message', async () => {
+    it('displays disconnected message', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
@@ -141,7 +141,7 @@ describe('PerpsWebSocketHealthToast', () => {
       });
     });
 
-    it('should show retry button when disconnected', async () => {
+    it('shows retry button when disconnected', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
@@ -155,7 +155,7 @@ describe('PerpsWebSocketHealthToast', () => {
       });
     });
 
-    it('should call onRetry when retry button is pressed', async () => {
+    it('calls onRetry when retry button is pressed', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.DISCONNECTED;
 
@@ -172,7 +172,7 @@ describe('PerpsWebSocketHealthToast', () => {
   });
 
   describe('CONNECTING state', () => {
-    it('should display connecting message with attempt number', async () => {
+    it('displays connecting message with attempt number', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.CONNECTING;
       mockState.reconnectionAttempt = 3;
@@ -185,7 +185,7 @@ describe('PerpsWebSocketHealthToast', () => {
       });
     });
 
-    it('should not show retry button when connecting', async () => {
+    it('does not show retry button when connecting', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.CONNECTING;
 
@@ -205,7 +205,7 @@ describe('PerpsWebSocketHealthToast', () => {
   });
 
   describe('CONNECTED state', () => {
-    it('should display connected message', async () => {
+    it('displays connected message', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
@@ -219,7 +219,7 @@ describe('PerpsWebSocketHealthToast', () => {
       });
     });
 
-    it('should not show retry button when connected', async () => {
+    it('does not show retry button when connected', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
@@ -237,7 +237,7 @@ describe('PerpsWebSocketHealthToast', () => {
       ).toBeNull();
     });
 
-    it('should auto-hide after 3 seconds when connected', async () => {
+    it('auto-hides after 3 seconds when connected', async () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
@@ -251,7 +251,7 @@ describe('PerpsWebSocketHealthToast', () => {
   });
 
   describe('DISCONNECTING state', () => {
-    it('should not render for DISCONNECTING state', () => {
+    it('does not render for DISCONNECTING state', () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.DISCONNECTING;
 
@@ -262,7 +262,7 @@ describe('PerpsWebSocketHealthToast', () => {
   });
 
   describe('Cleanup', () => {
-    it('should clear timeout on unmount', () => {
+    it('clears timeout on unmount', () => {
       mockState.isVisible = true;
       mockState.connectionState = WebSocketConnectionState.CONNECTED;
 
