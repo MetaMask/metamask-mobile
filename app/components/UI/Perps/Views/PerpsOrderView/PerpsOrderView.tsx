@@ -341,7 +341,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
     undefined,
   );
-  const [depositAmount, setDepositAmount] = useState<string>('');
 
   // Get available payment tokens and set default if none selected
   const paymentTokens = usePerpsPaymentTokens();
@@ -495,19 +494,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     positionSize,
   ]);
 
-  // Prefill deposit amount with margin value when available
-  useEffect(() => {
-    if (marginRequired !== undefined && marginRequired !== null) {
-      // Format margin to 2 decimal places for the input field
-      const formattedMargin = new BigNumber(marginRequired)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-        .toString(10);
-      setDepositAmount(formattedMargin);
-    }
-    // Only depend on marginRequired and orderForm.amount
-    // depositAmount is intentionally excluded to avoid infinite loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marginRequired, orderForm.amount]);
 
   const { updatePositionTPSL } = usePerpsTrading();
 
@@ -790,10 +776,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   const handleDepositConfirm = useCallback(async () => {
-    updatePendingAmount(orderForm.amount); // TODO: check which value to use here
+
+    if (marginRequired === undefined || marginRequired === null) {
+      return;
+    }
+    // Format margin to 2 decimal places for the input field
+    const formattedMargin = new BigNumber(marginRequired)
+      .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+      .toString(10);
+
+
+    updatePendingAmount(formattedMargin)
     updateTokenAmount();
     await onConfirm();
-  }, [onConfirm, updatePendingAmount, updateTokenAmount, orderForm.amount]);
+  }, [onConfirm, updatePendingAmount, updateTokenAmount, marginRequired]);
 
   const handlePlaceOrder = useCallback(
     async ({ fromDeposit = false }: { fromDeposit?: boolean } = {}) => {
@@ -1040,16 +1036,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, {
-        asset: getPerpsDisplaySymbol(orderForm.asset),
-      });
+      asset: getPerpsDisplaySymbol(orderForm.asset),
+    });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
-      !isStopLossSafeFromLiquidation(
-        orderForm.stopLossPrice,
-        liquidationPrice,
-        orderForm.direction,
-      ),
+    !isStopLossSafeFromLiquidation(
+      orderForm.stopLossPrice,
+      liquidationPrice,
+      orderForm.direction,
+    ),
   );
 
   let rewardAnimationState = RewardAnimationState.Idle;
@@ -1180,10 +1176,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         color={TextColor.Default}
                       >
                         {orderForm.limitPrice !== undefined &&
-                        orderForm.limitPrice !== null
+                          orderForm.limitPrice !== null
                           ? formatPerpsFiat(orderForm.limitPrice, {
-                              ranges: PRICE_RANGES_UNIVERSAL,
-                            })
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })
                           : 'Set price'}
                       </Text>
                     </ListItemColumn>
@@ -1279,8 +1275,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
@@ -1307,8 +1303,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
@@ -1335,8 +1331,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !hasValidAmount || feeResults.isLoadingMetamaskFee
                   ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
                   : formatPerpsFiat(estimatedFees, {
-                      ranges: PRICE_RANGES_MINIMAL_VIEW,
-                    })
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
               }
               variant={TextVariant.BodySM}
             />
@@ -1626,11 +1622,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           data={
             selectedTooltip === 'fees'
               ? {
-                  metamaskFeeRate: feeResults.metamaskFeeRate,
-                  protocolFeeRate: feeResults.protocolFeeRate,
-                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
-                }
+                metamaskFeeRate: feeResults.metamaskFeeRate,
+                protocolFeeRate: feeResults.protocolFeeRate,
+                originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                feeDiscountPercentage: feeResults.feeDiscountPercentage,
+              }
               : undefined
           }
         />
