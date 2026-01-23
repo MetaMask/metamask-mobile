@@ -137,8 +137,10 @@ import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
-import { PerpsInlineDeposit } from './PerpsInlineDeposit';
+import { PerpsDepositFees, PerpsInlineDeposit } from './PerpsInlineDeposit';
 import createStyles from './PerpsOrderView.styles';
+import { PayWithRow } from '../../../../Views/confirmations/components/rows/pay-with-row';
+import { PerpsPayRow } from './PerpsPayRow';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -1312,6 +1314,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             depositAmount.trim() !== '' &&
             activeTransactionMeta && (
               <View>
+                <PerpsDepositFees />
+                <PerpsPayRow />
+                <PayWithRow hideNetworkFilter />
                 <PerpsInlineDeposit
                   currency={PERPS_CURRENCY}
                   hasMax

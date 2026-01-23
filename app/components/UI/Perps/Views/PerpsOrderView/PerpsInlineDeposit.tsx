@@ -1,43 +1,21 @@
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { toCaipAssetType } from '@metamask/utils';
-import React, {
-  ReactNode,
-  memo,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import React, { ReactNode, memo, useCallback, useEffect } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import EngineService from '../../../../../core/EngineService';
 import { Box } from '../../../../UI/Box/Box';
-import { AlignItems } from '../../../../UI/Box/box.types';
-import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { ConfirmationFooterSelectorIDs } from '../../../../Views/confirmations/ConfirmationView.testIds';
 import { AlertMessage } from '../../../../Views/confirmations/components/alerts/alert-message';
-import { DepositKeyboardSkeleton } from '../../../../Views/confirmations/components/deposit-keyboard';
-import { PayTokenAmountSkeleton } from '../../../../Views/confirmations/components/pay-token-amount';
 import { BridgeFeeRow } from '../../../../Views/confirmations/components/rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../../../Views/confirmations/components/rows/bridge-time-row';
-import {
-  PayWithRow,
-  PayWithRowSkeleton,
-} from '../../../../Views/confirmations/components/rows/pay-with-row';
+import { PayWithRow } from '../../../../Views/confirmations/components/rows/pay-with-row';
 import { PercentageRow } from '../../../../Views/confirmations/components/rows/percentage-row';
 import { TotalRow } from '../../../../Views/confirmations/components/rows/total-row';
-import { CustomAmountSkeleton } from '../../../../Views/confirmations/components/transactions/custom-amount';
+import { InfoRowSkeleton } from '../../../../Views/confirmations/components/UI/info-row/info-row';
 import { useAlerts } from '../../../../Views/confirmations/context/alert-system-context';
 import {
   SetPayTokenRequest,
@@ -51,13 +29,10 @@ import {
   useTransactionPaySourceAmounts,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
-import { useAccountTokens } from '../../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmountAlerts';
-import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
-import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsInlineDeposit.styles';
 
@@ -72,6 +47,30 @@ export interface CustomAmountInfoProps {
   skipNavigation?: boolean;
   onConfirmCallback?: (transactionMeta: TransactionMeta) => void;
 }
+
+export const PerpsDepositFees = () => {
+  const isResultReady = useIsResultReady();
+
+  if (!isResultReady) {
+    return (
+      <Box>
+        <InfoRowSkeleton />
+        <InfoRowSkeleton />
+        <InfoRowSkeleton />
+        <InfoRowSkeleton />
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      <BridgeFeeRow />
+      <BridgeTimeRow />
+      <TotalRow />
+      <PercentageRow />
+    </Box>
+  );
+};
 
 export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
   ({
@@ -90,13 +89,10 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
 
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
 
-    const isResultReady = useIsResultReady({
-      isKeyboardVisible,
-    });
+    const isResultReady = useIsResultReady();
 
     const {
       amountHumanDebounced,
@@ -113,14 +109,13 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
-      isKeyboardVisible,
+      isKeyboardVisible: false,
       pendingTokenAmount: amountHumanDebounced,
     });
 
     const handleDone = useCallback(() => {
       updateTokenAmount();
       EngineService.flushState();
-      setIsKeyboardVisible(false);
     }, [updateTokenAmount]);
 
     return (
@@ -152,97 +147,16 @@ export const PerpsInlineDeposit: React.FC<CustomAmountInfoProps> = memo(
             </Box>
           )}
 
-          {!hasTokens && <BuySection />}
-          {!isKeyboardVisible && (
-            <ConfirmButton
-              alertTitle={alertTitle}
-              skipNavigation={skipNavigation}
-              onConfirmCallback={onConfirmCallback}
-            />
-          )}
+          <ConfirmButton
+            alertTitle={alertTitle}
+            skipNavigation={skipNavigation}
+            onConfirmCallback={onConfirmCallback}
+          />
         </Box>
       </Box>
     );
   },
 );
-
-export function CustomAmountInfoSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <Box style={styles.container}>
-      <Box style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        <PayTokenAmountSkeleton />
-        <PayWithRowSkeleton />
-      </Box>
-      <DepositKeyboardSkeleton />
-    </Box>
-  );
-}
-
-function BuySection() {
-  const transactionMeta = useTransactionMetadataRequest();
-  const tokens = useAccountTokens({ includeNoBalance: true });
-  const requiredTokens = useTransactionPayRequiredTokens();
-
-  const primaryRequiredToken = requiredTokens.find(
-    (token) => token.address !== getNativeTokenAddress(token.chainId),
-  );
-
-  if (!primaryRequiredToken?.chainId) {
-    throw new Error(
-      'PerpsInlineDeposit: primaryRequiredToken chainId is required',
-    );
-  }
-
-  const asset = tokens.find(
-    (token) =>
-      token.address?.toLowerCase() ===
-        primaryRequiredToken.address.toLowerCase() &&
-      token.chainId === primaryRequiredToken.chainId,
-  );
-
-  if (!asset?.assetId) {
-    throw new Error('PerpsInlineDeposit: asset assetId is required');
-  }
-
-  const assetId = toCaipAssetType(
-    'eip155',
-    Number(primaryRequiredToken.chainId).toString(),
-    'erc20',
-    asset.assetId,
-  );
-
-  const { goToBuy } = useRampNavigation();
-
-  const handleBuyPress = useCallback(() => {
-    goToBuy({ assetId });
-  }, [assetId, goToBuy]);
-
-  let message: string | undefined;
-
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    message = strings('confirm.custom_amount.buy_perps');
-  }
-
-  return (
-    <Box alignItems={AlignItems.center} gap={20}>
-      {message && (
-        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-          {message}
-        </Text>
-      )}
-      <Button
-        label={strings('confirm.custom_amount.buy_button')}
-        variant={ButtonVariants.Primary}
-        onPress={handleBuyPress}
-        width={ButtonWidthTypes.Full}
-        size={ButtonSize.Lg}
-      />
-    </Box>
-  );
-}
 
 function ConfirmButton({
   alertTitle,
@@ -280,11 +194,7 @@ function ConfirmButton({
   );
 }
 
-function useIsResultReady({
-  isKeyboardVisible,
-}: {
-  isKeyboardVisible: boolean;
-}) {
+function useIsResultReady() {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -298,8 +208,5 @@ function useIsResultReady({
     ),
   );
 
-  return (
-    !isKeyboardVisible &&
-    (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
-  );
+  return isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount;
 }
