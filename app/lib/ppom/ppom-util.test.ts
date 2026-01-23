@@ -284,19 +284,15 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
-    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid and securityAlertId is not defined', async () => {
+    it('should not validate transaction and not dispatch response if method type is eth_sendTransaction and transactionid and securityAlertId is not defined', async () => {
       const spyTransactionAction = jest.spyOn(
         SecurityAlertsActions,
         'setSecurityAlertResponse',
       );
       await PPOMUtil.validateRequest(mockRequest);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(0);
-      expect(spyTransactionAction).toHaveBeenCalledTimes(1);
-      expect(spyTransactionAction).toHaveBeenCalledWith(undefined, {
-        result_type: ResultType.Failed,
-        reason: Reason.failed,
-        description: 'Validating the confirmation failed by throwing error.',
-      });
+      // When transactionId is undefined, updateSecurityResultForTransaction returns early without dispatching
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
     it('should update transaction with validation result', async () => {

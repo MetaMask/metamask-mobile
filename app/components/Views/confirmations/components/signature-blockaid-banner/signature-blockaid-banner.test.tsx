@@ -30,9 +30,33 @@ jest.mock('../../../../../util/confirmation/signatureUtils', () => ({
   getAnalyticsParams: () => ({}),
 }));
 
+// Signature ID from typedSignV1ConfirmationState
+const TYPED_SIGN_V1_SIGNATURE_ID = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+
 const typedSignV1ConfirmationStateWithBlockaidResponse = {
   ...typedSignV1ConfirmationState,
-  signatureRequest: { securityAlertResponse },
+  engine: {
+    ...typedSignV1ConfirmationState.engine,
+    backgroundState: {
+      ...typedSignV1ConfirmationState.engine.backgroundState,
+      SignatureController: {
+        signatureRequests: {
+          [TYPED_SIGN_V1_SIGNATURE_ID]: {
+            ...typedSignV1ConfirmationState.engine.backgroundState
+              .SignatureController.signatureRequests[
+              TYPED_SIGN_V1_SIGNATURE_ID
+            ],
+            id: TYPED_SIGN_V1_SIGNATURE_ID, // Add the id field
+          },
+        },
+      },
+    },
+  },
+  securityAlerts: {
+    alerts: {
+      [TYPED_SIGN_V1_SIGNATURE_ID]: securityAlertResponse,
+    },
+  },
 };
 
 describe('Confirm', () => {

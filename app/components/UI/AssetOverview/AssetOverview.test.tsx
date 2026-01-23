@@ -12,8 +12,6 @@ import {
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
-// eslint-disable-next-line import/no-namespace
-import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
@@ -671,8 +669,6 @@ describe('AssetOverview', () => {
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
-    const spyOnGetEther = jest.spyOn(transactions, 'getEther');
-
     const nativeAsset = {
       balance: '400',
       balanceFiat: '1500',
@@ -735,8 +731,13 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate.mock.calls[1][0]).toEqual('Send');
-    expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
+    // onSend now navigates to home first, then calls navigateToSendPage
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.WALLET.HOME,
+      expect.objectContaining({
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+      }),
+    );
   });
 
   it('should handle swap button press', async () => {
