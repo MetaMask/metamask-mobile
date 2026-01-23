@@ -1,4 +1,4 @@
-/// <reference path="../types/detox.d.ts" />
+/// <reference path="../../../e2e/types/detox.d.ts" />
 import { device } from 'detox';
 import { addToQueue } from './helpers';
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
