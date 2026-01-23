@@ -898,9 +898,22 @@ export class HyperLiquidClientService {
         await this.ensureTransportReady(5000);
       } catch (readyError) {
         this.deps.debugLogger.log(
-          'Transport not ready after reconnect, will require manual reinitialization',
+          'Transport not ready after reconnect, cleaning up and will require manual reinitialization',
           { error: ensureError(readyError).message },
         );
+
+        // Clean up orphaned resources to prevent WebSocket/client leaks
+        this.subscriptionClient = undefined;
+        this.infoClient = undefined;
+        if (this.wsTransport) {
+          try {
+            await this.wsTransport.close();
+          } catch {
+            // Ignore close errors during cleanup
+          }
+          this.wsTransport = undefined;
+        }
+
         this.connectionState = WebSocketConnectionState.DISCONNECTED;
         return;
       }

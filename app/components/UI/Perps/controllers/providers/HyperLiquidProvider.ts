@@ -5740,6 +5740,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       const newIsTestnet = !this.clientService.isTestnetMode();
 
+      // Await pending initialization to prevent race condition where
+      // the IIFE sets clientsInitialized = true after we reset it
+      const pendingInit = this.initializationPromise;
+      this.initializationPromise = null;
+
+      if (pendingInit) {
+        try {
+          await pendingInit;
+        } catch {
+          // Ignore - we're switching networks anyway
+        }
+      }
+
       // Update all services
       this.clientService.setTestnetMode(newIsTestnet);
       this.walletService.setTestnetMode(newIsTestnet);
@@ -6339,10 +6352,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.cachedMetaByDex.clear();
       this.perpDexsCache = { data: null, timestamp: 0 };
 
-      // Clear pending promise trackers to prevent memory leaks and ensure clean state
-      this.ensureReadyPromise = null;
+      // Await pending initialization before clearing to prevent the IIFE from
+      // setting clientsInitialized = true after disconnect completes
+      const pendingInit = this.initializationPromise;
+      const pendingReady = this.ensureReadyPromise;
+
+      // Clear references first to prevent new callers from reusing
       this.initializationPromise = null;
+      this.ensureReadyPromise = null;
       this.pendingBuilderFeeApprovals.clear();
+
+      // Wait for pending operations to complete (ignore errors)
+      if (pendingInit) {
+        try {
+          await pendingInit;
+        } catch {
+          // Ignore - we're disconnecting anyway
+        }
+      }
+      if (pendingReady) {
+        try {
+          await pendingReady;
+        } catch {
+          // Ignore - we're disconnecting anyway
+        }
+      }
 
       // Reset client initialization flag so wallet adapter will be recreated with new account
       // This fixes account synchronization issue where old account's address persists in wallet adapter
