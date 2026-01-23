@@ -38,7 +38,7 @@ import {
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
-import { captureException } from '@sentry/react-native';
+import { captureExceptionWithForce } from '../../../../util/sentry/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -193,10 +193,13 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
-  onSendSentryTestError = () => {
-    captureException(
-      new Error('OTA update Sentry test error production 7.62.91 v3'),
+  onSendSentryTestError = async () => {
+    await captureExceptionWithForce(
+      new Error(`OTA update Sentry test error production ${OTA_VERSION}`),
+      { otaVersion: OTA_VERSION, channel, environment: process.env.METAMASK_ENVIRONMENT }
     );
+    // Show alert so user knows it was sent
+    alert(`Sentry error sent! Version: ${OTA_VERSION}`);
   };
 
   render = () => {
