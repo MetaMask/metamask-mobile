@@ -24,7 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
     },
     headerContainer: {
-      paddingVertical: 16,
+      paddingBottom: 16,
     },
     emptyContainer: {
       flex: 1,

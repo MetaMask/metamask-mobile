@@ -1,5 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, FlatList, ActivityIndicator, StyleSheet, Image, ViewStyle } from 'react-native';
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  ViewStyle,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,14 +33,20 @@ import { TagProps } from '../../../../../component-library/components/Tags/Tag/T
 import { MUSD_CONVERSION_APY, MUSD_TOKEN } from '../../constants/musd';
 import { Theme } from '../../../../../util/theme/models';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
-import BadgeWrapper, { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { hexToDecimal } from '../../../../../util/conversions';
 
-
-const musdBadgeStyles = (params: { theme: Theme, vars: { size: number } }) => {
-  const { theme, vars: { size } } = params;
+const musdBadgeStyles = (params: { theme: Theme; vars: { size: number } }) => {
+  const {
+    vars: { size },
+  } = params;
 
   return {
     tokenIcon: {
@@ -76,21 +89,21 @@ const MusdBadge = ({ chainId, size = 16 }: MusdBadgeProps) => {
   );
 };
 
-const musdBalanceStyles = () => StyleSheet.create({
-  container: {
-    width: '100%',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-  },
-  left: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  right: {
-    alignItems: 'flex-end',
-  }
-});
-
+const musdBalanceStyles = () =>
+  StyleSheet.create({
+    container: {
+      width: '100%',
+      justifyContent: 'space-between',
+      flexDirection: 'row',
+    },
+    left: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    right: {
+      alignItems: 'flex-end',
+    },
+  });
 
 interface MusdBalanceCardProps {
   chainId: Hex;
@@ -103,12 +116,18 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
   const { balancesByChain } = useMusdBalance();
 
   // TODO: Currency must be formatted using the user's currency.
-  const musdBalance = useMemo(() => balancesByChain?.[chainId] ?? '$0.00', [balancesByChain, chainId]);
+  // TODO: Fix balance displaying incorrectly.
+  const musdBalance = useMemo(
+    () => hexToDecimal(balancesByChain?.[chainId] ?? '0x0') ?? '$0.00',
+    [balancesByChain, chainId],
+  );
 
   // TODO: Replace with actual percent change value.
-  const percentChange = 0.10;
-  const percentChangeFormatted = percentChange > 0 ? `+${percentChange}` : `-${percentChange}`;
-  const percentChangeColor = percentChange > 0 ? TextColor.Success : TextColor.Error;
+  const percentChange = 0.1;
+  const percentChangeFormatted =
+    percentChange > 0 ? `+${percentChange}` : `-${percentChange}`;
+  const percentChangeColor =
+    percentChange > 0 ? TextColor.Success : TextColor.Error;
 
   return (
     <View style={[styles.container, style]}>
@@ -117,20 +136,26 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
         <MusdBadge chainId={chainId} size={32} />
         <View>
           <Text variant={TextVariant.BodyMDMedium}>{musdBalance}</Text>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>{MUSD_TOKEN.symbol}</Text>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {MUSD_TOKEN.symbol}
+          </Text>
         </View>
-        <View>
-
-        </View>
+        <View></View>
       </View>
       {/* Right side: No boost and boost amount */}
       <View style={styles.right}>
         {/* TODO: Replace with actual boost copy. */}
-        <Text variant={TextVariant.BodyMDMedium}>{strings('earn.musd_conversion.no_boost')}</Text>
-        <Text variant={TextVariant.BodySMMedium} color={percentChangeColor}>{percentChangeFormatted}</Text>
+        <Text variant={TextVariant.BodyMDMedium}>
+          {strings('earn.musd_conversion.no_boost')}
+        </Text>
+        <Text variant={TextVariant.BodySMMedium} color={percentChangeColor}>
+          {percentChangeFormatted}
+        </Text>
       </View>
     </View>
-
   );
 };
 
@@ -179,11 +204,9 @@ const MusdQuickConvertView = () => {
   useFocusEffect(
     useCallback(() => {
       navigation.setOptions(
-        getStakingNavbar(
-          strings('earn.musd_conversion.convert_to_musd'),
-          navigation,
-          colors,
-        ),
+        getStakingNavbar('', navigation, colors, {
+          hasCancelButton: false,
+        }),
       );
     }, [navigation, colors]),
   );
@@ -296,12 +319,29 @@ const MusdQuickConvertView = () => {
         testID={MusdQuickConvertViewTestIds.HEADER}
       >
         <View style={styles.headerTextContainer}>
-          <Text variant={TextVariant.HeadingLG}>{strings('earn.musd_conversion.convert_and_get_boost', { apy: MUSD_CONVERSION_APY })}</Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>{strings('earn.musd_conversion.convert_and_hold_your_stablecoins_as_musd_and_receive_boost_on_your_money', { apy: MUSD_CONVERSION_APY })}</Text>
+          <Text variant={TextVariant.HeadingLG}>
+            {strings('earn.musd_conversion.convert_and_get_boost', {
+              apy: MUSD_CONVERSION_APY,
+            })}
+          </Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings(
+              'earn.musd_conversion.convert_and_hold_your_stablecoins_as_musd_and_receive_boost_on_your_money',
+              { apy: MUSD_CONVERSION_APY },
+            )}
+          </Text>
         </View>
         <View>
-          <Text variant={TextVariant.BodyMDMedium} style={styles.balanceCardHeader}>{strings('earn.musd_conversion.your_musd')}</Text>
-          <MusdBalanceCard chainId={CHAIN_IDS.MAINNET} style={styles.balanceCardContainer} />
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            style={styles.balanceCardHeader}
+          >
+            {strings('earn.musd_conversion.your_musd')}
+          </Text>
+          <MusdBalanceCard
+            chainId={CHAIN_IDS.MAINNET}
+            style={styles.balanceCardContainer}
+          />
         </View>
       </View>
 
