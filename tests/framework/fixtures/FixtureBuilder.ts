@@ -8,7 +8,7 @@ import {
 import { merge } from 'lodash';
 import { encryptVault } from './helpers.ts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -548,6 +548,12 @@ class FixtureBuilder {
                   nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
                   isEvm: false,
                 },
+                [TrxScope.Mainnet]: {
+                  chainId: TrxScope.Mainnet,
+                  name: 'Tron',
+                  nativeCurrency: `${TrxScope.Mainnet}/slip44:195`,
+                  isEvm: false,
+                },
               },
               isEvmSelected: true,
               networksWithTransactionActivity: {},
@@ -573,6 +579,11 @@ class FixtureBuilder {
             NetworkEnablementController: {},
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
+                tronAccounts: {
+                  enabled: true,
+                  featureVersion: null,
+                  minimumVersion: null,
+                },
                 enableMultichainAccounts: {
                   enabled: false,
                   featureVersion: null,
