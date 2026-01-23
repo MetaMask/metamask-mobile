@@ -23,6 +23,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 const BUILDS_PATH = path.join(__dirname, '../.github/builds.yml');
+const BITRISE_PATH = path.join(__dirname, '../bitrise.yml');
 
 // Environment variables to verify (env section of builds.yml)
 const ENV_VARS_TO_VERIFY = [
@@ -97,6 +98,39 @@ const EXPECTED_CODE_FENCING = {
     'tron',
   ],
 };
+
+/**
+ * Parse bitrise.yml and extract all env var names from app.envs section
+ * This gives us the definitive list of what Bitrise explicitly defines
+ */
+function getBitriseAppEnvVars() {
+  if (!fs.existsSync(BITRISE_PATH)) {
+    console.warn('   ⚠️  bitrise.yml not found, skipping Bitrise env var check');
+    return [];
+  }
+
+  try {
+    const bitriseConfig = yaml.load(fs.readFileSync(BITRISE_PATH, 'utf8'));
+    const appEnvs = bitriseConfig?.app?.envs || [];
+
+    // Extract env var names from the array of objects
+    // Each item is like: { opts: {...}, MM_PERPS_ENABLED: true }
+    const envVarNames = [];
+    appEnvs.forEach((envItem) => {
+      Object.keys(envItem).forEach((key) => {
+        // Skip 'opts' which is metadata
+        if (key !== 'opts') {
+          envVarNames.push(key);
+        }
+      });
+    });
+
+    return envVarNames;
+  } catch (error) {
+    console.warn(`   ⚠️  Failed to parse bitrise.yml: ${error.message}`);
+    return [];
+  }
+}
 
 /**
  * Map old Bitrise environment names to builds.yml build names
@@ -294,6 +328,81 @@ function verifyConfig(options = {}) {
       reason: 'Not defined in builds.yml',
     });
     console.log(`   ⚠️  No remote feature flags defined`);
+  }
+
+  // REVERSE CHECK: Find Bitrise env vars NOT in builds.yml
+  console.log('\n🔄 Checking for Bitrise env vars NOT in builds.yml...');
+
+  // Get all keys from builds.yml (env + secrets)
+  const buildsYmlKeys = new Set([
+    ...Object.keys(config.env || {}),
+    ...Object.keys(config.secrets || {}),
+  ]);
+
+  // Get explicit env vars defined in bitrise.yml app.envs section
+  const bitriseDefinedEnvVars = getBitriseAppEnvVars();
+
+  if (bitriseDefinedEnvVars.length === 0) {
+    console.log('   ℹ️  Could not parse bitrise.yml env vars');
+  } else {
+    // Find env vars defined in bitrise.yml but not in builds.yml
+    const missingFromBuildsYml = bitriseDefinedEnvVars.filter(
+      (key) => !buildsYmlKeys.has(key),
+    );
+    const accountedFor = bitriseDefinedEnvVars.filter((key) =>
+      buildsYmlKeys.has(key),
+    );
+
+    if (missingFromBuildsYml.length > 0) {
+      console.log(
+        `   ⚠️  ${missingFromBuildsYml.length} bitrise.yml env vars NOT in builds.yml:`,
+      );
+      missingFromBuildsYml.sort().forEach((key) => {
+        // Get current value from process.env and mask for security
+        const value = process.env[key];
+        let displayValue;
+        if (value === undefined) {
+          displayValue = '[not set in env]';
+        } else if (value.length > 6) {
+          displayValue = `${value.substring(0, 3)}...${value.substring(value.length - 3)}`;
+        } else {
+          displayValue = '[SET]';
+        }
+        warnings.push({
+          key,
+          reason: 'Defined in bitrise.yml but missing from builds.yml',
+        });
+        console.log(`      - ${key}: ${displayValue}`);
+      });
+    }
+
+    if (accountedFor.length > 0) {
+      if (verbose) {
+        console.log(
+          `   ✅ ${accountedFor.length} bitrise.yml env vars found in builds.yml:`,
+        );
+        accountedFor.sort().forEach((key) => {
+          console.log(`      - ${key}`);
+        });
+      } else {
+        console.log(
+          `   ✅ ${accountedFor.length} bitrise.yml env vars accounted for in builds.yml`,
+        );
+      }
+    }
+
+    if (missingFromBuildsYml.length === 0 && accountedFor.length === 0) {
+      console.log(
+        `   ℹ️  No overlap between bitrise.yml app.envs (${bitriseDefinedEnvVars.length} vars) and builds.yml`,
+      );
+    }
+
+    // Summary of bitrise.yml parsing
+    if (verbose) {
+      console.log(
+        `\n   📊 bitrise.yml app.envs total: ${bitriseDefinedEnvVars.length} env vars`,
+      );
+    }
   }
 
   // Summary
