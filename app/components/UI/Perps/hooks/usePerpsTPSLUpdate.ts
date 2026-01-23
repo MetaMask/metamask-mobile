@@ -6,6 +6,12 @@ import type { Position, TPSLTrackingData } from '../controllers/types';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
+
+// Retry configuration for rate limiting
+const TPSL_UPDATE_MAX_RETRIES = 3;
+const TPSL_UPDATE_BASE_DELAY_MS = 1000;
+const TPSL_UPDATE_MAX_DELAY_MS = 10000;
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -35,13 +41,29 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
       try {
-        const result = await updatePositionTPSL({
-          symbol: position.symbol,
-          takeProfitPrice,
-          stopLossPrice,
-          trackingData,
-          position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
-        });
+        // Wrap API call with exponential backoff retry for rate limiting resilience
+        // The inner function throws on failure to trigger retries (since updatePositionTPSL
+        // returns { success: false } instead of throwing)
+        const result = await retryWithExponentialDelay(
+          async () => {
+            const res = await updatePositionTPSL({
+              symbol: position.symbol,
+              takeProfitPrice,
+              stopLossPrice,
+              trackingData,
+              position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
+            });
+            if (!res.success) {
+              // Throw to trigger retry - the error message will be used if all retries fail
+              throw new Error(res.error || 'TP/SL update failed');
+            }
+            return res;
+          },
+          TPSL_UPDATE_MAX_RETRIES,
+          TPSL_UPDATE_BASE_DELAY_MS,
+          TPSL_UPDATE_MAX_DELAY_MS,
+          true, // Enable jitter to prevent thundering herd
+        );
 
         if (result.success) {
           DevLogger.log('Position TP/SL updated successfully:', result);
