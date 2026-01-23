@@ -1545,7 +1545,7 @@ export class PerpsController extends BaseController<
           : undefined;
 
       let result: Promise<string>;
-      let transactionMeta: TransactionMeta;
+      let transactionMeta: { id: string };
 
       if (skipNavigation) {
         // Use addTransaction to create transaction without navigating to confirmation screen
