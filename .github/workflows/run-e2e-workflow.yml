@@ -162,6 +162,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          pattern: ${{ inputs.build_type }}-*.apk
 
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
@@ -185,6 +186,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          pattern: ${{ inputs.build_type }}-*.app
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
       - name: Download previous test results (on re-run)
