@@ -28,7 +28,6 @@ export { usePerpsPrices } from './usePerpsPrices';
 
 // Asset metadata hooks
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
-
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 export {
