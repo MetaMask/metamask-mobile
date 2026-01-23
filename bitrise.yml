@@ -3199,10 +3199,6 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_main_rc
-  # TODO: Remove this workflow once new build configuration is consolidated
-  build_ios_flask_release:
-    after_run:
-      - build_ios_flask_prod
   build_ios_flask_prod:
     envs:
       - CONFIGURATION: 'Release'
