@@ -4523,8 +4523,8 @@ describe('Authentication', () => {
     });
 
     it('skips deriving password from keychain when a non-empty password is provided', async () => {
-      // Call unlockWallet with an empty password.
-      await Authentication.unlockWallet({ password: '' });
+      // Call unlockWallet with a non-empty password.
+      await Authentication.unlockWallet({ password: 'test-password' });
 
       // Verify that SecureKeychain.getGenericPassword is not called.
       expect(SecureKeychain.getGenericPassword).not.toHaveBeenCalled();
