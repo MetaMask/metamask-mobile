@@ -25,16 +25,14 @@ export function buildSystemPrompt(availableSkills: SkillMetadata[]): string {
   // Build available skills section
   const skillsSection =
     availableSkills.length > 0
-      ? `AVAILABLE SKILLS (load on-demand with load_skill tool):
+      ? `AVAILABLE SKILLS:
 
 ${availableSkills
   .map(
     (skill) =>
-      `- ${skill.name}: ${skill.description}${skill.tools ? `\n  Tools used: ${skill.tools}` : ''}`,
+      `- ${skill.name}: ${skill.description}${skill.tools ? `\n  Tools: ${skill.tools}` : ''}`,
   )
-  .join('\n')}
-
-When you need specialized domain expertise or methodology guidance, use the load_skill tool to load the full skill content. Skills provide detailed frameworks, risk patterns, and domain-specific knowledge to assist your analysis.`
+  .join('\n')}`
       : '';
 
   const guidanceSection = `GUIDANCE:
