@@ -4514,6 +4514,30 @@ describe('Authentication', () => {
       });
     });
 
+    it('skips deriving password from keychain when an empty password is provided', async () => {
+      // Call unlockWallet with an empty password.
+      await Authentication.unlockWallet({ password: '' });
+
+      // Verify that SecureKeychain.getGenericPassword is not called.
+      expect(SecureKeychain.getGenericPassword).not.toHaveBeenCalled();
+    });
+
+    it('skips deriving password from keychain when a non-empty password is provided', async () => {
+      // Call unlockWallet with an empty password.
+      await Authentication.unlockWallet({ password: '' });
+
+      // Verify that SecureKeychain.getGenericPassword is not called.
+      expect(SecureKeychain.getGenericPassword).not.toHaveBeenCalled();
+    });
+
+    it('derives password from keychain when no password is provided', async () => {
+      // Call unlockWallet without a password.
+      await Authentication.unlockWallet();
+
+      // Verify that SecureKeychain.getGenericPassword is called.
+      expect(SecureKeychain.getGenericPassword).toHaveBeenCalled();
+    });
+
     it('navigates to the onboarding flow when user does not exist', async () => {
       // Mock existing user state.
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
