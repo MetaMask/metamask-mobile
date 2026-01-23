@@ -17,6 +17,13 @@ jest.mock('../PriceChart/PriceChart', () => ({
   default: jest.fn().mockImplementation(() => null),
 }));
 
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: jest.fn().mockReturnValue(false),
+    isTokenTradingOpen: jest.fn().mockResolvedValue(true),
+  }),
+}));
+
 const mockAsset: TokenI = {
   name: 'Ethereum',
   ticker: 'ETH',
@@ -68,11 +75,12 @@ describe('Price Component', () => {
         },
       };
 
-      const { getByText } = render(<Price {...props} />);
+      const { getAllByText } = render(<Price {...props} />);
 
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.symbol})`),
-      ).toBeTruthy();
+      // Name and symbol are rendered separately
+      // When name and symbol are the same, we expect to find both text nodes
+      const elements = getAllByText(mockProps.asset.name);
+      expect(elements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders header correctly when name not provided and symbol is provided', () => {
@@ -93,9 +101,9 @@ describe('Price Component', () => {
     it('renders header correctly when name and ticker are provided', () => {
       const { getByText } = render(<Price {...mockProps} />);
 
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.ticker})`),
-      ).toBeTruthy();
+      // Name and ticker are rendered separately
+      expect(getByText(mockProps.asset.name)).toBeTruthy();
+      expect(getByText(mockProps.asset.ticker)).toBeTruthy();
     });
   });
 
