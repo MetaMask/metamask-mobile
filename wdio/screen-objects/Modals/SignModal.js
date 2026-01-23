@@ -1,5 +1,5 @@
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { expect } from 'appwright';
 
 class SignModal {
