@@ -69,7 +69,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
 import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
-import { PERPS_MIN_AGGREGATORS_FOR_TRUST } from '../../UI/Perps/constants/perpsConfig';
+import { isTokenTrustworthyForPerps } from '../../UI/Perps/constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
 // Inline header styles
@@ -208,12 +208,8 @@ const AssetDetails = (props: InnerProps) => {
     isPerpsEnabled ? symbol : null,
   );
 
-  // Check if token is trustworthy based on aggregators (listed on multiple exchanges)
-  // Native tokens are always trusted, for others require minimum aggregators
-  const isNativeToken = asset?.isNative || asset?.isETH;
-  const hasEnoughAggregators =
-    aggregators.length >= PERPS_MIN_AGGREGATORS_FOR_TRUST;
-  const isTokenTrustworthy = isNativeToken || hasEnoughAggregators;
+  // Check if token is trustworthy for showing Perps banner
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(asset);
 
   // Handler for perps discovery banner press
   // Analytics (PERPS_SCREEN_VIEWED) tracked by PerpsMarketDetailsView on mount

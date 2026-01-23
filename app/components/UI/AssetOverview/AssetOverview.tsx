@@ -114,7 +114,7 @@ import { selectPerpsEnabledFlag } from '../Perps';
 import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
 import { PerpsEventValues } from '../Perps/constants/eventNames';
-import { PERPS_MIN_AGGREGATORS_FOR_TRUST } from '../Perps/constants/perpsConfig';
+import { isTokenTrustworthyForPerps } from '../Perps/constants/perpsConfig';
 import DSText, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -313,13 +313,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     isPerpsEnabled ? asset.symbol : null,
   );
 
-  // Check if token is trustworthy based on aggregators (listed on multiple exchanges)
-  // Native tokens (ETH, BNB, etc.) are always trusted
-  // For other tokens, require minimum aggregators as a legitimacy signal
-  const isNativeToken = asset.isNative || asset.isETH;
-  const hasEnoughAggregators =
-    (asset.aggregators?.length ?? 0) >= PERPS_MIN_AGGREGATORS_FOR_TRUST;
-  const isTokenTrustworthy = isNativeToken || hasEnoughAggregators;
+  // Check if token is trustworthy for showing Perps banner
+  const isTokenTrustworthy = isTokenTrustworthyForPerps(asset);
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
