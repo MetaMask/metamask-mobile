@@ -104,7 +104,11 @@ describe('useSignatureMetrics', () => {
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: { securityAlertResponse },
+        securityAlerts: {
+          alerts: {
+            'fb2029e1-b0ab-11ef-9227-05a11087c334': securityAlertResponse,
+          },
+        },
       },
     });
     // first call for 'SIGNATURE_REQUESTED' event
@@ -126,8 +130,11 @@ describe('useSignatureMetrics', () => {
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: {
-          securityAlertResponse: securityAlertResponseLoading,
+        securityAlerts: {
+          alerts: {
+            'fb2029e1-b0ab-11ef-9227-05a11087c334':
+              securityAlertResponseLoading,
+          },
         },
       },
     });
@@ -150,8 +157,11 @@ describe('useSignatureMetrics', () => {
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: {
-          securityAlertResponse: securityAlertResponseUndefined,
+        securityAlerts: {
+          alerts: {
+            'fb2029e1-b0ab-11ef-9227-05a11087c334':
+              securityAlertResponseUndefined,
+          },
         },
       },
     });

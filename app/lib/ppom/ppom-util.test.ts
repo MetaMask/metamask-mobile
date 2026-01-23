@@ -2,8 +2,7 @@ import {
   normalizeTransactionParams,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
-import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
+import * as SecurityAlertsActions from '../../reducers/security-alerts'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import PPOMUtil, {
   METHOD_SIGN_TYPED_DATA_V3,
@@ -236,8 +235,8 @@ describe('PPOM Utils', () => {
     it('should not validate if preference securityAlertsEnabled is false', async () => {
       mockIsBlockaidFeatureEnabled.mockResolvedValue(false);
       const spyTransactionAction = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
+        SecurityAlertsActions,
+        'setSecurityAlertResponse',
       );
       MockEngine.context.PreferencesController.state.securityAlertsEnabled = false;
       await PPOMUtil.validateRequest(mockRequest, {
@@ -249,8 +248,8 @@ describe('PPOM Utils', () => {
 
     it('should not validate if request is send to users own account ', async () => {
       const spyTransactionAction = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
+        SecurityAlertsActions,
+        'setSecurityAlertResponse',
       );
       MockEngine.context.AccountsController.listAccounts = jest
         .fn()
@@ -271,8 +270,8 @@ describe('PPOM Utils', () => {
 
     it('should not validate if requested method is not allowed', async () => {
       const spyTransactionAction = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
+        SecurityAlertsActions,
+        'setSecurityAlertResponse',
       );
       await PPOMUtil.validateRequest(
         {
@@ -287,8 +286,8 @@ describe('PPOM Utils', () => {
 
     it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid and securityAlertId is not defined', async () => {
       const spyTransactionAction = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
+        SecurityAlertsActions,
+        'setSecurityAlertResponse',
       );
       await PPOMUtil.validateRequest(mockRequest);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(0);
@@ -301,10 +300,7 @@ describe('PPOM Utils', () => {
     });
 
     it('should update transaction with validation result', async () => {
-      const spy = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
-      );
+      const spy = jest.spyOn(SecurityAlertsActions, 'setSecurityAlertResponse');
 
       validateWithSecurityAlertsAPIMock.mockResolvedValue(
         mockSecurityAlertResponse,
@@ -328,10 +324,7 @@ describe('PPOM Utils', () => {
           id: 'transactionId',
         } as unknown as TransactionMeta,
       ];
-      const spy = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
-      );
+      const spy = jest.spyOn(SecurityAlertsActions, 'setSecurityAlertResponse');
       await PPOMUtil.validateRequest(mockRequest, {
         securityAlertId: mockSecurityAlertId,
       });
@@ -347,10 +340,7 @@ describe('PPOM Utils', () => {
           id: 'transactionId',
         } as unknown as TransactionMeta,
       ];
-      const spy = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
-      );
+      const spy = jest.spyOn(SecurityAlertsActions, 'setSecurityAlertResponse');
       await PPOMUtil.validateRequest(mockRequest, {
         securityAlertId: mockSecurityAlertId,
       });
@@ -359,7 +349,7 @@ describe('PPOM Utils', () => {
     });
 
     it('should update signature requests with validation result', async () => {
-      const spy = jest.spyOn(SignatureRequestActions, 'default');
+      const spy = jest.spyOn(SecurityAlertsActions, 'setSecurityAlertResponse');
       await PPOMUtil.validateRequest(mockSignatureRequest);
       expect(spy).toHaveBeenCalledTimes(2);
     });
@@ -445,10 +435,7 @@ describe('PPOM Utils', () => {
     });
 
     it('sets security alerts response to failed when security alerts API throws', async () => {
-      const spy = jest.spyOn(
-        TransactionActions,
-        'setTransactionSecurityAlertResponse',
-      );
+      const spy = jest.spyOn(SecurityAlertsActions, 'setSecurityAlertResponse');
 
       const spyLogger = jest.spyOn(Logger, 'log');
 
@@ -509,12 +496,15 @@ describe('PPOM Utils', () => {
   });
 
   describe('clearSignatureSecurityAlertResponse', () => {
-    it('set call action to set securityAlertResponse for signature in redux state to undefined', async () => {
-      const spy = jest.spyOn(SignatureRequestActions, 'default');
-      PPOMUtil.clearSignatureSecurityAlertResponse();
+    it('dispatches clearSecurityAlertResponse action with signature ID', async () => {
+      const spy = jest.spyOn(
+        SecurityAlertsActions,
+        'clearSecurityAlertResponse',
+      );
+      const mockSignatureId = 'test-signature-id';
+      PPOMUtil.clearSignatureSecurityAlertResponse(mockSignatureId);
       expect(spy).toHaveBeenCalledTimes(1);
-      // function call with no arguments
-      expect(spy).toHaveBeenCalledWith();
+      expect(spy).toHaveBeenCalledWith(mockSignatureId);
     });
   });
 });
