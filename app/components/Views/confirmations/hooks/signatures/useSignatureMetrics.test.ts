@@ -101,12 +101,16 @@ describe('useSignatureMetrics', () => {
   });
 
   it('should capture metrics events correctly', async () => {
+    // The key must match messageParams.requestId from typedSignV4SignatureRequest
+    // since useSecurityAlertResponse looks up by requestId first
+    const requestId =
+      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
         securityAlerts: {
           alerts: {
-            'fb2029e1-b0ab-11ef-9227-05a11087c334': securityAlertResponse,
+            [requestId as string]: securityAlertResponse,
           },
         },
       },
@@ -127,13 +131,14 @@ describe('useSignatureMetrics', () => {
   });
 
   it('captures metrics events correctly with loading security alert response', async () => {
+    const requestId =
+      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
         securityAlerts: {
           alerts: {
-            'fb2029e1-b0ab-11ef-9227-05a11087c334':
-              securityAlertResponseLoading,
+            [requestId as string]: securityAlertResponseLoading,
           },
         },
       },
@@ -154,13 +159,14 @@ describe('useSignatureMetrics', () => {
   });
 
   it('captures metrics events correctly with undefined security alert response', async () => {
+    const requestId =
+      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
         securityAlerts: {
           alerts: {
-            'fb2029e1-b0ab-11ef-9227-05a11087c334':
-              securityAlertResponseUndefined,
+            [requestId as string]: securityAlertResponseUndefined,
           },
         },
       },
