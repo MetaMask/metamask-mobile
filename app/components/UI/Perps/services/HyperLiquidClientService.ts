@@ -659,6 +659,11 @@ export class HyperLiquidClientService {
       this.onReconnectCallback = undefined;
       this.onTerminateCallback = null;
 
+      // Reset reconnection flag to allow future manual retries
+      // This prevents a race condition where disconnecting during an active
+      // reconnection attempt could leave the flag stuck, blocking subsequent retries
+      this.isReconnecting = false;
+
       // Close WebSocket transport only (HTTP is stateless)
       if (this.wsTransport) {
         try {
