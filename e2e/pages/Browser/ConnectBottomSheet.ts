@@ -2,8 +2,8 @@ import {
   ConnectAccountBottomSheetSelectorsIDs,
   ConnectAccountBottomSheetSelectorsText,
 } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class ConnectBottomSheet {

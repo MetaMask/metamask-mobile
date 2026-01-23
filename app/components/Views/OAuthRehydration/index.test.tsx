@@ -18,6 +18,8 @@ import {
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useNetInfo } from '@react-native-community/netinfo';
 import Logger from '../../../util/Logger';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 
 const mockEngine = jest.mocked(Engine);
 
@@ -63,11 +65,6 @@ jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
 jest.mock('../../../util/errorHandling', () => ({
   containsErrorMessage: (error: Error, message: string) =>
     error.message.includes(message),
-}));
-
-jest.mock('../../../util/password', () => ({
-  passwordRequirementsMet: (password: string) =>
-    password && password.length >= 8,
 }));
 
 // Mock useMetrics
@@ -426,26 +423,6 @@ describe('OAuthRehydration', () => {
         expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
       });
     });
-
-    it('handles password requirements not met error', async () => {
-      // Arrange
-      mockUnlockWallet.mockRejectedValue(
-        new Error('Error: password requirement not met'),
-      );
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      });
-    });
   });
 
   describe('Component lifecycle', () => {
@@ -724,6 +701,60 @@ describe('OAuthRehydration', () => {
           strings('login.seedless_password_outdated'),
         );
       });
+    });
+  });
+
+  describe('biometric cancellation', () => {
+    it('does not track REHYDRATION_PASSWORD_FAILED when Android biometric is cancelled', async () => {
+      // Arrange
+      mockUnlockWallet.mockRejectedValue(new Error('Cancel'));
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
+    });
+
+    it('does not track REHYDRATION_PASSWORD_FAILED when iOS biometric is cancelled', async () => {
+      // Arrange
+      mockUnlockWallet.mockRejectedValue(
+        new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+      );
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
     });
   });
 });

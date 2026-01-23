@@ -7,6 +7,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -92,7 +93,9 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               onBlur={[Function]}
@@ -103,6 +106,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -186,7 +190,9 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={true}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               multiline={true}
@@ -195,8 +201,10 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -258,6 +266,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -343,7 +352,9 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={false}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               onBlur={[Function]}
@@ -354,6 +365,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -437,7 +449,9 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={true}
+              blurOnSubmit={false}
               editable={false}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               multiline={true}
@@ -446,8 +460,10 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -509,6 +525,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -594,7 +611,9 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               onBlur={[Function]}
@@ -605,6 +624,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -688,7 +708,9 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={true}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               multiline={true}
@@ -697,8 +719,10 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -760,6 +784,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
       "flexDirection": "column",
       "gap": 4,
       "marginBottom": 24,
+      "marginTop": 8,
     }
   }
 >
@@ -880,7 +905,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               onBlur={[Function]}
@@ -891,6 +918,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -1010,7 +1038,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               onBlur={[Function]}
@@ -1021,6 +1051,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -1140,7 +1171,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               onBlur={[Function]}
@@ -1151,6 +1184,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               onSubmitEditing={[Function]}
               placeholder=""
               placeholderTextColor="#b7bbc8"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={
@@ -1235,7 +1269,9 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               autoComplete="off"
               autoCorrect={false}
               autoFocus={false}
+              blurOnSubmit={false}
               editable={true}
+              enablesReturnKeyAutomatically={false}
               importantForAutofill="no"
               keyboardType="visible-password"
               multiline={true}
@@ -1244,8 +1280,10 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
               onFocus={[Function]}
               onKeyPress={[Function]}
               onSelectionChange={[Function]}
+              onSubmitEditing={[Function]}
               placeholder="Enter your Secret Recovery Phrase"
               placeholderTextColor="#686e7d"
+              returnKeyType="done"
               showSoftInputOnFocus={true}
               spellCheck={false}
               style={

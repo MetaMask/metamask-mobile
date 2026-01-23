@@ -25,6 +25,10 @@ import {
   trace,
 } from '../../../util/trace';
 import { BIOMETRY_CHOICE_DISABLED, TRUE } from '../../../constants/storage';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -210,6 +214,39 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
+jest.mock('../../hooks/useMetrics', () => {
+  const ReactModule = jest.requireActual('react');
+  const mockMetrics = {
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    })),
+  };
+  return {
+    useMetrics: () => ({
+      trackEvent: jest.fn(),
+      isEnabled: jest.fn().mockReturnValue(true),
+      enable: jest.fn().mockResolvedValue(undefined),
+      addTraitsToUser: jest.fn(),
+      createEventBuilder: jest.fn(() => ({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      })),
+    }),
+    withMetricsAwareness:
+      <P extends Record<string, unknown>>(Component: React.ComponentType<P>) =>
+      (props: P) =>
+        ReactModule.createElement(Component, {
+          ...props,
+          metrics: mockMetrics,
+        }),
+    MetaMetricsEvents: jest.requireActual(
+      '../../../core/Analytics/MetaMetrics.events',
+    ).MetaMetricsEvents,
+  };
+});
+
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
   return {
@@ -286,6 +323,11 @@ describe('Login', () => {
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   it('renders matching snapshot', () => {
@@ -629,21 +671,6 @@ describe('Login', () => {
       expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual('Some unexpected error');
     });
-  });
-
-  describe('Passcode Error Handling', () => {
-    beforeEach(() => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
 
     it('displays alert when passcode not set', async () => {
       const mockAlert = jest
@@ -668,6 +695,29 @@ describe('Login', () => {
 
       mockAlert.mockRestore();
     });
+
+    it('navigates to rehydrate screen when seedless onboarding error is detected', async () => {
+      mockUnlockWallet.mockRejectedValue(
+        new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+          'Password was recently updated',
+        ),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.REHYDRATE, {
+        isSeedlessPasswordOutdated: true,
+      });
+    });
   });
 
   describe('tryBiometric', () => {
@@ -690,7 +740,7 @@ describe('Login', () => {
       jest.clearAllMocks();
     });
 
-    it('successfully authenticate with biometrics and navigate to home', async () => {
+    it('authenticates with biometrics and navigates to home', async () => {
       mockUnlockWallet.mockResolvedValueOnce(true);
       (StorageWrapper.getItem as jest.Mock).mockReturnValueOnce(null);
       (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');

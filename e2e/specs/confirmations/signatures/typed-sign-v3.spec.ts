@@ -2,19 +2,19 @@ import Browser from '../../../pages/Browser/BrowserView';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import Assertions from '../../../framework/Assertions';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
+import Assertions from '../../../../tests/framework/Assertions';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../../framework/Constants';
+} from '../../../../tests/framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { oldConfirmationsRemoteFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { RegressionConfirmations } from '../../../tags';
-import { LocalNode } from '../../../framework/types';
+import { LocalNode } from '../../../../tests/framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 
 describe(RegressionConfirmations('Typed Sign V3'), () => {

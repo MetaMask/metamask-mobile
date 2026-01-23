@@ -21,12 +21,21 @@ export enum CardStateWarning {
 }
 
 /**
- * Card warning box types - used for UI display in CardWarningBox component
- * These are user-facing warnings that render as visual warning boxes
+ * Card message box variants - determines the visual style of the message box
  */
-export enum CardWarningBoxType {
+export enum CardMessageBoxVariant {
+  Warning = 'warning',
+  Info = 'info',
+}
+
+/**
+ * Card message box types - used for UI display in CardMessageBox component
+ * These are user-facing messages that render as visual message boxes
+ */
+export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
+  CardProvisioning = 'card_provisioning',
 }
 
 export type CardUserPhase =
@@ -85,7 +94,7 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'linea-us' | 'solana' | 'base';
+export type CardNetwork = 'linea' | 'solana' | 'base';
 
 export interface CardNetworkInfo {
   caipChainId: CaipChainId;
@@ -180,6 +189,7 @@ export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
 
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  INVALID_OTP_CODE = 'INVALID_OTP_CODE',
   OTP_REQUIRED = 'OTP_REQUIRED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
@@ -221,6 +231,7 @@ export interface EmailVerificationVerifyRequest {
   countryOfResidence: string;
   allowMarketing: boolean;
   allowSms: boolean;
+  userExternalId?: string;
 }
 
 export interface EmailVerificationVerifyResponse {
@@ -429,4 +440,31 @@ export interface DelegationSettingsResponse {
   _links: {
     self: string;
   };
+}
+
+/**
+ * Request body for generating card details token
+ * Used to customize the visual appearance of the card details image
+ */
+export interface CardDetailsTokenRequest {
+  customCss?: {
+    /** Background color of the card image (hex format, e.g., "#000000") */
+    cardBackgroundColor?: string;
+    /** Text color for card information (hex format) */
+    cardTextColor?: string;
+    /** Background color for the PAN number display area (hex format) */
+    panBackgroundColor?: string;
+    /** Text color for PAN number (hex format) */
+    panTextColor?: string;
+  };
+}
+
+/**
+ * Response from generating card details token
+ */
+export interface CardDetailsTokenResponse {
+  /** Secure, time-limited token (UUID format) - valid for ~10 minutes, single-use */
+  token: string;
+  /** URL that renders card details as a secure image */
+  imageUrl: string;
 }

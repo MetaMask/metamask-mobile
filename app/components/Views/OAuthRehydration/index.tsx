@@ -47,17 +47,15 @@ import {
 } from '../../../util/trace';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
-import { passwordRequirementsMet } from '../../../util/password';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import {
-  PASSWORD_REQUIREMENTS_NOT_MET,
   PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
   DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
-import { toLowerCaseEquals } from '../../../util/general';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -406,13 +404,28 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       if (isWrongPasswordError) {
         handlePasswordError(loginErrorMessage);
         return;
-      } else if (containsErrorMessage(loginError, PASSCODE_NOT_SET_ERROR)) {
+      }
+
+      const isBiometricCancellation =
+        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        );
+
+      if (isBiometricCancellation) {
+        updateBiometryChoice(false);
+        setLoading(false);
+        return;
+      }
+
+      const isPasscodeNotSet = loginErrorMessage === PASSCODE_NOT_SET_ERROR;
+
+      if (isPasscodeNotSet) {
         Alert.alert(
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
         );
-      } else if (containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID)) {
-        updateBiometryChoice(false);
       } else {
         setError(loginErrorMessage);
       }
@@ -421,7 +434,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
           account_type: 'social',
           failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
+          error_type: isPasscodeNotSet ? 'passcode_not_set' : 'unknown_error',
         });
       }
 
@@ -447,11 +460,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     });
 
     try {
-      const locked = !passwordRequirementsMet(password);
-      if (locked) {
-        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
-      }
-      if (finalLoading || locked) return;
+      if (finalLoading) return;
 
       setLoading(true);
 
@@ -503,11 +512,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const newGlobalPasswordLogin = useCallback(async () => {
     try {
-      const locked = !passwordRequirementsMet(password);
-      if (locked) {
-        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
-      }
-      if (finalLoading || locked) return;
+      if (finalLoading) return;
 
       setLoading(true);
 

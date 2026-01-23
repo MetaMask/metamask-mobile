@@ -23,6 +23,7 @@ import {
   type SetIsConnectionRemovedAction,
   type SetMultichainAccountsIntroModalSeenAction,
   type SetMusdConversionEducationSeenAction,
+  type SetMusdConversionAssetDetailCtaSeenAction,
   UserActionType,
 } from './types';
 
@@ -201,5 +202,14 @@ export function setMusdConversionEducationSeen(
   return {
     type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
     payload: { seen },
+  };
+}
+
+export function setMusdConversionAssetDetailCtaSeen(
+  key: string,
+): SetMusdConversionAssetDetailCtaSeenAction {
+  return {
+    type: UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN,
+    payload: { key },
   };
 }

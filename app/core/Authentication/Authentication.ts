@@ -562,19 +562,14 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const passcodePreviouslyDisabled =
-      await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    const passcodeDisabled = await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    const biometryDisabled = await StorageWrapper.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
 
     if (
-      availableBiometryType &&
-      biometryChoice &&
-      passcodePreviouslyDisabled === TRUE
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType,
-      };
-    } else if (
       rememberMe &&
       ReduxService.store.getState().security.allowLoginWithRememberMe
     ) {
@@ -583,15 +578,37 @@ class AuthenticationService {
         availableBiometryType,
       };
     } else if (
-      availableBiometryType &&
       biometryChoice &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+      availableBiometryType &&
+      biometryDisabled === TRUE &&
+      passcodeDisabled === TRUE
     ) {
+      // this case is where user disable both passcode and biometric
+      // by right we should not show the login switch for this case, hence we should return PASSWORD type
+      // however for the current behaviour, we are showing the login switch with BIOMETRIC type
+      // return biometric type for now to prevent unexpected behaviour
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType,
+      };
+    } else if (
+      biometryChoice &&
+      availableBiometryType &&
+      biometryDisabled === TRUE
+    ) {
+      // return passcode since biometric is disabled
       return {
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType,
       };
+    } else if (biometryChoice && availableBiometryType) {
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType,
+      };
     }
+
+    // if biometricChoice or availableBiometryType is false, return PASSWORD
     return {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
       availableBiometryType,
@@ -839,7 +856,15 @@ class AuthenticationService {
       // Error while submitting password.
 
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
-      this.lockApp({ reset: false, navigateToLogin: false });
+      try {
+        await this.lockApp({ reset: false, navigateToLogin: false });
+      } catch (lockError) {
+        // Log but don't replace the original error
+        Logger.error(
+          lockError as Error,
+          'Failed to lock app during unlockWallet error condition.',
+        );
+      }
 
       // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
       // handlePasswordSubmissionError(error as Error);

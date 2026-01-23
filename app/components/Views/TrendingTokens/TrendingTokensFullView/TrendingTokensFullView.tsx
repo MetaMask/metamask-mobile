@@ -42,6 +42,7 @@ import {
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
+import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -203,7 +204,11 @@ const TrendingTokensFullView = () => {
     data: searchResults,
     isLoading,
     refetch: refetchTokensSection,
-  } = useTrendingSearch(searchQuery || undefined, sortBy, selectedNetwork);
+  } = useTrendingSearch({
+    searchQuery: searchQuery || undefined,
+    sortBy,
+    chainIds: selectedNetwork,
+  });
 
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
@@ -297,7 +302,7 @@ const TrendingTokensFullView = () => {
   }, [selectedPriceChangeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <View
         style={[
           styles.headerContainer,
@@ -391,7 +396,11 @@ const TrendingTokensFullView = () => {
           ))}
         </View>
       ) : (searchResults as TrendingAsset[]).length === 0 ? (
-        <EmptyErrorTrendingState onRetry={handleRefresh} />
+        searchQuery.trim().length > 0 ? (
+          <EmptySearchResultState />
+        ) : (
+          <EmptyErrorTrendingState onRetry={handleRefresh} />
+        )
       ) : (
         <View style={styles.listContainer}>
           <TrendingTokensList
