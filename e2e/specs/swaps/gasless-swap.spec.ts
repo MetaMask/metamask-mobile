@@ -7,7 +7,7 @@ import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import { logger } from '../../../tests/framework/logger';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 import QuoteView from '../../pages/swaps/QuoteView';
 import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
 import { GASLESS_SWAP_QUOTES_ETH_MUSD } from './helpers/constants';

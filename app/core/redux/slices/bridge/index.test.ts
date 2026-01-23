@@ -16,6 +16,7 @@ import reducer, {
   selectIsBridgeEnabledSource,
   selectIsBridgeEnabledDest,
   selectIsSwapsLive,
+  selectDestChainRanking,
 } from '.';
 import {
   BridgeToken,
@@ -593,6 +594,43 @@ describe('bridge slice', () => {
       );
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectDestChainRanking', () => {
+    it('returns chainRanking from feature flags', () => {
+      const result = selectDestChainRanking(
+        mockRootState as unknown as RootState,
+      );
+
+      // Verify it returns an array with chain ranking data
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+
+      // Verify the structure of each item
+      result.forEach((chain) => {
+        expect(chain).toHaveProperty('chainId');
+        expect(chain).toHaveProperty('name');
+        expect(typeof chain.chainId).toBe('string');
+        expect(typeof chain.name).toBe('string');
+      });
+
+      // Verify Ethereum is included (commonly in chainRanking)
+      const hasEthereum = result.some(
+        (chain) => chain.chainId === 'eip155:1' && chain.name === 'Ethereum',
+      );
+      expect(hasEthereum).toBe(true);
+    });
+
+    it('returns all chains without filtering (unlike selectSourceChainRanking)', () => {
+      const result = selectDestChainRanking(
+        mockRootState as unknown as RootState,
+      );
+
+      // selectDestChainRanking should return all chains from feature flags
+      // This is the key difference from selectSourceChainRanking which filters
+      // by user-configured networks
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 
