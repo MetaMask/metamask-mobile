@@ -25,22 +25,17 @@ import { CardHomeError, CardHomeContent } from './components';
 const CardHome = () => {
   const state = useCardHomeState();
 
-  switch (state.viewState.status) {
-    case 'error':
-      return (
-        <CardHomeError
-          isAuthError={state.viewState.isAuthError}
-          canRetry={state.viewState.canRetry}
-          onRetry={state.fetchAllData}
-        />
-      );
-
-    case 'loading':
-    case 'kyc_pending':
-    case 'setup_required':
-    case 'ready':
-      return <CardHomeContent state={state} />;
+  if (state.viewState.status === 'error') {
+    return (
+      <CardHomeError
+        isAuthError={state.viewState.isAuthError}
+        canRetry={state.viewState.canRetry}
+        onRetry={state.fetchAllData}
+      />
+    );
   }
+
+  return <CardHomeContent state={state} />;
 };
 
 export default CardHome;
