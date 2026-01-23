@@ -16,6 +16,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import { setHideUnlinkedAccountsBanner } from '../../../../actions/rewards';
 import { setHideCurrentAccountNotOptedInBanner } from '../../../../reducers/rewards';
+import { selectBulkLinkIsRunning } from '../../../../reducers/rewards/selectors';
 import DontMissOutIcon from '../../../../images/rewards/dont-miss-out.png';
 import { useLinkAccountGroup } from './useLinkAccountGroup';
 import { isHardwareAccount } from '../../../../util/address';
@@ -88,6 +89,7 @@ export const useRewardDashboardModals = () => {
   const sessionTracker = useRef(ModalSessionTracker.getInstance());
   const { linkAccountGroup, isLoading: isLinking } = useLinkAccountGroup();
   const getAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
+  const isBulkLinkRunning = useSelector(selectBulkLinkIsRunning);
 
   // Shared tracking key for session management
   const trackingKey = useMemo(
@@ -101,10 +103,12 @@ export const useRewardDashboardModals = () => {
   /**
    * Shows modal encouraging users to link unlinked accounts.
    * Navigates to rewards settings when confirmed.
+   * Does not show if bulk linking process is running.
    */
   const showUnlinkedAccountsModal = useCallback(() => {
     if (
       !selectedAccountGroup ||
+      isBulkLinkRunning ||
       sessionTracker.current.hasShownModal(
         'unlinked-accounts',
         'unlinked-accounts',
@@ -145,7 +149,13 @@ export const useRewardDashboardModals = () => {
       'unlinked-accounts',
       'unlinked-accounts',
     );
-  }, [navigation, dispatch, dontMissOutIcon, selectedAccountGroup]);
+  }, [
+    navigation,
+    dispatch,
+    dontMissOutIcon,
+    selectedAccountGroup,
+    isBulkLinkRunning,
+  ]);
 
   /**
    * Shows modal encouraging the current account to opt into rewards.

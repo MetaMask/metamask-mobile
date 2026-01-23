@@ -979,7 +979,10 @@ export interface RewardsControllerGetFirstSubscriptionIdAction {
  */
 export interface RewardsControllerLinkAccountToSubscriptionAction {
   type: 'RewardsController:linkAccountToSubscriptionCandidate';
-  handler: (account: InternalAccount) => Promise<boolean>;
+  handler: (
+    account: InternalAccount,
+    invalidateRelatedData?: boolean,
+  ) => Promise<boolean>;
 }
 
 /**

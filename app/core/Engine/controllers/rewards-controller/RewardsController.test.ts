@@ -195,25 +195,6 @@ class TestableRewardsController extends RewardsController {
   public testUpdate(callback: (state: RewardsControllerState) => void) {
     this.update(callback);
   }
-
-  public async invalidateAccountsAndSubscriptions() {
-    this.update((state: RewardsControllerState) => {
-      if (state.activeAccount) {
-        state.activeAccount = {
-          ...state.activeAccount,
-          lastPerpsDiscountRateFetched: null,
-          perpsFeeDiscount: null,
-          hasOptedIn: false,
-          subscriptionId: null,
-          account: state.activeAccount.account, // Ensure account is always present (never undefined)
-        };
-      }
-      state.accounts = {};
-      state.subscriptions = {};
-    });
-    await resetAllSubscriptionTokens();
-    Logger.log('RewardsController: Invalidated accounts and subscriptions');
-  }
 }
 
 // Helper function to create test tier data
@@ -3806,9 +3787,9 @@ describe('RewardsController', () => {
         testableController,
         'invalidateSubscriptionCache' as any,
       );
-      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+      const invalidateSubscriptionAndAccountsSpy = jest.spyOn(
         testableController,
-        'invalidateAccountsAndSubscriptions' as any,
+        'invalidateSubscriptionAndAccounts' as any,
       );
 
       // Act & Assert
@@ -3837,7 +3818,9 @@ describe('RewardsController', () => {
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
         mockSubscriptionId,
       );
-      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
     });
 
     it('reauthenticates with active account and retries after 403 error', async () => {
@@ -4213,9 +4196,9 @@ describe('RewardsController', () => {
         testableController,
         'invalidateSubscriptionCache',
       );
-      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+      const invalidateSubscriptionAndAccountsSpy = jest.spyOn(
         testableController,
-        'invalidateAccountsAndSubscriptions',
+        'invalidateSubscriptionAndAccounts',
       );
 
       // Act & Assert
@@ -4232,7 +4215,9 @@ describe('RewardsController', () => {
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
         testSubscriptionId,
       );
-      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
+        testSubscriptionId,
+      );
     });
 
     it('throws authorization error when converted account not found after 403', async () => {
@@ -4322,9 +4307,9 @@ describe('RewardsController', () => {
         testableController,
         'invalidateSubscriptionCache',
       );
-      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+      const invalidateSubscriptionAndAccountsSpy = jest.spyOn(
         testableController,
-        'invalidateAccountsAndSubscriptions',
+        'invalidateSubscriptionAndAccounts',
       );
 
       // Act & Assert
@@ -4336,7 +4321,9 @@ describe('RewardsController', () => {
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
         testSubscriptionId,
       );
-      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
+        testSubscriptionId,
+      );
       convertInternalAccountToCaipAccountIdSpy.mockRestore();
     });
 
@@ -4395,9 +4382,9 @@ describe('RewardsController', () => {
         testableController,
         'invalidateSubscriptionCache',
       );
-      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+      const invalidateSubscriptionAndAccountsSpy = jest.spyOn(
         testableController,
-        'invalidateAccountsAndSubscriptions',
+        'invalidateSubscriptionAndAccounts',
       );
 
       // Act & Assert
@@ -4414,7 +4401,9 @@ describe('RewardsController', () => {
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
         mockSubscriptionId,
       );
-      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
     });
 
     it('throws authorization error when accounts state is empty after 403', async () => {
@@ -4472,9 +4461,9 @@ describe('RewardsController', () => {
         testableController,
         'invalidateSubscriptionCache',
       );
-      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+      const invalidateSubscriptionAndAccountsSpy = jest.spyOn(
         testableController,
-        'invalidateAccountsAndSubscriptions',
+        'invalidateSubscriptionAndAccounts',
       );
 
       // Act & Assert
@@ -4491,7 +4480,9 @@ describe('RewardsController', () => {
       expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
         mockSubscriptionId,
       );
-      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
     });
 
     it('should handle API server error (500)', async () => {
@@ -5612,7 +5603,7 @@ describe('RewardsController', () => {
       performSilentAuthSpy.mockRestore();
     });
 
-    it('should try all accounts even after first success and track first successful account', async () => {
+    it('should stop after first successful account and track first successful account', async () => {
       // Arrange
       const mockAccount1 = {
         address: '0x1111111111111111',
@@ -5644,11 +5635,10 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockReturnValueOnce([mockAccount1, mockAccount2]);
 
-      // Spy on performSilentAuth to verify it continues after first success
+      // Spy on performSilentAuth to verify it stops after first success
       const performSilentAuthSpy = jest
         .spyOn(controller, 'performSilentAuth')
-        .mockResolvedValueOnce('subscription-id-123') // First account succeeds
-        .mockResolvedValueOnce('subscription-id-456'); // Second account also succeeds
+        .mockResolvedValueOnce('subscription-id-123'); // First account succeeds
 
       // Act
       await controller.handleAuthenticationTrigger('test-reason');
@@ -5657,16 +5647,16 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
-      // Verify that performSilentAuth was called for both accounts (continues after first success)
-      expect(performSilentAuthSpy).toHaveBeenCalledTimes(2);
+      // Verify that performSilentAuth was called only once (stops after first success)
+      expect(performSilentAuthSpy).toHaveBeenCalledTimes(1);
       // Verify that it was called with the first account
       expect(performSilentAuthSpy).toHaveBeenCalledWith(
         mockAccount1,
         false,
         true,
       );
-      // Verify that it was also called with the second account
-      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+      // Verify that it was NOT called with the second account (stops after first success)
+      expect(performSilentAuthSpy).not.toHaveBeenCalledWith(
         mockAccount2,
         false,
         true,
@@ -7503,32 +7493,35 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('invalidateAccountsAndSubscriptions', () => {
-    it('should correctly invalidate accounts and subscriptions', async () => {
+  describe('invalidateSubscriptionAndAccounts', () => {
+    it('should correctly invalidate a specific subscription and its linked accounts', async () => {
       // Arrange
-      const testController = new TestableRewardsController({
+      const subscriptionId = 'sub123';
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           activeAccount: {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
-            subscriptionId: 'sub123',
+            subscriptionId,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: Date.now(),
           },
           accounts: {
             [CAIP_ACCOUNT_1]: {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
-              subscriptionId: 'sub123',
+              subscriptionId,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: Date.now(),
             },
           },
           subscriptions: {
-            sub123: {
-              id: 'sub123',
+            [subscriptionId]: {
+              id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
             },
@@ -7538,32 +7531,47 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await testController.invalidateAccountsAndSubscriptions();
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
+      // Subscription should be removed
+      expect(
+        testController.state.subscriptions[subscriptionId],
+      ).toBeUndefined();
 
-      // activeAccount is reset to default values while preserving account field
+      // Account linked to this subscription should be reset
+      expect(testController.state.accounts[CAIP_ACCOUNT_1]).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
+      });
+
+      // activeAccount should be reset since it's linked to this subscription
       expect(testController.state.activeAccount).toEqual({
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
       });
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Invalidated accounts and subscriptions',
+        'RewardsController: Invalidated subscription and accounts',
+        subscriptionId,
       );
 
-      // Verify that resetAllSubscriptionTokens was called
-      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+      // Verify that removeSubscriptionToken was called
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
     });
 
     it('should handle case with no active account', async () => {
       // Arrange
-      const testController = new TestableRewardsController({
+      const subscriptionId = 'sub123';
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -7572,14 +7580,15 @@ describe('RewardsController', () => {
             [CAIP_ACCOUNT_1]: {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
-              subscriptionId: 'sub123',
+              subscriptionId,
               perpsFeeDiscount: 0,
-              lastPerpsDiscountRateFetched: null,
+              lastPerpsDiscountRateFetched: Date.now(),
+              lastFreshOptInStatusCheck: Date.now(),
             },
           },
           subscriptions: {
-            sub123: {
-              id: 'sub123',
+            [subscriptionId]: {
+              id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
             },
@@ -7589,50 +7598,65 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await testController.invalidateAccountsAndSubscriptions();
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert
       // Verify activeAccount remains null
       expect(testController.state.activeAccount).toBeNull();
 
-      // Verify accounts and subscriptions are cleared
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
+      // Verify subscription is removed
+      expect(
+        testController.state.subscriptions[subscriptionId],
+      ).toBeUndefined();
+
+      // Verify account linked to this subscription is reset
+      expect(testController.state.accounts[CAIP_ACCOUNT_1]).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
+      });
 
       // Verify log message
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Invalidated accounts and subscriptions',
+        'RewardsController: Invalidated subscription and accounts',
+        subscriptionId,
       );
 
-      // Verify that resetAllSubscriptionTokens was called
-      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+      // Verify that removeSubscriptionToken was called
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
     });
 
     it('should preserve activeAccount account field while resetting other properties', async () => {
       // Arrange
-      const testController = new TestableRewardsController({
+      const subscriptionId = 'sub456';
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           activeAccount: {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
-            subscriptionId: 'sub456',
+            subscriptionId,
             perpsFeeDiscount: 10,
             lastPerpsDiscountRateFetched: 9876543210,
+            lastFreshOptInStatusCheck: Date.now(),
           },
           accounts: {
             [CAIP_ACCOUNT_1]: {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
-              subscriptionId: 'sub456',
+              subscriptionId,
               perpsFeeDiscount: 10,
               lastPerpsDiscountRateFetched: 9876543210,
+              lastFreshOptInStatusCheck: Date.now(),
             },
           },
           subscriptions: {
-            sub456: {
-              id: 'sub456',
+            [subscriptionId]: {
+              id: subscriptionId,
               referralCode: 'REF456',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
             },
@@ -7642,7 +7666,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await testController.invalidateAccountsAndSubscriptions();
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert
       // activeAccount is reset to default values while preserving account field
@@ -7652,106 +7676,155 @@ describe('RewardsController', () => {
         subscriptionId: null,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
       });
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
+      expect(
+        testController.state.subscriptions[subscriptionId],
+      ).toBeUndefined();
+      expect(
+        testController.state.accounts[CAIP_ACCOUNT_1].subscriptionId,
+      ).toBeNull();
 
-      // Verify that resetAllSubscriptionTokens was called
-      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+      // Verify that removeSubscriptionToken was called
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
     });
 
-    it('should handle activeAccount with minimal properties', async () => {
+    it('should only invalidate accounts linked to the specified subscription', async () => {
       // Arrange
-      const testController = new TestableRewardsController({
+      const subscriptionId1 = 'sub1';
+      const subscriptionId2 = 'sub2';
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           activeAccount: {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
-            subscriptionId: 'sub789',
+            subscriptionId: subscriptionId1,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
-          },
-          accounts: {},
-          subscriptions: {},
-        },
-        isDisabled: () => false,
-      });
-
-      // Act
-      await testController.invalidateAccountsAndSubscriptions();
-
-      // Assert
-      // activeAccount is reset to default values while preserving account field
-      expect(testController.state.activeAccount).toEqual({
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: null,
-        lastPerpsDiscountRateFetched: null,
-      });
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
-
-      // Verify that resetAllSubscriptionTokens was called
-      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
-    });
-
-    it('should clear multiple accounts and subscriptions', async () => {
-      // Arrange
-      const CAIP_ACCOUNT_2 = 'eip155:1:0x456' as CaipAccountId;
-      const CAIP_ACCOUNT_3 = 'eip155:1:0x789' as CaipAccountId;
-
-      const testController = new TestableRewardsController({
-        messenger: mockMessenger,
-        state: {
-          ...getRewardsControllerDefaultState(),
-          activeAccount: {
-            account: CAIP_ACCOUNT_1,
-            hasOptedIn: true,
-            subscriptionId: 'sub1',
-            perpsFeeDiscount: null,
-            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: Date.now(),
           },
           accounts: {
             [CAIP_ACCOUNT_1]: {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
-              subscriptionId: 'sub1',
+              subscriptionId: subscriptionId1,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: Date.now(),
             },
             [CAIP_ACCOUNT_2]: {
               account: CAIP_ACCOUNT_2,
-              hasOptedIn: false,
-              subscriptionId: 'sub2',
+              hasOptedIn: true,
+              subscriptionId: subscriptionId2,
               perpsFeeDiscount: 5,
               lastPerpsDiscountRateFetched: Date.now(),
+              lastFreshOptInStatusCheck: Date.now(),
+            },
+          },
+          subscriptions: {
+            [subscriptionId1]: {
+              id: subscriptionId1,
+              referralCode: 'REF1',
+              accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+            },
+            [subscriptionId2]: {
+              id: subscriptionId2,
+              referralCode: 'REF2',
+              accounts: [{ address: CAIP_ACCOUNT_2, chainId: 1 }],
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      // Act
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId1);
+
+      // Assert
+      // Only subscription1 should be removed
+      expect(
+        testController.state.subscriptions[subscriptionId1],
+      ).toBeUndefined();
+      expect(testController.state.subscriptions[subscriptionId2]).toBeDefined();
+
+      // Only account1 should be reset (linked to subscription1)
+      expect(testController.state.accounts[CAIP_ACCOUNT_1]).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
+      });
+
+      // Account2 should remain unchanged (linked to subscription2)
+      expect(testController.state.accounts[CAIP_ACCOUNT_2].subscriptionId).toBe(
+        subscriptionId2,
+      );
+      expect(testController.state.accounts[CAIP_ACCOUNT_2].hasOptedIn).toBe(
+        true,
+      );
+
+      // activeAccount should be reset since it's linked to subscription1
+      expect(testController.state.activeAccount?.subscriptionId).toBeNull();
+
+      // Verify that removeSubscriptionToken was called only for subscription1
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId1);
+      expect(mockRemoveSubscriptionToken).not.toHaveBeenCalledWith(
+        subscriptionId2,
+      );
+    });
+
+    it('should invalidate multiple accounts linked to the same subscription', async () => {
+      // Arrange
+      const subscriptionId = 'sub1';
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: Date.now(),
+          },
+          accounts: {
+            [CAIP_ACCOUNT_1]: {
+              account: CAIP_ACCOUNT_1,
+              hasOptedIn: true,
+              subscriptionId,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: Date.now(),
+            },
+            [CAIP_ACCOUNT_2]: {
+              account: CAIP_ACCOUNT_2,
+              hasOptedIn: true,
+              subscriptionId,
+              perpsFeeDiscount: 5,
+              lastPerpsDiscountRateFetched: Date.now(),
+              lastFreshOptInStatusCheck: Date.now(),
             },
             [CAIP_ACCOUNT_3]: {
               account: CAIP_ACCOUNT_3,
-              hasOptedIn: true,
+              hasOptedIn: false,
               subscriptionId: null,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
             },
           },
           subscriptions: {
-            sub1: {
-              id: 'sub1',
+            [subscriptionId]: {
+              id: subscriptionId,
               referralCode: 'REF1',
-              accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
-            },
-            sub2: {
-              id: 'sub2',
-              referralCode: 'REF2',
-              accounts: [{ address: CAIP_ACCOUNT_2, chainId: 1 }],
-            },
-            sub3: {
-              id: 'sub3',
-              referralCode: 'REF3',
-              accounts: [{ address: CAIP_ACCOUNT_3, chainId: 1 }],
+              accounts: [
+                { address: CAIP_ACCOUNT_1, chainId: 1 },
+                { address: CAIP_ACCOUNT_2, chainId: 1 },
+              ],
             },
           },
         },
@@ -7759,49 +7832,75 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await testController.invalidateAccountsAndSubscriptions();
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
-      // activeAccount is reset to default values while preserving account field
-      expect(testController.state.activeAccount).toEqual({
+      // Subscription should be removed
+      expect(
+        testController.state.subscriptions[subscriptionId],
+      ).toBeUndefined();
+
+      // Both accounts linked to this subscription should be reset
+      expect(testController.state.accounts[CAIP_ACCOUNT_1]).toEqual({
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
         subscriptionId: null,
         perpsFeeDiscount: null,
         lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
+      });
+      expect(testController.state.accounts[CAIP_ACCOUNT_2]).toEqual({
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+        lastFreshOptInStatusCheck: null,
       });
 
-      // Verify that resetAllSubscriptionTokens was called
-      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+      // Account3 should remain unchanged (not linked to this subscription)
+      expect(
+        testController.state.accounts[CAIP_ACCOUNT_3].subscriptionId,
+      ).toBeNull();
+      expect(testController.state.accounts[CAIP_ACCOUNT_3].hasOptedIn).toBe(
+        false,
+      );
+
+      // activeAccount should be reset since it's linked to this subscription
+      expect(testController.state.activeAccount?.subscriptionId).toBeNull();
+
+      // Verify that removeSubscriptionToken was called
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
     });
 
     it('should not affect other state properties', async () => {
       // Arrange
-      const testController = new TestableRewardsController({
+      const subscriptionId = 'sub123';
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           activeAccount: {
             account: CAIP_ACCOUNT_1,
             hasOptedIn: true,
-            subscriptionId: 'sub123',
+            subscriptionId,
             perpsFeeDiscount: null,
             lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: Date.now(),
           },
           accounts: {
             [CAIP_ACCOUNT_1]: {
               account: CAIP_ACCOUNT_1,
               hasOptedIn: true,
-              subscriptionId: 'sub123',
+              subscriptionId,
               perpsFeeDiscount: null,
               lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: Date.now(),
             },
           },
           subscriptions: {
-            sub123: {
-              id: 'sub123',
+            [subscriptionId]: {
+              id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
             },
@@ -7815,10 +7914,11 @@ describe('RewardsController', () => {
               endDate: Date.now() + 1000,
               tiers: [],
               activityTypes: [],
+              lastFetched: Date.now(),
             },
           },
           subscriptionReferralDetails: {
-            sub123: {
+            [`season1:${subscriptionId}`]: {
               referralCode: 'REF123',
               totalReferees: 5,
               referralPoints: 100,
@@ -7826,7 +7926,7 @@ describe('RewardsController', () => {
             },
           },
           seasonStatuses: {
-            'season1-sub123': {
+            [`season1:${subscriptionId}`]: {
               season: {
                 id: 'season1',
                 name: 'Test',
@@ -7857,41 +7957,31 @@ describe('RewardsController', () => {
       });
 
       const originalSeasons = testController.state.seasons;
-      const originalSubscriptionReferralDetails =
-        testController.state.subscriptionReferralDetails;
-      const originalSeasonStatuses = testController.state.seasonStatuses;
 
       // Act
-      await testController.invalidateAccountsAndSubscriptions();
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert - other state properties should remain unchanged
       expect(testController.state.seasons).toEqual(originalSeasons);
-      expect(testController.state.subscriptionReferralDetails).toEqual(
-        originalSubscriptionReferralDetails,
-      );
-      expect(testController.state.seasonStatuses).toEqual(
-        originalSeasonStatuses,
-      );
 
-      // And verify the expected changes still occurred
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
+      // And verify the expected changes occurred
+      expect(
+        testController.state.subscriptions[subscriptionId],
+      ).toBeUndefined();
+      expect(
+        testController.state.accounts[CAIP_ACCOUNT_1].subscriptionId,
+      ).toBeNull();
       // activeAccount is reset to default values while preserving account field
-      expect(testController.state.activeAccount).toEqual({
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: null,
-        lastPerpsDiscountRateFetched: null,
-      });
+      expect(testController.state.activeAccount?.subscriptionId).toBeNull();
 
-      // Verify that resetAllSubscriptionTokens was called
-      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+      // Verify that removeSubscriptionToken was called
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
     });
 
-    it('should ensure account field is never undefined after invalidation', async () => {
+    it('should not affect activeAccount when it is not linked to the subscription', async () => {
       // Arrange
-      const testController = new TestableRewardsController({
+      const subscriptionId = 'sub123';
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
@@ -7904,6 +7994,14 @@ describe('RewardsController', () => {
             lastFreshOptInStatusCheck: null,
           },
           accounts: {
+            [CAIP_ACCOUNT_1]: {
+              account: CAIP_ACCOUNT_1,
+              hasOptedIn: true,
+              subscriptionId,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+              lastFreshOptInStatusCheck: Date.now(),
+            },
             [CAIP_ACCOUNT_3]: {
               account: CAIP_ACCOUNT_3,
               hasOptedIn: false,
@@ -7913,20 +8011,34 @@ describe('RewardsController', () => {
               lastFreshOptInStatusCheck: null,
             },
           },
-          subscriptions: {},
+          subscriptions: {
+            [subscriptionId]: {
+              id: subscriptionId,
+              referralCode: 'REF123',
+              accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+            },
+          },
         },
+        isDisabled: () => false,
       });
 
+      const originalActiveAccount = testController.state.activeAccount;
+
       // Act
-      await testController.invalidateAccountsAndSubscriptions();
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
-      // Assert - the account field must be preserved and never undefined
-      expect(testController.state.activeAccount).not.toBeNull();
+      // Assert - activeAccount should remain unchanged since it's not linked to this subscription
+      expect(testController.state.activeAccount).toEqual(originalActiveAccount);
       expect(testController.state.activeAccount?.account).toBe(CAIP_ACCOUNT_3);
-      expect(testController.state.activeAccount?.account).toBeDefined();
+      expect(testController.state.activeAccount?.subscriptionId).toBeNull();
 
-      // All reset fields should have their expected null/false values
-      expect(testController.state.activeAccount).toEqual({
+      // Account1 should be reset (linked to this subscription)
+      expect(
+        testController.state.accounts[CAIP_ACCOUNT_1].subscriptionId,
+      ).toBeNull();
+
+      // Account3 should remain unchanged (not linked to this subscription)
+      expect(testController.state.accounts[CAIP_ACCOUNT_3]).toEqual({
         account: CAIP_ACCOUNT_3,
         hasOptedIn: false,
         subscriptionId: null,
@@ -7935,8 +8047,8 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: null,
       });
 
-      // Verify that resetAllSubscriptionTokens was called
-      expect(mockResetAllSubscriptionTokens).toHaveBeenCalledTimes(1);
+      // Verify that removeSubscriptionToken was called
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
     });
   });
 
@@ -9302,21 +9414,22 @@ describe('RewardsController', () => {
 
     it('should handle multiple subscriptions correctly', async () => {
       // Arrange
+      const subscriptionId1 = 'test-subscription-id';
       const subscriptionId2 = 'test-subscription-id-2';
       mockMessenger.call.mockResolvedValue({ success: true });
       mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
 
-      const testController = new TestableRewardsController({
+      const testController = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           subscriptions: {
-            'test-subscription-id': {
-              id: 'test-subscription-id',
+            [subscriptionId1]: {
+              id: subscriptionId1,
               referralCode: 'REF123',
               accounts: [],
             },
-            'test-subscription-id-2': {
+            [subscriptionId2]: {
               id: subscriptionId2,
               referralCode: 'REF456',
               accounts: [],
@@ -9326,14 +9439,17 @@ describe('RewardsController', () => {
       });
 
       // Act
-      const result = await testController.optOut('test-subscription-id');
+      const result = await testController.optOut(subscriptionId1);
 
       // Assert
       expect(result).toBe(true);
 
-      // Verify that the state was reset (all subscriptions cleared)
+      // Verify that only the specified subscription was removed
       const newState = testController.state;
-      expect(newState.subscriptions).toEqual({});
+      expect(newState.subscriptions[subscriptionId1]).toBeUndefined();
+      // Verify that the other subscription remains intact
+      expect(newState.subscriptions[subscriptionId2]).toBeDefined();
+      expect(newState.subscriptions[subscriptionId2].id).toBe(subscriptionId2);
     });
   });
 
@@ -14212,6 +14328,18 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
+      initialState.subscriptionReferralDetails[compositeKey] = {
+        referralCode: 'REF123',
+        totalReferees: 5,
+        referralPoints: 100,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[compositeKey] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
 
       // Create a controller with our test state
       const testController = new RewardsController({
@@ -14220,10 +14348,7 @@ describe('RewardsController', () => {
       });
 
       // Act - directly call the method
-      await testController.invalidateSubscriptionCache(
-        subscriptionId,
-        seasonId,
-      );
+      testController.invalidateSubscriptionCache(subscriptionId, seasonId);
 
       // Assert - verify the cache was invalidated for the specific season
       expect(testController.state.seasonStatuses[compositeKey]).toBeUndefined();
@@ -14231,6 +14356,10 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey],
+      ).toBeUndefined();
+      expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
 
     it('should invalidate all seasons when seasonId is not provided', async () => {
@@ -14263,6 +14392,30 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
+      initialState.subscriptionReferralDetails[compositeKey1] = {
+        referralCode: 'REF1',
+        totalReferees: 3,
+        referralPoints: 50,
+        lastFetched: Date.now(),
+      };
+      initialState.subscriptionReferralDetails[compositeKey2] = {
+        referralCode: 'REF2',
+        totalReferees: 4,
+        referralPoints: 75,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[compositeKey1] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[compositeKey2] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
 
       // Create a controller with our test state
       const testController = new RewardsController({
@@ -14271,7 +14424,7 @@ describe('RewardsController', () => {
       });
 
       // Act - call without seasonId to invalidate all seasons
-      await testController.invalidateSubscriptionCache(subscriptionId);
+      testController.invalidateSubscriptionCache(subscriptionId);
 
       // Assert - verify all seasons for this subscription were invalidated
       expect(
@@ -14288,6 +14441,14 @@ describe('RewardsController', () => {
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey1]).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey2]).toBeUndefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey2],
+      ).toBeUndefined();
+      expect(testController.state.pointsEvents[compositeKey1]).toBeUndefined();
+      expect(testController.state.pointsEvents[compositeKey2]).toBeUndefined();
     });
 
     it('should handle empty state gracefully when invalidating specific season', async () => {
@@ -14313,6 +14474,10 @@ describe('RewardsController', () => {
       expect(Object.keys(controller.state.seasonStatuses)).toHaveLength(0);
       expect(Object.keys(controller.state.unlockedRewards)).toHaveLength(0);
       expect(Object.keys(controller.state.activeBoosts)).toHaveLength(0);
+      expect(
+        Object.keys(controller.state.subscriptionReferralDetails),
+      ).toHaveLength(0);
+      expect(Object.keys(controller.state.pointsEvents)).toHaveLength(0);
     });
 
     it('should handle empty state gracefully when invalidating all seasons', async () => {
@@ -14337,6 +14502,10 @@ describe('RewardsController', () => {
       expect(Object.keys(controller.state.seasonStatuses)).toHaveLength(0);
       expect(Object.keys(controller.state.unlockedRewards)).toHaveLength(0);
       expect(Object.keys(controller.state.activeBoosts)).toHaveLength(0);
+      expect(
+        Object.keys(controller.state.subscriptionReferralDetails),
+      ).toHaveLength(0);
+      expect(Object.keys(controller.state.pointsEvents)).toHaveLength(0);
     });
 
     it('should only invalidate data for the specified subscription when invalidating all seasons', async () => {
@@ -14369,6 +14538,30 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
+      initialState.subscriptionReferralDetails[compositeKey1] = {
+        referralCode: 'REF1',
+        totalReferees: 2,
+        referralPoints: 30,
+        lastFetched: Date.now(),
+      };
+      initialState.subscriptionReferralDetails[compositeKey2] = {
+        referralCode: 'REF2',
+        totalReferees: 3,
+        referralPoints: 45,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[compositeKey1] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[compositeKey2] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
       // Create a controller with our test state
       const testController = new RewardsController({
         messenger: mockMessenger,
@@ -14376,7 +14569,7 @@ describe('RewardsController', () => {
       });
 
       // Act - invalidate cache only for subscription1
-      await testController.invalidateSubscriptionCache(subscriptionId1);
+      testController.invalidateSubscriptionCache(subscriptionId1);
 
       // Assert - subscription1 data should be invalidated
       expect(
@@ -14386,11 +14579,19 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey1],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey1]).toBeUndefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey1],
+      ).toBeUndefined();
+      expect(testController.state.pointsEvents[compositeKey1]).toBeUndefined();
 
       // Assert - subscription2 data should remain intact
       expect(testController.state.seasonStatuses[compositeKey2]).toBeDefined();
       expect(testController.state.unlockedRewards[compositeKey2]).toBeDefined();
       expect(testController.state.activeBoosts[compositeKey2]).toBeDefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey2],
+      ).toBeDefined();
+      expect(testController.state.pointsEvents[compositeKey2]).toBeDefined();
     });
 
     it('should invalidate multiple cache entries when subscription appears in multiple seasons', async () => {
@@ -14422,6 +14623,18 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
+      initialState.subscriptionReferralDetails[compositeKey1] = {
+        referralCode: 'REF1',
+        totalReferees: 2,
+        referralPoints: 30,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[compositeKey2] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
 
       // Create a controller with our test state
       const testController = new RewardsController({
@@ -14430,7 +14643,7 @@ describe('RewardsController', () => {
       });
 
       // Act - invalidate all seasons for the subscription
-      await testController.invalidateSubscriptionCache(subscriptionId);
+      testController.invalidateSubscriptionCache(subscriptionId);
 
       // Assert - all cache entries for this subscription should be invalidated
       expect(
@@ -14449,6 +14662,10 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey2],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey3]).toBeUndefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey1],
+      ).toBeUndefined();
+      expect(testController.state.pointsEvents[compositeKey2]).toBeUndefined();
     });
 
     it('should handle partial cache invalidation when only some cache types exist', async () => {
@@ -14466,7 +14683,7 @@ describe('RewardsController', () => {
         rewards: [],
         lastFetched: Date.now(),
       };
-      // Intentionally not adding activeBoosts
+      // Intentionally not adding activeBoosts, subscriptionReferralDetails, or pointsEvents
 
       // Create a controller with our test state
       const testController = new RewardsController({
@@ -14484,8 +14701,12 @@ describe('RewardsController', () => {
       expect(
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
-      // activeBoosts should remain empty (no error)
+      // activeBoosts, subscriptionReferralDetails, and pointsEvents should remain empty (no error)
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey],
+      ).toBeUndefined();
+      expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
 
     it('should handle special characters in subscription and season IDs', async () => {
@@ -14507,6 +14728,18 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
+      initialState.subscriptionReferralDetails[compositeKey] = {
+        referralCode: 'REF_123',
+        totalReferees: 1,
+        referralPoints: 10,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[compositeKey] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
 
       // Create a controller with our test state
       const testController = new RewardsController({
@@ -14525,6 +14758,10 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+      expect(
+        testController.state.subscriptionReferralDetails[compositeKey],
+      ).toBeUndefined();
+      expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
   });
 

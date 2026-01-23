@@ -717,6 +717,7 @@ export class RewardsController extends BaseController<
             );
             if (subscriptionId && !successAccount) {
               successAccount = account;
+              break;
             }
           } catch {
             // Continue to next account
@@ -731,7 +732,7 @@ export class RewardsController extends BaseController<
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage && !errorMessage?.includes('Engine does not exis')) {
+      if (errorMessage && !errorMessage?.includes('Engine does not exist')) {
         Logger.log(
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
@@ -1874,7 +1875,7 @@ export class RewardsController extends BaseController<
                 error instanceof Error ? error.message : String(error),
               );
               this.invalidateSubscriptionCache(subscriptionId);
-              await this.invalidateAccountsAndSubscriptions();
+              await this.invalidateSubscriptionAndAccounts(subscriptionId);
               throw error;
             }
           } else if (error instanceof SeasonNotFoundError) {
@@ -1901,24 +1902,52 @@ export class RewardsController extends BaseController<
     return result;
   }
 
-  async invalidateAccountsAndSubscriptions() {
+  /**
+   * Invalidate a specific subscription and its linked accounts
+   * This is a surgical approach that only affects the specified subscription,
+   * preserving other subscriptions' state.
+   * @param subscriptionId - The subscription ID to invalidate
+   */
+  async invalidateSubscriptionAndAccounts(
+    subscriptionId: string,
+  ): Promise<void> {
     this.update((state: RewardsControllerState) => {
-      if (state.activeAccount) {
+      // Remove the failing subscription
+      delete state.subscriptions[subscriptionId];
+
+      // Clear accounts linked to this subscription only
+      Object.entries(state.accounts).forEach(([caipAccount, accountState]) => {
+        if (accountState.subscriptionId === subscriptionId) {
+          state.accounts[caipAccount as CaipAccountId] = {
+            ...accountState,
+            hasOptedIn: false,
+            subscriptionId: null,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: null,
+          };
+        }
+      });
+
+      // Reset activeAccount only if it's linked to this subscription
+      if (state.activeAccount?.subscriptionId === subscriptionId) {
         state.activeAccount = {
           ...state.activeAccount,
-          lastPerpsDiscountRateFetched: null,
-          perpsFeeDiscount: null,
           hasOptedIn: false,
           subscriptionId: null,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
           lastFreshOptInStatusCheck: null,
-          account: state.activeAccount.account, // Ensure account is always present (never undefined)
         };
       }
-      state.accounts = {};
-      state.subscriptions = {};
     });
-    await resetAllSubscriptionTokens();
-    Logger.log('RewardsController: Invalidated accounts and subscriptions');
+
+    // Remove only this subscription's token
+    await removeSubscriptionToken(subscriptionId);
+    Logger.log(
+      'RewardsController: Invalidated subscription and accounts',
+      subscriptionId,
+    );
   }
 
   /**
@@ -2752,23 +2781,9 @@ export class RewardsController extends BaseController<
       );
 
       if (result.success) {
-        const currentActiveAccount = this.state.activeAccount?.account;
-        this.resetState();
-        this.update((state: RewardsControllerState) => {
-          if (currentActiveAccount) {
-            state.activeAccount = {
-              account: currentActiveAccount,
-              hasOptedIn: false,
-              subscriptionId: null,
-              perpsFeeDiscount: null,
-              lastPerpsDiscountRateFetched: null,
-              lastFreshOptInStatusCheck: null,
-            };
-          }
-        });
-
-        // Remove subscription token from secure storage
-        await removeSubscriptionToken(subscriptionId);
+        // Invalidate caches and subscription-specific state
+        this.invalidateSubscriptionCache(subscriptionId);
+        await this.invalidateSubscriptionAndAccounts(subscriptionId);
 
         Logger.log(
           'RewardsController: Successfully opted out of rewards program',
@@ -2998,6 +3013,7 @@ export class RewardsController extends BaseController<
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
+        delete state.subscriptionReferralDetails[compositeKey];
       });
     } else {
       // Invalidate all seasons for this subscription
@@ -3020,6 +3036,11 @@ export class RewardsController extends BaseController<
         Object.keys(state.pointsEvents).forEach((key) => {
           if (key.includes(subscriptionId)) {
             delete state.pointsEvents[key];
+          }
+        });
+        Object.keys(state.subscriptionReferralDetails).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.subscriptionReferralDetails[key];
           }
         });
       });
