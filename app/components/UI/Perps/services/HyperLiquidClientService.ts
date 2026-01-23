@@ -195,7 +195,7 @@ export class HyperLiquidClientService {
         timestamp: new Date().toISOString(),
       });
 
-      this.connectionState = WebSocketConnectionState.DISCONNECTED;
+      this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
 
       if (this.onTerminateCallback) {
         const error =

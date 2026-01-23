@@ -370,20 +370,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const wallet = this.walletService.createWalletAdapter();
     await this.clientService.initialize(wallet);
 
-    // Set termination callback to handle WebSocket disconnection
-    // This is called when the SDK exhausts all reconnection attempts
-    this.clientService.setOnTerminateCallback(async (error: Error) => {
+    // Set termination callback for logging when WebSocket terminates
+    // Note: Do NOT restore subscriptions here - termination means connection failed permanently
+    this.clientService.setOnTerminateCallback((error: Error) => {
+      this.deps.debugLogger.log('[HyperLiquidProvider] WebSocket terminated', {
+        error: error.message,
+      });
+    });
+
+    // Set reconnection callback to restore subscriptions after successful reconnection
+    // This is called in handleConnectionDrop() after the WebSocket reconnects successfully
+    this.clientService.setOnReconnectCallback(async () => {
       try {
         this.deps.debugLogger.log(
-          '[HyperLiquidProvider] WebSocket terminated, restoring subscriptions',
-          {
-            error: error.message,
-          },
+          '[HyperLiquidProvider] WebSocket reconnected, restoring subscriptions',
         );
-
-        // Restore subscription service subscriptions
         await this.subscriptionService.restoreSubscriptions();
-
         const streamManager = getStreamManagerInstance();
         streamManager.clearAllChannels();
       } catch (restoreError) {
