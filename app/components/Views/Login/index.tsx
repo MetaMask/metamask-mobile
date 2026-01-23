@@ -95,7 +95,7 @@ import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
-import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -313,13 +313,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         await handleVaultCorruption();
       } else if (containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID)) {
         updateBiometryChoice(false);
-      } else if (
-        containsErrorMessage(
-          loginError,
-          SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
-        )
-      ) {
-        // Detected seedless onboarded wallet with password that is both incorrect and outdated
+      } else if (loginError instanceof SeedlessOnboardingControllerError) {
+        // Detected seedless onboarding error
         navigation.replace(Routes.ONBOARDING.REHYDRATE, {
           isSeedlessPasswordOutdated: true,
         });

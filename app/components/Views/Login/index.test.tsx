@@ -25,6 +25,10 @@ import {
   trace,
 } from '../../../util/trace';
 import { BIOMETRY_CHOICE_DISABLED, TRUE } from '../../../constants/storage';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -629,21 +633,6 @@ describe('Login', () => {
       expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual('Some unexpected error');
     });
-  });
-
-  describe('Passcode Error Handling', () => {
-    beforeEach(() => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
 
     it('displays alert when passcode not set', async () => {
       const mockAlert = jest
@@ -667,6 +656,29 @@ describe('Login', () => {
       );
 
       mockAlert.mockRestore();
+    });
+
+    it('navigates to rehydrate screen when seedless onboarding error is detected', async () => {
+      mockUnlockWallet.mockRejectedValue(
+        new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+          'Password was recently updated',
+        ),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.REHYDRATE, {
+        isSeedlessPasswordOutdated: true,
+      });
     });
   });
 
