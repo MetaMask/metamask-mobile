@@ -1,29 +1,29 @@
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../../tests/framework/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import {
   buildPermissions,
   getTestDappLocalUrl,
-} from '../../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../../framework/Constants';
+} from '../../../../tests/framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../../tests/framework/Constants';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/helpers/mockHelpers';
+} from '../../../../tests/api-mocking/helpers/mockHelpers';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   securityAlertsUrl,
-} from '../../../api-mocking/mock-responses/security-alerts-mock';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../../tests/api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',

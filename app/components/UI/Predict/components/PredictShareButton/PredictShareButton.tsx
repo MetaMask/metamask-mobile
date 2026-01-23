@@ -12,18 +12,28 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import { Box } from '@metamask/design-system-react-native';
+import Engine from '../../../../../core/Engine';
+import { PredictShareStatus } from '../../constants/eventNames';
 
 interface PredictShareButtonProps {
   marketId?: string;
+  marketSlug?: string;
 }
 
 const PredictShareButton: React.FC<PredictShareButtonProps> = ({
   marketId,
+  marketSlug,
 }) => {
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
 
   const handleSharePress = useCallback(async () => {
+    Engine.context.PredictController.trackShareAction({
+      status: PredictShareStatus.INITIATED,
+      marketId,
+      marketSlug,
+    });
+
     try {
       const url = `https://link.metamask.io/predict?market=${marketId ?? ''}&utm_source=user_shared`;
 
@@ -35,10 +45,15 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
         {},
       );
       if (result.action === Share.sharedAction) {
+        Engine.context.PredictController.trackShareAction({
+          status: PredictShareStatus.SUCCESS,
+          marketId,
+          marketSlug,
+        });
+
         if (
           result.activityType === 'com.apple.UIKit.activity.CopyToPasteboard'
         ) {
-          // Copied to clipboard
           return toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
             labelOptions: [
@@ -52,7 +67,6 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
             iconColor: colors.success.default,
             hasNoTimeout: false,
             customBottomOffset: -50,
-            // Need to style manually otherwise the icon is not centered and the text is too far away
             startAccessory: (
               <Box twClassName="items-center justify-center align-center pr-[12px]">
                 <Icon
@@ -64,14 +78,17 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
             ),
           });
         }
-        // Shared
-      } else if (result.action === Share.dismissedAction) {
-        // Dismissed
+      } else {
+        throw new Error('Failed to share');
       }
     } catch (_error) {
-      // Ignore errors
+      Engine.context.PredictController.trackShareAction({
+        status: PredictShareStatus.FAILED,
+        marketId,
+        marketSlug,
+      });
     }
-  }, [colors.success.default, marketId, toastRef]);
+  }, [colors.success.default, marketId, marketSlug, toastRef]);
 
   return (
     <Pressable

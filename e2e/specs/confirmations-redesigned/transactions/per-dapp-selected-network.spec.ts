@@ -1,9 +1,9 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
+import FixtureBuilder from '../../../../tests/framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../../../tests/framework/fixtures/FixtureHelper.ts';
 import {
   buildPermissions,
   AnvilPort,
-} from '../../../framework/fixtures/FixtureUtils.ts';
+} from '../../../../tests/framework/fixtures/FixtureUtils.ts';
 import Browser from '../../../pages/Browser/BrowserView.ts';
 import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions.ts';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes.ts';
@@ -12,13 +12,13 @@ import NetworkListModal from '../../../pages/Network/NetworkListModal.ts';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
 import WalletView from '../../../pages/wallet/WalletView.ts';
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../../tests/framework/Assertions.ts';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
-import { DappVariants } from '../../../framework/Constants.ts';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
+import { DappVariants } from '../../../../tests/framework/Constants.ts';
+import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks.ts';
 import { Mockttp } from 'mockttp';
-import { LocalNode } from '../../../framework/types';
+import { LocalNode } from '../../../../tests/framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const LOCAL_CHAIN_ID = '0x539';

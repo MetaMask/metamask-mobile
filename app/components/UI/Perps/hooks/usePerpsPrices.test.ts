@@ -58,7 +58,7 @@ describe('usePerpsPrices', () => {
     act(() => {
       callback([
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '3000.00',
           change24h: 2.5,
           markPrice: '3001.00',
@@ -70,7 +70,7 @@ describe('usePerpsPrices', () => {
 
     expect(result.current).toEqual({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000.00',
         change24h: 2.5,
         markPrice: '3001.00',

@@ -429,6 +429,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "marginBottom": 32,
                           "padding": 24,
                           "paddingBottom": 48,
                         }

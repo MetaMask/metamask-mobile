@@ -1,34 +1,35 @@
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Text,
-  TextVariant,
-  TextColor,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
-import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
-import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
-import PredictSportTeamGradient from '../PredictSportTeamGradient';
-import PredictSportScoreboard from '../PredictSportScoreboard';
-import PredictGameChart from '../PredictGameChart';
 import PredictPicks from '../PredictPicks/PredictPicks';
+import PredictShareButton from '../PredictShareButton/PredictShareButton';
+import PredictSportScoreboard from '../PredictSportScoreboard';
+import PredictSportTeamGradient from '../PredictSportTeamGradient';
+import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
+import { useTheme } from '../../../../../util/theme';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -55,10 +56,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
-  const tokenIds = useMemo(
-    () => (outcome?.tokens ?? []).map((t) => t.id),
-    [outcome?.tokens],
-  );
 
   if (!outcome || !game) {
     return null;
@@ -71,7 +68,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       style={tw.style('flex-1 bg-default')}
       testID="game-details-gradient"
     >
-      <SafeAreaView style={tw.style('flex-1')} edges={['left', 'right']}>
+      <SafeAreaView
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+        style={tw.style('flex-1')}
+        edges={['left', 'right']}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -103,7 +104,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             </Text>
           </Box>
 
-          <PredictShareButton marketId={market.id} />
+          <PredictShareButton marketId={market.id} marketSlug={market.slug} />
         </Box>
 
         <ScrollView
@@ -122,24 +123,9 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             <PredictSportScoreboard game={game} testID="game-scoreboard" />
           </Box>
 
-          {tokenIds.length === 2 && (
-            <Box twClassName="mt-4">
-              <PredictGameChart
-                tokenIds={tokenIds as [string, string]}
-                seriesConfig={[
-                  {
-                    label: game.awayTeam.abbreviation,
-                    color: game.awayTeam.color,
-                  },
-                  {
-                    label: game.homeTeam.abbreviation,
-                    color: game.homeTeam.color,
-                  },
-                ]}
-                testID="game-chart"
-              />
-            </Box>
-          )}
+          <Box twClassName="mt-4">
+            <PredictGameChart market={market} testID="game-chart" />
+          </Box>
 
           <Box twClassName="px-4 py-2">
             <PredictPicks market={market} testID="game-picks" />

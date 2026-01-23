@@ -474,7 +474,7 @@ describe('useTrendingRequest', () => {
 
       const result = getMinLiquidityForChains(chainIds);
 
-      expect(result).toBe(0); // SEI: No filter - Show all trending tokens
+      expect(result).toBe(100000); // SEI: $100k
     });
 
     it('returns specific threshold for single chain - Solana', () => {
@@ -482,7 +482,7 @@ describe('useTrendingRequest', () => {
 
       const result = getMinLiquidityForChains(chainIds);
 
-      expect(result).toBe(500000); // Solana: $500k (high DEX volume)
+      expect(result).toBe(200000); // Solana: $200k
     });
 
     it('returns specific threshold for single chain - Base', () => {
@@ -490,7 +490,7 @@ describe('useTrendingRequest', () => {
 
       const result = getMinLiquidityForChains(chainIds);
 
-      expect(result).toBe(250000); // Base: $250k (growing L2)
+      expect(result).toBe(200000); // Base: $200k
     });
 
     it('returns multi-chain baseline for empty chain array', () => {
@@ -537,7 +537,7 @@ describe('useTrendingRequest', () => {
 
       const result = getMinVolume24hForChains(chainIds);
 
-      expect(result).toBe(700000); // Base: $700k (growing L2)
+      expect(result).toBe(500000); // Base: $500k
     });
 
     it('returns specific threshold for single chain - Solana', () => {
@@ -545,7 +545,7 @@ describe('useTrendingRequest', () => {
 
       const result = getMinVolume24hForChains(chainIds);
 
-      expect(result).toBe(2000000); // Solana: $2M (high volume)
+      expect(result).toBe(500000); // Solana: $500k
     });
 
     it('returns specific threshold for single chain - Arbitrum', () => {
@@ -553,7 +553,7 @@ describe('useTrendingRequest', () => {
 
       const result = getMinVolume24hForChains(chainIds);
 
-      expect(result).toBe(0); // Arbitrum: No filter - Show all trending tokens
+      expect(result).toBe(25000); // Arbitrum: $25k
     });
 
     it('returns multi-chain baseline for empty chain array', () => {
@@ -629,8 +629,8 @@ describe('useTrendingRequest', () => {
 
       expect(spyGetTrendingTokens).toHaveBeenCalledWith(
         expect.objectContaining({
-          minLiquidity: 0, // SEI: No filter - Show all trending tokens
-          minVolume24hUsd: 0, // SEI: No filter
+          minLiquidity: 100000, // SEI: $100k
+          minVolume24hUsd: 25000, // SEI: $25k
         }),
       );
 

@@ -1,5 +1,5 @@
 import { REWARDS_VIEW_SELECTORS } from '../../../app/components/UI/Rewards/Views/RewardsView.constants';
-import { Gestures, Matchers } from '../../framework';
+import { Gestures, Matchers } from '../../../tests/framework';
 
 class RewardsView {
   get rewardsOverviewTabButton(): DetoxElement {

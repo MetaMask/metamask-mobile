@@ -9,6 +9,7 @@ export const CardHomeSelectors = {
   ADVANCED_CARD_MANAGEMENT_ITEM: 'advanced-card-management-item',
   TRAVEL_ITEM: 'travel-item',
   CARD_TOS_ITEM: 'card-tos-item',
+  LOGOUT_ITEM: 'logout-item',
   ENABLE_CARD_BUTTON: 'enable-card-button',
   ENABLE_ASSETS_BUTTON: 'enable-assets-button',
   MANAGE_SPENDING_LIMIT_ITEM: 'manage-spending-limit-item',
@@ -18,4 +19,7 @@ export const CardHomeSelectors = {
     'add-funds-bottom-sheet-deposit-option',
   ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION: 'add-funds-bottom-sheet-swap-option',
   SPENDING_LIMIT_PROGRESS_BAR_SKELETON: 'spending-limit-progress-bar-skeleton',
+  VIEW_CARD_DETAILS_BUTTON: 'view-card-details-button',
+  CARD_DETAILS_IMAGE: 'card-details-image',
+  CARD_DETAILS_IMAGE_SKELETON: 'card-details-image-skeleton',
 };

@@ -5,17 +5,18 @@ import {
   SubscriptionClient,
   WebSocketTransport,
 } from '@nktkas/hyperliquid';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
-import { strings } from '../../../../../locales/i18n';
+import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import type { CandleData } from '../types/perps-types';
 
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
-import type { SubscribeCandlesParams } from '../controllers/types';
-import Logger from '../../../../util/Logger';
+import type {
+  SubscribeCandlesParams,
+  IPerpsPlatformDependencies,
+} from '../controllers/types';
 import { Hex } from '@metamask/utils';
 
 /**
@@ -57,14 +58,26 @@ export class HyperLiquidClientService {
   private isHealthCheckRunning = false;
   private onReconnectCallback?: () => Promise<void>;
 
-  constructor(options: { isTestnet?: boolean } = {}) {
+  // Platform dependencies for logging
+  private readonly deps: IPerpsPlatformDependencies;
+
+  constructor(
+    deps: IPerpsPlatformDependencies,
+    options: { isTestnet?: boolean } = {},
+  ) {
+    this.deps = deps;
     this.isTestnet = options.isTestnet || false;
   }
 
   /**
    * Initialize all HyperLiquid SDK clients
+   *
+   * IMPORTANT: This method awaits transport.ready() to ensure the WebSocket is
+   * in OPEN state before marking initialization complete. This prevents race
+   * conditions where subscriptions are attempted before the WebSocket handshake
+   * completes (which would cause "subscribe error: undefined" errors).
    */
-  public initialize(wallet: {
+  public async initialize(wallet: {
     signTypedData: (params: {
       domain: {
         name: string;
@@ -79,7 +92,7 @@ export class HyperLiquidClientService {
       message: Record<string, unknown>;
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
-  }): void {
+  }): Promise<void> {
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
       this.createTransports();
@@ -107,9 +120,32 @@ export class HyperLiquidClientService {
         transport: this.wsTransport,
       });
 
+      // CRITICAL: Wait for WebSocket to be actually ready before marking initialized
+      // This prevents race conditions where subscriptions are attempted before
+      // the WebSocket handshake completes (causing "subscribe error: undefined")
+      try {
+        await this.ensureTransportReady(10000); // 10s timeout for initial connection
+      } catch (readyError) {
+        // Clean up on failure - close transport to prevent orphaned WebSocket connections
+        this.subscriptionClient = undefined;
+        this.infoClient = undefined;
+        if (this.wsTransport) {
+          try {
+            await this.wsTransport.close();
+          } catch {
+            // Ignore close errors during cleanup
+          }
+          this.wsTransport = undefined;
+        }
+        this.connectionState = WebSocketConnectionState.DISCONNECTED;
+        throw new Error(
+          `WebSocket initialization failed: ${ensureError(readyError).message}`,
+        );
+      }
+
       this.connectionState = WebSocketConnectionState.CONNECTED;
 
-      DevLogger.log('HyperLiquid SDK clients initialized', {
+      this.deps.debugLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.isTestnet,
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
@@ -123,7 +159,7 @@ export class HyperLiquidClientService {
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
 
       // Log to Sentry: initialization failure blocks all Perps functionality
-      Logger.error(errorInstance, {
+      this.deps.logger.error(errorInstance, {
         tags: {
           feature: PERPS_CONSTANTS.FEATURE_NAME,
           service: 'HyperLiquidClientService',
@@ -150,7 +186,7 @@ export class HyperLiquidClientService {
    * Both transports use SDK's built-in endpoint resolution via isTestnet flag
    */
   private createTransports(): void {
-    DevLogger.log('HyperLiquid: Creating transports', {
+    this.deps.debugLogger.log('HyperLiquid: Creating transports', {
       isTestnet: this.isTestnet,
       timestamp: new Date().toISOString(),
       note: 'SDK will auto-select endpoints based on isTestnet flag',
@@ -195,7 +231,7 @@ export class HyperLiquidClientService {
     getChainId?: () => Promise<number>;
   }): Promise<HyperLiquidNetwork> {
     this.isTestnet = !this.isTestnet;
-    this.initialize(wallet);
+    await this.initialize(wallet);
     return this.isTestnet ? 'testnet' : 'mainnet';
   }
 
@@ -216,14 +252,14 @@ export class HyperLiquidClientService {
    */
   public ensureInitialized(): void {
     if (!this.isInitialized()) {
-      throw new Error(strings('perps.errors.clientNotInitialized'));
+      throw new Error(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
     }
   }
 
   /**
    * Recreate subscription client if needed (for reconnection scenarios)
    */
-  public ensureSubscriptionClient(wallet: {
+  public async ensureSubscriptionClient(wallet: {
     signTypedData: (params: {
       domain: {
         name: string;
@@ -238,12 +274,12 @@ export class HyperLiquidClientService {
       message: Record<string, unknown>;
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
-  }): void {
+  }): Promise<void> {
     if (!this.subscriptionClient) {
-      DevLogger.log(
+      this.deps.debugLogger.log(
         'HyperLiquid: Recreating subscription client after disconnect',
       );
-      this.initialize(wallet);
+      await this.initialize(wallet);
     }
   }
 
@@ -253,7 +289,7 @@ export class HyperLiquidClientService {
   public getExchangeClient(): ExchangeClient {
     this.ensureInitialized();
     if (!this.exchangeClient) {
-      throw new Error(strings('perps.errors.exchangeClientNotAvailable'));
+      throw new Error(PERPS_ERROR_CODES.EXCHANGE_CLIENT_NOT_AVAILABLE);
     }
     return this.exchangeClient;
   }
@@ -268,13 +304,13 @@ export class HyperLiquidClientService {
 
     if (options?.useHttp) {
       if (!this.infoClientHttp) {
-        throw new Error(strings('perps.errors.infoClientNotAvailable'));
+        throw new Error(PERPS_ERROR_CODES.INFO_CLIENT_NOT_AVAILABLE);
       }
       return this.infoClientHttp;
     }
 
     if (!this.infoClient) {
-      throw new Error(strings('perps.errors.infoClientNotAvailable'));
+      throw new Error(PERPS_ERROR_CODES.INFO_CLIENT_NOT_AVAILABLE);
     }
     return this.infoClient;
   }
@@ -286,10 +322,45 @@ export class HyperLiquidClientService {
     | SubscriptionClient<{ transport: WebSocketTransport }>
     | undefined {
     if (!this.subscriptionClient) {
-      DevLogger.log('SubscriptionClient not initialized');
+      this.deps.debugLogger.log('SubscriptionClient not initialized');
       return undefined;
     }
     return this.subscriptionClient;
+  }
+
+  /**
+   * Ensures the WebSocket transport is in OPEN state and ready for subscriptions.
+   * This MUST be called before any subscription operations to prevent race conditions.
+   *
+   * The SDK's `transport.ready()` method:
+   * - Returns immediately if WebSocket is already in OPEN state
+   * - Waits for the "open" event if WebSocket is in CONNECTING state
+   * - Supports AbortSignal for timeout/cancellation
+   *
+   * @param timeoutMs - Maximum time to wait for transport ready (default 5000ms)
+   * @throws Error if transport not ready within timeout or subscription client unavailable
+   */
+  public async ensureTransportReady(timeoutMs: number = 5000): Promise<void> {
+    const subscriptionClient = this.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      await subscriptionClient.config_.transport.ready(controller.signal);
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new Error(
+          `WebSocket transport ready timeout after ${timeoutMs}ms`,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   /**
@@ -315,14 +386,14 @@ export class HyperLiquidClientService {
 
   /**
    * Fetch historical candle data using the HyperLiquid SDK
-   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param symbol - The asset symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
    * @param limit - Number of candles to fetch (default: 100)
    * @param endTime - End timestamp in milliseconds (default: now). Used for fetching historical data before a specific time.
    * @returns Promise<CandleData | null>
    */
   public async fetchHistoricalCandles(
-    coin: string,
+    symbol: string,
     interval: ValidCandleInterval,
     limit: number = 100,
     endTime?: number,
@@ -336,9 +407,10 @@ export class HyperLiquidClientService {
       const startTime = now - limit * intervalMs;
 
       // Use the SDK's InfoClient to fetch candle data
+      // HyperLiquid SDK uses 'coin' terminology
       const infoClient = this.getInfoClient();
       const data = await infoClient.candleSnapshot({
-        coin,
+        coin: symbol, // Map to HyperLiquid SDK's 'coin' parameter
         interval,
         startTime,
         endTime: now,
@@ -356,14 +428,14 @@ export class HyperLiquidClientService {
         }));
 
         return {
-          coin,
+          symbol,
           interval,
           candles,
         };
       }
 
       return {
-        coin,
+        symbol,
         interval,
         candles: [],
       };
@@ -371,7 +443,7 @@ export class HyperLiquidClientService {
       const errorInstance = ensureError(error);
 
       // Log to Sentry: prevents initial chart data load
-      Logger.error(errorInstance, {
+      this.deps.logger.error(errorInstance, {
         tags: {
           feature: PERPS_CONSTANTS.FEATURE_NAME,
           service: 'HyperLiquidClientService',
@@ -381,7 +453,7 @@ export class HyperLiquidClientService {
           name: 'historical_candles_api',
           data: {
             operation: 'fetchHistoricalCandles',
-            coin,
+            symbol,
             interval,
             limit,
             hasEndTime: endTime !== undefined,
@@ -395,7 +467,7 @@ export class HyperLiquidClientService {
 
   /**
    * Subscribe to candle updates via WebSocket
-   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param symbol - The asset symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", etc.)
    * @param duration - Optional time duration for calculating initial fetch size
    * @param callback - Function called with updated candle data
@@ -403,7 +475,7 @@ export class HyperLiquidClientService {
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToCandles({
-    coin,
+    symbol,
     interval,
     duration,
     callback,
@@ -413,7 +485,7 @@ export class HyperLiquidClientService {
 
     const subscriptionClient = this.getSubscriptionClient();
     if (!subscriptionClient) {
-      throw new Error(strings('perps.errors.subscriptionClientNotAvailable'));
+      throw new Error(PERPS_ERROR_CODES.SUBSCRIPTION_CLIENT_NOT_AVAILABLE);
     }
 
     let currentCandleData: CandleData | null = null;
@@ -427,7 +499,7 @@ export class HyperLiquidClientService {
       : 100; // Default to 100 if no duration provided
 
     // 1. Fetch initial historical data
-    this.fetchHistoricalCandles(coin, interval, initialLimit)
+    this.fetchHistoricalCandles(symbol, interval, initialLimit)
       .then((initialData) => {
         // Don't proceed if already unsubscribed
         if (isUnsubscribed) {
@@ -440,8 +512,9 @@ export class HyperLiquidClientService {
         }
 
         // 2. Subscribe to WebSocket for new candles
+        // HyperLiquid SDK uses 'coin' terminology
         const subscription = subscriptionClient.candle(
-          { coin, interval },
+          { coin: symbol, interval }, // Map to HyperLiquid SDK's 'coin' parameter
           (candleEvent) => {
             // Don't process events if already unsubscribed
             if (isUnsubscribed) {
@@ -460,7 +533,7 @@ export class HyperLiquidClientService {
 
             if (!currentCandleData) {
               currentCandleData = {
-                coin,
+                symbol,
                 interval,
                 candles: [newCandle],
               };
@@ -504,7 +577,7 @@ export class HyperLiquidClientService {
             const errorInstance = ensureError(error);
 
             // Log to Sentry: WebSocket subscription failure prevents live updates
-            Logger.error(errorInstance, {
+            this.deps.logger.error(errorInstance, {
               tags: {
                 feature: PERPS_CONSTANTS.FEATURE_NAME,
                 service: 'HyperLiquidClientService',
@@ -514,7 +587,7 @@ export class HyperLiquidClientService {
                 name: 'websocket_subscription',
                 data: {
                   operation: 'subscribeToCandles',
-                  coin,
+                  symbol,
                   interval,
                   phase: 'ws_subscription',
                 },
@@ -529,7 +602,7 @@ export class HyperLiquidClientService {
         const errorInstance = ensureError(error);
 
         // Log to Sentry: initial fetch failure blocks chart completely
-        Logger.error(errorInstance, {
+        this.deps.logger.error(errorInstance, {
           tags: {
             feature: PERPS_CONSTANTS.FEATURE_NAME,
             service: 'HyperLiquidClientService',
@@ -539,7 +612,7 @@ export class HyperLiquidClientService {
             name: 'initial_candles_fetch',
             data: {
               operation: 'subscribeToCandles',
-              coin,
+              symbol,
               interval,
               phase: 'initial_fetch',
               initialLimit,
@@ -613,7 +686,7 @@ export class HyperLiquidClientService {
     try {
       this.connectionState = WebSocketConnectionState.DISCONNECTING;
 
-      DevLogger.log('HyperLiquid: Disconnecting SDK clients', {
+      this.deps.debugLogger.log('HyperLiquid: Disconnecting SDK clients', {
         isTestnet: this.isTestnet,
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
@@ -629,12 +702,15 @@ export class HyperLiquidClientService {
       if (this.wsTransport) {
         try {
           await this.wsTransport.close();
-          DevLogger.log('HyperLiquid: Closed WebSocket transport', {
+          this.deps.debugLogger.log('HyperLiquid: Closed WebSocket transport', {
             timestamp: new Date().toISOString(),
           });
         } catch (error) {
-          Logger.error(ensureError(error), {
-            context: 'HyperLiquidClientService.performDisconnection',
+          this.deps.logger.error(ensureError(error), {
+            context: {
+              name: 'HyperLiquidClientService.performDisconnection',
+              data: { action: 'close_transport' },
+            },
           });
         }
       }
@@ -649,14 +725,17 @@ export class HyperLiquidClientService {
 
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
 
-      DevLogger.log('HyperLiquid: SDK clients fully disconnected', {
+      this.deps.debugLogger.log('HyperLiquid: SDK clients fully disconnected', {
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
       });
     } catch (error) {
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
-      Logger.error(ensureError(error), {
-        context: 'HyperLiquidClientService.performDisconnection',
+      this.deps.logger.error(ensureError(error), {
+        context: {
+          name: 'HyperLiquidClientService.performDisconnection',
+          data: { action: 'outer_catch' },
+        },
       });
       throw error;
     }
@@ -766,6 +845,10 @@ export class HyperLiquidClientService {
   /**
    * Handle detected connection drop
    * Recreates WebSocket transport and notifies callback to restore subscriptions
+   *
+   * IMPORTANT: This method awaits transport.ready() BEFORE calling the reconnect
+   * callback to ensure subscriptions are not attempted while the WebSocket is
+   * still in CONNECTING state.
    */
   private async handleConnectionDrop(): Promise<void> {
     // Prevent multiple simultaneous reconnection attempts
@@ -775,6 +858,11 @@ export class HyperLiquidClientService {
 
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
+
+      this.deps.debugLogger.log(
+        'HyperLiquid: Handling connection drop, recreating transport',
+        { timestamp: new Date().toISOString() },
+      );
 
       // Close existing WebSocket transport
       if (this.wsTransport) {
@@ -792,14 +880,52 @@ export class HyperLiquidClientService {
         throw new Error('Failed to recreate WebSocket transport');
       }
 
-      // Recreate SubscriptionClient with new transport
+      // Recreate WebSocket-dependent clients with new transport
+      // NOTE: HTTP-based clients (exchangeClient, infoClientHttp) are NOT recreated because:
+      // - HTTP is stateless - each request opens a new connection
+      // - There's no persistent connection that can become stale
+      // - The existing httpTransport configuration remains valid
       this.subscriptionClient = new SubscriptionClient({
         transport: this.wsTransport,
       });
 
+      this.infoClient = new InfoClient({ transport: this.wsTransport });
+
+      // CRITICAL: Wait for WebSocket to be ready BEFORE restoring subscriptions
+      // This prevents "subscribe error: undefined" caused by calling socket.send()
+      // while the WebSocket is still in CONNECTING state
+      try {
+        await this.ensureTransportReady(5000);
+      } catch (readyError) {
+        this.deps.debugLogger.log(
+          'Transport not ready after reconnect, cleaning up and will require manual reinitialization',
+          { error: ensureError(readyError).message },
+        );
+
+        // Clean up orphaned resources to prevent WebSocket/client leaks
+        this.subscriptionClient = undefined;
+        this.infoClient = undefined;
+        if (this.wsTransport) {
+          try {
+            await this.wsTransport.close();
+          } catch {
+            // Ignore close errors during cleanup
+          }
+          this.wsTransport = undefined;
+        }
+
+        this.connectionState = WebSocketConnectionState.DISCONNECTED;
+        return;
+      }
+
       this.connectionState = WebSocketConnectionState.CONNECTED;
 
-      // Notify callback to restore subscriptions
+      this.deps.debugLogger.log(
+        'HyperLiquid: Transport ready, restoring subscriptions',
+        { timestamp: new Date().toISOString() },
+      );
+
+      // NOW safe to restore subscriptions
       if (this.onReconnectCallback) {
         await this.onReconnectCallback();
       }

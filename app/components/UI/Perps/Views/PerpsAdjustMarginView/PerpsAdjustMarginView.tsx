@@ -84,7 +84,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     newLiquidationDistance,
     isAddMode,
   } = usePerpsAdjustMarginData({
-    coin: routePosition?.coin || '',
+    symbol: routePosition?.symbol || '',
     mode: mode || 'add',
     inputAmount: marginAmount,
   });
@@ -175,14 +175,14 @@ const PerpsAdjustMarginView: React.FC = () => {
 
     try {
       if (isAddMode) {
-        await handleAddMargin(position.coin, marginAmount);
+        await handleAddMargin(position.symbol, marginAmount);
       } else {
-        await handleRemoveMargin(position.coin, marginAmount);
+        await handleRemoveMargin(position.symbol, marginAmount);
       }
     } catch (error) {
       Logger.error(
         ensureError(error),
-        `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.coin}`,
+        `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.symbol}`,
       );
       // Note: Toast notification is handled by usePerpsMarginAdjustment hook
     }
