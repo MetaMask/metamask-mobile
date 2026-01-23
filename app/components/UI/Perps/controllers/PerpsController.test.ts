@@ -3273,13 +3273,10 @@ describe('PerpsController', () => {
   });
 
   describe('WebSocket connection state', () => {
-    // Connection state values matching WebSocketConnectionState enum
-    const WebSocketConnectionState = {
-      DISCONNECTED: 'disconnected',
-      CONNECTING: 'connecting',
-      CONNECTED: 'connected',
-      DISCONNECTING: 'disconnecting',
-    } as const;
+    // Import actual enum to ensure type compatibility
+    const { WebSocketConnectionState } = jest.requireActual(
+      '../services/HyperLiquidClientService',
+    );
 
     it('getWebSocketConnectionState returns state from active provider', () => {
       // Arrange

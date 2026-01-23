@@ -134,6 +134,19 @@ export class HyperLiquidClientService {
         note: 'Using WebSocket for InfoClient (default), HTTP fallback available',
       });
     } catch (error) {
+      // Cleanup transports on failure to prevent leaks
+      // If createTransports() succeeded but wsTransport.ready() failed,
+      // we need to close the WebSocket to release resources and event listeners
+      if (this.wsTransport) {
+        try {
+          await this.wsTransport.close();
+        } catch {
+          // Ignore cleanup errors
+        }
+        this.wsTransport = undefined;
+      }
+      this.httpTransport = undefined;
+
       const errorInstance = ensureError(error);
       this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
 
@@ -165,6 +178,16 @@ export class HyperLiquidClientService {
    * Both transports use SDK's built-in endpoint resolution via isTestnet flag
    */
   private createTransports(): void {
+    // Prevent duplicate transport creation and listener accumulation
+    // This guards against re-entry if initialize() is called multiple times
+    // (e.g., after a failed initialization attempt that didn't properly clean up)
+    if (this.wsTransport && this.httpTransport) {
+      this.deps.debugLogger.log(
+        'HyperLiquid: Transports already exist, skipping creation',
+      );
+      return;
+    }
+
     this.deps.debugLogger.log('HyperLiquid: Creating transports', {
       isTestnet: this.isTestnet,
       timestamp: new Date().toISOString(),
@@ -915,9 +938,11 @@ export class HyperLiquidClientService {
       this.reconnectionRetryTimeout = setTimeout(() => {
         this.reconnectionRetryTimeout = null; // Clear reference after execution
         // Only retry if we haven't been intentionally disconnected
+        // and no manual reconnect() is already in progress
         if (
           this.connectionState === WebSocketConnectionState.CONNECTING &&
-          !this.disconnectionPromise
+          !this.disconnectionPromise &&
+          !this.isReconnecting
         ) {
           this.handleConnectionDrop();
         }

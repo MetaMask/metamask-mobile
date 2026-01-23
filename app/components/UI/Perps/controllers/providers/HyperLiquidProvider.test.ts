@@ -6566,12 +6566,10 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('WebSocket connection state methods', () => {
-    const WebSocketConnectionState = {
-      DISCONNECTED: 'disconnected',
-      CONNECTING: 'connecting',
-      CONNECTED: 'connected',
-      DISCONNECTING: 'disconnecting',
-    } as const;
+    // Import actual enum to ensure type compatibility
+    const { WebSocketConnectionState } = jest.requireActual(
+      '../../services/HyperLiquidClientService',
+    );
 
     beforeEach(() => {
       // Add WebSocket methods to mock client service
