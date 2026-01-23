@@ -490,7 +490,7 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
@@ -545,7 +545,7 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
@@ -570,7 +570,7 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
 
     it('should render opt-out button', () => {
@@ -850,7 +850,7 @@ describe('RewardSettingsAccountGroupList', () => {
       // Test that all major components have testIDs
       expect(getByTestId('rewards-settings-flash-list')).toBeOnTheScreen();
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-footer')).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
       expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
     });
   });

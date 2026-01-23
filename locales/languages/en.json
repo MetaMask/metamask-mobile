@@ -7158,6 +7158,13 @@
       "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Unknown error occurred"
     },
+    "referred_by_code": {
+      "title": "Referral Code",
+      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
+      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
+      "input_placeholder": "Enter referral code",
+      "invalid_code": "Invalid referral code"
+    },
     "optout": {
       "title": "Opt out of Rewards",
       "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",

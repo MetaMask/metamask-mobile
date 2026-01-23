@@ -498,7 +498,7 @@ export interface SeasonStatusDto {
 export interface SubscriptionSeasonReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
-  referralPoints: number;
+  referredByCode: string;
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -573,7 +573,7 @@ export interface ClaimRewardDto {
 export type SubscriptionSeasonReferralDetailState = {
   referralCode: string;
   totalReferees: number;
-  referralPoints: number;
+  referredByCode: string;
   lastFetched?: number;
 };
 

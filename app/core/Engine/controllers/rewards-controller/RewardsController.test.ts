@@ -5248,7 +5248,7 @@ describe('RewardsController', () => {
       const mockReferralDetailsState: SubscriptionSeasonReferralDetailState = {
         referralCode: 'REF456',
         totalReferees: 10,
-        referralPoints: 200,
+        referredByCode: 'REFERRER200',
         lastFetched: recentTime,
       };
 
@@ -5284,7 +5284,7 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockReferralDetailsState);
       expect(result?.referralCode).toBe('REF456');
       expect(result?.totalReferees).toBe(10);
-      expect(result?.referralPoints).toBe(200);
+      expect(result?.referredByCode).toBe('REFERRER200');
       expect(result?.lastFetched).toBe(recentTime);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
@@ -5297,7 +5297,7 @@ describe('RewardsController', () => {
       const mockApiResponse = {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
-        referralPoints: 500,
+        referredByCode: 'REFERRER500',
       };
 
       controller = new RewardsController({
@@ -5339,7 +5339,7 @@ describe('RewardsController', () => {
       expect(result).toBeDefined();
       expect(result?.referralCode).toBe('NEWFRESH123');
       expect(result?.totalReferees).toBe(25);
-      expect(result?.referralPoints).toBe(500);
+      expect(result?.referredByCode).toBe('REFERRER500');
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
@@ -5348,7 +5348,7 @@ describe('RewardsController', () => {
       const mockApiResponse = {
         referralCode: 'UPDATED789',
         totalReferees: 15,
-        referralPoints: 300,
+        referredByCode: 'REFERRER300',
       };
 
       controller = new RewardsController({
@@ -5384,7 +5384,7 @@ describe('RewardsController', () => {
       expect(result).toBeDefined();
       expect(result?.referralCode).toBe('UPDATED789');
       expect(result?.totalReferees).toBe(15);
-      expect(result?.referralPoints).toBe(300);
+      expect(result?.referredByCode).toBe('REFERRER300');
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
       const updatedReferralDetails =
@@ -5397,8 +5397,8 @@ describe('RewardsController', () => {
       expect(updatedReferralDetails.totalReferees).toBe(
         mockApiResponse.totalReferees,
       );
-      expect(updatedReferralDetails.referralPoints).toBe(
-        mockApiResponse.referralPoints,
+      expect(updatedReferralDetails.referredByCode).toBe(
+        mockApiResponse.referredByCode,
       );
       expect(updatedReferralDetails.lastFetched).toBeGreaterThan(
         Date.now() - 1000,
@@ -7821,7 +7821,7 @@ describe('RewardsController', () => {
             sub123: {
               referralCode: 'REF123',
               totalReferees: 5,
-              referralPoints: 100,
+              referredByCode: 'REFERRER100',
               lastFetched: Date.now(),
             },
           },

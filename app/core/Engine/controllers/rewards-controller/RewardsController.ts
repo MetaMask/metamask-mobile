@@ -1961,7 +1961,7 @@ export class RewardsController extends BaseController<
           return {
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
-            referralPoints: referralDetails.referralPoints,
+            referredByCode: referralDetails.referredByCode,
             lastFetched: Date.now(),
           };
         } catch (error) {

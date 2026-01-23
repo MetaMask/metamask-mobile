@@ -1581,7 +1581,7 @@ describe('RewardsDataService', () => {
     const mockReferralDetailsResponse: SubscriptionSeasonReferralDetailsDto = {
       referralCode: 'TEST123',
       totalReferees: 5,
-      referralPoints: 100,
+      referredByCode: 'REFERRER100',
     };
 
     beforeEach(() => {
