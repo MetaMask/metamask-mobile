@@ -79,7 +79,9 @@ function Settings() {
                       <Text>
                         {userRegion?.state?.name ||
                           userRegion?.country?.name ||
-                          strings('app_settings.fiat_on_ramp.no_region_selected')}
+                          strings(
+                            'app_settings.fiat_on_ramp.no_region_selected',
+                          )}
                       </Text>
                     </ListItemColumn>
                   </ListItem>
@@ -99,7 +101,9 @@ function Settings() {
 
                   <ListItem>
                     <ListItemColumn>
-                      <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
+                      <Text>
+                        {selectedRegion ? selectedRegion.emoji : '🏳️'}
+                      </Text>
                     </ListItemColumn>
                     <ListItemColumn>
                       <Text>
