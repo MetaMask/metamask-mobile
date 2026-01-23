@@ -4,6 +4,7 @@ import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { MOCK_CHAIN_IDS } from '../../testUtils/fixtures';
+import { TokenSelectorType } from '../../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -11,8 +12,8 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.Mock;
 
-// Mock for selectEnabledChainRanking - returns filtered chain ranking array with names from feature flags
-const mockEnabledChainRanking = [
+// Mock chain ranking array with names from feature flags
+const mockChainRanking = [
   { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
   { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
   { chainId: MOCK_CHAIN_IDS.optimism, name: 'Optimism' },
@@ -46,15 +47,16 @@ describe('NetworkPills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(mockEnabledChainRanking);
+    mockUseSelector.mockReturnValue(mockChainRanking);
   });
 
   describe('rendering', () => {
-    it('renders All pill and chain pills', () => {
+    it('renders All pill and chain pills in source mode', () => {
       const { getByText } = render(
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
+          type={TokenSelectorType.Source}
         />,
       );
 
@@ -64,11 +66,12 @@ describe('NetworkPills', () => {
       expect(getByText('Optimism')).toBeTruthy();
     });
 
-    it('renders pills for each chain in chainRanking', () => {
+    it('renders pills for each chain in chainRanking in dest mode', () => {
       const { getByText } = render(
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
+          type={TokenSelectorType.Dest}
         />,
       );
 
@@ -86,6 +89,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={MOCK_CHAIN_IDS.ethereum}
           onChainSelect={mockOnChainSelect}
+          type={TokenSelectorType.Source}
         />,
       );
 
@@ -99,6 +103,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
+          type={TokenSelectorType.Source}
         />,
       );
 
@@ -117,6 +122,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={selectedChainId as CaipChainId | undefined}
           onChainSelect={mockOnChainSelect}
+          type={TokenSelectorType.Source}
         />,
       );
 
