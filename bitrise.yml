@@ -1823,6 +1823,27 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
+          title: "[Phase 1.5] Verify builds.yml config"
+          is_skippable: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║  Phase 1.5: Parallel Validation                            ║"
+                echo "║  Comparing Bitrise env vars with builds.yml config         ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                
+                # Set defaults if not already set
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
+                
+                # Run verification (auto-detects build from env vars)
+                # Using --verbose to see all checks in build logs
+                node scripts/verify-build-config.js --verbose || true
+                
+                # Note: Currently running without --strict
+                # Once verified, change to: node scripts/verify-build-config.js --strict
+      - script@1:
           title: Run detox build
           timeout: 1800
           is_always_run: true
@@ -2253,6 +2274,27 @@ workflows:
                 sudo apt update
                 sudo apt install libicu-dev -y
       - script@1:
+          title: "[Phase 1.5] Verify builds.yml config"
+          is_skippable: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║  Phase 1.5: Parallel Validation                            ║"
+                echo "║  Comparing Bitrise env vars with builds.yml config         ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                
+                # Set defaults if not already set
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
+                
+                # Run verification (auto-detects build from env vars)
+                # Using --verbose to see all checks in build logs
+                node scripts/verify-build-config.js --verbose || true
+                
+                # Note: Currently running without --strict
+                # Once verified, change to: node scripts/verify-build-config.js --strict
+      - script@1:
           title: Build Android Binary
           is_always_run: false
           inputs:
@@ -2448,6 +2490,27 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - script@1:
+          title: "[Phase 1.5] Verify builds.yml config"
+          is_skippable: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║  Phase 1.5: Parallel Validation                            ║"
+                echo "║  Comparing Bitrise env vars with builds.yml config         ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                
+                # Set defaults if not already set
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
+                
+                # Run verification (auto-detects build from env vars)
+                # Using --verbose to see all checks in build logs
+                node scripts/verify-build-config.js --verbose || true
+                
+                # Note: Currently running without --strict
+                # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
           title: Run detox build
           timeout: 1800
@@ -2911,6 +2974,27 @@ workflows:
       - certificate-and-profile-installer@1: {
         run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
       }
+      - script@1:
+          title: "[Phase 1.5] Verify builds.yml config"
+          is_skippable: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║  Phase 1.5: Parallel Validation                            ║"
+                echo "║  Comparing Bitrise env vars with builds.yml config         ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                
+                # Set defaults if not already set
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
+                
+                # Run verification (auto-detects build from env vars)
+                # Using --verbose to see all checks in build logs
+                node scripts/verify-build-config.js --verbose || true
+                
+                # Note: Currently running without --strict
+                # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
           title: iOS Sourcemaps & Build
           is_always_run: false
