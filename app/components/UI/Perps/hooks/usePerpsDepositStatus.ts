@@ -12,27 +12,10 @@ import {
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
   USDC_ARBITRUM_MAINNET_ADDRESS,
 } from '../constants/hyperLiquidConfig';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
-
-// Track transaction IDs that should skip the default toast (handled by PerpsOrderView)
-const skipDefaultToastTransactionIds = new Set<string>();
-
-/**
- * Mark a transaction ID to skip the default toast
- * Used by PerpsOrderView to prevent duplicate toasts
- */
-export const markTransactionSkipDefaultToast = (transactionId: string) => {
-  skipDefaultToastTransactionIds.add(transactionId);
-};
-
-/**
- * Unmark a transaction ID (cleanup)
- */
-export const unmarkTransactionSkipDefaultToast = (transactionId: string) => {
-  skipDefaultToastTransactionIds.delete(transactionId);
-};
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -96,8 +79,9 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.type === TransactionType.perpsDeposit &&
         transactionMeta.status === TransactionStatus.approved
       ) {
-        // Skip showing toast if this transaction is being handled by PerpsOrderView
-        if (skipDefaultToastTransactionIds.has(transactionMeta.id)) {
+        // Skip showing toast if a component is actively handling deposit toasts
+        // (e.g., PerpsOrderView handles its own deposit toasts)
+        if (getStreamManagerInstance().hasActiveDepositHandler()) {
           return;
         }
 

@@ -6,12 +6,9 @@ import {
 import { useCallback, useContext, useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
-import {
-  markTransactionSkipDefaultToast,
-  unmarkTransactionSkipDefaultToast,
-} from './usePerpsDepositStatus';
 
 interface UsePerpsOrderDepositTrackingParams {
   /**
@@ -69,9 +66,9 @@ export const usePerpsOrderDepositTracking = ({
           return;
         }
 
-        // Mark this transaction to skip default toast from usePerpsDepositStatus
-        // Do this immediately so usePerpsDepositStatus won't show its toast
-        markTransactionSkipDefaultToast(transactionId);
+        // Mark that we're actively handling deposit toasts
+        // This prevents usePerpsDepositStatus from showing duplicate toasts
+        getStreamManagerInstance().setActiveDepositHandler(true);
 
         // Set up deposit tracking
         expectingDepositRef.current = true;
@@ -120,9 +117,9 @@ export const usePerpsOrderDepositTracking = ({
           return;
         }
 
-        // Mark this transaction to skip default toast from usePerpsDepositStatus
-        // Do this immediately so usePerpsDepositStatus won't show its toast
-        markTransactionSkipDefaultToast(transactionId);
+        // Mark that we're actively handling deposit toasts
+        // This prevents usePerpsDepositStatus from showing duplicate toasts
+        getStreamManagerInstance().setActiveDepositHandler(true);
 
         // Set up deposit tracking
         expectingDepositRef.current = true;
@@ -158,10 +155,8 @@ export const usePerpsOrderDepositTracking = ({
         const transactionId = failedTransactionMeta.id;
         if (hasShownDepositToastRef.current === transactionId) {
           expectingDepositRef.current = false;
-          // Unmark transaction ID so usePerpsDepositStatus can handle it if needed
-          if (depositTransactionIdRef.current) {
-            unmarkTransactionSkipDefaultToast(depositTransactionIdRef.current);
-          }
+          // Unmark active handler so usePerpsDepositStatus can handle it if needed
+          getStreamManagerInstance().setActiveDepositHandler(false);
           depositTransactionIdRef.current = null;
           hasShownDepositToastRef.current = null;
           // Close the depositing toast
@@ -184,6 +179,8 @@ export const usePerpsOrderDepositTracking = ({
       hasShownDepositToastRef.current !== activeTransactionId
     ) {
       const transactionId = activeTransactionId;
+      // Mark that we're actively handling deposit toasts
+      getStreamManagerInstance().setActiveDepositHandler(true);
       expectingDepositRef.current = true;
       prevAvailableBalanceRef.current =
         account?.availableBalance?.toString() || '0';
@@ -209,11 +206,9 @@ export const usePerpsOrderDepositTracking = ({
         'TransactionController:transactionFailed',
         handleTransactionFailed,
       );
-      // Clean up: unmark transaction ID so usePerpsDepositStatus can show toast
+      // Clean up: unmark active handler so usePerpsDepositStatus can show toast
       // if user navigates away and deposit completes later
-      if (depositTransactionIdRef.current) {
-        unmarkTransactionSkipDefaultToast(depositTransactionIdRef.current);
-      }
+      getStreamManagerInstance().setActiveDepositHandler(false);
     };
   }, [
     activeTransactionId,
@@ -255,9 +250,8 @@ export const usePerpsOrderDepositTracking = ({
       expectingDepositRef.current = false;
       prevAvailableBalanceRef.current =
         account.availableBalance?.toString() || '0';
-      if (depositTransactionIdRef.current) {
-        unmarkTransactionSkipDefaultToast(depositTransactionIdRef.current);
-      }
+      // Unmark active handler since deposit is complete
+      getStreamManagerInstance().setActiveDepositHandler(false);
       depositTransactionIdRef.current = null;
       hasShownDepositToastRef.current = null;
 
