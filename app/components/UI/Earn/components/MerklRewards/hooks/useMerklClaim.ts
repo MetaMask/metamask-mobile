@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import {
-  TransactionStatus,
+  TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Interface } from '@ethersproject/abi';
@@ -18,11 +18,20 @@ import Engine from '../../../../../../core/Engine';
 
 interface UseMerklClaimOptions {
   asset: TokenI;
+  onTransactionConfirmed?: () => void;
 }
 
-export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
+export const useMerklClaim = ({
+  asset,
+  onTransactionConfirmed,
+}: UseMerklClaimOptions) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const onTransactionConfirmedRef = useRef(onTransactionConfirmed);
+
+  // Keep the callback ref updated
+  onTransactionConfirmedRef.current = onTransactionConfirmed;
+
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -33,8 +42,9 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
 
   const claimRewards = useCallback(async () => {
     if (!selectedAddress || !networkClientId) {
-      setError('No account or network selected');
-      return;
+      const errorMessage = 'No account or network selected';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
 
     setIsClaiming(true);
@@ -81,37 +91,63 @@ export const useMerklClaim = ({ asset }: UseMerklClaimOptions) => {
       };
 
       // Submit transaction - resolves after user approves in the wallet UI
+      // Use stakingClaim type to get proper toast notifications
       const { result, transactionMeta } = await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: 'merkl-claim',
+        type: TransactionType.stakingClaim,
       });
+
+      const { id: transactionId } = transactionMeta;
+
+      // Set up listeners BEFORE awaiting result to avoid race condition
+      // where transaction confirms before listeners are set up
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          setIsClaiming(false);
+          onTransactionConfirmedRef.current?.();
+        },
+        (txMeta) => txMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        ({ transactionMeta: txMeta }) => {
+          setIsClaiming(false);
+          setError(txMeta.error?.message ?? 'Transaction failed');
+        },
+        ({ transactionMeta: txMeta }) => txMeta.id === transactionId,
+      );
+
+      // Also listen for dropped transactions - on some networks/RPC providers,
+      // a successful transaction might be marked as "dropped" instead of "confirmed"
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          // Transaction was dropped but might still be successful on-chain
+          // Trigger refetch to check the actual contract state
+          setIsClaiming(false);
+          onTransactionConfirmedRef.current?.();
+        },
+        ({ transactionMeta: txMeta }) => txMeta.id === transactionId,
+      );
 
       // Wait for transaction hash (indicates tx is submitted to network)
-      await result;
+      const txHash = await result;
 
-      // Wait for transaction confirmation using the same pattern as useCardDelegation
-      await new Promise<void>((resolve, reject) => {
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionConfirmed',
-          (txMeta) => {
-            if (txMeta.status === TransactionStatus.confirmed) {
-              resolve();
-            } else if (txMeta.status === TransactionStatus.failed) {
-              reject(new Error(txMeta.error?.message ?? 'Transaction failed'));
-            }
-          },
-          (txMeta) => txMeta.id === transactionMeta.id,
-        );
-      });
+      // NOTE: We don't set isClaiming to false here!
+      // The loading state should persist until the transaction reaches
+      // a terminal status (confirmed/dropped/failed) via the listeners above.
 
-      return { result, transactionMeta };
+      return { txHash, transactionMeta };
     } catch (e) {
       const errorMessage = (e as Error).message;
       setError(errorMessage);
-      throw e;
-    } finally {
+      // Only set isClaiming false on error (user rejected, etc)
       setIsClaiming(false);
+      throw e;
     }
   }, [selectedAddress, networkClientId, asset]);
 

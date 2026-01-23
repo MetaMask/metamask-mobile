@@ -4,9 +4,8 @@ import { useMerklClaim } from './useMerklClaim';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { TokenI } from '../../../../Tokens/types';
-import { CHAIN_IDS, TransactionStatus } from '@metamask/transaction-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { RootState } from '../../../../../../reducers';
-import Engine from '../../../../../../core/Engine';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -16,9 +15,32 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
 }));
 
+jest.mock('../../../../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+}));
+
+// Store captured callbacks for simulating events
+const capturedCallbacks: Record<
+  string,
+  {
+    callback: (...args: unknown[]) => void;
+    predicate: (...args: unknown[]) => boolean;
+  }
+> = {};
+
 jest.mock('../../../../../../core/Engine', () => ({
   controllerMessenger: {
-    subscribeOnceIf: jest.fn(),
+    subscribeOnceIf: jest.fn(
+      (
+        eventName: string,
+        callback: (...args: unknown[]) => void,
+        predicate: (...args: unknown[]) => boolean,
+      ) => {
+        capturedCallbacks[eventName] = { callback, predicate };
+        return jest.fn(); // Return cleanup function
+      },
+    ),
   },
 }));
 
@@ -29,7 +51,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockAddTransaction = addTransaction as jest.MockedFunction<
   typeof addTransaction
 >;
-
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 const mockNetworkClientId = 'mainnet';
 const mockEndpoint = {
@@ -84,38 +105,10 @@ const createMockRewardData = (overrides?: {
   },
 ];
 
-const mockSubscribeOnceIf = Engine.controllerMessenger
-  .subscribeOnceIf as jest.MockedFunction<
-  typeof Engine.controllerMessenger.subscribeOnceIf
->;
-
-// Helper to setup subscribeOnceIf mock with specific transaction status
-const setupSubscribeOnceIfMock = (
-  status: TransactionStatus,
-  errorMessage?: string,
-  txId = 'tx-123',
-) => {
-  mockSubscribeOnceIf.mockImplementation((_event, callback, predicate) => {
-    const mockTxMeta = {
-      id: txId,
-      status,
-      ...(errorMessage && { error: { message: errorMessage } }),
-    };
-    if (!predicate || predicate(mockTxMeta as never)) {
-      // Use queueMicrotask for more predictable async behavior
-      queueMicrotask(() => callback(mockTxMeta as never));
-    }
-    return undefined as never;
-  });
-};
-
 describe('useMerklClaim', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
-
-    // Default: Mock subscribeOnceIf to simulate confirmed status
-    setupSubscribeOnceIfMock(TransactionStatus.confirmed);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
@@ -156,7 +149,7 @@ describe('useMerklClaim', () => {
     expect(typeof result.current.claimRewards).toBe('function');
   });
 
-  it('sets error when no account is selected', async () => {
+  it('sets error and throws when no account is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
@@ -167,14 +160,16 @@ describe('useMerklClaim', () => {
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
-      await result.current.claimRewards();
+      await expect(result.current.claimRewards()).rejects.toThrow(
+        'No account or network selected',
+      );
     });
 
     expect(result.current.error).toBe('No account or network selected');
     expect(result.current.isClaiming).toBe(false);
   });
 
-  it('sets error when no network is selected', async () => {
+  it('sets error and throws when no network is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
@@ -192,7 +187,9 @@ describe('useMerklClaim', () => {
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
     await act(async () => {
-      await result.current.claimRewards();
+      await expect(result.current.claimRewards()).rejects.toThrow(
+        'No account or network selected',
+      );
     });
 
     expect(result.current.error).toBe('No account or network selected');
@@ -216,6 +213,18 @@ describe('useMerklClaim', () => {
       await result.current.claimRewards();
     });
 
+    // isClaiming stays true until transaction confirms
+    expect(result.current.isClaiming).toBe(true);
+
+    // Simulate confirmation
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: 'tx-123', status: 'confirmed' });
+      }
+    });
+
     expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toBe(null);
     expect(global.fetch).toHaveBeenCalled();
@@ -228,7 +237,7 @@ describe('useMerklClaim', () => {
     expect(txCall.data).toBeDefined();
   });
 
-  it('handles API fetch error', async () => {
+  it('sets error when API fetch fails', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 500,
@@ -252,7 +261,7 @@ describe('useMerklClaim', () => {
     expect(result.current.error).toContain('Failed to fetch Merkl rewards');
   });
 
-  it('handles no claimable rewards error', async () => {
+  it('throws error when no claimable rewards found', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => [{ rewards: [] }],
@@ -273,7 +282,7 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(false);
   });
 
-  it('handles no matching token in rewards', async () => {
+  it('throws error when no matching token found in rewards', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () =>
@@ -321,13 +330,25 @@ describe('useMerklClaim', () => {
       await result.current.claimRewards();
     });
 
-    await waitFor(() => expect(result.current.isClaiming).toBe(false));
+    // isClaiming stays true until transaction confirms
+    expect(result.current.isClaiming).toBe(true);
+
+    // Simulate confirmation
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: 'tx-123', status: 'confirmed' });
+      }
+    });
+
+    expect(result.current.isClaiming).toBe(false);
     expect(mockAddTransaction.mock.calls[0][0].to).toBe(
       '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae',
     );
   });
 
-  it('handles network error', async () => {
+  it('sets error and rethrows on network failure', async () => {
     const error = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
@@ -350,7 +371,7 @@ describe('useMerklClaim', () => {
     expect(result.current.isClaiming).toBe(false);
   });
 
-  it('sets isClaiming to true during claim process', async () => {
+  it('sets isClaiming to true during claim process and stays true until transaction confirms', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => createMockRewardData(),
@@ -372,11 +393,24 @@ describe('useMerklClaim', () => {
     // isClaiming should be true immediately after starting
     expect(result.current.isClaiming).toBe(true);
 
-    // Wait for claim to complete
+    // Wait for claim to complete (tx submitted)
     await act(async () => {
       await claimPromise;
     });
 
+    // isClaiming should STILL be true - waiting for transaction confirmation
+    expect(result.current.isClaiming).toBe(true);
+
+    // Simulate transaction confirmation event
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: 'tx-123', status: 'confirmed' });
+      }
+    });
+
+    // Now isClaiming should be false
     expect(result.current.isClaiming).toBe(false);
   });
 
@@ -417,19 +451,41 @@ describe('useMerklClaim', () => {
     );
   });
 
-  it('waits for transaction confirmation via subscribeOnceIf', async () => {
-    const txId = 'tx-456';
-    // Setup mock with matching transaction ID
-    setupSubscribeOnceIfMock(TransactionStatus.confirmed, undefined, txId);
+  it('falls back to asset chainId when token.chainId is undefined', async () => {
+    // Create reward data without chainId in token
+    const rewardDataWithoutChainId = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: undefined, // No chainId from API
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '0',
+            pending: '1000000000000000000',
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            ],
+            amount: '1000000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => createMockRewardData(),
+      json: async () => rewardDataWithoutChainId,
     });
 
     mockAddTransaction.mockResolvedValueOnce({
       result: Promise.resolve('0xabc123'),
-      transactionMeta: { id: txId },
+      transactionMeta: { id: 'tx-123' },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
@@ -438,22 +494,15 @@ describe('useMerklClaim', () => {
       await result.current.claimRewards();
     });
 
-    // Verify subscribeOnceIf was called with correct event
-    expect(mockSubscribeOnceIf).toHaveBeenCalledWith(
-      'TransactionController:transactionConfirmed',
-      expect.any(Function),
-      expect.any(Function),
+    // Should use asset.chainId as fallback (mainnet = 0x1)
+    expect(mockAddTransaction.mock.calls[0][0].chainId).toBe(
+      `0x${Number(CHAIN_IDS.MAINNET).toString(16)}`,
     );
-
-    // Verify the predicate filters by transaction ID
-    const predicateFn = mockSubscribeOnceIf.mock.calls[0][2];
-    expect(predicateFn({ id: txId })).toBe(true);
-    expect(predicateFn({ id: 'different-tx' })).toBe(false);
   });
 
-  it('handles transaction failure via subscribeOnceIf', async () => {
-    // Override the default mock to simulate transaction failure
-    setupSubscribeOnceIfMock(TransactionStatus.failed, 'Transaction reverted');
+  it('returns transaction hash after submission and keeps loading until confirmation', async () => {
+    const txId = 'tx-456';
+    const expectedTxHash = '0xabc123';
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
@@ -461,53 +510,31 @@ describe('useMerklClaim', () => {
     });
 
     mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve('0xabc123'),
-      transactionMeta: { id: 'tx-123' },
+      result: Promise.resolve(expectedTxHash),
+      transactionMeta: { id: txId },
     } as never);
 
     const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
 
+    let claimResult: { txHash: string } | undefined;
     await act(async () => {
-      try {
-        await result.current.claimRewards();
-      } catch {
-        // Expected to throw
+      claimResult = await result.current.claimRewards();
+    });
+
+    // Verify transaction was submitted and hash returned
+    expect(claimResult?.txHash).toBe(expectedTxHash);
+    // Loading stays true until transaction reaches terminal status
+    expect(result.current.isClaiming).toBe(true);
+
+    // Simulate confirmation
+    act(() => {
+      const confirmedCallback =
+        capturedCallbacks['TransactionController:transactionConfirmed'];
+      if (confirmedCallback) {
+        confirmedCallback.callback({ id: txId, status: 'confirmed' });
       }
     });
 
-    await waitFor(() => {
-      expect(result.current.error).toBe('Transaction reverted');
-    });
-    expect(result.current.isClaiming).toBe(false);
-  });
-
-  it('handles transaction failure with default error message', async () => {
-    // Override the default mock to simulate transaction failure without error message
-    setupSubscribeOnceIfMock(TransactionStatus.failed);
-
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => createMockRewardData(),
-    });
-
-    mockAddTransaction.mockResolvedValueOnce({
-      result: Promise.resolve('0xabc123'),
-      transactionMeta: { id: 'tx-123' },
-    } as never);
-
-    const { result } = renderHook(() => useMerklClaim({ asset: mockAsset }));
-
-    await act(async () => {
-      try {
-        await result.current.claimRewards();
-      } catch {
-        // Expected to throw
-      }
-    });
-
-    await waitFor(() => {
-      expect(result.current.error).toBe('Transaction failed');
-    });
     expect(result.current.isClaiming).toBe(false);
   });
 });

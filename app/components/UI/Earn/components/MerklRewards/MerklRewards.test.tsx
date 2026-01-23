@@ -9,6 +9,40 @@ import {
 } from './hooks/useMerklRewards';
 
 jest.mock('./hooks/useMerklRewards');
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    setParams: jest.fn(),
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../selectors/tokenBalancesController', () => ({
+  selectTokensBalances: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../util/number', () => ({
+  renderFromTokenMinimalUnit: jest.fn(() => '100'),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+}));
 jest.mock('./PendingMerklRewards', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

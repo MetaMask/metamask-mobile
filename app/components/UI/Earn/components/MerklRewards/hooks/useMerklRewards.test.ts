@@ -165,16 +165,6 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
-  it('returns null and does not fetch when asset is undefined', async () => {
-    const { result } = renderHook(() => useMerklRewards({ asset: undefined }));
-
-    await waitFor(() => {
-      expect(result.current.claimableReward).toBe(null);
-    });
-
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
-
   it('returns null when asset is not eligible', async () => {
     const nonEligibleAsset: TokenI = {
       ...mockAsset,
@@ -298,7 +288,7 @@ describe('useMerklRewards', () => {
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalled();
   });
 
-  it('handles API errors gracefully', async () => {
+  it('returns null claimableReward when API request fails', async () => {
     const error = new Error('Network error');
     mockFetchMerklRewardsForAsset.mockRejectedValueOnce(error);
 
@@ -312,7 +302,7 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
-  it('handles non-OK API responses', async () => {
+  it('returns null claimableReward when API returns non-OK response', async () => {
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
@@ -324,7 +314,7 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
-  it('handles empty rewards array', async () => {
+  it('returns null claimableReward when rewards array is empty', async () => {
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
@@ -336,7 +326,7 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
-  it('handles no matching token in rewards', async () => {
+  it('returns null claimableReward when no matching token found', async () => {
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
@@ -388,7 +378,7 @@ describe('useMerklRewards', () => {
     );
   });
 
-  it('handles zero unclaimed amounts', async () => {
+  it('returns null claimableReward when unclaimed amount is zero', async () => {
     const mockRewardData = {
       token: {
         address: AGLAMERKL_ADDRESS_MAINNET,
@@ -421,7 +411,7 @@ describe('useMerklRewards', () => {
     expect(result.current.claimableReward).toBe(null);
   });
 
-  it('handles very small amounts that round to zero', async () => {
+  it('returns null claimableReward when amount rounds to zero', async () => {
     const mockRewardData = {
       token: {
         address: AGLAMERKL_ADDRESS_MAINNET,
@@ -700,5 +690,192 @@ describe('useMerklRewards', () => {
       18,
       2,
     );
+  });
+
+  it('returns null claimableReward when renderFromTokenMinimalUnit returns empty string', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1000000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1000000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Return empty string to test the falsy check
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    });
+
+    // Should remain null when rendered amount is empty string
+    expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('returns null claimableReward when renderFromTokenMinimalUnit returns "0"', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1000000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1000000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Return '0' to test the exact zero check
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('0');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    });
+
+    // Should remain null when rendered amount is exactly '0'
+    expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('ignores AbortError when fetch is cancelled', async () => {
+    const abortError = new Error('Aborted');
+    abortError.name = 'AbortError';
+    mockFetchMerklRewardsForAsset.mockRejectedValueOnce(abortError);
+
+    const { result, unmount } = renderHook(() =>
+      useMerklRewards({ asset: mockAsset }),
+    );
+
+    // Unmount immediately to simulate abort
+    unmount();
+
+    // Should not throw or set any error state
+    expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('uses asset decimals when token decimals is null', async () => {
+    const assetWith6Decimals: TokenI = {
+      ...mockAsset,
+      decimals: 6,
+    };
+
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: null as unknown as number, // API returns null for decimals
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1500000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000', // 1.5 tokens with 6 decimals
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+
+    const { result } = renderHook(() =>
+      useMerklRewards({ asset: assetWith6Decimals }),
+    );
+
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('1.50');
+      },
+      { timeout: 3000 },
+    );
+
+    // Should fall back to asset decimals (6) when token decimals is null
+    expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
+      '1500000',
+      6,
+      2,
+    );
+  });
+
+  it('exposes refetch function that triggers data refresh', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValue('0');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    // Wait for initial fetch
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe('1.50');
+      },
+      { timeout: 3000 },
+    );
+
+    // Verify refetch function exists
+    expect(typeof result.current.refetch).toBe('function');
+
+    // Clear mocks and set up new return values
+    mockFetchMerklRewardsForAsset.mockClear();
+    mockGetClaimedAmountFromContract.mockClear();
+
+    // Simulate claimed amount updated (user claimed rewards)
+    mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValue('1500000000000000000'); // All claimed
+
+    // Call refetch wrapped in act to avoid state update warning
+    act(() => {
+      result.current.refetch();
+    });
+
+    // Wait for refetch to complete - should now show null (no claimable)
+    await waitFor(
+      () => {
+        expect(result.current.claimableReward).toBe(null);
+      },
+      { timeout: 3000 },
+    );
+
+    // Verify fetch was called again
+    expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    expect(mockGetClaimedAmountFromContract).toHaveBeenCalled();
   });
 });

@@ -172,12 +172,13 @@ export const getClaimedAmountFromContract = async (
       tokenAddress,
     ]);
 
-    // Make the contract call
+    // Make the contract call with 'latest' block to ensure fresh data
     const res = await query(ethQuery, 'call', [
       {
         to: MERKL_DISTRIBUTOR_ADDRESS,
         data,
       },
+      'latest',
     ]);
 
     // Decode the result - it's a struct with (amount, timestamp, merkleRoot)

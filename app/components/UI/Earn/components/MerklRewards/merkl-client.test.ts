@@ -129,6 +129,7 @@ describe('getClaimedAmountFromContract', () => {
         to: MERKL_DISTRIBUTOR_ADDRESS,
         data: mockEncodedData,
       },
+      'latest',
     ]);
     expect(mockContractInterface.decodeFunctionResult).toHaveBeenCalledWith(
       'claimed',

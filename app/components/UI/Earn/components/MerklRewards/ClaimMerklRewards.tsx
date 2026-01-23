@@ -2,12 +2,6 @@ import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
-  useNavigation,
-  useRoute,
-  ParamListBase,
-} from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import {
   Button,
   ButtonSize,
   ButtonVariant,
@@ -27,16 +21,18 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 interface ClaimMerklRewardsProps {
   asset: TokenI;
+  onClaimSuccess: () => void;
 }
 
 /**
  * Component to display the claim button for Merkl rewards
  */
-const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
+const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
+  asset,
+  onClaimSuccess,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route = useRoute();
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -45,7 +41,11 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
     claimRewards,
     isClaiming,
     error: claimError,
-  } = useMerklClaim({ asset });
+  } = useMerklClaim({
+    asset,
+    // This callback is triggered when the transaction is confirmed on-chain
+    onTransactionConfirmed: onClaimSuccess,
+  });
 
   const handleClaim = async () => {
     trackEvent(
@@ -63,9 +63,8 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
 
     try {
       await claimRewards();
-      // Replace the current screen to force re-mount with updated balance
-      // This ensures AssetOverview fetches fresh data from the updated controller state
-      navigation.replace(route.name, route.params);
+      // Transaction submitted - confirmation listener in useMerklClaim
+      // will call onClaimSuccess when the transaction is confirmed
     } catch (error) {
       // Error is handled by useMerklClaim hook and displayed via claimError
     }

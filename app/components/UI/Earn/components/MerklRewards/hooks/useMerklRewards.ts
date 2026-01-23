@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
@@ -14,6 +14,8 @@ import {
   fetchMerklRewardsForAsset,
   getClaimedAmountFromContract,
 } from '../merkl-client';
+import Logger from '../../../../../../util/Logger';
+import Engine from '../../../../../../core/Engine';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 
@@ -21,6 +23,7 @@ const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 export const eligibleTokens: Record<Hex, Hex[]> = {
   [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET], // Testing
   [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // Musd and AGLAMERKL
+  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA], // Linea fork
 };
 
 /**
@@ -53,6 +56,16 @@ interface UseMerklRewardsOptions {
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
+  /** True while processing a claim (after clearReward until confirmed) */
+  isProcessingClaim: boolean;
+  refetch: () => void;
+  /** Optimistically clear the reward (for immediate UI update after successful claim) */
+  clearReward: () => void;
+  /** Refetch with retries until balance changes (for verifying claim success) */
+  refetchWithRetry: (options?: {
+    maxRetries?: number;
+    delayMs?: number;
+  }) => Promise<void>;
 }
 
 /**
@@ -62,6 +75,11 @@ export const useMerklRewards = ({
   asset,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
+  const [isProcessingClaim, setIsProcessingClaim] = useState(false);
+  // Track if a claim was just processed - prevents stale refetches from restoring the reward
+  const claimProcessedRef = useRef(false);
+  // Track if refetchWithRetry is in progress to prevent duplicate calls
+  const retryInProgressRef = useRef(false);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -78,9 +96,6 @@ export const useMerklRewards = ({
         setClaimableReward(null);
         return;
       }
-
-      // Reset claimableReward when switching assets to prevent stale data
-      setClaimableReward(null);
 
       const controller = abortController || new AbortController();
 
@@ -127,6 +142,12 @@ export const useMerklRewards = ({
           matchingReward.token.decimals ?? asset.decimals ?? 18;
 
         if (unclaimedBaseUnits > 0n) {
+          // If a claim was just processed, don't restore the reward
+          // This prevents stale refetches from showing the reward again
+          if (claimProcessedRef.current) {
+            return;
+          }
+
           // Convert from wei to token amount
           const unclaimedAmount = renderFromTokenMinimalUnit(
             unclaimedBaseUnits.toString(),
@@ -146,7 +167,9 @@ export const useMerklRewards = ({
             }
           }
         } else if (!controller.signal.aborted) {
-          // No claimable rewards left, set to null
+          // No claimable rewards left - claim was successful!
+          // Clear the claim processed flag since we've confirmed the claim
+          claimProcessedRef.current = false;
           setClaimableReward(null);
         }
       } catch (error) {
@@ -154,10 +177,99 @@ export const useMerklRewards = ({
         if (error instanceof Error && error.name === 'AbortError') {
           return;
         }
-        // Silently handle other errors - component will show no rewards if fetch fails
+        // Log other errors for debugging
+        Logger.error(
+          error as Error,
+          'useMerklRewards: Error fetching claimable rewards',
+        );
       }
     },
     [asset, selectedAddress],
+  );
+
+  // refetch can be called externally to refresh data (e.g., after claiming)
+  const refetch = useCallback(() => {
+    fetchClaimableRewards();
+  }, [fetchClaimableRewards]);
+
+  // Optimistically clear reward for immediate UI update
+  const clearReward = useCallback(() => {
+    // Set flag to prevent stale refetches from restoring the reward
+    claimProcessedRef.current = true;
+    setIsProcessingClaim(true);
+    setClaimableReward(null);
+  }, []);
+
+  // Trigger token balance refresh via TokenBalancesController and AccountTrackerController
+  const refreshTokenBalances = useCallback(async () => {
+    try {
+      const {
+        TokenBalancesController,
+        AccountTrackerController,
+        NetworkController,
+      } = Engine.context;
+
+      const chainId = asset.chainId as Hex;
+
+      // Get networkClientId for the chain
+      const networkConfig =
+        NetworkController?.state?.networkConfigurationsByChainId?.[chainId];
+      const networkClientId =
+        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
+          ?.networkClientId;
+
+      // Refresh token balances and account balances in parallel
+      await Promise.all([
+        TokenBalancesController?.updateBalances({
+          chainIds: [chainId],
+        }),
+        networkClientId
+          ? AccountTrackerController?.refresh([networkClientId])
+          : Promise.resolve(),
+      ]);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'useMerklRewards: Failed to refresh token balances',
+      );
+    }
+  }, [asset.chainId]);
+
+  // Refetch with retries until balance changes (claimable becomes null/0)
+  const refetchWithRetry = useCallback(
+    async (options?: { maxRetries?: number; delayMs?: number }) => {
+      // Prevent duplicate retry calls
+      if (retryInProgressRef.current) {
+        return;
+      }
+
+      retryInProgressRef.current = true;
+      const maxRetries = options?.maxRetries ?? 5;
+      const delayMs = options?.delayMs ?? 3000;
+
+      try {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          // Wait before each attempt (including first) to give blockchain time to update
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+          await fetchClaimableRewards();
+
+          // If claim flag was cleared, the fetch confirmed the claim succeeded
+          if (!claimProcessedRef.current) {
+            // Trigger token balance refresh since we received new tokens
+            await refreshTokenBalances();
+            break;
+          }
+        }
+      } finally {
+        retryInProgressRef.current = false;
+        // Clear the claim flag after retries complete
+        // If still set, the blockchain might not have updated - that's ok, section stays hidden
+        claimProcessedRef.current = false;
+        setIsProcessingClaim(false);
+      }
+    },
+    [fetchClaimableRewards, refreshTokenBalances],
   );
 
   useEffect(() => {
@@ -174,5 +286,9 @@ export const useMerklRewards = ({
 
   return {
     claimableReward,
+    isProcessingClaim,
+    refetch,
+    clearReward,
+    refetchWithRetry,
   };
 };
