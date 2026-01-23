@@ -2,7 +2,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
-import { AccountStatusSelectorIDs } from '../../selectors/Onboarding/AccountStatus.selectors';
+import { AccountStatusSelectorIDs } from '../../../app/components/Views/AccountStatus/AccountStatus.testIds';
 
 class SocialLoginView {
   get iosNewUserTitle(): DetoxElement {

@@ -3,7 +3,7 @@ import { Mockttp } from 'mockttp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
-import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
+import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
 import { completeGoogleNewUserOnboarding, lockApp, resetWallet } from './utils';

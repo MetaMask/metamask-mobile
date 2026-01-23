@@ -8,7 +8,7 @@ import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../pages/Onboarding/SocialLoginView';
 
-import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
+import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
 

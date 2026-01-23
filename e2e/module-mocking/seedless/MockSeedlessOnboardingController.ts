@@ -5,7 +5,6 @@ import {
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
 
-// Test mnemonic - same as used in other E2E fixtures
 const E2E_TEST_MNEMONIC =
   'drive manage close raven tape average sausage pledge riot furnace august tip';
 

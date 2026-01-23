@@ -15,6 +15,7 @@ import {
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import styles from './index.styles';
+import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -160,8 +161,8 @@ const AccountStatus = ({
       edges={['top', 'bottom']}
       testID={
         type === 'found'
-          ? 'account-status-found-container-id'
-          : 'account-status-not-found-container-id'
+          ? AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER
+          : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER
       }
     >
       <View style={styles.root}>
@@ -172,8 +173,8 @@ const AccountStatus = ({
               color={TextColor.Default}
               testID={
                 type === 'found'
-                  ? 'account-status-found-title-id'
-                  : 'account-status-not-found-title-id'
+                  ? AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE
+                  : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE
               }
             >
               {type === 'found'
@@ -219,8 +220,8 @@ const AccountStatus = ({
             }
             testID={
               type === 'found'
-                ? 'account-status-found-login-button-id'
-                : 'account-status-not-found-create-button-id'
+                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON
+                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON
             }
           />
           <Button
@@ -233,8 +234,8 @@ const AccountStatus = ({
             label={strings('account_status.use_different_login_method')}
             testID={
               type === 'found'
-                ? 'account-status-found-different-method-button-id'
-                : 'account-status-not-found-different-method-button-id'
+                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON
+                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_DIFFERENT_METHOD_BUTTON
             }
           />
         </View>

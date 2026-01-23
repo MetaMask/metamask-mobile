@@ -5,7 +5,7 @@ import {
   E2E_EMAILS,
   E2EScenario,
   E2ELoginProvider,
-} from '../../api-mocking/seedless-onboarding/constants';
+} from '../../../tests/api-mocking/seedless-onboarding/constants';
 
 // Re-export for consumers
 export { E2E_EMAILS, E2EScenario, E2ELoginProvider };

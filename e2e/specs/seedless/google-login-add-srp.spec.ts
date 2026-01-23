@@ -9,7 +9,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 
-import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
+import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
