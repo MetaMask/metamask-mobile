@@ -1330,8 +1330,8 @@ export class PerpsController extends BaseController<
       return null;
     }
 
-    // Return the provider or null if not found
-    return this.providers.get(this.state.activeProvider) || null;
+    // Return the active provider instance or null if not found
+    return this.activeProviderInstance || null;
   }
 
   /**
