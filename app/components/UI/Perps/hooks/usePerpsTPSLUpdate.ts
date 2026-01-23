@@ -40,6 +40,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           takeProfitPrice,
           stopLossPrice,
           trackingData,
+          position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
         });
 
         if (result.success) {

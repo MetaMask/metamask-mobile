@@ -3389,28 +3389,45 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       this.deps.debugLogger.log('Updating position TP/SL:', params);
 
-      const { symbol, takeProfitPrice, stopLossPrice } = params;
+      const {
+        symbol,
+        takeProfitPrice,
+        stopLossPrice,
+        position: livePosition,
+      } = params;
 
       // Explicitly ensure builder fee approval for trading
       await this.ensureReady();
       await this.ensureBuilderFeeApproval();
 
-      // Get current position to validate it exists
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
-      let positions: Position[];
-      try {
-        positions = await this.getPositions({ skipCache: true });
-      } catch (error) {
-        this.deps.logger.error(
-          ensureError(error),
-          this.getErrorContext('updatePositionTPSL > getPositions', {
-            symbol,
-          }),
-        );
-        throw error;
-      }
+      // Use live position (from WebSocket) if available, otherwise fetch via REST
+      // Preferring WebSocket data avoids rate limiting issues with the REST API
+      let position: Position | undefined = livePosition;
 
-      const position = positions.find((p) => p.symbol === symbol);
+      if (!position) {
+        // Fallback: fetch positions via REST API (legacy behavior)
+        this.deps.debugLogger.log(
+          'No live position passed, falling back to REST API fetch',
+        );
+        let positions: Position[];
+        try {
+          positions = await this.getPositions({ skipCache: true });
+        } catch (error) {
+          this.deps.logger.error(
+            ensureError(error),
+            this.getErrorContext('updatePositionTPSL > getPositions', {
+              symbol,
+            }),
+          );
+          throw error;
+        }
+        position = positions.find((p) => p.symbol === symbol);
+      } else {
+        this.deps.debugLogger.log('Using live position from WebSocket', {
+          symbol: position.symbol,
+          size: position.size,
+        });
+      }
 
       if (!position) {
         throw new Error(`No position found for ${symbol}`);

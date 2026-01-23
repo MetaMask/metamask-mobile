@@ -781,6 +781,12 @@ export interface UpdatePositionTPSLParams {
   // Optional tracking data for MetaMetrics events
   trackingData?: TPSLTrackingData;
   providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
+  /**
+   * Optional live position data from WebSocket.
+   * If provided, skips the REST API position fetch (avoids rate limiting issues).
+   * If not provided, falls back to fetching positions via REST API.
+   */
+  position?: Position;
 }
 
 export interface Order {
