@@ -27,7 +27,7 @@ import {
 } from '../../../../../tests/framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../../../tests/api-mocking/helpers/mockHelpers';
-import { confirmationsRedesignedFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilManager } from '../../../../../tests/seeder/anvil-manager';
 
@@ -94,7 +94,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
     });
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      Object.assign({}, ...confirmationFeatureFlags),
     );
   };
   beforeAll(async () => {

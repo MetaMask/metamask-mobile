@@ -3,7 +3,7 @@ import { defaultGanacheOptions } from '../framework/Constants.ts';
 import { CustomNetworks } from './networks.e2e';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -38,7 +38,7 @@ export interface TestConfiguration {
   ganacheOptions: GanacheConfig;
   providerConfig: ProviderConfig;
   permissions: string[];
-  testSpecificMock: (mockServer: Mockttp) => Promise<void>;
+  testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
 }
 
 /**
@@ -50,7 +50,7 @@ export interface NetworkTestConfig {
   ganacheOptions: GanacheConfig;
   providerConfig: ProviderConfig;
   permissions: string[];
-  testSpecificMock: (mockServer: Mockttp) => Promise<void>;
+  testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
 }
 
 /**
@@ -59,19 +59,7 @@ export interface NetworkTestConfig {
 export const testSpecificMock = async (mockServer: Mockttp): Promise<void> => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
-  );
-};
-
-/**
- * Redesigned confirmations mock configuration
- */
-export const redesignedTestSpecificMock = async (
-  mockServer: Mockttp,
-): Promise<void> => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    Object.assign({}, ...confirmationFeatureFlags),
   );
 };
 
@@ -205,7 +193,6 @@ export const redesignedTestConfigurations: Record<string, TestConfiguration> = {
     ganacheOptions: megaEthLocalConfig,
     providerConfig: megaEthProviderConfig,
     permissions: [...permissionConfigs.megaEth],
-    testSpecificMock: redesignedTestSpecificMock,
   },
 
   /**
@@ -215,7 +202,6 @@ export const redesignedTestConfigurations: Record<string, TestConfiguration> = {
     ganacheOptions: monadLocalConfig,
     providerConfig: monadProviderConfig,
     permissions: [...permissionConfigs.monad],
-    testSpecificMock: redesignedTestSpecificMock,
   },
 
   /**
@@ -225,7 +211,6 @@ export const redesignedTestConfigurations: Record<string, TestConfiguration> = {
     ganacheOptions: seiLocalConfig,
     providerConfig: seiProviderConfig,
     permissions: [...permissionConfigs.sei],
-    testSpecificMock: redesignedTestSpecificMock,
   },
 };
 
@@ -270,7 +255,6 @@ export const REDESIGNED_NETWORK_TEST_CONFIGS: NetworkTestConfig[] = [
     ganacheOptions: megaEthLocalConfig,
     providerConfig: megaEthProviderConfig,
     permissions: [MEGAETH_TESTNET.chainId],
-    testSpecificMock: redesignedTestSpecificMock,
   },
   {
     name: 'Monad',
@@ -278,7 +262,6 @@ export const REDESIGNED_NETWORK_TEST_CONFIGS: NetworkTestConfig[] = [
     ganacheOptions: monadLocalConfig,
     providerConfig: monadProviderConfig,
     permissions: [MONAD_TESTNET.chainId],
-    testSpecificMock: redesignedTestSpecificMock,
   },
   {
     name: 'Sei',
@@ -286,6 +269,5 @@ export const REDESIGNED_NETWORK_TEST_CONFIGS: NetworkTestConfig[] = [
     ganacheOptions: seiLocalConfig,
     providerConfig: seiProviderConfig,
     permissions: [SEI_TESTNET.chainId],
-    testSpecificMock: redesignedTestSpecificMock,
   },
 ];

@@ -6,7 +6,7 @@ import Assertions from '../../../tests/framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import {
   remoteFeatureFlagPredictEnabled,
-  confirmationsRedesignedFeatureFlags,
+  confirmationFeatureFlags,
 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
@@ -54,7 +54,7 @@ Test Scenario: Claim winning positions
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
-    ...Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    ...Object.assign({}, ...confirmationFeatureFlags),
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);

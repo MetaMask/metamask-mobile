@@ -23,7 +23,7 @@ import {
   securityAlertsUrl,
 } from '../../../../tests/api-mocking/mock-responses/security-alerts-mock';
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -75,7 +75,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+          Object.assign({}, ...confirmationFeatureFlags),
         );
 
         await setupMockPostRequest(
@@ -107,7 +107,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+          Object.assign({}, ...confirmationFeatureFlags),
         );
 
         await setupMockPostRequest(
@@ -158,7 +158,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+          Object.assign({}, ...confirmationFeatureFlags),
         );
 
         await setupMockRequest(mockServer, {
@@ -207,7 +207,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+          Object.assign({}, ...confirmationFeatureFlags),
         );
       };
 

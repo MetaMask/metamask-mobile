@@ -306,7 +306,7 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    { rewards: true, confirmation_redesign: { signatures: true } },
+    { rewards: true },
     'main', // distribution (optional, defaults to 'main')
   );
 };
@@ -341,10 +341,6 @@ await setupRemoteFeatureFlagsMock(mockServer, {
 
 // Nested object flags (deep merge support)
 await setupRemoteFeatureFlagsMock(mockServer, {
-  confirmation_redesign: {
-    signatures: true,
-    transfer: false,
-  },
   bridgeConfig: {
     support: true,
     refreshRate: 5000,
@@ -385,7 +381,7 @@ Object.assign({}, ...confirmationsRedesignedFeatureFlags)
 
 3. **Test both flag states**: Create tests for both enabled and disabled feature flag states when the feature behavior differs significantly.
 
-4. **Use descriptive test names**: Include feature flag state in test descriptions when relevant (e.g., "should show new UI with confirmation_redesign enabled").
+4. **Use descriptive test names**: Include feature flag state in test descriptions when relevant.
 
 ## Debugging Mocks
 

@@ -20,7 +20,7 @@ import { DappVariants } from '../../../../../tests/framework/Constants';
 import { setupMockRequest } from '../../../../../tests/api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../../tests/framework/types';
 import { AnvilManager } from '../../../../../tests/seeder/anvil-manager';
 
@@ -39,7 +39,7 @@ describe(
       });
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        Object.assign({}, ...confirmationFeatureFlags),
       );
     };
 

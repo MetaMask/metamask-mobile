@@ -5,7 +5,7 @@ import { loginToApp } from '../../viewHelper';
 
 import {
   remoteFeatureFlagPredictEnabled,
-  confirmationsRedesignedFeatureFlags,
+  confirmationFeatureFlags,
 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -20,7 +20,7 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
-    ...Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    ...Object.assign({}, ...confirmationFeatureFlags),
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer); // needed to load the withdraw/deposit/claim screen

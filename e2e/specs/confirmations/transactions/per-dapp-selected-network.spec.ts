@@ -16,7 +16,7 @@ import Assertions from '../../../../tests/framework/Assertions.ts';
 import { loginToApp, navigateToBrowserView } from '../../../viewHelper.ts';
 import { DappVariants } from '../../../../tests/framework/Constants.ts';
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks.ts';
+import { confirmationFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks.ts';
 import { Mockttp } from 'mockttp';
 import { LocalNode } from '../../../../tests/framework/types';
 import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
@@ -34,7 +34,7 @@ describe(SmokeConfirmationsRedesigned('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      Object.assign({}, ...confirmationFeatureFlags),
     );
   };
 
