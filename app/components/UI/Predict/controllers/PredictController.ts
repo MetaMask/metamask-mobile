@@ -38,6 +38,7 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
+  PredictEventValues,
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
@@ -1106,6 +1107,12 @@ export class PredictController extends BaseController<
       return;
     }
 
+    const balanceStatus =
+      this.getBalanceStatus({ providerId }) ?? PredictEventValues.BALANCE.ZERO;
+    const openPositionsCount = (
+      analyticsProperties as { openPositionsCount?: number }
+    ).openPositionsCount;
+
     // Build regular properties (common to all statuses)
     const regularProperties = {
       [PredictEventProperties.STATUS]: status,
@@ -1134,6 +1141,12 @@ export class PredictController extends BaseController<
       // Add failure reason for failed status
       ...(failureReason && {
         [PredictEventProperties.FAILURE_REASON]: failureReason,
+      }),
+      // Add balance status
+      [PredictEventProperties.BALANCE]: balanceStatus,
+      // Add open positions count
+      ...(typeof openPositionsCount === 'number' && {
+        [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount,
       }),
     };
 
@@ -1175,6 +1188,8 @@ export class PredictController extends BaseController<
     marketTags,
     entryPoint,
     marketDetailsViewed,
+    balance,
+    openPositionsCount,
   }: {
     marketId: string;
     marketTitle: string;
@@ -1182,6 +1197,8 @@ export class PredictController extends BaseController<
     marketTags?: string[];
     entryPoint: string;
     marketDetailsViewed: string;
+    balance?: string;
+    openPositionsCount?: number;
   }): void {
     const analyticsProperties = {
       [PredictEventProperties.MARKET_ID]: marketId,
@@ -1190,6 +1207,12 @@ export class PredictController extends BaseController<
       [PredictEventProperties.MARKET_TAGS]: marketTags,
       [PredictEventProperties.ENTRY_POINT]: entryPoint,
       [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
+      ...(typeof balance === 'string' && {
+        [PredictEventProperties.BALANCE]: balance,
+      }),
+      ...(typeof openPositionsCount === 'number' && {
+        [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount,
+      }),
     };
 
     DevLogger.log('📊 [Analytics] PREDICT_MARKET_DETAILS_OPENED', {
@@ -1308,12 +1331,16 @@ export class PredictController extends BaseController<
     entryPoint?: string;
     isSessionEnd?: boolean;
   }): void {
+    const balanceStatus =
+      this.getBalanceStatus() ?? PredictEventValues.BALANCE.ZERO;
+
     const analyticsProperties = {
       [PredictEventProperties.SESSION_ID]: sessionId,
       [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
       [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
       [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
       [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
+      [PredictEventProperties.BALANCE]: balanceStatus,
       ...(entryPoint && { [PredictEventProperties.ENTRY_POINT]: entryPoint }),
     };
 
@@ -1329,6 +1356,26 @@ export class PredictController extends BaseController<
         .addProperties(analyticsProperties)
         .build(),
     );
+  }
+
+  /**
+   * Derive predict balance status (zero/non-zero) from cached balance.
+   */
+  private getBalanceStatus(params?: {
+    providerId?: string;
+    address?: string;
+  }): string | undefined {
+    const providerId = params?.providerId ?? 'polymarket';
+    const address = params?.address ?? this.getSigner().address;
+    const balance = this.state.balances[providerId]?.[address]?.balance;
+
+    if (typeof balance !== 'number' || Number.isNaN(balance)) {
+      return undefined;
+    }
+
+    return balance > 0
+      ? PredictEventValues.BALANCE.NON_ZERO
+      : PredictEventValues.BALANCE.ZERO;
   }
 
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {

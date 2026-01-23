@@ -97,10 +97,12 @@ const PredictBuyPreview = () => {
         market?.outcomes?.length === 1
           ? PredictEventValues.MARKET_TYPE.BINARY
           : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
-      // Outcome: use actual outcome token title (e.g., "Yes", "No", "Trump", "Biden", etc.)
-      outcome: outcomeToken?.title?.toLowerCase(),
+      // Outcome: outcome name / title combined with actual outcome token title (e.g., "Yes", "No", "Trump", "Biden", etc.)
+      outcome: [outcome?.title, outcomeToken?.title?.toLowerCase()]
+        .filter(Boolean)
+        .join(' '),
     }),
-    [market, outcomeToken, entryPoint],
+    [market, outcome, outcomeToken, entryPoint],
   );
 
   const {

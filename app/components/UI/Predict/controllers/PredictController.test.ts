@@ -21,6 +21,7 @@ import {
   addTransaction,
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
+import { PredictEventValues } from '../constants/eventNames';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 import type { OrderPreview } from '../providers/types';
@@ -407,6 +408,56 @@ describe('PredictController', () => {
         // - TransactionController:transactionConfirmed
         // - TransactionController:transactionFailed
         // We can verify the handlers work by testing them individually
+      });
+    });
+  });
+
+  describe('getBalanceStatus', () => {
+    it('returns non-zero when balance is greater than zero', () => {
+      withController(
+        ({ controller }) => {
+          const result = (controller as any).getBalanceStatus();
+
+          expect(result).toBe(PredictEventValues.BALANCE.NON_ZERO);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 10 }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('returns zero when balance is zero', () => {
+      withController(
+        ({ controller }) => {
+          const result = (controller as any).getBalanceStatus();
+
+          expect(result).toBe(PredictEventValues.BALANCE.ZERO);
+        },
+        {
+          state: {
+            balances: {
+              polymarket: {
+                '0x1234567890123456789012345678901234567890':
+                  createMockPredictBalance({ balance: 0 }),
+              },
+            },
+          },
+        },
+      );
+    });
+
+    it('returns undefined when balance is missing', () => {
+      withController(({ controller }) => {
+        const result = (controller as any).getBalanceStatus();
+
+        expect(result).toBeUndefined();
       });
     });
   });

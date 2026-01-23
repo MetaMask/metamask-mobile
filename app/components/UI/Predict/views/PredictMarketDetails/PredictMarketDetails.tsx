@@ -63,6 +63,7 @@ import PredictPositionDetail from '../../components/PredictPositionDetail';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { usePredictPrices } from '../../hooks/usePredictPrices';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 import {
   PriceQuery,
   PredictPriceHistoryInterval,
@@ -231,6 +232,31 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       !isClaimablePositionsLoading,
     [isMarketFetching, isActivePositionsLoading, isClaimablePositionsLoading],
   );
+
+  const { balance } = usePredictBalance({
+    loadOnMount: true,
+    refreshOnFocus: false,
+  });
+
+  // Keep balance status and open positions count in refs so analytics tracking
+  // does not re-run when these values change asynchronously.
+  const balanceStatusRef = useRef<string>(PredictEventValues.BALANCE.ZERO);
+  const openPositionsCountRef = useRef<number>(activePositions.length);
+
+  useEffect(() => {
+    if (typeof balance !== 'number' || Number.isNaN(balance)) {
+      return;
+    }
+
+    balanceStatusRef.current =
+      balance > 0
+        ? PredictEventValues.BALANCE.NON_ZERO
+        : PredictEventValues.BALANCE.ZERO;
+  }, [balance]);
+
+  useEffect(() => {
+    openPositionsCountRef.current = activePositions.length;
+  }, [activePositions.length]);
 
   const { winningOutcomeToken, losingOutcomeToken, resolutionStatus } =
     useMemo(() => {
@@ -630,6 +656,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         marketDetailsViewed: tabKey,
+        balance: balanceStatusRef.current,
+        openPositionsCount: openPositionsCountRef.current,
       });
     },
     [market, entryPoint],
