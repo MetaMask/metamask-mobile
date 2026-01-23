@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   securityAlertResponse,
   typedSignV1ConfirmationState,
+  typedSignV1SignatureRequest,
 } from '../../../../../util/test/confirm-data-helpers';
 import SignatureBlockaidBanner from './signature-blockaid-banner';
 
@@ -30,31 +31,16 @@ jest.mock('../../../../../util/confirmation/signatureUtils', () => ({
   getAnalyticsParams: () => ({}),
 }));
 
-// Signature ID from typedSignV1ConfirmationState
-const TYPED_SIGN_V1_SIGNATURE_ID = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+// The key must match messageParams.requestId since useSecurityAlertResponse
+// looks up by requestId first (this matches how ppom-util stores alerts)
+const SECURITY_ALERT_KEY =
+  typedSignV1SignatureRequest.messageParams.requestId?.toString() as string;
 
 const typedSignV1ConfirmationStateWithBlockaidResponse = {
   ...typedSignV1ConfirmationState,
-  engine: {
-    ...typedSignV1ConfirmationState.engine,
-    backgroundState: {
-      ...typedSignV1ConfirmationState.engine.backgroundState,
-      SignatureController: {
-        signatureRequests: {
-          [TYPED_SIGN_V1_SIGNATURE_ID]: {
-            ...typedSignV1ConfirmationState.engine.backgroundState
-              .SignatureController.signatureRequests[
-              TYPED_SIGN_V1_SIGNATURE_ID
-            ],
-            id: TYPED_SIGN_V1_SIGNATURE_ID, // Add the id field
-          },
-        },
-      },
-    },
-  },
   securityAlerts: {
     alerts: {
-      [TYPED_SIGN_V1_SIGNATURE_ID]: securityAlertResponse,
+      [SECURITY_ALERT_KEY]: securityAlertResponse,
     },
   },
 };
