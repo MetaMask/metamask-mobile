@@ -175,7 +175,7 @@ module.exports = {
      * Extracts the patch path from a Yarn descriptor range that represents a
      * patched dependency.
      *
-     * @param {string} range - The patched descriptor range, e.g.
+     * @param {string} rawDescriptorRange - The patched descriptor range, e.g.
      * `patch:@scope/package@npm%3Aversion#path/to/patch`.
      * @returns {string|null} The patch file path, or null if not found.
      */
@@ -314,7 +314,7 @@ module.exports = {
      * @param {YarnLocator} locator - The Yarn locator for a dependency in the
      * dependency tree.
      * @param {ValidatedPreviewBuild} validatedPreviewBuild - Information about
-     * thepreview build that corresponds to the dependency.
+     * the preview build that corresponds to the dependency.
      * @returns {boolean} True if the dependency should be resolved to the
      * preview build, false otherwise.
      */
