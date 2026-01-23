@@ -1,4 +1,6 @@
 import { TransactionType } from '@metamask/transaction-controller';
+import { Mockttp } from 'mockttp';
+
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../../tests/framework/Assertions';
@@ -14,7 +16,8 @@ import {
   TestSpecificMock,
 } from '../../../tests/framework/types';
 import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
-import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
@@ -91,6 +94,10 @@ function createAccountsTestSpecificMock(
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
     const mock = mockAccountsApi(transactions);
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetailsV2(false),
+    );
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: mock.urlEndpoint,
