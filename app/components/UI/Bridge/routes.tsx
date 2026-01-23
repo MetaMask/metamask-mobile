@@ -3,7 +3,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeDestTokenSelector } from './components/BridgeDestTokenSelector';
 import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelector';
-import SlippageModal from './components/SlippageModal';
 import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
 import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
 import BridgeView from './Views/BridgeView';
@@ -11,6 +10,8 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
+import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
+import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -54,8 +55,12 @@ export const BridgeModalStack = () => (
       component={BridgeDestNetworkSelector}
     />
     <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}
-      component={SlippageModal}
+      name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
+      component={DefaultSlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL}
+      component={CustomSlippageModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
