@@ -22,10 +22,9 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './ToolTipModal.styles';
 
 const TooltipModal = ({ route }: TooltipModalProps) => {
-  const tooltip = route.params.tooltip;
-  const title = route.params.title;
+  const { tooltip, title, bottomPadding } = route.params;
 
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { bottomPadding });
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
