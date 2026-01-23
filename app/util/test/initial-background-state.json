@@ -352,7 +352,6 @@
     "recentSearches": []
   },
   "TokenSearchDiscoveryDataController": {
-    "swapsTokenAddressesByChainId": {},
     "tokenDisplayData": []
   },
   "TransactionController": {

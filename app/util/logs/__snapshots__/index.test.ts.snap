@@ -775,7 +775,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "recentSearches": [],
       },
       "TokenSearchDiscoveryDataController": {
-        "swapsTokenAddressesByChainId": {},
         "tokenDisplayData": [],
       },
       "TransactionController": {
@@ -1560,7 +1559,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "recentSearches": [],
       },
       "TokenSearchDiscoveryDataController": {
-        "swapsTokenAddressesByChainId": {},
         "tokenDisplayData": [],
       },
       "TransactionController": {
