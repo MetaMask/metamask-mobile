@@ -244,9 +244,9 @@ app/core/Engine/controllers/gator-permissions-controller              @MetaMask/
 app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/delegation
 
 # QA Team - E2E Framework
-e2e/api-mocking/                             @MetaMask/qa
+tests/api-mocking/                             @MetaMask/qa
 e2e/fixtures/                                @MetaMask/qa
-e2e/framework/                               @MetaMask/qa
+tests/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa
