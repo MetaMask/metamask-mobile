@@ -1,16 +1,16 @@
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import Browser from '../../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
 import { SmokeNetworkAbstractions } from '../../../../tags';
-import Assertions from '../../../../framework/Assertions';
+import Assertions from '../../../../../tests/framework/Assertions';
 import { loginToApp, navigateToBrowserView } from '../../../../viewHelper';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import { DappVariants } from '../../../../framework/Constants';
+import { DappVariants } from '../../../../../tests/framework/Constants';
 
 describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {

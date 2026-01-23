@@ -1,23 +1,23 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { SmokeConfirmationsRedesigned } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import {
   remoteFeatureEip7702,
   remoteFeatureFlagPredictEnabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { POLYMARKET_COMPLETE_MOCKS } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { POLYMARKET_COMPLETE_MOCKS } from '../../../tests/api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../pages/Predict/PredictAddFunds';
 import {
   mockRelayQuote,
   mockRelayStatus,
-} from '../../api-mocking/mock-responses/transaction-pay';
+} from '../../../tests/api-mocking/mock-responses/transaction-pay';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import TransactionPayConfirmation from '../../pages/Confirmation/TransactionPayConfirmation';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import { Gestures } from '../../framework';
+import { Gestures } from '../../../tests/framework';
 import TransactionDetailsModal from '../../pages/Transactions/TransactionDetailsModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
