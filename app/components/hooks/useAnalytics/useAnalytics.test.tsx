@@ -5,7 +5,6 @@ import {
 } from '../../../core/Analytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import type {
-  DataDeleteDate,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IMetaMetrics,
@@ -130,7 +129,7 @@ describe('useAnalytics', () => {
     expect(createEventBuilder).toBe(AnalyticsEventBuilder.createEventBuilder);
   });
 
-  it('tracks events through analytics and updates data recording flag', () => {
+  it('tracks events through analytics', () => {
     const event: AnalyticsTrackingEvent = {
       name: 'test-event',
       properties: {},
@@ -154,6 +153,27 @@ describe('useAnalytics', () => {
     );
     expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(false);
     expect(analytics.trackEvent).toHaveBeenCalledWith(mockAnalyticsEvent);
+  });
+
+  it('updates data recording flag', () => {
+    const event: AnalyticsTrackingEvent = {
+      name: 'test-event',
+      properties: {},
+      sensitiveProperties: {},
+      saveDataRecording: true,
+      get isAnonymous() {
+        return false;
+      },
+      get hasProperties() {
+        return false;
+      },
+    };
+    const { result } = renderHook(() => useAnalytics());
+
+    act(() => {
+      result.current.trackEvent(event, false);
+    });
+
     expect(mockMetaMetrics.updateDataRecordingFlag).toHaveBeenCalledWith(false);
   });
 
@@ -188,33 +208,57 @@ describe('useAnalytics', () => {
     expect(analytics.identify).toHaveBeenCalledWith(userTraits);
   });
 
-  it('delegates data deletion methods to MetaMetrics', async () => {
+  it('delegates createDataDeletionTask to MetaMetrics', async () => {
     const { result } = renderHook(() => useAnalytics());
 
     let deletionTask: IDeleteRegulationResponse | undefined;
-    let dataDeleteStatus: IDeleteRegulationStatus | undefined;
-    let deletionDate: DataDeleteDate | undefined;
-    let regulationId: string | undefined;
-    let isDataRecordedValue: boolean | undefined;
 
     await act(async () => {
       deletionTask = await result.current.createDataDeletionTask();
-      dataDeleteStatus = await result.current.checkDataDeleteStatus();
-      deletionDate = result.current.getDeleteRegulationCreationDate();
-      regulationId = result.current.getDeleteRegulationId();
-      isDataRecordedValue = result.current.isDataRecorded();
     });
 
     expect(mockMetaMetrics.createDataDeletionTask).toHaveBeenCalledTimes(1);
     expect(deletionTask).toEqual(expectedDataDeletionTaskResponse);
+  });
+
+  it('delegates checkDataDeleteStatus to MetaMetrics', async () => {
+    const { result } = renderHook(() => useAnalytics());
+
+    let dataDeleteStatus: IDeleteRegulationStatus | undefined;
+
+    await act(async () => {
+      dataDeleteStatus = await result.current.checkDataDeleteStatus();
+    });
+
     expect(mockMetaMetrics.checkDataDeleteStatus).toHaveBeenCalledTimes(1);
     expect(dataDeleteStatus).toEqual(expectedDataDeleteStatus);
+  });
+
+  it('delegates getDeleteRegulationCreationDate to MetaMetrics', () => {
+    const { result } = renderHook(() => useAnalytics());
+
+    const deletionDate = result.current.getDeleteRegulationCreationDate();
+
     expect(
       mockMetaMetrics.getDeleteRegulationCreationDate,
     ).toHaveBeenCalledTimes(1);
     expect(deletionDate).toEqual(expectedDate);
+  });
+
+  it('delegates getDeleteRegulationId to MetaMetrics', () => {
+    const { result } = renderHook(() => useAnalytics());
+
+    const regulationId = result.current.getDeleteRegulationId();
+
     expect(mockMetaMetrics.getDeleteRegulationId).toHaveBeenCalledTimes(1);
     expect(regulationId).toEqual(expectedDataDeleteRegulationId);
+  });
+
+  it('delegates isDataRecorded to MetaMetrics', () => {
+    const { result } = renderHook(() => useAnalytics());
+
+    const isDataRecordedValue = result.current.isDataRecorded();
+
     expect(mockMetaMetrics.isDataRecorded).toHaveBeenCalledTimes(1);
     expect(isDataRecordedValue).toBe(true);
   });
