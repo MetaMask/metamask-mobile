@@ -17,6 +17,14 @@ const mockStyles = {
   },
 };
 
+const tokenWithRwaData = {
+  address: '0x123',
+  rwaData: {
+    instrumentType: 'stock',
+    market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
+  },
+};
+
 jest.mock('../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({ styles: mockStyles })),
 }));
@@ -71,15 +79,14 @@ describe('StockBadge', () => {
   describe('clock icon visibility', () => {
     it('displays clock icon when trading is NOT open', async () => {
       mockIsTokenTradingOpen.mockResolvedValue(false);
-      const tokenWithRwaData = {
-        rwaData: {
-          instrumentType: 'stock',
-          market: { nextOpen: '2024-01-02', nextClose: '2024-01-01' },
-        },
-      };
 
       const { UNSAFE_queryByProps } = render(
-        <StockBadge token={tokenWithRwaData} />,
+        <StockBadge
+          token={{
+            ...tokenWithRwaData,
+            market: { nextOpen: '2024-01-02', nextClose: '2024-01-01' },
+          }}
+        />,
       );
 
       await waitFor(() => {
@@ -90,12 +97,6 @@ describe('StockBadge', () => {
 
     it('does NOT display clock icon when trading IS open', async () => {
       mockIsTokenTradingOpen.mockResolvedValue(true);
-      const tokenWithRwaData = {
-        rwaData: {
-          instrumentType: 'stock',
-          market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
-        },
-      };
 
       const { UNSAFE_queryByProps } = render(
         <StockBadge token={tokenWithRwaData} />,
@@ -120,13 +121,6 @@ describe('StockBadge', () => {
   describe('token handling', () => {
     it('calls isTokenTradingOpen when token has rwaData', async () => {
       mockIsTokenTradingOpen.mockResolvedValue(true);
-      const tokenWithRwaData = {
-        address: '0x123',
-        rwaData: {
-          instrumentType: 'stock',
-          market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
-        },
-      };
 
       render(<StockBadge token={tokenWithRwaData} />);
 
@@ -181,15 +175,14 @@ describe('StockBadge', () => {
   describe('trading status updates', () => {
     it('updates icon visibility when trading status changes to closed', async () => {
       mockIsTokenTradingOpen.mockResolvedValue(false);
-      const tokenWithRwaData = {
-        rwaData: {
-          instrumentType: 'stock',
-          market: { nextOpen: '2024-01-02', nextClose: '2024-01-01' },
-        },
-      };
 
       const { UNSAFE_queryByProps } = render(
-        <StockBadge token={tokenWithRwaData} />,
+        <StockBadge
+          token={{
+            ...tokenWithRwaData,
+            market: { nextOpen: '2024-01-02', nextClose: '2024-01-01' },
+          }}
+        />,
       );
 
       await waitFor(() => {
@@ -200,12 +193,6 @@ describe('StockBadge', () => {
 
     it('updates icon visibility when trading status changes to open', async () => {
       mockIsTokenTradingOpen.mockResolvedValue(true);
-      const tokenWithRwaData = {
-        rwaData: {
-          instrumentType: 'stock',
-          market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
-        },
-      };
 
       const { UNSAFE_queryByProps, getByText } = render(
         <StockBadge token={tokenWithRwaData} />,
