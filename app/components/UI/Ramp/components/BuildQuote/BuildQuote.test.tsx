@@ -71,7 +71,6 @@ jest.mock('../PaymentSelectionModal', () => ({
     'RampPaymentSelectionModal',
   ],
 }));
-
 interface MockUserRegion {
   country: {
     currency: string;
@@ -219,7 +218,6 @@ describe('BuildQuote', () => {
       'RampPaymentSelectionModal',
     );
   });
-
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
     mockTokens = {
       allTokens: [],

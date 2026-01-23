@@ -1210,6 +1210,9 @@ describe('PerpsStreamManager', () => {
       mockEngine.context.PerpsController.getActiveProvider = jest
         .fn()
         .mockReturnValue(mockProvider);
+      mockEngine.context.PerpsController.getActiveProviderOrNull = jest
+        .fn()
+        .mockReturnValue(mockProvider);
     });
 
     afterEach(() => {
