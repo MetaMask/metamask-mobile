@@ -35,9 +35,17 @@ const getNetworkClientIdForChainId = (chainId: Hex) => {
 };
 
 export function isDeeplinkRedesignedConfirmationCompatible(
-  _functionName?: string,
+  functionName?: string,
 ) {
-  return true;
+  switch (functionName) {
+    case ETH_ACTIONS.APPROVE: {
+      return false;
+    }
+    case ETH_ACTIONS.TRANSFER:
+    default: {
+      return true;
+    }
+  }
 }
 
 // This will prevent back to back deeplink requests

@@ -1,51 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
-
+import React, { useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect, useSelector } from 'react-redux';
-import { ethers } from 'ethers';
-import abi from 'human-standard-token-abi';
 
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
-import {
-  setEtherTransaction,
-  setTransactionObject,
-} from '../../../actions/transaction';
 import WalletConnect from '../../../core/WalletConnect/WalletConnect';
-import {
-  getMethodData,
-  TOKEN_METHOD_TRANSFER,
-  getTokenValueParam,
-  getTokenAddressParam,
-  calcTokenAmount,
-  getTokenValueParamAsHex,
-  getIsSwapApproveOrSwapTransaction,
-} from '../../../util/transactions';
-import BN from 'bnjs4';
+import { getIsSwapApproveOrSwapTransaction } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { isHardwareAccount, areAddressesEqual } from '../../../util/address';
-
-import {
-  selectEvmChainId,
-  selectProviderType,
-} from '../../../selectors/networkController';
+import { isHardwareAccount } from '../../../util/address';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 import ConnectApproval from '../../Approvals/ConnectApproval';
-
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectTokens } from '../../../selectors/tokensController';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -63,13 +37,8 @@ import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomName
 import { getIsBridgeTransaction } from '../../UI/Bridge/utils/transaction';
 ///: END:ONLY_INCLUDE_IF
 
-const hstInterface = new ethers.utils.Interface(abi);
-
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const tokenList = useSelector(selectTokenList);
-  const setTransactionObject = props.setTransactionObject;
-  const setEtherTransaction = props.setEtherTransaction;
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
@@ -171,99 +140,14 @@ const RootRPCMethodsUI = (props) => {
           data,
           transactionMeta.origin,
           to,
-          props.chainId,
+          transactionMeta.chainId,
         ) ||
         getIsBridgeTransaction(transactionMeta)
       ) {
         autoSign(transactionMeta);
-      } else {
-        const {
-          chainId,
-          networkClientId,
-          txParams: { value, gas, gasPrice, data },
-        } = transactionMeta;
-        const { AssetsContractController } = Engine.context;
-        transactionMeta.txParams.gas = hexToBN(gas);
-        transactionMeta.txParams.gasPrice = gasPrice && hexToBN(gasPrice);
-
-        if (
-          (value === '0x0' || !value) &&
-          data &&
-          data !== '0x' &&
-          to &&
-          (await getMethodData(data, networkClientId)).name ===
-            TOKEN_METHOD_TRANSFER
-        ) {
-          let asset = props.tokens.find(({ address }) =>
-            areAddressesEqual(address, to),
-          );
-          if (!asset) {
-            // try to lookup contract by lowercased address `to`
-            asset = tokenList[to];
-
-            if (!asset) {
-              try {
-                asset = {};
-                asset.decimals =
-                  await AssetsContractController.getERC20TokenDecimals(to);
-                asset.symbol =
-                  await AssetsContractController.getERC721AssetSymbol(to);
-                // adding `to` here as well
-                asset.address = to;
-              } catch (e) {
-                // This could fail when requesting a transfer in other network
-                // adding `to` here as well
-                asset = { symbol: 'ERC20', decimals: new BN(0), address: to };
-              }
-            }
-          }
-
-          const tokenData = hstInterface.parseTransaction({ data });
-          const tokenValue = getTokenValueParam(tokenData);
-          const toAddress = getTokenAddressParam(tokenData);
-          const tokenAmount =
-            tokenData && calcTokenAmount(tokenValue, asset.decimals).toFixed();
-
-          transactionMeta.txParams.value = hexToBN(
-            getTokenValueParamAsHex(tokenData),
-          );
-          transactionMeta.txParams.readableValue = tokenAmount;
-          transactionMeta.txParams.to = toAddress;
-
-          setTransactionObject({
-            selectedAsset: asset,
-            id: transactionMeta.id,
-            origin: transactionMeta.origin,
-            securityAlertResponse: transactionMeta.securityAlertResponse,
-            networkClientId,
-            chainId,
-            ...transactionMeta.txParams,
-          });
-        } else {
-          transactionMeta.txParams.value = hexToBN(value);
-          transactionMeta.txParams.readableValue = fromWei(
-            transactionMeta.txParams.value,
-          );
-
-          setEtherTransaction({
-            id: transactionMeta.id,
-            origin: transactionMeta.origin,
-            securityAlertResponse: transactionMeta.securityAlertResponse,
-            chainId,
-            networkClientId,
-            ...transactionMeta.txParams,
-          });
-        }
       }
     },
-    [
-      props.chainId,
-      props.tokens,
-      autoSign,
-      setTransactionObject,
-      tokenList,
-      setEtherTransaction,
-    ],
+    [autoSign],
   );
 
   // unapprovedTransaction effect
@@ -282,12 +166,9 @@ const RootRPCMethodsUI = (props) => {
 
   useEffect(() => {
     initializeWalletConnect();
-
     return function cleanup() {
-      Engine.context.TokensController?.hub?.removeAllListeners();
       WalletConnect?.hub?.removeAllListeners();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -301,21 +182,9 @@ const RootRPCMethodsUI = (props) => {
       <PermissionApproval navigation={props.navigation} />
       <FlowLoaderModal />
       <TemplateConfirmationModal />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      }
       <InstallSnapApproval />
       <SnapDialogApproval />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      }
       <SnapAccountCustomNameApproval />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
     </React.Fragment>
   );
 };
@@ -325,35 +194,6 @@ RootRPCMethodsUI.propTypes = {
    * Object that represents the navigator
    */
   navigation: PropTypes.object,
-  /**
-   * Action that sets an ETH transaction
-   */
-  setEtherTransaction: PropTypes.func,
-  /**
-   * Action that sets a transaction
-   */
-  setTransactionObject: PropTypes.func,
-  /**
-   * Array of ERC20 assets
-   */
-  tokens: PropTypes.array,
-  /**
-   * Chain id
-   */
-  chainId: PropTypes.string,
 };
 
-const mapStateToProps = (state) => ({
-  chainId: selectEvmChainId(state),
-  tokens: selectTokens(state),
-  providerType: selectProviderType(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  setEtherTransaction: (transaction) =>
-    dispatch(setEtherTransaction(transaction)),
-  setTransactionObject: (transaction) =>
-    dispatch(setTransactionObject(transaction)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);
+export default RootRPCMethodsUI;

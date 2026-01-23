@@ -2,7 +2,7 @@ import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
-import { REDESIGNED_SIGNATURE_TYPES } from '../constants/confirmations';
+import { SIGNATURE_APPROVAL_TYPES } from '../constants/confirmations';
 
 export const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 
@@ -40,7 +40,7 @@ export function isStakingConfirmation(requestType: string) {
  * @returns true if the approval should use the redesigned confirmation flow
  */
 export function isRedesignedConfirmationType(approvalType: string): boolean {
-  if (REDESIGNED_SIGNATURE_TYPES.includes(approvalType as ApprovalType)) {
+  if (SIGNATURE_APPROVAL_TYPES.includes(approvalType as ApprovalType)) {
     return true;
   }
 

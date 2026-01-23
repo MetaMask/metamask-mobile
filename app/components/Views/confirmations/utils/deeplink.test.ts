@@ -65,14 +65,13 @@ jest.mock('uuid', () => ({
 }));
 
 describe('isDeeplinkRedesignedConfirmationCompatible', () => {
-  it('returns true for all confirmation types', () => {
+  it('returns false for approve and true for transfer', () => {
     expect(
       isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.TRANSFER),
     ).toBe(true);
     expect(
       isDeeplinkRedesignedConfirmationCompatible(ETH_ACTIONS.APPROVE),
-    ).toBe(true);
-    expect(isDeeplinkRedesignedConfirmationCompatible()).toBe(true);
+    ).toBe(false);
   });
 });
 
