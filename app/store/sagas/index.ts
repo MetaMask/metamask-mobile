@@ -112,7 +112,7 @@ export function* appLockStateMachine() {
     }
 
     // Start new app state listener for prompting authentication when the app is foregrounded.
-    appStateListener = yield call(appStateListenerTask);
+    appStateListener = yield fork(appStateListenerTask);
   }
 }
 
