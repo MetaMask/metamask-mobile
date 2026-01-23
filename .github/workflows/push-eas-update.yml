@@ -307,34 +307,43 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validate artifact compatibility
-        uses: ./.github/actions/validate-artifact-compatibility
-        with:
-          artifact-name: ${{ env.ARTIFACT_NAME }}
-          artifact-prefix: node-modules-eas-update-pr
-          validation-context: artifact
+      # - name: Validate artifact compatibility
+      #   uses: ./.github/actions/validate-artifact-compatibility
+      #   with:
+      #     artifact-name: ${{ env.ARTIFACT_NAME }}
+      #     artifact-prefix: node-modules-eas-update-pr
+      #     validation-context: artifact
 
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
+      # - name: Download node_modules artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ env.ARTIFACT_NAME }}
 
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
+      # - name: Restore executable permissions
+      #   uses: ./.github/actions/restore-node-modules-permissions
 
-      - name: Verify downloaded artifacts
+      # - name: Verify downloaded artifacts
+      #   run: |
+      #     echo "✅ Verifying downloaded artifacts..."
+      #     if [ ! -d "node_modules" ]; then
+      #       echo "❌ node_modules directory not found"
+      #       exit 1
+      #     fi
+      #     if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+      #       echo "❌ InpageBridgeWeb3.js not found in artifact"
+      #       exit 1
+      #     fi
+      #     echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+      #     echo "✅ Artifacts verified"
+      - name: Install dependencies
         run: |
-          echo "✅ Verifying downloaded artifacts..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
-            echo "❌ InpageBridgeWeb3.js not found in artifact"
-            exit 1
-          fi
-          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified"
+          echo "📦 Installing dependencies..."
+          yarn install --immutable
+
+      - name: Setup project
+        run: |
+          echo "🔧 Running setup for GitHub CI..."
+          yarn setup:github-ci
 
       - name: Determine signing secret name
         shell: bash
