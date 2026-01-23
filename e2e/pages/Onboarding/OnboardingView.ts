@@ -1,6 +1,6 @@
 import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
 
 class OnboardingView {
   get container(): DetoxElement {

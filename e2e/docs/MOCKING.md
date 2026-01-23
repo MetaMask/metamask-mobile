@@ -6,7 +6,7 @@ This guide explains how to mock APIs in MetaMask Mobile E2E tests. The mocking s
 
 The E2E mocking system consists of three main components:
 
-1. **Default Mocks** (`e2e/api-mocking/mock-responses/defaults/`) - Shared mocks used across all tests
+1. **Default Mocks** (`tests/api-mocking/mock-responses/defaults/`) - Shared mocks used across all tests
 2. **Test-Specific Mocks** - Custom mocks defined within individual test files
 
 ### How Mocking Works
@@ -18,7 +18,7 @@ The E2E mocking system consists of three main components:
 
 ## Default Mocks
 
-Default mocks are organized by API category in `e2e/api-mocking/mock-responses/defaults/`:
+Default mocks are organized by API category in `tests/api-mocking/mock-responses/defaults/`:
 
 ```
 defaults/
@@ -147,7 +147,7 @@ await withFixtures(
 
 ## Mock Helper Functions
 
-The `e2e/api-mocking/mockHelpers.ts` file provides several utilities for mocking:
+The `tests/api-mocking/mockHelpers.ts` file provides several utilities for mocking:
 
 ### setupMockRequest
 
@@ -298,7 +298,7 @@ MetaMask Mobile uses remote feature flags to control features dynamically. The E
 
 ### setupRemoteFeatureFlagsMock Helper
 
-Use `setupRemoteFeatureFlagsMock` from `e2e/api-mocking/helpers/remoteFeatureFlagsHelper` to mock feature flags:
+Use `setupRemoteFeatureFlagsMock` from `tests/api-mocking/helpers/remoteFeatureFlagsHelper` to mock feature flags:
 
 ```typescript
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -314,7 +314,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 
 ### Predefined Feature Flag Mocks
 
-Common feature flag configurations are available in `e2e/api-mocking/mock-responses/feature-flags-mocks.ts`:
+Common feature flag configurations are available in `tests/api-mocking/mock-responses/feature-flags-mocks.ts`:
 
 ```typescript
 import {

@@ -1,11 +1,11 @@
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import FundActionMenu from '../../pages/UI/FundActionMenu';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { RegressionTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
 import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
@@ -13,11 +13,14 @@ import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
-import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import Matchers from '../../framework/Matchers';
+import SoftAssert from '../../../tests/framework/SoftAssert';
+import {
+  RampsRegions,
+  RampsRegionsEnum,
+} from '../../../tests/framework/Constants';
+import Matchers from '../../../tests/framework/Matchers';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../../tests/api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 const eventsToCheck: EventPayload[] = [];
 

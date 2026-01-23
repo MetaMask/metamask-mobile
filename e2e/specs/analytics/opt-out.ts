@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
+import Assertions from '../../../tests/framework/Assertions';
 import { RegressionWalletPlatform } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -14,7 +14,7 @@ import {
   getEventsPayloads,
   onboardingEvents,
 } from './helpers';
-import SoftAssert from '../../framework/SoftAssert';
+import SoftAssert from '../../../tests/framework/SoftAssert';
 
 describe(
   RegressionWalletPlatform(
