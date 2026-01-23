@@ -202,7 +202,7 @@ describe(
         options: {
           hardfork: 'prague' as Hardfork,
           loadState:
-            './e2e/specs/confirmations-redesigned/transactions/7702/withDelegatorContracts.json',
+            './e2e/specs/confirmations/transactions/7702/withDelegatorContracts.json',
         },
       },
     ];
