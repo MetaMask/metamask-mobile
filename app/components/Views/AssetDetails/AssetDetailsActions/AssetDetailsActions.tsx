@@ -48,6 +48,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onBuy,
   goToSwaps,
   onSend,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onReceive,
   asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
@@ -135,8 +136,12 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   }, [withNavigationLock, onSend]);
 
   const handleReceivePress = useCallback(() => {
-    withNavigationLock(onReceive);
-  }, [withNavigationLock, onReceive]);
+    withNavigationLock(() => {
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.QUICK_CONVERT,
+      });
+    });
+  }, [withNavigationLock, navigation]);
 
   return (
     <View style={styles.activitiesButton}>
@@ -173,8 +178,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       </View>
       <View style={styles.buttonContainer}>
         <MainActionButton
-          iconName={IconName.Received}
-          label={strings('asset_overview.receive_button')}
+          iconName={IconName.Coin}
+          label={'Convert'}
           onPress={handleReceivePress}
           isDisabled={false}
           testID={receiveButtonActionID}
