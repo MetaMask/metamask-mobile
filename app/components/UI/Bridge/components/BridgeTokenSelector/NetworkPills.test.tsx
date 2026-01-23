@@ -4,6 +4,7 @@ import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { MOCK_CHAIN_IDS } from '../../testUtils/fixtures';
+import { TokenSelectorType } from '../../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -55,7 +56,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
-          type="source"
+          type={TokenSelectorType.Source}
         />,
       );
 
@@ -70,7 +71,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
-          type="dest"
+          type={TokenSelectorType.Dest}
         />,
       );
 
@@ -88,7 +89,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={MOCK_CHAIN_IDS.ethereum}
           onChainSelect={mockOnChainSelect}
-          type="source"
+          type={TokenSelectorType.Source}
         />,
       );
 
@@ -102,7 +103,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
-          type="source"
+          type={TokenSelectorType.Source}
         />,
       );
 
@@ -121,7 +122,7 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={selectedChainId as CaipChainId | undefined}
           onChainSelect={mockOnChainSelect}
-          type="source"
+          type={TokenSelectorType.Source}
         />,
       );
 

@@ -47,7 +47,7 @@ import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { BridgeToken } from '../../types';
+import { BridgeToken, TokenSelectorType } from '../../types';
 import { usePopularTokens, IncludeAsset } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
@@ -58,7 +58,7 @@ import Engine from '../../../../../core/Engine';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export interface BridgeTokenSelectorRouteParams {
-  type: 'source' | 'dest';
+  type: TokenSelectorType;
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -100,7 +100,9 @@ export const BridgeTokenSelector: React.FC = () => {
   const sourceChainRanking = useSelector(selectSourceChainRanking);
   const destChainRanking = useSelector(selectDestChainRanking);
   const enabledChainRanking =
-    route.params.type === 'source' ? sourceChainRanking : destChainRanking;
+    route.params.type === TokenSelectorType.Source
+      ? sourceChainRanking
+      : destChainRanking;
 
   // Set navigation options for header
   useEffect(() => {
@@ -120,7 +122,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Initialize selectedChainId with the chain id of the selected token
   const [selectedChainId, setSelectedChainId] = useState(
-    selectedToken?.chainId && route.params?.type === 'dest'
+    selectedToken?.chainId && route.params?.type === TokenSelectorType.Dest
       ? formatChainIdToCaip(selectedToken.chainId)
       : undefined,
   );
@@ -372,7 +374,7 @@ export const BridgeTokenSelector: React.FC = () => {
       }
 
       const isNoFeeAsset =
-        route.params?.type === 'source'
+        route.params?.type === TokenSelectorType.Source
           ? item.noFee?.isSource
           : item.noFee?.isDestination;
       return (

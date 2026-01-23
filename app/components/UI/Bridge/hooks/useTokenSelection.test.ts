@@ -5,6 +5,7 @@ import {
   setDestToken,
 } from '../../../../core/redux/slices/bridge';
 import { createMockToken } from '../testUtils/fixtures';
+import { TokenSelectorType } from '../types';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -48,7 +49,9 @@ describe('useTokenSelection', () => {
     });
 
     it('dispatches setSourceToken when selecting new source token', () => {
-      const { result } = renderHook(() => useTokenSelection('source'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
       const newToken = createMockToken({
         address: '0xnewtoken',
         symbol: 'NEW',
@@ -63,7 +66,9 @@ describe('useTokenSelection', () => {
     });
 
     it('swaps tokens when selecting current dest token as source', () => {
-      const { result } = renderHook(() => useTokenSelection('source'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
 
       act(() => {
         result.current.handleTokenPress(mockDestToken);
@@ -75,7 +80,9 @@ describe('useTokenSelection', () => {
     });
 
     it('returns source token as selectedToken', () => {
-      const { result } = renderHook(() => useTokenSelection('source'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
 
       expect(result.current.selectedToken).toBe(mockSourceToken);
     });
@@ -89,7 +96,9 @@ describe('useTokenSelection', () => {
     });
 
     it('dispatches setDestToken when selecting new dest token', () => {
-      const { result } = renderHook(() => useTokenSelection('dest'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Dest),
+      );
       const newToken = createMockToken({
         address: '0xnewdest',
         symbol: 'NEWDST',
@@ -104,7 +113,9 @@ describe('useTokenSelection', () => {
     });
 
     it('swaps tokens when selecting current source token as dest', () => {
-      const { result } = renderHook(() => useTokenSelection('dest'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Dest),
+      );
 
       act(() => {
         result.current.handleTokenPress(mockSourceToken);
@@ -116,7 +127,9 @@ describe('useTokenSelection', () => {
     });
 
     it('returns dest token as selectedToken', () => {
-      const { result } = renderHook(() => useTokenSelection('dest'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Dest),
+      );
 
       expect(result.current.selectedToken).toBe(mockDestToken);
     });
@@ -124,24 +137,35 @@ describe('useTokenSelection', () => {
 
   describe('edge cases', () => {
     it.each([
-      ['null source token', { source: null, dest: mockDestToken }, 'source'],
-      ['null dest token', { source: mockSourceToken, dest: null }, 'dest'],
-      ['both tokens null', { source: null, dest: null }, 'source'],
+      [
+        'null source token',
+        { source: null, dest: mockDestToken },
+        TokenSelectorType.Source,
+      ],
+      [
+        'null dest token',
+        { source: mockSourceToken, dest: null },
+        TokenSelectorType.Dest,
+      ],
+      [
+        'both tokens null',
+        { source: null, dest: null },
+        TokenSelectorType.Source,
+      ],
     ])('handles %s', (_, tokens, type) => {
       mockUseSelector
         .mockReturnValueOnce(tokens.source)
         .mockReturnValueOnce(tokens.dest);
 
-      const { result } = renderHook(() =>
-        useTokenSelection(type as 'source' | 'dest'),
-      );
+      const { result } = renderHook(() => useTokenSelection(type));
       const newToken = createMockToken();
 
       act(() => {
         result.current.handleTokenPress(newToken);
       });
 
-      const expectedAction = type === 'source' ? setSourceToken : setDestToken;
+      const expectedAction =
+        type === TokenSelectorType.Source ? setSourceToken : setDestToken;
       expect(mockDispatch).toHaveBeenCalledWith(expectedAction(newToken));
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -151,7 +175,9 @@ describe('useTokenSelection', () => {
         .mockReturnValueOnce(mockSourceToken)
         .mockReturnValueOnce(mockDestToken);
 
-      const { result } = renderHook(() => useTokenSelection('source'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
       const sameAddressToken = createMockToken({
         address: mockDestToken.address,
         chainId: '0x5',
@@ -172,7 +198,9 @@ describe('useTokenSelection', () => {
         .mockReturnValueOnce(mockSourceToken)
         .mockReturnValueOnce(mockDestToken);
 
-      const { result } = renderHook(() => useTokenSelection('source'));
+      const { result } = renderHook(() =>
+        useTokenSelection(TokenSelectorType.Source),
+      );
       const sameChainToken = createMockToken({
         address: '0xdifferent',
         chainId: mockDestToken.chainId,
