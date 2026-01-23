@@ -68,7 +68,7 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
 jest.mock('../PaymentSelectionModal', () => ({
   createPaymentSelectionModalNavigationDetails: () => [
     'RampModals',
-    'RampPaymentSelectionModal',
+    { screen: 'RampPaymentSelectionModal', params: undefined },
   ],
 }));
 interface MockUserRegion {
@@ -213,10 +213,10 @@ describe('BuildQuote', () => {
 
     fireEvent.press(getByTestId('payment-method-pill'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'RampModals',
-      'RampPaymentSelectionModal',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
+      screen: 'RampPaymentSelectionModal',
+      params: undefined,
+    });
   });
   it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
     mockTokens = {
