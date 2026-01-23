@@ -57,43 +57,45 @@ function Settings() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScreenLayout scrollable>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content>
-            <Row first>
-              <Text variant={TextVariant.BodyLGMedium}>
-                {strings('app_settings.fiat_on_ramp.current_region')}
-              </Text>
+          <ScreenLayout.Body>
+            <ScreenLayout.Content>
+              <Row first>
+                <Text variant={TextVariant.BodyLGMedium}>
+                  {strings('app_settings.fiat_on_ramp.current_region')}
+                </Text>
 
-              <ListItem>
-                <ListItemColumn>
-                  <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
-                </ListItemColumn>
-                <ListItemColumn>
-                  <Text>
-                    {selectedRegion
-                      ? selectedRegion.name
-                      : strings('app_settings.fiat_on_ramp.no_region_selected')}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-              {selectedRegion ? (
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  onPress={handleResetRegion}
-                  label={strings('app_settings.fiat_on_ramp.reset_region')}
-                />
-              ) : null}
-            </Row>
-            {isInternalBuild ? (
-              <Row>
-                <ActivationKeys />
+                <ListItem>
+                  <ListItemColumn>
+                    <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
+                  </ListItemColumn>
+                  <ListItemColumn>
+                    <Text>
+                      {selectedRegion
+                        ? selectedRegion.name
+                        : strings(
+                            'app_settings.fiat_on_ramp.no_region_selected',
+                          )}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+                {selectedRegion ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handleResetRegion}
+                    label={strings('app_settings.fiat_on_ramp.reset_region')}
+                  />
+                ) : null}
               </Row>
-            ) : null}
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-          </ScreenLayout>
+              {isInternalBuild ? (
+                <Row>
+                  <ActivationKeys />
+                </Row>
+              ) : null}
+            </ScreenLayout.Content>
+          </ScreenLayout.Body>
+        </ScreenLayout>
       </KeyboardAvoidingView>
     </>
   );
