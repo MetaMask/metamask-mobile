@@ -1325,6 +1325,33 @@ describe('HyperLiquidClientService', () => {
       expect(mockWsTransportReady).toHaveBeenCalledTimes(1); // Only the initial failed check
     });
 
+    it('cleans up resources when transport not ready after reconnect', async () => {
+      await service.initialize(mockWallet);
+
+      // Reset mocks after init
+      mockWsTransportReady.mockClear();
+
+      // Health check fails first, then transport ready fails after reconnection
+      mockWsTransportReady
+        .mockRejectedValueOnce(new Error('Connection lost')) // Health check fails
+        .mockRejectedValueOnce(new Error('Transport not ready')); // ensureTransportReady fails
+
+      // Trigger health check to initiate reconnection
+      jest.advanceTimersByTime(5000);
+
+      // Flush microtask queue multiple times to allow async operations to complete
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      for (let i = 0; i < 10; i++) {
+        await Promise.resolve();
+        jest.advanceTimersByTime(100);
+      }
+
+      // After cleanup, subscription client should be undefined
+      expect(service.getSubscriptionClient()).toBeUndefined();
+      // Connection state should be disconnected
+      expect(service.getConnectionState()).toBe('disconnected');
+    });
+
     it('handles connection drop when already connecting', async () => {
       await service.initialize(mockWallet);
 
