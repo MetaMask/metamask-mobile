@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { Hex, CaipChainId } from '@metamask/utils';
+import { Hex, CaipChainId, CaipAssetType } from '@metamask/utils';
 import { BtcAccountType } from '@metamask/keyring-api';
 import { useBalancesByAssetId } from './index';
 import { useTokensWithBalance } from '../useTokensWithBalance';
@@ -118,10 +118,14 @@ describe('useBalancesByAssetId', () => {
 
       expect(Object.keys(result.current.balancesByAssetId)).toHaveLength(1);
       expect(
-        result.current.balancesByAssetId['0x1/erc20:0xwithbalance'],
+        result.current.balancesByAssetId[
+          '0x1/erc20:0xwithbalance' as CaipAssetType
+        ],
       ).toBeDefined();
       expect(
-        result.current.balancesByAssetId['0x1/erc20:0xnobalance'],
+        result.current.balancesByAssetId[
+          '0x1/erc20:0xnobalance' as CaipAssetType
+        ],
       ).toBeUndefined();
     });
   });
@@ -149,10 +153,10 @@ describe('useBalancesByAssetId', () => {
       );
 
       expect(
-        result.current.balancesByAssetId['0x1/erc20:0xtoken1'],
+        result.current.balancesByAssetId['0x1/erc20:0xtoken1' as CaipAssetType],
       ).toBeDefined();
       expect(
-        result.current.balancesByAssetId['0xa/erc20:0xtoken2'],
+        result.current.balancesByAssetId['0xa/erc20:0xtoken2' as CaipAssetType],
       ).toBeDefined();
     });
 
@@ -171,7 +175,9 @@ describe('useBalancesByAssetId', () => {
       );
 
       expect(
-        result.current.balancesByAssetId['eip155:1/erc20:0xtoken1'],
+        result.current.balancesByAssetId[
+          'eip155:1/erc20:0xtoken1' as CaipAssetType
+        ],
       ).toBeDefined();
     });
   });
@@ -217,7 +223,9 @@ describe('useBalancesByAssetId', () => {
         }),
       );
 
-      expect(result.current.balancesByAssetId['0x1/erc20:0xtoken1']).toEqual({
+      expect(
+        result.current.balancesByAssetId['0x1/erc20:0xtoken1' as CaipAssetType],
+      ).toEqual({
         balance: '50.0',
         balanceFiat: undefined,
         tokenFiatAmount: undefined,
@@ -244,7 +252,11 @@ describe('useBalancesByAssetId', () => {
         }),
       );
 
-      expect(result.current.balancesByAssetId['0x1/erc20:0xbtctoken']).toEqual({
+      expect(
+        result.current.balancesByAssetId[
+          '0x1/erc20:0xbtctoken' as CaipAssetType
+        ],
+      ).toEqual({
         balance: '1.5',
         balanceFiat: '$45000',
         tokenFiatAmount: 45000,
