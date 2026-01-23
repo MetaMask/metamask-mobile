@@ -3,6 +3,10 @@ import {
   Text,
   TextColor,
   TextVariant,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -24,12 +28,14 @@ interface PredictMarketSportCardProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  onDismiss?: () => void;
 }
 
 const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  onDismiss,
 }) => {
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
@@ -63,6 +69,18 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         borderRadius={16}
         style={tw.style('w-full my-[8px]')}
       >
+        {onDismiss && (
+          <Box twClassName="absolute top-2 right-2 z-10">
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSize.Sm}
+              iconProps={{ color: IconColor.IconDefault }}
+              onPress={onDismiss}
+              testID={testID ? `${testID}-close-button` : undefined}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            />
+          </Box>
+        )}
         <Box twClassName="p-4">
           <Text
             variant={TextVariant.HeadingSm}
