@@ -10,7 +10,12 @@ export function useSecurityAlertResponse() {
   const signatureRequest = useSignatureRequest();
 
   // Get the ID from either transaction or signature request
-  const confirmationId = transactionMetadata?.id ?? signatureRequest?.id;
+  // For signatures, also check messageParams.requestId which contains the RPC request ID
+  // that ppom-util uses as the key when storing security alerts
+  const confirmationId =
+    transactionMetadata?.id ??
+    signatureRequest?.messageParams?.requestId?.toString() ??
+    signatureRequest?.id;
 
   const securityAlertResponse = useSelector((state: RootState) =>
     confirmationId
