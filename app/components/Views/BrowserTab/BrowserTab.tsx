@@ -191,45 +191,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     /**
      * GESTURE NAVIGATION SYSTEM
      *
-     * Two approaches available (controlled by USE_UNIFIED_GESTURE flag):
+     * Uses manualActivation(true) to control gesture activation based on touch position.
+     * All three gestures are handled by a single unified gesture handler:
      *
-     * UNIFIED APPROACH (USE_UNIFIED_GESTURE = true):
-     * - Single Pan gesture that works simultaneously with WebView's native scrolling
-     * - Uses Gesture.Native() + simultaneousWithExternalGesture()
-     * - Detects gesture type based on touch origin position
-     * - Cleaner component tree, no overlay views needed
+     * - Left edge swipe: Touch starts within 20px of left edge, swipe right to go back
+     * - Right edge swipe: Touch starts within 20px of right edge, swipe left to go forward
+     * - Pull-to-refresh: Only works when scrolled to top, pull down to refresh
      *
-     * OVERLAY APPROACH (USE_UNIFIED_GESTURE = false - fallback):
-     * - Three separate GestureDetectors with transparent overlay zones
-     * - More reliable but requires extra View components
-     * - Edge swipes: 20px wide zones on left/right edges
-     * - Pull zone: Full-width 100px zone at top
-     *
-     * Both approaches implement:
-     * 1. Left edge swipe (horizontal) → Go back in history
-     * 2. Right edge swipe (horizontal) → Go forward in history
-     * 3. Pull-to-refresh (vertical, top only) → Reload current page
+     * Key Technical Details:
+     * - Uses Gesture.Native() + simultaneousWithExternalGesture() to work with WebView
+     * - stateManager.activate() takes control from WebView for gesture zones
+     * - stateManager.fail() lets WebView handle non-gesture touches
+     * - Scroll position tracked via injected JavaScript (SCROLL_TRACKER_SCRIPT)
      */
-
-    // Feature flag to toggle between unified and overlay gesture approaches
-    const USE_UNIFIED_GESTURE = true;
 
     // Gesture constants
     const EDGE_THRESHOLD = 20; // pixels from edge to trigger
     const SWIPE_THRESHOLD = 0.3; // 30% of screen width to complete swipe
     const PULL_THRESHOLD = 80; // pixels to trigger refresh
-    const PULL_OVERLAY_HEIGHT = 100; // Height of pull zone at top
     const SCROLL_TOP_THRESHOLD = 5; // Threshold for "at top" detection (Android WebView quirk)
+    const PULL_ACTIVATION_ZONE = 50; // Only activate pull in top 50px of WebView (prevents interference with WebView interactions)
     const screenWidth = Dimensions.get('window').width;
 
     // Gesture state
-    const [isAtTop, setIsAtTop] = useState(true); // Tracks if WebView is scrolled to top
+    const [isAtTop, setIsAtTop] = useState(false); // Tracks if WebView is scrolled to top (starts false until confirmed by WebView)
     const [isRefreshing, setIsRefreshing] = useState(false); // Pull-to-refresh in progress
     const [shouldRefresh, setShouldRefresh] = useState(false); // State trigger for refresh
     const pullDistanceRef = useRef<number>(0); // Track pull distance for analytics
     const scrollY = useSharedValue(0); // Current scroll position from WebView
     const pullProgress = useSharedValue(0); // Pull animation progress (0-1.5)
     const isPulling = useSharedValue(false); // Pull gesture active state
+    const pullHapticTriggered = useSharedValue(false); // Track if haptic was triggered for current pull
     const swipeStartTime = useRef<number>(0);
     const swipeProgress = useSharedValue(0);
     const swipeDirection = useSharedValue<'back' | 'forward' | null>(null);
@@ -500,8 +492,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             const isRightEdge =
               x > screenWidth - EDGE_THRESHOLD && forwardEnabled;
             const currentlyAtTop = scrollY.value <= SCROLL_TOP_THRESHOLD;
-            const isTopZone =
-              y < PULL_OVERLAY_HEIGHT && currentlyAtTop && !isRefreshing;
+
+            // Pull-to-refresh: Only activate when touch is in top zone of WebView
+            // This prevents gesture interference with normal WebView interactions
+            // (e.g., tapping buttons, links) which was causing Android E2E test failures
+            const isInPullZone = y < PULL_ACTIVATION_ZONE;
+            const canPullToRefresh =
+              currentlyAtTop && !isRefreshing && isInPullZone;
 
             if (isLeftEdge) {
               // Left edge - prepare for back gesture
@@ -519,13 +516,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               swipeStartTime.current = Date.now();
               stateManager.activate();
               runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-            } else if (isTopZone) {
-              // Top zone - prepare for pull-to-refresh
+            } else if (canPullToRefresh) {
+              // Pull-to-refresh: Page is at top, allow gesture to activate
+              // We'll verify it's actually a downward pull in onUpdate
               gestureType.value = 'refresh';
               isPulling.value = true;
               pullProgress.value = 0;
+              pullHapticTriggered.value = false; // Reset haptic flag
               stateManager.activate();
-              runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+              // Don't trigger haptic yet - wait until we confirm downward movement
             } else {
               // Not in a gesture zone - let WebView handle it
               stateManager.fail();
@@ -553,11 +552,25 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 Math.abs(event.translationX) / swipeDistance,
                 1,
               );
-            } else if (
-              currentGestureType === 'refresh' &&
-              event.translationY > 0
-            ) {
-              // Downward pull for refresh
+            } else if (currentGestureType === 'refresh') {
+              // Pull-to-refresh gesture
+              if (event.translationY < 0) {
+                // Upward movement - cancel refresh gesture, let WebView handle scrolling
+                gestureType.value = null;
+                isPulling.value = false;
+                pullProgress.value = 0;
+                pullHapticTriggered.value = false;
+                runOnJS(resetPullAnimation)();
+                return;
+              }
+
+              // Downward pull confirmed - trigger haptic on first movement
+              if (!pullHapticTriggered.value && event.translationY > 10) {
+                pullHapticTriggered.value = true;
+                runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+              }
+
+              // Update pull progress
               pullProgress.value = Math.min(
                 event.translationY / PULL_THRESHOLD,
                 1.5,
@@ -611,6 +624,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             'worklet';
             gestureType.value = null;
             isPulling.value = false;
+            pullHapticTriggered.value = false;
             runOnJS(resetSwipeAnimation)();
             runOnJS(resetPullAnimation)();
           }),
@@ -637,169 +651,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const combinedWebViewGesture = useMemo(
       () => Gesture.Simultaneous(webViewNativeGesture, fullyUnifiedGesture),
       [webViewNativeGesture, fullyUnifiedGesture],
-    );
-
-    /**
-     * OVERLAY GESTURE APPROACH (Fallback)
-     *
-     * Three separate Pan gestures handle different navigation types:
-     * 1. leftEdgeGesture - Horizontal right-swipe from left 20px edge
-     * 2. rightEdgeGesture - Horizontal left-swipe from right 20px edge
-     * 3. pullToRefreshGesture - Vertical down-pull from top 100px zone
-     *
-     * Each gesture is attached to its own transparent overlay zone positioned
-     * absolutely above the WebView to intercept touches before WebView consumes them.
-     */
-
-    /**
-     * Pan gesture handler for left edge (back navigation)
-     * Detects right-swipe starting from left 20px edge
-     */
-    const leftEdgeGesture = useMemo(
-      () =>
-        Gesture.Pan()
-          .activeOffsetX([10, 1000]) // Only trigger on right swipe
-          .failOffsetY([-50, 50])
-          .onStart(() => {
-            swipeDirection.value = 'back';
-            swipeProgress.value = 0;
-            swipeStartTime.current = Date.now();
-            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-          })
-          .onUpdate((event) => {
-            const translationX = event.translationX;
-            // Only track positive (rightward) movement for back
-            if (translationX < 0) return;
-
-            const maxSwipeDistance = screenWidth * SWIPE_THRESHOLD;
-            const swipeProgressValue = Math.min(
-              translationX / maxSwipeDistance,
-              1,
-            );
-            swipeProgress.value = swipeProgressValue;
-          })
-          .onEnd((event) => {
-            const translationX = event.translationX;
-            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
-            const duration = Date.now() - swipeStartTime.current;
-
-            if (translationX >= swipeDistance) {
-              runOnJS(handleSwipeNavigation)('back', translationX, duration);
-            }
-
-            runOnJS(resetSwipeAnimation)();
-          })
-          .onFinalize(() => {
-            runOnJS(resetSwipeAnimation)();
-          }),
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [
-        screenWidth,
-        triggerHapticFeedback,
-        resetSwipeAnimation,
-        handleSwipeNavigation,
-      ],
-    );
-
-    /**
-     * Pan gesture handler for right edge (forward navigation)
-     * Detects left-swipe starting from right 20px edge
-     */
-    const rightEdgeGesture = useMemo(
-      () =>
-        Gesture.Pan()
-          .activeOffsetX([-1000, -10]) // Only trigger on left swipe
-          .failOffsetY([-50, 50])
-          .onStart(() => {
-            swipeDirection.value = 'forward';
-            swipeProgress.value = 0;
-            swipeStartTime.current = Date.now();
-            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-          })
-          .onUpdate((event) => {
-            const translationX = event.translationX;
-            // Only track negative (leftward) movement for forward
-            if (translationX > 0) return;
-
-            const maxSwipeDistance = screenWidth * SWIPE_THRESHOLD;
-            const swipeProgressValue = Math.min(
-              Math.abs(translationX) / maxSwipeDistance,
-              1,
-            );
-            swipeProgress.value = swipeProgressValue;
-          })
-          .onEnd((event) => {
-            const translationX = event.translationX;
-            const swipeDistance = screenWidth * SWIPE_THRESHOLD;
-            const duration = Date.now() - swipeStartTime.current;
-
-            if (translationX <= -swipeDistance) {
-              runOnJS(handleSwipeNavigation)(
-                'forward',
-                Math.abs(translationX),
-                duration,
-              );
-            }
-
-            runOnJS(resetSwipeAnimation)();
-          })
-          .onFinalize(() => {
-            runOnJS(resetSwipeAnimation)();
-          }),
-      [
-        screenWidth,
-        triggerHapticFeedback,
-        resetSwipeAnimation,
-        handleSwipeNavigation,
-        swipeDirection,
-        swipeProgress,
-      ],
-    );
-
-    /**
-     * Pan gesture handler for pull-to-refresh (vertical pull from top)
-     * Only activates when WebView is scrolled to top (isAtTop === true)
-     * Uses state-driven refresh trigger to avoid runOnJS crashes
-     */
-    const pullToRefreshGesture = useMemo(
-      () =>
-        Gesture.Pan()
-          .activeOffsetY([10, 1000]) // Only downward pulls (prevents upward scroll interference)
-          .failOffsetX([-20, 20]) // Fail if too much horizontal movement (prevents conflicts with edge swipes)
-          .onStart(() => {
-            if (!isAtTop || isRefreshing) return;
-            isPulling.value = true;
-            pullProgress.value = 0;
-            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-          })
-          .onUpdate((event) => {
-            if (!isPulling.value) return;
-            const translationY = event.translationY;
-            if (translationY < 0) return; // Only downward movement
-
-            pullProgress.value = Math.min(translationY / PULL_THRESHOLD, 1.5);
-          })
-          .onEnd((event) => {
-            'worklet';
-            if (!isPulling.value) {
-              runOnJS(resetPullAnimation)();
-              return;
-            }
-
-            const translationY = event.translationY;
-            if (translationY >= PULL_THRESHOLD) {
-              // Store distance for analytics before triggering refresh
-              pullDistanceRef.current = translationY;
-              runOnJS(setShouldRefresh)(true);
-            }
-            runOnJS(resetPullAnimation)();
-          })
-          .onFinalize(() => {
-            isPulling.value = false;
-            runOnJS(resetPullAnimation)();
-          }),
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [isAtTop, isRefreshing, triggerHapticFeedback, resetPullAnimation],
     );
 
     /**
@@ -1606,6 +1457,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       () =>
         isAtTop && (
           <Animated.View
+            pointerEvents="none"
             style={[
               styles.refreshIndicator,
               // eslint-disable-next-line react-native/no-inline-styles
@@ -1995,22 +1847,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 {renderRefreshIndicator()}
 
                 {/*
-                  FULLY UNIFIED GESTURE APPROACH (USE_UNIFIED_GESTURE = true)
+                  UNIFIED GESTURE NAVIGATION
 
                   Uses manualActivation(true) to control gesture activation based on
                   touch position. All three gestures (back, forward, refresh) are
                   handled by a single gesture handler - NO OVERLAYS NEEDED!
 
-                  OVERLAY GESTURE APPROACH (USE_UNIFIED_GESTURE = false - fallback)
-
-                  All gestures use transparent overlays positioned above WebView:
-                  1. Edge overlays (z-index: 9999) - 20px wide, left/right
-                  2. Pull overlay (z-index: 9998) - 100px tall, top only when scrollY === 0
-                  3. Refresh indicator (z-index: 9997) - Animated spinner
+                  Gesture zones:
+                  - Left edge (20px): Swipe right to go back
+                  - Right edge (20px): Swipe left to go forward
+                  - Top zone: Pull down to refresh (when scrolled to top)
                 */}
 
-                {/* FULLY UNIFIED APPROACH: Single gesture handles all interactions */}
-                {USE_UNIFIED_GESTURE && !!entryScriptWeb3 && firstUrlLoaded && (
+                {!!entryScriptWeb3 && firstUrlLoaded && (
                   <GestureDetector gesture={combinedWebViewGesture}>
                     <View style={styles.webview}>
                       <WebView
@@ -2058,104 +1907,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                       )}
                     </View>
                   </GestureDetector>
-                )}
-
-                {/* OVERLAY APPROACH (fallback): Separate gesture overlays */}
-                {!USE_UNIFIED_GESTURE && (
-                  <>
-                    {/* Top overlay for pull-to-refresh - only when scrolled to top */}
-                    {isAtTop && !isRefreshing && areGesturesEnabled && (
-                      <GestureDetector gesture={pullToRefreshGesture}>
-                        <View
-                          style={[
-                            styles.pullOverlay,
-                            { height: PULL_OVERLAY_HEIGHT },
-                          ]}
-                        />
-                      </GestureDetector>
-                    )}
-                    {!!entryScriptWeb3 && firstUrlLoaded && (
-                      <>
-                        <WebView
-                          originWhitelist={webViewOriginWhitelist}
-                          decelerationRate={0.998}
-                          ref={webviewRef}
-                          renderError={() => (
-                            <WebviewErrorComponent
-                              error={error}
-                              returnHome={returnHome}
-                            />
-                          )}
-                          source={{
-                            uri: prefixUrlWithProtocol(initialUrl),
-                            ...(isExternalLink
-                              ? { headers: { Cookie: '' } }
-                              : null),
-                          }}
-                          injectedJavaScriptBeforeContentLoaded={
-                            entryScriptWeb3
-                          }
-                          style={styles.webview}
-                          onLoadStart={handleWebviewNavigationChange(
-                            OnLoadStart,
-                          )}
-                          onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
-                          onLoadProgress={handleWebviewNavigationChange(
-                            OnLoadProgress,
-                          )}
-                          onNavigationStateChange={
-                            handleOnNavigationStateChange
-                          }
-                          onMessage={onMessage}
-                          onShouldStartLoadWithRequest={
-                            onShouldStartLoadWithRequest
-                          }
-                          allowsInlineMediaPlayback
-                          {...(process.env.IS_TEST === 'true'
-                            ? { javaScriptEnabled: true }
-                            : {})}
-                          testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
-                          applicationNameForUserAgent={'WebView MetaMaskMobile'}
-                          onFileDownload={handleOnFileDownload}
-                          webviewDebuggingEnabled={isTest}
-                          paymentRequestEnabled
-                        />
-                        {ipfsBannerVisible && (
-                          <IpfsBanner
-                            setIpfsBannerVisible={setIpfsBannerVisible}
-                          />
-                        )}
-                      </>
-                    )}
-
-                    {/* Edge gesture overlay zones - horizontal swipe navigation */}
-                    {areGesturesEnabled && (
-                      <>
-                        {/* Left edge for back gesture */}
-                        {backEnabled && (
-                          <GestureDetector gesture={leftEdgeGesture}>
-                            <View
-                              style={[
-                                styles.gestureOverlayLeft,
-                                { width: EDGE_THRESHOLD },
-                              ]}
-                            />
-                          </GestureDetector>
-                        )}
-                        {/* Right edge for forward gesture */}
-                        {forwardEnabled && (
-                          <GestureDetector gesture={rightEdgeGesture}>
-                            <View
-                              style={[
-                                styles.gestureOverlayRight,
-                                { width: EDGE_THRESHOLD },
-                              ]}
-                            />
-                          </GestureDetector>
-                        )}
-                      </>
-                    )}
-                  </>
                 )}
               </View>
               <UrlAutocomplete

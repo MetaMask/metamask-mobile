@@ -3,8 +3,6 @@ import { Theme } from '@metamask/design-tokens';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
-const TRANSPARENT = 'transparent';
-
 const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
   const getUrlModalContentPaddingTop = () => {
     if (Device.isAndroid()) {
@@ -88,32 +86,6 @@ const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
       left: 16,
       right: 16,
       borderRadius: 4,
-    },
-    gestureOverlayLeft: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      bottom: 0,
-      zIndex: 9999,
-      // eslint-disable-next-line react-native/no-color-literals
-      backgroundColor: TRANSPARENT, // DEBUG: Set to 'rgba(255, 0, 0, 0.3)' for visual debugging
-    },
-    gestureOverlayRight: {
-      position: 'absolute',
-      right: 0,
-      top: 0,
-      bottom: 0,
-      zIndex: 9999,
-      // eslint-disable-next-line react-native/no-color-literals
-      backgroundColor: TRANSPARENT, // DEBUG: Set to 'rgba(0, 0, 255, 0.3)' for visual debugging
-    },
-    pullOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: TRANSPARENT,
-      zIndex: 9998, // Below edge overlays (9999)
     },
     refreshIndicator: {
       position: 'absolute',
