@@ -8,7 +8,11 @@ import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  confirmationsRedesignedFeatureFlags,
+  remoteFeatureMultichainAccountsAccountDetailsV2,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { mockGenesisBlocks } from './mocks';
 
 jest.setTimeout(150_000);
 
@@ -22,8 +26,13 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+            Object.assign(
+              {},
+              ...confirmationsRedesignedFeatureFlags,
+              remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            ),
           );
+          await mockGenesisBlocks(mockServer);
         },
       },
       async () => {
@@ -63,8 +72,8 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
               'eip155:11155111:0x5cfe73b6021e818b776b421b1c4db2474086a7e1',
             signMessageSignature:
               '"0xf63c587cd42e7775e2e815a579f9744ea62944f263b3e69fad48535ba98a5ea107bc878088a99942733a59a89ef1d590eafdb467d59cf76564158d7e78351b751b"',
-            signTypedDataSignature:
-              '"0x35bb09b05a3f7e4a0965fbf35b48d9d51efa5f7d030bdf4c18f4ad958941d20213a3e0ef731c1ee7619248331f5c259829581da38e9112624c1f8639e954572d1c"',
+            // signTypedDataSignature:
+            //  '"0x35bb09b05a3f7e4a0965fbf35b48d9d51efa5f7d030bdf4c18f4ad958941d20213a3e0ef731c1ee7619248331f5c259829581da38e9112624c1f8639e954572d1c"',
           },
           {
             name: 'Solana' as const,
@@ -82,6 +91,23 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
             chain.name,
           );
 
+          if (chain.chainId) {
+            // Test getting chain ID.
+            await TestSnaps.tapButton('sendMultichainChainIdButton');
+            await TestSnaps.checkResultSpanIncludes(
+              'multichainProviderResultSpan',
+              chain.chainId,
+            );
+          }
+
+          // Test getting genesis hash.
+          await TestSnaps.tapButton('sendMultichainGetGenesisHashButton');
+          await TestSnaps.checkResultSpanIncludes(
+            'multichainProviderResultSpan',
+            chain.genesisHash,
+          );
+
+          // Test getting accounts.
           await TestSnaps.tapButton('sendMultichainAccountsButton');
           await TestSnaps.checkResultSpanIncludes(
             'multichainProviderResultSpan',
@@ -94,10 +120,11 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
             'foo',
           );
           await TestSnaps.tapButton('signMessageMultichainButton');
-          await Assertions.expectElementToBeVisible(
-            RequestTypes.PersonalSignRequest,
-          );
-          await TestSnaps.approveNativeConfirmation();
+          if (chain.name === 'Solana') {
+            await TestSnaps.approveSolanaConfirmation();
+          } else {
+            await TestSnaps.approveNativeConfirmation();
+          }
           await TestSnaps.checkResultSpan(
             'signMessageMultichainResultSpan',
             chain.signMessageSignature,

@@ -51,6 +51,12 @@ class TestSnaps {
     );
   }
 
+  get solanaConfirmButton(): DetoxElement {
+    return Matchers.getElementByID(
+      'confirm-sign-message-confirm-snap-footer-button',
+    );
+  }
+
   get footerButton(): DetoxElement {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
@@ -415,6 +421,10 @@ class TestSnaps {
 
   async approveNativeConfirmation() {
     await Gestures.tap(this.confirmSignatureButton);
+  }
+
+  async approveSolanaConfirmation() {
+    await Gestures.tap(this.solanaConfirmButton);
   }
 
   async waitForWebSocketUpdate(state: {
