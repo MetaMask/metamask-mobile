@@ -399,6 +399,7 @@ const PerpsHomeView = () => {
       <HeaderCenter
         title={strings('perps.title')}
         onBack={handleBackPress}
+        backButtonProps={{ testID: 'back-button' }}
         endButtonIconProps={[
           {
             iconName: IconName.Search,
