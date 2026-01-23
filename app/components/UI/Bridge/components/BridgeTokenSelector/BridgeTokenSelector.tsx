@@ -100,7 +100,7 @@ export const BridgeTokenSelector: React.FC = () => {
   const sourceChainRanking = useSelector(selectSourceChainRanking);
   const destChainRanking = useSelector(selectDestChainRanking);
   const enabledChainRanking =
-    route.params.type === TokenSelectorType.Source
+    route.params?.type === TokenSelectorType.Source
       ? sourceChainRanking
       : destChainRanking;
 
@@ -117,7 +117,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
-    route.params.type,
+    route.params?.type,
   );
 
   // Initialize selectedChainId with the chain id of the selected token
@@ -502,7 +502,7 @@ export const BridgeTokenSelector: React.FC = () => {
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
-          type={route.params.type}
+          type={route.params?.type}
         />
 
         <TextFieldSearch
