@@ -13,8 +13,7 @@ import {
   revokePermissionsHandler,
 } from '@metamask/eip1193-permission-middleware';
 import RPCMethods from './index.js';
-import { RPC } from '../../constants/network';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { toHex } from '@metamask/controller-utils';
 import {
   PermissionController,
   PermissionDoesNotExistError,
@@ -31,10 +30,6 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectEvmChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -47,7 +42,6 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
-import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import type { NetworkController } from '@metamask/network-controller';
 import requestEthereumAccounts from './eth-request-accounts';
 import {
@@ -189,12 +183,11 @@ export const checkActiveAccountAndChainId = async ({
       Engine.context as { NetworkController: NetworkController }
     ).NetworkController;
 
-    let activeChainId: string | undefined;
     const networkConfig =
       networkController.getNetworkConfigurationByNetworkClientId(
         networkClientId || '',
       );
-    activeChainId = networkConfig?.chainId;
+    const activeChainId = networkConfig?.chainId;
     if (!activeChainId) {
       throw rpcErrors.internal({
         message: `Failed to get active chainId.`,
@@ -713,7 +706,6 @@ export const getRpcMethodMiddleware = ({
             from?: string;
             chainId?: number;
           }) => {
-            // TODO this needs to be modified for per dapp selected network
             await checkActiveAccountAndChainId({
               hostname,
               address: from,
