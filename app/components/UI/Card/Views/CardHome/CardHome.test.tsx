@@ -504,6 +504,17 @@ function setupMockSelectors(
   });
 }
 
+// Default mock for externalWalletDetailsData with delegated tokens
+// (required for tests to reach "ready" state with VERIFIED KYC)
+const mockExternalWalletDetailsData = {
+  mappedWalletDetails: [
+    {
+      walletAddress: mockCurrentAddress,
+      tokens: [mockPriorityToken],
+    },
+  ],
+};
+
 // Helper: Setup useLoadCardData mock with custom values
 function setupLoadCardDataMock(
   overrides?: Partial<{
@@ -525,6 +536,7 @@ function setupLoadCardDataMock(
         | null;
       userId: string;
     } | null;
+    externalWalletDetailsData: typeof mockExternalWalletDetailsData | null;
   }>,
 ) {
   const defaults = {
@@ -538,6 +550,7 @@ function setupLoadCardDataMock(
     isBaanxLoginEnabled: true,
     isCardholder: true,
     kycStatus: { verificationState: 'VERIFIED' as const, userId: 'user-123' },
+    externalWalletDetailsData: mockExternalWalletDetailsData,
   };
 
   const config = { ...defaults, ...overrides };
@@ -627,6 +640,8 @@ describe('CardHome Component', () => {
       isCardholder: true,
       fetchAllData: mockFetchAllData,
       refetchAllData: mockRefetchAllData,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      externalWalletDetailsData: mockExternalWalletDetailsData,
     });
 
     mockUseAssetBalances.mockReturnValue(
@@ -1575,24 +1590,28 @@ describe('CardHome Component', () => {
   });
 
   describe('CardWarning Edge Cases', () => {
-    it('hides balance and asset when warning is NeedDelegation', () => {
-      // Given: warning is NeedDelegation
+    it('hides balance and asset actions when in setup_required state (NeedDelegation)', () => {
+      // Given: VERIFIED user without delegated tokens (NeedDelegation warning)
+      setupMockSelectors({ isAuthenticated: true });
       setupLoadCardDataMock({
         warning: CardStateWarning.NeedDelegation,
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        externalWalletDetailsData: null, // No delegated tokens
       });
 
       // When: component renders
       render();
 
-      // Then: balance and asset sections should be hidden
-      const balanceElement = screen.queryByTestId('balance-test-id');
-      const assetElement = screen.queryByTestId(
-        CardHomeSelectors.ADD_FUNDS_BUTTON,
-      );
-
-      // Elements might be rendered but hidden via styles
-      expect(balanceElement).toBeNull();
-      expect(assetElement).toBeNull();
+      // Then: balance and add funds button should not be shown, only enable card button
+      expect(screen.queryByTestId('balance-test-id')).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).toBeNull();
+      // Enable card button should be shown instead
+      expect(
+        screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+      ).toBeTruthy();
     });
 
     it('displays CardMessageBox when warning exists', () => {
@@ -2505,8 +2524,8 @@ describe('CardHome Component', () => {
     });
 
     describe('canEnableCard Logic', () => {
-      it('shows enable card button for VERIFIED user', () => {
-        // Given: VERIFIED user without a card
+      it('shows enable card button for VERIFIED user without delegated tokens', () => {
+        // Given: VERIFIED user without a card and without delegated tokens
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -2514,6 +2533,7 @@ describe('CardHome Component', () => {
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         render();
@@ -2588,25 +2608,25 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('disables card button when KYC status is loading', () => {
+      it('shows ready state with add funds button when VERIFIED user has delegated tokens and card details', () => {
+        // Given: VERIFIED user with card details and delegated tokens
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
-          warning: CardStateWarning.NoCard,
+          warning: null,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-          isLoading: true,
+          isLoading: false,
+          cardDetails: { type: CardType.VIRTUAL },
+          // Has delegated tokens (from defaults)
         });
 
         render();
 
-        // When loading, the button skeleton is shown instead
+        // Then: shows ready state with add funds button (not enable card)
         expect(
-          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
         ).toBeTruthy();
-        expect(
-          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeNull();
       });
 
       it('does not show enable card button when KYC status is null', () => {
@@ -2725,8 +2745,8 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('shows enable card button for VERIFIED user', () => {
-        // Given: VERIFIED user with NoCard warning
+      it('shows enable card button for VERIFIED user without delegated tokens', () => {
+        // Given: VERIFIED user with NoCard warning and no delegated tokens
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -2734,6 +2754,7 @@ describe('CardHome Component', () => {
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         render();
@@ -2753,6 +2774,7 @@ describe('CardHome Component', () => {
           warning: CardStateWarning.NoCard,
           kycStatus: null,
           isLoading: false,
+          externalWalletDetailsData: null,
         });
 
         render();
@@ -2780,7 +2802,7 @@ describe('CardHome Component', () => {
         ).toBeTruthy();
       });
 
-      it('shows enable assets button when warning is NeedDelegation and user is VERIFIED', () => {
+      it('shows enable card button when warning is NeedDelegation and user is VERIFIED', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -2788,16 +2810,17 @@ describe('CardHome Component', () => {
           warning: CardStateWarning.NeedDelegation,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         render();
 
         expect(
-          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+          screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
         ).toBeTruthy();
       });
 
-      it('does not show enable assets button when warning is NeedDelegation and user is PENDING', () => {
+      it('does not show enable card button when warning is NeedDelegation and user is PENDING', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -2805,16 +2828,18 @@ describe('CardHome Component', () => {
           warning: CardStateWarning.NeedDelegation,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         render();
 
+        // PENDING users go to kyc_pending state, not setup_required
         expect(
-          screen.queryByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
         ).toBeNull();
       });
 
-      it('shows skeleton when data is loading', () => {
+      it('shows KYC pending state when data is loading for PENDING user', () => {
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -2826,9 +2851,11 @@ describe('CardHome Component', () => {
 
         render();
 
+        // PENDING users go to kyc_pending state which shows ToS and Logout buttons
         expect(
-          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+          screen.getByTestId(CardHomeSelectors.CARD_TOS_ITEM),
         ).toBeTruthy();
+        expect(screen.getByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeTruthy();
       });
     });
 
@@ -2962,8 +2989,8 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('shows enable card button for VERIFIED user', () => {
-        // Given: VERIFIED user without card
+      it('shows enable card button for VERIFIED user without delegated tokens', () => {
+        // Given: VERIFIED user without card and without delegated tokens
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
@@ -2971,6 +2998,7 @@ describe('CardHome Component', () => {
           warning: CardStateWarning.NoCard,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         render();
@@ -3103,14 +3131,15 @@ describe('CardHome Component', () => {
           priorityToken: null,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           isLoading: false,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         // When: component renders
         render();
 
-        // Then: enable assets button is shown
+        // Then: enable card button is shown
         expect(
-          screen.getByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+          screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
         ).toBeTruthy();
       });
 
@@ -3124,14 +3153,15 @@ describe('CardHome Component', () => {
           priorityToken: null,
           kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
           isLoading: false,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         // When: component renders
         render();
 
-        // Then: enable assets button is NOT shown (PENDING users cannot enable)
+        // Then: enable card button is NOT shown (PENDING users go to kyc_pending state)
         expect(
-          screen.queryByTestId(CardHomeSelectors.ENABLE_ASSETS_BUTTON),
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
         ).toBeNull();
       });
 
@@ -3152,12 +3182,13 @@ describe('CardHome Component', () => {
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           fetchAllData: mockFetchAllData,
           refetchAllData: mockRefetchAllData,
+          externalWalletDetailsData: null, // No delegated tokens
         });
 
         // When: component renders and user presses enable card button
         render();
         const enableButton = screen.getByTestId(
-          CardHomeSelectors.ENABLE_ASSETS_BUTTON,
+          CardHomeSelectors.ENABLE_CARD_BUTTON,
         );
         fireEvent.press(enableButton);
 
@@ -3219,23 +3250,25 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('does not show card details button while loading', () => {
-        // Given: Loading state
+      it('shows card details button while loading when data is available', () => {
+        // Given: Loading state with card details and delegated tokens
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
           isAuthenticated: true,
           isBaanxLoginEnabled: true,
           cardDetails: { type: CardType.VIRTUAL },
           isLoading: true,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
 
         // When: component renders
         render();
 
-        // Then: card details button is not shown
+        // Then: card details button is shown because we have the data
+        // (loading state now shows skeleton for balance/actions but keeps available data)
         expect(
-          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-        ).toBeNull();
+          screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeTruthy();
       });
 
       it('shows card details button when authenticated user has a card', () => {

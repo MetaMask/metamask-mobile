@@ -74,6 +74,7 @@ export const CardSDKProvider = ({
       const cardSDK = new CardSDK({
         cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
         userCardLocation,
+        enableLogs: __DEV__,
       });
       setSdk(cardSDK);
     } else {

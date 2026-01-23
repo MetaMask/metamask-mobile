@@ -920,7 +920,11 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 8,
+                                  "justifyContent": "space-between",
                                   "marginTop": 16,
                                   "width": "100%",
                                 },
@@ -928,103 +932,87 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               ]
                             }
                           >
-                            <View
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "flexDirection": "row",
-                                    "gap": 8,
-                                    "justifyContent": "space-between",
-                                    "width": "100%",
-                                  },
-                                  undefined,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                  "width": "50%",
+                                }
                               }
+                              testID="add-funds-button"
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={false}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
+                              <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
-                                    "borderRadius": 12,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 16,
-                                    "width": "50%",
+                                    "color": "#121314",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
-                                testID="add-funds-button"
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Add funds
-                                </Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
+                                Add funds
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                  "width": "50%",
+                                }
+                              }
+                              testID="change-asset-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
-                                    "borderRadius": 12,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 16,
-                                    "width": "50%",
+                                    "color": "#121314",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
-                                testID="change-asset-button"
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  card.card_home.change_asset
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
+                                card.card_home.change_asset
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
                         <View
@@ -2263,7 +2251,11 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                             style={
                               [
                                 {
+                                  "alignItems": "center",
                                   "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 8,
+                                  "justifyContent": "space-between",
                                   "marginTop": 16,
                                   "width": "100%",
                                 },
@@ -2271,103 +2263,87 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               ]
                             }
                           >
-                            <View
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "flexDirection": "row",
-                                    "gap": 8,
-                                    "justifyContent": "space-between",
-                                    "width": "100%",
-                                  },
-                                  undefined,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                  "width": "50%",
+                                }
                               }
+                              testID="add-funds-button"
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={false}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
+                              <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
-                                    "borderRadius": 12,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 16,
-                                    "width": "50%",
+                                    "color": "#121314",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
-                                testID="add-funds-button"
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Add funds
-                                </Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
+                                Add funds
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                  "width": "50%",
+                                }
+                              }
+                              testID="change-asset-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
-                                    "borderRadius": 12,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 16,
-                                    "width": "50%",
+                                    "color": "#121314",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
-                                testID="change-asset-button"
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  card.card_home.change_asset
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
+                                card.card_home.change_asset
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
                         <View

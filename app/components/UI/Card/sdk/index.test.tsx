@@ -231,6 +231,7 @@ describe('CardSDK Context', () => {
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
         userCardLocation: null,
+        enableLogs: false,
       });
     });
 
@@ -342,6 +343,7 @@ describe('CardSDK Context', () => {
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
         userCardLocation: 'us',
+        enableLogs: false,
       });
     });
 
