@@ -707,9 +707,7 @@ describe('OAuthRehydration', () => {
   describe('biometric cancellation', () => {
     it('does not track REHYDRATION_PASSWORD_FAILED when Android biometric is cancelled', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Cancel'),
-      );
+      mockUnlockWallet.mockRejectedValue(new Error('Cancel'));
       mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -734,7 +732,7 @@ describe('OAuthRehydration', () => {
 
     it('does not track REHYDRATION_PASSWORD_FAILED when iOS biometric is cancelled', async () => {
       // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+      mockUnlockWallet.mockRejectedValue(
         new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
       );
       mockTrackOnboarding.mockClear();
