@@ -1882,7 +1882,7 @@ describe('AssetOverview', () => {
       mockUsePerpsMarketForAsset.mockReset();
     });
 
-    it('should NOT render Perps banner for token with insufficient aggregators', () => {
+    it('does NOT render Perps banner for token with insufficient aggregators', () => {
       // Mock: Perps enabled and market exists
       mockSelectPerpsEnabledFlag.mockReturnValue(true);
       mockUsePerpsMarketForAsset.mockReturnValue({
@@ -1902,11 +1902,11 @@ describe('AssetOverview', () => {
         { state: mockInitialState },
       );
 
-      // Banner should NOT be rendered
+      // Banner NOT rendered
       expect(queryByTestId('perps-discovery-banner')).toBeNull();
     });
 
-    it('should render Perps banner for native token regardless of aggregators', () => {
+    it('renders Perps banner for native token regardless of aggregators', () => {
       // Mock: Perps enabled and market exists
       mockSelectPerpsEnabledFlag.mockReturnValue(true);
       mockUsePerpsMarketForAsset.mockReturnValue({
@@ -1921,16 +1921,16 @@ describe('AssetOverview', () => {
         isETH: false,
       };
 
-      const { queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <AssetOverview asset={nativeToken} />,
         { state: mockInitialState },
       );
 
-      // Banner should be rendered for native tokens
-      expect(queryByTestId('perps-discovery-banner')).toBeTruthy();
+      // Banner rendered for native tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
     });
 
-    it('should render Perps banner for ETH token regardless of aggregators', () => {
+    it('renders Perps banner for ETH token regardless of aggregators', () => {
       // Mock: Perps enabled and market exists
       mockSelectPerpsEnabledFlag.mockReturnValue(true);
       mockUsePerpsMarketForAsset.mockReturnValue({
@@ -1945,16 +1945,16 @@ describe('AssetOverview', () => {
         isNative: false,
       };
 
-      const { queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <AssetOverview asset={ethToken} />,
         { state: mockInitialState },
       );
 
-      // Banner should be rendered for ETH tokens
-      expect(queryByTestId('perps-discovery-banner')).toBeTruthy();
+      // Banner rendered for ETH tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
     });
 
-    it('should render Perps banner for token with sufficient aggregators', () => {
+    it('renders Perps banner for token with sufficient aggregators', () => {
       // Mock: Perps enabled and market exists
       mockSelectPerpsEnabledFlag.mockReturnValue(true);
       mockUsePerpsMarketForAsset.mockReturnValue({
@@ -1969,16 +1969,16 @@ describe('AssetOverview', () => {
         isNative: false,
       };
 
-      const { queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <AssetOverview asset={tokenWithAggregators} />,
         { state: mockInitialState },
       );
 
-      // Banner should be rendered for tokens with sufficient aggregators
-      expect(queryByTestId('perps-discovery-banner')).toBeTruthy();
+      // Banner rendered for tokens with sufficient aggregators
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
     });
 
-    it('should NOT render Perps banner for token with only 1 aggregator', () => {
+    it('does NOT render Perps banner for token with only 1 aggregator', () => {
       // Mock: Perps enabled and market exists
       mockSelectPerpsEnabledFlag.mockReturnValue(true);
       mockUsePerpsMarketForAsset.mockReturnValue({
@@ -1998,7 +1998,7 @@ describe('AssetOverview', () => {
         { state: mockInitialState },
       );
 
-      // Banner should NOT be rendered - 1 aggregator is not enough
+      // Banner NOT rendered - 1 aggregator is not enough
       expect(queryByTestId('perps-discovery-banner')).toBeNull();
     });
   });

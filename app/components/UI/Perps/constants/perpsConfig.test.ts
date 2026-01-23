@@ -5,7 +5,7 @@ import {
 
 describe('isTokenTrustworthyForPerps', () => {
   describe('native assets', () => {
-    it('should return true for native asset (isNative: true)', () => {
+    it('returns true for native asset (isNative: true)', () => {
       const asset = {
         isNative: true,
         isETH: false,
@@ -15,7 +15,7 @@ describe('isTokenTrustworthyForPerps', () => {
       expect(isTokenTrustworthyForPerps(asset)).toBe(true);
     });
 
-    it('should return true for ETH asset (isETH: true)', () => {
+    it('returns true for ETH asset (isETH: true)', () => {
       const asset = {
         isNative: false,
         isETH: true,
@@ -25,7 +25,7 @@ describe('isTokenTrustworthyForPerps', () => {
       expect(isTokenTrustworthyForPerps(asset)).toBe(true);
     });
 
-    it('should return true for native asset even with no aggregators', () => {
+    it('returns true for native asset even with no aggregators', () => {
       const asset = {
         isNative: true,
         aggregators: [],
@@ -36,7 +36,7 @@ describe('isTokenTrustworthyForPerps', () => {
   });
 
   describe('non-native assets with aggregators', () => {
-    it('should return true when aggregators count equals minimum threshold', () => {
+    it('returns true when aggregators count equals minimum threshold', () => {
       const asset = {
         isNative: false,
         isETH: false,
@@ -46,7 +46,7 @@ describe('isTokenTrustworthyForPerps', () => {
       expect(isTokenTrustworthyForPerps(asset)).toBe(true);
     });
 
-    it('should return true when aggregators count exceeds minimum threshold', () => {
+    it('returns true when aggregators count exceeds minimum threshold', () => {
       const asset = {
         isNative: false,
         isETH: false,
@@ -56,7 +56,7 @@ describe('isTokenTrustworthyForPerps', () => {
       expect(isTokenTrustworthyForPerps(asset)).toBe(true);
     });
 
-    it('should return false when aggregators count is below minimum threshold', () => {
+    it('returns false when aggregators count is below minimum threshold', () => {
       const asset = {
         isNative: false,
         isETH: false,
@@ -66,7 +66,7 @@ describe('isTokenTrustworthyForPerps', () => {
       expect(isTokenTrustworthyForPerps(asset)).toBe(false);
     });
 
-    it('should return false when aggregators is empty', () => {
+    it('returns false when aggregators is empty', () => {
       const asset = {
         isNative: false,
         isETH: false,
@@ -78,7 +78,7 @@ describe('isTokenTrustworthyForPerps', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle undefined aggregators', () => {
+    it('handles undefined aggregators', () => {
       const asset = {
         isNative: false,
         isETH: false,
@@ -88,13 +88,13 @@ describe('isTokenTrustworthyForPerps', () => {
       expect(isTokenTrustworthyForPerps(asset)).toBe(false);
     });
 
-    it('should handle missing properties', () => {
+    it('handles missing properties', () => {
       const asset = {};
 
       expect(isTokenTrustworthyForPerps(asset)).toBe(false);
     });
 
-    it('should handle asset with only aggregators property', () => {
+    it('handles asset with only aggregators property', () => {
       const asset = {
         aggregators: ['CoinGecko', 'CoinMarketCap'],
       };
@@ -105,11 +105,11 @@ describe('isTokenTrustworthyForPerps', () => {
 });
 
 describe('PERPS_MIN_AGGREGATORS_FOR_TRUST', () => {
-  it('should be defined and be a number', () => {
+  it('is defined and is a number', () => {
     expect(typeof PERPS_MIN_AGGREGATORS_FOR_TRUST).toBe('number');
   });
 
-  it('should be 2', () => {
+  it('equals 2', () => {
     expect(PERPS_MIN_AGGREGATORS_FOR_TRUST).toBe(2);
   });
 });
