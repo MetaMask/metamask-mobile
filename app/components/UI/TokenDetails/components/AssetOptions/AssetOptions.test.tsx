@@ -4,14 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import AssetOptions from './AssetOptions';
 
-import { TokenI } from '../../UI/Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import Engine from '../../../core/Engine';
-import NotificationManager from '../../../core/NotificationManager';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import Logger from '../../../util/Logger';
-import { removeNonEvmToken } from '../../UI/Tokens/util';
+import Engine from '../../../../../core/Engine';
+import NotificationManager from '../../../../../core/NotificationManager';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import Logger from '../../../../../util/Logger';
+import { removeNonEvmToken } from '../../../Tokens/util';
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(() => '1'),

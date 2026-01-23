@@ -8,34 +8,37 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import Engine from '../../../core/Engine';
-import NotificationManager from '../../../core/NotificationManager';
-import Routes from '../../../constants/navigation/Routes';
-import { useStyles } from '../../../component-library/hooks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { strings } from '../../../../locales/i18n';
-import { selectEvmChainId } from '../../../selectors/networkController';
+import Engine from '../../../../../core/Engine';
+import NotificationManager from '../../../../../core/NotificationManager';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useStyles } from '../../../../../component-library/hooks';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { strings } from '../../../../../../locales/i18n';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
 import styleSheet from './AssetOptions.styles';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import Logger from '../../../util/Logger';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
-import { getDecimalChainId } from '../../../util/networks';
-import { isPortfolioUrl } from '../../../util/url';
-import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
+import { selectTokenList } from '../../../../../selectors/tokenListController';
+import Logger from '../../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import AppConstants from '../../../../../core/AppConstants';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { isPortfolioUrl } from '../../../../../util/url';
+import { BrowserTab, TokenI } from '../../../Tokens/types';
 import { CaipAssetType, Hex } from '@metamask/utils';
-import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
+import { useBuildPortfolioUrl } from '../../../../hooks/useBuildPortfolioUrl';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { removeNonEvmToken } from '../../UI/Tokens/util';
-import { toChecksumAddress, areAddressesEqual } from '../../../util/address';
-import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import useBlockExplorer from '../../hooks/useBlockExplorer';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { removeNonEvmToken } from '../../../Tokens/util';
+import {
+  toChecksumAddress,
+  areAddressesEqual,
+} from '../../../../../util/address';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import useBlockExplorer from '../../../../hooks/useBlockExplorer';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';

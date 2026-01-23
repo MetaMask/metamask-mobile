@@ -44,7 +44,7 @@ import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMe
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
 import DetectedTokens from '../../Views/DetectedTokens';
 import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
-import AssetOptions from '../../Views/AssetOptions';
+import AssetOptions from '../../UI/TokenDetails/components/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
