@@ -103,7 +103,7 @@ describe('Price Component', () => {
 
       // Name and ticker are rendered separately
       expect(getByText(mockProps.asset.name)).toBeTruthy();
-      expect(getByText(mockProps.asset.ticker)).toBeTruthy();
+      expect(getByText(mockProps.asset.ticker as string)).toBeTruthy();
     });
   });
 
