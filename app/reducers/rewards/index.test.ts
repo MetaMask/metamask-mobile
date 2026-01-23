@@ -57,6 +57,7 @@ describe('rewardsReducer', () => {
     referralCode: null,
     refereeCount: 0,
     referredByCode: null,
+    referralPoints: 0,
 
     currentTier: null,
     nextTier: null,
@@ -2013,6 +2014,7 @@ describe('rewardsReducer', () => {
         referralCode: 'TEST123',
         refereeCount: 10,
         referredByCode: null,
+        referralPoints: 100,
         currentTier: {
           id: 'tier-platinum',
           name: 'Platinum',
@@ -2114,6 +2116,7 @@ describe('rewardsReducer', () => {
         referralCode: 'PERSISTED123',
         refereeCount: 15,
         referredByCode: null,
+        referralPoints: 0,
         currentTier: {
           id: 'tier-diamond',
           name: 'Diamond',

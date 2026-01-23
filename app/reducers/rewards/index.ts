@@ -36,6 +36,7 @@ export interface RewardsState {
   referralCode: string | null;
   refereeCount: number;
   referredByCode: string | null;
+  referralPoints: number;
 
   // Season tier state
   currentTier: SeasonTierDto | null;
@@ -95,6 +96,7 @@ export const initialState: RewardsState = {
   referralCode: null,
   refereeCount: 0,
   referredByCode: null,
+  referralPoints: 0,
 
   currentTier: null,
   nextTier: null,
@@ -189,6 +191,7 @@ const rewardsSlice = createSlice({
         referralCode?: string;
         refereeCount?: number;
         referredByCode?: string;
+        referralPoints?: number;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -199,6 +202,9 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.referredByCode !== undefined) {
         state.referredByCode = action.payload.referredByCode;
+      }
+      if (action.payload.referralPoints !== undefined) {
+        state.referralPoints = action.payload.referralPoints;
       }
       state.referralDetailsLoading = false;
     },

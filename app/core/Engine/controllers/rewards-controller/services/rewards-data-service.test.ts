@@ -1582,6 +1582,7 @@ describe('RewardsDataService', () => {
       referralCode: 'TEST123',
       totalReferees: 5,
       referredByCode: 'REFERRER100',
+      referralPoints: 500,
     };
 
     beforeEach(() => {
@@ -3587,6 +3588,189 @@ describe('RewardsDataService', () => {
         subscriptionId: mockSubscriptionId,
         amount: '1000',
       } as LineaTokenRewardDto);
+    });
+  });
+
+  describe('applyReferralCode', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+    const mockToken = 'test-access-token';
+    const mockReferralCode = 'ABC123';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully apply referral code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyReferralCode(
+        { referralCode: mockReferralCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/subscriptions/apply-referral',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ referralCode: mockReferralCode }),
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+          credentials: 'omit',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should throw error for invalid referral code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({ message: 'Invalid referral code' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Invalid referral code');
+    });
+
+    it('should throw error when already referred by another user', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Already referred by another user' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Already referred by another user');
+    });
+
+    it('should throw error when using own referral code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest
+          .fn()
+          .mockResolvedValue({ message: 'Cannot use your own referral code' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Cannot use your own referral code');
+    });
+
+    it('should throw error with server message for other errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Internal server error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Internal server error');
+    });
+
+    it('should throw error with status code when no error message', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Apply referral code failed: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.applyReferralCode(
+          { referralCode: mockReferralCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyReferralCode(
+        { referralCode: mockReferralCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
     });
   });
 });

@@ -5249,6 +5249,7 @@ describe('RewardsController', () => {
         referralCode: 'REF456',
         totalReferees: 10,
         referredByCode: 'REFERRER200',
+        referralPoints: 500,
         lastFetched: recentTime,
       };
 
@@ -5298,6 +5299,7 @@ describe('RewardsController', () => {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
         referredByCode: 'REFERRER500',
+        referralPoints: 1000,
       };
 
       controller = new RewardsController({
@@ -5349,6 +5351,7 @@ describe('RewardsController', () => {
         referralCode: 'UPDATED789',
         totalReferees: 15,
         referredByCode: 'REFERRER300',
+        referralPoints: 750,
       };
 
       controller = new RewardsController({
@@ -7822,6 +7825,7 @@ describe('RewardsController', () => {
               referralCode: 'REF123',
               totalReferees: 5,
               referredByCode: 'REFERRER100',
+              referralPoints: 250,
               lastFetched: Date.now(),
             },
           },
