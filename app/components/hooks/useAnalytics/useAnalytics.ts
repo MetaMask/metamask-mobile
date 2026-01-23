@@ -1,15 +1,18 @@
-import { IUseMetricsHook } from './useMetrics.types';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useMemo } from 'react';
+import type { UseAnalyticsHook } from './useAnalytics.types';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetrics } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMemo } from 'react';
-import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
-import type { UserTraits } from '@segment/analytics-react-native';
 import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
 /**
  * Hook to use analytics
+ *
+ * Provides analytics utilities backed by the analytics helper to keep the
+ * existing hook API while migrating off MetaMetrics internals.
  *
  * The hook allows to track non-anonymous and anonymous events,
  * with properties and without properties,
@@ -23,20 +26,17 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * - The anonymous event includes sensitive properties so you can know **what** but not **who**
  * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
  *
- * @deprecated Use useAnalytics from
- * app/components/hooks/useAnalytics/useAnalytics to migrate
- * away from MetaMetrics.
- * @returns Analytics functions
+ * @returns Analytics functions compatible with the useMetrics API
  *
  * @example basic non-anonymous tracking with no properties:
- * const { trackEvent, createEventBuilder } = useMetrics();
+ * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.ONBOARDING_STARTED)
  *   .build()
  * );
  *
  * @example track with non-anonymous properties:
- * const { trackEvent, createEventBuilder } = useMetrics();
+ * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
  *   .addProperties({
@@ -47,14 +47,14 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * );
  *
  * @example track an anonymous event (without properties)
- * const { trackEvent, createEventBuilder } = useMetrics();
+ * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.SWAP_COMPLETED)
  *   .build()
  * )
  *
  * @example track an anonymous event with properties
- * const { trackEvent, createEventBuilder } = useMetrics();
+ * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.GAS_FEES_CHANGED)
  *   .addSensitiveProperties({ ...parameters })
@@ -62,7 +62,7 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * );
  *
  * @example track an event with both anonymous and non-anonymous properties
- * const { trackEvent, createEventBuilder } = useMetrics();
+ * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.MY_EVENT)
  *   .addProperties({ ...nonAnonymousParameters })
@@ -82,25 +82,22 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  *   getDeleteRegulationId,
  *   isDataRecorded,
  *   isEnabled,
- *   getMetaMetricsId,
- *   createEventBuilder,
- * } = useMetrics();
+ *   getAnalyticsId,
+ * } = useAnalytics();
  */
-const useMetrics = (): IUseMetricsHook =>
+export const useAnalytics = (): UseAnalyticsHook =>
   useMemo(
     () => ({
       trackEvent: (
-        event: ITrackingEvent,
+        event: AnalyticsTrackingEvent,
         saveDataRecording?: boolean,
       ): void => {
-        // Convert ITrackingEvent to AnalyticsTrackingEvent format
         const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
           .setSaveDataRecording(saveDataRecording ?? true)
           .build();
         analytics.trackEvent(analyticsEvent);
 
-        // Update data recording flag if needed
-        // TODO: Remove this call when data recording flag logic is migrated out of MetaMetrics
+        // Preserve data deletion behavior until MetaMetrics is fully removed.
         MetaMetrics.getInstance().updateDataRecordingFlag(
           analyticsEvent.saveDataRecording,
         );
@@ -112,23 +109,26 @@ const useMetrics = (): IUseMetricsHook =>
           await analytics.optIn();
         }
       },
-      addTraitsToUser: async (userTraits: UserTraits): Promise<void> => {
-        analytics.identify(userTraits as unknown as AnalyticsUserTraits);
+      addTraitsToUser: async (
+        userTraits: AnalyticsUserTraits,
+      ): Promise<void> => {
+        analytics.identify(userTraits);
       },
-      createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
-      checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
-      getDeleteRegulationCreationDate:
-        MetaMetrics.getInstance().getDeleteRegulationCreationDate,
-      getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
-      isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
+      createDataDeletionTask: () =>
+        MetaMetrics.getInstance().createDataDeletionTask(),
+      checkDataDeleteStatus: () =>
+        MetaMetrics.getInstance().checkDataDeleteStatus(),
+      getDeleteRegulationCreationDate: () =>
+        MetaMetrics.getInstance().getDeleteRegulationCreationDate(),
+      getDeleteRegulationId: () =>
+        MetaMetrics.getInstance().getDeleteRegulationId(),
+      isDataRecorded: () => MetaMetrics.getInstance().isDataRecorded(),
       isEnabled: (): boolean => analytics.isEnabled(),
-      getMetaMetricsId: async (): Promise<string | undefined> => {
+      getAnalyticsId: async (): Promise<string | undefined> => {
         const id = await analytics.getAnalyticsId();
         return id;
       },
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     }),
     [],
   );
-
-export default useMetrics;
