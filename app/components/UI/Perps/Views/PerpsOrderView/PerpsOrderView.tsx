@@ -796,6 +796,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [isInputFocused]);
 
   // Track deposit status and execute order when funds arrive
+  // This hook listens to TransactionController messenger events to detect:
+  // - Transaction approval (shows "depositing" toast)
+  // - Balance changes (detects when funds arrive)
+  // - Transaction failures (shows error toast)
+  // When funds arrive, it automatically calls onDepositComplete to place the order
   const { handleDepositConfirm } = usePerpsOrderDepositTracking({
     onDepositComplete: () => {
       // Place order after deposit completes
@@ -804,11 +809,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     activeTransactionMeta,
   });
 
-  // Setup transaction confirmation for deposit (no navigation, uses callback)
-  // Only works when activeTransactionMeta exists
+  // Setup transaction confirmation for deposit
+  // Navigation is handled by useTransactionConfirm based on transaction origin
+  // (transactions created via addTransaction with origin 'metamask' don't navigate)
+  // Deposit completion is handled by usePerpsOrderDepositTracking via messenger events
   const { onConfirm: onDepositConfirm } = useTransactionConfirm({
     skipNavigation: true,
-    onConfirmCallback: handleDepositConfirm,
   });
 
   const handlePlaceOrder = useCallback(async () => {
@@ -825,7 +831,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       hasCustomTokenSelected;
 
     if (needsDeposit) {
-      // Deposit first, then order will be placed automatically via handleDepositConfirm callback
+      // Deposit first, then order will be placed automatically when funds arrive
       if (marginRequired === undefined || marginRequired === null) {
         return;
       }
@@ -834,6 +840,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         console.error('No active transaction to confirm');
         return;
       }
+
+      // Show deposit toast and set up tracking before confirming
+      handleDepositConfirm(activeTransactionMeta);
 
       await onDepositConfirm();
       return;
@@ -1041,6 +1050,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     activeTransactionMeta,
     hasCustomTokenSelected,
     onDepositConfirm,
+    handleDepositConfirm,
   ]);
 
   // Store handlePlaceOrder in ref so it can be called from deposit callback
