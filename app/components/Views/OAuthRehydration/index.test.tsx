@@ -746,7 +746,7 @@ describe('OAuthRehydration', () => {
     it('does not track REHYDRATION_PASSWORD_FAILED when Android biometric is cancelled', async () => {
       // Arrange
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Error: Cancel'),
+        new Error('Cancel'),
       );
       mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
