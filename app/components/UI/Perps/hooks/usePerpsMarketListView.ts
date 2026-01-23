@@ -206,14 +206,18 @@ export const usePerpsMarketListView = ({
 
   // Use sorting hook for sort state and sorting logic
   const sortingHook = usePerpsSorting({
-    initialOptionId: savedSortPreference,
+    initialOptionId: savedSortPreference.optionId,
+    initialDirection: savedSortPreference.direction,
   });
 
   // Wrap handleOptionChange to save preference to PerpsController
   const handleOptionChange = useCallback(
     (optionId: SortOptionId, field: SortField, direction: SortDirection) => {
       // Save preference to controller
-      Engine.context.PerpsController.saveMarketFilterPreferences(optionId);
+      Engine.context.PerpsController.saveMarketFilterPreferences(
+        optionId,
+        direction,
+      );
       // Update local state
       sortingHook.handleOptionChange(optionId, field, direction);
     },

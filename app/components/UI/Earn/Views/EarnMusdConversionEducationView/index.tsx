@@ -180,7 +180,7 @@ const EarnMusdConversionEducationView = () => {
     // Do not remove the top edge as this screen does not have a navbar set in the route options.
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.content}>
-        <Text style={styles.heading} numberOfLines={3} adjustsFontSizeToFit>
+        <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,
           })}
