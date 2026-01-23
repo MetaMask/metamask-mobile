@@ -104,7 +104,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             </Text>
           </Box>
 
-          <PredictShareButton marketId={market.id} />
+          <PredictShareButton marketId={market.id} marketSlug={market.slug} />
         </Box>
 
         <ScrollView
