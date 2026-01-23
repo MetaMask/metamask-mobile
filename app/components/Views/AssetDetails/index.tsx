@@ -508,6 +508,8 @@ const AssetDetailsContainer = (props: Props) => {
         aggregators: asset.aggregators || [],
         name: asset.name,
         image: asset.image,
+        isNative: asset.isNative,
+        isETH: asset.isETH,
         // Add other required fields with defaults
         isERC721: false,
       } as TokenType;
