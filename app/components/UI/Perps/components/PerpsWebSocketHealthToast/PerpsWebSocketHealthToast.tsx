@@ -132,7 +132,10 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
         }
       });
     }
-  }, [isVisible, slideAnim, opacityAnim, shouldRender]);
+    // Note: shouldRender is intentionally excluded from deps to prevent animation restart.
+    // We only want to react to isVisible changes - shouldRender is internal lifecycle state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, slideAnim, opacityAnim]);
 
   // Auto-hide for success state
   useEffect(() => {

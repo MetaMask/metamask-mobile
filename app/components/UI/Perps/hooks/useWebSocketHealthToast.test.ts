@@ -40,6 +40,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Auto-retry delay constant (must match the one in the hook)
+const AUTO_RETRY_DELAY_MS = 10000;
+
 describe('useWebSocketHealthToast', () => {
   let mockUnsubscribe: jest.Mock;
   let connectionStateCallback: (
@@ -49,6 +52,7 @@ describe('useWebSocketHealthToast', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     mockUnsubscribe = jest.fn();
 
     // Default mock implementation
@@ -311,6 +315,147 @@ describe('useWebSocketHealthToast', () => {
       });
 
       expect(mockShow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Auto-retry behavior', () => {
+    it('should schedule auto-retry when entering DISCONNECTED state', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      // Initial: CONNECTED
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+      });
+
+      // Transition to DISCONNECTED
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+      });
+
+      // reconnect should not be called yet
+      expect(mockReconnect).not.toHaveBeenCalled();
+
+      // Advance timers by auto-retry delay
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS);
+      });
+
+      // reconnect should now be called
+      expect(mockReconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('should schedule auto-retry when initial state is DISCONNECTED', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      // Initial callback with DISCONNECTED state
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+      });
+
+      expect(mockReconnect).not.toHaveBeenCalled();
+
+      // Advance timers by auto-retry delay
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS);
+      });
+
+      expect(mockReconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cancel auto-retry when entering CONNECTING state', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      // Initial: CONNECTED
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+      });
+
+      // Transition to DISCONNECTED (schedules auto-retry)
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+      });
+
+      // Transition to CONNECTING (should cancel auto-retry)
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.CONNECTING, 2);
+      });
+
+      // Advance timers past auto-retry delay
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
+      });
+
+      // reconnect should NOT have been called (auto-retry was cancelled)
+      expect(mockReconnect).not.toHaveBeenCalled();
+    });
+
+    it('should cancel auto-retry when entering CONNECTED state', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      // Initial: DISCONNECTED (schedules auto-retry)
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+      });
+
+      // Transition to CONNECTED (should cancel auto-retry)
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.CONNECTED, 0);
+      });
+
+      // Advance timers past auto-retry delay
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
+      });
+
+      // reconnect should NOT have been called (auto-retry was cancelled)
+      expect(mockReconnect).not.toHaveBeenCalled();
+    });
+
+    it('should cancel auto-retry when manual retry is triggered', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      // Initial: DISCONNECTED (schedules auto-retry)
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+      });
+
+      // Get the retry callback and invoke it (manual retry)
+      const retryCallback = mockSetOnRetry.mock.calls[0][0];
+      act(() => {
+        retryCallback();
+      });
+
+      // Manual retry should have called reconnect
+      expect(mockReconnect).toHaveBeenCalledTimes(1);
+      mockReconnect.mockClear();
+
+      // Advance timers past auto-retry delay
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
+      });
+
+      // reconnect should NOT have been called again (auto-retry was cancelled by manual retry)
+      expect(mockReconnect).not.toHaveBeenCalled();
+    });
+
+    it('should cancel auto-retry on unmount', () => {
+      const { unmount } = renderHook(() => useWebSocketHealthToast());
+
+      // Initial: DISCONNECTED (schedules auto-retry)
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.DISCONNECTED, 1);
+      });
+
+      // Unmount
+      unmount();
+
+      // Advance timers past auto-retry delay
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
+      });
+
+      // reconnect should NOT have been called (auto-retry was cancelled on unmount)
+      expect(mockReconnect).not.toHaveBeenCalled();
     });
   });
 });
