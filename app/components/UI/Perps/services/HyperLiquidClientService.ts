@@ -61,6 +61,8 @@ export class HyperLiquidClientService {
   private readonly connectionStateListeners: Set<
     (state: WebSocketConnectionState, reconnectionAttempt: number) => void
   > = new Set();
+  // Timeout reference for reconnection retry, tracked to enable cancellation on disconnect
+  private reconnectionRetryTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Platform dependencies for logging
   private readonly deps: IPerpsPlatformDependencies;
@@ -659,6 +661,15 @@ export class HyperLiquidClientService {
       this.onReconnectCallback = undefined;
       this.onTerminateCallback = null;
 
+      // Cancel any pending reconnection retry timeout
+      if (this.reconnectionRetryTimeout) {
+        clearTimeout(this.reconnectionRetryTimeout);
+        this.reconnectionRetryTimeout = null;
+      }
+
+      // Clear connection state listeners to prevent stale callbacks
+      this.connectionStateListeners.clear();
+
       // Reset reconnection flag to allow future manual retries
       // This prevents a race condition where disconnecting during an active
       // reconnection attempt could leave the flag stuck, blocking subsequent retries
@@ -900,8 +911,9 @@ export class HyperLiquidClientService {
 
       // Reconnection failed - schedule a retry after a delay
       // Stay in CONNECTING state to indicate we're still trying
-      // Retry after 5 seconds
-      setTimeout(() => {
+      // Store timeout reference so it can be cancelled on intentional disconnect
+      this.reconnectionRetryTimeout = setTimeout(() => {
+        this.reconnectionRetryTimeout = null; // Clear reference after execution
         // Only retry if we haven't been intentionally disconnected
         if (
           this.connectionState === WebSocketConnectionState.CONNECTING &&
@@ -909,7 +921,7 @@ export class HyperLiquidClientService {
         ) {
           this.handleConnectionDrop();
         }
-      }, 5_000);
+      }, PERPS_CONSTANTS.RECONNECTION_RETRY_DELAY_MS);
     }
   }
 }
