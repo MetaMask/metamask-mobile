@@ -126,12 +126,23 @@ export const APP_CONFIG = {
    */
   critical: {
     /** Exact file names that are critical (checked with file.includes(file)) */
-    files: ['package.json'],
+    files: [
+      'package.json',
+      'metro.config.js',
+      'babel.config.js',
+      '.detoxrc.js',
+    ],
 
     /** Keywords that indicate critical files (checked with file.includes(keyword)) */
     keywords: ['Controller', 'Engine'],
 
     /** Path segments that indicate critical areas (checked with file.includes(path)) */
-    paths: ['app/core/', 'e2e/framework/', 'e2e/api-mocking/', 'e2e/fixtures/'],
+    paths: [
+      'app/core/',
+      'e2e/',
+      'tests/',
+      '.github/workflows/',
+      '.github/actions/',
+    ],
   },
 };

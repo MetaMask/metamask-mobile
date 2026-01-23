@@ -1,5 +1,5 @@
-import { Platform } from './framework/types';
-import { defineConfig } from './framework/config';
+import { Platform } from '../tests/framework/types';
+import { defineConfig } from '../tests/framework/config';
 
 export default defineConfig({
   testDir: './tests',

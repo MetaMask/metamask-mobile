@@ -1,6 +1,6 @@
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import Utilities from '../../framework/Utilities';
+import Gestures from '../../../tests/framework/Gestures';
+import Matchers from '../../../tests/framework/Matchers';
+import Utilities from '../../../tests/framework/Utilities';
 import {
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsTabViewSelectorsIDs,
