@@ -592,6 +592,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.ONBOARDING;
     case ACTIONS.PREDICT:
       return DeepLinkRoute.PREDICT;
+    case ACTIONS.SHIELD:
+      return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
     case ACTIONS.ENABLE_CARD_BUTTON:
