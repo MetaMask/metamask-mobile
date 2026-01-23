@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
@@ -28,9 +28,18 @@ export const useMerklClaim = ({
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const onTransactionConfirmedRef = useRef(onTransactionConfirmed);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Keep the callback ref updated
   onTransactionConfirmedRef.current = onTransactionConfirmed;
+
+  // Cleanup: abort any pending fetch on unmount
+  useEffect(
+    () => () => {
+      abortControllerRef.current?.abort();
+    },
+    [],
+  );
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -47,6 +56,11 @@ export const useMerklClaim = ({
       throw new Error(errorMessage);
     }
 
+    // Abort any previous in-flight request
+    abortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setIsClaiming(true);
     setError(null);
 
@@ -55,6 +69,7 @@ export const useMerklClaim = ({
       const rewardData = await fetchMerklRewardsForAsset(
         asset,
         selectedAddress,
+        abortController.signal,
       );
 
       if (!rewardData) {
@@ -143,6 +158,10 @@ export const useMerklClaim = ({
 
       return { txHash, transactionMeta };
     } catch (e) {
+      // Ignore AbortError - component unmounted or request was cancelled
+      if ((e as Error).name === 'AbortError') {
+        return undefined;
+      }
       const errorMessage = (e as Error).message;
       setError(errorMessage);
       // Only set isClaiming false on error (user rejected, etc)
