@@ -58,6 +58,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { pooledStakesData } = usePooledStakes(chainId);
 
   const { isStakingSupportedChain } = useStakingChain();
+  // TODO: Remove dead code as we are not using the legacy confirmations anymore
   const isStakingDepositRedesignedEnabled = true;
   const navigation = useNavigation();
 

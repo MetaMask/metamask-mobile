@@ -990,8 +990,14 @@ describe('EarnInputView', () => {
       expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+          screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
+          params: expect.objectContaining({
+            action: 'ALLOWANCE_INCREASE',
+            amountTokenMinimalUnit: '25000000',
+            annualRewardRate: '2.5%',
+            lendingProtocol: 'AAVE v3',
+          }),
         });
       });
     });
@@ -1065,8 +1071,14 @@ describe('EarnInputView', () => {
       expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+          screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
+          params: expect.objectContaining({
+            action: 'DEPOSIT',
+            amountTokenMinimalUnit: '25000000',
+            annualRewardRate: '2.5%',
+            lendingProtocol: 'AAVE v3',
+          }),
         });
       });
     });

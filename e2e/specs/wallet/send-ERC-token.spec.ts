@@ -15,7 +15,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/
 import { confirmationsRedesignedFeatureFlags } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { Mockttp } from 'mockttp';
-import { LocalNode } from '../../../tests/framework/types';
+import { LocalNode, TestSuiteParams } from '../../../tests/framework/types';
 import { AnvilPort } from '../../../tests/framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../tests/seeder/anvil-manager';
 
@@ -61,7 +61,7 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
           );
         },
       },
-      async ({ contractRegistry }) => {
+      async ({ contractRegistry }: TestSuiteParams) => {
         const hstAddress = await contractRegistry?.getContractAddress(
           SMART_CONTRACTS.HST,
         );

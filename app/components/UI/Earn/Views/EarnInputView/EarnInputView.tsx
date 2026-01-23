@@ -313,6 +313,7 @@ const EarnInputView = () => {
     ],
   );
 
+  // TODO: Remove dead code as we are not using the legacy confirmations anymore
   const isStakingDepositRedesignedEnabled = true;
 
   const handleLendingFlow = useCallback(async () => {

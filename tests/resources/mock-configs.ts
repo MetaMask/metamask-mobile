@@ -2,8 +2,8 @@
 import { defaultGanacheOptions } from '../framework/Constants.ts';
 import { CustomNetworks } from './networks.e2e';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;

@@ -33,6 +33,7 @@ import { EVM_SCOPE } from '../../../Earn/constants/networks';
 
 const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
+  // TODO: Remove dead code as we are not using the legacy confirmations anymore
   const isStakingDepositRedesignedEnabled = true;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
