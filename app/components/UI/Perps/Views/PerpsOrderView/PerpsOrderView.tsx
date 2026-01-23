@@ -55,7 +55,10 @@ import {
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
+import { useAutomaticTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
+import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -142,6 +145,7 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
+import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -196,6 +200,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     symbol: ARBITRUM_USDC.symbol,
     tokenAddress: ARBITRUM_USDC.address,
   });
+
+  useClearConfirmationOnBackSwipe();
+  // Disable automatic token selection - we want to show "Perps balance" by default
+  // User can explicitly select a token from the modal
+  useAutomaticTransactionPayToken({
+    disable: true, // Always disable auto-selection to show "Perps balance" by default
+    preferredToken: undefined,
+  });
+  useTransactionPayMetrics();
 
   const styles = createStyles(colors);
 
@@ -341,6 +354,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
     undefined,
   );
+  const [depositAmount, setDepositAmount] = useState<string>('');
 
   // Get available payment tokens and set default if none selected
   const paymentTokens = usePerpsPaymentTokens();
@@ -494,8 +508,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     positionSize,
   ]);
 
-
-  const { updatePositionTPSL } = usePerpsTrading();
+  const { updatePositionTPSL, depositWithConfirmation } = usePerpsTrading();
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -566,6 +579,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.type,
     orderForm.limitPrice,
   ]);
+
+  // Prefill deposit amount with margin value when available
+  useEffect(() => {
+    if (marginRequired !== undefined && marginRequired !== null) {
+      // Format margin to 2 decimal places for the input field
+      const formattedMargin = new BigNumber(marginRequired)
+        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+        .toString(10);
+      setDepositAmount(formattedMargin);
+    }
+    // Only depend on marginRequired and orderForm.amount
+    // depositAmount is intentionally excluded to avoid infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marginRequired, orderForm.amount]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
@@ -767,247 +794,291 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInputFocused]);
 
-  const { updatePendingAmount, updateTokenAmount } = useTransactionCustomAmount(
-    { currency: PERPS_CURRENCY },
-  );
+  const handlePlaceOrder = useCallback(async () => {
+    if (isSubmittingRef.current) {
+      return;
+    }
+    isSubmittingRef.current = true;
 
-  const { onConfirm } = useTransactionConfirm({
-    skipNavigation: true,
+    orderStartTimeRef.current = Date.now();
+
+    // Track Place Order button press with A/B test context
+    if (isButtonColorTestEnabled) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TAP,
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      });
+    }
+
+    try {
+      // Validation errors are shown in the UI
+      if (!orderValidation.isValid) {
+        const firstError = orderValidation.errors[0];
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            firstError,
+          ),
+        );
+
+        // Track validation failure as error encountered
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]: firstError,
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
+        });
+
+        isSubmittingRef.current = false; // Reset flag on early return
+        return;
+      }
+
+      // Check for cross-margin position (MetaMask only supports isolated margin)
+      if (currentMarketPosition?.leverage?.type === 'cross') {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            'Cross margin position detected',
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
+        });
+
+        isSubmittingRef.current = false;
+        return;
+      }
+
+      // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
+      // Always monitor both orders and positions because:
+      // - Market orders: Usually create positions immediately
+      // - Limit orders: Usually stay pending BUT can fill immediately in volatile markets
+      // Monitoring both ensures we route to the correct tab regardless of execution speed
+      const monitorOrders = true;
+      const monitorPositions = true;
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: navigationMarketData,
+          // Pass monitoring intent to destination screen for data-driven tab selection
+          monitoringIntent: {
+            asset: orderForm.asset,
+            monitorOrders,
+            monitorPositions,
+          },
+        },
+      });
+
+      const tpParams = orderForm.takeProfitPrice?.trim()
+        ? { takeProfitPrice: orderForm.takeProfitPrice }
+        : {};
+
+      const slParams = orderForm.stopLossPrice?.trim()
+        ? { stopLossPrice: orderForm.stopLossPrice }
+        : {};
+
+      // Execute order using the new hook
+      // Only include TP/SL if they have valid, non-empty values
+      //
+      // HYBRID APPROACH: Pass both USD amount (source of truth) and size (for backward compatibility)
+      // The provider will:
+      // 1. Validate price hasn't moved beyond maxSlippageBps
+      // 2. Recalculate size with fresh price from usdAmount
+      // 3. Use the recalculated size for order execution
+      const orderParams: OrderParams = {
+        symbol: orderForm.asset,
+        isBuy: orderForm.direction === 'long',
+        size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
+        orderType: orderForm.type,
+        currentPrice: assetData.price,
+        leverage: orderForm.leverage,
+        // USD as source of truth (hybrid approach)
+        usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
+        priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
+        maxSlippageBps:
+          orderForm.type === 'limit'
+            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
+            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
+        // Only add TP/SL/Limit if they are truthy and/or not empty strings
+        ...(orderForm.type === 'limit' && orderForm.limitPrice
+          ? { price: orderForm.limitPrice }
+          : {}),
+        ...tpParams,
+        ...slParams,
+        // Add tracking data for MetaMetrics events
+        trackingData: {
+          marginUsed: Number(marginRequired),
+          totalFee: feeResults.totalFee,
+          marketPrice: assetData.price,
+          metamaskFee: feeResults.metamaskFee,
+          metamaskFeeRate: feeResults.metamaskFeeRate,
+          feeDiscountPercentage: feeResults.feeDiscountPercentage,
+          estimatedPoints: feeResults.estimatedPoints,
+          inputMethod: inputMethodRef.current,
+          source,
+          // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
+          // Note: flip_position is tracked separately via TradingService.flipPosition
+          tradeAction: currentMarketPosition
+            ? 'increase_exposure'
+            : 'create_position',
+        },
+      };
+
+      // Check if TP/SL should be handled separately (for new positions or position flips)
+      const shouldHandleTPSLSeparately =
+        (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
+        ((!currentMarketPosition && orderForm.type === 'market') ||
+          (currentMarketPosition &&
+            willFlipPosition(currentMarketPosition, orderParams)));
+
+      if (shouldHandleTPSLSeparately) {
+        // Execute order without TP/SL first, then update position TP/SL
+        const orderWithoutTPSL = { ...orderParams };
+        delete orderWithoutTPSL.takeProfitPrice;
+        delete orderWithoutTPSL.stopLossPrice;
+
+        await executeOrder(orderWithoutTPSL);
+        await updatePositionTPSL({
+          symbol: orderForm.asset,
+          takeProfitPrice: orderForm.takeProfitPrice,
+          stopLossPrice: orderForm.stopLossPrice,
+        });
+      } else {
+        await executeOrder(orderParams);
+      }
+    } finally {
+      // Always reset submission flag
+      isSubmittingRef.current = false;
+    }
+  }, [
+    orderValidation.isValid,
+    orderValidation.errors,
+    track,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.type,
+    orderForm.leverage,
+    orderForm.limitPrice,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.amount,
+    positionSize,
+    assetData.price,
+    navigation,
+    navigationMarketData,
+    currentMarketPosition,
+    executeOrder,
+    showToast,
+    PerpsToastOptions.formValidation.orderForm,
+    updatePositionTPSL,
+    marginRequired,
+    feeResults.totalFee,
+    feeResults.metamaskFee,
+    feeResults.metamaskFeeRate,
+    feeResults.feeDiscountPercentage,
+    feeResults.estimatedPoints,
+    source,
+    isButtonColorTestEnabled,
+    buttonColorVariant,
+  ]);
+
+  // Track deposit status and execute order when funds arrive
+  const { handleDepositConfirm } = usePerpsOrderDepositTracking({
+    onDepositComplete: () => handlePlaceOrder(),
+    activeTransactionMeta,
   });
 
-  const handleDepositConfirm = useCallback(async () => {
+  // Setup transaction confirmation for deposit (no navigation, uses callback)
+  // Only works when activeTransactionMeta exists
+  const { onConfirm: onDepositConfirm } = useTransactionConfirm({
+    skipNavigation: true,
+    onConfirmCallback: handleDepositConfirm,
+  });
 
+  // Setup transaction custom amount for deposit
+  // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash
+  // We create the transaction in useEffect below when depositAmount is set
+
+  const { updatePendingAmount, amountHuman } = useTransactionCustomAmount({
+    currency: PERPS_CURRENCY,
+  });
+
+  // Get updateTokenAmountCallback directly for more control
+  const { updateTokenAmount: updateTokenAmountCallback } =
+    useUpdateTokenAmount();
+
+  // Create transaction when deposit section should be shown (when depositAmount is set)
+  useEffect(() => {
+    if (
+      isTradeWithAnyTokenEnabled &&
+      depositAmount &&
+      depositAmount.trim() !== '' &&
+      !activeTransactionMeta
+    ) {
+      // Create transaction with skipNavigation to avoid redirect
+      depositWithConfirmation(depositAmount, true).catch((error) => {
+        console.error('Failed to create deposit transaction:', error);
+      });
+    }
+  }, [
+    isTradeWithAnyTokenEnabled,
+    depositAmount,
+    activeTransactionMeta,
+    depositWithConfirmation,
+  ]);
+
+  // Set deposit amount when depositAmount changes (similar to PerpsInlineDeposit defaultValue)
+  useEffect(() => {
+    if (depositAmount && depositAmount.trim() !== '' && activeTransactionMeta) {
+      updatePendingAmount(depositAmount);
+    }
+  }, [depositAmount, activeTransactionMeta, updatePendingAmount]);
+
+  // Update token amount when amountHuman changes (after updatePendingAmount has updated it)
+  useEffect(() => {
+    if (
+      amountHuman &&
+      amountHuman !== '0' &&
+      depositAmount &&
+      depositAmount.trim() !== '' &&
+      activeTransactionMeta
+    ) {
+      updateTokenAmountCallback(amountHuman);
+    }
+  }, [
+    amountHuman,
+    depositAmount,
+    activeTransactionMeta,
+    updateTokenAmountCallback,
+  ]);
+
+  // Handle deposit confirmation - confirms existing transaction
+  const handleDepositConfirmPress = useCallback(async () => {
     if (marginRequired === undefined || marginRequired === null) {
       return;
     }
-    // Format margin to 2 decimal places for the input field
-    const formattedMargin = new BigNumber(marginRequired)
-      .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-      .toString(10);
 
+    if (!activeTransactionMeta) {
+      console.error('No active transaction to confirm');
+      return;
+    }
 
-    updatePendingAmount(formattedMargin)
-    updateTokenAmount();
-    await onConfirm();
-  }, [onConfirm, updatePendingAmount, updateTokenAmount, marginRequired]);
-
-  const handlePlaceOrder = useCallback(
-    async ({ fromDeposit = false }: { fromDeposit?: boolean } = {}) => {
-      if (fromDeposit && !hasCustomTokenSelected) {
-        showToast(PerpsToastOptions.orderManagement.payWithTokenRequired);
-        return;
-      }
-
-      if (isSubmittingRef.current) {
-        return;
-      }
-      isSubmittingRef.current = true;
-
-      orderStartTimeRef.current = Date.now();
-
-      // Track Place Order button press with A/B test context
-      if (isButtonColorTestEnabled) {
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TAP,
-          [PerpsEventProperties.ASSET]: orderForm.asset,
-          [PerpsEventProperties.DIRECTION]:
-            orderForm.direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-        });
-      }
-
-      try {
-        // Validation errors are shown in the UI
-        if (!orderValidation.isValid) {
-          const firstError = orderValidation.errors[0];
-          showToast(
-            PerpsToastOptions.formValidation.orderForm.validationError(
-              firstError,
-            ),
-          );
-
-          // Track validation failure as error encountered
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PerpsEventProperties.ERROR_TYPE]:
-              PerpsEventValues.ERROR_TYPE.VALIDATION,
-            [PerpsEventProperties.ERROR_MESSAGE]: firstError,
-            [PerpsEventProperties.SCREEN_NAME]:
-              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.TRADING,
-          });
-
-          isSubmittingRef.current = false; // Reset flag on early return
-          return;
-        }
-
-        // Check for cross-margin position (MetaMask only supports isolated margin)
-        if (currentMarketPosition?.leverage?.type === 'cross') {
-          navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-            screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
-          });
-
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PerpsEventProperties.ERROR_TYPE]:
-              PerpsEventValues.ERROR_TYPE.VALIDATION,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              'Cross margin position detected',
-            [PerpsEventProperties.SCREEN_NAME]:
-              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.TRADING,
-          });
-
-          isSubmittingRef.current = false;
-          return;
-        }
-
-        // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
-        // Always monitor both orders and positions because:
-        // - Market orders: Usually create positions immediately
-        // - Limit orders: Usually stay pending BUT can fill immediately in volatile markets
-        // Monitoring both ensures we route to the correct tab regardless of execution speed
-        const monitorOrders = true;
-        const monitorPositions = true;
-
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: navigationMarketData,
-            // Pass monitoring intent to destination screen for data-driven tab selection
-            monitoringIntent: {
-              asset: orderForm.asset,
-              monitorOrders,
-              monitorPositions,
-            },
-          },
-        });
-
-        const tpParams = orderForm.takeProfitPrice?.trim()
-          ? { takeProfitPrice: orderForm.takeProfitPrice }
-          : {};
-
-        const slParams = orderForm.stopLossPrice?.trim()
-          ? { stopLossPrice: orderForm.stopLossPrice }
-          : {};
-
-        // Execute order using the new hook
-        // Only include TP/SL if they have valid, non-empty values
-        //
-        // HYBRID APPROACH: Pass both USD amount (source of truth) and size (for backward compatibility)
-        // The provider will:
-        // 1. Validate price hasn't moved beyond maxSlippageBps
-        // 2. Recalculate size with fresh price from usdAmount
-        // 3. Use the recalculated size for order execution
-        const orderParams: OrderParams = {
-          symbol: orderForm.asset,
-          isBuy: orderForm.direction === 'long',
-          size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
-          orderType: orderForm.type,
-          currentPrice: assetData.price,
-          leverage: orderForm.leverage,
-          // USD as source of truth (hybrid approach)
-          usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
-          priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
-          maxSlippageBps:
-            orderForm.type === 'limit'
-              ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
-              : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
-          // Only add TP/SL/Limit if they are truthy and/or not empty strings
-          ...(orderForm.type === 'limit' && orderForm.limitPrice
-            ? { price: orderForm.limitPrice }
-            : {}),
-          ...tpParams,
-          ...slParams,
-          // Add tracking data for MetaMetrics events
-          trackingData: {
-            marginUsed: Number(marginRequired),
-            totalFee: feeResults.totalFee,
-            marketPrice: assetData.price,
-            metamaskFee: feeResults.metamaskFee,
-            metamaskFeeRate: feeResults.metamaskFeeRate,
-            feeDiscountPercentage: feeResults.feeDiscountPercentage,
-            estimatedPoints: feeResults.estimatedPoints,
-            inputMethod: inputMethodRef.current,
-            source,
-            // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
-            // Note: flip_position is tracked separately via TradingService.flipPosition
-            tradeAction: currentMarketPosition
-              ? 'increase_exposure'
-              : 'create_position',
-          },
-        };
-
-        // Check if TP/SL should be handled separately (for new positions or position flips)
-        const shouldHandleTPSLSeparately =
-          (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
-          ((!currentMarketPosition && orderForm.type === 'market') ||
-            (currentMarketPosition &&
-              willFlipPosition(currentMarketPosition, orderParams)));
-
-        if (shouldHandleTPSLSeparately) {
-          // Execute order without TP/SL first, then update position TP/SL
-          const orderWithoutTPSL = { ...orderParams };
-          delete orderWithoutTPSL.takeProfitPrice;
-          delete orderWithoutTPSL.stopLossPrice;
-
-          await executeOrder(orderWithoutTPSL);
-          await updatePositionTPSL({
-            symbol: orderForm.asset,
-            takeProfitPrice: orderForm.takeProfitPrice,
-            stopLossPrice: orderForm.stopLossPrice,
-          });
-        } else {
-          await executeOrder(orderParams);
-        }
-      } finally {
-        // Always reset submission flag
-        isSubmittingRef.current = false;
-      }
-    },
-    [
-      orderValidation.isValid,
-      orderValidation.errors,
-      track,
-      orderForm.asset,
-      orderForm.direction,
-      orderForm.type,
-      orderForm.leverage,
-      orderForm.limitPrice,
-      orderForm.takeProfitPrice,
-      orderForm.stopLossPrice,
-      orderForm.amount,
-      positionSize,
-      assetData.price,
-      navigation,
-      navigationMarketData,
-      currentMarketPosition,
-      executeOrder,
-      showToast,
-      PerpsToastOptions.formValidation.orderForm,
-      updatePositionTPSL,
-      marginRequired,
-      feeResults.totalFee,
-      feeResults.metamaskFee,
-      feeResults.metamaskFeeRate,
-      feeResults.feeDiscountPercentage,
-      feeResults.estimatedPoints,
-      source,
-      isButtonColorTestEnabled,
-      buttonColorVariant,
-      hasCustomTokenSelected,
-      PerpsToastOptions.orderManagement.payWithTokenRequired,
-    ],
-  );
-
-  // Track deposit status and execute order when funds arrive
-  usePerpsOrderDepositTracking({
-    onDepositComplete: () => handlePlaceOrder({ fromDeposit: true }),
-    activeTransactionMeta,
-  });
+    await onDepositConfirm();
+  }, [marginRequired, activeTransactionMeta, onDepositConfirm]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
   const handleTooltipPress = useCallback(
@@ -1036,16 +1107,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, {
-      asset: getPerpsDisplaySymbol(orderForm.asset),
-    });
+        asset: getPerpsDisplaySymbol(orderForm.asset),
+      });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
-    !isStopLossSafeFromLiquidation(
-      orderForm.stopLossPrice,
-      liquidationPrice,
-      orderForm.direction,
-    ),
+      !isStopLossSafeFromLiquidation(
+        orderForm.stopLossPrice,
+        liquidationPrice,
+        orderForm.direction,
+      ),
   );
 
   let rewardAnimationState = RewardAnimationState.Idle;
@@ -1176,10 +1247,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         color={TextColor.Default}
                       >
                         {orderForm.limitPrice !== undefined &&
-                          orderForm.limitPrice !== null
+                        orderForm.limitPrice !== null
                           ? formatPerpsFiat(orderForm.limitPrice, {
-                            ranges: PRICE_RANGES_UNIVERSAL,
-                          })
+                              ranges: PRICE_RANGES_UNIVERSAL,
+                            })
                           : 'Set price'}
                       </Text>
                     </ListItemColumn>
@@ -1275,8 +1346,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
-                })
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
@@ -1303,8 +1374,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                  })
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
@@ -1331,8 +1402,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !hasValidAmount || feeResults.isLoadingMetamaskFee
                   ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
                   : formatPerpsFiat(estimatedFees, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })
+                      ranges: PRICE_RANGES_MINIMAL_VIEW,
+                    })
               }
               variant={TextVariant.BodySM}
             />
@@ -1343,9 +1414,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             depositAmount.trim() !== '' &&
             activeTransactionMeta && (
               <View>
-                {hasCustomTokenSelected ? <PerpsDepositFees /> : null}
                 <PerpsPayRow
                   onCustomTokenSelected={handleCustomTokenSelected}
+                />
+                {hasCustomTokenSelected ? <PerpsDepositFees /> : null}
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  label={strings('perps.confirm')}
+                  onPress={handleDepositConfirmPress}
+                  testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
                 />
               </View>
             )}
@@ -1475,9 +1554,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               label={placeOrderLabel}
-              onPress={
-                hasCustomTokenSelected ? handleDepositConfirm : handlePlaceOrder
-              }
+              onPress={handlePlaceOrder}
               isDisabled={
                 !orderValidation.isValid ||
                 isPlacingOrder ||
@@ -1494,9 +1571,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   ? ButtonSemanticSeverity.Success
                   : ButtonSemanticSeverity.Danger
               }
-              onPress={
-                hasCustomTokenSelected ? handleDepositConfirm : handlePlaceOrder
-              }
+              onPress={handlePlaceOrder}
               isFullWidth
               size={ButtonSizeRNDesignSystem.Lg}
               isDisabled={
@@ -1622,11 +1697,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           data={
             selectedTooltip === 'fees'
               ? {
-                metamaskFeeRate: feeResults.metamaskFeeRate,
-                protocolFeeRate: feeResults.protocolFeeRate,
-                originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-                feeDiscountPercentage: feeResults.feeDiscountPercentage,
-              }
+                  metamaskFeeRate: feeResults.metamaskFeeRate,
+                  protocolFeeRate: feeResults.protocolFeeRate,
+                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                }
               : undefined
           }
         />
@@ -1652,11 +1727,11 @@ PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 // Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const activeTransactionMeta = useTransactionMetadataRequest();
   const { depositWithConfirmation } = usePerpsTrading();
-
-  useEffect(() => {
-    depositWithConfirmation();
-  }, [depositWithConfirmation]);
+  const isTradeWithAnyTokenEnabled = useSelector(
+    selectPerpsTradeWithAnyTokenEnabledFlag,
+  );
 
   // Get navigation params to pass to context provider
   const {
@@ -1667,6 +1742,31 @@ const PerpsOrderView: React.FC = () => {
     existingPosition,
     hideTPSL = false,
   } = route.params || {};
+
+  // Create transaction when needed (for deposit flow with trade with any token enabled)
+  useEffect(() => {
+    if (isTradeWithAnyTokenEnabled && !activeTransactionMeta) {
+      // Create transaction with skipNavigation to avoid redirect
+      // Amount will be set later when user enters deposit amount
+      depositWithConfirmation(undefined, true).catch((error) => {
+        // Silently handle error - transaction creation will be retried if needed
+        // eslint-disable-next-line no-console
+        console.error('Failed to create deposit transaction:', error);
+      });
+    }
+  }, [
+    isTradeWithAnyTokenEnabled,
+    activeTransactionMeta,
+    depositWithConfirmation,
+  ]);
+
+  // Don't render until transaction exists (if trade with any token is enabled)
+  // This prevents blank screen while transaction is being created
+  if (isTradeWithAnyTokenEnabled && !activeTransactionMeta) {
+    return null;
+  }
+
+  // If trade with any token is disabled, render normally without transaction requirement
 
   return (
     <PerpsOrderProvider

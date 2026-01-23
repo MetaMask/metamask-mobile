@@ -109,11 +109,12 @@ export function usePerpsTrading() {
   const depositWithConfirmation = useCallback(
     async (
       amount?: string,
+      skipNavigation?: boolean,
     ): Promise<{
       result: Promise<string>;
     }> => {
       const controller = Engine.context.PerpsController;
-      return controller.depositWithConfirmation(amount);
+      return controller.depositWithConfirmation(amount, skipNavigation);
     },
     [],
   );
