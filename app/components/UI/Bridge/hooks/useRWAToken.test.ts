@@ -25,6 +25,19 @@ const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
   ...overrides,
 });
 
+const mockRwaData = {
+  rwaData: {
+    market: {
+      nextOpen: '2024-01-01T20:00:00.000Z',
+      nextClose: '2024-01-01T11:00:00.000Z',
+    },
+    nextPause: {
+      start: '2024-01-01T09:00:00.000Z',
+      end: '2024-01-01T10:00:00.000Z',
+    },
+  } as BridgeToken['rwaData'],
+};
+
 describe('useRWAToken', () => {
   describe('isStockToken', () => {
     it('returns false when feature flag is disabled', () => {
@@ -82,19 +95,7 @@ describe('useRWAToken', () => {
       const { result } = renderHookWithProvider(() => useRWAToken(), {
         state: createState(false),
       });
-      const token = createToken({
-        rwaData: {
-          market: {
-            nextOpen: '2024-01-01T20:00:00.000Z',
-            nextClose: '2024-01-01T11:00:00.000Z',
-          },
-          nextPause: {
-            start: '2024-01-01T09:00:00.000Z',
-            end: '2024-01-01T10:00:00.000Z',
-          },
-        } as BridgeToken['rwaData'],
-      });
-
+      const token = createToken(mockRwaData);
       const isOpen = await result.current.isTokenTradingOpen(token);
 
       expect(isOpen).toBe(true);
@@ -105,7 +106,6 @@ describe('useRWAToken', () => {
         state: createState(true),
       });
       const token = createToken();
-
       const isOpen = await result.current.isTokenTradingOpen(token);
 
       expect(isOpen).toBe(true);
@@ -123,7 +123,6 @@ describe('useRWAToken', () => {
           },
         } as unknown as BridgeToken['rwaData'],
       });
-
       const isOpen = await result.current.isTokenTradingOpen(token);
 
       expect(isOpen).toBe(false);
@@ -143,7 +142,6 @@ describe('useRWAToken', () => {
           },
         } as BridgeToken['rwaData'],
       });
-
       const isOpen = await result.current.isTokenTradingOpen(token);
 
       expect(isOpen).toBe(false);
@@ -151,23 +149,11 @@ describe('useRWAToken', () => {
 
     it('returns true when market is open without pause window', async () => {
       jest.useFakeTimers();
-      jest.setSystemTime(new Date('2024-01-01T10:00:00.000Z'));
+      jest.setSystemTime(new Date('2024-01-01T08:00:00.000Z'));
       const { result } = renderHookWithProvider(() => useRWAToken(), {
         state: createState(true),
       });
-      const token = createToken({
-        rwaData: {
-          market: {
-            nextOpen: '2024-01-01T20:00:00.000Z',
-            nextClose: '2024-01-01T11:00:00.000Z',
-          },
-          nextPause: {
-            start: '2024-01-01T12:00:00.000Z',
-            end: '2024-01-01T13:00:00.000Z',
-          },
-        } as BridgeToken['rwaData'],
-      });
-
+      const token = createToken(mockRwaData);
       const isOpen = await result.current.isTokenTradingOpen(token);
 
       expect(isOpen).toBe(true);
@@ -175,23 +161,11 @@ describe('useRWAToken', () => {
 
     it('returns false when current time is inside pause window', async () => {
       jest.useFakeTimers();
-      jest.setSystemTime(new Date('2024-01-01T10:30:00.000Z'));
+      jest.setSystemTime(new Date('2024-01-01T09:30:00.000Z'));
       const { result } = renderHookWithProvider(() => useRWAToken(), {
         state: createState(true),
       });
-      const token = createToken({
-        rwaData: {
-          market: {
-            nextOpen: '2024-01-01T20:00:00.000Z',
-            nextClose: '2024-01-01T11:00:00.000Z',
-          },
-          nextPause: {
-            start: '2024-01-01T10:00:00.000Z',
-            end: '2024-01-01T11:00:00.000Z',
-          },
-        } as BridgeToken['rwaData'],
-      });
-
+      const token = createToken(mockRwaData);
       const isOpen = await result.current.isTokenTradingOpen(token);
 
       expect(isOpen).toBe(false);
@@ -205,17 +179,13 @@ describe('useRWAToken', () => {
       });
       const token = createToken({
         rwaData: {
-          market: {
-            nextOpen: '2024-01-01T20:00:00.000Z',
-            nextClose: '2024-01-01T11:00:00.000Z',
-          },
+          ...mockRwaData,
           nextPause: {
             start: null,
             end: '2024-01-01T11:00:00.000Z',
           },
         } as unknown as BridgeToken['rwaData'],
       });
-
       const isOpen = await result.current.isTokenTradingOpen(token);
 
       expect(isOpen).toBe(false);
