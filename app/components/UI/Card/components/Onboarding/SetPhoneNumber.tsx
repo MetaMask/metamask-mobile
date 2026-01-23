@@ -279,6 +279,8 @@ const SetPhoneNumber = () => {
               'card.card_onboarding.set_phone_number.phone_number_label',
             )}
             testID="set-phone-number-phone-number-input"
+            onSubmitEditing={handleContinue}
+            returnKeyType="done"
           />
         </Box>
       </Box>

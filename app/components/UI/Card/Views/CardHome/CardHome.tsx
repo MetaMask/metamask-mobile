@@ -9,6 +9,7 @@ import React, {
 import {
   ActivityIndicator,
   Alert,
+  Image,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
@@ -47,7 +48,7 @@ import {
   CardStatus,
   CardType,
   CardStateWarning,
-  CardWarningBoxType,
+  CardMessageBoxType,
 } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
@@ -71,11 +72,12 @@ import {
   clearAllCache,
   resetAuthenticatedData,
 } from '../../../../../core/redux/slices/card';
-import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import useLoadCardData from '../../hooks/useLoadCardData';
+import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
@@ -112,6 +114,14 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const {
+    fetchCardDetailsToken,
+    isLoading: isCardDetailsLoading,
+    isImageLoading: isCardDetailsImageLoading,
+    onImageLoad: onCardDetailsImageLoad,
+    imageUrl: cardDetailsImageUrl,
+    clearImageUrl: clearCardDetailsImageUrl,
+  } = useCardDetailsToken();
   const hasTrackedCardHomeView = useRef(false);
   const hasLoadedCardHomeView = useRef(false);
   const hasCompletedInitialFetchRef = useRef(false);
@@ -404,6 +414,68 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
+  const onCardDetailsImageError = useCallback(() => {
+    clearCardDetailsImageUrl();
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        { label: strings('card.card_home.view_card_details_error') },
+      ],
+      hasNoTimeout: false,
+      iconName: IconName.Warning,
+    });
+  }, [clearCardDetailsImageUrl, toastRef]);
+
+  const viewCardDetailsAction = useCallback(async () => {
+    if (isCardDetailsLoading || isCardDetailsImageLoading) {
+      return;
+    }
+
+    if (cardDetailsImageUrl) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            action: CardActions.HIDE_CARD_DETAILS_BUTTON,
+          })
+          .build(),
+      );
+      clearCardDetailsImageUrl();
+      return;
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VIEW_CARD_DETAILS_BUTTON,
+          card_type: cardDetails?.type,
+        })
+        .build(),
+    );
+
+    try {
+      await fetchCardDetailsToken(cardDetails?.type);
+    } catch {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.card_home.view_card_details_error') },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [
+    isCardDetailsLoading,
+    isCardDetailsImageLoading,
+    cardDetailsImageUrl,
+    clearCardDetailsImageUrl,
+    fetchCardDetailsToken,
+    toastRef,
+    cardDetails?.type,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   const cardSetupState = useMemo(() => {
     const needsSetup =
       isBaanxLoginEnabled &&
@@ -428,6 +500,19 @@ const CardHome = () => {
 
     return { needsSetup, canEnable, isKYCPending, setupTestId };
   }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
+
+  /**
+   * Check if the card is being provisioned.
+   * Show info box when: VERIFIED + has delegated assets + card not yet provisioned
+   */
+  const isCardProvisioning = useMemo(
+    () =>
+      isAuthenticated &&
+      kycStatus?.verificationState === 'VERIFIED' &&
+      warning === CardStateWarning.NoCard &&
+      (externalWalletDetailsData?.mappedWalletDetails?.length ?? 0) > 0,
+    [isAuthenticated, kycStatus, warning, externalWalletDetailsData],
+  );
 
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
@@ -697,8 +782,8 @@ const CardHome = () => {
         {strings('card.card_home.title')}
       </Text>
       {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
-        <CardWarningBox
-          warning={CardWarningBoxType.CloseSpendingLimit}
+        <CardMessageBox
+          messageType={CardMessageBoxType.CloseSpendingLimit}
           onConfirm={() => {
             navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
               flow: 'enable',
@@ -714,16 +799,51 @@ const CardHome = () => {
         />
       )}
       {cardSetupState.isKYCPending && (
-        <CardWarningBox warning={CardWarningBoxType.KYCPending} />
+        <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
+      )}
+      {isCardProvisioning && (
+        <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
       )}
       <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
-        <Box twClassName="w-full">
-          {isLoading ? (
-            <Skeleton
-              height={240}
-              width={'100%'}
-              style={tw.style('rounded-xl')}
-            />
+        <Box twClassName="w-full relative">
+          {isLoading || isCardDetailsLoading ? (
+            <Box
+              twClassName="w-full rounded-xl overflow-hidden"
+              style={{ aspectRatio: 851 / 540 }}
+            >
+              <Skeleton
+                height={'100%'}
+                width={'100%'}
+                style={tw.style('rounded-xl')}
+                testID={
+                  isCardDetailsLoading
+                    ? CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON
+                    : undefined
+                }
+              />
+            </Box>
+          ) : cardDetailsImageUrl ? (
+            <Box
+              twClassName="w-full rounded-xl overflow-hidden"
+              style={{ aspectRatio: 851 / 540 }}
+            >
+              {isCardDetailsImageLoading && (
+                <Skeleton
+                  height={'100%'}
+                  width={'100%'}
+                  style={tw.style('rounded-xl absolute inset-0 z-10')}
+                  testID={CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON}
+                />
+              )}
+              <Image
+                source={{ uri: cardDetailsImageUrl }}
+                style={tw.style('w-full h-full')}
+                resizeMode="cover"
+                onLoad={onCardDetailsImageLoad}
+                onError={onCardDetailsImageError}
+                testID={CardHomeSelectors.CARD_DETAILS_IMAGE}
+              />
+            </Box>
           ) : (
             <CardImage
               type={cardDetails?.type ?? CardType.VIRTUAL}
@@ -830,6 +950,20 @@ const CardHome = () => {
       </Box>
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
+        {isAuthenticated && !isLoading && cardDetails && (
+          <ManageCardListItem
+            title={strings(
+              cardDetailsImageUrl
+                ? 'card.card_home.manage_card_options.hide_card_details'
+                : 'card.card_home.manage_card_options.view_card_details',
+            )}
+            description={strings(
+              'card.card_home.manage_card_options.view_card_details_description',
+            )}
+            onPress={viewCardDetailsAction}
+            testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
+          />
+        )}
         {isBaanxLoginEnabled &&
           !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
             <ManageCardListItem
@@ -883,7 +1017,7 @@ const CardHome = () => {
           <TouchableOpacity
             onPress={logoutAction}
             testID={CardHomeSelectors.LOGOUT_ITEM}
-            style={tw.style('py-4 px-4')}
+            style={tw.style('py-4 px-4 mb-6')}
           >
             <Text
               variant={TextVariant.BodyMd}

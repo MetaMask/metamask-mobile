@@ -50,6 +50,9 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+// Bottom padding for tooltip modals to prevent close button overlapping with Swap button
+const TOOLTIP_BOTTOM_PADDING = 64;
+
 const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -169,6 +172,7 @@ const QuoteDetailsCard: React.FC = () => {
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
               iconName: IconName.Info,
+              bottomPadding: TOOLTIP_BOTTOM_PADDING,
             },
           }}
           value={{
@@ -198,6 +202,7 @@ const QuoteDetailsCard: React.FC = () => {
                   nativeToken: nativeTokenName,
                 }),
                 size: TooltipSizes.Sm,
+                bottomPadding: TOOLTIP_BOTTOM_PADDING,
                 iconName: IconName.Info,
               },
             }}
@@ -247,6 +252,7 @@ const QuoteDetailsCard: React.FC = () => {
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
+                bottomPadding: TOOLTIP_BOTTOM_PADDING,
               },
             }}
             value={{
@@ -271,6 +277,7 @@ const QuoteDetailsCard: React.FC = () => {
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
               iconName: IconName.Info,
+              bottomPadding: TOOLTIP_BOTTOM_PADDING,
             },
           }}
           value={{
@@ -310,6 +317,7 @@ const QuoteDetailsCard: React.FC = () => {
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
+                bottomPadding: TOOLTIP_BOTTOM_PADDING,
               },
             }}
             value={{
@@ -337,6 +345,7 @@ const QuoteDetailsCard: React.FC = () => {
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
+                bottomPadding: TOOLTIP_BOTTOM_PADDING,
               },
             }}
             value={{
@@ -369,6 +378,7 @@ const QuoteDetailsCard: React.FC = () => {
                   )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                   size: TooltipSizes.Sm,
                   iconName: IconName.Info,
+                  bottomPadding: TOOLTIP_BOTTOM_PADDING,
                 },
               }}
               value={{
@@ -406,6 +416,7 @@ const QuoteDetailsCard: React.FC = () => {
                     content: strings('bridge.points_error_content'),
                     size: TooltipSizes.Sm,
                     iconName: IconName.Info,
+                    bottomPadding: TOOLTIP_BOTTOM_PADDING,
                   },
                 }),
               }}

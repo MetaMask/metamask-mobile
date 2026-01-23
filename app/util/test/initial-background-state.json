@@ -513,7 +513,10 @@
       "mainnet": {},
       "testnet": {}
     },
-    "marketFilterPreferences": "volume",
+    "marketFilterPreferences": {
+      "optionId": "volume",
+      "direction": "desc"
+    },
     "hip3ConfigVersion": 0,
     "perpsBalances": {}
   },
