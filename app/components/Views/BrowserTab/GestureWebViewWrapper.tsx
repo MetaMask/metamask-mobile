@@ -51,8 +51,6 @@ export interface GestureWebViewWrapperProps {
   onReload: () => void;
   /** Shared value for scroll position from WebView */
   scrollY: SharedValue<number>;
-  /** Shared value for isAtTop state */
-  isAtTop: SharedValue<boolean>;
   /** Shared value for refresh state - set to false by parent when load completes */
   isRefreshing: SharedValue<boolean>;
   /** Children to wrap (WebView) */
@@ -80,7 +78,6 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   onGoForward,
   onReload,
   scrollY,
-  isAtTop,
   isRefreshing,
   children,
 }) => {
@@ -379,14 +376,19 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
 
   /**
    * Animated style for refresh indicator
+   * Uses scrollY directly for consistency with gesture activation logic
    */
-  const refreshIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: pullProgress.value * PULL_THRESHOLD - PULL_THRESHOLD },
-    ],
-    opacity: isAtTop.value ? pullProgress.value : 0,
-    display: isAtTop.value ? 'flex' : 'none',
-  }));
+  const refreshIndicatorStyle = useAnimatedStyle(() => {
+    // Use same condition as gesture logic for consistency
+    const atTop = scrollY.value <= SCROLL_TOP_THRESHOLD;
+    return {
+      transform: [
+        { translateY: pullProgress.value * PULL_THRESHOLD - PULL_THRESHOLD },
+      ],
+      opacity: atTop ? pullProgress.value : 0,
+      display: atTop ? 'flex' : 'none',
+    };
+  });
 
   // Expose onLoadComplete via a React context or imperative handle if needed
   // For now, we'll handle this through the parent component

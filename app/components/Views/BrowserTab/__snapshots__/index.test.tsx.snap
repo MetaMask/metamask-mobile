@@ -438,7 +438,7 @@ exports[`BrowserTab render Browser 1`] = `
                 "height": 80,
               },
               {
-                "display": "none",
+                "display": "flex",
                 "opacity": 0,
                 "transform": [
                   {

@@ -1,1 +1,0 @@
-setTimeout(() => setIsRefreshing(false), 1000);

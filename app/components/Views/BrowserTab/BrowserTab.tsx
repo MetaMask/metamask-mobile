@@ -68,7 +68,6 @@ import {
   OLD_HOMEPAGE_URL_HOST,
   NOTIFICATION_NAMES,
   MM_MIXPANEL_TOKEN,
-  SCROLL_TOP_THRESHOLD,
 } from './constants';
 import GestureWebViewWrapper from './GestureWebViewWrapper';
 import { regex } from '../../../../app/util/regex';
@@ -182,7 +181,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * These shared values are passed to the wrapper for scroll position tracking.
      */
     const scrollY = useSharedValue(0); // Current scroll position from WebView
-    const isAtTop = useSharedValue(false); // Tracks if WebView is scrolled to top
     const isRefreshing = useSharedValue(false); // Pull-to-refresh in progress
     const urlBarRef = useRef<BrowserUrlBarRef>(null);
     const autocompleteRef = useRef<UrlAutocompleteRef>(null);
@@ -835,6 +833,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }) => {
         if ('code' in nativeEvent) {
           // Handle error - code is a property of WebViewErrorEvent
+          // Reset pull-to-refresh state even on error to prevent it being stuck
+          isRefreshing.value = false;
           return handleError(nativeEvent);
         }
 
@@ -905,11 +905,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return;
         }
         if (dataParsed.type === 'SCROLL_POSITION') {
-          const scrollPosition = dataParsed.payload?.scrollY || 0;
-          scrollY.value = scrollPosition;
-          // Use threshold instead of exact 0 - Android WebView may report small non-zero values
-          // when at top due to content padding, headers, or floating-point precision
-          isAtTop.value = scrollPosition <= SCROLL_TOP_THRESHOLD;
+          // Update scroll position - gesture wrapper derives "at top" directly from this value
+          scrollY.value = dataParsed.payload?.scrollY || 0;
           return;
         }
         if (
@@ -1463,7 +1460,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                     onGoForward={goForward}
                     onReload={() => webviewRef.current?.reload?.()}
                     scrollY={scrollY}
-                    isAtTop={isAtTop}
                     isRefreshing={isRefreshing}
                   >
                     <View style={styles.webview}>
