@@ -1,4 +1,3 @@
-import { Mockttp } from 'mockttp';
 import FixtureBuilder from '../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
@@ -9,36 +8,8 @@ import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import { DappVariants } from '../tests/framework/Constants';
 import Assertions from '../tests/framework/Assertions';
-import { createRemoteFeatureFlagsMock } from '../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { setupMockRequest } from '../tests/api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../tests/api-mocking/mock-responses/feature-flags-mocks';
-
-// Priority higher than 999 to override the default setupRemoteFeatureFlagsMock
-const FEATURE_FLAG_OVERRIDE_PRIORITY = 1000;
-
-/**
- * Test-specific mock to disable the multichain accounts state 2 (BIP-44) feature flag.
- * This is necessary because tests using this helper rely on the legacy Solana account
- * creation flow (via Add Account UI), which is not available when BIP-44 is enabled.
- * With BIP-44 enabled, Solana accounts are automatically part of multichain account groups
- * and cannot be created separately through the UI.
- */
-const testSpecificMock = async (mockServer: Mockttp): Promise<void> => {
-  const { urlEndpoint, response, responseCode } = createRemoteFeatureFlagsMock({
-    ...remoteFeatureMultichainAccountsAccountDetailsV2(false),
-  });
-
-  await setupMockRequest(
-    mockServer,
-    {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode,
-    },
-    FEATURE_FLAG_OVERRIDE_PRIORITY,
-  );
-};
 
 export async function withSolanaAccountEnabled(
   {
@@ -73,7 +44,12 @@ export async function withSolanaAccountEnabled(
         },
       ],
       restartDevice: true,
-      testSpecificMock,
+      testSpecificMock: async (mockServer) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          remoteFeatureMultichainAccountsAccountDetailsV2(true),
+        );
+      },
     },
     async () => {
       await TestHelpers.reverseServerPort();
