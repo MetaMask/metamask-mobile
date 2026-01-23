@@ -73,6 +73,7 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   ParamListBase,
   RouteProp,
@@ -290,18 +291,35 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
       if (isWrongPasswordError) {
         handlePasswordError(loginErrorMessage);
-        // return and skip capture error to sentry
         return;
-      } else if (containsErrorMessage(loginError, PASSCODE_NOT_SET_ERROR)) {
+      }
+
+      const isBiometricCancellation =
+        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        );
+
+      if (isBiometricCancellation) {
+        updateBiometryChoice(false);
+        setLoading(false);
+        return;
+      }
+
+      const isVaultCorruption =
+        containsErrorMessage(loginError, VAULT_ERROR) ||
+        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN);
+
+      const isSeedlessOnboardingControllerError =
+        loginError instanceof SeedlessOnboardingControllerError;
+
+      if (containsErrorMessage(loginError, PASSCODE_NOT_SET_ERROR)) {
         Alert.alert(
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
         );
-      } else if (
-        containsErrorMessage(loginError, VAULT_ERROR) ||
-        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
-      ) {
-        // Track vault corruption detected
+      } else if (isVaultCorruption) {
         trackVaultCorruption(loginErrorMessage, {
           error_type: containsErrorMessage(loginError, VAULT_ERROR)
             ? 'vault_error'
@@ -309,12 +327,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           context: 'login_authentication',
           oauth_login: false,
         });
-
         await handleVaultCorruption();
-      } else if (containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID)) {
-        updateBiometryChoice(false);
-      } else if (loginError instanceof SeedlessOnboardingControllerError) {
-        // Detected seedless onboarding error
+      } else if (isSeedlessOnboardingControllerError) {
+        // Detected seedless onboarding error. Defer to OAuthRehydration screen to handle subsequent log in attempts.
         navigation.replace(Routes.ONBOARDING.REHYDRATE, {
           isSeedlessPasswordOutdated: true,
         });

@@ -235,6 +235,11 @@ const createStyles = (colors: any) =>
       left: 0,
       right: 0,
     },
+    fixedBottomContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: colors.background.default,
+    },
   });
 
 export default createStyles;

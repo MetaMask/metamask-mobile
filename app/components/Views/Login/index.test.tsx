@@ -214,6 +214,39 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
+jest.mock('../../hooks/useMetrics', () => {
+  const ReactModule = jest.requireActual('react');
+  const mockMetrics = {
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    })),
+  };
+  return {
+    useMetrics: () => ({
+      trackEvent: jest.fn(),
+      isEnabled: jest.fn().mockReturnValue(true),
+      enable: jest.fn().mockResolvedValue(undefined),
+      addTraitsToUser: jest.fn(),
+      createEventBuilder: jest.fn(() => ({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      })),
+    }),
+    withMetricsAwareness:
+      <P extends Record<string, unknown>>(Component: React.ComponentType<P>) =>
+      (props: P) =>
+        ReactModule.createElement(Component, {
+          ...props,
+          metrics: mockMetrics,
+        }),
+    MetaMetricsEvents: jest.requireActual(
+      '../../../core/Analytics/MetaMetrics.events',
+    ).MetaMetricsEvents,
+  };
+});
+
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
   return {
@@ -290,6 +323,11 @@ describe('Login', () => {
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   it('renders matching snapshot', () => {
