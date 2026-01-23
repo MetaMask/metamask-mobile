@@ -94,6 +94,12 @@ export const usePerpsOrderDepositTracking = ({
     [account?.availableBalance, showToast, PerpsToastOptions],
   );
 
+  // Extract primitive values from activeTransactionMeta to avoid re-renders
+  // when the object reference changes but the data is the same
+  const activeTransactionId = activeTransactionMeta?.id;
+  const activeTransactionType = activeTransactionMeta?.type;
+  const activeTransactionStatus = activeTransactionMeta?.status;
+
   // Listen for deposit transaction submission (approved) and show toast
   useEffect(() => {
     // Listen for transaction approval (when user submits the deposit)
@@ -172,11 +178,12 @@ export const usePerpsOrderDepositTracking = ({
 
     // Check if there's already an approved transaction when effect runs
     if (
-      activeTransactionMeta?.type === TransactionType.perpsDeposit &&
-      activeTransactionMeta.status === TransactionStatus.approved &&
-      hasShownDepositToastRef.current !== activeTransactionMeta.id
+      activeTransactionType === TransactionType.perpsDeposit &&
+      activeTransactionStatus === TransactionStatus.approved &&
+      activeTransactionId &&
+      hasShownDepositToastRef.current !== activeTransactionId
     ) {
-      const transactionId = activeTransactionMeta.id;
+      const transactionId = activeTransactionId;
       expectingDepositRef.current = true;
       prevAvailableBalanceRef.current =
         account?.availableBalance?.toString() || '0';
@@ -209,7 +216,9 @@ export const usePerpsOrderDepositTracking = ({
       }
     };
   }, [
-    activeTransactionMeta,
+    activeTransactionId,
+    activeTransactionType,
+    activeTransactionStatus,
     account?.availableBalance,
     showToast,
     PerpsToastOptions,
