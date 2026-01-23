@@ -84,6 +84,17 @@ const mockUseMerklRewards = useMerklRewards as jest.MockedFunction<
   typeof useMerklRewards
 >;
 
+// Helper to create mock return value with all required properties
+const createMockUseMerklRewardsReturn = (
+  claimableReward: string | null,
+): ReturnType<typeof useMerklRewards> => ({
+  claimableReward,
+  isProcessingClaim: false,
+  refetch: jest.fn(),
+  clearReward: jest.fn(),
+  refetchWithRetry: jest.fn(),
+});
+
 const mockAsset: TokenI = {
   name: 'Angle Merkl',
   symbol: 'aglaMerkl',
@@ -106,9 +117,7 @@ describe('MerklRewards', () => {
 
   it('returns null when asset is not eligible', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(false);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: null,
-    });
+    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
 
     const { queryByTestId } = render(<MerklRewards asset={mockAsset} />);
 
@@ -117,9 +126,7 @@ describe('MerklRewards', () => {
 
   it('renders PendingMerklRewards when asset is eligible', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: null,
-    });
+    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
 
     const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
@@ -128,9 +135,7 @@ describe('MerklRewards', () => {
 
   it('renders ClaimMerklRewards when claimableReward is present', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: '1.5',
-    });
+    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn('1.5'));
 
     const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
@@ -140,9 +145,7 @@ describe('MerklRewards', () => {
 
   it('does not render ClaimMerklRewards when claimableReward is null', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: null,
-    });
+    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
 
     const { queryByTestId } = render(<MerklRewards asset={mockAsset} />);
 
@@ -151,9 +154,7 @@ describe('MerklRewards', () => {
 
   it('passes correct props to useMerklRewards hook', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: null,
-    });
+    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn(null));
 
     render(<MerklRewards asset={mockAsset} />);
 
@@ -164,9 +165,7 @@ describe('MerklRewards', () => {
 
   it('passes claimableReward to PendingMerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: '2.5',
-    });
+    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn('2.5'));
 
     const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
@@ -176,9 +175,7 @@ describe('MerklRewards', () => {
 
   it('passes asset to ClaimMerklRewards', () => {
     mockIsEligibleForMerklRewards.mockReturnValue(true);
-    mockUseMerklRewards.mockReturnValue({
-      claimableReward: '1.5',
-    });
+    mockUseMerklRewards.mockReturnValue(createMockUseMerklRewardsReturn('1.5'));
 
     const { getByTestId } = render(<MerklRewards asset={mockAsset} />);
 
