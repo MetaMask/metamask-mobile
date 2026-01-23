@@ -1,17 +1,17 @@
 import { Mockttp } from 'mockttp';
-import FixtureBuilder from './framework/fixtures/FixtureBuilder';
-import { withFixtures } from './framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../tests/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../tests/framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import { DappVariants } from './framework/Constants';
-import Assertions from './framework/Assertions';
-import { createRemoteFeatureFlagsMock } from './api-mocking/helpers/remoteFeatureFlagsHelper';
-import { setupMockRequest } from './api-mocking/helpers/mockHelpers';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from './api-mocking/mock-responses/feature-flags-mocks';
+import { DappVariants } from '../tests/framework/Constants';
+import Assertions from '../tests/framework/Assertions';
+import { createRemoteFeatureFlagsMock } from '../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { setupMockRequest } from '../tests/api-mocking/helpers/mockHelpers';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../tests/api-mocking/mock-responses/feature-flags-mocks';
 
 // Priority higher than 999 to override the default setupRemoteFeatureFlagsMock
 const FEATURE_FLAG_OVERRIDE_PRIORITY = 1000;

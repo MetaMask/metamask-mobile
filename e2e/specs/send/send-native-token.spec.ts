@@ -1,18 +1,21 @@
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../pages/Send/RedesignedSendView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
-import { Assertions } from '../../framework';
-import { DappVariants, LOCAL_NODE_RPC_URL } from '../../framework/Constants';
+import { Assertions } from '../../../tests/framework';
+import {
+  DappVariants,
+  LOCAL_NODE_RPC_URL,
+} from '../../../tests/framework/Constants';
 import { SmokeConfirmationsRedesigned } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode } from '../../framework/types';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagExtensionUxPna25 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import { LocalNode } from '../../../tests/framework/types';
+import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagExtensionUxPna25 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupMockRequest } from '../../../tests/api-mocking/helpers/mockHelpers';
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';

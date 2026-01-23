@@ -1,5 +1,5 @@
 import { RegressionWalletPlatform } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../../tests/framework/Assertions';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
 import ShareAddress from '../../pages/MultichainAccounts/ShareAddress';

@@ -1,7 +1,7 @@
 import { OnboardingSuccessSelectorIDs } from '../../app/components/Views/OnboardingSuccess/OnboardingSuccess.testIds';
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
 
 
