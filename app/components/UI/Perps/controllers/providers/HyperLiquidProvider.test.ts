@@ -1841,11 +1841,48 @@ describe('HyperLiquidProvider', () => {
       expect(mockWalletService.setTestnetMode).toHaveBeenCalled();
     });
 
+    it('awaits pending initialization before toggling testnet', async () => {
+      // Simulate pending initialization with immediate resolution
+      const initPromise = Promise.resolve();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (provider as any).initializationPromise = initPromise;
+
+      const result = await provider.toggleTestnet();
+
+      expect(result.success).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((provider as any).initializationPromise).toBeNull();
+    });
+
     it('disconnects successfully', async () => {
       const result = await provider.disconnect();
 
       expect(result.success).toBe(true);
       expect(mockClientService.disconnect).toHaveBeenCalled();
+    });
+
+    it('awaits pending initialization before disconnecting', async () => {
+      // Simulate pending initialization with immediate resolution
+      const initPromise = Promise.resolve();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (provider as any).initializationPromise = initPromise;
+
+      const result = await provider.disconnect();
+
+      expect(result.success).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((provider as any).clientsInitialized).toBe(false);
+    });
+
+    it('awaits pending ensureReady before disconnecting', async () => {
+      // Simulate pending ensureReady with immediate resolution
+      const readyPromise = Promise.resolve();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (provider as any).ensureReadyPromise = readyPromise;
+
+      const result = await provider.disconnect();
+
+      expect(result.success).toBe(true);
     });
 
     it('handles disconnect errors', async () => {
