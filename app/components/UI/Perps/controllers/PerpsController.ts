@@ -1311,6 +1311,30 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Get the currently active provider, returning null if not available
+   * Use this method when the caller can gracefully handle a missing provider
+   * (e.g., UI components during initialization or reconnection)
+   * @returns The active provider, or null if not initialized/reinitializing
+   */
+  getActiveProviderOrNull(): IPerpsProvider | null {
+    // Return null during reinitialization
+    if (this.isReinitializing) {
+      return null;
+    }
+
+    // Return null if not initialized
+    if (
+      this.state.initializationState !== InitializationState.INITIALIZED ||
+      !this.isInitialized
+    ) {
+      return null;
+    }
+
+    // Return the active provider instance or null if not found
+    return this.activeProviderInstance || null;
+  }
+
+  /**
    * Place a new order
    * Thin delegation to TradingService
    */
