@@ -240,6 +240,94 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Validate required environment variables
+        shell: bash
+        run: |
+          echo "🔍 Validating required environment variables..."
+          missing_vars=()
+
+          # Build tooling variables
+          tooling_vars=(
+            "EXPO_TOKEN"
+            "EXPO_PROJECT_ID"
+            "EXPO_CHANNEL"
+          )
+
+          # App config variables (bundled into JS)
+          app_config_vars=(
+            "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+            "FEATURES_ANNOUNCEMENTS_SPACE_ID"
+            "SEGMENT_WRITE_KEY"
+            "SEGMENT_PROXY_URL"
+            "SEGMENT_DELETE_API_SOURCE_ID"
+            "SEGMENT_REGULATIONS_ENDPOINT"
+            "MM_SENTRY_DSN"
+            "MM_SENTRY_AUTH_TOKEN"
+            "IOS_GOOGLE_CLIENT_ID"
+            "IOS_GOOGLE_REDIRECT_URI"
+            "ANDROID_APPLE_CLIENT_ID"
+            "ANDROID_GOOGLE_CLIENT_ID"
+            "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+            "GOOGLE_SERVICES_B64_IOS"
+            "GOOGLE_SERVICES_B64_ANDROID"
+            "MM_INFURA_PROJECT_ID"
+            "MM_BRANCH_KEY_LIVE"
+            "MM_BRANCH_KEY_TEST"
+            "MM_CARD_BAANX_API_CLIENT_KEY"
+            "WALLET_CONNECT_PROJECT_ID"
+            "MM_FOX_CODE"
+            "FCM_CONFIG_API_KEY"
+            "FCM_CONFIG_AUTH_DOMAIN"
+            "FCM_CONFIG_STORAGE_BUCKET"
+            "FCM_CONFIG_PROJECT_ID"
+            "FCM_CONFIG_MESSAGING_SENDER_ID"
+            "FCM_CONFIG_APP_ID"
+            "FCM_CONFIG_MEASUREMENT_ID"
+            "QUICKNODE_MAINNET_URL"
+            "QUICKNODE_ARBITRUM_URL"
+            "QUICKNODE_AVALANCHE_URL"
+            "QUICKNODE_BASE_URL"
+            "QUICKNODE_LINEA_MAINNET_URL"
+            "QUICKNODE_MONAD_URL"
+            "QUICKNODE_OPTIMISM_URL"
+            "QUICKNODE_POLYGON_URL"
+          )
+
+          # Check tooling variables
+          echo ""
+          echo "📦 Checking build tooling variables..."
+          for var in "${tooling_vars[@]}"; do
+            if [ -z "${!var}" ]; then
+              echo "  ❌ $var is NOT set"
+              missing_vars+=("$var")
+            else
+              echo "  ✅ $var is set"
+            fi
+          done
+
+          # Check app config variables
+          echo ""
+          echo "📱 Checking app config variables (bundled into JS)..."
+          for var in "${app_config_vars[@]}"; do
+            if [ -z "${!var}" ]; then
+              echo "  ❌ $var is NOT set"
+              missing_vars+=("$var")
+            else
+              echo "  ✅ $var is set"
+            fi
+          done
+
+          # Report results
+          echo ""
+          if [ ${#missing_vars[@]} -gt 0 ]; then
+            echo "::error title=Missing environment variables::The following required environment variables are not set: ${missing_vars[*]}"
+            echo ""
+            echo "❌ Validation failed. ${#missing_vars[@]} variable(s) missing."
+            exit 1
+          else
+            echo "✅ All required environment variables are set."
+          fi
+
       - name: Determine signing secret name
         shell: bash
         env:
