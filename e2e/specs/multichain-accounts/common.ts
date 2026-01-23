@@ -38,10 +38,10 @@ export const withMultichainAccountDetailsEnabledFixtures = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      remoteFeatureMultichainAccountsAccountDetails(),
-    );
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      ...remoteFeatureMultichainAccountsAccountDetails(),
+      ...remoteFeatureMultichainAccountsAccountDetailsV2(false),
+    });
   };
   return await withFixtures(
     {
