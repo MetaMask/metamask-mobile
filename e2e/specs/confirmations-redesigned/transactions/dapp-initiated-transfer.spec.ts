@@ -34,7 +34,7 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../tests/framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+import { AnvilManager } from '../../../../tests/seeder/anvil-manager';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',

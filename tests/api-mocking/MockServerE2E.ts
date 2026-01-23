@@ -20,7 +20,7 @@ import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from '../framework/Constants.ts';
-import { DEFAULT_ANVIL_PORT } from '../../e2e/seeder/anvil-manager.ts';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
 const logger = createLogger({
   name: 'MockServer',
