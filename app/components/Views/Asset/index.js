@@ -725,6 +725,7 @@ let cachedFilteredTransactions = null;
 let cacheKey = null;
 
 const mapStateToProps = (state, { route }) => {
+  console.log('XXXXX mapStateToProps', route);
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
   const asset = route.params;
