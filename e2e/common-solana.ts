@@ -47,7 +47,7 @@ export async function withSolanaAccountEnabled(
       testSpecificMock: async (mockServer) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          remoteFeatureMultichainAccountsAccountDetailsV2(false),
         );
       },
     },
