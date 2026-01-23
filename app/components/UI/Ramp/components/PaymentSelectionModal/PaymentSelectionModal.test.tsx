@@ -3,7 +3,6 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentSelectionModal from './PaymentSelectionModal';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import type { Provider } from '@metamask/ramps-controller';
 
 jest.mock('../../../../Base/RemoteImage', () => jest.fn(() => null));
 
@@ -35,15 +34,6 @@ const mockUseParams = jest.fn();
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
   useParams: () => mockUseParams(),
-}));
-
-const mockPreferredProvider: Provider | null = null;
-const mockUseRampsController = jest.fn(() => ({
-  preferredProvider: mockPreferredProvider,
-}));
-
-jest.mock('../../hooks/useRampsController', () => ({
-  useRampsController: () => mockUseRampsController(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -81,9 +71,6 @@ describe('PaymentSelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({});
-    mockUseRampsController.mockReturnValue({
-      preferredProvider: mockPreferredProvider,
-    });
   });
 
   it('renders correctly and matches snapshot', () => {
