@@ -24,11 +24,7 @@ import {
   getSupportedProviders,
   ProviderType,
 } from './providers';
-import {
-  loadSkills,
-  combineSkills,
-  listAvailableSkills,
-} from './utils/skill-loader';
+import { getSkillsMetadata } from './utils/skill-loader';
 
 /**
  * Validates provided files against actual git changes
@@ -66,7 +62,6 @@ function parseArgs(args: string[]): ParsedArgs {
   const options: ParsedArgs = {
     baseBranch: APP_CONFIG.defaultBaseBranch,
     mode: 'select-tags',
-    // skills:'risk-assessment' // by default use this skill.
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -101,15 +96,6 @@ function parseArgs(args: string[]): ParsedArgs {
       case '-p':
         options.provider = args[++i];
         break;
-      case '--skills':
-      case '-s': {
-        const additionalSkills = args[++i];
-        // Append to existing skills (don't replace)
-        options.skills = options.skills
-          ? `${options.skills},${additionalSkills}`
-          : additionalSkills;
-        break;
-      }
       case '--list-skills':
         options.listSkills = true;
         break;
@@ -159,10 +145,10 @@ Options:
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
   -p, --provider <provider>     Force specific provider (anthropic, openai, google)
-  -s, --skills <skills>         Add additional skills to defaults (comma-separated: skill1,skill2)
-  --no-auto-detect              Disable automatic skill detection
   --list-skills                 List all available skills
   -h, --help                    Show this help message
+
+Note: Skills are loaded on-demand by the AI agent during analysis.
 
 Output:
   - each mode defines its own output format
@@ -216,32 +202,6 @@ function getProviderOrder(forcedProvider?: ProviderType): ProviderType[] {
   return LLM_CONFIG.providerPriority;
 }
 
-/**
- * Load skills based on options
- *
- * Simple loading strategy:
- * 1. Parse comma-separated skill names from options.skills
- * 2. Load each skill from disk
- * 3. Combine into single prompt
- *
- * Default skill is set in parseArgs, CLI --skills appends to it.
- *
- * @param options - Parsed CLI arguments containing skills string
- * @returns Combined skill content string
- */
-async function loadSkillsForMode(options: ParsedArgs): Promise<string> {
-  if (!options.skills) {
-    console.log('⚠️  No skills specified, using empty prompt');
-    return '';
-  }
-
-  console.log('📋 Loading skills...');
-  const skillNames = options.skills.split(',').map((s) => s.trim());
-  const skills = await loadSkills(skillNames);
-
-  return combineSkills(skills);
-}
-
 async function main() {
   console.log('🤖 Starting E2E AI analysis...');
 
@@ -255,16 +215,21 @@ async function main() {
 
   // Handle --list-skills
   if (options.listSkills) {
-    const availableSkills = listAvailableSkills();
+    const skillsMetadata = await getSkillsMetadata();
     console.log('\n📚 Available Skills:\n');
-    if (availableSkills.length === 0) {
+    if (skillsMetadata.length === 0) {
       console.log('  No skills found in skills/ directory');
     } else {
-      availableSkills.forEach((skill) => {
-        console.log(`  - ${skill}`);
+      skillsMetadata.forEach((skill) => {
+        console.log(`  - ${skill.name}: ${skill.description}`);
+        if (skill.tools) {
+          console.log(`    Tools: ${skill.tools}`);
+        }
       });
     }
-    console.log('\nUse: --skills skill1, skill2 to add to defaults\n');
+    console.log(
+      '\nSkills are loaded on-demand by the AI agent during analysis.\n',
+    );
     process.exit(0);
   }
 
@@ -306,11 +271,12 @@ async function main() {
     console.log(`⚠️  ${criticalFiles.length} critical files detected`);
   }
 
-  // Load skills from options (default + CLI appended)
-  const skillContent = await loadSkillsForMode(options);
-  if (skillContent) {
-    console.log('Skills loaded\n');
-  }
+  // Load skill metadata (full content loaded on-demand by agent)
+  console.log('📋 Loading available skills...');
+  const availableSkills = await getSkillsMetadata();
+  console.log(
+    `   Found ${availableSkills.length} skills available for on-demand loading\n`,
+  );
 
   // Build analysis context
   const analysisContext: AnalysisContext = {
@@ -376,7 +342,7 @@ async function main() {
         criticalFiles,
         mode,
         analysisContext,
-        skillContent,
+        availableSkills,
       );
 
       // Success - output results and exit

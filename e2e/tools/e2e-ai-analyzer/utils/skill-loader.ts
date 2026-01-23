@@ -15,33 +15,7 @@ interface SkillQuality {
   score: number; // 0-100
 }
 
-/**
- * Load multiple skills by name
- *
- * @param skillNames - Array of skill names to load
- * @returns Array of loaded skills (skips missing skills with warning)
- */
-export async function loadSkills(skillNames: string[]): Promise<Skill[]> {
-  const skills: Skill[] = [];
-
-  for (const name of skillNames) {
-    const skill = await loadSingleSkill(name);
-    if (skill) {
-      // Validate structure (non-blocking)
-      const quality = assessSkillQuality(skill);
-
-      if (quality.warnings.length > 0) {
-        console.warn(`Skill '${name}' quality: ${quality.score}/100`);
-        quality.warnings.forEach((w) => console.warn(`     ${w}`));
-      }
-
-      skills.push(skill);
-      console.log(`✓ Loaded skill: ${name}`);
-    }
-  }
-
-  return skills;
-}
+// Removed loadSkills() - no longer used in on-demand skill loading pattern
 
 /**
  * Load a single skill from markdown file
@@ -58,9 +32,30 @@ async function loadSingleSkill(name: string): Promise<Skill | null> {
     const rawContent = await readFile(skillPath, 'utf-8');
     const { metadata, content } = parseSkillFile(rawContent, name);
 
-    return { name, metadata, content };
+    const skill = { name, metadata, content };
+
+    // Validate structure (non-blocking - warns but doesn't fail)
+    const quality = assessSkillQuality(skill);
+    if (quality.warnings.length > 0) {
+      console.warn(`   Skill '${name}' quality: ${quality.score}/100`);
+      quality.warnings.forEach((w) => console.warn(`     ${w}`));
+    }
+
+    return skill;
   } catch (error) {
-    console.warn(`Skill not found: ${name}`);
+    // Distinguish between file not found vs malformed
+    if (error instanceof Error) {
+      if ('code' in error && error.code === 'ENOENT') {
+        console.warn(`⚠️  Skill not found: ${name}`);
+        console.warn(`   Expected location: skills/${name}.md`);
+      } else {
+        console.warn(`⚠️  Skill '${name}' is malformatted and will be skipped`);
+        console.warn(`   Error: ${error.message}`);
+        console.warn(`   Continuing without this skill...`);
+      }
+    } else {
+      console.warn(`⚠️  Failed to load skill: ${name}`);
+    }
     return null;
   }
 }
@@ -160,14 +155,6 @@ function parseFrontmatter(yaml: string): SkillMetadata {
     metadata.tools = parsed.tools;
   }
 
-  if (typeof parsed.extends === 'string') {
-    metadata.extends = parsed.extends;
-  }
-
-  if (Array.isArray(parsed.includes)) {
-    metadata.includes = parsed.includes;
-  }
-
   return metadata;
 }
 
@@ -216,22 +203,6 @@ function assessSkillQuality(skill: Skill): SkillQuality {
 }
 
 /**
- * Combine multiple skills into one prompt section
- *
- * @param skills - Array of skills to combine
- * @returns Combined skill content as string
- */
-export function combineSkills(skills: Skill[]): string {
-  if (skills.length === 0) {
-    return '';
-  }
-
-  return skills
-    .map((s) => `# SKILL: ${s.name}\n\n${s.content}`)
-    .join('\n\n---\n\n');
-}
-
-/**
  * List all available skills in the skills directory
  *
  * @returns Array of skill names (without .md extension)
@@ -248,4 +219,40 @@ export function listAvailableSkills(): string[] {
   } catch (error) {
     return [];
   }
+}
+
+/**
+ * Get metadata for all available skills (without loading full content)
+ *
+ * Used to show agent what skills are available without loading full content.
+ *
+ * @returns Array of skill metadata
+ */
+export async function getSkillsMetadata(): Promise<SkillMetadata[]> {
+  const skillNames = listAvailableSkills();
+  const metadata: SkillMetadata[] = [];
+
+  for (const name of skillNames) {
+    try {
+      const skill = await loadSingleSkill(name);
+      if (skill) {
+        metadata.push(skill.metadata);
+      }
+    } catch (error) {
+      // Skip skills that fail to load
+      continue;
+    }
+  }
+
+  return metadata;
+}
+
+/**
+ * Load a single skill by name (exported for load_skill tool)
+ *
+ * @param name - Skill name
+ * @returns Loaded skill or null if not found
+ */
+export async function loadSkillByName(name: string): Promise<Skill | null> {
+  return loadSingleSkill(name);
 }

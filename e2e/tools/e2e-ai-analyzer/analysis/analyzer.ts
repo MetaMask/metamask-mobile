@@ -6,7 +6,7 @@
  * Provider-agnostic: works with Anthropic, OpenAI, or Google.
  */
 
-import { ToolInput, ModeAnalysisTypes } from '../types';
+import { ToolInput, ModeAnalysisTypes, SkillMetadata } from '../types';
 import { LLM_CONFIG } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool, ToolContext } from '../ai-tools/tool-executor';
@@ -31,13 +31,13 @@ import {
  * Mode Registry
  *
  * Each mode defines its handlers for processing and output.
- * Similar to main branch structure - handlers only, no skills config.
+ * systemPromptBuilder now takes availableSkills parameter for on-demand skill loading.
  */
 export const MODES = {
   'select-tags': {
     description: 'Analyze code changes and select E2E test tags to run',
     finalizeToolName: 'finalize_tag_selection',
-    systemPromptBuilder: buildSelectTagsSystemPrompt,
+    systemPromptBuilder: buildSelectTagsSystemPrompt, // Takes SkillMetadata[]
     taskPromptBuilder: buildSelectTagsTaskPrompt,
     processAnalysis: processSelectTagsAnalysis,
     createConservativeResult: createSelectTagsConservativeResult,
@@ -92,7 +92,7 @@ export interface AnalysisContext {
  * @param criticalFiles - List of critical files that need special attention
  * @param mode - The analysis mode to use
  * @param context - Analysis context (baseDir, baseBranch, prNumber, githubRepo)
- * @param skillContent - Combined skill content to append as additional context to system prompt
+ * @param availableSkills - Metadata for available skills (loaded on-demand via load_skill tool)
  */
 export async function analyzeWithAgent<M extends ModeKey>(
   provider: ILLMProvider,
@@ -100,16 +100,13 @@ export async function analyzeWithAgent<M extends ModeKey>(
   criticalFiles: string[],
   mode: M,
   context: AnalysisContext,
-  skillContent: string,
+  availableSkills: SkillMetadata[],
 ): Promise<ModeAnalysisResult<M>> {
   // Get mode configuration
   const modeConfig = MODES[mode];
 
-  // Build base system prompt and combine with skills
-  const baseSystemPrompt = modeConfig.systemPromptBuilder();
-  const systemPrompt = skillContent
-    ? `${baseSystemPrompt}\n\n# ADDITIONAL CONTEXT\n\n${skillContent}`
-    : baseSystemPrompt;
+  // Build system prompt with available skills metadata
+  const systemPrompt = modeConfig.systemPromptBuilder(availableSkills);
 
   // Build dynamic task prompt
   const taskPrompt = modeConfig.taskPromptBuilder(

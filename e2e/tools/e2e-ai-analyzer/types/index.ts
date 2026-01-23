@@ -9,8 +9,6 @@ export interface SkillMetadata {
   name: string;
   description: string;
   tools?: string;
-  extends?: string;
-  includes?: string[];
 }
 
 /**
@@ -39,7 +37,6 @@ export interface ParsedArgs {
   prNumber?: number;
   mode?: string;
   provider?: string;
-  skills?: string;
   listSkills?: boolean;
 }
 
@@ -62,6 +59,9 @@ export interface ToolInput {
   // grep_codebase
   pattern?: string;
   file_pattern?: string;
+
+  // load_skill
+  skill_name?: string;
 
   // finalize_tag_selection (select-tags mode)
   selected_tags?: string[];
