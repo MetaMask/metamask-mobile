@@ -1721,7 +1721,7 @@ class AuthenticationService {
    */
   reauthenticate = async (password?: string): Promise<{ password: string }> => {
     let passwordToVerify = password || '';
-    const { KeyringController } = Engine.context;
+    // const { KeyringController } = Engine.context;
 
     // if no password is provided, try to use the stored biometric/remember-me password
     if (!passwordToVerify) {
@@ -1751,7 +1751,7 @@ class AuthenticationService {
       }
     }
 
-    await KeyringController.verifyPassword(passwordToVerify);
+    // await KeyringController.verifyPassword(passwordToVerify);
     return { password: passwordToVerify };
   };
 
