@@ -124,13 +124,13 @@ module.exports = {
     /**
      * Extracts the major version from a SemVer-compatible version range.
      *
-     * @param {string} versionRange - The version range (e.g., "^10.0.0",
+     * @param {string} semVerVersionRange - The version range (e.g., "^10.0.0",
      * "10.2.3", ">=10.0.0").
      * @returns {number|null} The major version number, or `null` if it can't be
      * determined.
      */
-    function getMajorVersion(versionRange) {
-      const cleaned = versionRange.replace(/^[\^~>=<]+/, '');
+    function getMajorVersion(semVerVersionRange) {
+      const cleaned = semVerVersionRange.replace(/^[\^~>=<]+/, '');
       const match = cleaned.match(/^(\d+)/);
       return match ? parseInt(match[1], 10) : null;
     }
@@ -238,9 +238,12 @@ module.exports = {
       if (isPatchedDescriptor(rawDescriptorRange)) {
         const parsed = structUtils.parseRange(rawDescriptorRange);
         // `source` contains the original descriptor like "@<scope>/<name>@npm:<version>"
-        if (parsed.source) {
-          return extractVersionFromRange(parsed.source);
+        if (!parsed.source) {
+          throw new Error(
+            `Could not extract source from patch range: ${rawDescriptorRange}`,
+          );
         }
+        return extractVersionFromRange(parsed.source);
       }
 
       // `npm:<version>` or `npm:@<scope>/<name>@<version>`
