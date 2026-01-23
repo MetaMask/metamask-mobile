@@ -555,7 +555,7 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.SHIELD: {
-      // shield is only avaialble on extension atm, open shield website from in app browser
+      // shield is only available on extension for now, open shield website from in app browser
       handleBrowserUrl({
         url: SHIELD_WEBSITE_URL,
         callback: browserCallBack,
