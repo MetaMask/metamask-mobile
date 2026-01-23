@@ -145,7 +145,11 @@ const TrendingTokenTimeBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
     >
-      <HeaderCenter title={strings('trending.time')} onClose={handleClose} />
+      <HeaderCenter
+        title={strings('trending.time')}
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'close-button' }}
+      />
       <View style={optionStyles.optionsList}>
         <TouchableOpacity
           style={[

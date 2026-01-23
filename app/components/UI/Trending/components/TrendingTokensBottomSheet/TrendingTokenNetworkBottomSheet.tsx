@@ -120,6 +120,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       <HeaderCenter
         title={strings('trending.networks')}
         onClose={handleClose}
+        closeButtonProps={{ testID: 'close-button' }}
       />
       <ScrollView style={optionStyles.optionsList}>
         <Cell

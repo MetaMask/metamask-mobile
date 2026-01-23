@@ -155,7 +155,11 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
     >
-      <HeaderCenter title={strings('trending.sort_by')} onClose={handleClose} />
+      <HeaderCenter
+        title={strings('trending.sort_by')}
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'close-button' }}
+      />
       <View style={optionStyles.optionsList}>
         <TouchableOpacity
           style={[
