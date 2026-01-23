@@ -195,7 +195,7 @@ class AppInformation extends PureComponent {
 
   onSendSentryTestError = () => {
     captureException(
-      new Error('OTA update Sentry test error production 7.62.91 v1'),
+      new Error('OTA update Sentry test error production 7.62.91 v3'),
     );
   };
 
@@ -280,7 +280,7 @@ class AppInformation extends PureComponent {
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <TouchableOpacity onPress={this.onSendSentryTestError}>
             <Text style={styles.link}>
-              Send Sentry test error production v1
+              Send Sentry test error production v3
             </Text>
           </TouchableOpacity>
           <View style={styles.links}>
