@@ -35,6 +35,7 @@ export function getRampsControllerMessenger(
       'RampsService:getCountries',
       'RampsService:getTokens',
       'RampsService:getProviders',
+      'RampsService:getPaymentMethods',
     ],
     events: [],
   });
