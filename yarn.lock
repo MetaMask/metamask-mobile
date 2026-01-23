@@ -11343,7 +11343,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-async-storage/async-storage@npm:^1.24.0":
+"@react-native-async-storage/async-storage@npm:^1.17.7, @react-native-async-storage/async-storage@npm:^1.23.1":
   version: 1.24.0
   resolution: "@react-native-async-storage/async-storage@npm:1.24.0"
   dependencies:
