@@ -54,8 +54,8 @@ jest.mock('@react-navigation/native', () => ({
 
 const CHAIN_ID_MOCK = '0x123';
 
-function renderHook() {
-  return renderHookWithProvider(useTransactionConfirm, {
+function renderHook(options?: { skipNavigation?: boolean }) {
+  return renderHookWithProvider(() => useTransactionConfirm(options), {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -238,6 +238,27 @@ describe('useTransactionConfirm', () => {
     });
 
     expect(onApprovalConfirm).not.toHaveBeenCalled();
+  });
+
+  it('skips navigation when skipNavigation option is true', async () => {
+    const tryEnableEvmNetworkMock = jest.fn();
+
+    useNetworkEnablementMock.mockReturnValue({
+      tryEnableEvmNetwork: tryEnableEvmNetworkMock,
+    } as unknown as ReturnType<typeof useNetworkEnablement>);
+
+    const { result } = renderHook({ skipNavigation: true });
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+    await flushPromises();
+
+    expect(onApprovalConfirm).toHaveBeenCalled();
+    expect(resetTransactionMock).toHaveBeenCalled();
+    expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('returns false for chainSupportsSendBundle when chainId is undefined', async () => {

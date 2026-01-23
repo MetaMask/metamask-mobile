@@ -325,6 +325,64 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm',
+  () => ({
+    useTransactionConfirm: jest.fn(() => ({
+      onConfirm: jest.fn(),
+    })),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe',
+  () => ({
+    __esModule: true,
+    default: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(() => ({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  })),
+}));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken',
+  () => ({
+    useAutomaticTransactionPayToken: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics',
+  () => ({
+    useTransactionPayMetrics: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount',
+  () => ({
+    useTransactionCustomAmount: jest.fn(() => ({
+      customAmount: undefined,
+      setCustomAmount: jest.fn(),
+      clearCustomAmount: jest.fn(),
+    })),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount',
+  () => ({
+    useUpdateTokenAmount: jest.fn(() => ({
+      updateTokenAmount: jest.fn(),
+    })),
+  }),
+);
+
 // Mock tokensController selectors
 jest.mock('../../../../../selectors/tokensController', () => ({
   ...jest.requireActual('../../../../../selectors/tokensController'),
